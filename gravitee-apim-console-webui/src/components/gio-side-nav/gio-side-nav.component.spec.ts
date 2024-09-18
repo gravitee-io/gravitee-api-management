@@ -45,7 +45,7 @@ describe('GioSideNavComponent', () => {
   const expirationDateInOneYear = new Date();
   expirationDateInOneYear.setFullYear(expirationDateInOneYear.getFullYear() + 1);
 
-  const init = async (licenseNotificationEnabled = true, hasLicenseMgmtPermission = true) => {
+  const init = async (licenseNotificationEnabled = true, hasLicenseMgmtPermission = true, scoringEnabled = true) => {
     await TestBed.configureTestingModule({
       declarations: [GioSideNavComponent],
       imports: [NoopAnimationsModule, GioTestingModule, GioSideNavModule, MatIconTestingModule],
@@ -68,8 +68,19 @@ describe('GioSideNavComponent', () => {
           provide: Constants,
           useFactory: () => {
             const constants = CONSTANTS_TESTING;
-            constants.org.settings = { ...constants.org.settings, licenseExpirationNotification: { enabled: licenseNotificationEnabled } };
-            constants.org.environments = [{ id: 'DEFAULT', name: 'default', hrids: [], organizationId: 'organizationId' }];
+            constants.org.settings = {
+              ...constants.org.settings,
+              licenseExpirationNotification: { enabled: licenseNotificationEnabled },
+              scoring: { enabled: scoringEnabled },
+            };
+            constants.org.environments = [
+              {
+                id: 'DEFAULT',
+                name: 'default',
+                hrids: [],
+                organizationId: 'organizationId',
+              },
+            ];
 
             return constants;
           },
@@ -170,6 +181,28 @@ describe('GioSideNavComponent', () => {
           expect.objectContaining({ name: 'Settings', routerLink: expect.not.stringContaining('./') }),
         ]),
       );
+    });
+  });
+
+  describe('settings check', () => {
+    it('should hide scoring elements when feature is disabled', async () => {
+      await init(true, true, false);
+      expectLicense({ tier: '', features: [], packs: [], expiresAt: new Date() });
+
+      expect(fixture.componentInstance.mainMenuItems.find((item) => item.displayName === 'API Score')).toBeUndefined();
+    });
+
+    it('should show scoring elements when feature is enabled', async () => {
+      await init(true, true, true);
+      expectLicense({ tier: '', features: [], packs: [], expiresAt: new Date() });
+
+      expect(fixture.componentInstance.mainMenuItems.find((item) => item.displayName === 'API Score')).toEqual({
+        category: 'API Score',
+        displayName: 'API Score',
+        icon: 'gio:shield-check',
+        permissions: ['environment-integration-r'],
+        routerLink: './api-score',
+      });
     });
   });
 

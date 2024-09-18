@@ -157,13 +157,15 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       });
     }
 
-    mainMenuItems.push({
-      icon: 'gio:shield-check',
-      routerLink: './api-score',
-      displayName: 'API Score',
-      permissions: ['environment-integration-r'],
-      category: 'API Score',
-    });
+    if (this.constants.org.settings?.scoring?.enabled) {
+      mainMenuItems.push({
+        icon: 'gio:shield-check',
+        routerLink: './api-score',
+        displayName: 'API Score',
+        permissions: ['environment-integration-r'],
+        category: 'API Score',
+      });
+    }
 
     mainMenuItems.push(
       {
