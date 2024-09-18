@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.model.Path;
+import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
@@ -25,6 +26,7 @@ import io.gravitee.apim.core.member.model.MembershipReferenceType;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.infra.adapter.ApiCRDEntityAdapter;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.api.ApiCRDEntity;
 import io.gravitee.rest.api.model.api.ApiValidationResult;
 import io.gravitee.rest.api.service.ApiValidationService;
@@ -58,6 +60,22 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
     public ApiValidationResult<ApiCRDEntity> validateAndSanitizeApiDefinitionCRD(ExecutionContext executionContext, ApiCRDEntity api) {
         List<Validator.Error> errors = new ArrayList<>();
 
+        UserDetails authenticatedUser = getAuthenticatedUser();
+
+        AuditInfo auditInfo = AuditInfo
+            .builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(
+                AuditActor
+                    .builder()
+                    .userId(authenticatedUser.getUsername())
+                    .userSource(authenticatedUser.getSource())
+                    .userSourceId(authenticatedUser.getSourceId())
+                    .build()
+            )
+            .build();
+
         apiPathValidator
             .validateAndSanitize(new VerifyApiPathDomainService.Input(executionContext.getEnvironmentId(), api.getId(), extractPaths(api)))
             .peek(sanitized -> api.getProxy().setVirtualHosts(mapPaths(sanitized.paths())), errors::addAll);
@@ -69,7 +87,7 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
         validateCRDMembersDomainService
             .validateAndSanitize(
                 new ValidateCRDMembersDomainService.Input(
-                    executionContext.getOrganizationId(),
+                    auditInfo,
                     api.getId(),
                     MembershipReferenceType.API,
                     ApiCRDEntityAdapter.INSTANCE.toMemberCRDs(api.getMembers())
@@ -80,11 +98,7 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
         pagesValidator
             .validateAndSanitize(
                 new ValidatePagesDomainService.Input(
-                    AuditInfo
-                        .builder()
-                        .organizationId(executionContext.getOrganizationId())
-                        .environmentId(executionContext.getEnvironmentId())
-                        .build(),
+                    auditInfo,
                     api.getId(),
                     ApiCRDEntityAdapter.INSTANCE.toCoreApiCRDPages(api.getPagesMap())
                 )

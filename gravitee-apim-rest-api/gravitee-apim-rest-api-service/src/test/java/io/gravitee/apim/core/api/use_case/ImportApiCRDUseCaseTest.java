@@ -95,7 +95,6 @@ import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentation
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessControlsDomainService;
-import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -176,6 +175,7 @@ class ImportApiCRDUseCaseTest {
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
+    private static final String ACTOR_USER_ID = "actor-user-id";
     private static final String TAG = "tag1";
     private static final String GROUP_ID_1 = UuidString.generateRandom();
     private static final String GROUP_ID_2 = UuidString.generateRandom();
@@ -183,7 +183,7 @@ class ImportApiCRDUseCaseTest {
     private static final String USER_ENTITY_SOURCE = "gravitee";
     private static final String USER_ENTITY_SOURCE_ID = "jane.doe@gravitee.io";
 
-    private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
+    private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, ACTOR_USER_ID);
 
     PolicyValidationDomainService policyValidationDomainService = mock(PolicyValidationDomainService.class);
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
@@ -323,6 +323,13 @@ class ImportApiCRDUseCaseTest {
                     .sourceId(USER_ENTITY_SOURCE_ID)
                     .id(USER_ID)
                     .organizationId(ORGANIZATION_ID)
+                    .build(),
+                BaseUserEntity
+                    .builder()
+                    .source(USER_ENTITY_SOURCE)
+                    .sourceId(ACTOR_USER_ID)
+                    .id(ACTOR_USER_ID)
+                    .organizationId(ORGANIZATION_ID)
                     .build()
             )
         );
@@ -330,7 +337,7 @@ class ImportApiCRDUseCaseTest {
         var crdValidator = new ValidateApiCRDDomainService(
             new ValidateCategoryIdsDomainService(categoryQueryService),
             verifyApiPathDomainService,
-            new ValidateCRDMembersDomainService(userDomainService, roleQueryService, membershipQueryService),
+            new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
             new ValidateGroupsDomainService(groupQueryService),
             validateResourceDomainService,
             new ValidatePagesDomainService(pageSourceValidator, accessControlValidator, validationDomainService)
@@ -379,6 +386,14 @@ class ImportApiCRDUseCaseTest {
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
         givenExistingUsers(
             List.of(
+                BaseUserEntity
+                    .builder()
+                    .organizationId(ORGANIZATION_ID)
+                    .id(ACTOR_USER_ID)
+                    .source(USER_ENTITY_SOURCE)
+                    .sourceId(ACTOR_USER_ID)
+                    .email("devops@gravitee.io")
+                    .build(),
                 BaseUserEntity
                     .builder()
                     .organizationId(ORGANIZATION_ID)
@@ -487,8 +502,8 @@ class ImportApiCRDUseCaseTest {
                     .containsExactly(
                         new IndexableApi(
                             expected,
-                            new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                            Map.ofEntries(Map.entry("email-support", "jane.doe@gravitee.io")),
+                            new PrimaryOwnerEntity(ACTOR_USER_ID, "devops@gravitee.io", "devops@gravitee.io", PrimaryOwnerEntity.Type.USER),
+                            Map.ofEntries(Map.entry("email-support", "devops@gravitee.io")),
                             Collections.emptySet()
                         )
                     );

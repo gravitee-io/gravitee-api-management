@@ -41,7 +41,7 @@ class ValidateApiCRDDomainServiceTest {
 
     private static final String ORG_ID = "TEST";
     private static final String ENV_ID = "TEST";
-    private static final AuditInfo AUDIT_INFO = AuditInfo.builder().environmentId(ENV_ID).organizationId(ORG_ID).build();
+    private static final AuditInfo AUDIT_INFO = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
 
     ValidateCategoryIdsDomainService categoryIdsValidator = mock(ValidateCategoryIdsDomainService.class);
 
@@ -80,7 +80,7 @@ class ValidateApiCRDDomainServiceTest {
 
         when(
             membersValidator.validateAndSanitize(
-                new ValidateCRDMembersDomainService.Input(ORG_ID, spec.getId(), MembershipReferenceType.APPLICATION, any())
+                new ValidateCRDMembersDomainService.Input(AUDIT_INFO, spec.getId(), MembershipReferenceType.APPLICATION, any())
             )
         )
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));

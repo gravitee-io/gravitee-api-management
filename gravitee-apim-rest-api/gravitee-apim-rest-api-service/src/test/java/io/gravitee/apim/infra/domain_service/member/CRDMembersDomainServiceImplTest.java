@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.domain_service.member;
 
 import static org.mockito.Mockito.*;
 
+import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
@@ -49,7 +50,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CRDMembersDomainServiceImplTest {
 
-    private static final AuditInfo AUDIT_INFO = AuditInfo.builder().organizationId("test-org").environmentId("test-env").build();
+    private static final AuditInfo AUDIT_INFO = AuditInfo
+        .builder()
+        .actor(AuditActor.builder().userId("test").userSource("test").userSourceId("test").build())
+        .organizationId("test-org")
+        .environmentId("test-env")
+        .build();
 
     @Mock
     MembershipService membershipService;
@@ -129,6 +135,14 @@ class CRDMembersDomainServiceImplTest {
                     MembershipMemberType.USER,
                     "id-2",
                     "role-2"
+                );
+
+            verify(membershipService)
+                .transferApiOwnership(
+                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                    API_ID,
+                    new MembershipService.MembershipMember("test", null, MembershipMemberType.USER),
+                    List.of()
                 );
         }
 
