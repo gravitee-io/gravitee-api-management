@@ -30,7 +30,6 @@ import { PortalThemeComponent } from './portal-theme/portalTheme.component';
 import { ApiLoggingModule } from './api-logging/api-logging.module';
 import { DictionariesComponent } from './dictionaries/dictionaries.component';
 import { DictionaryComponent } from './dictionaries/dictionary.component';
-import { CustomUserFieldsComponent } from './custom-user-fields/custom-user-fields.component';
 import { EnvironmentNotificationModule } from './notification/environment-notification.module';
 import { ApiQualityRulesModule } from './api-quality-rules/api-quality-rules.module';
 import { ApiPortalHeaderModule } from './api-portal-header/api-portal-header.module';
@@ -38,7 +37,7 @@ import { IdentityProvidersModule } from './identity-providers/identity-providers
 import { PortalSettingsModule } from './portal-settings/portal-settings.module';
 import { TopApisModule } from './top-apis/top-apis.module';
 import { CategoriesModule } from './categories/categories.module';
-import { CustomUserFieldsModule } from './custom-user-fields/migrated/custom-user-fields-migrated.module';
+import { CustomUserFieldsModule } from './custom-user-fields/custom-user-fields.module';
 
 import { DocumentationModule } from '../../components/documentation/documentation.module';
 
@@ -71,7 +70,6 @@ import { DocumentationModule } from '../../components/documentation/documentatio
     PortalThemeComponent,
     DictionariesComponent,
     DictionaryComponent,
-    CustomUserFieldsComponent,
   ],
 })
 export class SettingsModule {}
