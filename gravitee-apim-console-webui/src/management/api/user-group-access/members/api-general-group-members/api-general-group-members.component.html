@@ -16,53 +16,72 @@
 
 -->
 <mat-card class="card">
-  <ng-container *ngIf="!canViewGroupMembers">
-    <mat-card-content>
-      <h3 class="title">Group {{ groupData.name }}</h3>
-      <p id="cannot-view-members">You do not have the appropriate permissions to view members of this group.</p>
-    </mat-card-content>
-  </ng-container>
-  <ng-container *ngIf="canViewGroupMembers">
-    <mat-card-content>
-      <div>
-        <h3>Group {{ groupData.name }} inherited members ({{ dataSourceGroup.memberTotalCount }})</h3>
-      </div>
-    </mat-card-content>
-    <gio-table-wrapper
-      [disableSearchInput]="true"
-      [length]="dataSourceGroup.memberTotalCount"
-      [filters]="filters"
-      (filtersChange)="onFiltersChanged($event)"
-      [paginationPageSizeOptions]="[5, 10, 25, 50]"
-    >
-      <table
-        mat-table
-        *ngIf="dataSourceGroup"
-        [dataSource]="dataSourceGroup.membersPageResult"
-        class="card__table"
-        [attr.aria-label]="'Group ' + groupData.name + ' members table'"
+  @if (dataSourceGroupVM) {
+    <ng-container *ngIf="!dataSourceGroupVM.canViewGroupMembers">
+      <mat-card-content>
+        <h3 class="title">Group {{ groupData.name }}</h3>
+        <p id="cannot-view-members">You do not have the appropriate permissions to view members of this group.</p>
+      </mat-card-content>
+    </ng-container>
+    <ng-container *ngIf="dataSourceGroupVM.canViewGroupMembers">
+      <mat-card-content>
+        <div>
+          <h3>Group {{ groupData.name }} inherited members ({{ dataSourceGroupVM.memberTotalCount }})</h3>
+        </div>
+      </mat-card-content>
+      <gio-table-wrapper
+        [disableSearchInput]="true"
+        [length]="dataSourceGroupVM.memberTotalCount"
+        [filters]="filters"
+        (filtersChange)="onFiltersChanged($event)"
+        [paginationPageSizeOptions]="[5, 10, 25, 50]"
       >
-        <ng-container matColumnDef="picture">
-          <th mat-header-cell *matHeaderCellDef></th>
-          <td mat-cell *matCellDef="let member">
-            <gio-avatar [src]="member.picture" [name]="member.displayName" [size]="24" [roundedBorder]="true"></gio-avatar>
-          </td>
-        </ng-container>
-        <ng-container matColumnDef="displayName">
-          <th mat-header-cell *matHeaderCellDef>Name</th>
-          <td mat-cell *matCellDef="let member" [class.primary-owner-name]="member.role === 'PRIMARY_OWNER'">
-            {{ member.displayName }}
-          </td>
-        </ng-container>
-        <ng-container matColumnDef="role">
-          <th mat-header-cell *matHeaderCellDef>Role</th>
-          <td mat-cell *matCellDef="let member">
-            {{ member.role }}
-          </td>
-        </ng-container>
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-      </table>
-    </gio-table-wrapper>
-  </ng-container>
+        <table
+          mat-table
+          [dataSource]="dataSourceGroupVM.membersPageResult"
+          class="card__table"
+          [attr.aria-label]="'Group ' + groupData.name + ' members table'"
+        >
+          <ng-container matColumnDef="picture">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let member">
+              <gio-avatar [src]="member.picture" [name]="member.displayName" [size]="24" [roundedBorder]="true"></gio-avatar>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="displayName">
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let member" [class.primary-owner-name]="member.role === 'PRIMARY_OWNER'">
+              {{ member.displayName }}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="role">
+            <th mat-header-cell *matHeaderCellDef>Role</th>
+            <td mat-cell *matCellDef="let member">
+              {{ member.role }}
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+          <!-- Row shown when there is no data -->
+          <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+            <td
+              *ngIf="!dataSourceGroupVM.isLoading && dataSourceGroupVM.membersPageResult.length === 0"
+              class="mat-mdc-cell mdc-data-table__cell"
+              [attr.colspan]="displayedColumns.length"
+            >
+              No member
+            </td>
+            <td
+              *ngIf="dataSourceGroupVM.isLoading"
+              class="mat-mdc-cell mdc-data-table__cell loader"
+              [attr.colspan]="displayedColumns.length"
+            >
+              <gio-loader></gio-loader>
+            </td>
+          </tr>
+        </table>
+      </gio-table-wrapper>
+    </ng-container>
+  }
 </mat-card>

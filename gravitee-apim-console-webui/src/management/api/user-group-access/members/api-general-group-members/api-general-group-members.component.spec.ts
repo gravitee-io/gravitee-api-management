@@ -36,13 +36,18 @@ const GROUP_NAME = 'groupName1';
 
 @Component({
   selector: `host-component`,
-  template: `<api-general-group-members [groupData]="groupData"></api-general-group-members>`,
+  template: `<api-general-group-members [groupData]="groupData" (destroy)="isDestroy()"></api-general-group-members>`,
 })
 class TestComponent {
   groupData: GroupData = {
     id: GROUP_ID,
     name: GROUP_NAME,
   };
+  destroy = false;
+
+  isDestroy() {
+    this.destroy = true;
+  }
 }
 describe('ApiGeneralGroupMembersComponent', () => {
   let fixture: ComponentFixture<TestComponent>;
@@ -73,6 +78,10 @@ describe('ApiGeneralGroupMembersComponent', () => {
   });
 
   it('should display group members tables', async () => {
+    const apiGroupsMembersComponent = await loader.getHarness(ApiGeneralGroupMembersHarness);
+
+    expect(await apiGroupsMembersComponent.isLoading()).toEqual(true);
+
     expectGroupsGetMembersRequest({
       data: [fakeMember({ roles: [{ name: 'USER', scope: 'API' }] })],
       metadata: { groupName: GROUP_NAME },
@@ -81,8 +90,7 @@ describe('ApiGeneralGroupMembersComponent', () => {
 
     fixture.detectChanges();
 
-    const apiGroupsMembersComponent = await loader.getHarness(ApiGeneralGroupMembersHarness);
-
+    expect(await apiGroupsMembersComponent.isLoading()).toEqual(false);
     const group1MembersTable = await apiGroupsMembersComponent.getGroupTableByGroupName();
     expect(await group1MembersTable.getCellTextByIndex()).toEqual([['', 'member-display-name', 'USER']]);
   });
@@ -103,6 +111,9 @@ describe('ApiGeneralGroupMembersComponent', () => {
   });
 
   it('should not display group members tables if no members', async () => {
+    const apiGroupsMembersComponent = await loader.getHarness(ApiGeneralGroupMembersHarness);
+    expect(fixture.componentInstance.destroy).toEqual(false);
+
     expectGroupsGetMembersRequest({
       data: [],
       metadata: { groupName: GROUP_NAME },
@@ -110,9 +121,8 @@ describe('ApiGeneralGroupMembersComponent', () => {
     });
 
     fixture.detectChanges();
-
-    const apiGroupsMembersComponent = await loader.getHarness(ApiGeneralGroupMembersHarness);
-    expect(await apiGroupsMembersComponent.groupTableExistsByGroupName()).toEqual(false);
+    expect(fixture.componentInstance.destroy).toEqual(true);
+    expect(await apiGroupsMembersComponent.isLoading()).toEqual(true);
   });
 
   it('should display message if user lacks permissions', async () => {
