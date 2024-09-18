@@ -141,6 +141,21 @@ describe('ApiSubscriptionEditComponent', () => {
       expect(await harness.rejectBtnIsVisible()).toEqual(false);
     });
 
+    it('should load accepted subscription with consumer status', async () => {
+      await initComponent({
+        subscription: {
+          ...BASIC_SUBSCRIPTION(),
+          consumerStatus: 'FAILURE',
+          plan: { ...BASIC_SUBSCRIPTION().plan, mode: 'PUSH', security: null },
+        },
+      });
+      expectApiKeyListGet();
+
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
+
+      expect(await harness.getConsumerStatus()).toEqual('FAILURE');
+    });
+
     it('should load federated subscription', async () => {
       await initComponent({ api: fakeApiFederated({ id: API_ID }) });
       expectApiKeyListGet();
