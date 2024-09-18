@@ -78,7 +78,12 @@ public class GroupsResource extends AbstractResource {
     @GET
     @Path("/{groupId}/members")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.READ) })
+    @Permissions(
+        {
+            @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.READ),
+            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = { RolePermissionAction.READ }),
+        }
+    )
     public MembersResponse listGroupMembers(@PathParam("groupId") String groupId, @BeanParam @Valid PaginationParam paginationParam) {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
