@@ -30,15 +30,23 @@ import { of } from 'rxjs/internal/observable/of';
 import { ApiAccessComponent } from '../../../../../components/api-access/api-access.component';
 import { LoaderComponent } from '../../../../../components/loader/loader.component';
 import { SubscriptionInfoComponent } from '../../../../../components/subscription-info/subscription-info.component';
+import { UserApiPermissions } from '../../../../../entities/permission/permission';
 import { PlanSecurityEnum, PlanUsageConfiguration } from '../../../../../entities/plan/plan';
 import { SubscriptionStatusEnum } from '../../../../../entities/subscription/subscription';
+import { SubscriptionsResponse } from '../../../../../entities/subscription/subscriptions-response';
 import { CapitalizeFirstPipe } from '../../../../../pipe/capitalize-first.pipe';
 import { ApiService } from '../../../../../services/api.service';
 import { ApplicationService } from '../../../../../services/application.service';
+import { PermissionsService } from '../../../../../services/permissions.service';
 import { PlanService } from '../../../../../services/plan.service';
 import { SubscriptionService } from '../../../../../services/subscription.service';
 
-export interface SubscriptionDetailsData {
+interface SubscriptionDetailsVM {
+  result?: SubscriptionDetailsData;
+  error?: boolean;
+}
+
+interface SubscriptionDetailsData {
   applicationName: string;
   planName: string;
   planSecurity: PlanSecurityEnum;
@@ -83,12 +91,13 @@ export class SubscriptionsDetailsComponent implements OnInit {
   @Input()
   subscriptionId!: string;
 
-  subscriptionDetails$: Observable<SubscriptionDetailsData> = of();
+  subscriptionDetails$: Observable<SubscriptionDetailsVM> = of();
 
   constructor(
     private subscriptionService: SubscriptionService,
     private apiService: ApiService,
     private applicationService: ApplicationService,
+    private permissionsService: PermissionsService,
 
     private planService: PlanService,
     public dialog: MatDialog,
@@ -98,59 +107,111 @@ export class SubscriptionsDetailsComponent implements OnInit {
     this.subscriptionDetails$ = this.loadDetails();
   }
 
-  private loadDetails(): Observable<SubscriptionDetailsData> {
-    return this.subscriptionService.get(this.subscriptionId).pipe(
-      switchMap(details => {
-        return forkJoin({
-          details: of(details),
-          plans: this.planService.list(this.apiId),
-          list: this.subscriptionService.list({ apiId: this.apiId, statuses: null }),
+  private loadDetails(): Observable<SubscriptionDetailsVM> {
+    return forkJoin({
+      subscription: this.subscriptionService.get(this.subscriptionId),
+      permissions: this.permissionsService.getApiPermissions(this.apiId),
+    }).pipe(
+      switchMap(({ subscription, permissions }) =>
+        forkJoin({
+          subscription: of(subscription),
+          plan: this.getPlanData$(subscription.plan, permissions),
           api: this.apiService.details(this.apiId),
-          application: this.applicationService.get(details.application),
-        });
-      }),
-      map(({ details, plans, list, application }) => {
-        const foundPlan = plans.data?.find(plan => plan.id === details.plan);
-        const planSecurityType = foundPlan?.security ?? 'KEY_LESS';
-
+          application: this.applicationService.get(subscription.application),
+        }),
+      ),
+      map(({ subscription, plan, api, application }) => {
         const subscriptionDetails: SubscriptionDetailsData = {
           applicationName: application.name ?? '',
-          planName: foundPlan?.name ?? '',
-          planSecurity: planSecurityType,
-          planUsageConfiguration: foundPlan?.usage_configuration ?? {},
-          subscriptionStatus: details.status,
+          planName: plan.name,
+          planSecurity: plan.securityType,
+          planUsageConfiguration: plan.usageConfiguration,
+          subscriptionStatus: subscription.status,
         };
 
-        if (details.status === 'ACCEPTED') {
-          if (foundPlan?.security === 'API_KEY' && details.api) {
-            const entrypointUrl = list.metadata[details.api]?.entrypoints?.[0]?.target;
-            const apiKey = details?.keys?.length && details.keys[0].key ? details.keys[0].key : '';
+        if (subscription.status === 'ACCEPTED') {
+          if (plan.securityType === 'API_KEY' && subscription.api) {
+            const entrypointUrl = api?.entrypoints?.[0];
+            const apiKey = subscription?.keys?.length && subscription.keys[0].key ? subscription.keys[0].key : '';
 
             return {
-              ...subscriptionDetails,
-              apiKey,
-              entrypointUrl,
+              result: {
+                ...subscriptionDetails,
+                apiKey,
+                entrypointUrl,
+              },
             };
-          } else if (foundPlan?.security === 'OAUTH2' || foundPlan?.security === 'JWT') {
+          } else if (plan.securityType === 'OAUTH2' || plan.securityType === 'JWT') {
             if (application.settings.oauth) {
               return {
-                ...subscriptionDetails,
-                clientId: application.settings.oauth.client_id,
-                clientSecret: application.settings.oauth.client_secret,
+                result: {
+                  ...subscriptionDetails,
+                  clientId: application.settings.oauth.client_id,
+                  clientSecret: application.settings.oauth.client_secret,
+                },
               };
             } else if (application.settings.app) {
               return {
-                ...subscriptionDetails,
-                clientId: application.settings.app.client_id,
+                result: {
+                  ...subscriptionDetails,
+                  clientId: application.settings.app.client_id,
+                },
               };
             }
           }
         }
 
-        return subscriptionDetails;
+        return { result: subscriptionDetails };
       }),
-      catchError(_ => {
-        return of();
+      catchError(_ => of({ error: true })),
+    );
+  }
+
+  private getPlanData$(
+    planId: string,
+    permissions: UserApiPermissions,
+  ): Observable<{
+    name: string;
+    securityType: PlanSecurityEnum;
+    usageConfiguration: PlanUsageConfiguration;
+  }> {
+    return of(permissions.PLAN?.includes('R') === true).pipe(
+      switchMap(hasPermission => (hasPermission ? this.getPlanDataFromList$(planId) : this.getPlanDataFromMetadata$(planId))),
+      map(plan => ({
+        name: plan.name ?? '',
+        securityType: plan.securityType ?? 'KEY_LESS',
+        usageConfiguration: plan.usageConfiguration ?? {},
+      })),
+    );
+  }
+
+  private getPlanDataFromList$(planId: string): Observable<{
+    name?: string;
+    securityType?: PlanSecurityEnum;
+    usageConfiguration?: PlanUsageConfiguration;
+  }> {
+    return this.planService.list(this.apiId).pipe(
+      map(({ data }) => {
+        if (data && data.some(p => p.id === planId)) {
+          const foundPlan = data.find(plan => plan.id === planId);
+          return { name: foundPlan?.name, securityType: foundPlan?.security, usageConfiguration: foundPlan?.usage_configuration };
+        }
+        return {};
+      }),
+      catchError(_ => this.getPlanDataFromMetadata$(planId)),
+    );
+  }
+
+  private getPlanDataFromMetadata$(planId: string): Observable<{
+    name?: string;
+    securityType?: PlanSecurityEnum;
+    usageConfiguration?: PlanUsageConfiguration;
+  }> {
+    return this.subscriptionService.list({ apiId: this.apiId, statuses: [] }).pipe(
+      catchError(_ => of({ data: [], metadata: {}, links: {} } as SubscriptionsResponse)),
+      map(({ metadata }) => {
+        const planMetadata = metadata[planId];
+        return { name: planMetadata?.name, securityType: planMetadata?.securityType };
       }),
     );
   }
