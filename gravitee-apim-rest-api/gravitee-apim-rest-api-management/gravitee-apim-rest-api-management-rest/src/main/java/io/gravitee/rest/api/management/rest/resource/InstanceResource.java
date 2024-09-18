@@ -38,8 +38,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import java.util.Set;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -89,7 +87,7 @@ public class InstanceResource {
     private Boolean cloudEnabled() {
         return parameterService.findAsBoolean(
             GraviteeContext.getExecutionContext(),
-            Key.CLOUD_ENABLED,
+            Key.CLOUD_HOSTED_ENABLED,
             GraviteeContext.getCurrentOrganization(),
             ParameterReferenceType.ORGANIZATION
         );

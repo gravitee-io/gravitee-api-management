@@ -55,7 +55,7 @@ public class MonitoringResourceTest extends AbstractResourceTest {
         when(
             parameterService.findAsBoolean(
                 executionContext,
-                Key.CLOUD_ENABLED,
+                Key.CLOUD_HOSTED_ENABLED,
                 GraviteeContext.getCurrentOrganization(),
                 ParameterReferenceType.ORGANIZATION
             )
@@ -75,7 +75,7 @@ public class MonitoringResourceTest extends AbstractResourceTest {
         when(
             parameterService.findAsBoolean(
                 executionContext,
-                Key.CLOUD_ENABLED,
+                Key.CLOUD_HOSTED_ENABLED,
                 GraviteeContext.getCurrentOrganization(),
                 ParameterReferenceType.ORGANIZATION
             )

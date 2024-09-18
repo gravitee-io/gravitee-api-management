@@ -22,8 +22,8 @@ import lombok.Getter;
 
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Cloud {
+public class CloudHosted {
 
-    @ParameterKey(Key.CLOUD_ENABLED)
+    @ParameterKey(Key.CLOUD_HOSTED_ENABLED)
     private Boolean enabled;
 }
