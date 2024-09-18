@@ -282,7 +282,7 @@ public class InitializeSharedPolicyGroupUseCase {
             .crossId(spgCrossId)
             .description("\uD83D\uDE80 This shared policy group builds the content to reach a Text Generation model using Hugging Face.")
             .prerequisiteMessage(
-                "These are required: `(#context.attributes['prompt']}`, `(#context.attributes['redirect-model']}` (the GPT model, try with: `meta-llama/Meta-Llama-3.1-8B`, `(#context.attributes['redirect-source']}`: the source api path."
+                "These are required: `(#context.attributes['prompt']}`, `(#context.attributes['redirect-model']}` (the GPT model, try with: `meta-llama/Meta-Llama-3-8B-Instruct`, `(#context.attributes['redirect-source']}`: the source api path."
             )
             .steps(
                 List.of(
