@@ -18,7 +18,6 @@ package io.gravitee.apim.infra.query_service.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.IntegrationFixture;
@@ -27,27 +26,36 @@ import io.gravitee.apim.infra.adapter.IntegrationAdapter;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.IntegrationRepository;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 public class IntegrationQueryServiceImplTest {
 
+    @Mock
     IntegrationRepository integrationRepository;
 
-    IntegrationQueryServiceImpl service;
+    @Mock
+    MembershipService membershipService;
 
-    @BeforeEach
-    void setUp() {
-        integrationRepository = mock(IntegrationRepository.class);
-        service = new IntegrationQueryServiceImpl(integrationRepository);
-    }
+    @InjectMocks
+    IntegrationQueryServiceImpl service;
 
     @Test
     @SneakyThrows
@@ -87,25 +95,56 @@ public class IntegrationQueryServiceImplTest {
             .hasMessage("An error occurred while finding Integrations by environment id: different-env");
     }
 
-    @Test
-    @SneakyThrows
-    void should_list_integrations_matching_environment_id_and_groups() {
-        //Given
-        var envId = "my-env";
-        var pageable = new PageableImpl(1, 5);
-        var expectedIntegration = IntegrationFixture.anIntegration();
-        var page = integrationPage(pageable, expectedIntegration);
-        when(integrationRepository.findAllByEnvironmentAndGroups(any(), any(), any())).thenReturn(page);
+    @Nested
+    class FindByEnvironmentAndContext {
 
-        //When
-        Page<Integration> responsePage = service.findByEnvironmentAndGroups(envId, Set.of(), pageable);
+        @Test
+        @SneakyThrows
+        void should_list_integrations_matching_environment_of_admin() {
+            //Given
+            String usr = null;
+            Collection<String> grp = Set.of();
+            boolean admin = true;
+            var pageable = new PageableImpl(1, 5);
+            var expectedIntegration = IntegrationFixture.anIntegration();
+            var page = integrationPage(pageable, expectedIntegration);
+            when(integrationRepository.findAllByEnvironment(any(), any())).thenReturn(page);
 
-        //Then
-        assertThat(responsePage).isNotNull();
-        assertThat(responsePage.getPageNumber()).isEqualTo(1);
-        assertThat(responsePage.getPageElements()).isEqualTo(1);
-        assertThat(responsePage.getTotalElements()).isEqualTo(1);
-        assertThat(responsePage.getContent().get(0)).isEqualTo(expectedIntegration);
+            //When
+            Page<Integration> responsePage = service.findByEnvironmentAndContext("my-env", usr, grp, admin, pageable);
+
+            //Then
+            assertThat(responsePage).isNotNull();
+            assertThat(responsePage.getPageNumber()).isEqualTo(1);
+            assertThat(responsePage.getPageElements()).isEqualTo(1);
+            assertThat(responsePage.getTotalElements()).isEqualTo(1);
+            assertThat(responsePage.getContent().get(0)).isEqualTo(expectedIntegration);
+        }
+
+        @Test
+        @SneakyThrows
+        void should_list_integrations_matching_environment_and_user() {
+            //Given
+            String usr = null;
+            Collection<String> grp = Set.of();
+            boolean admin = false;
+            var pageable = new PageableImpl(1, 5);
+            var expectedIntegration = IntegrationFixture.anIntegration();
+            var page = integrationPage(pageable, expectedIntegration);
+            when(membershipService.getMembershipsByMemberAndReference(any(), any(), any()))
+                .thenReturn(Set.of(MembershipEntity.builder().id("My-ID").build()));
+            when(integrationRepository.findAllByEnvironmentAndGroups(any(), any(), any(), any())).thenReturn(page);
+
+            //When
+            Page<Integration> responsePage = service.findByEnvironmentAndContext("my-env", usr, grp, admin, pageable);
+
+            //Then
+            assertThat(responsePage).isNotNull();
+            assertThat(responsePage.getPageNumber()).isEqualTo(1);
+            assertThat(responsePage.getPageElements()).isEqualTo(1);
+            assertThat(responsePage.getTotalElements()).isEqualTo(1);
+            assertThat(responsePage.getContent().get(0)).isEqualTo(expectedIntegration);
+        }
     }
 
     Page<io.gravitee.repository.management.model.Integration> integrationPage(Pageable pageable, Integration integration) {

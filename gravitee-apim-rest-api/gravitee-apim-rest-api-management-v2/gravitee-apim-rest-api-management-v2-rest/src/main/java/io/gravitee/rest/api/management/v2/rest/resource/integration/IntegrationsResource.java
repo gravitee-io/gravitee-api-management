@@ -86,10 +86,10 @@ public class IntegrationsResource extends AbstractResource {
         var integrations = getIntegrationsUsecase
             .execute(
                 new GetIntegrationsUseCase.Input(
-                    GraviteeContext.getCurrentOrganization(),
-                    environmentId,
-                    isAdmin(),
+                    GraviteeContext.getExecutionContext(),
+                    getAuthenticatedUser(),
                     listGroupsOfUser(),
+                    isAdmin(),
                     new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
                 )
             )

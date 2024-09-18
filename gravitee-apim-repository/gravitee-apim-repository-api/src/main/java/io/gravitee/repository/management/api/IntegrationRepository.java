@@ -28,8 +28,16 @@ import java.util.List;
  */
 public interface IntegrationRepository extends CrudRepository<Integration, String> {
     Page<Integration> findAllByEnvironment(String environmentId, Pageable pageable) throws TechnicalException;
-    Page<Integration> findAllByEnvironmentAndGroups(String environmentId, Collection<String> groups, Pageable pageable)
-        throws TechnicalException;
+
+    /**
+     * Search integration that correspond to integrationIds or have one of group
+     */
+    Page<Integration> findAllByEnvironmentAndGroups(
+        String environmentId,
+        Collection<String> integrationIds,
+        Collection<String> groups,
+        Pageable pageable
+    ) throws TechnicalException;
 
     /**
      * Delete integration by environmentId

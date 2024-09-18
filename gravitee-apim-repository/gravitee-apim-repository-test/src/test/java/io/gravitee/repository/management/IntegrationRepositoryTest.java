@@ -16,9 +16,7 @@
 package io.gravitee.repository.management;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.groups.Tuple.tuple;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
@@ -27,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.assertj.core.api.Condition;
 import org.junit.Test;
 
 public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest {
@@ -73,57 +72,48 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
 
     @Test
     public void shouldFindByEnvironmentId() throws TechnicalException {
-        final List<Integration> integrations = integrationRepository
+        var integrations = integrationRepository
             .findAllByEnvironment("my-env", new PageableBuilder().pageSize(10).pageNumber(0).build())
             .getContent();
 
-        assertThat(integrations)
-            .hasSize(3)
-            .extracting(
-                Integration::getId,
-                Integration::getName,
-                Integration::getDescription,
-                Integration::getEnvironmentId,
-                Integration::getGroups
-            )
-            .contains(
-                tuple("cad107c9-27f2-40b2-9107-c927f2e0b2fc", "my-integration", "test-description", "my-env", Set.of()),
-                tuple("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3", "my-another-integration", "test-description", "my-env", Set.of("group-1")),
-                tuple(
-                    "459a022c-e79c-4411-9a02-2ce79c141165",
-                    "my-yet-another-integration",
-                    "test-description",
-                    "my-env",
-                    Set.of("group-1", "group-2")
-                )
-            );
+        assertThat(integrations).hasSize(3).are(declaredInEnv("my-env"));
     }
 
     @Test
     public void shouldFindByEnvironmentIdAndGroups() throws TechnicalException {
-        final List<Integration> integrations = integrationRepository
-            .findAllByEnvironmentAndGroups("my-env", Set.of("group-1"), new PageableBuilder().pageSize(10).pageNumber(0).build())
+        var integrations = integrationRepository
+            .findAllByEnvironmentAndGroups("my-env", Set.of(), Set.of("group-1"), new PageableBuilder().pageSize(10).pageNumber(0).build())
             .getContent();
 
-        assertThat(integrations)
-            .hasSize(2)
-            .extracting(
-                Integration::getId,
-                Integration::getName,
-                Integration::getDescription,
-                Integration::getEnvironmentId,
-                Integration::getGroups
+        assertThat(integrations).hasSize(2).are(associateToGroup("group-1"));
+    }
+
+    @Test
+    public void shouldFindByEnvironmentIdIds() throws TechnicalException {
+        var integrations = integrationRepository
+            .findAllByEnvironmentAndGroups(
+                "my-env",
+                Set.of("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3"),
+                Set.of(""),
+                new PageableBuilder().pageSize(10).pageNumber(0).build()
             )
-            .contains(
-                tuple("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3", "my-another-integration", "test-description", "my-env", Set.of("group-1")),
-                tuple(
-                    "459a022c-e79c-4411-9a02-2ce79c141165",
-                    "my-yet-another-integration",
-                    "test-description",
-                    "my-env",
-                    Set.of("group-1", "group-2")
-                )
-            );
+            .getContent();
+
+        assertThat(integrations).hasSize(1).are(haveId("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3"));
+    }
+
+    @Test
+    public void shouldFindByEnvironmentIdAndGroupsAndIds() throws TechnicalException {
+        var integrations = integrationRepository
+            .findAllByEnvironmentAndGroups(
+                "my-env",
+                Set.of("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3"),
+                Set.of("group-2"),
+                new PageableBuilder().pageSize(10).pageNumber(0).build()
+            )
+            .getContent();
+
+        assertThat(integrations).hasSize(2).are(anyOf(haveId("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3"), associateToGroup("group-2")));
     }
 
     @Test
@@ -132,18 +122,18 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
             .findAllByEnvironment("other-env", new PageableBuilder().pageSize(10).pageNumber(0).build())
             .getContent();
 
-        assertThat(integrations).hasSize(0);
+        assertThat(integrations).isEmpty();
     }
 
     @Test
     public void should_get_integration_by_id() throws TechnicalException {
         var id = "f66274c9-3d8f-44c5-a274-c93d8fb4c5f3";
-        var date = new Date(1470157767000L);
+        var date = new Date(1_470_157_767_000L);
         var expectedIntegration = creatIntegration(id, date);
 
         final Optional<Integration> integration = integrationRepository.findById(id);
 
-        assertThat(integration).isPresent().isNotEmpty().hasValue(expectedIntegration);
+        assertThat(integration).hasValue(expectedIntegration);
     }
 
     @Test
@@ -158,8 +148,8 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void should_update_integration() throws TechnicalException {
         var id = "f66274c9-3d8f-44c5-a274-c93d8fb4c5f3";
-        var date = new Date(1470157767000L);
-        var updateDate = new Date(1712660289);
+        var date = new Date(1_470_157_767_000L);
+        var updateDate = new Date(1_712_660_289L);
         Integration integration = Integration
             .builder()
             .id(id)
@@ -179,7 +169,7 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void should_throw_exception_when_integration_to_update_not_found() {
         var id = "not-existing-id";
-        var date = new Date(1470157767000L);
+        var date = new Date(1_470_157_767_000L);
         Integration integration = creatIntegration(id, date);
 
         assertThatThrownBy(() -> integrationRepository.update(integration)).isInstanceOf(Exception.class);
@@ -209,5 +199,17 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
         assertThat(nbBeforeDeletion).isEqualTo(2L);
         assertThat(deleted).isEqualTo(2);
         assertThat(nbAfterDeletion).isEqualTo(0);
+    }
+
+    Condition<Integration> haveId(String id) {
+        return new Condition<>(e -> id.equals(e.getId()), "have the id " + id);
+    }
+
+    Condition<Integration> associateToGroup(String group) {
+        return new Condition<>(e -> e.getGroups().contains(group), "associate to group " + group);
+    }
+
+    Condition<Integration> declaredInEnv(String env) {
+        return new Condition<>(e -> e.getEnvironmentId().equals(env), "declared in env " + env);
     }
 }

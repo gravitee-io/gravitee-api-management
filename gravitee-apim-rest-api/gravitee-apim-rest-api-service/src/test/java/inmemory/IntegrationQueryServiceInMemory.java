@@ -58,14 +58,20 @@ public class IntegrationQueryServiceInMemory implements IntegrationQueryService,
     }
 
     @Override
-    public Page<Integration> findByEnvironmentAndGroups(String environmentId, Collection<String> groups, Pageable pageable) {
+    public Page<Integration> findByEnvironmentAndContext(
+        String environmentId,
+        String userId,
+        Collection<String> groups,
+        boolean isAdmin,
+        Pageable pageable
+    ) {
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
 
         var matches = storage
             .stream()
             .filter(integration -> integration.getEnvironmentId().equals(environmentId))
-            .filter(integration -> stream(integration.getGroups()).anyMatch(groups::contains))
+            .filter(integration -> isAdmin || stream(integration.getGroups()).anyMatch(groups::contains))
             .sorted(Comparator.comparing(Integration::getUpdatedAt).reversed())
             .toList();
 
