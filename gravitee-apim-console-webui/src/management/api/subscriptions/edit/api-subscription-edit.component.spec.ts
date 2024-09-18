@@ -138,6 +138,18 @@ describe('ApiSubscriptionEditComponent', () => {
       expect(await harness.rejectBtnIsVisible()).toEqual(false);
     });
 
+    it('should load accepted subscription with consumer status', async () => {
+      await initComponent({
+        ...BASIC_SUBSCRIPTION(),
+        consumerStatus: 'FAILURE',
+      });
+      expectApiKeyListGet();
+
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
+
+      expect(await harness.getConsumerStatus()).toEqual('FAILURE');
+    });
+
     it('should load pending subscription', async () => {
       const pendingSubscription = BASIC_SUBSCRIPTION();
       pendingSubscription.status = 'PENDING';
