@@ -65,23 +65,25 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<Integr
     }
 
     @Override
-    public Page<Integration> findAllByEnvironmentAndGroups(String environmentId, Collection<String> groups, Pageable pageable)
-        throws TechnicalException {
+    public Page<Integration> findAllByEnvironmentAndGroups(
+        String environmentId,
+        Collection<String> integrationIds,
+        Collection<String> groups,
+        Pageable pageable
+    ) throws TechnicalException {
         LOGGER.debug("JdbcIntegrationRepository.findAllByEnvironment({}, {}, {})", environmentId, groups, pageable);
         List<Integration> integrations;
         try {
-            integrations =
-                jdbcTemplate.query(
-                    getOrm().getSelectAllSql() + " where environment_id = ? order by updated_at desc",
-                    getOrm().getRowMapper(),
-                    environmentId
-                );
+            String query = "%s where environment_id = ? order by updated_at desc".formatted(getOrm().getSelectAllSql());
+            integrations = jdbcTemplate.query(query, getOrm().getRowMapper(), environmentId);
 
             integrations =
                 integrations
                     .stream()
                     .peek(this::addGroups)
-                    .filter(integration -> integration.getGroups().stream().anyMatch(groups::contains))
+                    .filter(integration ->
+                        integrationIds.contains(integration.getId()) || integration.getGroups().stream().anyMatch(groups::contains)
+                    )
                     .toList();
         } catch (final Exception ex) {
             final String message =
