@@ -21,13 +21,13 @@ import { Constants } from '../entities/Constants';
 @Injectable({
   providedIn: 'root',
 })
-export class CloudGuard implements CanActivate {
+export class CloudHostedGuard implements CanActivate {
   constructor(
     private router: Router,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
   canActivate(_route: ActivatedRouteSnapshot): boolean {
-    return !this.constants?.org?.settings?.cloud?.enabled;
+    return !this.constants?.org?.settings?.cloudHosted?.enabled;
   }
 }

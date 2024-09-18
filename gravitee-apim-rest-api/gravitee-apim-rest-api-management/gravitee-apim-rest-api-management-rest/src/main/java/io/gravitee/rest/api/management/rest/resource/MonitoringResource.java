@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.InstanceEntity;
-import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.monitoring.MonitoringData;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -28,7 +27,6 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.MonitoringService;
-import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.CloudEnabledException;
@@ -40,11 +38,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -106,7 +100,7 @@ public class MonitoringResource extends AbstractResource {
     private Boolean cloudEnabled() {
         return parameterService.findAsBoolean(
             GraviteeContext.getExecutionContext(),
-            Key.CLOUD_ENABLED,
+            Key.CLOUD_HOSTED_ENABLED,
             GraviteeContext.getCurrentOrganization(),
             ParameterReferenceType.ORGANIZATION
         );
