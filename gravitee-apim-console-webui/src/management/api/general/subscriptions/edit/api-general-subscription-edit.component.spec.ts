@@ -145,6 +145,18 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.subscriptions');
     });
 
+    it('should load accepted subscription with consumer status', async () => {
+      await initComponent({
+        ...BASIC_SUBSCRIPTION(),
+        consumerStatus: 'FAILURE',
+      });
+      expectApiKeyListGet();
+
+      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+
+      expect(await harness.getConsumerStatus()).toEqual('FAILURE');
+    });
+
     it('should load pending subscription', async () => {
       const pendingSubscription = BASIC_SUBSCRIPTION();
       pendingSubscription.status = 'PENDING';

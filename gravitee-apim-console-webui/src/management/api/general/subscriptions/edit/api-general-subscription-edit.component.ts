@@ -25,6 +25,7 @@ import {
   PlanMode,
   PlanSecurityType,
   SubscriptionConsumerConfiguration,
+  SubscriptionConsumerStatus,
   SubscriptionStatus,
 } from '../../../../../entities/management-api-v2';
 import { ApiSubscriptionV2Service } from '../../../../../services-ngx/api-subscription-v2.service';
@@ -67,6 +68,7 @@ interface SubscriptionDetailVM {
   id: string;
   plan: { id: string; label: string; securityType: PlanSecurityType; mode: PlanMode };
   status: SubscriptionStatus;
+  consumerStatus: SubscriptionConsumerStatus;
   subscribedBy: string;
   application?: { id: string; label: string; name: string; description: string };
   publisherMessage?: string;
@@ -146,6 +148,7 @@ export class ApiGeneralSubscriptionEditComponent implements OnInit {
                 description: subscription.application.description,
               },
               status: subscription.status,
+              consumerStatus: subscription.consumerStatus,
               subscribedBy: subscription.subscribedBy.displayName,
               publisherMessage: subscription.publisherMessage ?? '-',
               subscriberMessage: subscription.consumerMessage ?? '-',
