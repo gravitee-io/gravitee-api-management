@@ -489,7 +489,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             consoleConfigEntity.getTrialInstance(),
             consoleConfigEntity.getFederation(),
             consoleConfigEntity.getScoring(),
-            consoleConfigEntity.getCloud(),
+            consoleConfigEntity.getCloudHosted(),
         };
     }
 }
