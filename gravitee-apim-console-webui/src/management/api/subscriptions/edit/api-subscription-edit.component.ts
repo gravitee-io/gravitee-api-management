@@ -21,7 +21,13 @@ import { MatDialog } from '@angular/material/dialog';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { PlanMode, PlanSecurityType, SubscriptionConsumerConfiguration, SubscriptionStatus } from '../../../../entities/management-api-v2';
+import {
+  PlanMode,
+  PlanSecurityType,
+  SubscriptionConsumerConfiguration,
+  SubscriptionStatus,
+  SubscriptionConsumerStatus,
+} from '../../../../entities/management-api-v2';
 import { ApiSubscriptionV2Service } from '../../../../services-ngx/api-subscription-v2.service';
 import {
   ApiPortalSubscriptionTransferDialogComponent,
@@ -61,6 +67,7 @@ interface SubscriptionDetailVM {
   id: string;
   plan: { id: string; label: string; securityType: PlanSecurityType; mode: PlanMode };
   status: SubscriptionStatus;
+  consumerStatus: SubscriptionConsumerStatus;
   subscribedBy: string;
   application?: { id: string; label: string; name: string; description: string };
   publisherMessage?: string;
@@ -140,6 +147,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
                 description: subscription.application.description,
               },
               status: subscription.status,
+              consumerStatus: subscription.consumerStatus,
               subscribedBy: subscription.subscribedBy.displayName,
               publisherMessage: subscription.publisherMessage ?? '-',
               subscriberMessage: subscription.consumerMessage ?? '-',
