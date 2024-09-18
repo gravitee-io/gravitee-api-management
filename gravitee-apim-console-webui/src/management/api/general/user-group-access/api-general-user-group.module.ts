@@ -22,6 +22,7 @@ import {
   GioIconsModule,
   GioSaveBarModule,
   GioFormSlideToggleModule,
+  GioLoaderModule,
 } from '@gravitee/ui-particles-angular';
 import { MatSelectModule } from '@angular/material/select';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -80,6 +81,7 @@ import { GioTableWrapperModule } from '../../../../shared/components/gio-table-w
     GioFormSlideToggleModule,
     GioUsersSelectorModule,
     GioTableWrapperModule,
+    GioLoaderModule,
   ],
 })
 export class ApiGeneralUserGroupModule {}
