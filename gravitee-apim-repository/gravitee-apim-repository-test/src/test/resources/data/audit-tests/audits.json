@@ -36,5 +36,32 @@
     "user": "JohnDoe",
     "createdAt": 2000000000000,
     "patch": "diff"
+<<<<<<< HEAD
+=======
+  },
+  {
+    "id": "ToBeDeleted1",
+    "referenceId": "ToBeDeleted",
+    "referenceType": "API",
+    "event": "PLAN_CREATED",
+    "properties": {
+      "PLAN": "456"
+    },
+    "user": "JohnDoe",
+    "createdAt": 2000000000010,
+    "patch": "diff"
+  },
+  {
+    "id": "ToBeDeleted2",
+    "referenceId": "ToBeDeleted",
+    "referenceType": "API",
+    "event": "PLAN_CREATED",
+    "properties": {
+      "PLAN": "456"
+    },
+    "user": "JohnDoe",
+    "createdAt": 2000000000012,
+    "patch": "diff"
+>>>>>>> 1169be7932 (test: fix datetime on audits test data)
   }
 ]
