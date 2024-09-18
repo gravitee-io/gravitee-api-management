@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.domain_service.member;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.apim.core.utils.StringUtils;
@@ -29,6 +30,7 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -42,8 +44,8 @@ import org.springframework.stereotype.Service;
  * This class assumes validated and sanitized input and is thus to be used by kubernetes resources use cases only
  */
 @Slf4j
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
 
     private final MembershipService membershipService;
@@ -53,12 +55,14 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
     public void updateApiMembers(AuditInfo auditInfo, String apiId, Set<MemberCRD> members) {
         updateMembers(auditInfo, apiId, RoleScope.API, MembershipReferenceType.API, members);
         deleteOrphans(auditInfo, apiId, RoleScope.API, MembershipReferenceType.API, members);
+        transferOwnerShip(auditInfo, apiId, RoleScope.API, MembershipReferenceType.API);
     }
 
     @Override
     public void updateApplicationMembers(AuditInfo auditInfo, String applicationId, Set<MemberCRD> members) {
         updateMembers(auditInfo, applicationId, RoleScope.APPLICATION, MembershipReferenceType.APPLICATION, members);
         deleteOrphans(auditInfo, applicationId, RoleScope.APPLICATION, MembershipReferenceType.APPLICATION, members);
+        transferOwnerShip(auditInfo, applicationId, RoleScope.APPLICATION, MembershipReferenceType.APPLICATION);
     }
 
     private void updateMembers(
@@ -108,6 +112,8 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
         MembershipReferenceType referenceType,
         Set<MemberCRD> members
     ) {
+        log.debug("Deleting orphan members");
+
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
 
         var poRole = roleService.findPrimaryOwnerRoleByOrganization(auditInfo.organizationId(), roleScope);
@@ -128,6 +134,26 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
         existingMemberIds.forEach(memberId ->
             membershipService.deleteReferenceMember(executionContext, referenceType, referenceId, MembershipMemberType.USER, memberId)
         );
+    }
+
+    private void transferOwnerShip(AuditInfo auditInfo, String referenceId, RoleScope roleScope, MembershipReferenceType referenceType) {
+        log.debug("Transferring owner ship to authenticated user {}", auditInfo.actor().userSourceId());
+
+        var currentPrimaryOwner = membershipService.getPrimaryOwner(auditInfo.organizationId(), referenceType, referenceId);
+
+        if (currentPrimaryOwner != null && currentPrimaryOwner.getMemberId().equals(auditInfo.actor().userId())) {
+            log.debug("User {} is already the primary owner for {} {}", auditInfo.actor().userSourceId(), referenceType, referenceId);
+            return;
+        }
+
+        var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
+        var primaryOwner = new MembershipService.MembershipMember(auditInfo.actor().userId(), null, MembershipMemberType.USER);
+
+        switch (roleScope) {
+            case API -> membershipService.transferApiOwnership(executionContext, referenceId, primaryOwner, List.of());
+            case APPLICATION -> membershipService.transferApplicationOwnership(executionContext, referenceId, primaryOwner, List.of());
+            default -> throw new TechnicalDomainException(String.format("Unknown role scope [%s]", roleScope));
+        }
     }
 
     private RoleEntity findRoleEntity(String organizationId, RoleScope roleScope, String roleNameOrId, RoleEntity defaultRole) {

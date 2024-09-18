@@ -27,7 +27,7 @@ public class AuditInfoFixtures {
             .builder()
             .organizationId(organizationId)
             .environmentId(environmentId)
-            .actor(AuditActor.builder().userId(userId).build())
+            .actor(AuditActor.builder().userSource("test").userSourceId(userId).userId(userId).build())
             .build();
     }
 }
