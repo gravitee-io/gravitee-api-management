@@ -16,6 +16,7 @@
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { isEqual } from 'lodash';
 
 import { UsersService } from '../../../../../services-ngx/users.service';
 import { GioTableWrapperFilters } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
@@ -41,9 +42,11 @@ export class ApiGeneralGroupMembersComponent implements OnInit, OnDestroy {
   @Output()
   destroy = new EventEmitter<void>();
 
-  public dataSourceGroup: {
-    memberTotalCount?: number;
-    membersPageResult?: MemberDataSource[];
+  public dataSourceGroupVM: {
+    memberTotalCount: number;
+    membersPageResult: MemberDataSource[];
+    isLoading: boolean;
+    canViewGroupMembers: boolean;
   };
 
   public displayedColumns = ['picture', 'displayName', 'role'];
@@ -53,7 +56,6 @@ export class ApiGeneralGroupMembersComponent implements OnInit, OnDestroy {
     searchTerm: '',
   };
 
-  public canViewGroupMembers: boolean;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   constructor(
     private readonly groupService: GroupV2Service,
@@ -73,28 +75,34 @@ export class ApiGeneralGroupMembersComponent implements OnInit, OnDestroy {
     this.unsubscribe$.complete();
   }
 
-  onFiltersChanged($event: GioTableWrapperFilters) {
-    // Only refresh data if not all data is shown or requested page size is less than total count
-    if (
-      this.dataSourceGroup.membersPageResult.length < this.dataSourceGroup.memberTotalCount ||
-      $event.pagination.size <= this.dataSourceGroup.memberTotalCount
-    ) {
-      this.getGroupMembersPage($event.pagination.index, $event.pagination.size);
+  onFiltersChanged(filters: GioTableWrapperFilters) {
+    if (isEqual(this.filters, filters)) {
+      return;
     }
+    this.filters = filters;
+
+    this.getGroupMembersPage(filters.pagination.index, filters.pagination.size);
   }
 
   private getGroupMembersPage(page = 1, perPage = 10): void {
+    this.dataSourceGroupVM = {
+      isLoading: true,
+      canViewGroupMembers: true,
+      memberTotalCount: 0,
+      membersPageResult: [],
+    };
     this.groupService
       .getMembers(this.groupData.id, page, perPage)
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(
-        (membersResponse) => {
+      .subscribe({
+        next: (membersResponse) => {
           if (!membersResponse.pagination.totalCount || membersResponse.pagination.totalCount === 0) {
             this.destroy.emit();
             return;
           }
-          this.canViewGroupMembers = true;
-          this.dataSourceGroup = {
+          this.dataSourceGroupVM = {
+            isLoading: false,
+            canViewGroupMembers: true,
             memberTotalCount: membersResponse.pagination.totalCount,
             membersPageResult: membersResponse.data.map((member) => ({
               id: member.id,
@@ -104,11 +112,16 @@ export class ApiGeneralGroupMembersComponent implements OnInit, OnDestroy {
             })),
           };
         },
-        ({ error }) => {
+        error: ({ error }) => {
           if (error.httpStatus === 403) {
-            this.canViewGroupMembers = false;
+            this.dataSourceGroupVM = {
+              isLoading: false,
+              canViewGroupMembers: false,
+              memberTotalCount: 0,
+              membersPageResult: [],
+            };
           }
         },
-      );
+      });
   }
 }

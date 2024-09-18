@@ -15,30 +15,29 @@
     limitations under the License.
 
 -->
-<mat-card class="card">
-  <ng-container *ngIf="!canViewGroupMembers">
+<mat-card class="card" *ngIf="dataSourceGroupVM">
+  <ng-container *ngIf="!dataSourceGroupVM.canViewGroupMembers">
     <mat-card-content>
       <h3 class="title">Group {{ groupData.name }}</h3>
       <p id="cannot-view-members">You do not have the appropriate permissions to view members of this group.</p>
     </mat-card-content>
   </ng-container>
-  <ng-container *ngIf="canViewGroupMembers">
+  <ng-container *ngIf="dataSourceGroupVM.canViewGroupMembers">
     <mat-card-content>
       <div>
-        <h3>Group {{ groupData.name }} inherited members ({{ dataSourceGroup.memberTotalCount }})</h3>
+        <h3>Group {{ groupData.name }} inherited members ({{ dataSourceGroupVM.memberTotalCount }})</h3>
       </div>
     </mat-card-content>
     <gio-table-wrapper
       [disableSearchInput]="true"
-      [length]="dataSourceGroup.memberTotalCount"
+      [length]="dataSourceGroupVM.memberTotalCount"
       [filters]="filters"
       (filtersChange)="onFiltersChanged($event)"
       [paginationPageSizeOptions]="[5, 10, 25, 50]"
     >
       <table
         mat-table
-        *ngIf="dataSourceGroup"
-        [dataSource]="dataSourceGroup.membersPageResult"
+        [dataSource]="dataSourceGroupVM.membersPageResult"
         class="card__table"
         [attr.aria-label]="'Group ' + groupData.name + ' members table'"
       >
@@ -62,6 +61,20 @@
         </ng-container>
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+        <!-- Row shown when there is no data -->
+        <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+          <td
+            *ngIf="!dataSourceGroupVM.isLoading && dataSourceGroupVM.membersPageResult.length === 0"
+            class="mat-mdc-cell mdc-data-table__cell"
+            [attr.colspan]="displayedColumns.length"
+          >
+            No member
+          </td>
+          <td *ngIf="dataSourceGroupVM.isLoading" class="mat-mdc-cell mdc-data-table__cell loader" [attr.colspan]="displayedColumns.length">
+            <gio-loader></gio-loader>
+          </td>
+        </tr>
       </table>
     </gio-table-wrapper>
   </ng-container>

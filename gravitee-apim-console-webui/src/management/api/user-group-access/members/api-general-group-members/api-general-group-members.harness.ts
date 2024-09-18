@@ -33,6 +33,11 @@ export class ApiGeneralGroupMembersHarness extends ComponentHarness {
       .catch((_) => false);
   }
 
+  public async isLoading(): Promise<boolean> {
+    const groupTable = await this.getGroupTable();
+    return (await groupTable.getAllChildLoaders('gio-loader')).length > 0;
+  }
+
   public userCannotViewGroupMembers(): Promise<boolean> {
     return this.getDoNotHavePermissionMessage()
       .then((_) => true)
