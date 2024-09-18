@@ -13,6 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+:host {
+  display: flex;
+  flex-flow: column;
+}
+
 .subscriptions-details {
   &__navigate-back {
     display: flex;
@@ -36,5 +41,10 @@
 
   &__subscription-info {
     min-width: 38%;
+  }
+
+  &__error {
+    align-self: center;
+    padding: 36px 0;
   }
 }
