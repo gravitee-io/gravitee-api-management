@@ -32,7 +32,7 @@ import { ApiGeneralMembersHarness } from '../members/api-general-members.harness
 import { Role } from '../../../../entities/role/role';
 import { fakeRole } from '../../../../entities/role/role.fixture';
 
-describe('ApiPortalGroupsComponent', () => {
+describe('ApiGeneralGroupsComponent', () => {
   const apiId = 'api-id';
   const groupId1 = 'group-1';
   const groupId2 = 'group-2';
@@ -146,10 +146,21 @@ describe('ApiPortalGroupsComponent', () => {
     it('should display list of groups', async () => {
       const api = fakeApiV4({ id: apiId, groups: [groupId1, groupId2] });
       await expectGetRequests(api, [groupId1, groupId2]);
+      httpTestingController
+        .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/${groupId2}/members?page=1&perPage=10`, method: 'GET' })
+        .flush(
+          { httpStatus: 403, message: 'You do not have the permissions to access this resource' },
+          { statusText: 'Forbidden', status: 403 },
+        );
+      httpTestingController
+        .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/${groupId1}/members?page=1&perPage=10`, method: 'GET' })
+        .flush(
+          { httpStatus: 403, message: 'You do not have the permissions to access this resource' },
+          { statusText: 'Forbidden', status: 403 },
+        );
 
       expect(await harness.getGroupsNames()).toEqual(api.groups.map((id) => `Group ${id}-name`));
       expect(await harness.getGroupsLength()).toStrictEqual(api.groups.length);
-      api.groups.forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
 
       await harness.manageGroupsClick();
 
