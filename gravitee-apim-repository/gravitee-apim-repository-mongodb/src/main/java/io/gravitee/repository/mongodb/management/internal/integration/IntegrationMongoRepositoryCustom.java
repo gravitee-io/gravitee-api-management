@@ -23,5 +23,10 @@ import java.util.Collection;
 public interface IntegrationMongoRepositoryCustom {
     Page<IntegrationMongo> findAllByEnvironmentId(String environmentId, Pageable pageable);
 
-    Page<IntegrationMongo> findAllByEnvironmentIdAndGroups(String environmentId, Pageable pageable, Collection<String> groups);
+    Page<IntegrationMongo> findAllByEnvironmentIdAndGroups(
+        String environmentId,
+        Pageable pageable,
+        Collection<String> integrationIds,
+        Collection<String> groups
+    );
 }

@@ -29,6 +29,7 @@ import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerDo
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -52,16 +53,19 @@ public class GetIntegrationsUseCase {
     private final AsyncJobQueryService asyncJobQueryService;
 
     public GetIntegrationsUseCase.Output execute(GetIntegrationsUseCase.Input input) {
-        var environmentId = input.environmentId();
         var pageable = input.pageable.orElse(new PageableImpl(1, 10));
 
-        if (!licenseDomainService.isFederationFeatureAllowed(input.organizationId())) {
+        if (!licenseDomainService.isFederationFeatureAllowed(input.context().getOrganizationId())) {
             throw noLicenseForFederation();
         }
 
-        Page<Integration> page = input.isAdmin()
-            ? integrationQueryService.findByEnvironment(environmentId, pageable)
-            : integrationQueryService.findByEnvironmentAndGroups(environmentId, input.groups(), pageable);
+        Page<Integration> page = integrationQueryService.findByEnvironmentAndContext(
+            input.context().getEnvironmentId(),
+            input.userId(),
+            input.groups(),
+            input.isAdmin,
+            pageable
+        );
 
         var pageContent = Flowable
             .fromIterable(page.getContent())
@@ -75,7 +79,7 @@ public class GetIntegrationsUseCase {
                         .map(Optional::of)
                         .defaultIfEmpty(Optional.empty()),
                     integrationPrimaryOwnerDomainService
-                        .getIntegrationPrimaryOwner(input.organizationId(), integration.getId())
+                        .getIntegrationPrimaryOwner(input.context().getOrganizationId(), integration.getId())
                         .map(po -> Optional.of(new IntegrationView.PrimaryOwner(po.id(), po.email(), po.displayName())))
                         .defaultIfEmpty(Optional.empty()),
                     (agentStatus, pendingJob, primaryOwner) ->
@@ -91,19 +95,13 @@ public class GetIntegrationsUseCase {
     }
 
     @Builder
-    public record Input(
-        String organizationId,
-        String environmentId,
-        boolean isAdmin,
-        Collection<String> groups,
-        Optional<Pageable> pageable
-    ) {
-        public Input(String organizationId, String environmentId, boolean isAdmin, Collection<String> groups) {
-            this(organizationId, environmentId, isAdmin, groups, Optional.empty());
+    public record Input(ExecutionContext context, String userId, Collection<String> groups, boolean isAdmin, Optional<Pageable> pageable) {
+        public Input(ExecutionContext context, String userId, Collection<String> groups, boolean isAdmin) {
+            this(context, userId, groups, isAdmin, Optional.empty());
         }
 
-        public Input(String organizationId, String environmentId, boolean isAdmin, Collection<String> groups, Pageable pageable) {
-            this(organizationId, environmentId, isAdmin, groups, Optional.of(pageable));
+        public Input(ExecutionContext context, String userId, Collection<String> groups, boolean isAdmin, Pageable pageable) {
+            this(context, userId, groups, isAdmin, Optional.of(pageable));
         }
     }
 

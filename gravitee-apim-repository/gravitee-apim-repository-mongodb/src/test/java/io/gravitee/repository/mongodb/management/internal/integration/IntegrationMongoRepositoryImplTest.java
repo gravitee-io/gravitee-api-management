@@ -63,7 +63,7 @@ class IntegrationMongoRepositoryImplTest {
         given(mongoTemplate.count(query.capture(), eq(IntegrationMongo.class))).willReturn(0L);
         given(mongoTemplate.find(query.capture(), eq(IntegrationMongo.class))).willReturn(List.of());
         // When
-        Page<IntegrationMongo> result = sut.findAllByEnvironmentIdAndGroups(environmentId, pageable, groups);
+        Page<IntegrationMongo> result = sut.findAllByEnvironmentIdAndGroups(environmentId, pageable, Set.of(), groups);
 
         // Then
         assertThat(result.getContent()).isEmpty();
@@ -74,14 +74,48 @@ class IntegrationMongoRepositoryImplTest {
                 MAPPER.readTree(
                     """
                 {
-                  "environmentId": "env-1",
                   "$and": [
-                    {
-                      "groups": "grp-1"
-                    }
+                    { "environmentId": "env-1" },
+                    { "$or" : [
+                      { "groups": "grp-1" }
+                    ]}
                   ]
                 }
                 """
+                )
+            );
+    }
+
+    @Test
+    @SneakyThrows
+    void findAllByEnvironmentIdAndGroupsAndId() {
+        // Given
+        String environmentId = "env-1";
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(5).build();
+        Collection<String> groups = Set.of("grp-1");
+        given(mongoTemplate.count(query.capture(), eq(IntegrationMongo.class))).willReturn(0L);
+        given(mongoTemplate.find(query.capture(), eq(IntegrationMongo.class))).willReturn(List.of());
+        // When
+        Page<IntegrationMongo> result = sut.findAllByEnvironmentIdAndGroups(environmentId, pageable, Set.of("id1"), groups);
+
+        // Then
+        assertThat(result.getContent()).isEmpty();
+
+        JsonNode jsonQuery = MAPPER.readTree(query.getValue().getQueryObject().toJson());
+        assertThat(jsonQuery)
+            .isEqualTo(
+                MAPPER.readTree(
+                    """
+                            {
+                              "$and": [
+                                { "environmentId": "env-1" },
+                                { "$or" : [
+                                  { "_id": {"$in": ["id1"]} },
+                                  { "groups": "grp-1" }
+                                ]}
+                              ]
+                            }
+                            """
                 )
             );
     }

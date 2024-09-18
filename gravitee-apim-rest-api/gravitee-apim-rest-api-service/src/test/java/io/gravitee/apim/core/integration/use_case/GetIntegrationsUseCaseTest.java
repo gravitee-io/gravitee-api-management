@@ -43,6 +43,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -125,8 +126,8 @@ public class GetIntegrationsUseCaseTest {
         );
         var input = GetIntegrationsUseCase.Input
             .builder()
-            .organizationId(ORGANIZATION_ID)
-            .environmentId(ENV_ID)
+            .context(new ExecutionContext(ORGANIZATION_ID, ENV_ID))
+            .isAdmin(false)
             .pageable(of(pageable))
             .groups(Set.of("group-1"))
             .build();
@@ -159,7 +160,7 @@ public class GetIntegrationsUseCaseTest {
         var expected = IntegrationFixture.anIntegration();
         integrationAgent.configureAgentFor(expected.getId(), IntegrationAgent.Status.CONNECTED);
         integrationQueryServiceInMemory.initWith(List.of(expected));
-        var input = new GetIntegrationsUseCase.Input(ORGANIZATION_ID, ENV_ID, true, Set.of());
+        var input = new GetIntegrationsUseCase.Input(new ExecutionContext(ORGANIZATION_ID, ENV_ID), "MyUser", Set.of(), true);
 
         //When
         var output = usecase.execute(input);
@@ -190,7 +191,7 @@ public class GetIntegrationsUseCaseTest {
 
         // When
         var throwable = Assertions.catchThrowable(() ->
-            usecase.execute(new GetIntegrationsUseCase.Input(ORGANIZATION_ID, ENV_ID, true, Set.of()))
+            usecase.execute(new GetIntegrationsUseCase.Input(new ExecutionContext(ORGANIZATION_ID, ENV_ID), "MyUser", Set.of(), true))
         );
 
         // Then
