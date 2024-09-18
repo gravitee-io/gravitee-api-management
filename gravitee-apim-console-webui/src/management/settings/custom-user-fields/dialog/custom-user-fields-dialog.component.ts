@@ -19,7 +19,7 @@ import { UntypedFormBuilder, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 
-import { CustomUserField } from '../../../../../entities/customUserFields';
+import { CustomUserField } from '../../../../entities/customUserFields';
 
 export interface CustomUserFieldsDialogData {
   action: 'Update' | 'Create';

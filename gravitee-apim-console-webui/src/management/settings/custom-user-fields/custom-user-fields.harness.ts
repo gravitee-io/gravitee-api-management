@@ -17,8 +17,8 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
-export class CustomUserFieldsMigratedHarness extends ComponentHarness {
-  public static readonly hostSelector = 'app-custom-user-fields-migrated';
+export class CustomUserFieldsHarness extends ComponentHarness {
+  public static readonly hostSelector = 'app-custom-user-fields';
 
   private addButtonLocator = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid=custom-field_add_button]' }));
   private tableLocator = this.locatorForOptional(MatTableHarness);
