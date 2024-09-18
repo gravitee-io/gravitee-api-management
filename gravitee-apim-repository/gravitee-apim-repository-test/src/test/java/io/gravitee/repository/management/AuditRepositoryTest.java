@@ -134,7 +134,7 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldSearchFromTo() throws TechnicalException {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().from(1900000000000L).to(2999999999999L).build();
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().from(1900000000000L).to(2000000000005L).build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
