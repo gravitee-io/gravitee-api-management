@@ -44,6 +44,13 @@
             {{ subscription.status || '-' }}
           </dd>
 
+          <ng-container *ngIf="subscription.consumerStatus">
+            <dt>Consumer status</dt>
+            <dd gioClipboardCopyWrapper [contentToCopy]="subscription.consumerStatus" data-testId="subscription-consumer-status">
+              {{ subscription.consumerStatus }}
+            </dd>
+          </ng-container>
+
           <dt>Subscribed by</dt>
           <dd gioClipboardCopyWrapper [contentToCopy]="subscription.subscribedBy" data-testId="subscription-subscribed-by">
             {{ subscription.subscribedBy || '-' }}
