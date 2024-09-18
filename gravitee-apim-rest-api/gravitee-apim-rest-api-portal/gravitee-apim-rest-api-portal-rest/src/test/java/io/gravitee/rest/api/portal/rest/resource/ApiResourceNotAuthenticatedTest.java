@@ -89,7 +89,7 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
 
         doReturn(new Api()).when(apiMapper).convert(eq(GraviteeContext.getExecutionContext()), any());
         doReturn(new Page()).when(pageMapper).convert(any());
-        doReturn(new Plan()).when(planMapper).convert(any());
+        doReturn(new Plan()).when(planMapper).convert(any(), any());
     }
 
     @Test
