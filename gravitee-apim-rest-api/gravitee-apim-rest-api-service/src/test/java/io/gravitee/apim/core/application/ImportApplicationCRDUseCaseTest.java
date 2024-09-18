@@ -25,7 +25,6 @@ import inmemory.ApplicationMetadataQueryServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.ImportApplicationCRDDomainServiceInMemory;
-import inmemory.MembershipQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
@@ -76,6 +75,7 @@ public class ImportApplicationCRDUseCaseTest {
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
+    private static final String ACTOR_USER_ID = "actor-user-id";
     private static final String APP_ID = UuidString.generateRandom();
     private static final String APP_NAME = "test_app";
     private static final String APP_DESCRIPTION = "test_app_description";
@@ -84,7 +84,7 @@ public class ImportApplicationCRDUseCaseTest {
     private static final String TEST_METADATA_DEFAULT_VALUE = "test_metadata_default_value";
     private static final String TEST_METADATA_VALUE = "test_metadata_value";
     private static final Date NOW = new Date();
-    private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
+    private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, ACTOR_USER_ID);
     private static final String MEMBER_SOURCE = "test_source";
     private static final String MEMBER_SOURCE_ID_1 = "mem1@email.com";
     private static final String MEMBER_SOURCE_ID_2 = "mem2@email.com";
@@ -99,13 +99,12 @@ public class ImportApplicationCRDUseCaseTest {
     private final CRDMembersDomainServiceInMemory membersDomainService = new CRDMembersDomainServiceInMemory();
     private final ApplicationRepository applicationRepository = mock(ApplicationRepository.class);
     private final ParameterService parameterService = mock(ParameterService.class);
-    private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
 
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     // Validation
     private final ValidateApplicationCRDDomainService crdValidator = new ValidateApplicationCRDDomainService(
         new ValidateGroupsDomainService(groupQueryService),
-        new ValidateCRDMembersDomainService(userDomainService, roleQueryService, membershipQueryService),
+        new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
         new ValidateApplicationSettingsDomainServiceImpl(applicationRepository, new ApplicationTypeServiceImpl(), parameterService)
     );
 

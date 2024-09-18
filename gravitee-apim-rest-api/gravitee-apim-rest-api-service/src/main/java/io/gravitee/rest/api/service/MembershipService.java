@@ -288,7 +288,7 @@ public interface MembershipService {
         }
     }
 
-    class MembershipMember {
+    public class MembershipMember {
 
         private final String memberId;
         private final String reference;

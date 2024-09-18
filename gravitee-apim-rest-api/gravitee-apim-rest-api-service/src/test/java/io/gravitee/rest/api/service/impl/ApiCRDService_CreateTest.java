@@ -23,6 +23,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,24 +31,33 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionContext;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.api.ApiCRDEntity;
 import io.gravitee.rest.api.model.api.ApiCRDStatusEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiCRDService;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.util.Collections;
 import java.util.Optional;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -68,6 +78,9 @@ public class ApiCRDService_CreateTest {
     @Mock
     private PlanService planService;
 
+    @Mock
+    private MembershipService membershipService;
+
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -79,6 +92,19 @@ public class ApiCRDService_CreateTest {
     private static final String DEFAULT_ENVIRONMENT_ID = "DEFAULT";
     private static final String DEFAULT_ORGANIZATION_ID = "DEFAULT";
     private static final String API_NAME = "myAPI";
+    private static final String USER_NAME = "user-id";
+
+    @Before
+    public void setUp() throws Exception {
+        Authentication authentication = mock(Authentication.class);
+        UserDetails userDetails = new UserDetails(USER_NAME, "PASSWORD", Collections.emptyList());
+
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
+
+        when(membershipService.getPrimaryOwner(DEFAULT_ORGANIZATION_ID, MembershipReferenceType.API, API_ID))
+            .thenReturn(MembershipEntity.builder().memberId(USER_NAME).build());
+    }
 
     @Test
     public void shouldCreatAndStartApi() throws JsonProcessingException {

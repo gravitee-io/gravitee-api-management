@@ -70,7 +70,7 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
         membersValidator
             .validateAndSanitize(
                 new ValidateCRDMembersDomainService.Input(
-                    input.auditInfo().organizationId(),
+                    input.auditInfo(),
                     input.spec.getId(),
                     MembershipReferenceType.API,
                     input.spec().getMembers()

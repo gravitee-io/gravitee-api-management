@@ -47,11 +47,13 @@ import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.api.ApiCRDEntity;
 import io.gravitee.rest.api.model.api.ApiValidationResult;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.junit.Before;
@@ -61,6 +63,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -89,7 +94,6 @@ public class ApiValidationServiceImplTest {
 
     private final UserDomainServiceInMemory userDomainService = new UserDomainServiceInMemory();
     private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
-    private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
 
     @Mock
     private ValidatePagesDomainService pagesValidator;
@@ -97,8 +101,7 @@ public class ApiValidationServiceImplTest {
     @Spy
     private ValidateCRDMembersDomainService validateCRDMembersDomainService = new ValidateCRDMembersDomainService(
         userDomainService,
-        roleQueryService,
-        membershipQueryService
+        roleQueryService
     );
 
     @InjectMocks
@@ -109,6 +112,10 @@ public class ApiValidationServiceImplTest {
     private static final String DEFAULT_ORGANIZATION_ID = "DEFAULT";
     private static final String API_NAME = "myAPI";
     private static final String CATEGORY_KEY = "category-key";
+    private static final String USER_NAME = "user-id";
+    private static final String USER_SOURCE = "memory";
+    private static final String ACTOR_USER_NAME = "actor-id";
+
     private final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
     @Before
@@ -116,12 +123,18 @@ public class ApiValidationServiceImplTest {
         userDomainService.reset();
         userDomainService.initWith(
             List.of(
-                BaseUserEntity.builder().id("user-id").source("memory").sourceId("user-id").organizationId(DEFAULT_ORGANIZATION_ID).build(),
                 BaseUserEntity
                     .builder()
-                    .id("primary_owner_id")
-                    .source("memory")
-                    .sourceId("primary_owner_id")
+                    .id(USER_NAME)
+                    .source(USER_SOURCE)
+                    .sourceId(USER_NAME)
+                    .organizationId(DEFAULT_ORGANIZATION_ID)
+                    .build(),
+                BaseUserEntity
+                    .builder()
+                    .id(ACTOR_USER_NAME)
+                    .source(USER_SOURCE)
+                    .sourceId(ACTOR_USER_NAME)
                     .organizationId(DEFAULT_ORGANIZATION_ID)
                     .build()
             )
@@ -153,6 +166,13 @@ public class ApiValidationServiceImplTest {
         );
         apiQueryService.reset();
         when(pagesValidator.validateAndSanitize(any())).thenReturn(Validator.Result.ofBoth(null, null));
+
+        Authentication authentication = mock(Authentication.class);
+        UserDetails userDetails = new UserDetails(ACTOR_USER_NAME, "PASSWORD", Collections.emptyList());
+        userDetails.setSource(USER_SOURCE);
+        userDetails.setSourceId(ACTOR_USER_NAME);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
     }
 
     @Test
@@ -232,27 +252,14 @@ public class ApiValidationServiceImplTest {
 
     @Test
     public void should_return_error_changing_primary_owner_role() {
-        membershipQueryService.initWith(
-            List.of(
-                Membership
-                    .builder()
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API)
-                    .referenceId(API_ID)
-                    .roleId("primary_owner_id")
-                    .memberId("primary_owner_id")
-                    .build()
-            )
-        );
-
         ApiCRDEntity apiCRD = anApiCRDEntity();
-        apiCRD.setMembers(List.of(new ApiCRDEntity.Member("memory", "primary_owner_id", "USER")));
+        apiCRD.setMembers(List.of(new ApiCRDEntity.Member(USER_SOURCE, ACTOR_USER_NAME, "USER")));
 
         ApiValidationResult<ApiCRDEntity> validationResult = cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
 
         assertEquals(1, validationResult.getSevere().size());
         assertEquals(0, validationResult.getWarning().size());
-        assertEquals("can not change the role of exiting primary owner [primary_owner_id]", validationResult.getSevere().get(0));
+        assertEquals("can not change the role of primary owner [actor-id]", validationResult.getSevere().get(0));
     }
 
     @Test
