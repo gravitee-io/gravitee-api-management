@@ -212,6 +212,15 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 )
             )
                 .thenReturn(false);
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_GROUP,
+                    ENVIRONMENT,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
 
             final Response response = target.request().get();
 
