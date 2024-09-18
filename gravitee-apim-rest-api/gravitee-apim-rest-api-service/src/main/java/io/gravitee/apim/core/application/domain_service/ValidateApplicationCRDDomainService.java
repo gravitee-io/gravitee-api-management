@@ -54,7 +54,7 @@ public class ValidateApplicationCRDDomainService implements Validator<ValidateAp
         membersValidator
             .validateAndSanitize(
                 new ValidateCRDMembersDomainService.Input(
-                    input.auditInfo.organizationId(),
+                    input.auditInfo,
                     input.spec.getId(),
                     MembershipReferenceType.APPLICATION,
                     input.spec.getMembers()

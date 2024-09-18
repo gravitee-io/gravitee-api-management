@@ -21,7 +21,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionContext;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiCRDEntity;
@@ -36,6 +40,7 @@ import io.gravitee.rest.api.service.ApiCRDService;
 import io.gravitee.rest.api.service.ApiDefinitionContextService;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -43,7 +48,9 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
+import java.util.List;
 import java.util.Map;
+import org.jsoup.select.Evaluator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -74,6 +81,9 @@ public class ApiCRDServiceImpl extends AbstractService implements ApiCRDService 
 
     @Inject
     private ApiDefinitionContextService definitionContextService;
+
+    @Inject
+    private MembershipService membershipService;
 
     @Override
     public ApiCRDStatusEntity importApiDefinitionCRD(ExecutionContext executionContext, ApiCRDEntity api) {
@@ -109,6 +119,8 @@ public class ApiCRDServiceImpl extends AbstractService implements ApiCRDService 
             // Update API State if it has changed
             updateApiState(existingApiEntity, importedApi);
 
+            transferOwnerShip(executionContext, importedApi.getId());
+
             // Get plan IDs
             Map<String, String> plansByCrossId = planService
                 .findByApi(executionContext, importedApi.getId())
@@ -138,6 +150,25 @@ public class ApiCRDServiceImpl extends AbstractService implements ApiCRDService 
                 new DefinitionContextEntity(definitionContext.getOrigin(), definitionContext.getMode(), definitionContext.getSyncFrom())
             );
         }
+    }
+
+    private void transferOwnerShip(ExecutionContext executionContext, String apiId) {
+        UserDetails authenticatedUser = getAuthenticatedUser();
+
+        MembershipEntity currentPrimaryOwner = membershipService.getPrimaryOwner(
+            executionContext.getOrganizationId(),
+            MembershipReferenceType.API,
+            apiId
+        );
+
+        if (currentPrimaryOwner.getMemberId().equals(authenticatedUser.getUsername())) {
+            LOGGER.debug("user {} is already the primary owner of API {}", authenticatedUser.getUsername(), apiId);
+            return;
+        }
+
+        var primaryOwner = new MembershipService.MembershipMember(authenticatedUser.getUsername(), null, MembershipMemberType.USER);
+
+        membershipService.transferApiOwnership(executionContext, apiId, primaryOwner, List.of());
     }
 
     private void updateApiState(ApiEntity existingApiEntity, ApiEntity importedApi) {

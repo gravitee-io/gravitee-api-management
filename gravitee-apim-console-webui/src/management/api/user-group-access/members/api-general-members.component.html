@@ -92,7 +92,7 @@
         <th mat-header-cell *matHeaderCellDef>Role</th>
         <td mat-cell *matCellDef="let member">
           <mat-form-field>
-            <mat-select [formControlName]="member.id">
+            <mat-select [formControlName]="member.id" [disabled]="isKubernetesOrigin">
               <mat-option *ngFor="let roleName of roleNames" [value]="roleName" [disabled]="roleName === 'PRIMARY_OWNER'">{{
                 roleName
               }}</mat-option>

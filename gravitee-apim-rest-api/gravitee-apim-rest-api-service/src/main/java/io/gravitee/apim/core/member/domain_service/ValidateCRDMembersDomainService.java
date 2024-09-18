@@ -19,12 +19,11 @@ import static io.gravitee.apim.core.member.model.SystemRole.PRIMARY_OWNER;
 import static io.gravitee.rest.api.service.common.ReferenceContext.Type.ORGANIZATION;
 
 import io.gravitee.apim.core.DomainService;
-import io.gravitee.apim.core.member.exception.UnsupportedMembershipReferencer;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
-import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.Role;
-import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.membership.query_service.RoleQueryService;
 import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.core.validation.Validator;
@@ -34,29 +33,30 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @DomainService
 @RequiredArgsConstructor
 public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMembersDomainService.Input> {
 
     private final UserDomainService userDomainService;
     private final RoleQueryService roleQueryService;
-    private final MembershipQueryService membershipQueryService;
 
-    public record Input(String organizationId, String referenceId, MembershipReferenceType referenceType, Set<MemberCRD> members)
+    public record Input(AuditInfo auditInfo, String referenceId, MembershipReferenceType referenceType, Set<MemberCRD> members)
         implements Validator.Input {
         Input sanitized(Set<MemberCRD> sanitizedMembers) {
-            return new Input(organizationId, referenceId, referenceType, sanitizedMembers);
+            return new Input(auditInfo, referenceId, referenceType, sanitizedMembers);
         }
     }
 
     @Override
     public Result<Input> validateAndSanitize(Input input) {
-        var sanitizedMembers = input.members == null ? Set.<MemberCRD>of() : new HashSet<>(input.members);
+        var sanitizedMembers = input.members == null ? new HashSet<MemberCRD>() : new HashSet<>(input.members);
         var errors = new ArrayList<Error>();
 
         validateAndSanitizeMemberId(input, sanitizedMembers, errors);
@@ -71,7 +71,7 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
         while (members.hasNext()) {
             var member = members.next();
             userDomainService
-                .findBySource(input.organizationId, member.getSource(), member.getSourceId())
+                .findBySource(input.auditInfo.organizationId(), member.getSource(), member.getSourceId())
                 .ifPresentOrElse(
                     user -> member.setId(user.getId()),
                     () -> {
@@ -80,7 +80,7 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
                                 "member [%s] of source [%s] could not be found in organization [%s]",
                                 member.getSourceId(),
                                 member.getSource(),
-                                input.organizationId()
+                                input.auditInfo.organizationId()
                             )
                         );
                         members.remove();
@@ -90,82 +90,42 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
     }
 
     private void validateMemberRole(Input input, Set<MemberCRD> sanitized, ArrayList<Error> errors) {
-        var members = sanitized.iterator();
-        while (members.hasNext()) {
-            var member = members.next();
-            Role role = null;
-            switch (input.referenceType) {
-                case APPLICATION:
-                    Optional<Role> applicationRole = roleQueryService.findApplicationRole(
-                        member.getRole(),
-                        new ReferenceContext(ORGANIZATION, input.organizationId())
-                    );
-                    if (applicationRole.isPresent()) {
-                        role = applicationRole.get();
-                    }
-                    break;
-                case API:
-                    Optional<Role> apiRole = roleQueryService.findApiRole(
-                        member.getRole(),
-                        new ReferenceContext(ORGANIZATION, input.organizationId())
-                    );
-                    if (apiRole.isPresent()) {
-                        role = apiRole.get();
-                    }
-                    break;
-                default:
-                    throw new UnsupportedMembershipReferencer(
-                        String.format("membership reference is not supported [%s]", input.referenceType)
-                    );
-            }
-            if (role == null) {
-                errors.add(Error.warning("member role [%s] doesn't exist", member.getRole()));
-            }
+        for (var member : sanitized) {
+            findRole(input.auditInfo.organizationId(), input.referenceType, member.getRole())
+                .ifPresentOrElse(
+                    role -> log.debug("Role {} found for scope {}", member.getRole(), input.referenceType),
+                    () -> errors.add(Error.warning("member role [%s] doesn't exist", member.getRole()))
+                );
         }
     }
 
-    private void validatePrimaryOwner(Input input, Set<MemberCRD> sanitized, ArrayList<Error> errors) {
-        Optional<Membership> membership;
-        switch (input.referenceType) {
-            case APPLICATION -> {
-                String poRole = roleQueryService
-                    .findApplicationRole(PRIMARY_OWNER.name(), new ReferenceContext(ORGANIZATION, input.organizationId))
-                    .orElseThrow(() -> new RuntimeException("application primary owner role not found"))
-                    .getId();
-                membership =
-                    membershipQueryService
-                        .findByReference(Membership.ReferenceType.APPLICATION, input.referenceId)
-                        .stream()
-                        .filter(m -> m.getRoleId().equals(poRole))
-                        .findFirst();
-            }
-            case API -> {
-                String poRole = roleQueryService
-                    .findApiRole(PRIMARY_OWNER.name(), new ReferenceContext(ORGANIZATION, input.organizationId))
-                    .orElseThrow(() -> new RuntimeException("api primary owner role not found"))
-                    .getId();
-                membership =
-                    membershipQueryService
-                        .findByReference(Membership.ReferenceType.API, input.referenceId)
-                        .stream()
-                        .filter(m -> m.getRoleId().equals(poRole))
-                        .findFirst();
-            }
-            default -> throw new UnsupportedMembershipReferencer(
-                String.format("membership reference type [%s] doesn't exist", input.referenceType.name())
-            );
-        }
+    private Optional<Role> findRole(String organizationId, MembershipReferenceType scope, String role) {
+        var context = new ReferenceContext(ORGANIZATION, organizationId);
+        return switch (scope) {
+            case API -> roleQueryService.findApiRole(role, context);
+            case APPLICATION -> roleQueryService.findApplicationRole(role, context);
+            default -> throw new TechnicalDomainException(String.format("Role scope [%s] is not supported", scope));
+        };
+    }
 
+    private void validatePrimaryOwner(Input input, Set<MemberCRD> sanitized, ArrayList<Error> errors) {
+        var actor = input.auditInfo.actor();
         var members = sanitized.iterator();
+
         while (members.hasNext()) {
             var member = members.next();
+
+            log.debug("checking that member {} is not defined as a primary owner", member.getSourceId());
+
             if (PRIMARY_OWNER.name().equals(member.getRole())) {
                 errors.add(Error.severe("setting a member with the primary owner role is not allowed"));
                 members.remove();
             }
 
-            if (membership.isPresent() && membership.get().getMemberId().equals(member.getId())) {
-                errors.add(Error.severe("can not change the role of exiting primary owner [%s]", member.getSourceId()));
+            log.debug("checking that member {} is not the authenticated user who will be set as a primary owner", member.getSourceId());
+
+            if (actor.userId().equals(member.getId())) {
+                errors.add(Error.severe("can not change the role of primary owner [%s]", member.getSourceId()));
                 members.remove();
             }
         }

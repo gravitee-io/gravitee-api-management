@@ -24,7 +24,6 @@ import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
-import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
@@ -454,14 +453,13 @@ public class ResourceContextConfiguration {
         ValidatePageSourceDomainService validatePageSourceDomainService,
         ValidatePageAccessControlsDomainService validatePageAccessControlsDomainService,
         DocumentationValidationDomainService validationDomainService,
-        RoleQueryServiceInMemory roleQueryService,
-        MembershipQueryServiceInMemory membershipQueryService
+        RoleQueryServiceInMemory roleQueryService
     ) {
         return new ValidateApiCRDUseCase(
             new ValidateApiCRDDomainService(
                 new ValidateCategoryIdsDomainService(categoryQueryService),
                 verifyApiPathDomainService,
-                new ValidateCRDMembersDomainService(userDomainService, roleQueryService, membershipQueryService),
+                new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
                 new ValidateGroupsDomainService(groupQueryService),
                 validateResourceDomainService,
                 new ValidatePagesDomainService(
@@ -478,13 +476,12 @@ public class ResourceContextConfiguration {
         GroupQueryService groupQueryService,
         UserDomainService userDomainService,
         RoleQueryServiceInMemory roleQueryService,
-        MembershipQueryServiceInMemory membershipQueryService,
         ValidateApplicationSettingsDomainService validateApplicationSettingsDomainService
     ) {
         return new ValidateApplicationCRDUseCase(
             new ValidateApplicationCRDDomainService(
                 new ValidateGroupsDomainService(groupQueryService),
-                new ValidateCRDMembersDomainService(userDomainService, roleQueryService, membershipQueryService),
+                new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
                 validateApplicationSettingsDomainService
             )
         );
