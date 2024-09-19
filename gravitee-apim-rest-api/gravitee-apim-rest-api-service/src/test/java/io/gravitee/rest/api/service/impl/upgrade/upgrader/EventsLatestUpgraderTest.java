@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -37,8 +38,11 @@ import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.DictionaryType;
 import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.management.model.Organization;
+import io.gravitee.rest.api.service.EventService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -48,6 +52,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -75,6 +81,9 @@ public class EventsLatestUpgraderTest {
 
     @Mock
     private EventsLatestUpgrader cut;
+
+    @Captor
+    private ArgumentCaptor<Event> eventCaptor;
 
     @Before
     public void before() {
@@ -187,32 +196,66 @@ public class EventsLatestUpgraderTest {
     public void should_create_latest_events_from_existing_dictionaries() throws TechnicalException {
         Dictionary dictionary1 = new Dictionary();
         dictionary1.setId("dictionary1");
+        dictionary1.setType(DictionaryType.DYNAMIC);
         Dictionary dictionary2 = new Dictionary();
         dictionary2.setId("dictionary2");
+        dictionary2.setType(DictionaryType.MANUAL);
         when(dictionaryRepository.findAll()).thenReturn(Set.of(dictionary1, dictionary2));
         Event event1 = new Event();
+        event1.setType(EventType.PUBLISH_DICTIONARY);
         when(
             eventRepository.search(
-                EventCriteria.builder().property(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary1.getId()).build(),
+                EventCriteria
+                    .builder()
+                    .property(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary1.getId())
+                    .types(Set.of(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY))
+                    .build(),
                 new PageableBuilder().pageNumber(0).pageSize(1).build()
             )
         )
             .thenReturn(new Page<>(List.of(event1), 0, 1, 1));
         when(eventLatestRepository.createOrUpdate(event1)).thenReturn(event1);
         Event event2 = new Event();
+        event2.setType(EventType.STOP_DICTIONARY);
         when(
             eventRepository.search(
-                EventCriteria.builder().property(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary2.getId()).build(),
+                EventCriteria
+                    .builder()
+                    .property(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary1.getId())
+                    .types(Set.of(EventType.START_DICTIONARY, EventType.STOP_DICTIONARY))
+                    .build(),
                 new PageableBuilder().pageNumber(0).pageSize(1).build()
             )
         )
             .thenReturn(new Page<>(List.of(event2), 0, 1, 1));
         when(eventLatestRepository.createOrUpdate(event2)).thenReturn(event2);
+        Event event3 = new Event();
+        event3.setType(EventType.UNPUBLISH_DICTIONARY);
+        when(
+            eventRepository.search(
+                EventCriteria
+                    .builder()
+                    .property(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary2.getId())
+                    .types(Set.of(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY))
+                    .build(),
+                new PageableBuilder().pageNumber(0).pageSize(1).build()
+            )
+        )
+            .thenReturn(new Page<>(List.of(event3), 0, 1, 1));
+        when(eventLatestRepository.createOrUpdate(event3)).thenReturn(event3);
 
         cut.upgrade();
 
-        verify(eventLatestRepository).createOrUpdate(event1);
-        verify(eventLatestRepository).createOrUpdate(event2);
+        verify(eventLatestRepository, times(3)).createOrUpdate(eventCaptor.capture());
+        var eventsSaved = eventCaptor.getAllValues();
+        assertThat(eventsSaved)
+            .extracting(Event::getId, Event::getType)
+            .containsExactlyInAnyOrder(
+                tuple("dictionary1" + EventService.EVENT_LATEST_DYNAMIC_SUFFIX, EventType.PUBLISH_DICTIONARY),
+                tuple("dictionary1", EventType.STOP_DICTIONARY),
+                tuple("dictionary2", EventType.UNPUBLISH_DICTIONARY)
+            );
+
         verifyNoMoreInteractions(eventLatestRepository);
     }
 

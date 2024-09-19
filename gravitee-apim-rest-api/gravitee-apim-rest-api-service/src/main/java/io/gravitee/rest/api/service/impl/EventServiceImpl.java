@@ -63,8 +63,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -208,7 +206,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             eventProperties.put(Event.EventProperties.DICTIONARY_ID.getValue(), dictionaryId);
         }
         EventEntity event = createEvent(executionContext, environmentsIds, type, null, eventProperties);
-        createOrPatchLatestEvent(dictionaryId + "-dynamic", event);
+        createOrPatchLatestEvent(dictionaryId + EVENT_LATEST_DYNAMIC_SUFFIX, event);
         return event;
     }
 
