@@ -21,8 +21,8 @@ import { combineLatest, Observable, Subject, timer } from 'rxjs';
 import { map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { ApiScoring, ScoringAsset, ScoringDiagnostic, ScoringSeverity } from './api-scoring.model';
-import { ApiScoringService } from './api-scoring.service';
 
+import { ApiScoringService } from '../../../services-ngx/api-scoring.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api } from '../../../entities/management-api-v2';
 import { AsyncJobService } from '../../../services-ngx/async-job.service';

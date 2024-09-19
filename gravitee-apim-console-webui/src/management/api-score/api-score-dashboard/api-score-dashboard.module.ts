@@ -23,7 +23,6 @@ import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { GioAvatarModule } from '@gravitee/ui-particles-angular';
-import { MatSortModule } from '@angular/material/sort';
 
 import { ApiScoreDashboardComponent } from './api-score-dashboard.component';
 
@@ -45,7 +44,6 @@ import { DateAgoPipe } from '../../../shared/pipes/date-ago.pipe';
     MatButtonModule,
     MatTooltipModule,
     MatIconModule,
-    MatSortModule,
     DateAgoPipe,
   ],
 })

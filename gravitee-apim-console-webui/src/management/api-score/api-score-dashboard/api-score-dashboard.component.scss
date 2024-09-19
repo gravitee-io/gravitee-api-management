@@ -41,7 +41,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
   .card {
     padding-bottom: 16px;
-    flex-grow: 1;
+    flex: 1 1 0;
 
     &__title {
       margin-bottom: 16px;
