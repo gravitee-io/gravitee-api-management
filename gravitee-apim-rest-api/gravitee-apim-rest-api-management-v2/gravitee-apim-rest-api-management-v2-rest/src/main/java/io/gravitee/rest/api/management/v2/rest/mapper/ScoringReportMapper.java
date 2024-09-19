@@ -16,9 +16,11 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.scoring.model.EnvironmentApiScoringReport;
+import io.gravitee.apim.core.scoring.model.EnvironmentOverview;
 import io.gravitee.apim.core.scoring.model.ScoringReportView;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoring;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentApiScore;
+import io.gravitee.rest.api.management.v2.rest.model.EnvironmentScoringOverview;
 import io.gravitee.rest.api.management.v2.rest.utils.ManagementApiLinkHelper;
 import jakarta.ws.rs.core.UriInfo;
 import org.mapstruct.Mapper;
@@ -43,6 +45,9 @@ public interface ScoringReportMapper {
     @Mapping(target = "hints", source = "source.summary.hints")
     @Mapping(target = "pictureUrl", expression = "java(computePictureUrl(source, uriInfo))")
     EnvironmentApiScore map(EnvironmentApiScoringReport source, UriInfo uriInfo);
+
+    @Mapping(target = "id", source = "source.environmentId")
+    EnvironmentScoringOverview map(EnvironmentOverview source);
 
     @Named("computeApiLinks")
     default String computePictureUrl(EnvironmentApiScoringReport report, UriInfo uriInfo) {

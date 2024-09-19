@@ -20,6 +20,7 @@ import static org.assertj.core.groups.Tuple.tuple;
 
 import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.ScoringEnvironmentSummary;
 import io.gravitee.repository.management.model.ScoringReport;
 import java.util.Date;
 import java.util.List;
@@ -177,6 +178,21 @@ public class ScoringReportReportRepositoryTest extends AbstractManagementReposit
 
         var reportAfter = scoringReportRepository.findLatestFor("api1");
         assertThat(reportAfter).isEmpty();
+    }
+
+    // getScoringEnvironmentSummary
+    @Test
+    public void getScoringEnvironmentSummary_should_return_environment_summary() throws Exception {
+        var result = scoringReportRepository.getScoringEnvironmentSummary("env1");
+
+        Assertions.assertThat(result).isEqualTo(new ScoringEnvironmentSummary("env1", 5L, 5L, 5L, 5L));
+    }
+
+    @Test
+    public void getScoringEnvironmentSummary_should_return_empty_summary_when_no_data() throws Exception {
+        var result = scoringReportRepository.getScoringEnvironmentSummary("env4");
+
+        Assertions.assertThat(result).isEqualTo(new ScoringEnvironmentSummary("env4", 0L, 0L, 0L, 0L));
     }
 
     private static ScoringReport aScoring() {

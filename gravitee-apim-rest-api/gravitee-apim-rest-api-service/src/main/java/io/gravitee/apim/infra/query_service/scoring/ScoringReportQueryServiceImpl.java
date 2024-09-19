@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.query_service.scoring;
 
+import io.gravitee.apim.core.scoring.model.EnvironmentOverview;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
 import io.gravitee.apim.core.scoring.query_service.ScoringReportQueryService;
 import io.gravitee.apim.infra.adapter.ScoringReportAdapter;
@@ -55,6 +56,16 @@ public class ScoringReportQueryServiceImpl implements ScoringReportQueryService 
         } catch (TechnicalException e) {
             log.error("An error occurred while finding Scoring Reports by API id", e);
             throw new TechnicalManagementException("An error occurred while finding Scoring Report of API: " + apiIds, e);
+        }
+    }
+
+    @Override
+    public EnvironmentOverview getEnvironmentScoringSummary(String environmentId) {
+        try {
+            return ScoringReportAdapter.INSTANCE.toEntity(scoringReportRepository.getScoringEnvironmentSummary(environmentId));
+        } catch (TechnicalException e) {
+            log.error("An error occurred while getting Scoring Environment Summary of {}", environmentId, e);
+            throw new TechnicalManagementException("An error occurred while getting Scoring Environment Summary of " + environmentId, e);
         }
     }
 }
