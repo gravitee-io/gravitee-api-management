@@ -26,38 +26,24 @@ import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDoma
 import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApplicationHookContext;
-import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import java.util.Collections;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @DomainService
+@RequiredArgsConstructor
 public class RejectSubscriptionDomainService {
 
-    private final AuditDomainService auditDomainService;
     private final SubscriptionCrudService subscriptionRepository;
-    private final PlanCrudService planCrudService;
+    private final AuditDomainService auditDomainService;
     private final TriggerNotificationDomainService triggerNotificationDomainService;
     private final UserCrudService userCrudService;
-
-    public RejectSubscriptionDomainService(
-        SubscriptionCrudService subscriptionRepository,
-        PlanCrudService planCrudService,
-        AuditDomainService auditDomainService,
-        TriggerNotificationDomainService triggerNotificationDomainService,
-        UserCrudService userCrudService
-    ) {
-        this.subscriptionRepository = subscriptionRepository;
-        this.planCrudService = planCrudService;
-        this.triggerNotificationDomainService = triggerNotificationDomainService;
-        this.auditDomainService = auditDomainService;
-        this.userCrudService = userCrudService;
-    }
 
     public SubscriptionEntity reject(String subscriptionId, String reason, AuditInfo auditInfo) {
         log.debug("Close subscription {}", subscriptionId);
@@ -73,13 +59,13 @@ public class RejectSubscriptionDomainService {
         var rejectedSubscriptionEntity = subscriptionEntity.rejectBy(auditInfo.actor().userId(), reason);
 
         subscriptionRepository.update(rejectedSubscriptionEntity);
-        triggerNotifications(auditInfo.organizationId(), rejectedSubscriptionEntity);
+        triggerNotifications(auditInfo.organizationId(), auditInfo.environmentId(), rejectedSubscriptionEntity);
         createAudit(subscriptionEntity, rejectedSubscriptionEntity, auditInfo);
 
         return rejectedSubscriptionEntity;
     }
 
-    private void triggerNotifications(String organizationId, SubscriptionEntity rejectedSubscriptionEntity) {
+    private void triggerNotifications(String organizationId, String environmentId, SubscriptionEntity rejectedSubscriptionEntity) {
         var subscriberEmail = userCrudService
             .findBaseUserById(rejectedSubscriptionEntity.getSubscribedBy())
             .map(BaseUserEntity::getEmail)
@@ -90,6 +76,7 @@ public class RejectSubscriptionDomainService {
 
         triggerNotificationDomainService.triggerApiNotification(
             organizationId,
+            environmentId,
             new SubscriptionRejectedApiHookContext(
                 rejectedSubscriptionEntity.getApiId(),
                 rejectedSubscriptionEntity.getApplicationId(),
@@ -99,6 +86,7 @@ public class RejectSubscriptionDomainService {
         );
         triggerNotificationDomainService.triggerApplicationNotification(
             organizationId,
+            environmentId,
             new SubscriptionRejectedApplicationHookContext(
                 rejectedSubscriptionEntity.getApplicationId(),
                 rejectedSubscriptionEntity.getApiId(),

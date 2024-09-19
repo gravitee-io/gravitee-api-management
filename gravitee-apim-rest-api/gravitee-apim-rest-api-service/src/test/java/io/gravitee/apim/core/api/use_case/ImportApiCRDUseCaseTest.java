@@ -270,7 +270,6 @@ class ImportApiCRDUseCaseTest {
             triggerNotificationDomainService,
             new RejectSubscriptionDomainService(
                 subscriptionCrudService,
-                planCrudService,
                 auditDomainService,
                 triggerNotificationDomainService,
                 new UserCrudServiceInMemory()

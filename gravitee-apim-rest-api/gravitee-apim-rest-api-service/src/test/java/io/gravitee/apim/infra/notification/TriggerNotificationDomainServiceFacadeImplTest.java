@@ -19,7 +19,6 @@ import static fixtures.core.model.MembershipFixtures.anApiPrimaryOwnerUserMember
 import static fixtures.core.model.MembershipFixtures.anApplicationPrimaryOwnerUserMembership;
 import static fixtures.repository.ApiFixtures.anApi;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.in;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
@@ -71,7 +70,6 @@ import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.Integration;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
-import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -100,6 +98,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class TriggerNotificationDomainServiceFacadeImplTest {
 
     public static final String ORGANIZATION_ID = "DEFAULT";
+    public static final String ENVIRONMENT_ID = "DEFAULT";
     public static final String USER_ID = "user-id";
     public static final String USER_ID_2 = "user-id-2";
     public static final String API_ID = "api-id";
@@ -190,12 +189,12 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
 
             // When
             final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest(API_ID);
-            service.triggerApiNotification(ORGANIZATION_ID, apiHookContext);
+            service.triggerApiNotification(ORGANIZATION_ID, ENVIRONMENT_ID, apiHookContext);
 
             // Then
             verify(notifierService)
                 .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, null)),
+                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
                     eq(ApiHook.SUBSCRIPTION_CLOSED),
                     eq(API_ID),
                     paramsCaptor.capture()
@@ -249,12 +248,12 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
 
             // When
             final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest(API_ID);
-            service.triggerApiNotification(ORGANIZATION_ID, apiHookContext);
+            service.triggerApiNotification(ORGANIZATION_ID, ENVIRONMENT_ID, apiHookContext);
 
             // Then
             verify(notifierService)
                 .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, null)),
+                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
                     eq(ApiHook.SUBSCRIPTION_CLOSED),
                     eq(API_ID),
                     paramsCaptor.capture()
@@ -311,12 +310,12 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 API_ID,
                 Map.of(HookContextEntry.APPLICATION_ID, APPLICATION_ID)
             );
-            service.triggerApiNotification(ORGANIZATION_ID, apiHookContext);
+            service.triggerApiNotification(ORGANIZATION_ID, ENVIRONMENT_ID, apiHookContext);
 
             // Then
             verify(notifierService)
                 .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, null)),
+                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
                     eq(ApiHook.SUBSCRIPTION_CLOSED),
                     eq(API_ID),
                     paramsCaptor.capture()
@@ -375,12 +374,12 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 API_ID,
                 Map.of(HookContextEntry.PLAN_ID, "plan-id")
             );
-            service.triggerApiNotification(ORGANIZATION_ID, apiHookContext);
+            service.triggerApiNotification(ORGANIZATION_ID, ENVIRONMENT_ID, apiHookContext);
 
             // Then
             verify(notifierService)
                 .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, null)),
+                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
                     eq(ApiHook.SUBSCRIPTION_CLOSED),
                     eq(API_ID),
                     paramsCaptor.capture()
@@ -433,12 +432,12 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 API_ID,
                 Map.of(HookContextEntry.PLAN_ID, "plan-id")
             );
-            service.triggerApiNotification(ORGANIZATION_ID, apiHookContext);
+            service.triggerApiNotification(ORGANIZATION_ID, ENVIRONMENT_ID, apiHookContext);
 
             // Then
             verify(notifierService)
                 .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, null)),
+                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
                     eq(ApiHook.SUBSCRIPTION_CLOSED),
                     eq(API_ID),
                     paramsCaptor.capture()
@@ -474,12 +473,12 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 API_ID,
                 Map.of(HookContextEntry.SUBSCRIPTION_ID, "subscription-id")
             );
-            service.triggerApiNotification(ORGANIZATION_ID, apiHookContext);
+            service.triggerApiNotification(ORGANIZATION_ID, ENVIRONMENT_ID, apiHookContext);
 
             // Then
             verify(notifierService)
                 .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, null)),
+                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
                     eq(ApiHook.SUBSCRIPTION_CLOSED),
                     eq(API_ID),
                     paramsCaptor.capture()
@@ -535,12 +534,12 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
 
             // When
             final SimpleApplicationHookContextForTest applicationHookContext = new SimpleApplicationHookContextForTest(APPLICATION_ID);
-            service.triggerApplicationNotification(ORGANIZATION_ID, applicationHookContext);
+            service.triggerApplicationNotification(ORGANIZATION_ID, ENVIRONMENT_ID, applicationHookContext);
 
             // Then
             verify(notifierService)
                 .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, null)),
+                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
                     eq(ApplicationHook.SUBSCRIPTION_CLOSED),
                     eq(APPLICATION_ID),
                     paramsCaptor.capture(),
@@ -596,12 +595,12 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 APPLICATION_ID,
                 Map.of(HookContextEntry.API_ID, API_ID)
             );
-            service.triggerApplicationNotification(ORGANIZATION_ID, applicationHookContext);
+            service.triggerApplicationNotification(ORGANIZATION_ID, ENVIRONMENT_ID, applicationHookContext);
 
             // Then
             verify(notifierService)
                 .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, null)),
+                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
                     eq(ApplicationHook.SUBSCRIPTION_CLOSED),
                     eq(APPLICATION_ID),
                     paramsCaptor.capture(),
@@ -659,12 +658,12 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 APPLICATION_ID,
                 Map.of(HookContextEntry.API_ID, API_ID)
             );
-            service.triggerApplicationNotification(ORGANIZATION_ID, applicationHookContext);
+            service.triggerApplicationNotification(ORGANIZATION_ID, ENVIRONMENT_ID, applicationHookContext);
 
             // Then
             verify(notifierService)
                 .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, null)),
+                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
                     eq(ApplicationHook.SUBSCRIPTION_CLOSED),
                     eq(APPLICATION_ID),
                     paramsCaptor.capture(),
@@ -726,12 +725,12 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 APPLICATION_ID,
                 Map.of(HookContextEntry.PLAN_ID, "plan-id")
             );
-            service.triggerApplicationNotification(ORGANIZATION_ID, applicationHookContext);
+            service.triggerApplicationNotification(ORGANIZATION_ID, ENVIRONMENT_ID, applicationHookContext);
 
             // Then
             verify(notifierService)
                 .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, null)),
+                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
                     eq(ApplicationHook.SUBSCRIPTION_CLOSED),
                     eq(APPLICATION_ID),
                     paramsCaptor.capture(),
@@ -785,12 +784,12 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 APPLICATION_ID,
                 Map.of(HookContextEntry.PLAN_ID, "plan-id")
             );
-            service.triggerApplicationNotification(ORGANIZATION_ID, applicationHookContext);
+            service.triggerApplicationNotification(ORGANIZATION_ID, ENVIRONMENT_ID, applicationHookContext);
 
             // Then
             verify(notifierService)
                 .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, null)),
+                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
                     eq(ApplicationHook.SUBSCRIPTION_CLOSED),
                     eq(APPLICATION_ID),
                     paramsCaptor.capture(),
@@ -824,12 +823,12 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             givenExistingSubscription(Subscription.builder().id("subscription-id").request("my-request").reason("my-reason").build());
             // When
             var hook = new SimpleApplicationHookContextForTest(APPLICATION_ID, Map.of(HookContextEntry.SUBSCRIPTION_ID, "subscription-id"));
-            service.triggerApplicationNotification(ORGANIZATION_ID, hook);
+            service.triggerApplicationNotification(ORGANIZATION_ID, ENVIRONMENT_ID, hook);
 
             // Then
             verify(notifierService)
                 .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, null)),
+                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
                     eq(ApplicationHook.SUBSCRIPTION_CLOSED),
                     eq(APPLICATION_ID),
                     paramsCaptor.capture(),
@@ -864,12 +863,12 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             // When
             final SimpleApplicationHookContextForTest applicationHookContext = new SimpleApplicationHookContextForTest(APPLICATION_ID);
             List<Recipient> additionalRecipients = List.of(new Recipient("EMAIL", "user@gravitee.io"));
-            service.triggerApplicationNotification(ORGANIZATION_ID, applicationHookContext, additionalRecipients);
+            service.triggerApplicationNotification(ORGANIZATION_ID, ENVIRONMENT_ID, applicationHookContext, additionalRecipients);
 
             // Then
             verify(notifierService)
                 .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, null)),
+                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
                     eq(ApplicationHook.SUBSCRIPTION_CLOSED),
                     eq(APPLICATION_ID),
                     paramsCaptor.capture(),
@@ -931,12 +930,12 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
 
             // When
             var portalHookContext = new SimplePortalHookContextForTest(Map.of(HookContextEntry.INTEGRATION_ID, INTEGRATION_ID));
-            service.triggerPortalNotification(ORGANIZATION_ID, portalHookContext);
+            service.triggerPortalNotification(ORGANIZATION_ID, ENVIRONMENT_ID, portalHookContext);
 
             // Then
             verify(notifierService)
                 .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, null)),
+                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
                     eq(PortalHook.FEDERATED_APIS_INGESTION_COMPLETE),
                     paramsCaptor.capture()
                 );
