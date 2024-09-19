@@ -33,6 +33,7 @@ public class ScoringReportMongo extends Auditable {
     private String id;
 
     private String apiId;
+    private String environmentId;
     private String pageId;
     private String type;
     private ScoringReport.Summary summary;

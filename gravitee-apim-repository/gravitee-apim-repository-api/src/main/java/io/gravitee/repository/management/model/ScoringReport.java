@@ -40,6 +40,7 @@ public final class ScoringReport {
     private String id;
 
     private String apiId;
+    private String environmentId;
     private Date createdAt;
     private Summary summary;
 
