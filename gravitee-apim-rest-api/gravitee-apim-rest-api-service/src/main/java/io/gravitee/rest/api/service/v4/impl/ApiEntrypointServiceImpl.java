@@ -201,7 +201,7 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
 
         if (host == null || !isOverride) {
             List<AccessPoint> accessPoints = this.accessPointQueryService.getGatewayAccessPoints(environmentId);
-            if (accessPoints.isEmpty()) {
+            if (accessPoints.isEmpty() || (tags != null && !tags.isEmpty())) {
                 entrypoints.add(createApiEntrypointEntity(defaultScheme, entrypointValue, path, tags, host));
             } else {
                 for (AccessPoint accessPoint : accessPoints) {
