@@ -99,20 +99,21 @@ public class IntegrationAgentImpl implements IntegrationAgent {
         String subscriptionId,
         BaseApplicationEntity application
     ) {
-        Map<String, String> metadata;
+        Map<String, String> metadata = api.getServer() != null ? new HashMap<>(api.getServer()) : new HashMap<>();
         SubscriptionType type;
         if (subscriptionParameter instanceof SubscriptionParameter.ApiKey apiKeyParams) {
             type = SubscriptionType.API_KEY;
-            metadata = Map.of(Subscription.METADATA_PLAN_ID, apiKeyParams.plan().getProviderId());
+            metadata.put(Subscription.METADATA_PLAN_ID, apiKeyParams.plan().getProviderId());
         } else if (subscriptionParameter instanceof SubscriptionParameter.OAuth oauthParams) {
             type = SubscriptionType.OAUTH;
-            metadata =
+            metadata.putAll(
                 Map.of(
                     Subscription.METADATA_PLAN_ID,
                     oauthParams.plan().getProviderId(),
                     Subscription.METADATA_CONSUMER_KEY,
                     oauthParams.clientId()
-                );
+                )
+            );
         } else {
             return Single.error(
                 new IntegrationIngestionException("Unsupported subscription type: " + subscriptionParameter.plan().getSecurity().getType())
@@ -138,7 +139,7 @@ public class IntegrationAgentImpl implements IntegrationAgent {
                 var subscriptionResult = reply.getPayload().subscription();
                 return switch (payload.subscription().type()) {
                     case API_KEY -> Single.just(apiKey(integrationId, subscriptionResult.apiKey(), subscriptionResult.metadata()));
-                    case OAUTH -> Single.just(oAuth(integrationId));
+                    case OAUTH -> Single.just(oAuth(integrationId, subscriptionResult.metadata()));
                     default -> Single.error(
                         new IntegrationSubscriptionException("Unsupported subscription type: " + payload.subscription().type())
                     );
@@ -149,11 +150,15 @@ public class IntegrationAgentImpl implements IntegrationAgent {
     @Override
     public Completable unsubscribe(String integrationId, FederatedApi api, SubscriptionEntity subscription) {
         var metadata = new HashMap<String, String>();
-        if (subscription.getMetadata() != null) {
-            metadata.putAll(subscription.getMetadata());
+        if (api.getServer() != null) {
+            metadata.putAll(api.getServer());
         }
         if (subscription.getClientId() != null) {
             metadata.put(Subscription.METADATA_CONSUMER_KEY, subscription.getClientId());
+        }
+        // let subscription metadata override previous metadata
+        if (subscription.getMetadata() != null) {
+            metadata.putAll(subscription.getMetadata());
         }
         var payload = new UnsubscribeCommand.Payload(
             api.getProviderId(),
