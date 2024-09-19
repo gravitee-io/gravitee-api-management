@@ -135,7 +135,7 @@ public class ApiCRDServiceImpl extends AbstractService implements ApiCRDService 
             DefinitionContext definitionContext = api.getDefinitionContext();
             definitionContextService.setDefinitionContext(
                 importedApi.getId(),
-                new DefinitionContextEntity(definitionContext.getOrigin(), definitionContext.getMode())
+                new DefinitionContextEntity(definitionContext.getOrigin(), definitionContext.getMode(), definitionContext.getSyncFrom())
             );
         }
     }

@@ -49,6 +49,7 @@ public class ApiDefinitionContextServiceImpl implements ApiDefinitionContextServ
             Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
             api.setOrigin(definitionContext.getOrigin());
             api.setMode(definitionContext.getMode());
+            api.setSyncFrom(definitionContext.getSyncFrom());
             apiRepository.update(api);
         } catch (TechnicalException e) {
             LOG.error("An error has occurred while trying to set definition context on API " + apiId, e);

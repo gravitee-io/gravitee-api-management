@@ -62,7 +62,7 @@ public class ApiDefinitionContextResourceTest extends AbstractResourceTest {
     public void shouldReturn200AndSetDefinitionContext() {
         Response response = envTarget(API_ID).path(DEFINITION_CONTEXT_PATH).request().put(json(newKubernetesContext()));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        verify(definitionContextService, times(1))
+        verify(definitionContextService)
             .setDefinitionContext(
                 eq(API_ID),
                 argThat(context -> {
@@ -74,33 +74,47 @@ public class ApiDefinitionContextResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldReturn400WithNullOrigin() {
-        DefinitionContextEntity definitionContextEntity = new DefinitionContextEntity(null, MODE_FULLY_MANAGED);
+        DefinitionContextEntity definitionContextEntity = new DefinitionContextEntity(null, MODE_FULLY_MANAGED, ORIGIN_KUBERNETES);
         Response response = envTarget(API_ID).path(DEFINITION_CONTEXT_PATH).request().put(json(definitionContextEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
     @Test
     public void shouldReturn400WithUnknownOrigin() {
-        DefinitionContextEntity definitionContextEntity = new DefinitionContextEntity("unknown", MODE_FULLY_MANAGED);
+        DefinitionContextEntity definitionContextEntity = new DefinitionContextEntity("unknown", MODE_FULLY_MANAGED, ORIGIN_KUBERNETES);
         Response response = envTarget(API_ID).path(DEFINITION_CONTEXT_PATH).request().put(json(definitionContextEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
     @Test
     public void shouldReturn400WithNullMode() {
-        DefinitionContextEntity definitionContextEntity = new DefinitionContextEntity(ORIGIN_KUBERNETES, null);
+        DefinitionContextEntity definitionContextEntity = new DefinitionContextEntity(ORIGIN_KUBERNETES, null, ORIGIN_KUBERNETES);
         Response response = envTarget(API_ID).path(DEFINITION_CONTEXT_PATH).request().put(json(definitionContextEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
     @Test
     public void shouldReturn400WithUnknownMode() {
-        DefinitionContextEntity definitionContextEntity = new DefinitionContextEntity(ORIGIN_KUBERNETES, "unknown");
+        DefinitionContextEntity definitionContextEntity = new DefinitionContextEntity(ORIGIN_KUBERNETES, "unknown", ORIGIN_KUBERNETES);
+        Response response = envTarget(API_ID).path(DEFINITION_CONTEXT_PATH).request().put(json(definitionContextEntity));
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldReturn400WithNullSyncFrom() {
+        DefinitionContextEntity definitionContextEntity = new DefinitionContextEntity(ORIGIN_KUBERNETES, MODE_FULLY_MANAGED, null);
+        Response response = envTarget(API_ID).path(DEFINITION_CONTEXT_PATH).request().put(json(definitionContextEntity));
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldReturn400WithUnknownSyncFrom() {
+        DefinitionContextEntity definitionContextEntity = new DefinitionContextEntity(ORIGIN_KUBERNETES, MODE_FULLY_MANAGED, "unknown");
         Response response = envTarget(API_ID).path(DEFINITION_CONTEXT_PATH).request().put(json(definitionContextEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
     private static DefinitionContextEntity newKubernetesContext() {
-        return new DefinitionContextEntity(ORIGIN_KUBERNETES, MODE_FULLY_MANAGED);
+        return new DefinitionContextEntity(ORIGIN_KUBERNETES, MODE_FULLY_MANAGED, ORIGIN_KUBERNETES);
     }
 }
