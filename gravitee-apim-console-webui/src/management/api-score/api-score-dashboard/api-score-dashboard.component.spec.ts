@@ -16,28 +16,66 @@
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BrowserAnimationsModule, NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpTestingController } from '@angular/common/http/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 
 import { ApiScoreDashboardComponent } from './api-score-dashboard.component';
+import { ApiScoreDashboardHarness } from './api-score-dashboard.harness';
 
-import { GioTestingModule } from '../../../shared/testing';
 import { ApiScoreModule } from '../api-score.module';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { fakeApisScoring } from '../../api/scoring/api-scoring.fixture';
+import { ApisScoring, ApisScoringResponse } from '../api-score.model';
 
 describe('ApiScoreDashboardComponent', () => {
-  let component: ApiScoreDashboardComponent;
   let fixture: ComponentFixture<ApiScoreDashboardComponent>;
+  let componentHarness: ApiScoreDashboardHarness;
+  let httpTestingController: HttpTestingController;
 
-  beforeEach(async () => {
+  const init = async () => {
     await TestBed.configureTestingModule({
       declarations: [ApiScoreDashboardComponent],
-      imports: [ApiScoreModule, GioTestingModule, BrowserAnimationsModule, NoopAnimationsModule],
-    }).compileComponents();
+      imports: [GioTestingModule, ApiScoreModule, BrowserAnimationsModule, NoopAnimationsModule],
+      providers: [],
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+          isTabbable: () => true, // This traps focus checks and so avoid warnings when dealing with
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(ApiScoreDashboardComponent);
-    component = fixture.componentInstance;
+    httpTestingController = TestBed.inject(HttpTestingController);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiScoreDashboardHarness);
     fixture.detectChanges();
+  };
+
+  describe('table', () => {
+    it('should have correct number of rows', async () => {
+      await init();
+      expectApiScoreGetRequest([fakeApisScoring(), fakeApisScoring(), fakeApisScoring()]);
+
+      fixture.detectChanges();
+      expect(await componentHarness.rowsNumber()).toEqual(3);
+    });
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+  function expectApiScoreGetRequest(responseData: ApisScoring[] = [fakeApisScoring()], page = 1, perPage = 10): void {
+    const response: ApisScoringResponse = {
+      data: responseData,
+      pagination: {
+        totalCount: responseData.length,
+      },
+    };
+
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/scoring/apis?page=${page}&perPage=${perPage}`,
+        method: 'GET',
+      })
+      .flush(response);
+  }
 });

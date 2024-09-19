@@ -18,9 +18,9 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { ApiScoringService } from './api-scoring.service';
-import { fakeApiScoringTriggerResponse } from './api-scoring.fixture';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { fakeApiScoringTriggerResponse } from '../management/api/scoring/api-scoring.fixture';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 
 describe('ApiScoringService', () => {
   const apiId = 'api-id';
