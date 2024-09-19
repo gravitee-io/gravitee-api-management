@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
@@ -65,6 +66,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -138,7 +140,7 @@ class IntegrationAgentImplTest {
             agent.startIngest(INTEGRATION_ID, JOB_ID, List.of()).test().awaitDone(10, TimeUnit.SECONDS);
 
             var captor = ArgumentCaptor.forClass(Command.class);
-            Mockito.verify(controller).sendCommand(captor.capture(), Mockito.eq(INTEGRATION_ID));
+            Mockito.verify(controller).sendCommand(captor.capture(), eq(INTEGRATION_ID));
 
             assertThat(captor.getValue())
                 .isInstanceOf(StartIngestCommand.class)
@@ -151,7 +153,7 @@ class IntegrationAgentImplTest {
             agent.startIngest(INTEGRATION_ID, JOB_ID, List.of("1", "2", "3")).test().awaitDone(10, TimeUnit.SECONDS);
 
             var captor = ArgumentCaptor.forClass(Command.class);
-            Mockito.verify(controller).sendCommand(captor.capture(), Mockito.eq(INTEGRATION_ID));
+            Mockito.verify(controller).sendCommand(captor.capture(), eq(INTEGRATION_ID));
 
             assertThat(captor.getValue())
                 .isInstanceOf(StartIngestCommand.class)
@@ -207,10 +209,13 @@ class IntegrationAgentImplTest {
         static final String APPLICATION_NAME = "application-name";
         static final BaseApplicationEntity APPLICATION = BaseApplicationEntity.builder().id(APPLICATION_ID).name(APPLICATION_NAME).build();
 
+        @Captor
+        ArgumentCaptor<SubscribeCommand> subscribeCommandCaptor;
+
         @BeforeEach
         void setUp() {
             lenient()
-                .when(controller.sendCommand(any(), any()))
+                .when(controller.sendCommand(subscribeCommandCaptor.capture(), any()))
                 .thenReturn(
                     Single.just(
                         new SubscribeReply(
@@ -238,7 +243,7 @@ class IntegrationAgentImplTest {
                 .awaitDone(10, TimeUnit.SECONDS);
 
             var captor = ArgumentCaptor.forClass(Command.class);
-            Mockito.verify(controller).sendCommand(captor.capture(), Mockito.eq(INTEGRATION_ID));
+            Mockito.verify(controller).sendCommand(captor.capture(), eq(INTEGRATION_ID));
             assertThat(captor.getValue())
                 .isInstanceOf(SubscribeCommand.class)
                 .extracting(Command::getPayload)
@@ -272,7 +277,13 @@ class IntegrationAgentImplTest {
             agent
                 .subscribe(
                     INTEGRATION_ID,
-                    ApiDefinitionFixtures.aFederatedApi().toBuilder().id("gravitee-api-id").providerId("api-provider-id").build(),
+                    ApiDefinitionFixtures
+                        .aFederatedApi()
+                        .toBuilder()
+                        .id("gravitee-api-id")
+                        .providerId("api-provider-id")
+                        .server(Map.of("k1", "v1"))
+                        .build(),
                     subscriptionParameter,
                     SUBSCRIPTION_ID,
                     APPLICATION
@@ -280,9 +291,7 @@ class IntegrationAgentImplTest {
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS);
 
-            var captor = ArgumentCaptor.forClass(Command.class);
-            Mockito.verify(controller).sendCommand(captor.capture(), Mockito.eq(INTEGRATION_ID));
-            assertThat(captor.getValue())
+            assertThat(subscribeCommandCaptor.getValue())
                 .isInstanceOf(SubscribeCommand.class)
                 .extracting(Command::getPayload)
                 .isEqualTo(
@@ -293,7 +302,14 @@ class IntegrationAgentImplTest {
                             APPLICATION_ID,
                             APPLICATION_NAME,
                             SubscriptionType.OAUTH,
-                            Map.of(Subscription.METADATA_PLAN_ID, planProviderId, Subscription.METADATA_CONSUMER_KEY, oAuthClientId)
+                            Map.of(
+                                Subscription.METADATA_PLAN_ID,
+                                planProviderId,
+                                Subscription.METADATA_CONSUMER_KEY,
+                                oAuthClientId,
+                                "k1",
+                                "v1"
+                            )
                         )
                     )
                 );
@@ -313,6 +329,28 @@ class IntegrationAgentImplTest {
                 .awaitDone(10, TimeUnit.SECONDS)
                 .values();
 
+            assertThat(result)
+                .hasSize(1)
+                .containsExactly(
+                    new IntegrationSubscription(INTEGRATION_ID, IntegrationSubscription.Type.API_KEY, "my-api-key", Map.of("key", "value"))
+                );
+        }
+
+        @Test
+        void should_send_server_map() {
+            var result = agent
+                .subscribe(
+                    INTEGRATION_ID,
+                    ApiDefinitionFixtures.aFederatedApi().toBuilder().server(Map.of("k1", "v1")).build(),
+                    PlanFixtures.subscriptionParameter(),
+                    SUBSCRIPTION_ID,
+                    APPLICATION
+                )
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .values();
+
+            assertThat(subscribeCommandCaptor.getValue().getPayload().subscription().metadata()).containsEntry("k1", "v1");
             assertThat(result)
                 .hasSize(1)
                 .containsExactly(
@@ -381,7 +419,7 @@ class IntegrationAgentImplTest {
                 .assertComplete();
 
             var captor = ArgumentCaptor.forClass(Command.class);
-            Mockito.verify(controller).sendCommand(captor.capture(), Mockito.eq(INTEGRATION_ID));
+            Mockito.verify(controller).sendCommand(captor.capture(), eq(INTEGRATION_ID));
             assertThat(captor.getValue())
                 .isInstanceOf(UnsubscribeCommand.class)
                 .extracting(Command::getPayload)
@@ -424,7 +462,7 @@ class IntegrationAgentImplTest {
                 .assertComplete();
 
             var captor = ArgumentCaptor.forClass(Command.class);
-            Mockito.verify(controller).sendCommand(captor.capture(), Mockito.eq(INTEGRATION_ID));
+            Mockito.verify(controller).sendCommand(captor.capture(), eq(INTEGRATION_ID));
             assertThat(captor.getValue())
                 .isInstanceOf(UnsubscribeCommand.class)
                 .extracting(Command::getPayload)
@@ -492,7 +530,7 @@ class IntegrationAgentImplTest {
             agent.discoverApis(INTEGRATION_ID).test().awaitDone(10, TimeUnit.SECONDS);
 
             var captor = ArgumentCaptor.forClass(Command.class);
-            Mockito.verify(controller).sendCommand(captor.capture(), Mockito.eq(INTEGRATION_ID));
+            Mockito.verify(controller).sendCommand(captor.capture(), eq(INTEGRATION_ID));
             assertThat(captor.getValue())
                 .isInstanceOf(DiscoverCommand.class)
                 .extracting(Command::getPayload)
