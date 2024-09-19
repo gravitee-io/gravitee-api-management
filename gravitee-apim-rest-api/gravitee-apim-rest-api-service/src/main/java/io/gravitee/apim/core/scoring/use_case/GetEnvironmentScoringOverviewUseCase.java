@@ -13,19 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.adapter;
+package io.gravitee.apim.core.scoring.use_case;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.scoring.model.EnvironmentOverview;
-import io.gravitee.apim.core.scoring.model.ScoringReport;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+import io.gravitee.apim.core.scoring.query_service.ScoringReportQueryService;
+import lombok.RequiredArgsConstructor;
 
-@Mapper
-public interface ScoringReportAdapter {
-    ScoringReportAdapter INSTANCE = Mappers.getMapper(ScoringReportAdapter.class);
+@RequiredArgsConstructor
+@UseCase
+public class GetEnvironmentScoringOverviewUseCase {
 
-    ScoringReport toEntity(io.gravitee.repository.management.model.ScoringReport source);
-    EnvironmentOverview toEntity(io.gravitee.repository.management.model.ScoringEnvironmentSummary source);
+    private final ScoringReportQueryService scoringReportQueryService;
 
-    io.gravitee.repository.management.model.ScoringReport toRepository(ScoringReport source);
+    public Output execute(Input input) {
+        var summary = scoringReportQueryService.getEnvironmentScoringSummary(input.environmentId);
+        return new Output(summary);
+    }
+
+    public record Input(String environmentId) {}
+
+    public record Output(EnvironmentOverview overview) {}
 }

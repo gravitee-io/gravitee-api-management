@@ -28,6 +28,7 @@ import io.gravitee.apim.core.scoring.model.ScoringReport;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentApiScore;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentApisScoringResponse;
+import io.gravitee.rest.api.management.v2.rest.model.EnvironmentScoringOverview;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -53,6 +54,7 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
     private static final ZonedDateTime CREATED_AT = Instant.parse("2023-10-22T10:15:30Z").atZone(ZoneId.systemDefault());
 
     WebTarget scoringApisTarget;
+    WebTarget scoringOverviewTarget;
     WebTarget apisTarget;
 
     @Inject
@@ -69,6 +71,7 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
     @BeforeEach
     void setup() {
         scoringApisTarget = rootTarget().path("scoring").path("apis");
+        scoringOverviewTarget = rootTarget().path("scoring").path("overview");
         apisTarget = rootTarget().path("apis");
 
         EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
@@ -214,11 +217,37 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
         }
     }
 
+    @Nested
+    class GetScoringEnvironmentOverview {
+
+        @Test
+        void should_return_environment_overview() {
+            // Given
+            scoringReportQueryService.initWith(
+                List.of(
+                    aReport("report1").toBuilder().apiId("api1").environmentId(ENVIRONMENT).build(),
+                    aReport("report2").toBuilder().apiId("api2").environmentId(ENVIRONMENT).build(),
+                    aReport("report3").toBuilder().apiId("api3").environmentId(ENVIRONMENT).build()
+                )
+            );
+
+            // When
+            Response response = scoringOverviewTarget.request().get();
+
+            // Then
+            assertThat(response)
+                .hasStatus(HttpStatusCode.OK_200)
+                .asEntity(EnvironmentScoringOverview.class)
+                .isEqualTo(EnvironmentScoringOverview.builder().id(ENVIRONMENT).errors(3).warnings(3).infos(3).hints(3).build());
+        }
+    }
+
     private static ScoringReport aReport(String id) {
         return ScoringReportFixture
             .aScoringReport()
             .toBuilder()
             .id(id)
+            .environmentId(ENVIRONMENT)
             .createdAt(CREATED_AT)
             .summary(new ScoringReport.Summary(1L, 1L, 1L, 1L))
             .assets(List.of())

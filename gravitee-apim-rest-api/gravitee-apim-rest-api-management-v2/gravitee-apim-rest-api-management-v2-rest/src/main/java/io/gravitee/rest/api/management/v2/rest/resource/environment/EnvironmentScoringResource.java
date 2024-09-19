@@ -16,9 +16,11 @@
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import io.gravitee.apim.core.scoring.use_case.GetEnvironmentReportsUseCase;
+import io.gravitee.apim.core.scoring.use_case.GetEnvironmentScoringOverviewUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ScoringReportMapper;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentApisScoringResponse;
+import io.gravitee.rest.api.management.v2.rest.model.EnvironmentScoringOverview;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
@@ -43,6 +45,9 @@ public class EnvironmentScoringResource extends AbstractResource {
     @Inject
     private GetEnvironmentReportsUseCase getEnvironmentReportsUseCase;
 
+    @Inject
+    private GetEnvironmentScoringOverviewUseCase getEnvironmentScoringOverviewUseCase;
+
     @Path("apis")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -63,5 +68,16 @@ public class EnvironmentScoringResource extends AbstractResource {
             .pagination(PaginationInfo.computePaginationInfo(totalElements, Math.toIntExact(page.getPageElements()), paginationParam))
             .links(computePaginationLinks(totalElements, paginationParam))
             .build();
+    }
+
+    @Path("overview")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public EnvironmentScoringOverview getScoringEnvironmentOverview() {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var overview = getEnvironmentScoringOverviewUseCase
+            .execute(new GetEnvironmentScoringOverviewUseCase.Input(executionContext.getEnvironmentId()))
+            .overview();
+        return ScoringReportMapper.INSTANCE.map(overview);
     }
 }

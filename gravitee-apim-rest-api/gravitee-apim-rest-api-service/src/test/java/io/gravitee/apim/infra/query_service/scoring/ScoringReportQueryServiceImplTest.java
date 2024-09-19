@@ -21,10 +21,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.scoring.model.EnvironmentOverview;
 import io.gravitee.apim.core.scoring.model.ScoringAssetType;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ScoringReportRepository;
+import io.gravitee.repository.management.model.ScoringEnvironmentSummary;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -180,6 +182,37 @@ public class ScoringReportQueryServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalManagementException.class)
                 .hasMessage("An error occurred while finding Scoring Report of API: [api-id]");
+        }
+    }
+
+    @Nested
+    class GetEnvironmentOverview {
+
+        @Test
+        @SneakyThrows
+        void should_find_scoring_report() {
+            when(scoringReportRepository.getScoringEnvironmentSummary(any()))
+                .thenAnswer(invocation -> ScoringEnvironmentSummary.builder().environmentId("environment-id").warnings(1L).build());
+
+            // When
+            var result = service.getEnvironmentScoringSummary("environment-id");
+
+            // Then
+            assertThat(result).isEqualTo(new EnvironmentOverview("environment-id", 0L, 1L, 0L, 0L));
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            when(scoringReportRepository.getScoringEnvironmentSummary(any())).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.getEnvironmentScoringSummary("environment-id"));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("An error occurred while getting Scoring Environment Summary of environment-id");
         }
     }
 

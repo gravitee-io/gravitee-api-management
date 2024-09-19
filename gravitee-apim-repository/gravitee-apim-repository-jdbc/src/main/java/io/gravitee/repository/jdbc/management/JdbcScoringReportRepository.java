@@ -15,13 +15,16 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.util.stream.Collectors.groupingBy;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.management.model.JdbcScoringRow;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ScoringReportRepository;
+import io.gravitee.repository.management.model.ScoringEnvironmentSummary;
 import io.gravitee.repository.management.model.ScoringReport;
+import io.gravitee.repository.ratelimit.model.RateLimit;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -35,6 +38,7 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 
 @Slf4j
@@ -182,6 +186,31 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
     }
 
     @Override
+    public ScoringEnvironmentSummary getScoringEnvironmentSummary(String environmentId) throws TechnicalException {
+        var result = jdbcTemplate.query(
+            "select " +
+            "environment_id, " +
+            "SUM(errors) AS totalErrors," +
+            "SUM(warnings) AS totalWarnings," +
+            "SUM(infos) AS totalInfos," +
+            "SUM(hints) AS totalHints" +
+            " from " +
+            SCORING_REPORT_SUMMARY +
+            " where " +
+            " environment_id = ?" +
+            " group by environment_id",
+            ENVIRONMENT_SUMMARY_MAPPER,
+            environmentId
+        );
+
+        if (result == null) {
+            return ScoringEnvironmentSummary.builder().environmentId(environmentId).build();
+        }
+
+        return result;
+    }
+
+    @Override
     protected JdbcObjectMapper<JdbcScoringRow> buildOrm() {
         return JdbcObjectMapper
             .builder(JdbcScoringRow.class, this.tableName, "report_id")
@@ -285,4 +314,19 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
             )
         );
     }
+
+    private static final ResultSetExtractor<ScoringEnvironmentSummary> ENVIRONMENT_SUMMARY_MAPPER = rs -> {
+        if (!rs.next()) {
+            return null;
+        }
+
+        return ScoringEnvironmentSummary
+            .builder()
+            .environmentId(rs.getString(1))
+            .errors(rs.getLong(2))
+            .warnings(rs.getLong(3))
+            .infos(rs.getLong(4))
+            .hints(rs.getLong(5))
+            .build();
+    };
 }
