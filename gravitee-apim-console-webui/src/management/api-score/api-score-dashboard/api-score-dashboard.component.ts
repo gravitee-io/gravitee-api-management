@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { BehaviorSubject } from 'rxjs';
+import { distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { isEqual } from 'lodash';
 
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
+import { ApiScoringService } from '../../../services-ngx/api-scoring.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { ApisScoring, ApisScoringResponse } from '../api-score.model';
 
 @Component({
   selector: 'app-api-score-dashboard',
@@ -25,80 +31,16 @@ import { gioTableFilterCollection } from '../../../shared/components/gio-table-w
   styleUrl: './api-score-dashboard.component.scss',
 })
 export class ApiScoreDashboardComponent implements OnInit {
-  public test = [
-    {
-      name: 'QuantumService',
-      picture:
-        'https://apim-master-api.team-apim.gravitee.dev/management/v2/environments/DEFAULT/apis/f6ad0e02-ff59-40b0-ad0e-02ff5900b0f0/picture?hash=1724688007566',
-      score: 99,
-      errors: 2,
-      warnings: 4,
-      infos: 0,
-      hints: 7,
-    },
-    {
-      name: 'ZephyrAnalytics',
-      picture:
-        'https://apim-master-api.team-apim.gravitee.dev/management/v2/environments/DEFAULT/apis/f6ad0e02-ff59-40b0-ad0e-02ff5900b0f0/picture?hash=1724688007566',
-      score: 70,
-      errors: 0,
-      warnings: 3,
-      infos: 10,
-      hints: 4,
-    },
-    {
-      name: 'PolarisDataHub',
-      picture:
-        'https://apim-master-api.team-apim.gravitee.dev/management/v2/environments/DEFAULT/apis/f6ad0e02-ff59-40b0-ad0e-02ff5900b0f0/picture?hash=1724688007566',
-      score: 40,
-      errors: 5,
-      warnings: 0,
-      infos: 4,
-      hints: 7,
-    },
-    {
-      name: 'AegisSecurity',
-      picture:
-        'https://apim-master-api.team-apim.gravitee.dev/management/v2/environments/DEFAULT/apis/f6ad0e02-ff59-40b0-ad0e-02ff5900b0f0/picture?hash=1724688007566',
-      score: 20,
-      errors: 19,
-      warnings: 3,
-      infos: 0,
-      hints: -1, // It means there is no hints available, toDo: to agree with the backend, negative numeric (instead null, undefined) value helps with sorting.
-    },
-    {
-      name: 'TesgisSecurity',
-      picture:
-        'https://apim-master-api.team-apim.gravitee.dev/management/v2/environments/DEFAULT/apis/f6ad0e02-ff59-40b0-ad0e-02ff5900b0f0/picture?hash=1724688007566',
-      score: -1, // It means there is no score available, toDo: to agree with the backend, negative numeric (instead null, undefined) value helps with sorting.
-      errors: 0,
-      warnings: 3,
-      infos: 2,
-      hints: 0,
-    },
-    {
-      name: 'AegisSecurity2',
-      picture:
-        'https://apim-master-api.team-apim.gravitee.dev/management/v2/environments/DEFAULT/apis/f6ad0e02-ff59-40b0-ad0e-02ff5900b0f0/picture?hash=1724688007566',
-      score: 12,
-      errors: 35,
-      warnings: 3,
-      infos: 2,
-      hints: 7,
-    },
-  ];
-
+  private destroyRef: DestroyRef = inject(DestroyRef);
   public isLoading = false;
-  public apiScore: any[] = [...this.test];
-  public filtered: any[] = [];
-
+  public apisScoringList: ApisScoring[] = [];
   public displayedColumns: string[] = ['picture', 'name', 'score', 'errors', 'warnings', 'infos', 'hints', 'actions'];
-  public nbTotalInstances = 10;
   public filters: GioTableWrapperFilters = {
     pagination: { index: 1, size: 10 },
     searchTerm: '',
-    sort: { active: null, direction: null },
   };
+  public nbTotalInstances: number = 0;
+  private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
 
   public overviewData = {
     overviewScore: {
@@ -123,16 +65,42 @@ export class ApiScoreDashboardComponent implements OnInit {
       },
     ],
   };
-
   public evaluatingDate = new Date();
 
+  constructor(
+    private readonly apiScoringService: ApiScoringService,
+    private readonly snackBarService: SnackBarService,
+  ) {}
+
   ngOnInit() {
-    this.runFilters(this.filters);
+    this.initFilters();
   }
 
-  public runFilters(filters: GioTableWrapperFilters): void {
-    const filtered = gioTableFilterCollection(this.apiScore, filters);
-    this.filtered = filtered.filteredCollection;
-    this.nbTotalInstances = filtered.unpaginatedLength;
+  public initFilters(): void {
+    this.filters$
+      .pipe(
+        distinctUntilChanged(isEqual),
+        switchMap((filters: GioTableWrapperFilters) => {
+          this.isLoading = true;
+          return this.apiScoringService.getApisScoringList(filters.pagination.index, filters.pagination.size);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (res: ApisScoringResponse) => {
+          this.isLoading = false;
+          this.apisScoringList = res.data;
+          this.nbTotalInstances = res.pagination.totalCount;
+        },
+        error: (e) => {
+          this.isLoading = false;
+          this.snackBarService.error(e.error?.message ?? 'An error occurred while loading list.');
+        },
+      });
+  }
+
+  onFiltersChanged(filters: GioTableWrapperFilters): void {
+    this.filters = { ...this.filters, ...filters };
+    this.filters$.next(this.filters);
   }
 }

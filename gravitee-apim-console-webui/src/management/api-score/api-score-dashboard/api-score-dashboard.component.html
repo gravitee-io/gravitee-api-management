@@ -84,8 +84,13 @@
       <mat-card-title>APIs</mat-card-title>
     </mat-card-header>
 
-    <gio-table-wrapper [disableSearchInput]="false" [length]="nbTotalInstances" [filters]="filters" (filtersChange)="runFilters($event)">
-      <table mat-table matSort [dataSource]="filtered" aria-label="APIs scores table">
+    <gio-table-wrapper
+      [disableSearchInput]="true"
+      [length]="nbTotalInstances"
+      [filters]="filters"
+      (filtersChange)="onFiltersChanged($event)"
+    >
+      <table mat-table [dataSource]="apisScoringList" aria-label="APIs scores table">
         <caption style="display: none">
           Table with APIs scores table.
         </caption>
@@ -93,19 +98,19 @@
         <ng-container matColumnDef="picture">
           <th mat-header-cell *matHeaderCellDef id="picture"></th>
           <td mat-cell *matCellDef="let element">
-            <gio-avatar [src]="element.picture" [size]="32" [roundedBorder]="true"></gio-avatar>
+            <gio-avatar [src]="element.pictureUrl" [size]="32" [roundedBorder]="true"></gio-avatar>
           </td>
         </ng-container>
 
         <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef id="name" mat-sort-header>API Name</th>
+          <th mat-header-cell *matHeaderCellDef id="name">API Name</th>
           <td mat-cell *matCellDef="let element">
             <a>{{ element.name }}</a>
           </td>
         </ng-container>
 
         <ng-container matColumnDef="score">
-          <th mat-header-cell *matHeaderCellDef id="score" mat-sort-header>Score</th>
+          <th mat-header-cell *matHeaderCellDef id="score">Score</th>
           <td mat-cell *matCellDef="let element">
             @if (element.score > 70) {
               <span class="gio-badge-success"
@@ -124,10 +129,10 @@
         </ng-container>
 
         <ng-container matColumnDef="errors">
-          <th mat-header-cell *matHeaderCellDef id="errors" mat-sort-header>Errors</th>
+          <th mat-header-cell *matHeaderCellDef id="errors">Errors</th>
           <td mat-cell *matCellDef="let element">
-            @if (element.errors === -1) {
-              <span class="gio-badge-neutral">Not available</span>
+            @if (element.errors === undefined) {
+              <span class="gio-badge-neutral">-</span>
             } @else if (element.errors === 0) {
               <span class="gio-badge-neutral">{{ element.errors }}</span>
             } @else {
@@ -137,10 +142,10 @@
         </ng-container>
 
         <ng-container matColumnDef="warnings">
-          <th mat-header-cell *matHeaderCellDef id="warnings" mat-sort-header>Warnings</th>
+          <th mat-header-cell *matHeaderCellDef id="warnings">Warnings</th>
           <td mat-cell *matCellDef="let element">
-            @if (element.warnings === -1) {
-              <span class="gio-badge-neutral">Not available</span>
+            @if (element.warnings === undefined) {
+              <span class="gio-badge-neutral">-</span>
             } @else if (element.warnings === 0) {
               <span class="gio-badge-neutral">{{ element.warnings }}</span>
             } @else {
@@ -150,10 +155,10 @@
         </ng-container>
 
         <ng-container matColumnDef="infos">
-          <th mat-header-cell *matHeaderCellDef id="infos" mat-sort-header>Infos</th>
+          <th mat-header-cell *matHeaderCellDef id="infos">Infos</th>
           <td mat-cell *matCellDef="let element">
-            @if (element.infos === -1) {
-              <span class="gio-badge-neutral">Not available</span>
+            @if (element.infos === undefined) {
+              <span class="gio-badge-neutral">-</span>
             } @else if (element.infos === 0) {
               <span class="gio-badge-neutral">{{ element.infos }}</span>
             } @else {
@@ -163,10 +168,10 @@
         </ng-container>
 
         <ng-container matColumnDef="hints">
-          <th mat-header-cell *matHeaderCellDef id="hints" mat-sort-header>Hints</th>
+          <th mat-header-cell *matHeaderCellDef id="hints">Hints</th>
           <td mat-cell *matCellDef="let element">
-            @if (element.hints === -1) {
-              <span class="gio-badge-neutral">Not available</span>
+            @if (element.hints === undefined) {
+              <span class="gio-badge-neutral">-</span>
             } @else if (element.hints === 0) {
               <span class="gio-badge-neutral">{{ element.hints }}</span>
             } @else {

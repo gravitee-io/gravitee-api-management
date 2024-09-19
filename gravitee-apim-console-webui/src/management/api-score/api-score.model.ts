@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Pagination, Links } from '../../entities/management-api-v2';
 
-import { ApiScoreRoutingModule } from './api-score-routing.module';
-import { ApiScoreDashboardModule } from './api-score-dashboard/api-score-dashboard.module';
+export interface ApisScoring {
+  id: string;
+  name: string;
+  pictureUrl: string;
+  score?: number;
+  errors?: number;
+  warnings?: number;
+  infos?: number;
+  hints?: number;
+}
 
-import { ApiScoringService } from '../../services-ngx/api-scoring.service';
-
-@NgModule({
-  declarations: [],
-  imports: [CommonModule, ApiScoreRoutingModule, ApiScoreDashboardModule],
-  providers: [ApiScoringService],
-})
-export class ApiScoreModule {}
+export interface ApisScoringResponse {
+  data: ApisScoring[];
+  pagination?: Pagination;
+  links?: Links;
+}

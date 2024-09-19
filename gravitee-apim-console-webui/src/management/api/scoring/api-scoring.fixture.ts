@@ -16,6 +16,8 @@
 
 import { ApiScoring, ApiScoringTriggerResponse, ScoringAssetType, ScoringSeverity, ScoringStatus } from './api-scoring.model';
 
+import { ApisScoring } from '../../api-score/api-score.model';
+
 export const fakeApiScoringTriggerResponse = (attributes?: Partial<ApiScoringTriggerResponse>) => {
   const base: ApiScoringTriggerResponse = {
     status: ScoringStatus.PENDING,
@@ -54,6 +56,24 @@ export const fakeApiScoring = (attributes?: Partial<ApiScoring>) => {
         ],
       },
     ],
+  };
+
+  return {
+    ...base,
+    ...attributes,
+  };
+};
+
+export const fakeApisScoring = (attributes?: Partial<ApisScoring>): ApisScoring => {
+  const base: ApisScoring = {
+    id: 'test_id',
+    name: 'test_name',
+    pictureUrl: 'test_pictureUrl',
+    score: 50,
+    errors: 1,
+    warnings: 1,
+    infos: 1,
+    hints: 1,
   };
 
   return {
