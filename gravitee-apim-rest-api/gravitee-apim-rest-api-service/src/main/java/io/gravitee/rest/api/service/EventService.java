@@ -35,6 +35,8 @@ import java.util.function.Predicate;
  * @author Titouan COMPIEGNE
  */
 public interface EventService {
+    public static final String EVENT_LATEST_DYNAMIC_SUFFIX = "-dynamic";
+
     EventEntity findById(ExecutionContext executionContext, String id);
 
     EventEntity createApiEvent(
