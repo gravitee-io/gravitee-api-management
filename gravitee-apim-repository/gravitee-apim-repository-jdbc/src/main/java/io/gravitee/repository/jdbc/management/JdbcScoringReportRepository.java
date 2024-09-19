@@ -73,7 +73,16 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
             .flatMap(a -> {
                 var pageId = a.pageId() == null ? "" : a.pageId();
                 if (a.diagnostics().isEmpty()) {
-                    return Stream.of(new JdbcScoringRow(report.getId(), report.getApiId(), pageId, a.type(), report.getCreatedAt()));
+                    return Stream.of(
+                        new JdbcScoringRow(
+                            report.getId(),
+                            report.getApiId(),
+                            report.getEnvironmentId(),
+                            pageId,
+                            a.type(),
+                            report.getCreatedAt()
+                        )
+                    );
                 }
                 return a
                     .diagnostics()
@@ -83,6 +92,7 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
                             .builder()
                             .reportId(report.getId())
                             .apiId(report.getApiId())
+                            .environmentId(report.getEnvironmentId())
                             .pageId(pageId)
                             .type(a.type())
                             .severity(d.severity())
@@ -177,6 +187,7 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
             .builder(JdbcScoringRow.class, this.tableName, "report_id")
             .addColumn("report_id", Types.NVARCHAR, String.class)
             .addColumn("api_id", Types.NVARCHAR, String.class)
+            .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("page_id", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, String.class)
             .addColumn("severity", Types.NVARCHAR, String.class)
@@ -194,17 +205,18 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
         jdbcTemplate.batchUpdate(
             "insert into " +
             SCORING_REPORT_SUMMARY +
-            " ( report_id, api_id, created_at, errors, warnings, infos, hints ) values ( ?, ?, ?, ?, ?, ?, ? )",
+            " ( report_id, api_id, environment_id, created_at, errors, warnings, infos, hints ) values ( ?, ?, ?, ?, ?, ?, ?, ? )",
             new BatchPreparedStatementSetter() {
                 @Override
                 public void setValues(PreparedStatement ps, int i) throws SQLException {
                     ps.setString(1, report.getId());
                     ps.setString(2, report.getApiId());
-                    ps.setTimestamp(3, new java.sql.Timestamp(report.getCreatedAt().toInstant().toEpochMilli()));
-                    ps.setLong(4, report.getSummary().errors());
-                    ps.setLong(5, report.getSummary().warnings());
-                    ps.setLong(6, report.getSummary().infos());
-                    ps.setLong(7, report.getSummary().hints());
+                    ps.setString(3, report.getEnvironmentId());
+                    ps.setTimestamp(4, new java.sql.Timestamp(report.getCreatedAt().toInstant().toEpochMilli()));
+                    ps.setLong(5, report.getSummary().errors());
+                    ps.setLong(6, report.getSummary().warnings());
+                    ps.setLong(7, report.getSummary().infos());
+                    ps.setLong(8, report.getSummary().hints());
                 }
 
                 @Override
@@ -226,6 +238,7 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
                 new ScoringReport(
                     rows.get(0).getReportId(),
                     rows.get(0).getApiId(),
+                    rows.get(0).getEnvironmentId(),
                     rows.get(0).getCreatedAt(),
                     rows.get(0).getSummary(),
                     List.of()
@@ -265,6 +278,7 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
             new ScoringReport(
                 rows.get(0).getReportId(),
                 rows.get(0).getApiId(),
+                rows.get(0).getEnvironmentId(),
                 rows.get(0).getCreatedAt(),
                 rows.get(0).getSummary(),
                 assets
