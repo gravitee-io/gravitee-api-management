@@ -38,6 +38,7 @@ public final class JdbcScoringRow {
     private String reportId;
 
     private String apiId;
+    private String environmentId;
     private String pageId;
     private String type;
     private Date createdAt;
@@ -52,9 +53,10 @@ public final class JdbcScoringRow {
 
     private ScoringReport.Summary summary;
 
-    public JdbcScoringRow(String reportId, String apiId, String pageId, String type, Date createdAt) {
+    public JdbcScoringRow(String reportId, String apiId, String environmentId, String pageId, String type, Date createdAt) {
         this.reportId = reportId;
         this.apiId = apiId;
+        this.environmentId = environmentId;
         this.pageId = pageId;
         this.type = type;
         this.createdAt = createdAt;

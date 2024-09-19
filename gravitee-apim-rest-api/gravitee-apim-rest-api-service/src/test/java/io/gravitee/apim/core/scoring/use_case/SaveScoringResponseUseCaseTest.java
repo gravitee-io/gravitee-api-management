@@ -34,6 +34,7 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+import org.apiguardian.api.API;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -111,7 +112,8 @@ class SaveScoringResponseUseCaseTest {
                 ScoringReport
                     .builder()
                     .id(JOB_ID)
-                    .apiId("api-id")
+                    .apiId(API_ID)
+                    .environmentId(ENVIRONMENT_ID)
                     .summary(new ScoringReport.Summary(0L, 1L, 0L, 1L))
                     .assets(List.of(ANALYZED_ASSET_1))
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
@@ -152,7 +154,8 @@ class SaveScoringResponseUseCaseTest {
                 ScoringReport
                     .builder()
                     .id(JOB_ID)
-                    .apiId("api-id")
+                    .apiId(API_ID)
+                    .environmentId(ENVIRONMENT_ID)
                     .summary(new ScoringReport.Summary(0L, 1L, 0L, 1L))
                     .assets(List.of(ANALYZED_ASSET_1))
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))

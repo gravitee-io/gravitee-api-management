@@ -46,11 +46,13 @@ public class SaveScoringResponseUseCase {
             .subscribeOn(Schedulers.computation())
             .flatMapCompletable(job -> {
                 String apiId = job.getSourceId();
+                String environmentId = job.getEnvironmentId();
 
                 var report = ScoringReport
                     .builder()
                     .id(job.getId())
                     .apiId(apiId)
+                    .environmentId(environmentId)
                     .createdAt(TimeProvider.now())
                     .summary(processSummary(input.analyzedAssets))
                     .assets(input.analyzedAssets)

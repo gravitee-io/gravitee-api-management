@@ -2,6 +2,7 @@
     {
         "id": "1e9013a0-fc13-4bd0-b2e2-cdf2b1895b46",
         "apiId": "api1",
+        "environmentId": "env1",
         "createdAt": 1470157767000,
         "summary": {
             "errors": 0,
@@ -20,6 +21,7 @@
     {
         "id": "cad107c9-27f2-40b2-9107-c927f2e0b2fc",
         "apiId": "api2",
+        "environmentId": "env1",
         "createdAt": 1470157767000,
         "summary": {
             "errors": 1,
@@ -64,6 +66,7 @@
     {
         "id": "b1419ea8-75c6-4fd9-a8c8-b43a6bda6ee9",
         "apiId": "api3",
+        "environmentId": "env1",
         "createdAt": 1470157767000,
         "summary": {
             "errors": 0,
