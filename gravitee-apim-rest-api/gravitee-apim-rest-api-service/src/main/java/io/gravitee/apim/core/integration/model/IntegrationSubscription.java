@@ -29,7 +29,7 @@ public record IntegrationSubscription(String integrationId, Type type, String ap
         return new IntegrationSubscription(integrationId, Type.API_KEY, apiKey, metadata);
     }
 
-    public static IntegrationSubscription oAuth(String integrationId) {
-        return new IntegrationSubscription(integrationId, Type.OAUTH2, null, Map.of());
+    public static IntegrationSubscription oAuth(String integrationId, Map<String, String> metadata) {
+        return new IntegrationSubscription(integrationId, Type.OAUTH2, null, metadata);
     }
 }
