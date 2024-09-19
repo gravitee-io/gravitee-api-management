@@ -15,11 +15,20 @@
  */
 package io.gravitee.repository.mongodb.management.internal.score;
 
+import static com.mongodb.client.model.Accumulators.sum;
+import static com.mongodb.client.model.Aggregates.*;
+import static com.mongodb.client.model.Filters.eq;
+
+import com.mongodb.client.model.Accumulators;
+import io.gravitee.repository.management.model.ScoringEnvironmentSummary;
 import io.gravitee.repository.mongodb.management.internal.model.ScoringReportMongo;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -36,5 +45,35 @@ public class ScoringReportMongoRepositoryImpl implements ScoringReportMongoRepos
     public List<ScoringReportMongo> findLatestReports(Collection<String> apiIds) {
         Query query = new Query().addCriteria(Criteria.where("apiId").in(apiIds));
         return mongoTemplate.find(query, ScoringReportMongo.class);
+    }
+
+    @Override
+    public ScoringEnvironmentSummary getScoringEnvironmentSummary(String environmentId) {
+        List<Bson> aggregations = new ArrayList<>();
+        aggregations.add(match(eq("environmentId", environmentId)));
+        aggregations.add(
+            group(
+                "$environmentId",
+                sum("errors", "$summary.errors"),
+                sum("warnings", "$summary.warnings"),
+                sum("infos", "$summary.infos"),
+                sum("hints", "$summary.hints")
+            )
+        );
+
+        var result = mongoTemplate.getCollection(mongoTemplate.getCollectionName(ScoringReportMongo.class)).aggregate(aggregations).first();
+
+        if (result == null) {
+            return ScoringEnvironmentSummary.builder().environmentId(environmentId).build();
+        }
+
+        return ScoringEnvironmentSummary
+            .builder()
+            .environmentId(environmentId)
+            .errors(result.getLong("errors"))
+            .warnings(result.getLong("warnings"))
+            .infos(result.getLong("infos"))
+            .hints(result.getLong("hints"))
+            .build();
     }
 }

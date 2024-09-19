@@ -75,5 +75,95 @@
             "hints": 0
         },
         "assets": []
+    },
+    {
+        "id": "c6bfb040-b185-4f11-880a-5ed1add052bc",
+        "apiId": "api4",
+        "environmentId": "env1",
+        "createdAt": 1470157767000,
+        "summary": {
+            "errors": 4,
+            "warnings": 3,
+            "infos": 2,
+            "hints": 1
+        },
+        "assets": [
+            {
+                "pageId": "e0abd870-cb65-4be0-a65e-001f07c5d980",
+                "type": "SWAGGER",
+                "diagnostics": [
+                    {
+                        "severity": "WARN",
+                        "range": {
+                            "start": {
+                                "line": 1,
+                                "character": 1
+                            },
+                            "end": {
+                                "line": 1,
+                                "character": 1
+                            }
+                        },
+                        "rule": "operation-operationId",
+                        "message": "Operation must have \"operationId\".",
+                        "path": "paths./echo.options"
+                    }
+                ]
+            },
+            {
+                "pageId": "a5fd25a3-73d7-4338-b027-f24029cfa582",
+                "type": "ASYNCAPI",
+                "diagnostics": []
+            },
+            {
+                "type": "GRAVITEE_DEFINITION",
+                "diagnostics": []
+            }
+        ]
+    },
+    {
+        "id": "26a590f2-05fa-433e-a982-d64c0a274ee9",
+        "apiId": "api5",
+        "environmentId": "env2",
+        "createdAt": 1470157767000,
+        "summary": {
+            "errors": 0,
+            "warnings": 1,
+            "infos": 0,
+            "hints": 0
+        },
+        "assets": [
+            {
+                "pageId": "9a2803c3-6467-49ff-840e-981fb391df94",
+                "type": "SWAGGER",
+                "diagnostics": [
+                    {
+                        "severity": "WARN",
+                        "range": {
+                            "start": {
+                                "line": 1,
+                                "character": 1
+                            },
+                            "end": {
+                                "line": 1,
+                                "character": 1
+                            }
+                        },
+                        "rule": "operation-operationId",
+                        "message": "Operation must have \"operationId\".",
+                        "path": "paths./echo.options"
+                    }
+                ]
+            },
+            {
+                "pageId": "a89bfa49-65ac-4529-abf6-0efdb8415a99",
+                "type": "ASYNCAPI",
+                "diagnostics": []
+            },
+            {
+                "type": "GRAVITEE_DEFINITION",
+                "diagnostics": []
+            }
+        ]
     }
 ]

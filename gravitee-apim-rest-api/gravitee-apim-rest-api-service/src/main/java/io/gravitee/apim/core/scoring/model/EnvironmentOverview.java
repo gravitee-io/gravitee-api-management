@@ -13,17 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.score;
+package io.gravitee.apim.core.scoring.model;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.ScoringEnvironmentSummary;
-import io.gravitee.repository.mongodb.management.internal.model.ScoringReportMongo;
-import java.util.Collection;
-import java.util.List;
-import org.springframework.stereotype.Repository;
-
-@Repository
-public interface ScoringReportMongoRepositoryCustom {
-    List<ScoringReportMongo> findLatestReports(Collection<String> apiIds);
-    ScoringEnvironmentSummary getScoringEnvironmentSummary(String environmentId);
-}
+public record EnvironmentOverview(String environmentId, Long errors, Long warnings, Long infos, Long hints) {}

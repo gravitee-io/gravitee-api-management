@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.ScoringEnvironmentSummary;
 import io.gravitee.repository.management.model.ScoringReport;
 import java.util.Collection;
 import java.util.Optional;
@@ -26,4 +27,6 @@ public interface ScoringReportRepository {
     Optional<ScoringReport> findLatestFor(String apiId) throws TechnicalException;
     Stream<ScoringReport> findLatestReports(Collection<String> apiIds) throws TechnicalException;
     void deleteByApi(String api) throws TechnicalException;
+
+    ScoringEnvironmentSummary getScoringEnvironmentSummary(String environmentId) throws TechnicalException;
 }

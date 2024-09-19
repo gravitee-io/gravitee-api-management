@@ -15,6 +15,7 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.scoring.model.EnvironmentOverview;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
 import io.gravitee.apim.core.scoring.query_service.ScoringReportQueryService;
 import java.util.ArrayList;
@@ -45,6 +46,32 @@ public class ScoringReportQueryServiceInMemory implements ScoringReportQueryServ
     @Override
     public Stream<ScoringReport> findLatestReportsByApiId(Collection<String> apiIds) {
         return storage.stream().filter(report -> apiIds.contains(report.apiId()));
+    }
+
+    @Override
+    public EnvironmentOverview getEnvironmentScoringSummary(String environmentId) {
+        return storage
+            .stream()
+            .filter(report -> report.environmentId().equals(environmentId))
+            .reduce(
+                new EnvironmentOverview(environmentId, 0L, 0L, 0L, 0L),
+                (summary, report) ->
+                    new EnvironmentOverview(
+                        environmentId,
+                        summary.errors() + report.summary().errors(),
+                        summary.warnings() + report.summary().warnings(),
+                        summary.infos() + report.summary().infos(),
+                        summary.hints() + report.summary().hints()
+                    ),
+                (summary1, summary2) ->
+                    new EnvironmentOverview(
+                        environmentId,
+                        summary1.errors() + summary2.errors(),
+                        summary1.warnings() + summary2.warnings(),
+                        summary1.infos() + summary2.infos(),
+                        summary1.hints() + summary2.hints()
+                    )
+            );
     }
 
     @Override
