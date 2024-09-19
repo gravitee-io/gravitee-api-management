@@ -72,7 +72,7 @@ public class ApiCRDService_CreateTest {
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
-    private ApiCRDService apiCRDService = new ApiCDRServiceImpl();
+    private ApiCRDService apiCRDService = new ApiCRDServiceImpl();
 
     private static final String API_ID = "id-api";
     private static final String API_CROSS_ID = "id-cross-api";
