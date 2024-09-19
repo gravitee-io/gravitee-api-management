@@ -280,6 +280,7 @@ class ApiEntrypointServiceImplTest {
     @Test
     void shouldReturnAccessPointEntrypointsApiv4() {
         ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setTags(Set.of("tag"));
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
         apiEntity.setListeners(List.of(httpListener));
@@ -290,6 +291,10 @@ class ApiEntrypointServiceImplTest {
                     AccessPoint.builder().host("ap2Host").secured(false).overriding(true).build()
                 )
             );
+        EntrypointEntity entrypointEntity = new EntrypointEntity();
+        entrypointEntity.setTags(Arrays.array("tag-unmatching"));
+        entrypointEntity.setValue("https://tag-entrypoint");
+        when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
 
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
@@ -299,8 +304,63 @@ class ApiEntrypointServiceImplTest {
     }
 
     @Test
+    void shouldReturnEntrypointWithApiv4AccessPointsAndMatchingTags() {
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setTags(Set.of("tag"));
+        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        apiEntity.setListeners(List.of(httpListener));
+        when(accessPointQueryService.getGatewayAccessPoints(any()))
+            .thenReturn(
+                List.of(
+                    AccessPoint.builder().host("ap1Host").secured(true).overriding(true).build(),
+                    AccessPoint.builder().host("ap2Host").secured(false).overriding(true).build()
+                )
+            );
+        EntrypointEntity entrypointEntity = new EntrypointEntity();
+        entrypointEntity.setTags(Arrays.array("tag"));
+        entrypointEntity.setValue("https://tag-entrypoint");
+        when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
+
+        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(apiEntrypoints).hasSize(1);
+        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://tag-entrypoint/path");
+    }
+
+    @Test
     void shouldReturnAccessPointEntrypointsApiv2() {
         io.gravitee.rest.api.model.api.ApiEntity apiEntity = new io.gravitee.rest.api.model.api.ApiEntity();
+        Proxy proxy = new Proxy();
+        apiEntity.setTags(Set.of("tag"));
+        VirtualHost virtualHost = new VirtualHost();
+        virtualHost.setHost("host");
+        virtualHost.setPath("path");
+        proxy.setVirtualHosts(List.of(virtualHost));
+        apiEntity.setProxy(proxy);
+        when(accessPointQueryService.getGatewayAccessPoints(any()))
+            .thenReturn(
+                List.of(
+                    AccessPoint.builder().host("ap1Host").secured(true).overriding(true).build(),
+                    AccessPoint.builder().host("ap2Host").secured(false).overriding(true).build()
+                )
+            );
+        EntrypointEntity entrypointEntity = new EntrypointEntity();
+        entrypointEntity.setTags(Arrays.array("tag-unmatching"));
+        entrypointEntity.setValue("https://tag-entrypoint");
+        when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
+
+        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(apiEntrypoints).hasSize(2);
+        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://ap1Host/path");
+        assertThat(apiEntrypoints.get(1).getTarget()).isEqualTo("http://ap2Host/path");
+    }
+
+    @Test
+    void shouldReturnEntrypointApiv2WithAccessPointsAndMatchingTags() {
+        io.gravitee.rest.api.model.api.ApiEntity apiEntity = new io.gravitee.rest.api.model.api.ApiEntity();
+        apiEntity.setTags(Set.of("tag"));
         Proxy proxy = new Proxy();
         VirtualHost virtualHost = new VirtualHost();
         virtualHost.setHost("host");
@@ -314,11 +374,14 @@ class ApiEntrypointServiceImplTest {
                     AccessPoint.builder().host("ap2Host").secured(false).overriding(true).build()
                 )
             );
+        EntrypointEntity entrypointEntity = new EntrypointEntity();
+        entrypointEntity.setTags(Arrays.array("tag"));
+        entrypointEntity.setValue("https://tag-entrypoint");
+        when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
 
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
-        assertThat(apiEntrypoints).hasSize(2);
-        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://ap1Host/path");
-        assertThat(apiEntrypoints.get(1).getTarget()).isEqualTo("http://ap2Host/path");
+        assertThat(apiEntrypoints).hasSize(1);
+        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://tag-entrypoint/path");
     }
 }
