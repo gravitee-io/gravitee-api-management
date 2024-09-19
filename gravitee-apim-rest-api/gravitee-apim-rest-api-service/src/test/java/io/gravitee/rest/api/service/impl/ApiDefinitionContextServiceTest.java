@@ -60,6 +60,28 @@ public class ApiDefinitionContextServiceTest {
                 argThat(api -> {
                     assertThat(api.getOrigin()).isEqualTo(ORIGIN_KUBERNETES);
                     assertThat(api.getMode()).isEqualTo(MODE_FULLY_MANAGED);
+                    assertThat(api.getSyncFrom()).isEqualTo(ORIGIN_KUBERNETES);
+                    return true;
+                })
+            );
+    }
+
+    @Test
+    public void shouldSetSyncFromToManagement() throws TechnicalException {
+        Api apiWithNullContext = newApi();
+        DefinitionContextEntity kubernetesContext = newKubernetesContext();
+        kubernetesContext.setSyncFrom(ORIGIN_MANAGEMENT);
+
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(apiWithNullContext));
+
+        definitionContextService.setDefinitionContext(API_ID, kubernetesContext);
+
+        verify(apiRepository, times(1))
+            .update(
+                argThat(api -> {
+                    assertThat(api.getOrigin()).isEqualTo(ORIGIN_KUBERNETES);
+                    assertThat(api.getMode()).isEqualTo(MODE_FULLY_MANAGED);
+                    assertThat(api.getSyncFrom()).isEqualTo(ORIGIN_MANAGEMENT);
                     return true;
                 })
             );
@@ -84,6 +106,6 @@ public class ApiDefinitionContextServiceTest {
     }
 
     private static DefinitionContextEntity newKubernetesContext() {
-        return new DefinitionContextEntity(ORIGIN_KUBERNETES, MODE_FULLY_MANAGED);
+        return new DefinitionContextEntity(ORIGIN_KUBERNETES, MODE_FULLY_MANAGED, ORIGIN_KUBERNETES);
     }
 }
