@@ -29,8 +29,11 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.DictionaryType;
 import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.management.model.Organization;
+import io.gravitee.rest.api.service.EventService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -127,8 +130,9 @@ public class EventsLatestUpgrader implements Upgrader {
         eventsForModelCounter = 0;
         Set<Dictionary> dictionaries = this.dictionaryRepository.findAll();
         if (dictionaries != null) {
-            List<String> ids = dictionaries.stream().map(Dictionary::getId).collect(Collectors.toList());
-            migrateEvents(Event.EventProperties.DICTIONARY_ID.getValue(), ids);
+            for (Dictionary dictionary : dictionaries) {
+                migrateDictionaryEvents(dictionary);
+            }
         }
         log.info("{} events regarding {} dictionaries have been migrated", eventsForModelCounter, modelCounter);
     }
@@ -148,29 +152,72 @@ public class EventsLatestUpgrader implements Upgrader {
     private void migrateEvents(final String propertyId, final List<String> ids) throws TechnicalException {
         for (String id : ids) {
             modelCounter++;
-            Page<Event> search =
-                this.eventRepository.search(
-                        EventCriteria.builder().property(propertyId, id).build(),
-                        new PageableBuilder().pageNumber(0).pageSize(1).build()
-                    );
-            if (search.getPageElements() > 0) {
-                Event event = search.getContent().get(0);
-                if (event.getProperties() == null) {
-                    event.setProperties(new HashMap<>());
-                }
-                event.getProperties().put(Event.EventProperties.ID.getValue(), event.getId());
-                event.setId(id);
-                // allow to reformat json payload without pretty
-                if (event.getPayload() != null) {
-                    try {
-                        event.setPayload(objectMapper.writeValueAsString(objectMapper.readTree(event.getPayload())));
-                    } catch (JsonProcessingException e) {
-                        // Ignore this and keep existing payload
-                    }
-                }
-                this.eventLatestRepository.createOrUpdate(event);
-                eventsForModelCounter++;
+            Page<Event> eventPage = searchEvents(propertyId, id);
+            if (eventPage.getPageElements() > 0) {
+                processEvent(eventPage.getContent().get(0), id);
             }
         }
+    }
+
+    private void migrateDictionaryEvents(Dictionary dictionary) throws TechnicalException {
+        Page<Event> eventPage = searchEvents(
+            Event.EventProperties.DICTIONARY_ID.getValue(),
+            dictionary.getId(),
+            Set.of(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)
+        );
+        if (eventPage.getPageElements() > 0) {
+            Event event = eventPage.getContent().get(0);
+            processEvent(
+                event,
+                DictionaryType.DYNAMIC.equals(dictionary.getType())
+                    ? dictionary.getId() + EventService.EVENT_LATEST_DYNAMIC_SUFFIX
+                    : dictionary.getId()
+            );
+        }
+
+        if (DictionaryType.DYNAMIC.equals(dictionary.getType())) {
+            eventPage =
+                searchEvents(
+                    Event.EventProperties.DICTIONARY_ID.getValue(),
+                    dictionary.getId(),
+                    Set.of(EventType.START_DICTIONARY, EventType.STOP_DICTIONARY)
+                );
+            if (eventPage.getPageElements() > 0) {
+                Event event = eventPage.getContent().get(0);
+                processEvent(event, dictionary.getId());
+            }
+        }
+    }
+
+    private Page<Event> searchEvents(String propertyId, String id) {
+        return searchEvents(propertyId, id, null);
+    }
+
+    private Page<Event> searchEvents(String propertyId, String id, Set<EventType> types) {
+        EventCriteria.EventCriteriaBuilder criteria = EventCriteria.builder().property(propertyId, id);
+
+        if (types != null && !types.isEmpty()) {
+            criteria.types(types);
+        }
+
+        return this.eventRepository.search(criteria.build(), new PageableBuilder().pageNumber(0).pageSize(1).build());
+    }
+
+    private void processEvent(Event event, String id) throws TechnicalException {
+        if (event.getProperties() == null) {
+            event.setProperties(new HashMap<>());
+        }
+        event.getProperties().put(Event.EventProperties.ID.getValue(), event.getId());
+        event.setId(id);
+        // allow to reformat json payload without pretty
+        if (event.getPayload() != null) {
+            try {
+                event.setPayload(objectMapper.writeValueAsString(objectMapper.readTree(event.getPayload())));
+            } catch (JsonProcessingException e) {
+                // Ignore this and keep existing payload
+            }
+        }
+        this.eventLatestRepository.createOrUpdate(event);
+        eventsForModelCounter++;
     }
 }
