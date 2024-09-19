@@ -16,7 +16,7 @@
 import { IScope } from 'angular';
 
 import { Router } from '@angular/router';
-import { cloneDeep, find } from 'lodash';
+import { cloneDeep, find, isEqual } from 'lodash';
 
 import { Alert, Scope } from '../../../entities/alert';
 import { Rule } from '../../../entities/alerts/rule.metrics';
@@ -94,6 +94,16 @@ const AlertComponentAjs: ng.IComponentOptions = {
 
         this.selectedTab = indexOfTab > -1 ? indexOfTab : 1;
         this.currentTab = this.tabs[this.selectedTab];
+      };
+
+      this.$onChanges = (changes) => {
+        const currentAlert = find(this.alerts, { id: this.activatedRoute.snapshot.params.alertId });
+        if (this.updateMode && (!isEqual(this.alerts, changes.alerts.currentValue) || !isEqual(currentAlert, this.alert))) {
+          this.alerts = changes.alerts.currentValue;
+          this.alert = find(this.alerts, { id: this.activatedRoute.snapshot.params.alertId }) || this.alerts[0];
+          this.alert.type = (this.alert.source + '@' + this.alert.type).toUpperCase();
+          this.alert.reference_type = this.referenceType;
+        }
       };
 
       this.selectTab = (idx: number) => {
