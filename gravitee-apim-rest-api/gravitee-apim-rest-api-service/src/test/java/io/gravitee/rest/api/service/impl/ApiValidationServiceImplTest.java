@@ -21,6 +21,9 @@ import static io.gravitee.definition.model.DefinitionContext.MODE_FULLY_MANAGED;
 import static io.gravitee.definition.model.DefinitionContext.ORIGIN_KUBERNETES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -28,6 +31,7 @@ import static org.mockito.Mockito.when;
 
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
+import inmemory.GroupQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
@@ -37,6 +41,8 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.category.model.Category;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
+import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
+import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
@@ -103,6 +109,11 @@ public class ApiValidationServiceImplTest {
         userDomainService,
         roleQueryService
     );
+
+    private GroupQueryService groupQueryService = mock(GroupQueryService.class);
+
+    @Spy
+    private ValidateGroupsDomainService validateGroupsDomainService = new ValidateGroupsDomainService(groupQueryService);
 
     @InjectMocks
     private ApiValidationServiceImpl cut;
@@ -301,6 +312,21 @@ public class ApiValidationServiceImplTest {
         assertEquals(1, validationResult.getSevere().size());
         assertEquals(0, validationResult.getWarning().size());
         assertEquals("cron expression is invalid", validationResult.getSevere().get(0));
+    }
+
+    @Test
+    public void should_return_warning_validating_unknown_group() {
+        when(groupQueryService.findByIds(anySet())).thenReturn(Set.of());
+        when(groupQueryService.findByNames(anyString(), anySet())).thenReturn(List.of());
+
+        ApiCRDEntity apiCRD = anApiCRDEntity();
+        apiCRD.setGroups(Set.of("unknown"));
+        ApiValidationResult<ApiCRDEntity> validationResult = cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
+
+        verify(groupQueryService, times(1)).findByIds(anySet());
+        assertEquals(0, validationResult.getSevere().size());
+        assertEquals(1, validationResult.getWarning().size());
+        assertEquals("Group [unknown] could not be found in environment [DEFAULT]", validationResult.getWarning().get(0));
     }
 
     public ApiCRDEntity anApiCRDEntity() {

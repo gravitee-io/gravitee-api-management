@@ -21,6 +21,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
+import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
 import io.gravitee.apim.core.validation.Validator;
@@ -49,6 +50,9 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
 
     @Inject
     private ValidateCRDMembersDomainService validateCRDMembersDomainService;
+
+    @Inject
+    private ValidateGroupsDomainService validateGroupsDomainService;
 
     @Inject
     private VerifyApiPathDomainService apiPathValidator;
@@ -94,6 +98,10 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
                 )
             )
             .peek(sanitized -> api.setMembers(ApiCRDEntityAdapter.INSTANCE.toApiCRDMembers(sanitized.members())), errors::addAll);
+
+        validateGroupsDomainService
+            .validateAndSanitize(new ValidateGroupsDomainService.Input(executionContext.getEnvironmentId(), api.getGroups()))
+            .peek(sanitized -> api.setGroups(sanitized.groups()), errors::addAll);
 
         pagesValidator
             .validateAndSanitize(
