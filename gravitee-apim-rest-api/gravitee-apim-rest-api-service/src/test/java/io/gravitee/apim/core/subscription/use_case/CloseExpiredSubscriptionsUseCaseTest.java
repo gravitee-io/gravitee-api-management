@@ -83,7 +83,6 @@ class CloseExpiredSubscriptionsUseCaseTest {
 
         var rejectSubscriptionDomainService = new RejectSubscriptionDomainService(
             subscriptionCrudService,
-            planCrudService,
             auditDomainService,
             triggerNotificationService,
             userCrudService

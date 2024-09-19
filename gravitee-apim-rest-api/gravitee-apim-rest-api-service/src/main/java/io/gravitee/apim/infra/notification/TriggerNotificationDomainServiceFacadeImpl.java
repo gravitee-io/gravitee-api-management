@@ -25,6 +25,7 @@ import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collections;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -33,36 +34,38 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class TriggerNotificationDomainServiceFacadeImpl implements TriggerNotificationDomainService {
 
     private final NotifierService notifierService;
     private final TemplateDataFetcher templateDataFetcher;
 
-    public TriggerNotificationDomainServiceFacadeImpl(NotifierService notifierService, TemplateDataFetcher templateDataFetcher) {
-        this.notifierService = notifierService;
-        this.templateDataFetcher = templateDataFetcher;
-    }
-
     @Override
-    public void triggerApiNotification(String organizationId, ApiHookContext context) {
+    public void triggerApiNotification(String organizationId, String environmentId, ApiHookContext context) {
         var notificationParameters = templateDataFetcher.fetchData(organizationId, context);
-        notifierService.trigger(new ExecutionContext(organizationId, null), context.getHook(), context.getApiId(), notificationParameters);
+        notifierService.trigger(
+            new ExecutionContext(organizationId, environmentId),
+            context.getHook(),
+            context.getApiId(),
+            notificationParameters
+        );
     }
 
     @Override
-    public void triggerApplicationNotification(String organizationId, ApplicationHookContext context) {
-        triggerApplicationNotification(organizationId, context, Collections.emptyList());
+    public void triggerApplicationNotification(String organizationId, String environmentId, ApplicationHookContext context) {
+        triggerApplicationNotification(organizationId, environmentId, context, Collections.emptyList());
     }
 
     @Override
     public void triggerApplicationNotification(
         String organizationId,
+        String environmentId,
         ApplicationHookContext context,
         List<Recipient> additionalRecipients
     ) {
         var notificationParameters = templateDataFetcher.fetchData(organizationId, context);
         notifierService.trigger(
-            new ExecutionContext(organizationId, null),
+            new ExecutionContext(organizationId, environmentId),
             context.getHook(),
             context.getApplicationId(),
             notificationParameters,
@@ -71,8 +74,8 @@ public class TriggerNotificationDomainServiceFacadeImpl implements TriggerNotifi
     }
 
     @Override
-    public void triggerPortalNotification(String organizationId, PortalHookContext context) {
+    public void triggerPortalNotification(String organizationId, String environmentId, PortalHookContext context) {
         var notificationParameters = templateDataFetcher.fetchData(organizationId, context);
-        notifierService.trigger(new ExecutionContext(organizationId, null), context.getHook(), notificationParameters);
+        notifierService.trigger(new ExecutionContext(organizationId, environmentId), context.getHook(), notificationParameters);
     }
 }

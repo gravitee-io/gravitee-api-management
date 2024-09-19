@@ -22,11 +22,16 @@ import io.gravitee.apim.core.notification.model.hook.portal.PortalHookContext;
 import java.util.List;
 
 public interface TriggerNotificationDomainService {
-    void triggerApiNotification(String organizationId, final ApiHookContext context);
+    void triggerApiNotification(String organizationId, String environmentId, final ApiHookContext context);
 
-    void triggerApplicationNotification(String organizationId, final ApplicationHookContext context);
+    void triggerApplicationNotification(String organizationId, String environmentId, final ApplicationHookContext context);
 
-    void triggerApplicationNotification(String organizationId, final ApplicationHookContext context, List<Recipient> additionalRecipients);
+    void triggerApplicationNotification(
+        String organizationId,
+        String environmentId,
+        final ApplicationHookContext context,
+        List<Recipient> additionalRecipients
+    );
 
-    void triggerPortalNotification(String organizationId, final PortalHookContext context);
+    void triggerPortalNotification(String organizationId, String environmentId, final PortalHookContext context);
 }

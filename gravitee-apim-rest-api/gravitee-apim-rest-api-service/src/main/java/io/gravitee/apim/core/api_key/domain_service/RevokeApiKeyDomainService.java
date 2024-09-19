@@ -33,8 +33,10 @@ import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
 @DomainService
+@RequiredArgsConstructor
 public class RevokeApiKeyDomainService {
 
     private final ApiKeyCrudService apiKeyCrudService;
@@ -42,20 +44,6 @@ public class RevokeApiKeyDomainService {
     private final SubscriptionCrudService subscriptionCrudService;
     private final AuditDomainService auditService;
     private final TriggerNotificationDomainService triggerNotificationDomainService;
-
-    public RevokeApiKeyDomainService(
-        ApiKeyCrudService apiKeyCrudService,
-        ApiKeyQueryService apiKeyQueryService,
-        SubscriptionCrudService subscriptionCrudService,
-        AuditDomainService auditService,
-        TriggerNotificationDomainService triggerNotificationDomainService
-    ) {
-        this.apiKeyCrudService = apiKeyCrudService;
-        this.apiKeyQueryService = apiKeyQueryService;
-        this.subscriptionCrudService = subscriptionCrudService;
-        this.auditService = auditService;
-        this.triggerNotificationDomainService = triggerNotificationDomainService;
-    }
 
     public Set<ApiKeyEntity> revokeAllSubscriptionsApiKeys(SubscriptionEntity subscription, AuditInfo auditInfo) {
         return apiKeyQueryService
@@ -85,6 +73,7 @@ public class RevokeApiKeyDomainService {
                 createAuditLog(apiKey, revoked, subscription, auditInfo);
                 triggerNotificationDomainService.triggerApiNotification(
                     auditInfo.organizationId(),
+                    auditInfo.environmentId(),
                     new ApiKeyRevokedApiHookContext(
                         subscription.getApiId(),
                         subscription.getApplicationId(),

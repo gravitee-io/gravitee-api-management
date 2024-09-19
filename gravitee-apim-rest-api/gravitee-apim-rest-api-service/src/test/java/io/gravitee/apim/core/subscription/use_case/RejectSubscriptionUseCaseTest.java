@@ -100,7 +100,6 @@ class RejectSubscriptionUseCaseTest {
 
         var rejectDomainService = new RejectSubscriptionDomainService(
             subscriptionCrudService,
-            planCrudService,
             auditDomainService,
             triggerNotificationService,
             userCrudService
