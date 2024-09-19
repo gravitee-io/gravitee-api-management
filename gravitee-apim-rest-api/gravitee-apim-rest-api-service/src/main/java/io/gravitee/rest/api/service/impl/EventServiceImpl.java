@@ -198,7 +198,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             eventProperties.put(Event.EventProperties.DICTIONARY_ID.getValue(), dictionaryId);
         }
         EventEntity event = createEvent(executionContext, environmentsIds, organizationId, type, null, eventProperties);
-        createOrPatchLatestEvent(dictionaryId + "-dynamic", organizationId, event);
+        createOrPatchLatestEvent(dictionaryId + EVENT_LATEST_DYNAMIC_SUFFIX, organizationId, event);
         return event;
     }
 
