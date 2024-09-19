@@ -18,9 +18,9 @@ import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { ApiScoring, ApiScoringTriggerResponse } from './api-scoring.model';
-
-import { Constants } from '../../../entities/Constants';
+import { ApiScoring, ApiScoringTriggerResponse } from '../management/api/scoring/api-scoring.model';
+import { Constants } from '../entities/Constants';
+import { ApisScoringResponse } from '../management/api-score/api-score.model';
 
 @Injectable()
 export class ApiScoringService {
@@ -35,5 +35,9 @@ export class ApiScoringService {
 
   public evaluate(apiId: string): Observable<ApiScoringTriggerResponse> {
     return this.httpClient.post<ApiScoringTriggerResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/scoring/_evaluate`, null);
+  }
+
+  public getApisScoringList(page: number, size: number): Observable<ApisScoringResponse> {
+    return this.httpClient.get<ApisScoringResponse>(`${this.constants.env.v2BaseURL}/scoring/apis?page=${page}&perPage=${size}`);
   }
 }

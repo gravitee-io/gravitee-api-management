@@ -28,9 +28,9 @@ import { RouterLink } from '@angular/router';
 import { MatSortModule } from '@angular/material/sort';
 
 import { ApiScoringComponent } from './api-scoring.component';
-import { ApiScoringService } from './api-scoring.service';
 import { ApiScoringListComponent } from './api-scoring-list/api-scoring-list.component';
 
+import { ApiScoringService } from '../../../services-ngx/api-scoring.service';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { MapProviderNamePipe } from '../../integrations/pipes/map-provider-name.pipe';
