@@ -88,7 +88,6 @@ public class RejectSubscriptionDomainServiceTest {
         cut =
             new RejectSubscriptionDomainService(
                 subscriptionCrudService,
-                planCrudService,
                 auditDomainService,
                 triggerNotificationDomainService,
                 userCrudService

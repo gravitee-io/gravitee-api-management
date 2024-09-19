@@ -95,7 +95,6 @@ import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentation
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessControlsDomainService;
-import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -270,7 +269,6 @@ class ImportApiCRDUseCaseTest {
             triggerNotificationDomainService,
             new RejectSubscriptionDomainService(
                 subscriptionCrudService,
-                planCrudService,
                 auditDomainService,
                 triggerNotificationDomainService,
                 new UserCrudServiceInMemory()
