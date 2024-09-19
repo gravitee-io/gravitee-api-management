@@ -71,6 +71,7 @@ public class ScoringReportReportRepositoryTest extends AbstractManagementReposit
             .satisfies(report -> {
                 assertThat(report).isPresent();
                 assertThat(report.get().getApiId()).isEqualTo("api2");
+                assertThat(report.get().getEnvironmentId()).isEqualTo("env1");
                 assertThat(report.get().getCreatedAt()).isEqualTo(new Date(1470157767000L));
                 assertThat(report.get().getSummary()).usingRecursiveComparison().isEqualTo(new ScoringReport.Summary(1L, 2L, 3L, 4L));
                 assertThat(report.get().getAssets())
@@ -92,34 +93,6 @@ public class ScoringReportReportRepositoryTest extends AbstractManagementReposit
                         )
                     );
             });
-        //            .isPresent()
-        //            .get()
-        //            .usingRecursiveComparison()
-        //            .isEqualTo(
-        //                new ScoringReport(
-        //                    "cad107c9-27f2-40b2-9107-c927f2e0b2fc",
-        //                    "api2",
-        //                    new Date(1470157767000L),
-        //                    new ScoringReport.Summary(1L, 2L, 3L, 4L),
-        //                    List.of(
-        //                        new ScoringReport.Asset(null, "GRAVITEE_DEFINITION", List.of()),
-        //                        new ScoringReport.Asset("7f2ad639-3ac4-4517-8dbe-55f377e9118a", "ASYNCAPI", List.of()),
-        //                        new ScoringReport.Asset(
-        //                            "f931618f-3207-412a-adad-5bffdce746f7",
-        //                            "SWAGGER",
-        //                            List.of(
-        //                                new ScoringReport.Diagnostic(
-        //                                    "WARN",
-        //                                    new ScoringReport.Range(new ScoringReport.Position(1, 1), new ScoringReport.Position(1, 1)),
-        //                                    "operation-operationId",
-        //                                    "Operation must have \"operationId\".",
-        //                                    "paths./echo.options"
-        //                                )
-        //                            )
-        //                        )
-        //                    )
-        //                )
-        //            );
     }
 
     @Test
@@ -135,6 +108,7 @@ public class ScoringReportReportRepositoryTest extends AbstractManagementReposit
                 new ScoringReport(
                     "b1419ea8-75c6-4fd9-a8c8-b43a6bda6ee9",
                     "api3",
+                    "env1",
                     new Date(1470157767000L),
                     new ScoringReport.Summary(0L, 0L, 0L, 0L),
                     List.of()
@@ -153,6 +127,7 @@ public class ScoringReportReportRepositoryTest extends AbstractManagementReposit
                 new ScoringReport(
                     "1e9013a0-fc13-4bd0-b2e2-cdf2b1895b46",
                     "api1",
+                    "env1",
                     new Date(1470157767000L),
                     new ScoringReport.Summary(0L, 0L, 0L, 0L),
                     List.of(new ScoringReport.Asset("a8e754af-a593-4dc5-bf38-2d0b83a7edc1", "SWAGGER", List.of()))
@@ -160,6 +135,7 @@ public class ScoringReportReportRepositoryTest extends AbstractManagementReposit
                 new ScoringReport(
                     "cad107c9-27f2-40b2-9107-c927f2e0b2fc",
                     "api2",
+                    "env1",
                     new Date(1470157767000L),
                     new ScoringReport.Summary(1L, 2L, 3L, 4L),
                     List.of(
@@ -183,6 +159,7 @@ public class ScoringReportReportRepositoryTest extends AbstractManagementReposit
                 new ScoringReport(
                     "b1419ea8-75c6-4fd9-a8c8-b43a6bda6ee9",
                     "api3",
+                    "env1",
                     new Date(1470157767000L),
                     new ScoringReport.Summary(0L, 0L, 0L, 0L),
                     List.of()
@@ -207,6 +184,7 @@ public class ScoringReportReportRepositoryTest extends AbstractManagementReposit
             .builder()
             .id(UUID.random().toString())
             .apiId("apiId")
+            .environmentId("envId")
             .createdAt(new Date())
             .summary(new ScoringReport.Summary(1L, 2L, 3L, 4L))
             .assets(

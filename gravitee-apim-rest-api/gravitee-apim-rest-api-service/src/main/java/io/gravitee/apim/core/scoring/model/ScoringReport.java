@@ -21,7 +21,14 @@ import lombok.Builder;
 import lombok.With;
 
 @Builder(toBuilder = true)
-public record ScoringReport(String id, @With String apiId, ZonedDateTime createdAt, Summary summary, List<Asset> assets) {
+public record ScoringReport(
+    String id,
+    @With String apiId,
+    String environmentId,
+    ZonedDateTime createdAt,
+    Summary summary,
+    List<Asset> assets
+) {
     public record Summary(Long errors, Long warnings, Long infos, Long hints) {}
 
     public record Asset(String pageId, ScoringAssetType type, List<Diagnostic> diagnostics) {}
