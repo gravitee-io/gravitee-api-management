@@ -35,14 +35,12 @@
   <div>
     <mat-card appearance="raised" class="api-details__tab-details-info__card">
       @if (apiInformation$ | async; as apiInformationList) {
-        <div>
-          @for (apiInformation of apiInformationList; track apiInformation.name) {
-            <div>
-              <div class="m3-body-large">{{ apiInformation.name }}</div>
-              <div class="m3-body-medium">{{ apiInformation.value }}</div>
-            </div>
-          }
-        </div>
+        @for (apiInformation of apiInformationList; track apiInformation.name) {
+          <div>
+            <div class="m3-body-large">{{ apiInformation.name }}</div>
+            <div class="m3-body-medium api-info-value">{{ apiInformation.value }}</div>
+          </div>
+        }
       }
       @if (categories$ | async; as categories) {
         <div>
