@@ -225,6 +225,22 @@ paths:
                     $ref: "#/components/responses/EnvironmentApisScoringResponse"
                 default:
                     $ref: "#/components/responses/Error"
+    /scoring/overview:
+        get:
+            tags:
+                - Scoring
+            summary: Get Scoring Environment Overview
+            operationId: getScoringEnvironmentOverview
+            responses:
+                "200":
+                  description: Scoring overview of the environment
+                  content:
+                    application/json:
+                      schema:
+                        $ref: "#/components/schemas/EnvironmentScoringOverview"
+                default:
+                    $ref: "#/components/responses/Error"
+
 components:
     schemas:
         # Shared policy group
@@ -412,6 +428,30 @@ components:
                 hints:
                     type: integer
                     description: The total number of violated rules with severity HINT for all assets.
+                    example: 40
+
+        EnvironmentScoringOverview:
+            type: object
+            description: The scoring overview of an Environment
+            properties:
+                id:
+                    type: string
+                    description: Environment identifier
+                errors:
+                    type: integer
+                    description: The total number of violated rules with severity ERROR for all APIs.
+                    example: 10
+                warnings:
+                    type: integer
+                    description: The total number of violated rules with severity WARN for all APIs.
+                    example: 20
+                infos:
+                    type: integer
+                    description: The total number of violated rules with severity INFO for all APIs.
+                    example: 30
+                hints:
+                    type: integer
+                    description: The total number of violated rules with severity HINT for all APIs.
                     example: 40
 
         Error:

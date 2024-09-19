@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.scoring.query_service;
 
+import io.gravitee.apim.core.scoring.model.EnvironmentOverview;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
 import java.util.Collection;
 import java.util.Optional;
@@ -23,4 +24,5 @@ import java.util.stream.Stream;
 public interface ScoringReportQueryService {
     Optional<ScoringReport> findLatestByApiId(String apiId);
     Stream<ScoringReport> findLatestReportsByApiId(Collection<String> apiId);
+    EnvironmentOverview getEnvironmentScoringSummary(String environmentId);
 }

@@ -17,12 +17,12 @@ package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ScoringReportRepository;
+import io.gravitee.repository.management.model.ScoringEnvironmentSummary;
 import io.gravitee.repository.management.model.ScoringReport;
 import io.gravitee.repository.mongodb.management.internal.model.ScoringReportMongo;
 import io.gravitee.repository.mongodb.management.internal.score.ScoringReportMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
@@ -70,6 +70,14 @@ public class MongoScoringReportRepository implements ScoringReportRepository {
         logger.debug("Delete scoring reports of API [{}]", apiId);
         internalRepository.deleteByApiId(apiId);
         logger.debug("Delete scoring reports of API [{}] - Done", apiId);
+    }
+
+    @Override
+    public ScoringEnvironmentSummary getScoringEnvironmentSummary(String environmentId) throws TechnicalException {
+        logger.debug("Get Environment Scoring Summary of {}", environmentId);
+        var result = internalRepository.getScoringEnvironmentSummary(environmentId);
+        logger.debug("Get Environment Scoring Summary of {} - DONE", environmentId);
+        return result;
     }
 
     private ScoringReport map(ScoringReportMongo source) {
