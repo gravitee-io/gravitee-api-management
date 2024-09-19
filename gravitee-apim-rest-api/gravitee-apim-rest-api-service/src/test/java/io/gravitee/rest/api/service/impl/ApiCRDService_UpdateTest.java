@@ -27,7 +27,6 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionContext;
-import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.api.ApiCRDEntity;
 import io.gravitee.rest.api.model.api.ApiCRDStatusEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -35,7 +34,6 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Optional;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -66,7 +64,7 @@ public class ApiCRDService_UpdateTest {
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
-    private ApiCRDService apiCRDService = new ApiCDRServiceImpl();
+    private ApiCRDService apiCRDService = new ApiCRDServiceImpl();
 
     private static final String API_ID = "id-api";
     private static final String API_CROSS_ID = "id-cross-api";
