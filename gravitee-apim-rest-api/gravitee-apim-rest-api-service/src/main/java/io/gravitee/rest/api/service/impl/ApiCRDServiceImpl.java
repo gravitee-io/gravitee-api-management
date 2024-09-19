@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.toMap;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.WorkflowState;
@@ -28,9 +29,11 @@ import io.gravitee.rest.api.model.api.ApiCRDStatusEntity;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.api.DefinitionContextEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ApiCRDService;
+import io.gravitee.rest.api.service.ApiDefinitionContextService;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ParameterService;
@@ -50,9 +53,9 @@ import org.springframework.stereotype.Service;
  * @author GraviteeSource Team
  */
 @Service
-public class ApiCDRServiceImpl extends AbstractService implements ApiCRDService {
+public class ApiCRDServiceImpl extends AbstractService implements ApiCRDService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiCDRServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApiCRDServiceImpl.class);
 
     @Inject
     private ObjectMapper objectMapper;
@@ -68,6 +71,9 @@ public class ApiCDRServiceImpl extends AbstractService implements ApiCRDService 
 
     @Inject
     private PlanService planService;
+
+    @Inject
+    private ApiDefinitionContextService definitionContextService;
 
     @Override
     public ApiCRDStatusEntity importApiDefinitionCRD(ExecutionContext executionContext, ApiCRDEntity api) {
@@ -85,6 +91,9 @@ public class ApiCDRServiceImpl extends AbstractService implements ApiCRDService 
             } else {
                 importedApi = apiDuplicatorService.createWithImportedDefinition(executionContext, sanitizedApiDefinition);
             }
+
+            // Make sure Definition Context is set properly on API imports or updates
+            updateApiDefinitionContext(importedApi, api);
 
             // Deploy the API if needed
             if (api.getDefinitionContext().isSyncFromManagement()) {
@@ -118,6 +127,16 @@ public class ApiCDRServiceImpl extends AbstractService implements ApiCRDService 
         } catch (JsonProcessingException e) {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", api, e);
             throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
+        }
+    }
+
+    private void updateApiDefinitionContext(ApiEntity importedApi, ApiCRDEntity api) {
+        if (!importedApi.getDefinitionContext().equals(api.getDefinitionContext())) {
+            DefinitionContext definitionContext = api.getDefinitionContext();
+            definitionContextService.setDefinitionContext(
+                importedApi.getId(),
+                new DefinitionContextEntity(definitionContext.getOrigin(), definitionContext.getMode())
+            );
         }
     }
 
