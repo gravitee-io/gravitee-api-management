@@ -37,18 +37,19 @@ public class TriggerNotificationDomainServiceInMemory implements TriggerNotifica
     private final List<PortalHookContext> portalNotifications = new ArrayList<>();
 
     @Override
-    public void triggerApiNotification(String organizationId, ApiHookContext hookContext) {
+    public void triggerApiNotification(String organizationId, String environmentId, ApiHookContext hookContext) {
         apiNotifications.add(hookContext);
     }
 
     @Override
-    public void triggerApplicationNotification(String organizationId, ApplicationHookContext hookContext) {
-        triggerApplicationNotification(organizationId, hookContext, Collections.emptyList());
+    public void triggerApplicationNotification(String organizationId, String environmentId, ApplicationHookContext hookContext) {
+        triggerApplicationNotification(organizationId, environmentId, hookContext, Collections.emptyList());
     }
 
     @Override
     public void triggerApplicationNotification(
         String organizationId,
+        String environmentId,
         ApplicationHookContext context,
         List<Recipient> additionalRecipients
     ) {
@@ -57,7 +58,7 @@ public class TriggerNotificationDomainServiceInMemory implements TriggerNotifica
     }
 
     @Override
-    public void triggerPortalNotification(String organizationId, PortalHookContext hookContext) {
+    public void triggerPortalNotification(String organizationId, String environmentId, PortalHookContext hookContext) {
         portalNotifications.add(hookContext);
     }
 

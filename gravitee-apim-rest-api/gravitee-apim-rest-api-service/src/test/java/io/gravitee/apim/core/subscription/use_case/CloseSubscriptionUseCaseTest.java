@@ -77,7 +77,6 @@ class CloseSubscriptionUseCaseTest {
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
     private static final String SUBSCRIPTION_ID = "subscription-id";
     private static final String APPLICATION_ID = "application-id";
-    private static final String PLAN_ID = "plan-id";
 
     private final SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudServiceInMemory = new AuditCrudServiceInMemory();
@@ -98,7 +97,6 @@ class CloseSubscriptionUseCaseTest {
 
         var rejectSubscriptionDomainService = new RejectSubscriptionDomainService(
             subscriptionCrudService,
-            planCrudService,
             auditDomainService,
             new TriggerNotificationDomainServiceInMemory(),
             userCrudService

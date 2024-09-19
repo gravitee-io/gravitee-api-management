@@ -114,6 +114,7 @@ public class CloseSubscriptionDomainService {
     private void triggerNotifications(SubscriptionEntity closedSubscriptionEntity, AuditInfo auditInfo) {
         triggerNotificationDomainService.triggerApiNotification(
             auditInfo.organizationId(),
+            auditInfo.environmentId(),
             new SubscriptionClosedApiHookContext(
                 closedSubscriptionEntity.getApiId(),
                 closedSubscriptionEntity.getApplicationId(),
@@ -122,6 +123,7 @@ public class CloseSubscriptionDomainService {
         );
         triggerNotificationDomainService.triggerApplicationNotification(
             auditInfo.organizationId(),
+            auditInfo.environmentId(),
             new SubscriptionClosedApplicationHookContext(
                 closedSubscriptionEntity.getApplicationId(),
                 closedSubscriptionEntity.getApiId(),

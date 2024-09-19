@@ -112,6 +112,7 @@ public class IngestFederatedApisUseCase {
                             asyncJobCrudService.update(job.complete());
                             triggerNotificationDomainService.triggerPortalNotification(
                                 organizationId,
+                                environmentId,
                                 new FederatedApisIngestionCompleteHookContext(job.getSourceId())
                             );
                         }

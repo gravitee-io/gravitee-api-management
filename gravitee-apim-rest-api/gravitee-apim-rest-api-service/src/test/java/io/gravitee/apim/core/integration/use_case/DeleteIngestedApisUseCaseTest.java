@@ -138,7 +138,6 @@ class DeleteIngestedApisUseCaseTest {
         );
         var rejectSubscriptionDomainService = new RejectSubscriptionDomainService(
             subscriptionCrudService,
-            planCrudService,
             auditDomainService,
             triggerNotificationDomainServiceInMemory,
             userCrudService

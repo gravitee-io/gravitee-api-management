@@ -143,7 +143,7 @@ public class AcceptSubscriptionDomainService {
 
         createAudit(subscription, acceptedSubscription, auditInfo);
 
-        triggerNotifications(auditInfo.organizationId(), acceptedSubscription);
+        triggerNotifications(auditInfo.organizationId(), auditInfo.environmentId(), acceptedSubscription);
 
         return acceptedSubscription;
     }
@@ -178,7 +178,7 @@ public class AcceptSubscriptionDomainService {
 
         createAudit(subscription, acceptedSubscription, auditInfo);
 
-        triggerNotifications(auditInfo.organizationId(), acceptedSubscription);
+        triggerNotifications(auditInfo.organizationId(), auditInfo.environmentId(), acceptedSubscription);
 
         return acceptedSubscription;
     }
@@ -204,7 +204,7 @@ public class AcceptSubscriptionDomainService {
 
         createAudit(subscription, rejected, auditInfo);
 
-        triggerNotifications(auditInfo.organizationId(), rejected);
+        triggerNotifications(auditInfo.organizationId(), auditInfo.environmentId(), rejected);
 
         return rejected;
     }
@@ -240,7 +240,7 @@ public class AcceptSubscriptionDomainService {
         );
     }
 
-    private void triggerNotifications(String organizationId, SubscriptionEntity acceptedSubscription) {
+    private void triggerNotifications(String organizationId, String environmentId, SubscriptionEntity acceptedSubscription) {
         var subscriberEmail = userCrudService
             .findBaseUserById(acceptedSubscription.getSubscribedBy())
             .map(BaseUserEntity::getEmail)
@@ -251,6 +251,7 @@ public class AcceptSubscriptionDomainService {
 
         triggerNotificationDomainService.triggerApiNotification(
             organizationId,
+            environmentId,
             new SubscriptionAcceptedApiHookContext(
                 acceptedSubscription.getApiId(),
                 acceptedSubscription.getApplicationId(),
@@ -260,6 +261,7 @@ public class AcceptSubscriptionDomainService {
         );
         triggerNotificationDomainService.triggerApplicationNotification(
             organizationId,
+            environmentId,
             new SubscriptionAcceptedApplicationHookContext(
                 acceptedSubscription.getApplicationId(),
                 acceptedSubscription.getApiId(),
