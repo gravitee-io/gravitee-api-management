@@ -40,8 +40,11 @@ describe('ApiTabDetailsComponent', () => {
           useValue: {
             getApiInformations: () =>
               of([
-                { name: 'API Last Updated', value: '15 Oct 2024' },
-                { name: 'version', value: '2' },
+                { name: 'api.publishedAt', value: '15 Oct 2024' },
+                { name: 'api.version', value: '2' },
+                { name: 'OneTwoThree', value: '2' },
+                { name: 'api.Team', value: 'Fr' },
+                { name: 'myTeam', value: 'Fr' },
               ]),
           },
         },
@@ -58,17 +61,22 @@ describe('ApiTabDetailsComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should display "API Last Updated" if present', () => {
+  it('should display "Api Last Updated" if present', () => {
     component.api.updated_at = new Date();
     fixture.detectChanges();
-    const lastUpdatedElement = fixture.debugElement
-      .queryAll(By.css('.m3-body-large'))
-      .find(el => el.nativeElement.textContent.includes('API Last Updated'));
-    expect(lastUpdatedElement).toBeDefined();
+    let element = fixture.debugElement.queryAll(By.css('.m3-body-large')).find(el => el.nativeElement.textContent.includes('Published at'));
+    expect(element).toBeDefined();
 
-    const versionElement = fixture.debugElement
-      .queryAll(By.css('.m3-body-large'))
-      .find(el => el.nativeElement.textContent.includes('version'));
-    expect(versionElement).toBeDefined();
+    element = fixture.debugElement.queryAll(By.css('.m3-body-large')).find(el => el.nativeElement.textContent.includes('Version'));
+    expect(element).toBeDefined();
+
+    element = fixture.debugElement.queryAll(By.css('.m3-body-large')).find(el => el.nativeElement.textContent.includes('One two three'));
+    expect(element).toBeDefined();
+
+    element = fixture.debugElement.queryAll(By.css('.m3-body-large')).find(el => el.nativeElement.textContent.includes('Team'));
+    expect(element).toBeDefined();
+
+    element = fixture.debugElement.queryAll(By.css('.m3-body-large')).find(el => el.nativeElement.textContent.includes('My team'));
+    expect(element).toBeDefined();
   });
 });
