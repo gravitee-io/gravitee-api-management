@@ -20,7 +20,7 @@ import { Observable } from 'rxjs';
 
 import { ApiScoring, ApiScoringTriggerResponse } from '../management/api/scoring/api-scoring.model';
 import { Constants } from '../entities/Constants';
-import { ApisScoringResponse } from '../management/api-score/api-score.model';
+import { ApisScoringOverview, ApisScoringResponse } from '../management/api-score/api-score.model';
 
 @Injectable()
 export class ApiScoringService {
@@ -39,5 +39,9 @@ export class ApiScoringService {
 
   public getApisScoringList(page: number, size: number): Observable<ApisScoringResponse> {
     return this.httpClient.get<ApisScoringResponse>(`${this.constants.env.v2BaseURL}/scoring/apis?page=${page}&perPage=${size}`);
+  }
+
+  public getApisScoringOverview(): Observable<ApisScoringOverview> {
+    return this.httpClient.get<ApisScoringOverview>(`${this.constants.env.v2BaseURL}/scoring/overview`);
   }
 }
