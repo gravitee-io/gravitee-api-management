@@ -17,22 +17,19 @@ package io.gravitee.repository.management.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@Getter
-@Setter
-@ToString
+@Data
 public final class ScoringEnvironmentSummary {
 
     private String environmentId;
+
+    @Builder.Default
+    private Double score = -1.0;
 
     @Builder.Default
     private Long errors = 0L;

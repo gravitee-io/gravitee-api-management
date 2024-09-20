@@ -238,7 +238,9 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(EnvironmentScoringOverview.class)
-                .isEqualTo(EnvironmentScoringOverview.builder().id(ENVIRONMENT).errors(3).warnings(3).infos(3).hints(3).build());
+                .isEqualTo(
+                    EnvironmentScoringOverview.builder().id(ENVIRONMENT).score(0.84).errors(3).warnings(3).infos(3).hints(3).build()
+                );
         }
     }
 
