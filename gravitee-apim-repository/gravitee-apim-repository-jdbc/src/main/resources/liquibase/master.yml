@@ -194,6 +194,8 @@ databaseChangeLog:
     - include:
           - file: liquibase/changelogs/v4_4_4/00_drop_not_null_constraint.yml
     - include:
+          - file: liquibase/changelogs/v4_4_10/00_add_media_org_env.yml
+    - include:
           - file: liquibase/changelogs/v4_5_0/00_integrations_nullable_agent_status.yml
     - include:
           - file: liquibase/changelogs/v4_5_0/01_add_async_jobs_table.yml
@@ -208,6 +210,4 @@ databaseChangeLog:
     - include:
           - file: liquibase/changelogs/v4_5_0/06_add_scoring_table.yml
     - include:
-          - file: liquibase/changelogs/v4_5_0/07_add_media_org_env.yml
-    - include:
-          - file: liquibase/changelogs/v4_5_0/08_add_scoring_ruleset_table.yml
+          - file: liquibase/changelogs/v4_5_0/07_add_scoring_ruleset_table.yml

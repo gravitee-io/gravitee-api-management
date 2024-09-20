@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 4.5.0_add_media_org_env
+      id: 4.4.10_add_media_org_env
       author: GraviteeSource Team
       changes:
         - addColumn:
