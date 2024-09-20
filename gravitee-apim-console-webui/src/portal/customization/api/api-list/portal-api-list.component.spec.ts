@@ -17,8 +17,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { PortalApiListComponent } from './portal-api-list.component';
 import { PortalApiListHarness } from './portal-api-list.harness';
@@ -28,47 +29,53 @@ import { GioTestingPermissionProvider } from '../../../../shared/components/gio-
 import { ApiPortalHeader } from '../../../../entities/apiPortalHeader';
 import { PortalSettings } from '../../../../entities/portal/portalSettings';
 import { PortalBannerComponent } from '../../banner/portal-banner.component';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 describe('PortalApiListComponent', () => {
+  const fakeSnackBarService = {
+    success: jest.fn(),
+  };
+
   let fixture: ComponentFixture<PortalApiListComponent>;
   let componentHarness: PortalApiListHarness;
   let httpTestingController: HttpTestingController;
   let harnessLoader: HarnessLoader;
+  let rootLoader: HarnessLoader;
 
   const fakeEmptyApiPortalHeaders: ApiPortalHeader[] = [];
-  const fakeApiPortalHeaders: ApiPortalHeader[] = [
+  const initialFakeApiPortalHeaders: ApiPortalHeader[] = [
     {
-      id: '0258b2a8-d5d9-479d-98b2-a8d5d9c79d19',
+      id: 'id1',
       name: 'team',
       value: "${api.metadata['team']}",
       order: 1,
     },
     {
-      id: 'cdb6d74d-5c63-4f85-b6d7-4d5c631f85fc',
+      id: 'id2',
       name: 'api.publishedAt',
       value: '${(api.deployedAt?date)!}',
       order: 2,
     },
     {
-      id: '8e8bfdf8-65d3-4f8c-8bfd-f865d38f8cf2',
+      id: 'id3',
       name: 'api.owner',
       value: '${api.owner}',
       order: 3,
     },
     {
-      id: '962ae750-12df-40e9-aae7-5012dff0e9d4',
+      id: 'id4',
       name: 'country',
       value: "${api.metadata['country']}",
       order: 4,
     },
     {
-      id: '76309b7c-e301-4743-b09b-7ce301d743e8',
+      id: 'id5',
       name: 'api.version',
       value: '${api.version}',
       order: 5,
     },
   ];
-
+  const fakeApiPortalHeadersAfterDelete = initialFakeApiPortalHeaders.slice(1);
   const apiKeyHeaderOld = 'X-Gravitee-Api-Key-Old';
   const apiKeyHeaderNew = 'X-Gravitee-Api-Key-New';
   const portalSettingsOld: PortalSettings = { portal: { apikeyHeader: apiKeyHeaderOld } };
@@ -81,20 +88,28 @@ describe('PortalApiListComponent', () => {
   }
   const init = async (apiPortalHeaders: ApiPortalHeader[]) => {
     await TestBed.configureTestingModule({
-      imports: [GioTestingModule, NoopAnimationsModule, PortalBannerComponent],
+      imports: [NoopAnimationsModule, GioTestingModule, PortalBannerComponent],
       providers: [
         {
           provide: GioTestingPermissionProvider,
           useValue: ['environment-settings-u', 'environment-settings-d'],
         },
+        { provide: SnackBarService, useValue: fakeSnackBarService },
       ],
-    }).compileComponents();
-
-    httpTestingController = TestBed.inject(HttpTestingController);
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true,
+          isTabbable: () => true,
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(PortalApiListComponent);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, PortalApiListHarness);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+    httpTestingController = TestBed.inject(HttpTestingController);
 
     configureApiHeaders(apiPortalHeaders);
 
@@ -113,7 +128,7 @@ describe('PortalApiListComponent', () => {
   });
 
   it('page should have elements', async () => {
-    await init(fakeApiPortalHeaders);
+    await init(initialFakeApiPortalHeaders);
     expect(await componentHarness.getApiKeyHeader()).toEqual(portalSettingsOld.portal.apikeyHeader);
     expect(await componentHarness.getAddButton()).toBeTruthy();
     expect(await componentHarness.getBothPortalsForApiSubscription()).toBeTruthy();
@@ -122,17 +137,38 @@ describe('PortalApiListComponent', () => {
   });
 
   it('should verify that there is edit button', async () => {
-    await init(fakeApiPortalHeaders);
+    await init(initialFakeApiPortalHeaders);
     const hasRows = await componentHarness.hasRows();
     expect(hasRows).toBe(true);
     expect(await componentHarness.getEditButton()).toBeTruthy();
   });
 
   it('should verify that there is delete button', async () => {
-    await init(fakeApiPortalHeaders);
+    await init(initialFakeApiPortalHeaders);
+
     const hasRows = await componentHarness.hasRows();
     expect(hasRows).toBe(true);
     expect(await componentHarness.getDeleteButton()).toBeTruthy();
+
+    const row1 = await componentHarness.getRowByIndex(0);
+    const deleteBtn = row1.deleteButton;
+    expect(deleteBtn).toBeTruthy();
+
+    await deleteBtn.click();
+
+    const dia = await rootLoader.getHarness(GioConfirmDialogHarness);
+    expect(dia).toBeTruthy();
+    await dia.confirm();
+
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/configuration/apiheaders/id1`,
+        method: 'DELETE',
+      })
+      .flush(null);
+
+    configureApiHeaders(fakeApiPortalHeadersAfterDelete);
+    expect(fakeSnackBarService.success).toHaveBeenCalledWith("API Information 'team' deleted successfully");
   });
 
   it('should verify the no data row text', async () => {
@@ -142,7 +178,7 @@ describe('PortalApiListComponent', () => {
   });
 
   it('test http calls after updating api header', async () => {
-    await init(fakeApiPortalHeaders);
+    await init(initialFakeApiPortalHeaders);
     fixture.detectChanges();
 
     await componentHarness.setApiKeyHeader(apiKeyHeaderNew);
@@ -167,6 +203,8 @@ describe('PortalApiListComponent', () => {
     postRequest.flush(portalSettingsNew);
     expect(postRequest.request.body).toEqual(portalSettingsNew);
 
+    expect(fakeSnackBarService.success).toHaveBeenCalledWith('API Key Header updated successfully');
+
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.baseURL}/portal`,
@@ -174,7 +212,7 @@ describe('PortalApiListComponent', () => {
       })
       .flush({});
 
-    configureApiHeaders(fakeApiPortalHeaders);
+    configureApiHeaders(initialFakeApiPortalHeaders);
 
     httpTestingController
       .expectOne({
@@ -185,7 +223,7 @@ describe('PortalApiListComponent', () => {
   });
 
   it('test api call after clicking discard on save bar', async () => {
-    await init(fakeApiPortalHeaders);
+    await init(initialFakeApiPortalHeaders);
     fixture.detectChanges();
 
     await componentHarness.setApiKeyHeader(apiKeyHeaderNew);
