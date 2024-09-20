@@ -16,7 +16,7 @@
 import { AsyncPipe, DatePipe } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { MatCard } from '@angular/material/card';
-import { catchError, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, map, Observable, of, switchMap, tap } from 'rxjs';
 
 import { LoaderComponent } from '../../../../components/loader/loader.component';
 import { PageComponent } from '../../../../components/page/page.component';
@@ -83,6 +83,24 @@ export class ApiTabDetailsComponent implements OnInit {
       );
     }
 
-    this.apiInformation$ = this.portalService.getApiInformations(this.api.id).pipe(catchError(_ => of([])));
+    this.apiInformation$ = this.portalService.getApiInformations(this.api.id).pipe(
+      tap(result => {
+        result.forEach(item => {
+          if (item.name) {
+            item.name = item.name.replace(/^(?:api\.)?(.*)$/, (_, p1) => {
+              const words = p1
+                .replace(/([a-z])([A-Z])/g, '$1 $2')
+                .toLowerCase()
+                .split(' ');
+              if (words.length > 0) {
+                words[0] = words[0].charAt(0).toUpperCase() + words[0].slice(1);
+              }
+              return words.join(' ');
+            });
+          }
+        });
+      }),
+      catchError(_ => of([])),
+    );
   }
 }
