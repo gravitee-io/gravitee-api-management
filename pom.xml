@@ -170,7 +170,7 @@
         <gravitee-policy-assign-metrics.version>3.0.2</gravitee-policy-assign-metrics.version>
         <gravitee-policy-basic-authentication.version>1.6.0</gravitee-policy-basic-authentication.version>
         <gravitee-policy-cache.version>2.0.6</gravitee-policy-cache.version>
-        <gravitee-policy-callout-http.version>2.0.2</gravitee-policy-callout-http.version>
+        <gravitee-policy-callout-http.version>3.0.1</gravitee-policy-callout-http.version>
         <gravitee-policy-circuit-breaker.version>1.1.5</gravitee-policy-circuit-breaker.version>
         <gravitee-policy-cloud-events.version>1.1.0</gravitee-policy-cloud-events.version>
         <gravitee-policy-data-logging-masking.version>3.1.0</gravitee-policy-data-logging-masking.version>
