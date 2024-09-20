@@ -115,7 +115,7 @@ class GetEnvironmentScoringOverviewUseCaseTest {
             .aScoringReport()
             .toBuilder()
             .id(REPORT_ID)
-            .summary(new ScoringReport.Summary(1L, 1L, 1L, 1L))
+            .summary(new ScoringReport.Summary(0.84D, 1L, 1L, 1L, 1L))
             .assets(List.of(ASSET))
             .build();
     }

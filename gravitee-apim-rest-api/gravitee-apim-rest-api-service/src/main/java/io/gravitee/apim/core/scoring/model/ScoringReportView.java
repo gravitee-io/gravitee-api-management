@@ -21,9 +21,9 @@ import lombok.Builder;
 
 @Builder(toBuilder = true)
 public record ScoringReportView(String id, String apiId, ZonedDateTime createdAt, List<AssetView> assets, Summary summary) {
-    public record Summary(Long all, Long errors, Long warnings, Long infos, Long hints) {
-        public Summary(Long errors, Long warnings, Long infos, Long hints) {
-            this(errors + warnings + infos + hints, errors, warnings, infos, hints);
+    public record Summary(Double score, Long all, Long errors, Long warnings, Long infos, Long hints) {
+        public Summary(Double score, Long errors, Long warnings, Long infos, Long hints) {
+            this(score, errors + warnings + infos + hints, errors, warnings, infos, hints);
         }
     }
     public record AssetView(String name, ScoringAssetType type, List<ScoringReport.Diagnostic> diagnostics) {}

@@ -63,6 +63,7 @@ public class GetEnvironmentReportsUseCase {
                                 new EnvironmentApiScoringReport.Summary(
                                     r.id(),
                                     r.createdAt(),
+                                    r.summary().score(),
                                     r.summary().errors(),
                                     r.summary().warnings(),
                                     r.summary().infos(),
