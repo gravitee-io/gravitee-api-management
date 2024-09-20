@@ -50,7 +50,13 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
     static final JdbcHelper.ChildAdder<JdbcScoringRow> CHILD_ADDER = (JdbcScoringRow parent, ResultSet rs) -> {
         if (parent.getSummary() == null) {
             parent.setSummary(
-                new ScoringReport.Summary(rs.getLong("errors"), rs.getLong("warnings"), rs.getLong("infos"), rs.getLong("hints"))
+                new ScoringReport.Summary(
+                    rs.getDouble("score"),
+                    rs.getLong("errors"),
+                    rs.getLong("warnings"),
+                    rs.getLong("infos"),
+                    rs.getLong("hints")
+                )
             );
         }
         if (parent.getCreatedAt() == null) {
@@ -234,7 +240,7 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
         jdbcTemplate.batchUpdate(
             "insert into " +
             SCORING_REPORT_SUMMARY +
-            " ( report_id, api_id, environment_id, created_at, errors, warnings, infos, hints ) values ( ?, ?, ?, ?, ?, ?, ?, ? )",
+            " ( report_id, api_id, environment_id, created_at, score, errors, warnings, infos, hints ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ? )",
             new BatchPreparedStatementSetter() {
                 @Override
                 public void setValues(PreparedStatement ps, int i) throws SQLException {
@@ -242,10 +248,11 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
                     ps.setString(2, report.getApiId());
                     ps.setString(3, report.getEnvironmentId());
                     ps.setTimestamp(4, new java.sql.Timestamp(report.getCreatedAt().toInstant().toEpochMilli()));
-                    ps.setLong(5, report.getSummary().errors());
-                    ps.setLong(6, report.getSummary().warnings());
-                    ps.setLong(7, report.getSummary().infos());
-                    ps.setLong(8, report.getSummary().hints());
+                    ps.setDouble(5, report.getSummary().score());
+                    ps.setLong(6, report.getSummary().errors());
+                    ps.setLong(7, report.getSummary().warnings());
+                    ps.setLong(8, report.getSummary().infos());
+                    ps.setLong(9, report.getSummary().hints());
                 }
 
                 @Override

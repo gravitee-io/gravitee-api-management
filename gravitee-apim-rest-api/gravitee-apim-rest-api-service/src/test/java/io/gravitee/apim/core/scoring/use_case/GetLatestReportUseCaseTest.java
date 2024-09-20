@@ -110,7 +110,7 @@ class GetLatestReportUseCaseTest {
                     API_ID,
                     CREATED_AT,
                     List.of(new ScoringReportView.AssetView(PAGE_NAME, ASSET.type(), ASSET.diagnostics())),
-                    new ScoringReportView.Summary(4L, 1L, 1L, 1L, 1L)
+                    new ScoringReportView.Summary(0.84D, 4L, 1L, 1L, 1L, 1L)
                 )
             );
     }
@@ -144,7 +144,7 @@ class GetLatestReportUseCaseTest {
                     API_ID,
                     CREATED_AT,
                     List.of(new ScoringReportView.AssetView(null, ASSET.type(), ASSET.diagnostics())),
-                    new ScoringReportView.Summary(4L, 1L, 1L, 1L, 1L)
+                    new ScoringReportView.Summary(0.84D, 4L, 1L, 1L, 1L, 1L)
                 )
             );
     }
@@ -156,7 +156,7 @@ class GetLatestReportUseCaseTest {
             .id(REPORT_ID)
             .apiId(API_ID)
             .createdAt(CREATED_AT)
-            .summary(new ScoringReport.Summary(1L, 1L, 1L, 1L))
+            .summary(new ScoringReport.Summary(0.84D, 1L, 1L, 1L, 1L))
             .assets(List.of(ASSET))
             .build();
     }

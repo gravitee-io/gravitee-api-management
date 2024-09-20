@@ -70,7 +70,7 @@ public class ScoringReportQueryServiceImplTest {
                         "api-id",
                         "environment-id",
                         Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()),
-                        new ScoringReport.Summary(0L, 1L, 0L, 0L),
+                        new ScoringReport.Summary(0.9D, 0L, 1L, 0L, 0L),
                         List.of(
                             new ScoringReport.Asset(
                                 "asset1",
@@ -137,7 +137,7 @@ public class ScoringReportQueryServiceImplTest {
                         "api-id",
                         "environment-id",
                         Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()),
-                        new ScoringReport.Summary(0L, 1L, 0L, 0L),
+                        new ScoringReport.Summary(0.9D, 0L, 1L, 0L, 0L),
                         List.of(
                             new ScoringReport.Asset(
                                 "asset1",
@@ -222,7 +222,7 @@ public class ScoringReportQueryServiceImplTest {
             .id("report-id")
             .apiId("api-id")
             .environmentId("environment-id")
-            .summary(new io.gravitee.repository.management.model.ScoringReport.Summary(0L, 1L, 0L, 0L))
+            .summary(new io.gravitee.repository.management.model.ScoringReport.Summary(0.9D, 0L, 1L, 0L, 0L))
             .assets(
                 List.of(
                     new io.gravitee.repository.management.model.ScoringReport.Asset(
