@@ -26,18 +26,23 @@ import { ApiScoreDashboardHarness } from './api-score-dashboard.harness';
 import { ApiScoreModule } from '../api-score.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeApisScoring } from '../../api/scoring/api-scoring.fixture';
-import { ApisScoring, ApisScoringResponse } from '../api-score.model';
+import { ApisScoring, ApisScoringOverview, ApisScoringResponse } from '../api-score.model';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 describe('ApiScoreDashboardComponent', () => {
   let fixture: ComponentFixture<ApiScoreDashboardComponent>;
   let componentHarness: ApiScoreDashboardHarness;
   let httpTestingController: HttpTestingController;
+  const fakeSnackBarService = {
+    success: jest.fn(),
+    error: jest.fn(),
+  };
 
   const init = async () => {
     await TestBed.configureTestingModule({
       declarations: [ApiScoreDashboardComponent],
       imports: [GioTestingModule, ApiScoreModule, BrowserAnimationsModule, NoopAnimationsModule],
-      providers: [],
+      providers: [{ provide: SnackBarService, useValue: fakeSnackBarService }],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -54,14 +59,75 @@ describe('ApiScoreDashboardComponent', () => {
   };
 
   describe('table', () => {
+    afterEach(() => {
+      httpTestingController.verify();
+    });
+
     it('should have correct number of rows', async () => {
       await init();
       expectApiScoreGetRequest([fakeApisScoring(), fakeApisScoring(), fakeApisScoring()]);
+      expectApisOverviewGetRequest();
 
       fixture.detectChanges();
       expect(await componentHarness.rowsNumber()).toEqual(3);
     });
   });
+
+  describe('errors', () => {
+    afterEach(() => {
+      httpTestingController.verify();
+    });
+
+    it('in table should be handled with messages', async () => {
+      await init();
+      expectApiScoreGetRequest();
+      expectApisOverviewError();
+
+      fixture.detectChanges();
+
+      expect(fakeSnackBarService.error).toHaveBeenCalledWith('Error found');
+    });
+
+    it('in overview should be handled with messages', async () => {
+      await init();
+
+      expectApisOverviewGetRequest();
+      expectApiScoreError();
+
+      fixture.detectChanges();
+
+      expect(fakeSnackBarService.error).toHaveBeenCalledWith('Overview error');
+    });
+  });
+
+  function expectApisOverviewError() {
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/scoring/overview`,
+      method: 'GET',
+    });
+
+    req.flush({ message: 'Error found' }, { status: 404, statusText: 'Error found' });
+
+    fixture.detectChanges();
+  }
+
+  function expectApisOverviewGetRequest(): void {
+    const response: ApisScoringOverview = {
+      id: 'DEFAULT',
+      errors: 0,
+      warnings: 15,
+      infos: 0,
+      hints: 0,
+      averageScore: 0.9,
+    };
+
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/scoring/overview`,
+        method: 'GET',
+      })
+      .flush(response);
+  }
 
   function expectApiScoreGetRequest(responseData: ApisScoring[] = [fakeApisScoring()], page = 1, perPage = 10): void {
     const response: ApisScoringResponse = {
@@ -77,5 +143,14 @@ describe('ApiScoreDashboardComponent', () => {
         method: 'GET',
       })
       .flush(response);
+  }
+
+  function expectApiScoreError(): void {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/scoring/apis?page=1&perPage=10`,
+        method: 'GET',
+      })
+      .flush({ message: 'Overview error' }, { status: 404, statusText: 'Overview error' });
   }
 });
