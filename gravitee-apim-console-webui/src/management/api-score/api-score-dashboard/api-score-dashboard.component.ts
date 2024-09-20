@@ -23,7 +23,7 @@ import { isEqual } from 'lodash';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { ApiScoringService } from '../../../services-ngx/api-scoring.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { ApisScoring, ApisScoringResponse } from '../api-score.model';
+import { ApisScoring, ApisScoringOverview, ApisScoringResponse } from '../api-score.model';
 
 @Component({
   selector: 'app-api-score-dashboard',
@@ -42,29 +42,7 @@ export class ApiScoreDashboardComponent implements OnInit {
   public nbTotalInstances: number = 0;
   private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
 
-  public overviewData = {
-    overviewScore: {
-      averageScore: 99,
-    },
-    overviewStatistics: [
-      {
-        name: 'Errors',
-        count: 28,
-      },
-      {
-        name: 'Warnings',
-        count: 23,
-      },
-      {
-        name: 'Infos',
-        count: 10,
-      },
-      {
-        name: 'Hints',
-        count: 12,
-      },
-    ],
-  };
+  public overviewData: ApisScoringOverview;
   public evaluatingDate = new Date();
 
   constructor(
@@ -74,6 +52,19 @@ export class ApiScoreDashboardComponent implements OnInit {
 
   ngOnInit() {
     this.initFilters();
+    this.apiScoringService
+      .getApisScoringOverview()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res: ApisScoringOverview) => {
+          this.isLoading = false;
+          this.overviewData = res;
+        },
+        error: (e) => {
+          this.isLoading = false;
+          this.snackBarService.error(e.error?.message ?? 'An error occurred while loading list.');
+        },
+      });
   }
 
   public initFilters(): void {
