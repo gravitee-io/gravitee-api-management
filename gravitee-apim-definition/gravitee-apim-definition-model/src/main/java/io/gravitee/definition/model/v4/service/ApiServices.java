@@ -23,6 +23,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -30,13 +31,13 @@ import lombok.*;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder(toBuilder = true)
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @Schema(name = "ApiServicesV4")
-public class ApiServices implements Serializable {
+public class ApiServices extends AbstractApiServices {
 
     private static final long serialVersionUID = -4738631204581278554L;
 
@@ -44,6 +45,7 @@ public class ApiServices implements Serializable {
     private Service dynamicProperty;
 
     @JsonIgnore
+    @Override
     public List<Plugin> getPlugins() {
         return Optional.ofNullable(dynamicProperty).filter(Service::isEnabled).map(Service::getPlugins).orElse(List.of());
     }

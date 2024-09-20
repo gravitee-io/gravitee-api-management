@@ -25,6 +25,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -37,7 +38,7 @@ public class ApiDefinitionFixtures {
 
     private ApiDefinitionFixtures() {}
 
-    private static final Supplier<Api.ApiBuilder> BASE_V4 = () ->
+    private static final Supplier<Api.ApiBuilder<?, ?>> BASE_V4 = () ->
         Api.builder().name("an-api").apiVersion("1.0.0").type(ApiType.PROXY).analytics(Analytics.builder().enabled(false).build());
 
     private static final Supplier<io.gravitee.definition.model.Api.ApiBuilder> BASE_V2 = () ->

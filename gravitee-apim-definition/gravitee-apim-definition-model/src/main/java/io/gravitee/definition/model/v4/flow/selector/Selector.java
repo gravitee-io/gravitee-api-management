@@ -29,9 +29,9 @@ import lombok.experimental.SuperBuilder;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@AllArgsConstructor
 @Getter
 @Setter
+@AllArgsConstructor
 @ToString
 @EqualsAndHashCode
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
@@ -43,13 +43,13 @@ import lombok.experimental.SuperBuilder;
     }
 )
 @SuperBuilder(toBuilder = true)
-public abstract class Selector implements Serializable {
+public abstract class Selector extends AbstractSelector {
 
     public static final String HTTP_LABEL = "http";
     public static final String CHANNEL_LABEL = "channel";
     public static final String CONDITION_LABEL = "condition";
 
-    @JsonProperty(required = true)
-    @NotNull
-    private SelectorType type;
+    public Selector(SelectorType type) {
+        super(type);
+    }
 }

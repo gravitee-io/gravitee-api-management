@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.v4.endpointgroup;
+package io.gravitee.definition.model.v4.nativeapi;
 
-import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.gravitee.definition.model.Plugin;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.List;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,17 +32,26 @@ import lombok.experimental.SuperBuilder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * @author GraviteeSource Team
  */
-@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@SuperBuilder(toBuilder = true)
 @Getter
 @Setter
 @ToString
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "EndpointV4")
-public class Endpoint extends AbstractEndpoint {
+@Schema(name = "NativePlanV4")
+public class NativePlan extends AbstractPlan {
 
-    @Builder.Default
-    private EndpointServices services = new EndpointServices();
+    private List<NativeFlow> flows;
+
+    @JsonIgnore
+    @Override
+    public List<Plugin> getPlugins() {
+        return Optional
+            .ofNullable(this.flows)
+            .map(f -> f.stream().filter(AbstractFlow::isEnabled).map(AbstractFlow::getPlugins).flatMap(List::stream).toList())
+            .orElse(List.of());
+    }
 }

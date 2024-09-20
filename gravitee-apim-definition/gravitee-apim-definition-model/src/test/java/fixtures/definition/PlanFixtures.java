@@ -36,15 +36,15 @@ public class PlanFixtures {
     private PlanFixtures() {}
 
     public static Plan aKeylessV4() {
-        return BASE_V4.get().id("keyless").name("Keyless").security(PlanSecurity.builder().type("key-less").build()).build();
+        return (Plan) BASE_V4.get().id("keyless").name("Keyless").security(PlanSecurity.builder().type("key-less").build()).build();
     }
 
     public static Plan anApiKeyV4() {
-        return BASE_V4.get().id("apikey").name("API Key").security(PlanSecurity.builder().type("api-key").build()).build();
+        return (Plan) BASE_V4.get().id("apikey").name("API Key").security(PlanSecurity.builder().type("api-key").build()).build();
     }
 
     public static Plan aPushPlan() {
-        return BASE_V4.get().id("push").name("Push Plan").mode(PlanMode.PUSH).build();
+        return (Plan) BASE_V4.get().id("push").name("Push Plan").mode(PlanMode.PUSH).build();
     }
 
     public static io.gravitee.definition.model.Plan aKeylessV2() {

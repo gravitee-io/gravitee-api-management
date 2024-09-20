@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.v4.endpointgroup;
+package io.gravitee.definition.model.v4.flow.selector;
 
-import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotNull;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,19 +26,16 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
-/**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
- */
-@SuperBuilder
-@NoArgsConstructor
+@SuperBuilder(toBuilder = true)
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode(callSuper = true)
-@Schema(name = "EndpointV4")
-public class Endpoint extends AbstractEndpoint {
+@EqualsAndHashCode
+public class AbstractSelector implements Serializable {
 
-    @Builder.Default
-    private EndpointServices services = new EndpointServices();
+    @JsonProperty(required = true)
+    @NotNull
+    protected SelectorType type;
 }

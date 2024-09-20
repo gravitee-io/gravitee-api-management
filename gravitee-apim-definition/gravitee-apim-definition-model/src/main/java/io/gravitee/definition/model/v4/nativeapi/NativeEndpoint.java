@@ -13,32 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.v4.endpointgroup;
+package io.gravitee.definition.model.v4.nativeapi;
 
-import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
-/**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
- */
 @SuperBuilder
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 @ToString
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "EndpointV4")
-public class Endpoint extends AbstractEndpoint {
-
-    @Builder.Default
-    private EndpointServices services = new EndpointServices();
-}
+@Schema(name = "NativeEndpointV4")
+public class NativeEndpoint extends AbstractEndpoint {}

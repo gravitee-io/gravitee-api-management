@@ -19,23 +19,14 @@ import static io.gravitee.definition.model.v4.listener.Listener.HTTP_LABEL;
 import static io.gravitee.definition.model.v4.listener.Listener.SUBSCRIPTION_LABEL;
 import static io.gravitee.definition.model.v4.listener.Listener.TCP_LABEL;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -51,7 +42,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
 @JsonSubTypes(
     {
@@ -71,42 +62,17 @@ import lombok.experimental.SuperBuilder;
     oneOf = { HttpListener.class, TcpListener.class, SubscriptionListener.class }
 )
 @SuperBuilder(toBuilder = true)
-public abstract class Listener implements Serializable {
+public abstract class Listener extends AbstractListener<Entrypoint> {
 
     public static final String HTTP_LABEL = "http";
     public static final String SUBSCRIPTION_LABEL = "subscription";
     public static final String TCP_LABEL = "tcp";
 
-    @JsonProperty(required = true)
-    @NotNull
-    private ListenerType type;
-
-    @NotEmpty
-    private List<Entrypoint> entrypoints;
-
-    private List<String> servers;
-
-    protected Listener(ListenerType type) {
-        this.type = type;
+    public Listener(ListenerType type) {
+        super(type);
     }
 
-    protected Listener(ListenerType type, ListenerBuilder<?, ?> b) {
-        this.type = type;
-        this.entrypoints = b.entrypoints;
-        this.servers = b.servers;
-    }
-
-    protected Listener(ListenerBuilder<?, ?> b) {
-        this.type = b.type;
-        this.entrypoints = b.entrypoints;
-        this.servers = b.servers;
-    }
-
-    @JsonIgnore
-    public List<Plugin> getPlugins() {
-        return Optional
-            .ofNullable(this.entrypoints)
-            .map(e -> e.stream().map(Entrypoint::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
-            .orElse(List.of());
+    public Listener(ListenerType type, Listener.ListenerBuilder<?, ?> b) {
+        super(type, b);
     }
 }
