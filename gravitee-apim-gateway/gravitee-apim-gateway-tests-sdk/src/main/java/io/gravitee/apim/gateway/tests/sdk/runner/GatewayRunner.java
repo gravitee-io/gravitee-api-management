@@ -44,6 +44,9 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.definition.model.v4.AbstractApi;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
@@ -553,10 +556,14 @@ public class GatewayRunner {
         final String environmentId = extractApiEnvironmentId(apiAsJson).orElse("DEFAULT");
         final ReactableApi<?> reactableApi;
         if (DefinitionVersion.V4.equals(definitionVersion)) {
-            final io.gravitee.definition.model.v4.Api api = graviteeMapper.treeToValue(
-                apiAsJson,
-                io.gravitee.definition.model.v4.Api.class
-            );
+            final ApiType apiType = extractApiType(apiAsJson);
+            AbstractApi api;
+            if (apiType == ApiType.NATIVE) {
+                api = graviteeMapper.treeToValue(apiAsJson, NativeApi.class);
+            } else {
+                api = graviteeMapper.treeToValue(apiAsJson, io.gravitee.definition.model.v4.Api.class);
+            }
+
             reactableApi = apiDeploymentPreparers.get(definitionVersion).toReactable(api, environmentId);
         } else {
             final Api api = graviteeMapper.treeToValue(apiAsJson, Api.class);
@@ -948,6 +955,19 @@ public class GatewayRunner {
         } else {
             return DefinitionVersion.V2;
         }
+    }
+
+    /**
+     * Read the definition JsonNode and try to find the api type.
+     * Only interesting for v4 apis. Returns PROXY if no `type` set on the definition
+     * @param apiAsJson the api definition as {@link JsonNode}
+     * @return the apiType found in definition
+     */
+    private ApiType extractApiType(JsonNode apiAsJson) {
+        if (apiAsJson.has("type")) {
+            return ApiType.fromLabel(apiAsJson.get("type").asText());
+        }
+        return ApiType.PROXY;
     }
 
     /**
