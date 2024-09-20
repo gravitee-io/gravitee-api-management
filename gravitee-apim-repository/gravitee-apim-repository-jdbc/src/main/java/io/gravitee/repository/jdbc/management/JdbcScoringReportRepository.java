@@ -24,7 +24,8 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ScoringReportRepository;
 import io.gravitee.repository.management.model.ScoringEnvironmentSummary;
 import io.gravitee.repository.management.model.ScoringReport;
-import io.gravitee.repository.ratelimit.model.RateLimit;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -196,6 +197,7 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
         var result = jdbcTemplate.query(
             "select " +
             "environment_id, " +
+            "AVG(score) AS averageScore," +
             "SUM(errors) AS totalErrors," +
             "SUM(warnings) AS totalWarnings," +
             "SUM(infos) AS totalInfos," +
@@ -330,10 +332,11 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
         return ScoringEnvironmentSummary
             .builder()
             .environmentId(rs.getString(1))
-            .errors(rs.getLong(2))
-            .warnings(rs.getLong(3))
-            .infos(rs.getLong(4))
-            .hints(rs.getLong(5))
+            .score(BigDecimal.valueOf(rs.getDouble(2)).setScale(2, RoundingMode.HALF_EVEN).doubleValue())
+            .errors(rs.getLong(3))
+            .warnings(rs.getLong(4))
+            .infos(rs.getLong(5))
+            .hints(rs.getLong(6))
             .build();
     };
 }

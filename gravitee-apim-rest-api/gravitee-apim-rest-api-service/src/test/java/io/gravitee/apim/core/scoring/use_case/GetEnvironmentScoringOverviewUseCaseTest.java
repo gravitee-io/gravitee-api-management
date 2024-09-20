@@ -107,7 +107,7 @@ class GetEnvironmentScoringOverviewUseCaseTest {
         Assertions
             .assertThat(report)
             .extracting(GetEnvironmentScoringOverviewUseCase.Output::overview)
-            .isEqualTo(new EnvironmentOverview(ENVIRONMENT_1, 2L, 2L, 2L, 2L));
+            .isEqualTo(new EnvironmentOverview(ENVIRONMENT_1, 0.84D, 2L, 2L, 2L, 2L));
     }
 
     private static ScoringReport aReport() {

@@ -192,13 +192,15 @@ public class ScoringReportQueryServiceImplTest {
         @SneakyThrows
         void should_find_scoring_report() {
             when(scoringReportRepository.getScoringEnvironmentSummary(any()))
-                .thenAnswer(invocation -> ScoringEnvironmentSummary.builder().environmentId("environment-id").warnings(1L).build());
+                .thenAnswer(invocation ->
+                    ScoringEnvironmentSummary.builder().environmentId("environment-id").score(0.95).warnings(1L).build()
+                );
 
             // When
             var result = service.getEnvironmentScoringSummary("environment-id");
 
             // Then
-            assertThat(result).isEqualTo(new EnvironmentOverview("environment-id", 0L, 1L, 0L, 0L));
+            assertThat(result).isEqualTo(new EnvironmentOverview("environment-id", 0.95, 0L, 1L, 0L, 0L));
         }
 
         @Test

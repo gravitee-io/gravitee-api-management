@@ -54,10 +54,11 @@ public class ScoringReportQueryServiceInMemory implements ScoringReportQueryServ
             .stream()
             .filter(report -> report.environmentId().equals(environmentId))
             .reduce(
-                new EnvironmentOverview(environmentId, 0L, 0L, 0L, 0L),
+                new EnvironmentOverview(environmentId, 0.84, 0L, 0L, 0L, 0L),
                 (summary, report) ->
                     new EnvironmentOverview(
                         environmentId,
+                        0.84,
                         summary.errors() + report.summary().errors(),
                         summary.warnings() + report.summary().warnings(),
                         summary.infos() + report.summary().infos(),
@@ -66,6 +67,7 @@ public class ScoringReportQueryServiceInMemory implements ScoringReportQueryServ
                 (summary1, summary2) ->
                     new EnvironmentOverview(
                         environmentId,
+                        0.84,
                         summary1.errors() + summary2.errors(),
                         summary1.warnings() + summary2.warnings(),
                         summary1.infos() + summary2.infos(),
