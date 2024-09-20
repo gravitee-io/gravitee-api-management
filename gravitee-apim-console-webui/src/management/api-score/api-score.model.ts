@@ -31,3 +31,12 @@ export interface ApisScoringResponse {
   pagination?: Pagination;
   links?: Links;
 }
+
+export interface ApisScoringOverview {
+  errors: number;
+  hints: number;
+  id: string;
+  infos: number;
+  warnings: number;
+  averageScore: number;
+}
