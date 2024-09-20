@@ -3279,6 +3279,8 @@ components:
             enum:
                 - MESSAGE
                 - PROXY
+#                FIXME: Kafka Gateway - properly support it, it has just been added for mapstruct
+                - NATIVE
         Visibility:
             type: string
             description: The visibility of the resource regarding the portal.
@@ -3931,6 +3933,8 @@ components:
                 - HTTP
                 - SUBSCRIPTION
                 - TCP
+#                FIXME: Kafka Gateway: properly support it, it has just been added for mapstruct
+                - KAFKA
         LoadBalancer:
             type: object
             properties:
