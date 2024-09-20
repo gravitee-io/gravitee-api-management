@@ -20,7 +20,7 @@ import lombok.Builder;
 
 @Builder(toBuilder = true)
 public record EnvironmentApiScoringReport(Api api, Summary summary) {
-    public record Summary(String id, ZonedDateTime createdAt, Long errors, Long warnings, Long infos, Long hints) {}
+    public record Summary(String id, ZonedDateTime createdAt, double score, long errors, long warnings, long infos, long hints) {}
 
     public record Api(String apiId, String name, ZonedDateTime updatedAt) {}
 }

@@ -6894,6 +6894,10 @@ components:
         ApiScoringSummary:
           type: object
           properties:
+            score:
+              type: number
+              description: The score of the API.
+              example: 0.91
             all:
               type: integer
               description: The total number of violated rules for all assets.

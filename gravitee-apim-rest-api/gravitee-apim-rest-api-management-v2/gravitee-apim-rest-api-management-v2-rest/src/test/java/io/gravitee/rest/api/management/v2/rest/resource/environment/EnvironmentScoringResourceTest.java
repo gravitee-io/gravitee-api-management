@@ -249,7 +249,7 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
             .id(id)
             .environmentId(ENVIRONMENT)
             .createdAt(CREATED_AT)
-            .summary(new ScoringReport.Summary(1L, 1L, 1L, 1L))
+            .summary(new ScoringReport.Summary(0.84D, 1L, 1L, 1L, 1L))
             .assets(List.of())
             .build();
     }

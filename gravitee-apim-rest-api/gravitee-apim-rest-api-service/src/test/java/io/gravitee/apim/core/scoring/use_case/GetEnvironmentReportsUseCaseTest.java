@@ -142,11 +142,11 @@ class GetEnvironmentReportsUseCaseTest {
             .contains(
                 new EnvironmentApiScoringReport(
                     new EnvironmentApiScoringReport.Api(API_ID_1, "name-1", UPDATED_AT),
-                    new EnvironmentApiScoringReport.Summary(REPORT_ID, CREATED_AT, 1L, 1L, 1L, 1L)
+                    new EnvironmentApiScoringReport.Summary(REPORT_ID, CREATED_AT, 0.84D, 1L, 1L, 1L, 1L)
                 ),
                 new EnvironmentApiScoringReport(
                     new EnvironmentApiScoringReport.Api(API_ID_2, "name-2", UPDATED_AT),
-                    new EnvironmentApiScoringReport.Summary(REPORT_ID, CREATED_AT, 1L, 1L, 1L, 1L)
+                    new EnvironmentApiScoringReport.Summary(REPORT_ID, CREATED_AT, 0.84D, 1L, 1L, 1L, 1L)
                 )
             );
     }
@@ -204,7 +204,7 @@ class GetEnvironmentReportsUseCaseTest {
             .toBuilder()
             .id(REPORT_ID)
             .createdAt(CREATED_AT)
-            .summary(new ScoringReport.Summary(1L, 1L, 1L, 1L))
+            .summary(new ScoringReport.Summary(0.84D, 1L, 1L, 1L, 1L))
             .assets(List.of(ASSET))
             .build();
     }
