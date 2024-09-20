@@ -751,7 +751,7 @@ class ImportApiCRDUseCaseTest {
                                     .validation(KEYLESS.getValidation())
                                     .status(KEYLESS.getPlanStatus())
                                     .type(KEYLESS.getType())
-                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().withName("keyless-flow")))
+                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder().name("keyless-flow").build()))
                                     .build(),
                                 "apikey-key",
                                 PlanCRD
@@ -762,7 +762,7 @@ class ImportApiCRDUseCaseTest {
                                     .validation(Plan.PlanValidationType.AUTO)
                                     .status(PlanStatus.STAGING)
                                     .type(Plan.PlanType.API)
-                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().withName("apikey-flow")))
+                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder().name("apikey-flow").build()))
                                     .build()
                             )
                         )
@@ -813,7 +813,7 @@ class ImportApiCRDUseCaseTest {
                                     .validation(KEYLESS.getValidation())
                                     .status(KEYLESS.getPlanStatus())
                                     .type(KEYLESS.getType())
-                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().withName("keyless-flow")))
+                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder().name("keyless-flow").build()))
                                     .build(),
                                 "apikey-key",
                                 PlanCRD
@@ -824,7 +824,7 @@ class ImportApiCRDUseCaseTest {
                                     .validation(Plan.PlanValidationType.AUTO)
                                     .status(PlanStatus.STAGING)
                                     .type(Plan.PlanType.API)
-                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().withName("apikey-flow")))
+                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder().name("apikey-flow").build()))
                                     .build()
                             )
                         )
@@ -879,7 +879,7 @@ class ImportApiCRDUseCaseTest {
                                     .validation(KEYLESS.getValidation())
                                     .status(KEYLESS.getPlanStatus())
                                     .type(KEYLESS.getType())
-                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().withName("keyless-flow")))
+                                    .flows(List.of((Flow) FlowFixtures.aSimpleFlowV4().toBuilder().name("keyless-flow").build()))
                                     .build(),
                                 "api-key",
                                 PlanCRD
@@ -890,7 +890,7 @@ class ImportApiCRDUseCaseTest {
                                     .validation(Plan.PlanValidationType.AUTO)
                                     .status(PlanStatus.STAGING)
                                     .type(Plan.PlanType.API)
-                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().withName("apikey-flow")))
+                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder().name("apikey-flow").build()))
                                     .build()
                             )
                         )
@@ -1236,7 +1236,7 @@ class ImportApiCRDUseCaseTest {
                         .validation(Plan.PlanValidationType.AUTO)
                         .status(PlanStatus.PUBLISHED)
                         .type(Plan.PlanType.API)
-                        .flows(List.of(FlowFixtures.aSimpleFlowV4().withName("plan-flow")))
+                        .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder().name("plan-flow").build()))
                         .build()
                 )
             )

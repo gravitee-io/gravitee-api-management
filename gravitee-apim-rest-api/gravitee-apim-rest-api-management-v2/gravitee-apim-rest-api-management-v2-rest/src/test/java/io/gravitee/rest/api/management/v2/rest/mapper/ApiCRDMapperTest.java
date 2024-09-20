@@ -132,7 +132,7 @@ class ApiCRDMapperTest {
                         .validation(Plan.PlanValidationType.AUTO)
                         .status(PlanStatus.PUBLISHED)
                         .type(Plan.PlanType.API)
-                        .flows(List.of(FlowFixtures.aSimpleFlowV4().withName("plan-flow")))
+                        .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder().name("plan-flow").build()))
                         .build()
                 )
             )
