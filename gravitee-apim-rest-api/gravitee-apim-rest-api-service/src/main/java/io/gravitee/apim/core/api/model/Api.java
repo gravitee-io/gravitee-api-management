@@ -210,7 +210,13 @@ public class Api {
 
     public Api setPlans(List<Plan> plans) {
         switch (definitionVersion) {
-            case V4 -> apiDefinitionV4.setPlans(plans.stream().map(Plan::getPlanDefinitionV4).collect(Collectors.toList()));
+            case V4 -> {
+                // FIXME: Kafka Gateway - Support Native APIs
+                if (apiDefinitionV4.getType() == ApiType.NATIVE) {
+                    throw new IllegalStateException("NATIVE API not supported");
+                }
+                apiDefinitionV4.setPlans(plans.stream().map(Plan::getPlanDefinitionV4).collect(Collectors.toList()));
+            }
             case V1, V2 -> apiDefinition.setPlans(plans.stream().map(Plan::getPlanDefinitionV2).collect(Collectors.toList()));
             case FEDERATED -> {
                 // do nothing

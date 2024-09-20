@@ -33,6 +33,7 @@ import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.tag.model.Tag;
 import io.gravitee.apim.core.tag.query_service.TagQueryService;
 import io.gravitee.definition.model.flow.Operator;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
@@ -132,6 +133,8 @@ public class OAIToImportApiUseCase {
                         endpointGroups
                             .stream()
                             .map(endpointGroup -> endpointGroup.toBuilder().sharedConfiguration(sharedConfiguration).build())
+                            // FIXME: Kafka Gateway - Lombok builders not really good with abstraction, need to force cast
+                            .map(endpointGroup -> (EndpointGroup) endpointGroup)
                             .toList()
                     )
                     .build()
