@@ -15,72 +15,24 @@
  */
 package io.gravitee.definition.model.v4.endpointgroup;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonRawValue;
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.databind.JsonNode;
-import io.gravitee.definition.model.Plugin;
-import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancer;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  */
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @Schema(name = "EndpointGroupV4")
-public class EndpointGroup implements Serializable {
-
-    @NotBlank
-    private String name;
-
-    @JsonProperty(required = true)
-    @NotBlank
-    private String type;
-
-    @Builder.Default
-    private LoadBalancer loadBalancer = new LoadBalancer();
-
-    @Schema(implementation = Object.class)
-    @JsonRawValue
-    private String sharedConfiguration;
-
-    @Valid
-    private List<Endpoint> endpoints;
+public class EndpointGroup extends AbstractEndpointGroup<Endpoint> {
 
     @Builder.Default
     private EndpointGroupServices services = new EndpointGroupServices();
-
-    @JsonSetter
-    public void setSharedConfiguration(final JsonNode configuration) {
-        if (configuration != null) {
-            this.sharedConfiguration = configuration.toString();
-        }
-    }
-
-    public void setSharedConfiguration(final String sharedConfiguration) {
-        this.sharedConfiguration = sharedConfiguration;
-    }
-
-    @JsonIgnore
-    public List<Plugin> getPlugins() {
-        return Optional
-            .ofNullable(this.endpoints)
-            .map(e -> e.stream().map(Endpoint::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
-            .orElse(List.of());
-    }
 }

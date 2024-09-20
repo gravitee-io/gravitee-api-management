@@ -24,6 +24,7 @@ import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import java.util.List;
 import java.util.Set;
@@ -33,7 +34,7 @@ public class FlowFixtures {
 
     private FlowFixtures() {}
 
-    private static final Supplier<Flow.FlowBuilder> BASE_V4 = () -> Flow.builder().name("my-flow");
+    private static final Supplier<Flow.FlowBuilder<?, ?>> BASE_V4 = () -> Flow.builder().name("my-flow");
     private static final Supplier<io.gravitee.definition.model.flow.Flow.FlowBuilder> BASE_V2 = () ->
         io.gravitee.definition.model.flow.Flow
             .builder()

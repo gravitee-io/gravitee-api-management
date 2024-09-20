@@ -17,63 +17,53 @@ package io.gravitee.definition.model.v4.flow;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.Plugin;
+import io.gravitee.definition.model.v4.flow.selector.AbstractSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.With;
 import lombok.experimental.SuperBuilder;
 
-/**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
- * @author GraviteeSource Team
- */
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode(callSuper = true)
-@Schema(name = "FlowV4")
+@EqualsAndHashCode
 @SuperBuilder(toBuilder = true)
-@With
-public class Flow extends AbstractFlow {
+public abstract class AbstractFlow implements Serializable {
 
-    @Valid
-    private List<Step> request;
+    protected String id;
 
-    @Valid
-    private List<Step> response;
+    protected String name;
 
-    @Valid
-    private List<Step> subscribe;
+    @Builder.Default
+    protected boolean enabled = true;
 
-    @Valid
-    private List<Step> publish;
+    protected Set<@NotEmpty String> tags;
 
-    @Valid
-    protected List<Selector> selectors;
+    public abstract List<Plugin> getPlugins();
 
     @JsonIgnore
-    @Override
-    public List<Plugin> getPlugins() {
-        return Stream
-            .of(computePlugins(this.request), computePlugins(this.response), computePlugins(this.publish), computePlugins(this.subscribe))
-            .flatMap(List::stream)
-            .collect(Collectors.toList());
-    }
-
-    @JsonIgnore
-    public Optional<Selector> selectorByType(SelectorType type) {
-        if (selectors != null) {
-            return selectors.stream().filter(selector -> selector.getType() == type).findFirst();
-        }
-
-        return Optional.empty();
+    protected List<Plugin> computePlugins(List<Step> step) {
+        return Optional
+            .ofNullable(step)
+            .map(r -> r.stream().filter(Step::isEnabled).map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
+            .orElse(List.of());
     }
 }

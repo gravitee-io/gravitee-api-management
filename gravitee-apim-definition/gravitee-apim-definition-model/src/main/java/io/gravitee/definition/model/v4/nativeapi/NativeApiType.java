@@ -13,32 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.v4.endpointgroup;
+package io.gravitee.definition.model.v4.nativeapi;
 
-import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
+import com.fasterxml.jackson.annotation.JsonValue;
+import java.util.Map;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.SuperBuilder;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * @author GraviteeSource Team
  */
-@SuperBuilder
-@NoArgsConstructor
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Getter
-@Setter
-@ToString
-@EqualsAndHashCode(callSuper = true)
-@Schema(name = "EndpointV4")
-public class Endpoint extends AbstractEndpoint {
+public enum NativeApiType {
+    KAFKA("kafka");
 
-    @Builder.Default
-    private EndpointServices services = new EndpointServices();
+    private static final Map<String, NativeApiType> LABELS_MAP = Map.of(KAFKA.label, KAFKA);
+
+    @JsonValue
+    private final String label;
+
+    public static NativeApiType fromLabel(final String label) {
+        if (label != null) {
+            return LABELS_MAP.get(label);
+        }
+        return null;
+    }
 }

@@ -15,58 +15,26 @@
  */
 package io.gravitee.definition.model.v4.listener.entrypoint;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonRawValue;
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.databind.JsonNode;
-import io.gravitee.definition.model.Plugin;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotEmpty;
-import java.io.Serializable;
-import java.util.List;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Builder
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @Schema(name = "EntrypointV4")
-public class Entrypoint implements Serializable {
-
-    @JsonProperty(required = true)
-    @NotEmpty
-    private String type;
+public class Entrypoint extends AbstractEntrypoint {
 
     @Builder.Default
     private Qos qos = Qos.AUTO;
 
     private Dlq dlq;
-
-    @Schema(implementation = Object.class)
-    @JsonRawValue
-    private String configuration;
-
-    @JsonSetter
-    public void setConfiguration(final JsonNode configuration) {
-        if (configuration != null) {
-            this.configuration = configuration.toString();
-        }
-    }
-
-    public void setConfiguration(final String configuration) {
-        this.configuration = configuration;
-    }
-
-    @JsonIgnore
-    public List<Plugin> getPlugins() {
-        return List.of(new Plugin("entrypoint-connector", type));
-    }
 }

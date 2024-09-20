@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.v4;
+package io.gravitee.definition.model.v4.nativeapi;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Plugin;
-import io.gravitee.definition.model.ResponseTemplate;
-import io.gravitee.definition.model.v4.analytics.Analytics;
-import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
-import io.gravitee.definition.model.v4.failover.Failover;
-import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
-import io.gravitee.definition.model.v4.listener.Listener;
-import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
-import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.AbstractApi;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.resource.Resource;
-import io.gravitee.definition.model.v4.service.ApiServices;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -44,10 +41,6 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
-/**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
- * @author GraviteeSource Team
- */
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -55,50 +48,51 @@ import lombok.experimental.SuperBuilder;
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder(toBuilder = true)
-public class Api extends AbstractApi {
-
-    @JsonProperty(required = true)
-    @NotEmpty
-    private List<@NotNull Listener> listeners;
-
-    @JsonProperty(required = true)
-    @NotEmpty
-    private List<EndpointGroup> endpointGroups;
-
-    private Analytics analytics;
-
-    private Failover failover;
+public class NativeApi extends AbstractApi {
 
     @JsonProperty(required = true)
     @NotNull
-    private Map<@NotEmpty String, @NotNull Plan> plans;
-
     @Builder.Default
-    private FlowExecution flowExecution = new FlowExecution();
+    private ApiType type = ApiType.NATIVE;
 
-    private List<Flow> flows;
+    @JsonProperty(required = true)
+    @NotEmpty
+    private List<@NotNull NativeListener> listeners;
 
-    private Map<String, Map<String, ResponseTemplate>> responseTemplates;
+    @JsonProperty(required = true)
+    @NotEmpty
+    private List<NativeEndpointGroup> endpointGroups;
 
-    private ApiServices services;
+    @JsonProperty(required = true)
+    @NotNull
+    private Map<@NotEmpty String, @NotNull NativePlan> plans;
 
-    public Plan getPlan(final String plan) {
+    private List<NativeFlow> flows;
+
+    private NativeApiServices services;
+
+    public NativePlan getPlan(final String plan) {
         return plans.get(plan);
     }
 
-    public List<Plan> getPlans() {
+    public List<NativePlan> getPlans() {
         if (plans != null) {
             return new ArrayList<>(this.plans.values());
         }
         return null;
     }
 
-    public void setPlans(List<Plan> plans) {
+    public void setPlans(List<NativePlan> plans) {
         if (plans != null) {
-            this.plans = plans.stream().collect(Collectors.toMap(Plan::getId, Function.identity()));
+            this.plans = plans.stream().collect(Collectors.toMap(NativePlan::getId, Function.identity()));
         } else {
             this.plans = new HashMap<>();
         }
+    }
+
+    @JsonIgnore
+    public boolean isKafkaNative() {
+        return ApiType.NATIVE.equals(type) && listeners.stream().anyMatch(KafkaListener.class::isInstance);
     }
 
     @JsonIgnore
@@ -111,32 +105,22 @@ public class Api extends AbstractApi {
                     .orElse(List.of()),
                 Optional
                     .ofNullable(this.getFlows())
-                    .map(f -> f.stream().filter(Flow::isEnabled).map(Flow::getPlugins).flatMap(List::stream).toList())
+                    .map(f -> f.stream().filter(NativeFlow::isEnabled).map(NativeFlow::getPlugins).flatMap(List::stream).toList())
                     .orElse(List.of()),
                 Optional
                     .ofNullable(this.getPlans())
-                    .map(p -> p.stream().map(Plan::getPlugins).flatMap(List::stream).toList())
+                    .map(p -> p.stream().map(NativePlan::getPlugins).flatMap(List::stream).toList())
                     .orElse(List.of()),
                 Optional
                     .ofNullable(this.getListeners())
-                    .map(l -> l.stream().map(Listener::getPlugins).flatMap(List::stream).toList())
+                    .map(l -> l.stream().map(NativeListener::getPlugins).flatMap(List::stream).toList())
                     .orElse(List.of()),
                 Optional
                     .ofNullable(this.getEndpointGroups())
-                    .map(r -> r.stream().map(EndpointGroup::getPlugins).flatMap(List::stream).toList())
-                    .orElse(List.of()),
-                Optional.ofNullable(this.getServices()).map(ApiServices::getPlugins).orElse(List.of())
+                    .map(r -> r.stream().map(NativeEndpointGroup::getPlugins).flatMap(List::stream).toList())
+                    .orElse(List.of())
             )
             .flatMap(List::stream)
             .collect(Collectors.toList());
-    }
-
-    public boolean failoverEnabled() {
-        return failover != null && failover.isEnabled();
-    }
-
-    @JsonIgnore
-    public boolean isTcpProxy() {
-        return ApiType.PROXY.equals(getType()) && listeners.stream().anyMatch(TcpListener.class::isInstance);
     }
 }

@@ -13,32 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.v4.endpointgroup;
+package io.gravitee.definition.model.v4.nativeapi.kafka;
 
-import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.Accessors;
 import lombok.experimental.SuperBuilder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * @author GraviteeSource Team
  */
-@SuperBuilder
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
-@ToString
+@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "EndpointV4")
-public class Endpoint extends AbstractEndpoint {
+@Schema(name = "KafkaListenerV4")
+@SuperBuilder(toBuilder = true)
+public class KafkaListener extends NativeListener {
 
-    @Builder.Default
-    private EndpointServices services = new EndpointServices();
+    @JsonProperty(required = true)
+    @Accessors(chain = true)
+    private String host;
+
+    @JsonProperty(required = true)
+    @Accessors(chain = true)
+    private Integer port;
 }
