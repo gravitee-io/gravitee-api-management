@@ -174,7 +174,7 @@ class LoggingV4EmulationIntegrationTest extends AbstractGatewayTest {
     }
 
     @Test
-    void should_notlog_invalidcondition(HttpClient httpClient, VertxTestContext context) throws Exception {
+    void should_not_log_invalid_condition(HttpClient httpClient, VertxTestContext context) throws Exception {
         JsonObject mockResponseBody = new JsonObject().put("response", "body");
         wiremock.stubFor(get("/endpoint").willReturn(badRequest()));
 

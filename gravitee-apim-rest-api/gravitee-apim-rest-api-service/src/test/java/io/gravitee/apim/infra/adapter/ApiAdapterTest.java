@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.adapter;
 
 import static assertions.CoreAssertions.assertThat;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import fixtures.core.model.ApiFixtures;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
@@ -38,6 +39,7 @@ import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import lombok.SneakyThrows;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -276,11 +278,13 @@ class ApiAdapterTest {
                 soft.assertThat(api.getCategories()).containsExactly("category-1");
                 soft.assertThat(api.getCreatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")));
                 soft.assertThat(api.getCrossId()).isEqualTo("my-api-crossId");
-                soft
-                    .assertThat(api.getDefinition())
-                    .isEqualTo(
-                        "{\"id\":\"my-api\",\"name\":\"My Api\",\"type\":\"proxy\",\"apiVersion\":\"1.0.0\",\"definitionVersion\":\"4.0.0\",\"tags\":[\"tag1\"],\"listeners\":[{\"type\":\"http\",\"entrypoints\":[{\"type\":\"http-proxy\",\"qos\":\"auto\",\"configuration\":{}}],\"paths\":[{\"path\":\"/http_proxy\"}]}],\"endpointGroups\":[{\"name\":\"default-group\",\"type\":\"http-proxy\",\"loadBalancer\":{\"type\":\"round-robin\"},\"sharedConfiguration\":{},\"endpoints\":[{\"name\":\"default-endpoint\",\"type\":\"http-proxy\",\"secondary\":false,\"weight\":1,\"inheritConfiguration\":true,\"configuration\":{\"target\":\"https://api.gravitee.io/echo\"},\"services\":{}}],\"services\":{}}],\"analytics\":{\"enabled\":false},\"failover\":{\"enabled\":true,\"maxRetries\":7,\"slowCallDuration\":500,\"openStateDuration\":11000,\"maxFailures\":3,\"perSubscription\":false},\"flowExecution\":{\"mode\":\"default\",\"matchRequired\":false},\"flows\":[]}"
-                    );
+                try {
+                    soft
+                        .assertThat(api.getDefinition())
+                        .isEqualTo(GraviteeJacksonMapper.getInstance().writeValueAsString(model.getApiDefinitionV4()));
+                } catch (JsonProcessingException e) {
+                    soft.fail(e.getMessage());
+                }
                 soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
                 soft.assertThat(api.getDeployedAt()).isEqualTo(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")));
                 soft.assertThat(api.getDescription()).isEqualTo("api-description");

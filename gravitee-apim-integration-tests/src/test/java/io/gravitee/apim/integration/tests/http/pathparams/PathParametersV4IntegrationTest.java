@@ -55,6 +55,13 @@ public class PathParametersV4IntegrationTest extends PathParametersV3Integration
     }
 
     @Override
+    @Test
+    @DeployApi("/apis/v4/http/pathparams/api-no-path-param.json")
+    void should_handle_mulitple_parallel_execution_when_path_param(HttpClient httpClient) throws InterruptedException {
+        super.should_handle_mulitple_parallel_execution_when_path_param(httpClient);
+    }
+
+    @Override
     @ParameterizedTest
     @DeployApi("/apis/v4/http/pathparams/api-path-param.json")
     @MethodSource("io.gravitee.apim.integration.tests.http.pathparams.PathParametersV3IntegrationTest#provideParameters")
