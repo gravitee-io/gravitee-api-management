@@ -119,7 +119,7 @@ public class ApiExport {
             .disableMembershipNotifications(disableMembershipNotifications);
     }
 
-    public io.gravitee.definition.model.v4.Api.ApiBuilder toApiDefinitionBuilder() {
+    public io.gravitee.definition.model.v4.Api.ApiBuilder<?, ?> toApiDefinitionBuilder() {
         return io.gravitee.definition.model.v4.Api
             .builder()
             .analytics(analytics)

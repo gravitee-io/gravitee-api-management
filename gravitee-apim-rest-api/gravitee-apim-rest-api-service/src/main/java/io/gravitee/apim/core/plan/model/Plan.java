@@ -91,6 +91,7 @@ public class Plan implements GenericPlanEntity {
     private String commentMessage;
     private String generalConditions;
 
+    // FIXME: Kafka Gateway - will not be easy to know if we have to manipulate Plan or NativePlan as it is the ApiType which determines the distinction
     private io.gravitee.definition.model.v4.plan.Plan planDefinitionV4;
     private io.gravitee.definition.model.Plan planDefinitionV2;
     private io.gravitee.definition.model.federation.FederatedPlan federatedPlanDefinition;

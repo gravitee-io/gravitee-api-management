@@ -144,7 +144,7 @@ public class ApiCRDSpec {
     /**
      * @return An instance of {@link io.gravitee.definition.model.v4.Api.ApiBuilder} based on the current state of this ApiCRD.
      */
-    public io.gravitee.definition.model.v4.Api.ApiBuilder toApiDefinitionBuilder() {
+    public io.gravitee.definition.model.v4.Api.ApiBuilder<?, ?> toApiDefinitionBuilder() {
         // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to allow MapStruct in core.
         return io.gravitee.definition.model.v4.Api
             .builder()
