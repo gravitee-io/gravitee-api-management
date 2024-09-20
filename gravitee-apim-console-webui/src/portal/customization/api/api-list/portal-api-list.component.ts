@@ -117,11 +117,15 @@ export class PortalApiListComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((apiPortalHeaders: ApiPortalHeader[]): void => {
-        if (apiPortalHeaders.length < 2) {
-          this.displayedColumns.shift();
-        }
-        this.dataSource = apiPortalHeaders;
+        this.updateDataSource(apiPortalHeaders);
       });
+  }
+
+  private updateDataSource(apiPortalHeaders: ApiPortalHeader[]): void {
+    if (apiPortalHeaders.length < 2) {
+      this.displayedColumns.shift();
+    }
+    this.dataSource = apiPortalHeaders;
   }
 
   private initPortalSettings() {
@@ -148,11 +152,12 @@ export class PortalApiListComponent implements OnInit {
 
   private changeHeaderOrder(updatedHeader): Observable<ApiPortalHeader[]> {
     return this.environmentApiHeadersService.updateApiHeader(updatedHeader).pipe(
-      tap(() => {
-        this.snackBarService.success('Order updated successfully');
+      tap((apiPortalHeaders: ApiPortalHeader[]) => {
+        this.snackBarService.success('API details order updated successfully');
+        this.updateDataSource(apiPortalHeaders);
       }),
       catchError(({ error }) => {
-        this.snackBarService.error(error);
+        this.snackBarService.error(error?.message ? error.message : 'Error during updating order of API details');
         return EMPTY;
       }),
       takeUntilDestroyed(this.destroyRef),
@@ -182,6 +187,14 @@ export class PortalApiListComponent implements OnInit {
       .pipe(
         filter((data): boolean => !!data),
         switchMap((data: ApiPortalHeaderEditDialogResult) => this.environmentApiHeadersService.createApiHeader(data)),
+        tap((apiPortalHeaders: ApiPortalHeader[]) => {
+          this.snackBarService.success(`API information created successfully`);
+          this.updateDataSource(apiPortalHeaders);
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error?.message ? error.message : 'Error during creating');
+          return EMPTY;
+        }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
@@ -207,11 +220,12 @@ export class PortalApiListComponent implements OnInit {
           };
           return this.environmentApiHeadersService.updateApiHeader(payload);
         }),
-        tap(() => {
-          this.snackBarService.success('API Information updated successfully');
+        tap((apiPortalHeaders: ApiPortalHeader[]) => {
+          this.snackBarService.success(`API Information '${header.name}' updated successfully`);
+          this.updateDataSource(apiPortalHeaders);
         }),
         catchError(({ error }) => {
-          this.snackBarService.error(error.message);
+          this.snackBarService.error(error?.message ? error.message : 'Error during updating');
           return EMPTY;
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -232,13 +246,14 @@ export class PortalApiListComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((confirm: boolean): boolean => confirm),
-        switchMap(() => this.environmentApiHeadersService.deleteApiHeader(header)),
-        tap(() => {
-          this.snackBarService.success(`API Information ${header.name} deleted successfully`);
+        filter((confirmed) => confirmed),
+        switchMap((_) => this.environmentApiHeadersService.deleteApiHeader(header)),
+        tap((apiPortalHeaders: ApiPortalHeader[]) => {
+          this.snackBarService.success(`API Information '${header.name}' deleted successfully`);
+          this.updateDataSource(apiPortalHeaders);
         }),
         catchError(({ error }) => {
-          this.snackBarService.error(error);
+          this.snackBarService.error(error?.message ? error.message : 'Error during deleting');
           return EMPTY;
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -277,9 +292,11 @@ export class PortalApiListComponent implements OnInit {
           };
           return this.portalSettingsService.save(updatedSettingsPayload);
         }),
-        tap(() => this.snackBarService.success('Settings successfully updated!')),
-        catchError(() => {
-          this.snackBarService.error('An error occurred during the Settings update');
+        tap(() => {
+          this.snackBarService.success(`API Key Header updated successfully`);
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error?.message ? error.message : 'Error during updating');
           return EMPTY;
         }),
         takeUntilDestroyed(this.destroyRef),
