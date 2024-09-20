@@ -27,6 +27,7 @@ databaseChangeLog:
               - column: { name: api_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: created_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
+              - column: { name: score, type: double, constraints: { nullable: false, default: 0.0 } }
               - column: { name: errors, type: int, constraints: { nullable: false, default: 0 } }
               - column: { name: warnings, type: int, constraints: { nullable: false, default: 0 } }
               - column: { name: infos, type: int, constraints: { nullable: false, default: 0 } }

@@ -29,7 +29,7 @@ public record ScoringReport(
     Summary summary,
     List<Asset> assets
 ) {
-    public record Summary(Long errors, Long warnings, Long infos, Long hints) {}
+    public record Summary(Double score, Long errors, Long warnings, Long infos, Long hints) {}
 
     public record Asset(String pageId, ScoringAssetType type, List<Diagnostic> diagnostics) {}
 

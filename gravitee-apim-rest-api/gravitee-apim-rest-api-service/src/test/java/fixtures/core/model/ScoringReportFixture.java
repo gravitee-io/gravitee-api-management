@@ -32,7 +32,7 @@ public class ScoringReportFixture {
             .id("report-id")
             .apiId("api-id")
             .environmentId("environment-id")
-            .summary(new ScoringReport.Summary(0L, 1L, 0L, 0L))
+            .summary(new ScoringReport.Summary(0.9D, 0L, 1L, 0L, 0L))
             .assets(
                 List.of(
                     new ScoringReport.Asset(

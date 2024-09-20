@@ -54,6 +54,7 @@ public class GetLatestReportUseCase {
                 report.createdAt(),
                 assets,
                 new ScoringReportView.Summary(
+                    report.summary().score(),
                     report.summary().errors(),
                     report.summary().warnings(),
                     report.summary().infos(),

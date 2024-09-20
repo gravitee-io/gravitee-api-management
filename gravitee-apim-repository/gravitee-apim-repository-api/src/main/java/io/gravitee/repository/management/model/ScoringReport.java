@@ -47,7 +47,7 @@ public final class ScoringReport {
     @Builder.Default
     private List<Asset> assets = Collections.emptyList();
 
-    public record Summary(Long errors, Long warnings, Long infos, Long hints) {}
+    public record Summary(Double score, Long errors, Long warnings, Long infos, Long hints) {}
 
     public record Asset(String pageId, String type, List<Diagnostic> diagnostics) {}
 

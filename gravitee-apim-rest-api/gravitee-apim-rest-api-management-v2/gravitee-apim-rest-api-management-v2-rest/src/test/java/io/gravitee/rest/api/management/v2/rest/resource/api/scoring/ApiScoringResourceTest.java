@@ -145,7 +145,7 @@ public class ApiScoringResourceTest extends ApiResourceTest {
                 .isEqualTo(
                     ApiScoring
                         .builder()
-                        .summary(ApiScoringSummary.builder().all(1).errors(0).hints(0).infos(0).warnings(1).build())
+                        .summary(ApiScoringSummary.builder().score(0.9).all(1).errors(0).hints(0).infos(0).warnings(1).build())
                         .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
                         .assets(
                             List.of(
