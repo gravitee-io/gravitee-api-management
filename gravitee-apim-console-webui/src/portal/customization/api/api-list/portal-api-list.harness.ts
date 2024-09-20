@@ -19,6 +19,13 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
 import { MatIconHarness } from '@angular/material/icon/testing';
 
+interface PortalApiListHarnessData {
+  name: string;
+  value: string;
+  updateButton?: MatButtonHarness;
+  deleteButton?: MatButtonHarness;
+}
+
 export class PortalApiListHarness extends ComponentHarness {
   static hostSelector = 'app-portal-api-list';
 
@@ -94,5 +101,28 @@ export class PortalApiListHarness extends ComponentHarness {
   async hasRows(): Promise<boolean> {
     const rows = await this.rows();
     return rows.length > 0;
+  }
+
+  async getRowByIndex(index: number): Promise<PortalApiListHarnessData> {
+    return this.tableLocator()
+      .then((table) => table.getRows())
+      .then((rows) => rows[index])
+      .then((row) =>
+        Promise.all([row.getCells({ columnName: 'name' }), row.getCells({ columnName: 'value' }), row.getCells({ columnName: 'actions' })]),
+      )
+      .then(([names, value, actions]) =>
+        Promise.all([
+          names[0].getText(),
+          value[0].getText(),
+          actions[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid="edit-button"]' })),
+          actions[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid="delete-button"]' })),
+        ]),
+      )
+      .then(([name, value, updateButton, deleteButton]) => ({
+        name,
+        value,
+        updateButton,
+        deleteButton,
+      }));
   }
 }
