@@ -15,13 +15,15 @@
  */
 package io.gravitee.repository.mongodb.management.internal.score;
 
+import static com.mongodb.client.model.Accumulators.avg;
 import static com.mongodb.client.model.Accumulators.sum;
 import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Filters.eq;
 
-import com.mongodb.client.model.Accumulators;
 import io.gravitee.repository.management.model.ScoringEnvironmentSummary;
 import io.gravitee.repository.mongodb.management.internal.model.ScoringReportMongo;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -54,6 +56,7 @@ public class ScoringReportMongoRepositoryImpl implements ScoringReportMongoRepos
         aggregations.add(
             group(
                 "$environmentId",
+                avg("score", "$summary.score"),
                 sum("errors", "$summary.errors"),
                 sum("warnings", "$summary.warnings"),
                 sum("infos", "$summary.infos"),
@@ -70,6 +73,7 @@ public class ScoringReportMongoRepositoryImpl implements ScoringReportMongoRepos
         return ScoringEnvironmentSummary
             .builder()
             .environmentId(environmentId)
+            .score(BigDecimal.valueOf(result.getDouble("score")).setScale(2, RoundingMode.HALF_EVEN).doubleValue())
             .errors(result.getLong("errors"))
             .warnings(result.getLong("warnings"))
             .infos(result.getLong("infos"))

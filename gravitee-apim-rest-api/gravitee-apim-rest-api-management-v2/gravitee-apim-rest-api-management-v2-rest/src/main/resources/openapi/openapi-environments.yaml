@@ -437,6 +437,10 @@ components:
                 id:
                     type: string
                     description: Environment identifier
+                score:
+                  type: number
+                  description: The average score of all APIs
+                  example: 0.74
                 errors:
                     type: integer
                     description: The total number of violated rules with severity ERROR for all APIs.
