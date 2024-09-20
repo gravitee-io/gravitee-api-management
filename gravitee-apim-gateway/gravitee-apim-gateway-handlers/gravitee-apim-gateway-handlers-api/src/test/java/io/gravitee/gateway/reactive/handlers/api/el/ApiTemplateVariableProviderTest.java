@@ -19,9 +19,10 @@ import static fixtures.definition.ApiDefinitionFixtures.anApiV4;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
-import java.util.Map;
+import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -56,7 +57,12 @@ class ApiTemplateVariableProviderTest {
 
     @Test
     void should_provide_api_properties_in_EL() {
-        var apiDefinition = anApiV4().toBuilder().withProperties(Map.of("prop1", "value1", "prop2", "value2")).build();
+        Api apiDefinition = anApiV4()
+            .toBuilder()
+            .properties(
+                List.of(Property.builder().key("prop1").value("value1").build(), Property.builder().key("prop2").value("value2").build())
+            )
+            .build();
 
         TemplateEngine engine = buildTemplateEngine(apiDefinition);
         engine.eval("{#api.properties[prop1]}", String.class).test().assertValue("value1");
@@ -65,7 +71,12 @@ class ApiTemplateVariableProviderTest {
 
     @Test
     void should_return_no_value_when_evaluate_unknown_properties() {
-        var apiDefinition = anApiV4().toBuilder().withProperties(Map.of("prop1", "value1", "prop2", "value2")).build();
+        var apiDefinition = anApiV4()
+            .toBuilder()
+            .properties(
+                List.of(Property.builder().key("prop1").value("value1").build(), Property.builder().key("prop2").value("value2").build())
+            )
+            .build();
 
         buildTemplateEngine(apiDefinition).eval("{#api.properties[unknown]}", String.class).test().assertNoValues();
     }
