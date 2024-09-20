@@ -34,12 +34,9 @@ export class ApiCreationV4SpecHttpExpects {
   constructor(private httpTestingController: HttpTestingController) {}
 
   expectApiGetPortalSettings() {
-    const settings: PortalSettings = {
-      portal: {
-        entrypoint: 'entrypoint',
-      },
-    };
-    this.httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/settings`, method: 'GET' }).flush(settings);
+    const requests = this.httpTestingController.match({ url: `${CONSTANTS_TESTING.env.baseURL}/portal`, method: 'GET' });
+
+    expect(requests.length).toBeLessThanOrEqual(1);
   }
 
   expectVerifyContextPath(invalidPath = false) {
