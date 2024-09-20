@@ -57,7 +57,7 @@
         <protobuf-java.version>4.27.2</protobuf-java.version>
         <grpc-java.version>1.50.2</grpc-java.version>
         <!-- Gravitee dependencies version -->
-        <gravitee-bom.version>8.1.0</gravitee-bom.version>
+        <gravitee-bom.version>8.1.14</gravitee-bom.version>
         <gravitee-alert-api.version>2.0.0</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>3.2.0</gravitee-cockpit-api.version>
         <gravitee-common.version>4.5.1</gravitee-common.version>
