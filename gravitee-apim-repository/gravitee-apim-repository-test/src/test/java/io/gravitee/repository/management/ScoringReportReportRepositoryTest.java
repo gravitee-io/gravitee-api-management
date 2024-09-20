@@ -187,14 +187,14 @@ public class ScoringReportReportRepositoryTest extends AbstractManagementReposit
     public void getScoringEnvironmentSummary_should_return_environment_summary() throws Exception {
         var result = scoringReportRepository.getScoringEnvironmentSummary("env1");
 
-        Assertions.assertThat(result).isEqualTo(new ScoringEnvironmentSummary("env1", 5L, 5L, 5L, 5L));
+        Assertions.assertThat(result).isEqualTo(new ScoringEnvironmentSummary("env1", 0.82D, 5L, 5L, 5L, 5L));
     }
 
     @Test
     public void getScoringEnvironmentSummary_should_return_empty_summary_when_no_data() throws Exception {
         var result = scoringReportRepository.getScoringEnvironmentSummary("env4");
 
-        Assertions.assertThat(result).isEqualTo(new ScoringEnvironmentSummary("env4", 0L, 0L, 0L, 0L));
+        Assertions.assertThat(result).isEqualTo(new ScoringEnvironmentSummary("env4", -1D, 0L, 0L, 0L, 0L));
     }
 
     private static ScoringReport aScoring() {
