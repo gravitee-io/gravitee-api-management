@@ -28,6 +28,7 @@ import fixtures.core.model.ApiFixtures;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -208,10 +209,7 @@ public class ApiCrudServiceImplTest {
                         .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
                         .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
                         .definitionVersion(DefinitionVersion.V4)
-                        .definition(
-                            """
-                                                {"id":"my-api","name":"My Api","type":"proxy","apiVersion":"1.0.0","definitionVersion":"4.0.0","tags":["tag1"],"listeners":[{"type":"http","entrypoints":[{"type":"http-proxy","qos":"auto","configuration":{}}],"paths":[{"path":"/http_proxy"}]}],"endpointGroups":[{"name":"default-group","type":"http-proxy","loadBalancer":{"type":"round-robin"},"sharedConfiguration":{},"endpoints":[{"name":"default-endpoint","type":"http-proxy","secondary":false,"weight":1,"inheritConfiguration":true,"configuration":{"target":"https://api.gravitee.io/echo"},"services":{}}],"services":{}}],"analytics":{"enabled":false},"failover":{"enabled":false,"maxRetries":2,"slowCallDuration":2000,"openStateDuration":10000,"maxFailures":5,"perSubscription":true},"flowExecution":{"mode":"default","matchRequired":false},"flows":[]}"""
-                        )
+                        .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(ApiFixtures.aProxyApiV4().getApiDefinitionV4()))
                         .build()
                 );
         }
@@ -376,10 +374,7 @@ public class ApiCrudServiceImplTest {
                         .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
                         .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
                         .definitionVersion(DefinitionVersion.V4)
-                        .definition(
-                            """
-                                {"id":"my-api","name":"My Api","type":"proxy","apiVersion":"1.0.0","definitionVersion":"4.0.0","tags":["tag1"],"listeners":[{"type":"http","entrypoints":[{"type":"http-proxy","qos":"auto","configuration":{}}],"paths":[{"path":"/http_proxy"}]}],"endpointGroups":[{"name":"default-group","type":"http-proxy","loadBalancer":{"type":"round-robin"},"sharedConfiguration":{},"endpoints":[{"name":"default-endpoint","type":"http-proxy","secondary":false,"weight":1,"inheritConfiguration":true,"configuration":{"target":"https://api.gravitee.io/echo"},"services":{}}],"services":{}}],"analytics":{"enabled":false},"failover":{"enabled":false,"maxRetries":2,"slowCallDuration":2000,"openStateDuration":10000,"maxFailures":5,"perSubscription":true},"flowExecution":{"mode":"default","matchRequired":false},"flows":[]}"""
-                        )
+                        .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(ApiFixtures.aProxyApiV4().getApiDefinitionV4()))
                         .build()
                 );
         }

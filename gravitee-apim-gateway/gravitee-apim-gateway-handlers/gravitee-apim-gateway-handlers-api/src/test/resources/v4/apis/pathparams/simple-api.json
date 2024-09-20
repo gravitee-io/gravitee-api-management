@@ -1,4 +1,5 @@
 {
+  "type": "proxy",
   "plans": [
     {
       "id": "keyless",
