@@ -19,6 +19,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -26,6 +27,9 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
+import io.gravitee.node.api.cluster.ClusterManager;
+import io.gravitee.node.api.cluster.Member;
+import io.gravitee.node.plugin.cluster.standalone.StandaloneMember;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
@@ -38,6 +42,7 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,7 +71,10 @@ public class DynamicPropertySchedulerTest {
     private final ExecutionContext executionContext = new ExecutionContext("DEFAULT", "DEFAULT");
 
     @Mock
-    private Provider provider;
+    ClusterManager clusterManager;
+
+    @Mock
+    Provider provider;
 
     @Mock
     ApiService apiService;
@@ -77,7 +85,8 @@ public class DynamicPropertySchedulerTest {
     private TestScheduler testScheduler;
 
     @BeforeEach
-    public void setUp() {
+    public void beforeEach() {
+        when(clusterManager.self()).thenReturn(new StandaloneMember());
         properties.setProperties(propertiesList);
 
         existingApi = new ApiEntity();
@@ -90,6 +99,7 @@ public class DynamicPropertySchedulerTest {
             DynamicPropertyScheduler
                 .builder()
                 .schedule("* * * * * *")
+                .clusterManager(clusterManager)
                 .apiService(apiService)
                 .api(existingApi)
                 .executionContext(executionContext)
@@ -146,7 +156,7 @@ public class DynamicPropertySchedulerTest {
     }
 
     @Test
-    public void shouldNotDeployAPIOnUpdateError() {
+    public void should_not_deploy_api_on_update_error() {
         when(apiService.findById(eq(executionContext), any())).thenReturn(existingApi);
         when(apiService.isSynchronized(eq(executionContext), any())).thenReturn(true);
 
@@ -155,8 +165,21 @@ public class DynamicPropertySchedulerTest {
 
         when(provider.get()).thenReturn(Maybe.just(dynamicProperties));
         dynamicPropertyScheduler.schedule(provider);
+        testScheduler.advanceTimeBy(1000, TimeUnit.MILLISECONDS);
 
         verify(apiService, times(1)).update(any(), any(), any(), eq(false), eq(false));
+        verify(apiService, never()).deploy(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void should_not_update_properties_or_deploy_api_on_secondary_member() {
+        Member secondary = spy(new StandaloneMember());
+        when(secondary.primary()).thenReturn(false);
+        when(clusterManager.self()).thenReturn(secondary);
+        dynamicPropertyScheduler.schedule(provider);
+        testScheduler.advanceTimeBy(1000, TimeUnit.MILLISECONDS);
+
+        verify(apiService, never()).update(any(), any(), any(), eq(false), eq(false));
         verify(apiService, never()).deploy(any(), any(), any(), any(), any());
     }
 }
