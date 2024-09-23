@@ -15,23 +15,31 @@
  */
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
+import { EMPTY, Observable, switchMap, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { isEqual } from 'lodash';
 
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { Constants } from '../../entities/Constants';
+import { AuthService } from '../../auth/auth.service';
 
 @Injectable()
 export class HttpErrorInterceptor implements HttpInterceptor {
   constructor(
     private readonly snackBarService: SnackBarService,
+    private readonly authService: AuthService,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-    if (this.constants.org?.baseURL && req.url.startsWith(`${this.constants.org.baseURL}/user`)) {
+    const URLS_TO_IGNORE = [
+      `${this.constants.org.baseURL}/user`,
+      `${this.constants.org.baseURL}/user/login`,
+      `${this.constants.org.baseURL}/user/logout`,
+    ];
+
+    if (this.constants.org?.baseURL && URLS_TO_IGNORE.some((url) => isEqual(req.url, url))) {
       return next.handle(req);
     }
-
     return next.handle(req).pipe(
       catchError((error) => {
         if (error) {
@@ -41,8 +49,7 @@ export class HttpErrorInterceptor implements HttpInterceptor {
               break;
             case 401:
               this.snackBarService.error(error?.error?.message ?? 'Unauthorized, please login again!');
-              // TODO: Impl silent login refresh
-              break;
+              return this.authService.logout({ redirectToCurrentUrl: true }).pipe(switchMap(() => EMPTY));
             case 403:
               this.snackBarService.error(error?.error?.message ?? 'Forbidden!');
               break;
