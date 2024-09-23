@@ -21,11 +21,15 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProviderConfiguration;
 import java.util.List;
 import java.util.Objects;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
 public class HttpDynamicPropertyProviderConfiguration implements DynamicPropertyProviderConfiguration {
 
     @JsonProperty(value = "url", required = true)
@@ -45,54 +49,6 @@ public class HttpDynamicPropertyProviderConfiguration implements DynamicProperty
 
     @JsonProperty("body")
     private String body;
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public String getSpecification() {
-        return specification;
-    }
-
-    public void setSpecification(String specification) {
-        this.specification = specification;
-    }
-
-    public boolean isUseSystemProxy() {
-        return useSystemProxy;
-    }
-
-    public void setUseSystemProxy(boolean useSystemProxy) {
-        this.useSystemProxy = useSystemProxy;
-    }
-
-    public HttpMethod getMethod() {
-        return method;
-    }
-
-    public void setMethod(HttpMethod method) {
-        this.method = method;
-    }
-
-    public List<HttpHeader> getHeaders() {
-        return headers;
-    }
-
-    public void setHeaders(List<HttpHeader> headers) {
-        this.headers = headers;
-    }
-
-    public String getBody() {
-        return body;
-    }
-
-    public void setBody(String body) {
-        this.body = body;
-    }
 
     @Override
     public boolean equals(Object o) {

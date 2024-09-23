@@ -39,17 +39,15 @@ import io.vertx.core.Vertx;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.Executor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 
+@Slf4j
 public class DynamicPropertiesService extends AbstractService implements EventListener<ApiEvent, Api> {
 
-    final Map<ApiEntity, CronHandler> handlers = new HashMap<>();
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DynamicPropertiesService.class);
+    final Map<ApiEntity, DynamicPropertyScheduler> schedulers = new HashMap<>();
 
     @Autowired
     private EventManager eventManager;
@@ -67,14 +65,7 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
     private HttpClientService httpClientService;
 
     @Autowired
-    private Vertx vertx;
-
-    @Autowired
     private Node node;
-
-    @Autowired
-    @Qualifier("dynamicPropertiesExecutor")
-    private Executor executor;
 
     @Override
     protected String name() {
@@ -89,6 +80,12 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
     }
 
     @Override
+    protected void doStop() throws Exception {
+        super.doStop();
+        eventManager.unsubscribeForEvents(this, ApiEvent.class);
+    }
+
+    @Override
     public void onEvent(Event<ApiEvent, Api> event) {
         final Api eventPayload = event.content();
         if (eventPayload.getDefinitionVersion() != null && eventPayload.getDefinitionVersion() == DefinitionVersion.V4) {
@@ -98,23 +95,17 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
 
         if (apiEntity.getDefinitionVersion() == null || apiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
             switch (event.type()) {
-                case DEPLOY:
-                    startDynamicProperties(apiEntity);
-                    break;
-                case UNDEPLOY:
-                    stopDynamicProperties(apiEntity);
-                    break;
-                case UPDATE:
-                    update(apiEntity);
-                    break;
+                case DEPLOY -> startDynamicProperties(apiEntity);
+                case UNDEPLOY -> stopDynamicProperties(apiEntity);
+                case UPDATE -> update(apiEntity);
             }
         } else {
-            LOGGER.warn("Dynamic properties service is not compatible with API v4");
+            log.warn("Dynamic properties service is not compatible with API v4");
         }
     }
 
     private void update(ApiEntity api) {
-        final ApiEntity currentApi = handlers.keySet().stream().filter(entity -> entity.equals(api)).findFirst().orElse(null);
+        final ApiEntity currentApi = schedulers.keySet().stream().filter(entity -> entity.equals(api)).findFirst().orElse(null);
 
         if (currentApi == null) {
             // There is no dynamic properties handler for this api, start the dynamic properties.
@@ -146,38 +137,35 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
 
         DynamicPropertyService dynamicPropertyService = api.getServices().get(DynamicPropertyService.class);
         if (dynamicPropertyService == null || !dynamicPropertyService.isEnabled()) {
-            LOGGER.info("{} Dynamic properties service is disabled for API: {} [{}]", api.getId(), api.getName(), api.getVersion());
+            log.info("{} Dynamic properties service is disabled for API: {} [{}]", api.getId(), api.getName(), api.getVersion());
             return;
         }
 
         EnvironmentEntity environment = environmentService.findById(api.getEnvironmentId());
         ExecutionContext executionContext = new ExecutionContext(environment.getOrganizationId(), environment.getId());
-        DynamicPropertyUpdater updater = new DynamicPropertyUpdater(api, this.executor, executionContext);
-
-        if (dynamicPropertyService.getProvider() == DynamicPropertyProvider.HTTP) {
-            HttpProvider provider = new HttpProvider(dynamicPropertyService);
-            provider.setHttpClientService(httpClientService);
-            provider.setNode(node);
-            provider.setExecutor(executor);
-
-            updater.setProvider(provider);
-            updater.setApiService(apiService);
-            updater.setApiConverter(apiConverter);
-            LOGGER.info("{} Add a scheduled task to poll dynamic properties each {}", api.getId(), dynamicPropertyService.getSchedule());
+        DynamicPropertyScheduler scheduler = DynamicPropertyScheduler
+            .builder()
+            .schedule(dynamicPropertyService.getSchedule())
+            .api(api)
+            .apiConverter(apiConverter)
+            .apiService(apiService)
+            .executionContext(executionContext)
+            .build();
+        if (DynamicPropertyProvider.HTTP == dynamicPropertyService.getProvider()) {
+            HttpProvider provider = new HttpProvider(dynamicPropertyService.getConfiguration(), httpClientService, node);
+            log.info("{} Add a scheduled task to poll dynamic properties each {}", api.getId(), dynamicPropertyService.getSchedule());
 
             // Force the first refresh, and then run it periodically
-            updater.handle(null);
-            CronHandler cronHandler = new CronHandler(vertx, dynamicPropertyService.getSchedule());
-            cronHandler.schedule(updater);
-            handlers.put(api, cronHandler);
+            scheduler.schedule(provider);
+            schedulers.put(api, scheduler);
         }
     }
 
     private void stopDynamicProperties(ApiEntity api) {
-        CronHandler handler = handlers.remove(api);
-        if (handler != null) {
-            LOGGER.info("{} Stopping dynamic properties service for API: {} [{}]", api.getId(), api.getName(), api.getVersion());
-            handler.cancel();
+        DynamicPropertyScheduler scheduler = schedulers.remove(api);
+        if (scheduler != null) {
+            log.info("{} Stopping dynamic properties service for API: {} [{}]", api.getId(), api.getName(), api.getVersion());
+            scheduler.cancel();
         }
     }
 

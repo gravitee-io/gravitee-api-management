@@ -15,7 +15,14 @@
  */
 package io.gravitee.rest.api.services.dynamicproperties;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
@@ -23,28 +30,33 @@ import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.rest.api.services.dynamicproperties.provider.Provider;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.plugins.RxJavaPlugins;
+import io.reactivex.rxjava3.schedulers.TestScheduler;
 import java.util.List;
-import java.util.concurrent.Executors;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
-public class DynamicPropertyUpdaterTest {
+@ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+public class DynamicPropertySchedulerTest {
 
-    private DynamicPropertyUpdater dynamicPropertyUpdater;
+    private DynamicPropertyScheduler dynamicPropertyScheduler;
     private final List<DynamicProperty> dynamicProperties = List.of(new DynamicProperty("my-key", "my-value"));
     private final List<Property> propertiesList = List.of(new Property("my-key", "my-value"));
     private final Properties properties = new Properties();
@@ -62,7 +74,9 @@ public class DynamicPropertyUpdaterTest {
     @Mock
     ApiConverter apiConverter;
 
-    @Before
+    private TestScheduler testScheduler;
+
+    @BeforeEach
     public void setUp() {
         properties.setProperties(propertiesList);
 
@@ -72,41 +86,59 @@ public class DynamicPropertyUpdaterTest {
         apiProperties.setProperties(List.of());
         existingApi.setProperties(apiProperties);
 
-        dynamicPropertyUpdater = new DynamicPropertyUpdater(existingApi, Executors.newSingleThreadExecutor(), executionContext);
-        when(provider.name()).thenReturn("mock");
-        dynamicPropertyUpdater.setProvider(provider);
-        dynamicPropertyUpdater.setApiService(apiService);
-        dynamicPropertyUpdater.setApiConverter(apiConverter);
+        dynamicPropertyScheduler =
+            DynamicPropertyScheduler
+                .builder()
+                .schedule("* * * * * *")
+                .apiService(apiService)
+                .api(existingApi)
+                .executionContext(executionContext)
+                .apiConverter(apiConverter)
+                .build();
+        lenient().when(provider.name()).thenReturn("mock");
+        testScheduler = new TestScheduler();
+        RxJavaPlugins.setComputationSchedulerHandler(scheduler -> testScheduler);
+        RxJavaPlugins.setIoSchedulerHandler(scheduler -> testScheduler);
+    }
+
+    @AfterEach
+    public void afterEach() {
+        dynamicPropertyScheduler.cancel();
+        RxJavaPlugins.reset();
     }
 
     @Test
-    public void shouldNotUpdatePropertiesBecauseOfProviderException() {
+    public void should_not_update_properties_because_of_provider_exception() {
         when(provider.get()).thenReturn(Maybe.error(new IllegalStateException()));
 
-        dynamicPropertyUpdater.handle().blockingGet();
+        dynamicPropertyScheduler.schedule(provider);
+        testScheduler.advanceTimeBy(1000, TimeUnit.MILLISECONDS);
+
         verifyNoInteractions(apiService);
     }
 
     @Test
-    public void shouldUpdatePropertiesWithoutDeploymentIfManualChange() {
+    public void should_update_properties_without_deployment_if_manual_change() {
         when(apiService.findById(eq(executionContext), any())).thenReturn(existingApi);
         // Simulate a manual change
         when(apiService.isSynchronized(eq(executionContext), any())).thenReturn(false);
 
         when(provider.get()).thenReturn(Maybe.just(dynamicProperties));
-        dynamicPropertyUpdater.handle().blockingGet();
+        dynamicPropertyScheduler.schedule(provider);
+        testScheduler.advanceTimeBy(1000, TimeUnit.MILLISECONDS);
 
         verify(apiService, times(1)).update(eq(executionContext), eq(existingApi.getId()), any(), eq(false), eq(false));
         verify(apiService, never()).deploy(any(), any(), any(), any(), any());
     }
 
     @Test
-    public void shouldUpdatePropertiesAndDeployApi() {
+    public void should_update_properties_and_deploy_api() {
         when(apiService.findById(eq(executionContext), any())).thenReturn(existingApi);
         when(apiService.isSynchronized(eq(executionContext), any())).thenReturn(true);
 
         when(provider.get()).thenReturn(Maybe.just(dynamicProperties));
-        dynamicPropertyUpdater.handle().blockingGet();
+        dynamicPropertyScheduler.schedule(provider);
+        testScheduler.advanceTimeBy(1000, TimeUnit.MILLISECONDS);
 
         verify(apiService, times(1)).update(eq(executionContext), eq(existingApi.getId()), any(), eq(false), eq(false));
         verify(apiService, times(1))
@@ -122,7 +154,7 @@ public class DynamicPropertyUpdaterTest {
             .thenThrow(new TechnicalManagementException("Unable to update the API"));
 
         when(provider.get()).thenReturn(Maybe.just(dynamicProperties));
-        dynamicPropertyUpdater.handle().blockingGet();
+        dynamicPropertyScheduler.schedule(provider);
 
         verify(apiService, times(1)).update(any(), any(), any(), eq(false), eq(false));
         verify(apiService, never()).deploy(any(), any(), any(), any(), any());
