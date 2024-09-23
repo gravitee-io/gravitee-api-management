@@ -15,46 +15,66 @@
  */
 package io.gravitee.rest.api.services.dynamicproperties.provider.http.mapper;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team
  */
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class JoltMapperTest {
 
     private JoltMapper mapper;
 
     @Test
-    public void shouldReturnPropertiesWithValueAsKey() throws IOException {
-        mapper = new JoltMapper(read("/jolt/specification-value-as-key.json"));
-        String input = IOUtils.toString(read("/jolt/custom-response.json"), Charset.defaultCharset());
+    public void should_return_properties_with_null_specification() throws IOException {
+        mapper = new JoltMapper(null);
+        String input = read("/jolt/already-formatted.json");
 
         Collection<DynamicProperty> properties = mapper.map(input);
-        assertEquals(properties.size(), 10);
-        // Should stringify input number value if used as key
-        assertEquals(properties.stream().filter(p -> p.getKey().equals("1")).findFirst().get().getValue(), "stores_id");
+        assertThat(properties.size()).isEqualTo(10);
+        assertThat(properties).contains(new DynamicProperty("stores_id", "1"));
     }
 
     @Test
-    public void shouldReturnProperties() throws IOException {
-        mapper = new JoltMapper(read("/jolt/specification-key-value-simple.json"));
-        String input = IOUtils.toString(read("/jolt/custom-response.json"), Charset.defaultCharset());
+    public void should_return_properties_with_empty_specification() throws IOException {
+        mapper = new JoltMapper("");
+        String input = read("/jolt/already-formatted.json");
 
         Collection<DynamicProperty> properties = mapper.map(input);
-        assertEquals(properties.size(), 10);
-        // Should stringify input number value if used as value
-        assertEquals(properties.stream().filter(p -> p.getKey().equals("stores_id")).findFirst().get().getValue(), "1");
+        assertThat(properties.size()).isEqualTo(10);
+        assertThat(properties).contains(new DynamicProperty("stores_id", "1"));
     }
 
-    private InputStream read(String resource) throws IOException {
-        return this.getClass().getResourceAsStream(resource);
+    @Test
+    public void should_return_properties_with_value_as_key() throws IOException {
+        mapper = new JoltMapper(read("/jolt/specification-value-as-key.json"));
+        String input = read("/jolt/custom-response.json");
+
+        Collection<DynamicProperty> properties = mapper.map(input);
+        assertThat(properties.size()).isEqualTo(10);
+        assertThat(properties).contains(new DynamicProperty("1", "stores_id"));
+    }
+
+    @Test
+    public void should_return_properties_with_specification() throws IOException {
+        mapper = new JoltMapper(read("/jolt/specification-key-value-simple.json"));
+        String input = read("/jolt/custom-response.json");
+
+        Collection<DynamicProperty> properties = mapper.map(input);
+        assertThat(properties.size()).isEqualTo(10);
+        assertThat(properties).contains(new DynamicProperty("stores_id", "1"));
+    }
+
+    private String read(String resource) throws IOException {
+        return IOUtils.toString(this.getClass().getResourceAsStream(resource), Charset.defaultCharset());
     }
 }

@@ -1,0 +1,31 @@
+[{
+  "key": "name",
+  "value": "Elysee"
+},{
+  "key": "country",
+  "value": "FRANCE"
+},{
+  "key": "address",
+  "value": "Avenue des Champs-Élysées"
+},{
+  "key": "city",
+  "value": "PARIS"
+},{
+  "key": "stores_id",
+  "value": 1
+},{
+  "key": "zip_code",
+  "value": "75000"
+},{
+  "key": "gps_x",
+  "value": "48.869729"
+},{
+  "key": "gps_y",
+  "value": "2.307784"
+},{
+  "key": "phone_number",
+  "value": "01 00 00 00 00"
+},{
+  "key": "name",
+  "value": "https://north-europe.company.com/"
+}]
