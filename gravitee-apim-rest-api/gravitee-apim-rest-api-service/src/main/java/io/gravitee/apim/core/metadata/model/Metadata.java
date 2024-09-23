@@ -37,6 +37,8 @@ public class Metadata {
     private ZonedDateTime updatedAt;
 
     public enum ReferenceType {
+        @Deprecated
+        DEFAULT,
         API,
         APPLICATION,
         ENVIRONMENT,
@@ -46,7 +48,7 @@ public class Metadata {
             try {
                 return ReferenceType.valueOf(value.toUpperCase());
             } catch (IllegalArgumentException e) {
-                return ReferenceType.ENVIRONMENT;
+                return ReferenceType.DEFAULT;
             }
         }
     }
