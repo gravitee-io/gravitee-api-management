@@ -413,6 +413,10 @@ components:
                 pictureUrl:
                     type: string
                     description: The URL to the API's picture
+                score:
+                    type: number
+                    description: The average score of all assets of API
+                    example: 0.74
                 errors:
                     type: integer
                     description: The total number of violated rules with severity ERROR for all assets.

@@ -39,6 +39,7 @@ public interface ScoringReportMapper {
 
     @Mapping(target = "id", source = "source.api.apiId")
     @Mapping(target = "name", source = "source.api.name")
+    @Mapping(target = "score", source = "source.summary.score")
     @Mapping(target = "errors", source = "source.summary.errors")
     @Mapping(target = "warnings", source = "source.summary.warnings")
     @Mapping(target = "infos", source = "source.summary.infos")
