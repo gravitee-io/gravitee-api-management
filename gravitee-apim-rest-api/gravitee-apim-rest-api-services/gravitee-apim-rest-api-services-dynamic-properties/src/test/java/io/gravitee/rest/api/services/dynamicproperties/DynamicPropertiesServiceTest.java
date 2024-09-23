@@ -15,16 +15,15 @@
  */
 package io.gravitee.rest.api.services.dynamicproperties;
 
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -34,7 +33,6 @@ import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProvider;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
-import io.gravitee.node.api.Node;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -55,34 +53,30 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Executor;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+@ExtendWith(MockitoExtension.class)
 public class DynamicPropertiesServiceTest {
 
     private static final String ORGANIZATION_ID = "d7794b03-cda5-47c3-a9d4-3960380edb3a";
     private static final String ENVIRONMENT_ID = "a445364b-9573-44dd-a89e-6920d41b1dcd";
-
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
-
-    @Mock
-    private EventManager eventManager;
 
     @Mock
     private ApiService apiService;
@@ -91,19 +85,7 @@ public class DynamicPropertiesServiceTest {
     private EnvironmentService environmentService;
 
     @Mock
-    private HttpClientService httpClientService;
-
-    @Mock
     private Vertx vertx;
-
-    @Mock
-    private Node node;
-
-    @Mock
-    private HttpDynamicPropertyProviderConfiguration providerConfiguration;
-
-    @Mock
-    private Executor executor;
 
     @Mock
     private CategoryMapper categoryMapper;
@@ -129,48 +111,47 @@ public class DynamicPropertiesServiceTest {
     private GraviteeMapper graviteeMapper = new GraviteeMapper();
 
     @SneakyThrows
-    @Before
-    public void before() {
+    @BeforeEach
+    public void beforeEach() {
         EnvironmentEntity environment = new EnvironmentEntity();
         environment.setId(ENVIRONMENT_ID);
         environment.setOrganizationId(ORGANIZATION_ID);
-        when(environmentService.findById(environment.getId())).thenReturn(environment);
-        doCallRealMethod().when(apiConverter).toApiEntity(any(), any());
-        when(objectMapper.readValue(any(String.class), (Class<Object>) any()))
+        lenient().when(environmentService.findById(environment.getId())).thenReturn(environment);
+        lenient().doCallRealMethod().when(apiConverter).toApiEntity(any(), any());
+        lenient()
+            .when(objectMapper.readValue(any(String.class), (Class<Object>) any()))
             .thenAnswer(i -> graviteeMapper.readValue((String) i.getArgument(0), (Class<io.gravitee.definition.model.Api>) i.getArgument(1))
             );
     }
 
     @Test
-    public void shouldStartHandlerWhenDeployApi() throws Exception {
+    public void should_start_scheduler_when_deploy_api() throws Exception {
         // Used by the Serializer when converting the Api to ApiEntity
-        when(providerConfiguration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success");
-        when(providerConfiguration.getMethod()).thenReturn(HttpMethod.GET);
-        when(providerConfiguration.getSpecification())
-            .thenReturn(IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset()));
-        final Api api = createApi();
+        HttpDynamicPropertyProviderConfiguration providerConfiguration = new HttpDynamicPropertyProviderConfiguration();
+        providerConfiguration.setUrl("http://localhost:8080/success");
+        providerConfiguration.setSpecification(IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset()));
+        final Api api = createApi(providerConfiguration);
 
-        when(httpClientService.createHttpClient(anyString(), anyBoolean())).thenReturn(Vertx.vertx().createHttpClient());
         cut.onEvent(new SimpleEvent<>(ApiEvent.DEPLOY, api));
 
-        assertThat(cut.handlers).isNotEmpty();
+        assertThat(cut.schedulers).isNotEmpty();
     }
 
     @Test
-    public void shouldNotStartTimerWhenDeployStoppedApi() {
-        final Api api = createApi();
+    public void should_not_start_scheduler_when_deploy_stopped_api() {
+        final Api api = createApi(new HttpDynamicPropertyProviderConfiguration());
         api.setLifecycleState(LifecycleState.STOPPED);
 
         cut.onEvent(new SimpleEvent<>(ApiEvent.DEPLOY, api));
 
         verifyNoInteractions(apiService);
         verifyNoInteractions(vertx);
-        assertThat(cut.handlers).isEmpty();
+        assertThat(cut.schedulers).isEmpty();
     }
 
     @Test
-    public void shouldStopTimerWhenUndeployApi() {
-        final Api api = createApi();
+    public void should_stop_scheduler_when_undeploy_api() {
+        final Api api = createApi(new HttpDynamicPropertyProviderConfiguration());
         api.setLifecycleState(LifecycleState.STOPPED);
 
         when(categoryMapper.toCategoryKey(anyString(), any())).thenReturn(Set.of());
@@ -179,76 +160,72 @@ public class DynamicPropertiesServiceTest {
 
         verifyNoInteractions(apiService);
         verifyNoInteractions(vertx);
-        assertThat(cut.handlers).isEmpty();
+        assertThat(cut.schedulers).isEmpty();
     }
 
     @Test
-    public void shouldRestartWhenUpdateApiAndTimerAlreadyRunning() throws Exception {
-        final ApiEntity previous = createApiEntity();
+    public void should_restart_when_update_api_and_scheduler_already_running() throws Exception {
+        HttpDynamicPropertyProviderConfiguration providerConfiguration = new HttpDynamicPropertyProviderConfiguration();
+        providerConfiguration.setUrl("http://localhost:8080/success");
+        providerConfiguration.setSpecification(IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset()));
+        final ApiEntity previous = createApiEntity(providerConfiguration);
         previous.getServices().put(DynamicPropertyService.class, mock(DynamicPropertyService.class));
 
-        CronHandler cronHandler = mock(CronHandler.class);
+        DynamicPropertyScheduler scheduler = mock(DynamicPropertyScheduler.class);
 
-        cut.handlers.put(previous, cronHandler);
+        cut.schedulers.put(previous, scheduler);
 
         // Used by the Serializer when converting the Api to ApiEntity
-        when(providerConfiguration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success");
-        when(providerConfiguration.getMethod()).thenReturn(HttpMethod.GET);
-        when(providerConfiguration.getSpecification())
-            .thenReturn(IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset()));
-        final Api api = createApi();
+        final Api api = createApi(providerConfiguration);
 
-        when(httpClientService.createHttpClient(anyString(), anyBoolean())).thenReturn(Vertx.vertx().createHttpClient());
         cut.onEvent(new SimpleEvent<>(ApiEvent.UPDATE, api));
 
-        verify(cronHandler).cancel();
-        assertThat(cronHandler).isNotEqualTo(cut.handlers.get(previous));
+        verify(scheduler).cancel();
+        assertThat(scheduler).isNotEqualTo(cut.schedulers.get(previous));
     }
 
     @Test
-    public void shouldJustStartWhenUpdateApiAndNoTimerRunning() throws Exception {
+    public void should_just_start_when_update_api_and_no_scheduler_running() throws Exception {
         // Used by the Serializer when converting the Api to ApiEntity
-        when(providerConfiguration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success");
-        when(providerConfiguration.getMethod()).thenReturn(HttpMethod.GET);
-        when(providerConfiguration.getSpecification())
-            .thenReturn(IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset()));
-        final Api api = createApi();
-        when(httpClientService.createHttpClient(anyString(), anyBoolean())).thenReturn(Vertx.vertx().createHttpClient());
+        HttpDynamicPropertyProviderConfiguration providerConfiguration = new HttpDynamicPropertyProviderConfiguration();
+        providerConfiguration.setUrl("http://localhost:8080/success");
+        providerConfiguration.setSpecification(IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset()));
+        final Api api = createApi(providerConfiguration);
         cut.onEvent(new SimpleEvent<>(ApiEvent.UPDATE, api));
 
-        assertThat(cut.handlers).anySatisfy(((apiEntity, cronHandler) -> assertThat(apiEntity.getId()).isEqualTo(api.getId())));
+        assertThat(cut.schedulers).anySatisfy(((apiEntity, scheduler) -> assertThat(apiEntity.getId()).isEqualTo(api.getId())));
     }
 
     @Test
-    public void shouldDoNothingWhenUpdateApiAndNoChanges() throws Exception {
+    public void should_do_nothing_when_update_api_and_no_changes() throws Exception {
+        HttpDynamicPropertyProviderConfiguration providerConfiguration = new HttpDynamicPropertyProviderConfiguration();
+        providerConfiguration.setUrl("http://localhost:8080/success");
         final String joltSpec = IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset());
-        final ApiEntity previous = createApiEntity();
+        providerConfiguration.setSpecification(joltSpec);
+
+        final ApiEntity previous = createApiEntity(providerConfiguration);
         final DynamicPropertyService previousService = previous.getServices().getDynamicPropertyService();
         final HttpDynamicPropertyProviderConfiguration previousConfiguration = new HttpDynamicPropertyProviderConfiguration();
-        previousConfiguration.setMethod(HttpMethod.GET);
-        previousConfiguration.setUrl("http://localhost:" + wireMockRule.port() + "/success");
+        previousConfiguration.setUrl("http://localhost:8080/success");
         previousConfiguration.setSpecification(joltSpec);
         previousService.setConfiguration(previousConfiguration);
 
         // Used by the Serializer when converting the Api to ApiEntity
-        when(providerConfiguration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success");
-        when(providerConfiguration.getMethod()).thenReturn(HttpMethod.GET);
-        when(providerConfiguration.getSpecification()).thenReturn(joltSpec);
+        final Api api = createApi(providerConfiguration);
 
-        final Api api = createApi();
-
-        cut.handlers.put(previous, mock(CronHandler.class));
+        cut.schedulers.put(previous, mock(DynamicPropertyScheduler.class));
         cut.onEvent(new SimpleEvent<>(ApiEvent.UPDATE, api));
 
         verifyNoInteractions(apiService);
         verifyNoInteractions(vertx);
-        assertThat(cut.handlers).isNotEmpty();
+        assertThat(cut.schedulers).isNotEmpty();
     }
 
     @Test
-    public void shouldStopWhenUpdateApiAndTimerAlreadyRunning() throws Exception {
-        final ApiEntity previous = createApiEntity();
-        final Api api = createApi();
+    public void should_stop_when_update_api_and_scheduler_already_running() throws Exception {
+        HttpDynamicPropertyProviderConfiguration providerConfiguration = new HttpDynamicPropertyProviderConfiguration();
+        final ApiEntity previous = createApiEntity(providerConfiguration);
+        final Api api = createApi(providerConfiguration);
         final io.gravitee.definition.model.Api apiDefinition = graviteeMapper.readValue(
             api.getDefinition(),
             io.gravitee.definition.model.Api.class
@@ -256,26 +233,26 @@ public class DynamicPropertiesServiceTest {
         apiDefinition.getServices().getDynamicPropertyService().setEnabled(false);
         api.setDefinition(graviteeMapper.writeValueAsString(apiDefinition));
 
-        CronHandler cronHandler = mock(CronHandler.class);
+        DynamicPropertyScheduler scheduler = mock(DynamicPropertyScheduler.class);
 
-        cut.handlers.put(previous, cronHandler);
+        cut.schedulers.put(previous, scheduler);
 
         cut.onEvent(new SimpleEvent<>(ApiEvent.UPDATE, api));
 
         verifyNoInteractions(apiService);
         verifyNoInteractions(vertx);
-        assertThat(cut.handlers).isEmpty();
+        assertThat(cut.schedulers).isEmpty();
     }
 
     @SneakyThrows
-    private Api createApi() {
+    private Api createApi(HttpDynamicPropertyProviderConfiguration providerConfiguration) {
         final Api api = new Api();
         api.setEnvironmentId(ENVIRONMENT_ID);
+        api.setId("api#1");
+        api.setLifecycleState(LifecycleState.STARTED);
         final Services services = new Services();
         final DynamicPropertyService dynamicPropertyService = new DynamicPropertyService();
 
-        api.setId("api#1");
-        api.setLifecycleState(LifecycleState.STARTED);
         final io.gravitee.definition.model.Api definition = fakeDefinition();
         definition.setServices(services);
 
@@ -299,7 +276,7 @@ public class DynamicPropertiesServiceTest {
         return definition;
     }
 
-    private ApiEntity createApiEntity() {
+    private ApiEntity createApiEntity(HttpDynamicPropertyProviderConfiguration providerConfiguration) {
         final ApiEntity apiEntity = new ApiEntity();
         apiEntity.setEnvironmentId(ENVIRONMENT_ID);
         final Services services = new Services();
@@ -319,7 +296,7 @@ public class DynamicPropertiesServiceTest {
         return apiEntity;
     }
 
-    private InputStream read(String resource) throws IOException {
+    private InputStream read(String resource) {
         return this.getClass().getResourceAsStream(resource);
     }
 }
