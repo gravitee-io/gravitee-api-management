@@ -31,6 +31,7 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.gateway.reactive.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
+import io.gravitee.node.api.cluster.ClusterManager;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
@@ -66,6 +67,7 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
 
     private final ManagementDeploymentContext deploymentContext;
     private final PluginConfigurationHelper pluginConfigurationHelper;
+    private final ClusterManager clusterManager;
     private final EventManager eventManager;
     private HttpDynamicPropertiesServiceConfiguration configuration;
     private Api api;
@@ -81,6 +83,7 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
     public HttpDynamicPropertiesService(ManagementDeploymentContext deploymentContext) {
         this.deploymentContext = deploymentContext;
         this.api = deploymentContext.getComponent(Api.class);
+        this.clusterManager = deploymentContext.getComponent(ClusterManager.class);
         this.eventManager = deploymentContext.getComponent(EventManager.class);
         this.pluginConfigurationHelper = deploymentContext.getComponent(PluginConfigurationHelper.class);
     }
@@ -156,6 +159,8 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
 
         return Observable
             .defer(() -> Observable.timer(cronTrigger.nextExecutionIn(), TimeUnit.MILLISECONDS))
+            .observeOn(Schedulers.computation())
+            .filter(aLong -> clusterManager.self().primary())
             .switchMapCompletable(aLong -> fetchProperties())
             .onErrorResumeNext(throwable -> logOnError(errorCount, throwable))
             .repeat()
@@ -187,6 +192,7 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
 
         return httpClient
             .rxRequest(requestOptions)
+            .observeOn(Schedulers.io())
             .flatMap(request -> configuration.getBody() != null ? request.rxSend(configuration.getBody()) : request.rxSend())
             .flatMapCompletable(response -> {
                 if (response.statusCode() != HttpStatusCode.OK_200) {
@@ -194,8 +200,7 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
                     return response.toFlowable().ignoreElements();
                 }
                 return response.body().flatMapCompletable(this::evaluateAndDispatchProperties);
-            })
-            .subscribeOn(Schedulers.computation());
+            });
     }
 
     private Completable logOnError(AtomicLong errorCount, Throwable throwable) {
@@ -213,13 +218,15 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
     }
 
     private Completable evaluateAndDispatchProperties(Buffer bodyBuffer) {
-        return Completable.fromRunnable(() -> {
-            final List<Property> properties = joltMapper.map(bodyBuffer.toString());
-            eventManager.publishEvent(
-                ManagementApiServiceEvent.DYNAMIC_PROPERTY_UPDATE,
-                new DynamicPropertiesEvent(api.getId(), this.id(), properties)
-            );
-        });
+        return Completable
+            .fromRunnable(() -> {
+                final List<Property> properties = joltMapper.map(bodyBuffer.toString());
+                eventManager.publishEvent(
+                    ManagementApiServiceEvent.DYNAMIC_PROPERTY_UPDATE,
+                    new DynamicPropertiesEvent(api.getId(), this.id(), properties)
+                );
+            })
+            .subscribeOn(Schedulers.io());
     }
 
     /**
