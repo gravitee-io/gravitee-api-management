@@ -166,7 +166,7 @@ public class MongoMetadataRepository implements MetadataRepository {
         }
         final Metadata metadata = new Metadata();
         metadata.setKey(metadataMongo.getId().getKey());
-        metadata.setReferenceType(MetadataReferenceType.parse(metadataMongo.getId().getReferenceType()));
+        metadata.setReferenceType(MetadataReferenceType.valueOf(metadataMongo.getId().getReferenceType()));
         metadata.setReferenceId(metadataMongo.getId().getReferenceId());
         metadata.setFormat(MetadataFormat.valueOf(metadataMongo.getFormat()));
         metadata.setName(metadataMongo.getName());

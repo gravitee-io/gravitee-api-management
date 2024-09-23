@@ -20,6 +20,8 @@ package io.gravitee.repository.management.model;
  * @author GraviteeSource Team
  */
 public enum MetadataReferenceType {
+    @Deprecated
+    DEFAULT,
     API,
     APPLICATION,
     ENVIRONMENT,
@@ -29,7 +31,7 @@ public enum MetadataReferenceType {
         try {
             return MetadataReferenceType.valueOf(value.toUpperCase());
         } catch (IllegalArgumentException e) {
-            return MetadataReferenceType.ENVIRONMENT;
+            return MetadataReferenceType.DEFAULT;
         }
     }
 }
