@@ -33,6 +33,11 @@ public class SharedPolicyGroupHistoryCrudServiceInMemory
     }
 
     @Override
+    public void delete(String sharedPolicyGroupId) {
+        storage.removeIf(spg -> spg.getId().equals(sharedPolicyGroupId));
+    }
+
+    @Override
     public void initWith(List<SharedPolicyGroup> items) {
         storage.clear();
         storage.addAll(items);

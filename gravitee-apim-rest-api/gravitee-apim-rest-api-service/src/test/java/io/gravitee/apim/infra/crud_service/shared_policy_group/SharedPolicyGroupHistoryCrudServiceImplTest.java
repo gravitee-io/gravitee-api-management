@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.crud_service.shared_policy_group;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.SharedPolicyGroupFixtures;
@@ -76,32 +77,20 @@ public class SharedPolicyGroupHistoryCrudServiceImplTest {
         }
     }
 
-    private io.gravitee.repository.management.model.SharedPolicyGroup.SharedPolicyGroupBuilder aSharedPolicyGroup() {
-        return io.gravitee.repository.management.model.SharedPolicyGroup
-            .builder()
-            .id("sharedPolicyGroup-id")
-            .crossId("cross-id")
-            .organizationId("organizationId")
-            .environmentId("environmentId")
-            .name("sharedPolicyGroup-name")
-            .description("sharedPolicyGroup-description")
-            .version(1)
-            .apiType(ApiType.PROXY)
-            .phase(io.gravitee.repository.management.model.SharedPolicyGroup.ExecutionPhase.REQUEST)
-            .definition(
-                """
-                        {
-                            "steps": [
-                                { "policy": "my-policy", "name": "my-step-1" },
-                                { "policy": "my-policy", "name": "my-step-2" }
-                            ],
-                            "phase": "REQUEST"
-                        }
-                        """
-            )
-            .deployedAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-            .createdAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-            .updatedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
-            .lifecycleState(SharedPolicyGroupLifecycleState.DEPLOYED);
+    @Nested
+    class Delete {
+
+        @Test
+        @SneakyThrows
+        void should_delete_a_SharedPolicyGroup() {
+            // Given
+            var sharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
+
+            // When
+            service.delete(sharedPolicyGroup.getId());
+
+            // Then
+            verify(repository).delete(sharedPolicyGroup.getId());
+        }
     }
 }
