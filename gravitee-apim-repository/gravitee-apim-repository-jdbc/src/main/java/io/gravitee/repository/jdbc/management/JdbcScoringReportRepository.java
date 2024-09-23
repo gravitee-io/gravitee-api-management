@@ -18,10 +18,13 @@ package io.gravitee.repository.jdbc.management;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.util.stream.Collectors.groupingBy;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.management.model.JdbcScoringRow;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ScoringReportRepository;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.model.ScoringEnvironmentApi;
 import io.gravitee.repository.management.model.ScoringEnvironmentSummary;
 import io.gravitee.repository.management.model.ScoringReport;
 import java.math.BigDecimal;
@@ -30,6 +33,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -193,6 +197,33 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
     }
 
     @Override
+    public Page<ScoringEnvironmentApi> findEnvironmentLatestReports(String environmentId, Pageable pageable) throws TechnicalException {
+        var query =
+            "SELECT " +
+            "a.id as api_id, " +
+            "a.name as api_name, " +
+            "a.updated_at as api_updated_at, " +
+            "sr.report_id as report_id, " +
+            "sr.created_at as report_created_at, " +
+            "COALESCE(sr.score, 0) as score, " +
+            "sr.errors as errors, " +
+            "sr.warnings as warnings, " +
+            "sr.infos as infos, " +
+            "sr.hints as hints " +
+            "FROM " +
+            getTableNameFor("apis") +
+            " a LEFT JOIN " +
+            SCORING_REPORT_SUMMARY +
+            " sr ON a.id = sr.api_id " +
+            "WHERE a.environment_id = ? " +
+            "ORDER BY score DESC";
+
+        var result = jdbcTemplate.query(query, ENVIRONMENT_API_SUMMARY_MAPPER, environmentId);
+
+        return JdbcAbstractPageableRepository.getResultAsPage(pageable, result);
+    }
+
+    @Override
     public ScoringEnvironmentSummary getScoringEnvironmentSummary(String environmentId) throws TechnicalException {
         var result = jdbcTemplate.query(
             "select " +
@@ -338,5 +369,32 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
             .infos(rs.getLong(5))
             .hints(rs.getLong(6))
             .build();
+    };
+
+    private static final ResultSetExtractor<List<ScoringEnvironmentApi>> ENVIRONMENT_API_SUMMARY_MAPPER = rs -> {
+        var result = new ArrayList<ScoringEnvironmentApi>();
+        while (rs.next()) {
+            var reportId = rs.getString("report_id");
+            result.add(
+                ScoringEnvironmentApi
+                    .builder()
+                    .apiId(rs.getString("api_id"))
+                    .apiName(rs.getString("api_name"))
+                    .apiUpdatedAt(new Date(rs.getTimestamp("api_updated_at").getTime()))
+                    .reportId(reportId)
+                    .reportCreatedAt(reportId != null ? new Date(rs.getTimestamp("report_created_at").getTime()) : null)
+                    .score(
+                        reportId != null
+                            ? BigDecimal.valueOf(rs.getDouble("score")).setScale(2, RoundingMode.HALF_EVEN).doubleValue()
+                            : null
+                    )
+                    .errors(rs.getLong("errors"))
+                    .warnings(rs.getLong("warnings"))
+                    .infos(rs.getLong("infos"))
+                    .hints(rs.getLong("hints"))
+                    .build()
+            );
+        }
+        return result;
     };
 }

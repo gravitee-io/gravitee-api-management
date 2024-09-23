@@ -18,12 +18,9 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 import static assertions.MAPIAssertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 
-import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.ScoringReportFixture;
-import inmemory.ApiQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.ScoringReportQueryServiceInMemory;
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentApiScore;
@@ -58,9 +55,6 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
     WebTarget apisTarget;
 
     @Inject
-    ApiQueryServiceInMemory apiQueryService;
-
-    @Inject
     ScoringReportQueryServiceInMemory scoringReportQueryService;
 
     @Override
@@ -88,7 +82,7 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
         super.tearDown();
         GraviteeContext.cleanContext();
 
-        Stream.of(apiQueryService, scoringReportQueryService).forEach(InMemoryAlternative::reset);
+        Stream.of(scoringReportQueryService).forEach(InMemoryAlternative::reset);
     }
 
     @Nested
@@ -97,14 +91,6 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
         @Test
         void should_return_environment_api_score() {
             // Given
-            var expectedTotal = 50;
-
-            apiQueryService.initWith(
-                List.of(
-                    ApiFixtures.aFederatedApi().toBuilder().id("api1").name("api-1").environmentId(ENVIRONMENT).build(),
-                    ApiFixtures.aFederatedApi().toBuilder().id("api2").name("api-2").environmentId(ENVIRONMENT).build()
-                )
-            );
             scoringReportQueryService.initWith(List.of(aReport("report1").withApiId("api1")));
 
             // When
@@ -116,28 +102,22 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
                 .asEntity(EnvironmentApisScoringResponse.class)
                 .satisfies(result -> {
                     assertThat(result.getData())
-                        .hasSize(2)
+                        .hasSize(1)
                         .containsOnly(
                             EnvironmentApiScore
                                 .builder()
                                 .id("api1")
-                                .name("api-1")
-                                .pictureUrl(apisTarget.path("api1").path("picture").queryParam("hash", "1580674922000").getUri().toString())
+                                .name("api-name")
+                                .pictureUrl(apisTarget.path("api1").path("picture").queryParam("hash", "1697969730000").getUri().toString())
                                 .score(0.84)
                                 .errors(1)
                                 .warnings(1)
                                 .infos(1)
                                 .hints(1)
-                                .build(),
-                            EnvironmentApiScore
-                                .builder()
-                                .id("api2")
-                                .name("api-2")
-                                .pictureUrl(apisTarget.path("api2").path("picture").queryParam("hash", "1580674922000").getUri().toString())
                                 .build()
                         );
                     assertThat(result.getPagination())
-                        .isEqualTo(Pagination.builder().page(1).perPage(10).pageItemsCount(2).pageCount(1).totalCount(2L).build());
+                        .isEqualTo(Pagination.builder().page(1).perPage(10).pageItemsCount(1).pageCount(1).totalCount(1L).build());
                 });
         }
 
@@ -148,13 +128,6 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
             var pageNumber = 2;
             var pageSize = 5;
 
-            apiQueryService.initWith(
-                IntStream
-                    .range(0, expectedTotal)
-                    .mapToObj(i -> ApiFixtures.aFederatedApi().toBuilder().id(String.valueOf(i)).environmentId(ENVIRONMENT).build())
-                    .map(api -> (Api) api)
-                    .toList()
-            );
             scoringReportQueryService.initWith(
                 IntStream.range(0, expectedTotal).mapToObj(String::valueOf).map(id -> aReport(id).withApiId(id)).toList()
             );
@@ -186,13 +159,6 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
             var page = 2;
             var pageSize = 5;
 
-            apiQueryService.initWith(
-                IntStream
-                    .range(0, expectedTotal)
-                    .mapToObj(i -> ApiFixtures.aFederatedApi().toBuilder().id(String.valueOf(i)).environmentId(ENVIRONMENT).build())
-                    .map(api -> (Api) api)
-                    .toList()
-            );
             scoringReportQueryService.initWith(
                 IntStream.range(0, expectedTotal).mapToObj(String::valueOf).map(id -> aReport(id).withApiId(id)).toList()
             );
