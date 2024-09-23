@@ -24,6 +24,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProvider;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -35,19 +36,19 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.event.ApiEvent;
 import io.gravitee.rest.api.services.dynamicproperties.provider.http.HttpProvider;
-import io.vertx.core.Vertx;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
 public class DynamicPropertiesService extends AbstractService implements EventListener<ApiEvent, Api> {
 
     final Map<ApiEntity, DynamicPropertyScheduler> schedulers = new HashMap<>();
+
+    @Autowired
+    private ClusterManager clusterManager;
 
     @Autowired
     private EventManager eventManager;
@@ -145,6 +146,7 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
         ExecutionContext executionContext = new ExecutionContext(environment.getOrganizationId(), environment.getId());
         DynamicPropertyScheduler scheduler = DynamicPropertyScheduler
             .builder()
+            .clusterManager(clusterManager)
             .schedule(dynamicPropertyService.getSchedule())
             .api(api)
             .apiConverter(apiConverter)
