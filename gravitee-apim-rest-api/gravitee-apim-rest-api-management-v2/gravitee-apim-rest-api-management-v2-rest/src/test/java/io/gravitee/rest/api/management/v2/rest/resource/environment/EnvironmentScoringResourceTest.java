@@ -123,6 +123,7 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
                                 .id("api1")
                                 .name("api-1")
                                 .pictureUrl(apisTarget.path("api1").path("picture").queryParam("hash", "1580674922000").getUri().toString())
+                                .score(0.84)
                                 .errors(1)
                                 .warnings(1)
                                 .infos(1)
