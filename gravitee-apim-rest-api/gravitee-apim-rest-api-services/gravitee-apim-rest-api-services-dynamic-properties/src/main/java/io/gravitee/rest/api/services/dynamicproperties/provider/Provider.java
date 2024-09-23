@@ -18,13 +18,14 @@ package io.gravitee.rest.api.services.dynamicproperties.provider;
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface Provider {
-    Maybe<Collection<DynamicProperty>> get();
+    Maybe<List<DynamicProperty>> get();
 
     String name();
 }
