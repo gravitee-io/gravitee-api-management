@@ -21,6 +21,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
+import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupHistoryCrudService;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEvent;
 import io.gravitee.common.utils.TimeProvider;
@@ -33,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 public class DeleteSharedPolicyGroupUseCase {
 
     private final SharedPolicyGroupCrudService sharedPolicyGroupCrudService;
+    private final SharedPolicyGroupHistoryCrudService sharedPolicyGroupHistoryCrudService;
     private final AuditDomainService auditService;
 
     public Output execute(Input input) {
@@ -40,6 +42,7 @@ public class DeleteSharedPolicyGroupUseCase {
             this.sharedPolicyGroupCrudService.getByEnvironmentId(input.auditInfo().environmentId(), input.sharedPolicyGroupId());
 
         this.sharedPolicyGroupCrudService.delete(sharedPolicyGroupToDelete.getId());
+        this.sharedPolicyGroupHistoryCrudService.delete(sharedPolicyGroupToDelete.getId());
 
         createAuditLog(sharedPolicyGroupToDelete, input.auditInfo());
         return new Output();

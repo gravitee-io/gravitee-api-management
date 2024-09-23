@@ -50,4 +50,16 @@ public class SharedPolicyGroupHistoryCrudServiceImpl implements SharedPolicyGrou
             );
         }
     }
+
+    @Override
+    public void delete(String sharedPolicyGroupId) {
+        try {
+            sharedPolicyGroupHistoryRepository.delete(sharedPolicyGroupId);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to delete a SharedPolicyGroup with id: %s", sharedPolicyGroupId),
+                e
+            );
+        }
+    }
 }

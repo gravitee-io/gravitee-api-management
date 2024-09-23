@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import fixtures.core.model.SharedPolicyGroupFixtures;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
+import inmemory.SharedPolicyGroupHistoryCrudServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -61,6 +62,8 @@ public class DeleteSharedPolicyGroupUseCaseTest {
     private final SharedPolicyGroupCrudServiceInMemory sharedPolicyGroupCrudService = new SharedPolicyGroupCrudServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
+    private final SharedPolicyGroupHistoryCrudServiceInMemory sharedPolicyGroupHistoryCrudService =
+        new SharedPolicyGroupHistoryCrudServiceInMemory();
     private DeleteSharedPolicyGroupUseCase deleteSharedPolicyGroupUseCase;
 
     @BeforeAll
@@ -79,7 +82,8 @@ public class DeleteSharedPolicyGroupUseCaseTest {
     void setUp() {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
 
-        deleteSharedPolicyGroupUseCase = new DeleteSharedPolicyGroupUseCase(sharedPolicyGroupCrudService, auditService);
+        deleteSharedPolicyGroupUseCase =
+            new DeleteSharedPolicyGroupUseCase(sharedPolicyGroupCrudService, sharedPolicyGroupHistoryCrudService, auditService);
     }
 
     @Test
@@ -87,12 +91,14 @@ public class DeleteSharedPolicyGroupUseCaseTest {
         // Given
         var existingSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
         sharedPolicyGroupCrudService.initWith(List.of(existingSharedPolicyGroup));
+        sharedPolicyGroupHistoryCrudService.initWith(List.of(existingSharedPolicyGroup));
 
         // When
         deleteSharedPolicyGroupUseCase.execute(new DeleteSharedPolicyGroupUseCase.Input(existingSharedPolicyGroup.getId(), AUDIT_INFO));
 
         // Then
         assertThat(sharedPolicyGroupCrudService.storage()).isEmpty();
+        assertThat(sharedPolicyGroupHistoryCrudService.storage()).isEmpty();
     }
 
     @Test
@@ -100,6 +106,7 @@ public class DeleteSharedPolicyGroupUseCaseTest {
         // Given
         var existingSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
         sharedPolicyGroupCrudService.initWith(List.of(existingSharedPolicyGroup));
+        sharedPolicyGroupHistoryCrudService.initWith(List.of(existingSharedPolicyGroup));
 
         // When
         deleteSharedPolicyGroupUseCase.execute(new DeleteSharedPolicyGroupUseCase.Input(existingSharedPolicyGroup.getId(), AUDIT_INFO));
