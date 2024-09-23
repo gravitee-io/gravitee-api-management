@@ -81,6 +81,12 @@
             <version>${awaitability.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-cluster-plugin-standalone</artifactId>
+            <version>${gravitee-node.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

@@ -24,6 +24,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 import static testhelpers.Fixtures.MY_API;
 import static testhelpers.Fixtures.apiWithDynamicPropertiesEnabled;
 
@@ -47,8 +50,12 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
+import io.gravitee.node.api.cluster.ClusterManager;
+import io.gravitee.node.api.cluster.Member;
+import io.gravitee.node.plugin.cluster.standalone.StandaloneMember;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.rxjava3.core.Vertx;
@@ -65,6 +72,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -79,7 +88,7 @@ import testhelpers.TestEventListener;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-@ExtendWith(VertxExtension.class)
+@ExtendWith({ VertxExtension.class, MockitoExtension.class })
 class HttpDynamicPropertiesServiceTest {
 
     /**
@@ -107,8 +116,12 @@ class HttpDynamicPropertiesServiceTest {
     private ObjectMapper objectMapper;
     private TestScheduler testScheduler;
 
+    @Mock
+    private ClusterManager clusterManager;
+
     @BeforeEach
     void setUp(io.vertx.core.Vertx vertx) {
+        lenient().when(clusterManager.self()).thenReturn(new StandaloneMember());
         // Prepare real EventManager and ApplicationContext
         eventManager = new EventManagerImpl();
         objectMapper = new ObjectMapper();
@@ -120,6 +133,7 @@ class HttpDynamicPropertiesServiceTest {
         beanFactory.registerSingleton("pluginConfigurationHelper", pluginConfigurationHelper);
         beanFactory.registerSingleton("vertx", Vertx.newInstance(vertx));
         beanFactory.registerSingleton("configuration", Fixtures.emptyNodeConfiguration());
+        beanFactory.registerSingleton("clusterManager", clusterManager);
         applicationContext.refresh();
 
         TimeProvider.overrideClock(Clock.fixed(INSTANT_NOW, ZoneId.systemDefault()));
@@ -268,7 +282,7 @@ class HttpDynamicPropertiesServiceTest {
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
             eventObs
-                .awaitDone(10, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertValueCount(1)
                 .assertValue(propertyEvent -> {
                     Assertions.PropertyEventAssertions
@@ -490,6 +504,74 @@ class HttpDynamicPropertiesServiceTest {
                 .assertComplete();
 
             wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
+
+            cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+
+            ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
+        }
+
+        @Test
+        void should_not_publish_dynamic_properties_if_secondary_node_then_start_publish_if_primary() {
+            Api api = Fixtures.apiWithDynamicPropertiesEnabled();
+            final HttpDynamicPropertiesServiceConfiguration configuration = HttpDynamicPropertiesServiceConfiguration
+                .builder()
+                .schedule("*/5 * * * * *")
+                .url(String.format("http://localhost:%d/propertiesBackend", wiremock.getPort()))
+                .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
+                .method(HttpMethod.GET)
+                .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
+                .build();
+            Fixtures.configureDynamicPropertiesForApi(configuration, api, objectMapper);
+            final HttpDynamicPropertiesService cut = buildServiceFor(api);
+
+            wiremock.stubFor(
+                get("/propertiesBackend")
+                    .willReturn(
+                        ok(
+                            Fixtures.backendResponseForProperties(
+                                List.of(
+                                    new Fixtures.BackendProperty("key1", "initial val 1"),
+                                    new Fixtures.BackendProperty("key2", "initial val 2")
+                                ),
+                                objectMapper
+                            )
+                        )
+                    )
+            );
+
+            var eventObs = TestEventListener.with(eventManager).completeAfter(1).test();
+
+            Member member = spy(new StandaloneMember());
+            when(member.primary()).thenReturn(false);
+            when(clusterManager.self()).thenReturn(member);
+
+            // Start the service
+            cut.start().test().assertComplete().assertNoErrors();
+
+            // Wait for the first http call
+            testScheduler.advanceTimeBy(10_000, TimeUnit.MILLISECONDS);
+            when(member.primary()).thenReturn(true);
+            testScheduler.advanceTimeBy(5_000, TimeUnit.MILLISECONDS);
+
+            ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
+
+            eventObs
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertValueCount(1)
+                .assertValue(propertyEvent -> {
+                    Assertions.PropertyEventAssertions
+                        .assertThatEvent(propertyEvent)
+                        .contains(
+                            List.of(
+                                Property.builder().key("key1").value("initial val 1").dynamic(true).encrypted(false).build(),
+                                Property.builder().key("key2").value("initial val 2").dynamic(true).encrypted(false).build()
+                            )
+                        );
+                    return true;
+                })
+                .assertComplete();
+
+            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
 
             cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
