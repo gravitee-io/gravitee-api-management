@@ -19,4 +19,6 @@ import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 
 public interface SharedPolicyGroupHistoryCrudService {
     SharedPolicyGroup create(SharedPolicyGroup sharedPolicyGroupEntity);
+
+    void delete(String sharedPolicyGroupId);
 }
