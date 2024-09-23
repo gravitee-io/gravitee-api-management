@@ -20,6 +20,7 @@ import static io.gravitee.rest.api.service.common.SecurityContextHelper.authenti
 import io.gravitee.common.cron.CronTrigger;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
+import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.UserRoleEntity;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
@@ -54,6 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DynamicPropertyScheduler {
 
+    private final ClusterManager clusterManager;
     private final ApiService apiService;
     private final ApiConverter apiConverter;
     private final String schedule;
@@ -63,12 +65,14 @@ public class DynamicPropertyScheduler {
 
     @Builder
     public DynamicPropertyScheduler(
+        final ClusterManager clusterManager,
         final ApiService apiService,
         final ApiConverter apiConverter,
         final String schedule,
         final ApiEntity api,
         final ExecutionContext executionContext
     ) {
+        this.clusterManager = clusterManager;
         this.apiService = apiService;
         this.apiConverter = apiConverter;
         this.schedule = schedule;
@@ -84,6 +88,7 @@ public class DynamicPropertyScheduler {
             Observable
                 .defer(() -> Observable.timer(cronTrigger.nextExecutionIn(), TimeUnit.MILLISECONDS))
                 .observeOn(Schedulers.computation())
+                .filter(aLong -> clusterManager.self().primary())
                 .switchMapCompletable(aLong ->
                     provider
                         .get()
