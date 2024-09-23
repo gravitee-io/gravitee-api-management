@@ -15,16 +15,19 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.scoring.model.EnvironmentApiScoringReport;
 import io.gravitee.apim.core.scoring.model.EnvironmentOverview;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
 import io.gravitee.apim.core.scoring.query_service.ScoringReportQueryService;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.model.common.Pageable;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class ScoringReportQueryServiceInMemory implements ScoringReportQueryService, InMemoryAlternative<ScoringReport> {
 
@@ -44,8 +47,39 @@ public class ScoringReportQueryServiceInMemory implements ScoringReportQueryServ
     }
 
     @Override
-    public Stream<ScoringReport> findLatestReportsByApiId(Collection<String> apiIds) {
-        return storage.stream().filter(report -> apiIds.contains(report.apiId()));
+    public Page<EnvironmentApiScoringReport> findEnvironmentLatestReports(String environmentId, Pageable pageable) {
+        var pageNumber = pageable.getPageNumber();
+        var pageSize = pageable.getPageSize();
+
+        var matches = storage
+            .stream()
+            .filter(report -> environmentId.equals(report.environmentId()))
+            .sorted(Comparator.comparing((ScoringReport r) -> r.summary().score()).reversed())
+            .map(report ->
+                new EnvironmentApiScoringReport(
+                    new EnvironmentApiScoringReport.Api(
+                        report.apiId(),
+                        "api-name",
+                        Instant.parse("2023-10-22T10:15:30Z").atZone(ZoneId.systemDefault())
+                    ),
+                    new EnvironmentApiScoringReport.Summary(
+                        report.id(),
+                        report.createdAt(),
+                        report.summary().score(),
+                        report.summary().errors(),
+                        report.summary().warnings(),
+                        report.summary().infos(),
+                        report.summary().hints()
+                    )
+                )
+            )
+            .toList();
+
+        var page = matches.size() <= pageSize
+            ? matches
+            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+
+        return new Page<>(page, pageNumber, pageSize, matches.size());
     }
 
     @Override
