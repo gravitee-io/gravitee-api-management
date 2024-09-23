@@ -15,11 +15,13 @@
  */
 package io.gravitee.rest.api.services.dynamicproperties.provider.http;
 
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.when;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProvider;
@@ -27,29 +29,38 @@ import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyServ
 import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
 import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxExtension;
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+@ExtendWith({ MockitoExtension.class, VertxExtension.class })
 public class HttpProviderTest {
 
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
+    @RegisterExtension
+    private final WireMockExtension wiremock = WireMockExtension
+        .newInstance()
+        .options(WireMockConfiguration.wireMockConfig().dynamicPort())
+        .build();
 
     private HttpDynamicPropertyProviderConfiguration providerConfiguration;
     private HttpProvider provider;
@@ -57,28 +68,33 @@ public class HttpProviderTest {
     @Mock
     private HttpClientService httpClientService;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    public void setUp(Vertx vertx) {
         providerConfiguration = new HttpDynamicPropertyProviderConfiguration();
-
-        when(httpClientService.createHttpClient(anyString(), anyBoolean())).thenReturn(Vertx.vertx().createHttpClient());
+        when(httpClientService.createHttpClient(anyString(), anyBoolean())).thenReturn(vertx.createHttpClient());
     }
 
     @Test
-    public void shouldGetProperties() throws IOException {
-        providerConfiguration.setUrl("http://localhost:" + wireMockRule.port() + "/success");
+    public void should_get_properties() throws IOException {
+        providerConfiguration.setUrl("http://localhost:" + wiremock.getPort() + "/success");
         providerConfiguration.setSpecification(getSimpleJoltSpecification());
         providerConfiguration.setMethod(HttpMethod.GET);
         setUpProvider();
 
-        Collection<DynamicProperty> dynamicProperties = provider.get().blockingGet();
-
-        assertThat(dynamicProperties).contains(new DynamicProperty("name", "Elysee"), new DynamicProperty("country", "FRANCE"));
+        provider
+            .get()
+            .subscribeOn(Schedulers.io())
+            .test()
+            .awaitDone(5, TimeUnit.SECONDS)
+            .assertValue(dynamicProperties -> {
+                assertThat(dynamicProperties).contains(new DynamicProperty("name", "Elysee"), new DynamicProperty("country", "FRANCE"));
+                return true;
+            });
     }
 
     @Test
-    public void shouldGetPropertiesFromPOST() throws IOException {
-        providerConfiguration.setUrl("http://localhost:" + wireMockRule.port() + "/success_post");
+    public void should_get_properties_from_post() throws IOException {
+        providerConfiguration.setUrl("http://localhost:" + wiremock.getPort() + "/success_post");
         providerConfiguration.setSpecification(getSimpleJoltSpecification());
         providerConfiguration.setMethod(HttpMethod.POST);
         providerConfiguration.setBody("{}");
@@ -87,33 +103,35 @@ public class HttpProviderTest {
         );
         setUpProvider();
 
-        Collection<DynamicProperty> dynamicProperties = provider.get().blockingGet();
-
-        assertThat(dynamicProperties).contains(new DynamicProperty("name", "Elysee"), new DynamicProperty("country", "FRANCE"));
+        provider
+            .get()
+            .subscribeOn(Schedulers.io())
+            .test()
+            .awaitDone(5, TimeUnit.SECONDS)
+            .assertValue(dynamicProperties -> {
+                assertThat(dynamicProperties).contains(new DynamicProperty("name", "Elysee"), new DynamicProperty("country", "FRANCE"));
+                return true;
+            });
     }
 
     @Test
-    public void shouldGetNullPropertiesBecauseHttpError() throws IOException {
-        providerConfiguration.setUrl("http://localhost:" + wireMockRule.port() + "/error");
+    public void should_get_null_properties_because_http_error() throws IOException {
+        providerConfiguration.setUrl("http://localhost:" + wiremock.getPort() + "/error");
         providerConfiguration.setSpecification(getSimpleJoltSpecification());
         providerConfiguration.setMethod(HttpMethod.GET);
         setUpProvider();
 
-        Collection<DynamicProperty> dynamicProperties = provider.get().blockingGet();
-
-        assertThat(dynamicProperties).isNull();
+        provider.get().subscribeOn(Schedulers.io()).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
     }
 
-    @Test(expected = RuntimeException.class)
-    public void shouldThrowAnErrorWhenCallingUnknownUri() throws IOException {
-        providerConfiguration.setUrl("http://unknown_host:" + wireMockRule.port());
+    @Test
+    public void should_throw_an_error_when_calling_unknown_uri() throws IOException {
+        providerConfiguration.setUrl("http://unknown_host:" + wiremock.getPort());
         providerConfiguration.setSpecification(getSimpleJoltSpecification());
         providerConfiguration.setMethod(HttpMethod.GET);
         setUpProvider();
 
-        Collection<DynamicProperty> dynamicProperties = provider.get().blockingGet();
-
-        assertThat(dynamicProperties).isNull();
+        provider.get().subscribeOn(Schedulers.io()).test().awaitDone(5, TimeUnit.SECONDS).assertError(UnknownHostException.class);
     }
 
     private String getSimpleJoltSpecification() throws IOException {
@@ -125,8 +143,6 @@ public class HttpProviderTest {
         dynamicPropertyService.setProvider(DynamicPropertyProvider.HTTP);
         dynamicPropertyService.setConfiguration(providerConfiguration);
 
-        provider = new HttpProvider(dynamicPropertyService);
-        provider.setHttpClientService(httpClientService);
-        provider.setExecutor(Executors.newSingleThreadExecutor());
+        provider = new HttpProvider(dynamicPropertyService.getConfiguration(), httpClientService, null);
     }
 }

@@ -18,21 +18,11 @@ package io.gravitee.rest.api.services.dynamicproperties.provider.http.mapper;
 import com.bazaarvoice.jolt.Chainr;
 import com.bazaarvoice.jolt.JsonUtils;
 import com.bazaarvoice.jolt.chainr.ChainrBuilder;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.github.fge.jackson.JsonLoader;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import com.github.fge.jsonschema.core.report.ProcessingReport;
-import com.github.fge.jsonschema.main.JsonSchema;
-import com.github.fge.jsonschema.main.JsonSchemaFactory;
+import com.google.common.base.Strings;
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -40,45 +30,40 @@ import org.slf4j.LoggerFactory;
  */
 public class JoltMapper {
 
-    private final Logger logger = LoggerFactory.getLogger(JoltMapper.class);
-
-    private final Chainr chainr;
+    private Chainr chainr;
 
     public JoltMapper(String specification) {
-        Objects.requireNonNull(specification, "Specification must not be null");
-        chainr = new ChainrBuilder(JsonUtils.jsonToList(specification)).build();
+        if (!Strings.isNullOrEmpty(specification)) {
+            chainr = new ChainrBuilder(JsonUtils.jsonToList(specification)).build();
+        }
     }
 
-    public JoltMapper(InputStream specification) {
-        Objects.requireNonNull(specification, "Specification must not be null");
-        chainr = new ChainrBuilder(JsonUtils.jsonToList(specification)).build();
-    }
+    public List<DynamicProperty> map(final String source) {
+        if (Strings.isNullOrEmpty(source)) {
+            return List.of();
+        }
 
-    public Collection<DynamicProperty> map(String source) {
         //Default value is equal to the input json value (in case empty jolt specs)
         String jsonProperties = source;
-        ArrayList transformed;
-        if (jsonProperties != null && jsonProperties.charAt(0) == '[') {
-            transformed = (ArrayList) chainr.transform(JsonUtils.jsonToList(source));
-        } else {
-            transformed = (ArrayList) chainr.transform(JsonUtils.jsonToMap(source));
+        if (chainr != null) {
+            List<?> transformed;
+            if (source.charAt(0) == '[') {
+                transformed = (List<?>) chainr.transform(JsonUtils.jsonToList(source));
+            } else {
+                transformed = (List<?>) chainr.transform(JsonUtils.jsonToMap(source));
+            }
+            jsonProperties = JsonUtils.toJsonString(transformed);
         }
-        jsonProperties = JsonUtils.toJsonString(transformed);
-
-        //Now ensure current json properties is well formatted.
-        //    if (validateJson(jsonProperties)) {
 
         List<Object> items = JsonUtils.jsonToList(jsonProperties);
-        Object collect = items
+        return items
             .stream()
             .map(item -> {
-                Map<Object, Object> mapItem = (Map<Object, Object>) item;
+                Map<?, ?> mapItem = (Map<?, ?>) item;
                 String key = String.valueOf(mapItem.get("key"));
                 String value = String.valueOf(mapItem.get("value"));
                 return new DynamicProperty(key, value);
             })
             .collect(Collectors.toList());
-
-        return (Collection<DynamicProperty>) collect;
     }
 }

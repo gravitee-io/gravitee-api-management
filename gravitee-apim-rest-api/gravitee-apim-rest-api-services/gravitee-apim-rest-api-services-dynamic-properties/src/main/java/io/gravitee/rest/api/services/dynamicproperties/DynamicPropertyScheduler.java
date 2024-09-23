@@ -15,8 +15,9 @@
  */
 package io.gravitee.rest.api.services.dynamicproperties;
 
-import static io.gravitee.rest.api.service.common.SecurityContextHelper.*;
+import static io.gravitee.rest.api.service.common.SecurityContextHelper.authenticateAsSystem;
 
+import io.gravitee.common.cron.CronTrigger;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
 import io.gravitee.rest.api.model.EventType;
@@ -31,37 +32,87 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.rest.api.services.dynamicproperties.provider.Provider;
-import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import io.vertx.core.Handler;
-import java.util.*;
-import java.util.concurrent.Executor;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DynamicPropertyUpdater implements Handler<Long> {
+@Slf4j
+public class DynamicPropertyScheduler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DynamicPropertyUpdater.class);
-
+    private final ApiService apiService;
+    private final ApiConverter apiConverter;
+    private final String schedule;
     private final ApiEntity api;
-    private final Executor executor;
-
-    private Provider provider;
-    private ApiService apiService;
-
     private final ExecutionContext executionContext;
+    private Disposable disposable;
 
-    private ApiConverter apiConverter;
-
-    public DynamicPropertyUpdater(final ApiEntity api, final Executor executor, ExecutionContext executionContext) {
+    @Builder
+    public DynamicPropertyScheduler(
+        final ApiService apiService,
+        final ApiConverter apiConverter,
+        final String schedule,
+        final ApiEntity api,
+        final ExecutionContext executionContext
+    ) {
+        this.apiService = apiService;
+        this.apiConverter = apiConverter;
+        this.schedule = schedule;
         this.api = api;
-        this.executor = executor;
         this.executionContext = executionContext;
+    }
+
+    public void schedule(final Provider provider) {
+        CronTrigger cronTrigger = new CronTrigger(schedule);
+        log.debug("[{}] Running dynamic properties scheduler", api.getId());
+
+        disposable =
+            Observable
+                .defer(() -> Observable.timer(cronTrigger.nextExecutionIn(), TimeUnit.MILLISECONDS))
+                .observeOn(Schedulers.computation())
+                .switchMapCompletable(aLong ->
+                    provider
+                        .get()
+                        .flatMapCompletable(dynamicProperties ->
+                            Completable.fromRunnable(() -> {
+                                log.debug("[{}] Got {} dynamic properties to update", api.getId(), dynamicProperties.size());
+                                authenticateAsAdmin();
+                                update(dynamicProperties);
+                            })
+                        )
+                        .doOnComplete(() -> log.debug("[{}] Dynamic properties updated", api.getId()))
+                )
+                .onErrorResumeNext(throwable -> {
+                    log.error(
+                        "[{}] Unexpected error while getting dynamic properties from provider: {}",
+                        api.getId(),
+                        provider.name(),
+                        throwable
+                    );
+                    return Completable.complete();
+                })
+                .repeat()
+                .subscribe(() -> {}, throwable -> log.error("Unable to run Dynamic Properties for Api: {}", api.getId()));
+    }
+
+    public void cancel() {
+        if (disposable != null && !disposable.isDisposed()) {
+            disposable.dispose();
+        }
     }
 
     private void authenticateAsAdmin() {
@@ -71,42 +122,14 @@ public class DynamicPropertyUpdater implements Handler<Long> {
         authenticateAsSystem("DynamicPropertyUpdater", Set.of(adminRole));
     }
 
-    @Override
-    public void handle(Long event) {
-        handle().subscribe();
-    }
-
-    protected Maybe<Collection<DynamicProperty>> handle() {
-        LOGGER.debug("[{}] Running dynamic properties poller", api.getId());
-
-        return provider
-            .get()
-            .subscribeOn(Schedulers.from(executor))
-            .doOnSuccess(dynamicProperties -> {
-                LOGGER.debug("[{}] Got {} dynamic properties to update", api.getId(), dynamicProperties.size());
-                authenticateAsAdmin();
-                update(dynamicProperties);
-                LOGGER.debug("[{}] Dynamic properties updated", api.getId());
-            })
-            .doOnError(throwable ->
-                LOGGER.error(
-                    "[{}] Unexpected error while getting dynamic properties from provider: {}",
-                    api.getId(),
-                    provider.name(),
-                    throwable
-                )
-            )
-            .onErrorComplete();
-    }
-
-    private void update(Collection<DynamicProperty> dynamicProperties) {
+    private void update(List<DynamicProperty> dynamicProperties) {
         // Get latest changes
         ApiEntity latestApi = apiService.findById(executionContext, api.getId());
 
         List<Property> properties = (latestApi.getProperties() != null)
             ? latestApi.getProperties().getProperties()
             : Collections.emptyList();
-        List<Property> userDefinedProperties = properties.stream().filter(property -> !property.isDynamic()).collect(Collectors.toList());
+        List<Property> userDefinedProperties = properties.stream().filter(property -> !property.isDynamic()).toList();
 
         Map<String, Property> propertyMap = properties.stream().collect(Collectors.toMap(Property::getKey, property -> property));
 
@@ -137,7 +160,7 @@ public class DynamicPropertyUpdater implements Handler<Long> {
             try {
                 apiProperties.setProperties(sortedUpdatedProperties);
             } catch (RuntimeException e) {
-                LOGGER.error(e.getMessage(), e);
+                log.error(e.getMessage(), e);
             }
             latestApi.setProperties(apiProperties);
 
@@ -145,14 +168,11 @@ public class DynamicPropertyUpdater implements Handler<Long> {
 
             // Update API
             try {
-                LOGGER.debug("[{}] Updating API", latestApi.getId());
+                log.debug("[{}] Updating API", latestApi.getId());
                 apiService.update(executionContext, latestApi.getId(), apiConverter.toUpdateApiEntity(latestApi), false, false);
-                LOGGER.debug("[{}] API has been updated", latestApi.getId());
+                log.debug("[{}] API has been updated", latestApi.getId());
             } catch (TechnicalManagementException e) {
-                LOGGER.error(
-                    "An error occurred while updating the API with new values of dynamic properties, deployment will be skipped.",
-                    e
-                );
+                log.error("An error occurred while updating the API with new values of dynamic properties, deployment will be skipped.", e);
                 throw e;
             }
 
@@ -160,25 +180,13 @@ public class DynamicPropertyUpdater implements Handler<Long> {
             if (isSync) {
                 // Publish API only in case of changes
                 if (!updatedProperties.containsAll(properties) || !properties.containsAll(updatedProperties)) {
-                    LOGGER.debug("[{}] Property change detected, API is about to be deployed", api.getId());
+                    log.debug("[{}] Property change detected, API is about to be deployed", api.getId());
                     ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
                     deployEntity.setDeploymentLabel("Dynamic properties sync");
                     apiService.deploy(executionContext, latestApi.getId(), "dynamic-property-updater", EventType.PUBLISH_API, deployEntity);
-                    LOGGER.debug("[{}] API as been deployed", api.getId());
+                    log.debug("[{}] API as been deployed", api.getId());
                 }
             }
         }
-    }
-
-    public void setApiService(ApiService apiService) {
-        this.apiService = apiService;
-    }
-
-    public void setProvider(Provider provider) {
-        this.provider = provider;
-    }
-
-    public void setApiConverter(ApiConverter apiConverter) {
-        this.apiConverter = apiConverter;
     }
 }
