@@ -16,15 +16,17 @@
 package io.gravitee.repository.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
 
 import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.model.ScoringEnvironmentApi;
 import io.gravitee.repository.management.model.ScoringEnvironmentSummary;
 import io.gravitee.repository.management.model.ScoringReport;
 import java.util.Date;
 import java.util.List;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.Test;
 
 public class ScoringReportReportRepositoryTest extends AbstractManagementRepositoryTest {
@@ -168,6 +170,65 @@ public class ScoringReportReportRepositoryTest extends AbstractManagementReposit
                     List.of()
                 )
             );
+    }
+
+    // findEnvironmentLatestReports
+    @Test
+    public void findEnvironmentLatestReports_should_return_reports() throws Exception {
+        var result = scoringReportRepository.findEnvironmentLatestReports("env1", new PageableBuilder().pageNumber(0).pageSize(3).build());
+
+        Assertions
+            .assertThat(result.getContent())
+            .contains(
+                new ScoringEnvironmentApi(
+                    "api1",
+                    "api 1",
+                    new Date(1439022010883L),
+                    "1e9013a0-fc13-4bd0-b2e2-cdf2b1895b46",
+                    new Date(1470157767000L),
+                    1D,
+                    0L,
+                    0L,
+                    0L,
+                    0L
+                ),
+                new ScoringEnvironmentApi(
+                    "api3",
+                    "api 3",
+                    new Date(1439022010883L),
+                    "b1419ea8-75c6-4fd9-a8c8-b43a6bda6ee9",
+                    new Date(1470157767000L),
+                    1D,
+                    0L,
+                    0L,
+                    0L,
+                    0L
+                ),
+                new ScoringEnvironmentApi(
+                    "api5",
+                    "api 5",
+                    new Date(1439022010883L),
+                    "26a590f2-05fa-433e-a982-d64c0a274ee9",
+                    new Date(1470157767000L),
+                    0.95D,
+                    0L,
+                    1L,
+                    0L,
+                    0L
+                )
+            );
+    }
+
+    @Test
+    public void findEnvironmentLatestReports_should_return_paginated_reports() throws Exception {
+        var result = scoringReportRepository.findEnvironmentLatestReports("env1", new PageableBuilder().pageNumber(1).pageSize(3).build());
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result.getContent()).hasSize(3);
+            softly.assertThat(result.getTotalElements()).isEqualTo(6);
+            softly.assertThat(result.getPageElements()).isEqualTo(3);
+            softly.assertThat(result.getPageNumber()).isOne();
+        });
     }
 
     // DeleteByApi

@@ -15,14 +15,15 @@
  */
 package io.gravitee.apim.core.scoring.query_service;
 
+import io.gravitee.apim.core.scoring.model.EnvironmentApiScoringReport;
 import io.gravitee.apim.core.scoring.model.EnvironmentOverview;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
-import java.util.Collection;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.model.common.Pageable;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public interface ScoringReportQueryService {
     Optional<ScoringReport> findLatestByApiId(String apiId);
-    Stream<ScoringReport> findLatestReportsByApiId(Collection<String> apiId);
+    Page<EnvironmentApiScoringReport> findEnvironmentLatestReports(String environmentId, Pageable pageable);
     EnvironmentOverview getEnvironmentScoringSummary(String environmentId);
 }
