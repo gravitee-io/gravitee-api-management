@@ -15,9 +15,11 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import io.gravitee.apim.core.scoring.model.EnvironmentApiScoringReport;
 import io.gravitee.apim.core.scoring.model.EnvironmentOverview;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -26,6 +28,21 @@ public interface ScoringReportAdapter {
 
     ScoringReport toEntity(io.gravitee.repository.management.model.ScoringReport source);
     EnvironmentOverview toEntity(io.gravitee.repository.management.model.ScoringEnvironmentSummary source);
+
+    @Mapping(target = "api", expression = "java(toEnvironmentApiScoringReportApi(source))")
+    @Mapping(target = "summary", expression = "java(toEnvironmentApiScoringReportSummary(source))")
+    EnvironmentApiScoringReport toEntity(io.gravitee.repository.management.model.ScoringEnvironmentApi source);
+
+    @Mapping(target = "apiId", source = "apiId")
+    @Mapping(target = "name", source = "apiName")
+    @Mapping(target = "updatedAt", source = "apiUpdatedAt")
+    EnvironmentApiScoringReport.Api toEnvironmentApiScoringReportApi(io.gravitee.repository.management.model.ScoringEnvironmentApi source);
+
+    @Mapping(target = "id", source = "reportId")
+    @Mapping(target = "createdAt", source = "reportCreatedAt")
+    EnvironmentApiScoringReport.Summary toEnvironmentApiScoringReportSummary(
+        io.gravitee.repository.management.model.ScoringEnvironmentApi source
+    );
 
     io.gravitee.repository.management.model.ScoringReport toRepository(ScoringReport source);
 }

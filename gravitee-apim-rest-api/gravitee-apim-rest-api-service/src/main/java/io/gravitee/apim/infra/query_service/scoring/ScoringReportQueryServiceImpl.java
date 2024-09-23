@@ -15,23 +15,25 @@
  */
 package io.gravitee.apim.infra.query_service.scoring;
 
+import io.gravitee.apim.core.scoring.model.EnvironmentApiScoringReport;
 import io.gravitee.apim.core.scoring.model.EnvironmentOverview;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
 import io.gravitee.apim.core.scoring.query_service.ScoringReportQueryService;
 import io.gravitee.apim.infra.adapter.ScoringReportAdapter;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ScoringReportRepository;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.util.Collection;
+import io.gravitee.rest.api.service.impl.AbstractService;
 import java.util.Optional;
-import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class ScoringReportQueryServiceImpl implements ScoringReportQueryService {
+public class ScoringReportQueryServiceImpl extends AbstractService implements ScoringReportQueryService {
 
     private final ScoringReportRepository scoringReportRepository;
 
@@ -50,12 +52,17 @@ public class ScoringReportQueryServiceImpl implements ScoringReportQueryService 
     }
 
     @Override
-    public Stream<ScoringReport> findLatestReportsByApiId(Collection<String> apiIds) {
+    public Page<EnvironmentApiScoringReport> findEnvironmentLatestReports(String environmentId, Pageable pageable) {
         try {
-            return scoringReportRepository.findLatestReports(apiIds).map(ScoringReportAdapter.INSTANCE::toEntity);
+            return scoringReportRepository
+                .findEnvironmentLatestReports(environmentId, convert(pageable))
+                .map(ScoringReportAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
-            log.error("An error occurred while finding Scoring Reports by API id", e);
-            throw new TechnicalManagementException("An error occurred while finding Scoring Report of API: " + apiIds, e);
+            log.error("An error occurred while finding latest Scoring Reports for environment", e);
+            throw new TechnicalManagementException(
+                "An error occurred while finding latest Scoring Reports for environment: " + environmentId,
+                e
+            );
         }
     }
 
