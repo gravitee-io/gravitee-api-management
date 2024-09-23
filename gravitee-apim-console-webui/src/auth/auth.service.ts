@@ -169,7 +169,7 @@ export class AuthService {
       );
   }
 
-  logout(options: { disableRedirect?: boolean } = {}) {
+  logout(options: { disableRedirect?: boolean; redirectToCurrentUrl?: boolean } = {}) {
     return this.http.post(`${this.constants.org.baseURL}/user/logout`, {}).pipe(
       catchError(() => {
         // If logout failed, we can continue
@@ -190,6 +190,11 @@ export class AuthService {
         if (!options.disableRedirect) {
           // If not logged with provider or if signoutRedirect() not configured for selected provider
           // redirect to login page
+
+          if (options.redirectToCurrentUrl) {
+            return this.router.navigateByUrl(`/_login?redirect=${this.router.routerState.snapshot.url}`);
+          }
+
           return this.router.navigateByUrl('/_login');
         }
       }),
