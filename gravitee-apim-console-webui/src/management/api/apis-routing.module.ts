@@ -598,7 +598,7 @@ const apisRoutes: Routes = [
         component: ApiHealthCheckComponent,
         data: {
           permissions: {
-            anyOf: ['api-health-c'],
+            anyOf: ['api-health-r'],
           },
           docs: {
             page: 'management-api-health-check-configure',
