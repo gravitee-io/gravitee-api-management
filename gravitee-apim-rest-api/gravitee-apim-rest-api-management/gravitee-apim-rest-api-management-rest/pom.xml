@@ -23,7 +23,7 @@
 >
 	<modelVersion>4.0.0</modelVersion>
 	<properties>
-		<swagger-maven-plugin-jakarta.version>2.2.22</swagger-maven-plugin-jakarta.version>
+		<swagger-maven-plugin-jakarta.version>2.2.23</swagger-maven-plugin-jakarta.version>
 	</properties>
 
 	<parent>
