@@ -51,8 +51,6 @@ public class Plan implements Serializable {
     @NotBlank
     private String name;
 
-    @JsonProperty(required = true)
-    @NotNull
     private PlanSecurity security;
 
     @JsonProperty(required = true)

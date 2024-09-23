@@ -19,6 +19,7 @@ import static fixtures.core.model.ApiFixtures.aMessageApiV4;
 import static fixtures.core.model.ApiFixtures.aProxyApiV4;
 import static fixtures.core.model.ApiFixtures.aTcpApiV4;
 import static fixtures.core.model.PlanFixtures.aKeylessV4;
+import static fixtures.core.model.PlanFixtures.aPlanV4;
 import static fixtures.core.model.PlanFixtures.aPushPlan;
 import static fixtures.core.model.PlanFixtures.anApiKeyV4;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -200,6 +201,20 @@ class CreatePlanDomainServiceTest {
             assertThat(throwable)
                 .isInstanceOf(PlanInvalidException.class)
                 .hasMessage("Security type is forbidden for plan with 'Push' mode");
+        }
+
+        @Test
+        void should_throw_when_security_configuration_is_missing() {
+            // Given
+            var plan = aPlanV4().toBuilder().planDefinitionV4(PlanFixtures.anApiKeyV4().toBuilder().security(null).build()).build();
+
+            // When
+            var throwable = Assertions.catchThrowable(() -> service.create(plan, List.of(), HTTP_PROXY_API_V4, AUDIT_INFO));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(PlanInvalidException.class)
+                .hasMessage("Security type is required for plan with 'STANDARD' mode");
         }
     }
 

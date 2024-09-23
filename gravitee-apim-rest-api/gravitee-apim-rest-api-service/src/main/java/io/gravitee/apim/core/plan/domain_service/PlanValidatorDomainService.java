@@ -60,6 +60,9 @@ public class PlanValidatorDomainService {
         var planMode = plan.getPlanMode();
         var security = plan.getPlanSecurity();
         if (planMode.equals(PlanMode.STANDARD)) {
+            if (security == null) {
+                throw new PlanInvalidException("Security type is required for plan with 'STANDARD' mode");
+            }
             ensurePlanSecurityIsAllowed(security.getType(), currentOrganizationId, currentEnvironmentId);
             policyValidationDomainService.validateAndSanitizeConfiguration(security.getType(), security.getConfiguration());
         }
