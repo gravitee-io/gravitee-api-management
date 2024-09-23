@@ -1154,7 +1154,7 @@ export const states: Ng2StateDeclaration[] = [
     url: '/v2/healthcheck',
     data: {
       apiPermissions: {
-        only: ['api-health-c'],
+        only: ['api-health-r'],
       },
       docs: {
         page: 'management-api-health-check-configure',
