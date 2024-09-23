@@ -20,6 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
@@ -33,11 +34,15 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 public class CsrfRequestMatcher implements RequestMatcher {
 
     private final Set<String> allowedMethods = new HashSet<>(Arrays.asList("GET", "HEAD", "TRACE", "OPTIONS"));
+    private final Set<Pattern> allowedPaths = new HashSet<>(Arrays.asList(Pattern.compile("^/organizations/[^/]+/user/login$")));
 
     @Override
     public boolean matches(HttpServletRequest request) {
         return (
             !allowedMethods.contains(request.getMethod()) &&
+            !(
+                request.getPathInfo() != null && allowedPaths.stream().anyMatch(pattern -> pattern.matcher(request.getPathInfo()).matches())
+            ) &&
             (
                 request.getHeader(HttpHeaders.REFERER) != null ||
                 request.getHeader(HttpHeaders.ORIGIN) != null ||
