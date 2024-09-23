@@ -186,6 +186,9 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             logger.debug("Create a new plan {} for API {}", newPlan.getName(), newPlan.getApiId());
 
             if (Optional.ofNullable(newPlan.getMode()).orElse(PlanMode.STANDARD) == PlanMode.STANDARD) {
+                if (newPlan.getSecurity() == null) {
+                    throw new PlanInvalidException("Security type is required for plan with 'STANDARD' mode");
+                }
                 assertPlanSecurityIsAllowed(executionContext, newPlan.getSecurity().getType());
                 validatePlanSecurity(newPlan.getSecurity().getType(), newPlan.getSecurity().getConfiguration());
             } else if (newPlan.getSecurity() != null) {
