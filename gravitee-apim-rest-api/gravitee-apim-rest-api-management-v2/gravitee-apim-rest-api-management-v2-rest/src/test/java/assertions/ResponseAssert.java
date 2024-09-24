@@ -15,6 +15,8 @@
  */
 package assertions;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import jakarta.ws.rs.core.Response;
 import org.assertj.core.api.AbstractObjectAssert;
@@ -32,6 +34,12 @@ public class ResponseAssert extends AbstractObjectAssert<ResponseAssert, Respons
         if (actual.getStatus() != status) {
             failWithMessage("Expected response status to be <%s> but was <%s>", status, actual.getStatus());
         }
+        return this;
+    }
+
+    public ResponseAssert hasHeader(String name, String value) {
+        isNotNull();
+        assertThat(actual.getHeaderString(name)).isEqualTo(value);
         return this;
     }
 
