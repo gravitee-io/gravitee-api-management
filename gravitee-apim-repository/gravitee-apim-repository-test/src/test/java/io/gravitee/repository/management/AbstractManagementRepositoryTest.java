@@ -146,6 +146,9 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     protected ScoringReportRepository scoringReportRepository;
 
     @Inject
+    protected ScoringRulesetRepository scoringRulesetRepository;
+
+    @Inject
     protected DashboardRepository dashboardRepository;
 
     @Inject
@@ -283,6 +286,8 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             apiQualityRuleRepository.create(apiQualityRule);
         } else if (object instanceof ScoringReport scoringReport) {
             scoringReportRepository.create(scoringReport);
+        } else if (object instanceof ScoringRuleset scoringRuleset) {
+            scoringRulesetRepository.create(scoringRuleset);
         } else if (object instanceof Dashboard apiQualityRule) {
             dashboardRepository.create(apiQualityRule);
         } else if (object instanceof AlertEvent alertEvent) {

@@ -74,6 +74,8 @@ import inmemory.RoleQueryServiceInMemory;
 import inmemory.ScoringProviderInMemory;
 import inmemory.ScoringReportCrudServiceInMemory;
 import inmemory.ScoringReportQueryServiceInMemory;
+import inmemory.ScoringRulesetCrudServiceInMemory;
+import inmemory.ScoringRulesetQueryServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.TagQueryServiceInMemory;
@@ -459,5 +461,15 @@ public class InMemoryConfiguration {
     @Bean
     public ScoringReportQueryServiceInMemory scoringReportQueryService() {
         return new ScoringReportQueryServiceInMemory();
+    }
+
+    @Bean
+    public ScoringRulesetCrudServiceInMemory scoringRulesetCrudService() {
+        return new ScoringRulesetCrudServiceInMemory();
+    }
+
+    @Bean
+    public ScoringRulesetQueryServiceInMemory scoringRulesetQueryService(ScoringRulesetCrudServiceInMemory scoringRulesetCrudService) {
+        return new ScoringRulesetQueryServiceInMemory(scoringRulesetCrudService);
     }
 }
