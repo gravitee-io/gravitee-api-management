@@ -60,6 +60,7 @@ import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.api.ScoringReportRepository;
+import io.gravitee.repository.management.api.ScoringRulesetRepository;
 import io.gravitee.repository.management.api.SharedPolicyGroupHistoryRepository;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
@@ -273,6 +274,9 @@ public class DeleteEnvironmentCommandHandlerTest {
     private ScoringReportRepository scoringReportRepository;
 
     @Mock
+    private ScoringRulesetRepository scoringRulesetRepository;
+
+    @Mock
     private SearchEngineService searchEngineService;
 
     private DeleteEnvironmentCommandHandler cut;
@@ -363,6 +367,7 @@ public class DeleteEnvironmentCommandHandlerTest {
                 ratingRepository,
                 roleRepository,
                 scoringReportRepository,
+                scoringRulesetRepository,
                 sharedPolicyGroupRepository,
                 sharedPolicyGroupHistoryRepository,
                 subscriptionRepository,
@@ -459,6 +464,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(mediaRepository).deleteByEnvironment(ENV_ID);
         verify(portalMenuLinkRepository).deleteByEnvironmentId(ENV_ID);
         verify(metadataRepository).deleteByReferenceIdAndReferenceType(ENV_ID, MetadataReferenceType.ENVIRONMENT);
+        verify(scoringRulesetRepository).deleteByReferenceId(ENV_ID, "ENVIRONMENT");
         verify(environmentService).delete(ENV_ID);
     }
 
