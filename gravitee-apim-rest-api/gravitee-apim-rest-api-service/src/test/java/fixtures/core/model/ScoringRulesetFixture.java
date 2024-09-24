@@ -31,6 +31,8 @@ public class ScoringRulesetFixture {
             .name("ruleset-name")
             .description("ruleset-description")
             .payload("ruleset-payload")
+            .referenceId("environment-id")
+            .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
             .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()));
 
     public static ScoringRuleset aRuleset() {
