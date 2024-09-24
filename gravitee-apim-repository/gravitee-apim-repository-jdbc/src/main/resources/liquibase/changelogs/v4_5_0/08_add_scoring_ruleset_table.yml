@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.5.0_add_scoring_rulesets
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}scoring_rulesets
+            columns:
+              - column: { name: id, type: nvarchar(64), constraints: { primaryKey: true, nullable: false } }
+              - column: { name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: name, type: nvarchar(512), constraints: { nullable: false } }
+              - column: { name: description, type: nvarchar(1024) }
+              - column: { name: created_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
+              - column: { name: payload, type: nclob, constraints: { nullable: true } }
+
+        - createIndex:
+            indexName: idx_${gravitee_prefix}ref_id_ref_type
+            tableName: ${gravitee_prefix}scoring_rulesets
+            columns:
+              - column:
+                  name: reference_id
+                  type: nvarchar(64)
+              - column:
+                  name: reference_type
+                  type: nvarchar(64)
