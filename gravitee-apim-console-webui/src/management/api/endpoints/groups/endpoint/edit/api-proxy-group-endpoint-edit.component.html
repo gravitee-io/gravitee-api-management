@@ -45,7 +45,11 @@
     <mat-tab label="Health-check">
       <!-- Configuration tab content -->
       <div class="tab-body-wrapper">
-        <api-health-check-form [healthCheckForm]="healthCheckForm" [inheritHealthCheck]="inheritHealthCheck"></api-health-check-form>
+        <api-health-check-form
+          [healthCheckForm]="healthCheckForm"
+          [inheritHealthCheck]="inheritHealthCheck"
+          [isReadOnly]="isReadOnly"
+        ></api-health-check-form>
       </div>
     </mat-tab>
   </mat-tab-group>
