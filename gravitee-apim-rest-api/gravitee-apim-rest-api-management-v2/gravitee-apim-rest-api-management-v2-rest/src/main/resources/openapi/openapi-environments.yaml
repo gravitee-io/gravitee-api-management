@@ -258,6 +258,17 @@ paths:
                     description: Ruleset created
                 default:
                     $ref: "#/components/responses/Error"
+        get:
+            tags:
+                - Scoring
+                - Rulesets
+            summary: Get all rulesets at environment level
+            operationId: getEnvironmentRulesets
+            responses:
+                "200":
+                    $ref: "#/components/responses/ScoringRulesetsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
 
 components:
     schemas:
@@ -491,6 +502,36 @@ components:
                 payload:
                     type: string
                     description: The ruleset payload
+        ScoringRuleset:
+            type: object
+            description: A scoring ruleset
+            properties:
+                id:
+                    type: string
+                    description: The id of ruleset
+                name:
+                    type: string
+                    description: The name of ruleset
+                description:
+                    type: string
+                    description: The description of ruleset
+                payload:
+                    type: string
+                    description: The ruleset payload
+                createdAt:
+                    type: string
+                    format: date-time
+                    description: The date at which the ruleset was created
+                    example: 2020-01-01T00:00:00Z
+                referenceId:
+                    type: string
+                    description: The reference Id of ruleset
+                referenceType:
+                    $ref: "#/components/schemas/ScoringRulesetReferenceType"
+        ScoringRulesetReferenceType:
+            type: string
+            enum:
+                - ENVIRONMENT
 
         Error:
             type: object
@@ -705,6 +746,18 @@ components:
                                 $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
+        ScoringRulesetsResponse:
+            description: Scoring rulesets list
+            content:
+                application/json:
+                    schema:
+                        title: "ScoringRulesetsResponse"
+                        properties:
+                            data:
+                                description: List of rulesets.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/ScoringRuleset"
 
     securitySchemes:
         BasicAuth:
