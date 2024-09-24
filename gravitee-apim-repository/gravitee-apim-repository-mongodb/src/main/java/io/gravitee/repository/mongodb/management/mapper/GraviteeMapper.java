@@ -339,4 +339,6 @@ public interface GraviteeMapper {
     List<ScoringReport> map(List<ScoringReportMongo> source);
 
     ScoringReportMongo map(ScoringReport source);
+    ScoringRuleset map(ScoringRulesetMongo source);
+    ScoringRulesetMongo map(ScoringRuleset source);
 }

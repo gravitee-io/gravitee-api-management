@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.apim.core.access_point.model.AccessPoint;
+import io.gravitee.apim.core.scoring.model.ScoringRuleset;
 import io.gravitee.apim.core.workflow.model.Workflow;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.environment.DeleteEnvironmentCommand;
@@ -55,6 +56,7 @@ import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.api.ScoringReportRepository;
+import io.gravitee.repository.management.api.ScoringRulesetRepository;
 import io.gravitee.repository.management.api.SharedPolicyGroupHistoryRepository;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
@@ -144,6 +146,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final RatingRepository ratingRepository;
     private final RoleRepository roleRepository;
     private final ScoringReportRepository scoringReportRepository;
+    private final ScoringRulesetRepository scoringRulesetRepository;
     private final SearchEngineService searchEngineService;
     private final SharedPolicyGroupRepository sharedPolicyGroupRepository;
     private final SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository;
@@ -185,6 +188,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         @Lazy RatingRepository ratingRepository,
         @Lazy RoleRepository roleRepository,
         @Lazy ScoringReportRepository scoringReportRepository,
+        @Lazy ScoringRulesetRepository scoringRulesetRepository,
         @Lazy SharedPolicyGroupRepository sharedPolicyGroupRepository,
         @Lazy SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository,
         @Lazy SubscriptionRepository subscriptionRepository,
@@ -241,6 +245,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.ratingRepository = ratingRepository;
         this.roleRepository = roleRepository;
         this.scoringReportRepository = scoringReportRepository;
+        this.scoringRulesetRepository = scoringRulesetRepository;
         this.searchEngineService = searchEngineService;
         this.sharedPolicyGroupRepository = sharedPolicyGroupRepository;
         this.sharedPolicyGroupHistoryRepository = sharedPolicyGroupHistoryRepository;
@@ -344,6 +349,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         dashboardRepository.deleteByReferenceIdAndReferenceType(environment.getId(), DashboardReferenceType.ENVIRONMENT);
         dictionaryRepository.deleteByEnvironmentId(environment.getId());
         eventService.deleteOrUpdateEventsByEnvironment(environment.getId());
+        scoringRulesetRepository.deleteByReferenceId(environment.getId(), ScoringRuleset.ReferenceType.ENVIRONMENT.name());
 
         // Always default for environment
         portalNotificationConfigRepository.deleteByReferenceIdAndReferenceType(environment.getId(), NotificationReferenceType.ENVIRONMENT);
