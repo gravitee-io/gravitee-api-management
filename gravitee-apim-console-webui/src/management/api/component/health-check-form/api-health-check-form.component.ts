@@ -145,6 +145,10 @@ export class ApiHealthCheckFormComponent implements OnChanges, OnDestroy {
   @Input()
   // If provided, the inherit option is enabled
   public inheritHealthCheck?: EndpointHealthCheckService;
+
+  @Input()
+  public isReadOnly: boolean;
+
   private healthCheckFormInitialValue: unknown;
 
   public isDisabled$: Observable<boolean>;
@@ -201,7 +205,9 @@ export class ApiHealthCheckFormComponent implements OnChanges, OnDestroy {
           if (checked) {
             this.healthCheckForm.get('enabled').disable({ emitEvent: true });
             this.healthCheckForm.get('enabled').setValue(this.inheritHealthCheck.enabled);
-          } else {
+          }
+
+          if (!checked && !this.isReadOnly) {
             this.healthCheckForm.get('enabled').enable({ emitEvent: true });
           }
 
