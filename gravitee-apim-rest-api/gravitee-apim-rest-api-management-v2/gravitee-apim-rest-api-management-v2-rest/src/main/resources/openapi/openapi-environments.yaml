@@ -233,11 +233,29 @@ paths:
             operationId: getScoringEnvironmentOverview
             responses:
                 "200":
-                  description: Scoring overview of the environment
-                  content:
+                    description: Scoring overview of the environment
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/EnvironmentScoringOverview"
+                default:
+                    $ref: "#/components/responses/Error"
+    /scoring/rulesets:
+        post:
+            tags:
+                - Scoring
+                - Rulesets
+            summary: Create a new ruleset at environment level
+            operationId: createEnvironmentRuleset
+            requestBody:
+                content:
                     application/json:
-                      schema:
-                        $ref: "#/components/schemas/EnvironmentScoringOverview"
+                        schema:
+                            $ref: "#/components/schemas/ImportScoringRuleset"
+                required: true
+            responses:
+                "201":
+                    description: Ruleset created
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -433,7 +451,6 @@ components:
                     type: integer
                     description: The total number of violated rules with severity HINT for all assets.
                     example: 40
-
         EnvironmentScoringOverview:
             type: object
             description: The scoring overview of an Environment
@@ -442,9 +459,9 @@ components:
                     type: string
                     description: Environment identifier
                 score:
-                  type: number
-                  description: The average score of all APIs
-                  example: 0.74
+                    type: number
+                    description: The average score of all APIs
+                    example: 0.74
                 errors:
                     type: integer
                     description: The total number of violated rules with severity ERROR for all APIs.
@@ -461,6 +478,19 @@ components:
                     type: integer
                     description: The total number of violated rules with severity HINT for all APIs.
                     example: 40
+        ImportScoringRuleset:
+            type: object
+            description: The scoring ruleset to import
+            properties:
+                name:
+                    type: string
+                    description: The name of ruleset
+                description:
+                    type: string
+                    description: The description of ruleset
+                payload:
+                    type: string
+                    description: The ruleset payload
 
         Error:
             type: object
@@ -595,23 +625,23 @@ components:
                 type: string
                 example: my shared policy group
         sharedPolicyGroupHistoriesSortByParam:
-                name: sortBy
-                in: query
-                required: false
-                description: |-
-                    Possibility to sort Shared Policy Group history results by field.
-                    Can be ascending or descending with minus '-' prefix.
-                    By default, no sort is applied.
-                schema:
-                    type: string
-                    example: name
-                    enum:
-                        - version
-                        - -version
-                        - updatedAt
-                        - -updatedAt
-                        - deployedAt
-                        - -deployedAt
+            name: sortBy
+            in: query
+            required: false
+            description: |-
+                Possibility to sort Shared Policy Group history results by field.
+                Can be ascending or descending with minus '-' prefix.
+                By default, no sort is applied.
+            schema:
+                type: string
+                example: name
+                enum:
+                    - version
+                    - -version
+                    - updatedAt
+                    - -updatedAt
+                    - deployedAt
+                    - -deployedAt
     responses:
         SchemaFormResponse:
             description: Schema form of a plugin
