@@ -22,7 +22,14 @@ import { RedocService } from '../../../services/redoc.service';
   selector: 'app-page-redoc',
   standalone: true,
   imports: [],
-  template: `<div id="redoc"></div>`,
+  template: `
+    <style>
+      .api-tab-documentation__side-bar {
+        width: 10%;
+      }
+    </style>
+    <div id="redoc"></div>
+  `,
 })
 export class PageRedocComponent implements AfterViewInit {
   @Input()
@@ -37,7 +44,7 @@ export class PageRedocComponent implements AfterViewInit {
     const redocElement = this.element.nativeElement.querySelector('#redoc');
 
     // Force the right-side panel to join into the middle panel
-    const options = { theme: { breakpoints: { medium: '120rem' } } };
+    const options = { theme: { breakpoints: { medium: '150rem' } } };
 
     this.redocService.init(this.page.content, options, redocElement);
   }
