@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import io.gravitee.apim.core.scoring.use_case.GetEnvironmentReportsUseCase;
 import io.gravitee.apim.core.scoring.use_case.GetEnvironmentScoringOverviewUseCase;
+import io.gravitee.apim.core.scoring.use_case.ImportEnvironmentRulesetUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ScoringReportMapper;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentApisScoringResponse;
@@ -32,6 +33,7 @@ import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.UriInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -42,11 +44,17 @@ public class EnvironmentScoringResource extends AbstractResource {
     @Context
     protected UriInfo uriInfo;
 
+    @Context
+    private ResourceContext resourceContext;
+
     @Inject
     private GetEnvironmentReportsUseCase getEnvironmentReportsUseCase;
 
     @Inject
     private GetEnvironmentScoringOverviewUseCase getEnvironmentScoringOverviewUseCase;
+
+    @Inject
+    private ImportEnvironmentRulesetUseCase importEnvironmentRulesetUseCase;
 
     @Path("apis")
     @GET
@@ -79,5 +87,10 @@ public class EnvironmentScoringResource extends AbstractResource {
             .execute(new GetEnvironmentScoringOverviewUseCase.Input(executionContext.getEnvironmentId()))
             .overview();
         return ScoringReportMapper.INSTANCE.map(overview);
+    }
+
+    @Path("rulesets")
+    public EnvironmentScoringRulesetsResource getEnvironmentScoringRulesetsResource() {
+        return resourceContext.getResource(EnvironmentScoringRulesetsResource.class);
     }
 }

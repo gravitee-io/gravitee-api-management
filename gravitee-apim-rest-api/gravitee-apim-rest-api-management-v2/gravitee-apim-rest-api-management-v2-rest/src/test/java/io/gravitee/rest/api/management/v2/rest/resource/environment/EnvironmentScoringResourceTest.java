@@ -21,6 +21,7 @@ import static org.mockito.Mockito.doReturn;
 import fixtures.core.model.ScoringReportFixture;
 import inmemory.InMemoryAlternative;
 import inmemory.ScoringReportQueryServiceInMemory;
+import inmemory.ScoringRulesetCrudServiceInMemory;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentApiScore;
@@ -31,6 +32,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
@@ -57,6 +59,9 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
     @Inject
     ScoringReportQueryServiceInMemory scoringReportQueryService;
 
+    @Inject
+    ScoringRulesetCrudServiceInMemory scoringRulesetCrudService;
+
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT;
@@ -80,9 +85,10 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
     @Override
     public void tearDown() {
         super.tearDown();
+        UuidString.reset();
         GraviteeContext.cleanContext();
 
-        Stream.of(scoringReportQueryService).forEach(InMemoryAlternative::reset);
+        Stream.of(scoringReportQueryService, scoringRulesetCrudService).forEach(InMemoryAlternative::reset);
     }
 
     @Nested
