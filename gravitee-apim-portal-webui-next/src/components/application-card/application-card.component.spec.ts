@@ -32,14 +32,7 @@ describe('ApplicationCardComponent', () => {
     application: {
       ...fakeApplication(),
       id: '1',
-      _links: {
-        ...fakeApplication()._links,
-        picture: 'link1',
-        background: 'background',
-        members: 'members',
-        notifications: 'notifications',
-        self: 'self',
-      },
+      picture: 'picture1',
     },
     routerLinkValue: ['.', '1'],
     buttonCapture: 'Open',
@@ -106,7 +99,7 @@ describe('ApplicationCardComponent', () => {
 
   it('should display the picture component with the correct inputs', () => {
     const pictureComponent = fixture.nativeElement.querySelector('app-picture');
-    expect(pictureComponent.getAttribute('ng-reflect-picture')).toEqual(mockData.application._links?.picture);
+    expect(pictureComponent.getAttribute('ng-reflect-picture')).toEqual(mockData.application.picture);
     expect(pictureComponent.getAttribute('ng-reflect-hash-value')).toEqual(`${mockData.application.name}`);
   });
 });
