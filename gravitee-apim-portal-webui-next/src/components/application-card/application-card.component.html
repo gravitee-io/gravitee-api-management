@@ -18,7 +18,7 @@
 <mat-card class="app-card" appearance="outlined">
   <mat-card-content class="app-card__content">
     <div class="app-card__header">
-      <app-picture [picture]="application._links?.picture" [hashValue]="application.name" [size]="40" />
+      <app-picture [picture]="application.picture" [hashValue]="application.name" [size]="40" />
       <div class="app-card__header__content">
         <div #appName class="title m3-title-medium" [matTooltip]="isOverflowing ? application.name : ''">{{ application.name }}</div>
         <div class="m3-body-medium"><span i18n="@@owner">Owner: </span>{{ application.owner?.display_name }}</div>
