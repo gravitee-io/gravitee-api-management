@@ -271,9 +271,8 @@ class ApiCreationController {
         })
         .then((api) => {
           if (readyForReview) {
-            this.ApiService.askForReview(api.data).then((response) => {
+            this.ApiService.askForReview(api.data).then(() => {
               api.data.workflow_state = 'IN_REVIEW';
-              this.ngIfMatchEtagInterceptor.updateLastEtag('api', response.headers('etag'));
               this.api = api.data;
             });
           }
@@ -281,8 +280,7 @@ class ApiCreationController {
         })
         .then((api) => {
           if (deployAndStart) {
-            this.ApiService.deploy(api.data.id).then((response) => {
-              this.ngIfMatchEtagInterceptor.updateLastEtag('api', response.headers('etag'));
+            this.ApiService.deploy(api.data.id).then(() => {
               this.ApiService.start(api.data).then(() => {
                 this.NotificationService.show('API created, deployed and started');
                 this.$state.go('management.apis.ng.general', { apiId: api.data.id });
