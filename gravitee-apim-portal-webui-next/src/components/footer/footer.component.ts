@@ -27,6 +27,6 @@ import { CompanyTitleComponent } from '../company-title/company-title.component'
 export class FooterComponent {
   @Input()
   title: string = 'Developer Portal';
-  @Input()
-  company: string = 'Gravitee';
+
+  currentYear = new Date().getFullYear().toString();
 }
