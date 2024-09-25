@@ -148,10 +148,6 @@
 
       <api-navigation-header *ngIf="selectedItemHeader" [menuItemHeader]="selectedItemHeader"></api-navigation-header>
 
-      <gio-banner-info class="tech-preview-banner" *ngIf="currentApi.definitionVersion === 'FEDERATED'">
-        {{ integrationsService.bannerMessages.techPreview }}
-      </gio-banner-info>
-
       <api-navigation-tabs
         *ngIf="selectedItemWithTabs"
         class="api-navigation__content__tabs"

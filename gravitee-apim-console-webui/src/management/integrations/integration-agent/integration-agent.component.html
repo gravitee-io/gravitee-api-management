@@ -24,10 +24,6 @@
     >
   </div>
 
-  <gio-banner-info class="tech-preview-banner">
-    {{ integrationsService.bannerMessages.techPreview }}
-  </gio-banner-info>
-
   <div *ngIf="!isLoading && integration; else loadingTemplate" class="page-cards">
     <mat-card>
       <div class="card-header">
