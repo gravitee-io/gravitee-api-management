@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -24,6 +25,7 @@ import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.definition.model.kubernetes.v1alpha1.ApiDefinitionResource;
 import io.gravitee.kubernetes.mapper.CustomResourceDefinitionMapper;
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdatePageEntity;
@@ -44,6 +46,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
@@ -125,6 +128,10 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
                 mapCRDMembers(executionContext, apiDefinitionResource.getMembers());
             }
 
+            if (apiDefinitionResource.hasPages()) {
+                prepareApiPagesForExport(apiDefinitionResource.getPages());
+            }
+
             if (exportQuery.isRemoveIds()) {
                 apiDefinitionResource.removeIds();
             }
@@ -176,6 +183,41 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
             } else {
                 ((ObjectNode) member).remove("roles");
                 ((ObjectNode) member).put("role", roleName);
+            }
+        }
+    }
+
+    private void prepareApiPagesForExport(ObjectNode pages) throws JsonProcessingException {
+        Iterator<Map.Entry<String, JsonNode>> iterator = pages.fields();
+
+        while (iterator.hasNext()) {
+            Map.Entry<String, JsonNode> pageJsonNode = iterator.next();
+            PageEntity page = objectMapper.treeToValue(pageJsonNode.getValue(), PageEntity.class);
+
+            if (
+                (PageType.MARKDOWN.name().equals(page.getType()) || PageType.SWAGGER.name().equals(page.getType())) &&
+                page.getSource() != null &&
+                "github-fetcher".equals(page.getSource().getType())
+            ) {
+                // Remove auto-fetched pages that was generated from ROOT github source
+                if (page.getMetadata() != null && "auto_fetched".equals(page.getMetadata().get("graviteeio/fetcher_type"))) {
+                    iterator.remove();
+                } else {
+                    ((ObjectNode) pageJsonNode.getValue()).remove("content");
+                }
+            } else if (
+                PageType.FOLDER.name().equals(page.getType()) &&
+                page.getSource() != null &&
+                "github-fetcher".equals(page.getSource().getType())
+            ) {
+                // Remove auto-generated folders generated from ROOT github fetcher
+                iterator.remove();
+            } else if (
+                (PageType.SWAGGER.name().equals(page.getType()) || PageType.MARKDOWN.name().equals(page.getType())) &&
+                page.getSource() != null &&
+                ("http-fetcher".equals(page.getSource().getType()))
+            ) {
+                ((ObjectNode) pageJsonNode.getValue()).remove("content");
             }
         }
     }
