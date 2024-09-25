@@ -113,6 +113,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private static final Logger logger = LoggerFactory.getLogger(PageServiceImpl.class);
 
     private static final String SENSITIVE_DATA_REPLACEMENT = "********";
+    private static final String AUTO_FETCHED = "auto_fetched";
+    private static final String GRAVITEE_FETCHER_TYPE = "graviteeio/fetcher_type";
 
     @Value("${documentation.markdown.sanitize:true}")
     private boolean markdownSanitize;
@@ -280,6 +282,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 ? updatePageEntity.getParentId().isEmpty() ? null : updatePageEntity.getParentId()
                 : withUpdatePage.getParentId()
         );
+        page.setMetadata(updatePageEntity.getMetadata() != null ? updatePageEntity.getMetadata() : withUpdatePage.getMetadata());
 
         return page;
     }
@@ -1502,7 +1505,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 final Resource resource = fetcher.fetch();
                 page.setContent(getResourceContentAsString(resource));
                 if (resource.getMetadata() != null) {
-                    page.setMetadata(new HashMap<>(resource.getMetadata().size()));
+                    if (page.getMetadata() == null) {
+                        page.setMetadata(new HashMap<>(resource.getMetadata().size()));
+                    }
+
                     for (Map.Entry<String, Object> entry : resource.getMetadata().entrySet()) {
                         if (!(entry.getValue() instanceof Map)) {
                             page.getMetadata().put(entry.getKey(), String.valueOf(entry.getValue()));
@@ -1808,6 +1814,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 newPage.setOrder(order++);
                 newPage.setName(FilenameUtils.getBaseName(filename));
 
+                // This metadata is used to distinguish auto-fetched pages from ROOT
+                Map<String, String> metadata = new HashMap<>();
+                metadata.put(GRAVITEE_FETCHER_TYPE, AUTO_FETCHED);
+                newPage.setMetadata(metadata);
+
                 fetchPageAndDefineType(newPage, fetcher, filename);
 
                 if (newPage.getType() != null) {
@@ -1880,6 +1891,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                         newPage.setName(pathElement);
                         newPage.setType(PageType.FOLDER);
                         newPage.setVisibility(Visibility.PUBLIC);
+                        newPage.setSource(newPageEntity.getSource());
                         folder = createPage(executionContext, apiId, newPage);
                     } else {
                         folder = convert(pages.get(0));
@@ -1916,6 +1928,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             updatePage.setOrder(newPageEntity.getOrder());
             updatePage.setHomepage(newPageEntity.isHomepage());
             updatePage.setSource(newPageEntity.getSource());
+            updatePage.setMetadata(newPageEntity.getMetadata());
             updatePageSourceConfigurationFromFetcherConfiguration(updatePage.getSource(), fetcher, src);
             createdPages.add(update(executionContext, page.getId(), updatePage));
         }
@@ -2393,6 +2406,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         updatePageEntity.setAttachedMedia(convertMedia(page.getAttachedMedia()));
         updatePageEntity.setParentId("".equals(page.getParentId()) ? null : page.getParentId());
         updatePageEntity.setVisibility(Visibility.valueOf(page.getVisibility()));
+        updatePageEntity.setMetadata(page.getMetadata());
         return updatePageEntity;
     }
 
