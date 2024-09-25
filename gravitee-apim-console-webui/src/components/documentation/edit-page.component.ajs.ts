@@ -247,7 +247,7 @@ class EditPageComponentController implements IController {
       roles: [],
     };
     this.fetchers = null;
-    this.$onInit();
+    setTimeout(() => this.$onInit(), 50);
   }
 
   toggleRename() {
