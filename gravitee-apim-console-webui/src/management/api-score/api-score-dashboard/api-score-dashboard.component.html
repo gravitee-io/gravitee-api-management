@@ -43,19 +43,19 @@
       <mat-card class="card" data-testid="overview-score">
         <mat-card-header>
           <mat-card-title class="card__title">
-            @if (!overviewData || overviewData.averageScore === undefined) {
+            @if (!overviewData || overviewData.score === undefined) {
               <span class="gio-badge-neutral">Not available</span>
-            } @else if (overviewData.averageScore >= 0.8) {
+            } @else if (overviewData.score >= 0.8) {
               <span class="average-score-badge gio-badge-success"
-                ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ overviewData.averageScore * 100 }} %
+                ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ overviewData.score * 100 | number: '1.0-0' }} %
               </span>
-            } @else if (overviewData.averageScore >= 0.4) {
+            } @else if (overviewData.score >= 0.4) {
               <span class="average-score-badge gio-badge-warning"
-                ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ overviewData.averageScore * 100 }} %
+                ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ overviewData.score * 100 | number: '1.0-0' }} %
               </span>
             } @else {
               <span class="average-score-badge gio-badge-error"
-                ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ overviewData?.averageScore * 100 }} %
+                ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ overviewData.score * 100 | number: '1.0-0' }} %
               </span>
             }
           </mat-card-title>
@@ -144,7 +144,7 @@
         <ng-container matColumnDef="name">
           <th mat-header-cell *matHeaderCellDef id="name">API Name</th>
           <td mat-cell *matCellDef="let element">
-            <a>{{ element.name }}</a>
+            <a [routerLink]="'../apis/' + element.id + '/api-score'">{{ element.name }}</a>
           </td>
         </ng-container>
 
@@ -155,15 +155,15 @@
               <span class="gio-badge-neutral">Not available</span>
             } @else if (element.score >= 0.8) {
               <span class="gio-badge-success"
-                ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ element.score * 100 }} %
+                ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ element.score * 100 | number: '1.0-0' }} %
               </span>
             } @else if (element.score >= 0.4) {
               <span class="gio-badge-warning"
-                ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ element.score * 100 }} %
+                ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ element.score * 100 | number: '1.0-0' }} %
               </span>
             } @else {
               <span class="gio-badge-error"
-                ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ element.score * 100 }} %
+                ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ element.score * 100 | number: '1.0-0' }} %
               </span>
             }
           </td>
@@ -225,7 +225,12 @@
           <th mat-header-cell *matHeaderCellDef id="actions"></th>
           <td mat-cell *matCellDef="let element">
             <div class="actions">
-              <button mat-button aria-label="View details button" [disabled]="true">
+              <button
+                mat-button
+                aria-label="View details button"
+                [routerLink]="'../apis/' + element.id + '/api-score'"
+                matTooltip="Open API details"
+              >
                 <mat-icon svgIcon="gio:eye-empty"></mat-icon>
               </button>
             </div>

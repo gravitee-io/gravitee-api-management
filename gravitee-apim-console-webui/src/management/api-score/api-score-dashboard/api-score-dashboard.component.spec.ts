@@ -118,7 +118,7 @@ describe('ApiScoreDashboardComponent', () => {
       warnings: 15,
       infos: 0,
       hints: 0,
-      averageScore: 0.9,
+      score: 0.9,
     };
 
     httpTestingController
