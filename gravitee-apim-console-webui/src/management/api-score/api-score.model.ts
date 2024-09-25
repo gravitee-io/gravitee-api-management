@@ -38,5 +38,5 @@ export interface ApisScoringOverview {
   id: string;
   infos: number;
   warnings: number;
-  averageScore: number;
+  score: number;
 }
