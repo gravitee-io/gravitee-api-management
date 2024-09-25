@@ -20,12 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.PageFixtures;
+import fixtures.core.model.ScoringRulesetFixture;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.AsyncJobCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import inmemory.ScoringProviderInMemory;
+import inmemory.ScoringRulesetQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -33,6 +35,7 @@ import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomain
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.scoring.model.ScoreRequest;
 import io.gravitee.apim.core.scoring.model.ScoringAssetType;
+import io.gravitee.apim.core.scoring.model.ScoringRuleset;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
@@ -57,11 +60,14 @@ class ScoreApiRequestUseCaseTest {
     private static final String USER_ID = "user-id";
 
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
+    private static final ScoringRuleset CUSTOM_RULESET_1 = ScoringRulesetFixture.aRuleset("ruleset1").withReferenceId(ENVIRONMENT_ID);
+    private static final ScoringRuleset CUSTOM_RULESET_2 = ScoringRulesetFixture.aRuleset("ruleset2").withReferenceId(ENVIRONMENT_ID);
 
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     AsyncJobCrudServiceInMemory asyncJobCrudService = new AsyncJobCrudServiceInMemory();
     PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     ScoringProviderInMemory scoringProvider = new ScoringProviderInMemory();
+    ScoringRulesetQueryServiceInMemory scoringRulesetQueryService = new ScoringRulesetQueryServiceInMemory();
 
     ScoreApiRequestUseCase scoreApiRequestUseCase;
 
@@ -84,13 +90,14 @@ class ScoreApiRequestUseCaseTest {
                 apiCrudService,
                 new ApiDocumentationDomainService(pageQueryService, new PlanQueryServiceInMemory()),
                 scoringProvider,
-                asyncJobCrudService
+                asyncJobCrudService,
+                scoringRulesetQueryService
             );
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(apiCrudService, asyncJobCrudService, pageQueryService).forEach(InMemoryAlternative::reset);
+        Stream.of(apiCrudService, asyncJobCrudService, pageQueryService, scoringRulesetQueryService).forEach(InMemoryAlternative::reset);
         scoringProvider.reset();
     }
 
@@ -196,6 +203,36 @@ class ScoreApiRequestUseCaseTest {
         assertThat(scoringProvider.pendingRequests()).isEmpty();
     }
 
+    @Test
+    public void should_trigger_scoring_with_custom_rulesets() {
+        // Given
+        var api = givenExistingApi(ApiFixtures.aFederatedApi());
+        var page = givenExistingPage(
+            PageFixtures.aPage().toBuilder().referenceType(Page.ReferenceType.API).referenceId(api.getId()).type(Page.Type.SWAGGER).build()
+        );
+        givenExistingRulesets(CUSTOM_RULESET_1, CUSTOM_RULESET_2);
+
+        // When
+        scoreApiRequestUseCase
+            .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
+            .test()
+            .awaitDone(5, TimeUnit.SECONDS)
+            .assertComplete();
+
+        // Then
+        assertThat(scoringProvider.pendingRequests())
+            .containsExactly(
+                new ScoreRequest(
+                    "generated-id",
+                    ORGANIZATION_ID,
+                    ENVIRONMENT_ID,
+                    api.getId(),
+                    List.of(new ScoreRequest.AssetToScore(page.getId(), ScoringAssetType.SWAGGER, page.getName(), page.getContent())),
+                    List.of(CUSTOM_RULESET_1.payload(), CUSTOM_RULESET_2.payload())
+                )
+            );
+    }
+
     @ParameterizedTest
     @EnumSource(value = Page.Type.class, mode = EnumSource.Mode.EXCLUDE, names = { "SWAGGER", "ASYNCAPI" })
     public void should_not_trigger_scoring_when_no_page_type_supported(Page.Type pageType) {
@@ -224,5 +261,9 @@ class ScoreApiRequestUseCaseTest {
     private Page givenExistingPage(Page page) {
         pageQueryService.initWith(List.of(page));
         return page;
+    }
+
+    private void givenExistingRulesets(ScoringRuleset... rulesets) {
+        scoringRulesetQueryService.initWith(List.of(rulesets));
     }
 }
