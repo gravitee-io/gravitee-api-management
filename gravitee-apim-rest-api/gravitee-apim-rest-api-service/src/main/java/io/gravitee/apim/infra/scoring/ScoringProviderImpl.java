@@ -70,7 +70,8 @@ public class ScoringProviderImpl implements ScoringProvider {
                                 detectContentType(a.content())
                             )
                         )
-                        .toList()
+                        .toList(),
+                    request.customRulesets()
                 )
             )
         );
