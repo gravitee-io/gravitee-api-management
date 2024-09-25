@@ -22,7 +22,6 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 export class IntegrationsHarness extends ComponentHarness {
   public static readonly hostSelector = 'app-integrations';
 
-  private techPreviewBannerLocator = this.locatorForOptional('.tech-preview-banner');
   private licenceBannerLocator = this.locatorForOptional('.licence-banner');
   private tableLocator = this.locatorForOptional(MatTableHarness);
   private noIntegrationBannerLocator = this.locatorForOptional('.no-integrations');
@@ -49,10 +48,6 @@ export class IntegrationsHarness extends ComponentHarness {
 
   public getPagination = async (): Promise<MatPaginatorHarness> => {
     return await this.paginationLocator();
-  };
-
-  public getTechPreviewBanner = async (): Promise<TestElement> => {
-    return await this.techPreviewBannerLocator();
   };
 
   public getLicenceBanner = async (): Promise<TestElement> => {

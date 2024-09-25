@@ -181,11 +181,6 @@ describe('IntegrationsComponent', () => {
       httpTestingController.expectNone(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations?page=1&perPage=10`);
     });
 
-    it('should display tech preview banner', async (): Promise<void> => {
-      const techPreviewBanner: TestElement = await componentHarness.getTechPreviewBanner();
-      expect(techPreviewBanner).toBeTruthy();
-    });
-
     it('should display license banner', async (): Promise<void> => {
       const licenceBanner: TestElement = await componentHarness.getLicenceBanner();
       expect(licenceBanner).toBeTruthy();
@@ -200,13 +195,6 @@ describe('IntegrationsComponent', () => {
         features: [],
         isExpired: false,
       });
-    });
-
-    it('should display tech preview banner', async (): Promise<void> => {
-      expectIntegrationGetRequest();
-
-      const techPreviewBanner = await componentHarness.getTechPreviewBanner();
-      expect(techPreviewBanner).toBeTruthy();
     });
 
     it('should not display license banner', async (): Promise<void> => {
@@ -228,13 +216,6 @@ describe('IntegrationsComponent', () => {
         },
         { federation: { enabled: false } },
       );
-    });
-
-    it('should display not activated module banner', async (): Promise<void> => {
-      expectIntegrationGetRequest();
-
-      const techPreviewBanner = await componentHarness.getTechPreviewBanner();
-      expect(techPreviewBanner).toBeTruthy();
     });
 
     it('should not display license banner', async (): Promise<void> => {
