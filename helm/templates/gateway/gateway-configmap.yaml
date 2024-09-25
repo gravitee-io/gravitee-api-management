@@ -58,6 +58,9 @@ data:
           {{- if hasKey .Values.gateway.ssl.keystore "watch" }}
           watch: {{ .Values.gateway.ssl.keystore.watch }}
           {{- end }}
+          {{- if hasKey .Values.gateway.ssl.keystore "secret" }}
+          secret: {{ .Values.gateway.ssl.keystore.secret }}
+          {{- end }}
         clientAuth: {{ .Values.gateway.ssl.clientAuth }}
         {{- if .Values.gateway.ssl.truststore }}
         truststore:
