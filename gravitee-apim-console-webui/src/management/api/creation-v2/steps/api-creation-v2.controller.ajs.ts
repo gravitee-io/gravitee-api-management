@@ -268,9 +268,8 @@ class ApiCreationV2ControllerAjs {
         })
         .then((api) => {
           if (readyForReview) {
-            this.ApiService.askForReview(api.data).then((response) => {
+            this.ApiService.askForReview(api.data).then(() => {
               api.data.workflow_state = 'IN_REVIEW';
-              this.ngIfMatchEtagInterceptor.updateLastEtag('api', response.headers('etag'));
               this.api = api.data;
             });
           }
@@ -278,8 +277,7 @@ class ApiCreationV2ControllerAjs {
         })
         .then((api) => {
           if (deployAndStart) {
-            this.ApiService.deploy(api.data.id).then((response) => {
-              this.ngIfMatchEtagInterceptor.updateLastEtag('api', response.headers('etag'));
+            this.ApiService.deploy(api.data.id).then(() => {
               this.ApiService.start(api.data).then(() => {
                 this.NotificationService.show('API created, deployed and started');
                 this.ngRouter.navigate(['../..', api.data.id], { relativeTo: this.activatedRoute });
