@@ -269,6 +269,20 @@ paths:
                     $ref: "#/components/responses/ScoringRulesetsResponse"
                 default:
                     $ref: "#/components/responses/Error"
+    /scoring/rulesets/{rulesetId}:
+        delete:
+            tags:
+                - Scoring
+                - Rulesets
+            summary: Delete a ruleset
+            operationId: deleteEnvironmentRuleset
+            parameters:
+                - $ref: "#/components/parameters/rulesetId"
+            responses:
+                "204":
+                    description: Ruleset deleted
+                default:
+                    $ref: "#/components/responses/Error"
 
 components:
     schemas:
@@ -683,6 +697,15 @@ components:
                     - -updatedAt
                     - deployedAt
                     - -deployedAt
+
+        # Scoring
+        rulesetId:
+            name: rulesetId
+            in: path
+            description: The unique ID of ruleset
+            required: true
+            schema:
+                type: string
     responses:
         SchemaFormResponse:
             description: Schema form of a plugin
