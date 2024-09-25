@@ -22,10 +22,6 @@
     <span class="page-header__description body-strong">Manage your integration activation and general information</span>
   </div>
 
-  <gio-banner-info class="tech-preview-banner">
-    {{ integrationsService.bannerMessages.techPreview }}
-  </gio-banner-info>
-
   <nav mat-tab-nav-bar mat-stretch-tabs="false" [tabPanel]="tabPanel" class="nav-tabs">
     @for (tab of allowedItems; track tab.displayName) {
       <a
