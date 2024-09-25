@@ -43,6 +43,7 @@ public class PageConverter {
         updatePageEntity.setVisibility(pageEntity.getVisibility());
         updatePageEntity.setSource(pageEntity.getSource());
         updatePageEntity.setAttachedMedia(pageEntity.getAttachedMedia());
+        updatePageEntity.setMetadata(pageEntity.getMetadata());
         return updatePageEntity;
     }
 

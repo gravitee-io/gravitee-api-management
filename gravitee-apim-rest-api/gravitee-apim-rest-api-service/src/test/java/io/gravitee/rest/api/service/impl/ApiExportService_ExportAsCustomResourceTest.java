@@ -99,6 +99,9 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
 
     private ApiExportServiceImpl apiExportService;
 
+    private static final String AUTO_FETCHED = "auto_fetched";
+    private static final String GRAVITEE_FETCHER_TYPE = "graviteeio/fetcher_type";
+
     @Override
     @Before
     public void setUp() throws io.gravitee.repository.exceptions.TechnicalException {
@@ -186,7 +189,45 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         folder.setType(PageType.FOLDER.toString());
         folder.setVisibility(Visibility.PUBLIC);
 
-        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(true))).thenReturn(List.of(folder));
+        PageSourceEntity githubSourceEntity = new PageSourceEntity();
+        githubSourceEntity.setType("github-fetcher");
+
+        PageEntity githubFetcher = new PageEntity();
+        githubFetcher.setName("Github-Fetcher");
+        githubFetcher.setOrder(2);
+        githubFetcher.setType(PageType.ROOT.toString());
+        githubFetcher.setVisibility(Visibility.PUBLIC);
+        githubFetcher.setSource(githubSourceEntity);
+
+        PageEntity fetcherGithubSwagger = new PageEntity();
+        fetcherGithubSwagger.setName("Fetched Github Swagger Page");
+        fetcherGithubSwagger.setOrder(3);
+        fetcherGithubSwagger.setType(PageType.SWAGGER.toString());
+        fetcherGithubSwagger.setVisibility(Visibility.PUBLIC);
+        fetcherGithubSwagger.setSource(githubSourceEntity);
+        fetcherGithubSwagger.setMetadata(Map.of(GRAVITEE_FETCHER_TYPE, AUTO_FETCHED));
+
+        PageEntity fetcherGithubMarkdown = new PageEntity();
+        fetcherGithubMarkdown.setName("Fetched Github Markdown Page");
+        fetcherGithubMarkdown.setOrder(4);
+        fetcherGithubMarkdown.setType(PageType.MARKDOWN.toString());
+        fetcherGithubMarkdown.setVisibility(Visibility.PUBLIC);
+        fetcherGithubMarkdown.setSource(githubSourceEntity);
+        fetcherGithubMarkdown.setMetadata(Map.of(GRAVITEE_FETCHER_TYPE, AUTO_FETCHED));
+
+        PageSourceEntity httpSourceEntity = new PageSourceEntity();
+        httpSourceEntity.setType("http-fetcher");
+
+        PageEntity httpFetcher = new PageEntity();
+        httpFetcher.setName("HTTP-Fetcher");
+        httpFetcher.setOrder(5);
+        httpFetcher.setType(PageType.SWAGGER.toString());
+        httpFetcher.setVisibility(Visibility.PUBLIC);
+        httpFetcher.setSource(httpSourceEntity);
+        httpFetcher.setContent("SHOULD BE REMOVED");
+
+        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(true)))
+            .thenReturn(List.of(folder, githubFetcher, fetcherGithubSwagger, fetcherGithubMarkdown, httpFetcher));
 
         String poRoleId = "9ca07fdb-e143-45be-9c7d-44946a94968e";
         String poRoleName = "PRIMARY_OWNER";
