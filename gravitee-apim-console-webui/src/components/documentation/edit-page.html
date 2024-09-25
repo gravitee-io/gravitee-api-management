@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div class="gv-forms gv-forms-fluid gv-edit-page" layout="column">
+<div class="gv-forms gv-forms-fluid gv-edit-page" layout="column" ng-if="$ctrl.page">
   <div class="gv-forms-header" layout="row" layout-align="space-between end" ng-if="!rename">
     <div>
       <md-icon md-svg-src="assets/logo_{{$ctrl.page.type | lowercase}}.svg" style="margin: 0 8px 12px 0"></md-icon>
