@@ -19,12 +19,15 @@ package io.gravitee.apim.core.scoring.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.async_job.crud_service.AsyncJobCrudService;
 import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.scoring.model.ScoreRequest;
 import io.gravitee.apim.core.scoring.model.ScoringAssetType;
+import io.gravitee.apim.core.scoring.model.ScoringRuleset;
+import io.gravitee.apim.core.scoring.query_service.ScoringRulesetQueryService;
 import io.gravitee.apim.core.scoring.service_provider.ScoringProvider;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -32,7 +35,10 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @UseCase
 public class ScoreApiRequestUseCase {
 
@@ -40,53 +46,53 @@ public class ScoreApiRequestUseCase {
     private final ApiDocumentationDomainService apiDocumentationDomainService;
     private final ScoringProvider scoringProvider;
     private final AsyncJobCrudService asyncJobCrudService;
-
-    public ScoreApiRequestUseCase(
-        ApiCrudService apiCrudService,
-        ApiDocumentationDomainService apiDocumentationDomainService,
-        ScoringProvider scoringProvider,
-        AsyncJobCrudService asyncJobCrudService
-    ) {
-        this.apiCrudService = apiCrudService;
-        this.apiDocumentationDomainService = apiDocumentationDomainService;
-        this.scoringProvider = scoringProvider;
-        this.asyncJobCrudService = asyncJobCrudService;
-    }
+    private final ScoringRulesetQueryService scoringRulesetQueryService;
 
     public Completable execute(Input input) {
+        var assets$ = Flowable
+            .fromIterable(apiDocumentationDomainService.getApiPages(input.apiId, null))
+            .filter(page -> page.isAsyncApi() || page.isSwagger())
+            .map(page ->
+                new ScoreRequest.AssetToScore(
+                    page.getId(),
+                    ScoringAssetType.fromPageType(page.getType()),
+                    page.getName(),
+                    page.getContent()
+                )
+            )
+            .toList();
+        var customRulesets$ = Flowable
+            .fromCallable(() ->
+                scoringRulesetQueryService.findByReference(input.auditInfo.environmentId(), ScoringRuleset.ReferenceType.ENVIRONMENT)
+            )
+            .flatMap(Flowable::fromIterable)
+            .map(ScoringRuleset::payload)
+            .toList();
+
         return Maybe
             .fromOptional(apiCrudService.findById(input.apiId()))
             .switchIfEmpty(Single.error(new ApiNotFoundException(input.apiId())))
             .flatMap(api ->
-                Flowable
-                    .fromIterable(apiDocumentationDomainService.getApiPages(api.getId(), null))
-                    .filter(page -> page.isAsyncApi() || page.isSwagger())
-                    .map(page ->
-                        new ScoreRequest.AssetToScore(
-                            page.getId(),
-                            ScoringAssetType.fromPageType(page.getType()),
-                            page.getName(),
-                            page.getContent()
-                        )
-                    )
-                    .toList()
-            )
-            .flatMapCompletable(assets -> {
-                if (assets.isEmpty()) {
-                    return Completable.complete();
-                }
-                var job = newScoringJob(UuidString.generateRandom(), input.auditInfo, input.apiId);
-                return scoringProvider
-                    .requestScore(
+                Single.zip(
+                    assets$,
+                    customRulesets$,
+                    (assets, customRulesets) ->
                         new ScoreRequest(
-                            job.getId(),
+                            UuidString.generateRandom(),
                             input.auditInfo.organizationId(),
                             input.auditInfo.environmentId(),
                             input.apiId,
-                            assets
+                            assets,
+                            customRulesets
                         )
-                    )
-                    .doOnComplete(() -> asyncJobCrudService.create(job));
+                )
+            )
+            .flatMapCompletable(request -> {
+                if (request.assets().isEmpty()) {
+                    return Completable.complete();
+                }
+                var job = newScoringJob(request.jobId(), input.auditInfo, input.apiId);
+                return scoringProvider.requestScore(request).doOnComplete(() -> asyncJobCrudService.create(job));
             });
     }
 
