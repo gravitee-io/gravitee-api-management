@@ -15,8 +15,21 @@
  */
 package io.gravitee.apim.core.scoring.model;
 
+import static java.util.Collections.emptyList;
+
 import java.util.List;
 
-public record ScoreRequest(String jobId, String organizationId, String environmentId, String apiId, List<AssetToScore> assets) {
+public record ScoreRequest(
+    String jobId,
+    String organizationId,
+    String environmentId,
+    String apiId,
+    List<AssetToScore> assets,
+    List<String> customRulesets
+) {
+    public ScoreRequest(String jobId, String organizationId, String environmentId, String apiId, List<AssetToScore> assets) {
+        this(jobId, organizationId, environmentId, apiId, assets, emptyList());
+    }
+
     public record AssetToScore(String assetId, ScoringAssetType assetType, String assetName, String content) {}
 }
