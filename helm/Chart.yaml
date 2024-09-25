@@ -30,3 +30,8 @@ annotations:
       description: 'Fix cloud configuration: avoid empty volume mount'
     - kind: fixed
       description: 'Split hazelcast config for cluster and cache'
+    - kind: fixed
+      description: 'Add support of SSL keystore secret'
+      links:
+        - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/9854
