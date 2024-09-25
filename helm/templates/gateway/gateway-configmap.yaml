@@ -84,6 +84,9 @@ data:
             {{- if hasKey $server.ssl.keystore "watch" }}
             watch: {{ $server.ssl.keystore.watch }}
             {{- end }}
+            {{- if hasKey $server.ssl.keystore "secret" }}
+            secret: {{ $server.ssl.keystore.secret }}
+            {{- end }}
           clientAuth: {{ $server.ssl.clientAuth }}
           {{- if $server.ssl.truststore }}
           truststore:
@@ -134,6 +137,9 @@ data:
           {{- end }}
           {{- if hasKey .Values.gateway.ssl.keystore "watch" }}
           watch: {{ .Values.gateway.ssl.keystore.watch }}
+          {{- end }}
+          {{- if hasKey .Values.gateway.ssl.keystore "secret" }}
+          secret: {{ .Values.gateway.ssl.keystore.secret }}
           {{- end }}
         clientAuth: {{ .Values.gateway.ssl.clientAuth }}
         {{- if .Values.gateway.ssl.truststore }}

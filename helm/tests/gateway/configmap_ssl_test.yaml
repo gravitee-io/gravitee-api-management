@@ -1,4 +1,4 @@
-suite: Test Management API configmap with tracining enabled
+suite: Test Management API configmap with SSL enabled
 templates:
   - "gateway/gateway-configmap.yaml"
 tests:
@@ -77,3 +77,24 @@ tests:
             \s     watch: true
             \s   clientAuth: false
             \s   sni: true
+
+  - it: Keystore secret
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        ssl:
+          enabled: true
+          keystore:
+            secret: secret://kubernetes/my-secret
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s secured: true
+            \s ssl:
+            \s   keystore:
+            \s     secret: secret://kubernetes/my-secret
