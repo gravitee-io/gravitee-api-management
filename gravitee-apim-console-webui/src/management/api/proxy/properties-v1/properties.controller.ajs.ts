@@ -163,7 +163,6 @@ class ApiV1PropertiesControllerAjs {
     this.api.services['dynamic-property'] = this.dynamicPropertyService;
     return this.ApiService.update(this.api).then((updatedApi) => {
       this.api = updatedApi.data;
-      this.ngIfMatchEtagInterceptor.updateLastEtag('api', updatedApi.headers('etag'));
       this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
       this.NotificationService.show("API '" + this.api.name + "' saved");
     });

@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 import { ILocationService } from 'angular';
+import { isEmpty } from 'lodash';
 
+import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
 import NotificationService from '../services/notification.service';
 import ReCaptchaService from '../services/reCaptcha.service';
 import UserService from '../services/user.service';
@@ -212,6 +214,25 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
   };
   replaceEnvInterceptor.$inject = ['$q', '$injector'];
 
+  const ifMatchEtagInterceptor = function (ngIfMatchEtagInterceptor: IfMatchEtagInterceptor): angular.IHttpInterceptor {
+    if (isEmpty(ngIfMatchEtagInterceptor)) {
+      return {};
+    }
+    return {
+      request: function (config) {
+        ngIfMatchEtagInterceptor.interceptRequest(config.method, config.url, (etagValue) => {
+          config.headers[IfMatchEtagInterceptor.ETAG_HEADER_IF_MATCH] = etagValue;
+        });
+        return config;
+      },
+      response: function (response) {
+        ngIfMatchEtagInterceptor.interceptResponse(response.config.url, response.headers(IfMatchEtagInterceptor.ETAG_HEADER));
+        return response;
+      },
+    };
+  };
+  ifMatchEtagInterceptor.$inject = ['ngIfMatchEtagInterceptor'];
+
   if ($httpProvider.interceptors) {
     // Add custom noSatellizerAuthorizationInterceptor at the beginning of the list to make sure they are activated before others interceptors such as Satellizer's interceptors.
     $httpProvider.interceptors.unshift(noSatellizerAuthorizationInterceptor);
@@ -220,6 +241,7 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
     $httpProvider.interceptors.push(interceptorUnauthorized);
     $httpProvider.interceptors.push(interceptorTimeout);
     $httpProvider.interceptors.push(replaceEnvInterceptor);
+    $httpProvider.interceptors.push(ifMatchEtagInterceptor);
   }
 }
 interceptorConfig.$inject = ['$httpProvider', 'Constants'];
