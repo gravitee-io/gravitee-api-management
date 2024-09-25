@@ -16,6 +16,7 @@
 
 import NotificationService from './services/notification.service';
 import { CsrfInterceptor } from './shared/interceptors/csrf.interceptor';
+import { IfMatchEtagInterceptor } from './shared/interceptors/if-match-etag.interceptor';
 
 function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
   $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -101,12 +102,29 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
   };
   replaceEnvInterceptor.$inject = ['$q', '$injector'];
 
+  const ifMatchEtagInterceptor = function (ngIfMatchEtagInterceptor: IfMatchEtagInterceptor): angular.IHttpInterceptor {
+    return {
+      request: function (config) {
+        ngIfMatchEtagInterceptor.interceptRequest(config.method, config.url, (etagValue) => {
+          config.headers[IfMatchEtagInterceptor.ETAG_HEADER_IF_MATCH] = etagValue;
+        });
+        return config;
+      },
+      response: function (response) {
+        ngIfMatchEtagInterceptor.interceptResponse(response.config.url, response.headers(IfMatchEtagInterceptor.ETAG_HEADER));
+        return response;
+      },
+    };
+  };
+  ifMatchEtagInterceptor.$inject = ['ngIfMatchEtagInterceptor'];
+
   if ($httpProvider.interceptors) {
     // Add custom noSatellizerAuthorizationInterceptor at the beginning of the list to make sure they are activated before others interceptors such as Satellizer's interceptors.
     $httpProvider.interceptors.unshift(noSatellizerAuthorizationInterceptor);
     $httpProvider.interceptors.push(csrfInterceptor);
     $httpProvider.interceptors.push(interceptorTimeout);
     $httpProvider.interceptors.push(replaceEnvInterceptor);
+    $httpProvider.interceptors.push(ifMatchEtagInterceptor);
   }
 }
 interceptorConfig.$inject = ['$httpProvider', 'Constants'];
