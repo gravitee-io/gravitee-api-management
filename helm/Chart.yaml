@@ -18,4 +18,9 @@ kubeVersion: ">=1.14.0-0"
 annotations:
   # List of changes for the release in artifacthub.io
   # https://artifacthub.io/packages/helm/graviteeio/apim?modal=changelog
-  artifacthub.io/changes: 
+  artifacthub.io/changes: |
+    - kind: fixed
+      description: 'Add support of SSL keystore secret'
+      links:
+        - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/9854
