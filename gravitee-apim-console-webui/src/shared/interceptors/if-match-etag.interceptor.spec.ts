@@ -41,7 +41,7 @@ describe('IfMatchEtagInterceptor', () => {
     const testUrl = 'https://test.com/management/organizations/DEFAULT/environments/DEFAULT/apis/f35505ff-ac3f-45d6-b134-e4406e8e0165';
 
     let expectedSteps = 0;
-    // First request with etag
+    // First request to get etag
     httpClient.get<unknown>(testUrl).subscribe(() => {
       expectedSteps++;
     });
@@ -64,5 +64,42 @@ describe('IfMatchEtagInterceptor', () => {
     req2.flush('', { headers: { etag: '9012' } });
 
     expect(expectedSteps).toEqual(3);
+  });
+
+  it('should set if-match with last etag different api urls', () => {
+    const apiAUrl = 'https://test.com/management/v2/environments/DEFAULT/apis/a35505ff-ac3f-45d6-b134-e4406e8e0165';
+    const apiBUrl = 'https://test.com/management/organizations/DEFAULT/environments/DEFAULT/apis/b35505ff-ac3f-45d6-b134-e4406e8e0166';
+
+    let expectedSteps = 0;
+    // First request api A to get etag
+    httpClient.get<unknown>(apiAUrl).subscribe(() => {
+      expectedSteps++;
+    });
+    httpTestingController.expectOne(apiAUrl).flush('', { headers: { etag: '1000' } });
+
+    // Second request api B to get etag
+    httpClient.get<unknown>(apiBUrl).subscribe(() => {
+      expectedSteps++;
+    });
+
+    httpTestingController.expectOne(apiBUrl).flush('', { headers: { etag: '2000' } });
+
+    // Put request with if-match for api A
+    httpClient.put<unknown>(apiAUrl, '').subscribe(() => {
+      expectedSteps++;
+    });
+    const req = httpTestingController.expectOne(apiAUrl);
+    expect(req.request.headers.get('if-match')).toEqual('1000');
+    req.flush('', { headers: { etag: '1001' } });
+
+    // Post request with if-match for api B
+    httpClient.post<unknown>(apiBUrl, '').subscribe(() => {
+      expectedSteps++;
+    });
+    const req2 = httpTestingController.expectOne(apiBUrl);
+    expect(req2.request.headers.get('if-match')).toEqual('2000');
+    req2.flush('', { headers: { etag: '2001' } });
+
+    expect(expectedSteps).toEqual(4);
   });
 });

@@ -186,19 +186,11 @@ export class ApiService {
   }
 
   start(api: { id: string }): IHttpPromise<any> {
-    return this.$http.post(
-      `${this.Constants.env.baseURL}/apis/` + api.id + '?action=START',
-      {},
-      { headers: { 'If-Match': this.ngIfMatchEtagInterceptor.getLastEtag('api') } },
-    );
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + api.id + '?action=START', {});
   }
 
   stop(api: { id: string }): IHttpPromise<any> {
-    return this.$http.post(
-      `${this.Constants.env.baseURL}/apis/` + api.id + '?action=STOP',
-      {},
-      { headers: { 'If-Match': this.ngIfMatchEtagInterceptor.getLastEtag('api') } },
-    );
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + api.id + '?action=STOP', {});
   }
 
   reload(name: string): IHttpPromise<any> {
@@ -210,39 +202,35 @@ export class ApiService {
   }
 
   update(api): IHttpPromise<any> {
-    return this.$http.put(
-      `${this.Constants.env.baseURL}/apis/` + api.id,
-      {
-        version: api.version,
-        description: api.description,
-        proxy: api.proxy,
-        paths: api.paths,
-        flows: api.flows,
-        plans: api.plans,
-        private: api.private,
-        visibility: api.visibility,
-        name: api.name,
-        services: api.services,
-        properties: api.properties,
-        tags: api.tags,
-        picture: api.picture,
-        picture_url: api.picture_url,
-        background: api.background,
-        background_url: api.background_url,
-        resources: api.resources,
-        categories: api.categories,
-        groups: api.groups,
-        labels: api.labels,
-        path_mappings: api.path_mappings,
-        response_templates: api.response_templates,
-        lifecycle_state: api.lifecycle_state,
-        disable_membership_notifications: api.disable_membership_notifications,
-        flow_mode: api.flow_mode,
-        gravitee: api.gravitee,
-        execution_mode: api.execution_mode,
-      },
-      { headers: { 'If-Match': this.ngIfMatchEtagInterceptor.getLastEtag('api') } },
-    );
+    return this.$http.put(`${this.Constants.env.baseURL}/apis/` + api.id, {
+      version: api.version,
+      description: api.description,
+      proxy: api.proxy,
+      paths: api.paths,
+      flows: api.flows,
+      plans: api.plans,
+      private: api.private,
+      visibility: api.visibility,
+      name: api.name,
+      services: api.services,
+      properties: api.properties,
+      tags: api.tags,
+      picture: api.picture,
+      picture_url: api.picture_url,
+      background: api.background,
+      background_url: api.background_url,
+      resources: api.resources,
+      categories: api.categories,
+      groups: api.groups,
+      labels: api.labels,
+      path_mappings: api.path_mappings,
+      response_templates: api.response_templates,
+      lifecycle_state: api.lifecycle_state,
+      disable_membership_notifications: api.disable_membership_notifications,
+      flow_mode: api.flow_mode,
+      gravitee: api.gravitee,
+      execution_mode: api.execution_mode,
+    });
   }
 
   delete(name: string): IHttpPromise<any> {
@@ -765,27 +753,15 @@ export class ApiService {
   }
 
   askForReview(api: { id: string }, message?: any): IHttpPromise<any> {
-    return this.$http.post(
-      `${this.Constants.env.baseURL}/apis/${api.id}/reviews?action=ASK`,
-      { message },
-      { headers: { 'If-Match': this.ngIfMatchEtagInterceptor.getLastEtag('api') } },
-    );
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${api.id}/reviews?action=ASK`, { message });
   }
 
   acceptReview(api: { id: string }, message: any): IHttpPromise<any> {
-    return this.$http.post(
-      `${this.Constants.env.baseURL}/apis/${api.id}/reviews?action=ACCEPT`,
-      { message },
-      { headers: { 'If-Match': this.ngIfMatchEtagInterceptor.getLastEtag('api') } },
-    );
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${api.id}/reviews?action=ACCEPT`, { message });
   }
 
   rejectReview(api: { id: string }, message: any): IHttpPromise<any> {
-    return this.$http.post(
-      `${this.Constants.env.baseURL}/apis/${api.id}/reviews?action=REJECT`,
-      { message: message },
-      { headers: { 'If-Match': this.ngIfMatchEtagInterceptor.getLastEtag('api') } },
-    );
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${api.id}/reviews?action=REJECT`, { message: message });
   }
 
   /*
