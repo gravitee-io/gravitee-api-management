@@ -53,8 +53,10 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
@@ -217,6 +219,9 @@ public class SubscriptionServiceTest {
     private PlanEntity planEntity;
 
     private io.gravitee.rest.api.model.v4.plan.PlanEntity planEntityV4;
+
+    @Mock
+    private ApiKeyRepository apiKeyRepository;
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
@@ -1452,6 +1457,84 @@ public class SubscriptionServiceTest {
                 anyMap()
             );
         verify(subscription).setUpdatedAt(any());
+    }
+
+    @Test
+    public void shouldTransferSubscriptionWithDepecratedApiKey() throws Exception {
+        final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
+        transferSubscription.setId(SUBSCRIPTION_ID);
+        transferSubscription.setPlan(PLAN_ID);
+
+        when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
+        when(subscription.getApplication()).thenReturn(APPLICATION_ID);
+        when(subscription.getPlan()).thenReturn(PLAN_ID);
+        when(subscription.getStatus()).thenReturn(ACCEPTED);
+        when(subscription.getApi()).thenReturn(API_ID);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(any())).thenReturn(subscription);
+        ApiKey apiKey = new ApiKey();
+        apiKey.setSubscription(SUBSCRIPTION_ID);
+        apiKey.setPlan("old-plan");
+        when(apiKeyRepository.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Set.of(apiKey));
+        planEntity.setStatus(PlanStatus.PUBLISHED);
+        planEntity.setSecurity(PlanSecurityType.API_KEY);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+
+        subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
+
+        verify(notifierService)
+            .trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.SUBSCRIPTION_TRANSFERRED), anyString(), anyMap());
+        verify(notifierService)
+            .trigger(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(ApplicationHook.SUBSCRIPTION_TRANSFERRED),
+                nullable(String.class),
+                anyMap()
+            );
+        verify(subscription).setUpdatedAt(any());
+        verify(apiKeyRepository).update(any());
+        assertThat(apiKey.getUpdatedAt()).isNotNull();
+        assertThat(apiKey.getPlan()).isEqualTo(PLAN_ID);
+    }
+
+    @Test
+    public void shouldTransferSubscriptionWithNewApiKey() throws Exception {
+        final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
+        transferSubscription.setId(SUBSCRIPTION_ID);
+        transferSubscription.setPlan(PLAN_ID);
+
+        when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
+        when(subscription.getApplication()).thenReturn(APPLICATION_ID);
+        when(subscription.getPlan()).thenReturn(PLAN_ID);
+        when(subscription.getStatus()).thenReturn(ACCEPTED);
+        when(subscription.getApi()).thenReturn(API_ID);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(any())).thenReturn(subscription);
+        ApiKey apiKey = new ApiKey();
+        apiKey.setSubscriptions(List.of(SUBSCRIPTION_ID));
+        when(apiKeyRepository.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Set.of(apiKey));
+        planEntity.setStatus(PlanStatus.PUBLISHED);
+        planEntity.setSecurity(PlanSecurityType.API_KEY);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+
+        subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
+
+        verify(notifierService)
+            .trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.SUBSCRIPTION_TRANSFERRED), anyString(), anyMap());
+        verify(notifierService)
+            .trigger(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(ApplicationHook.SUBSCRIPTION_TRANSFERRED),
+                nullable(String.class),
+                anyMap()
+            );
+        verify(subscription).setUpdatedAt(any());
+        verify(apiKeyRepository).update(any());
+        assertThat(apiKey.getUpdatedAt()).isNotNull();
     }
 
     @Test(expected = TransferNotAllowedException.class)
