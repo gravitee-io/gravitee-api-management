@@ -1761,6 +1761,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.USER.getValue(), userId);
+        properties.put(Event.EventProperties.API_CROSS_ID.getValue(), api.getCrossId());
 
         // Clear useless field for history
         api.setPicture(null);

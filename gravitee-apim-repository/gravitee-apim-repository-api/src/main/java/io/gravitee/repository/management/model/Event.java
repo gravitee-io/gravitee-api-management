@@ -90,6 +90,7 @@ public class Event implements Serializable {
     public enum EventProperties {
         ID("id"),
         API_ID("api_id"),
+        API_CROSS_ID("api_cross_id"),
         SHARED_POLICY_GROUP_ID("shared_policy_group_id"),
         DICTIONARY_ID("dictionary_id"),
         ORIGIN("origin"),
