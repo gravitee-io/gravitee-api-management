@@ -49,10 +49,12 @@ import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.Audit;
@@ -174,6 +176,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     @Autowired
     private ApiKeyService apiKeyService;
+
+    @Lazy
+    @Autowired
+    private ApiKeyRepository apiKeyRepository;
 
     @Autowired
     private ApplicationService applicationService;
@@ -1382,7 +1388,22 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setPlan(transferSubscription.getPlan());
 
             subscription = subscriptionRepository.update(subscription);
-
+            // Properly update underlying api key to redeploy them on the gateway
+            Set<ApiKey> apiKeys = apiKeyRepository.findBySubscription(subscription.getId());
+            if (apiKeys != null) {
+                for (ApiKey apiKey : apiKeys) {
+                    if (
+                        (apiKey.getSubscriptions() != null && apiKey.getSubscriptions().contains(transferSubscription.getId())) ||
+                        (apiKey.getSubscription() != null && apiKey.getSubscription().equals(transferSubscription.getId()))
+                    ) {
+                        apiKey.setUpdatedAt(new Date());
+                        if (apiKey.getPlan() != null) {
+                            apiKey.setPlan(transferSubscription.getPlan());
+                        }
+                        apiKeyRepository.update(apiKey);
+                    }
+                }
+            }
             final ApplicationEntity application = applicationService.findById(executionContext, subscription.getApplication());
             final String apiId = subscriptionGenericPlanEntity.getApiId();
             final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
