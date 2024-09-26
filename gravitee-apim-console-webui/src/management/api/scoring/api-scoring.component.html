@@ -25,8 +25,10 @@
     <mat-card-header class="card-header">
       <mat-card-title>
         {{ api.name }}
-        <!-- Uncomment when score feature ready -->
-        <!-- <span class="gio-badge-success"><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon>90%</span>-->
+        <span class="gio-badge-success"
+          ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon>{{ apiScoring.summary.score * 100 | number: '1.0-0' }}%</span
+        >
+        <!-- Uncomment when BE ready -->
         <!-- <span class="gio-badge-success"><mat-icon class="gio-left" svgIcon="gio:trending-up"></mat-icon>+0.7</span>-->
       </mat-card-title>
 
