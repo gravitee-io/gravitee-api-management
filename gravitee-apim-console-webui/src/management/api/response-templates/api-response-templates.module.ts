@@ -21,7 +21,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
-import { GioFormHeadersModule, GioIconsModule, GioSaveBarModule, GioFormFocusInvalidModule } from '@gravitee/ui-particles-angular';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
+import {
+  GioFormHeadersModule,
+  GioIconsModule,
+  GioSaveBarModule,
+  GioFormFocusInvalidModule,
+  GioFormSlideToggleModule,
+} from '@gravitee/ui-particles-angular';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -59,6 +66,8 @@ import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-bu
     GioFormHeadersModule,
     GioFormFocusInvalidModule,
     GioGoBackButtonModule,
+    GioFormSlideToggleModule,
+    MatSlideToggle,
   ],
 })
 export class ApiResponseTemplatesModule {}
