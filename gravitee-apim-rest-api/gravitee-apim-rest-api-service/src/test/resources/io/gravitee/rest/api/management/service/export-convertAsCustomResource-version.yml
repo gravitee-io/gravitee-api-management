@@ -76,5 +76,6 @@ spec:
       '*/*':
         status: 400
         body: "{\"bad\":\"news\"}"
+        propagateErrorKeyToLogs: false
   version: "1.0.0-alpha"
   notifyMembers: true

@@ -23,6 +23,7 @@ import { GioFormHeadersHarness, GioSaveBarHarness } from '@gravitee/ui-particles
 import { cloneDeep } from 'lodash';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute } from '@angular/router';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import { ApiResponseTemplatesEditComponent } from './api-response-templates-edit.component';
 
@@ -153,10 +154,15 @@ describe('ApiProxyResponseTemplatesComponent', () => {
         await statusCodeInput.setValue('200');
 
         const headersInput = await loader.getHarness(GioFormHeadersHarness.with({ selector: '[formControlName="headers"]' }));
-        headersInput.addHeader({ key: 'header1', value: 'value1' });
+        await headersInput.addHeader({ key: 'header1', value: 'value1' });
 
         const bodyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="body"]' }));
         await bodyInput.setValue('newTemplateBody');
+
+        const propagateErrorKeyToLogsToggle = await loader.getHarness(
+          MatSlideToggleHarness.with({ selector: '[formControlName="propagateErrorKeyToLogs"]' }),
+        );
+        await propagateErrorKeyToLogsToggle.toggle();
 
         await saveBar.clickSubmit();
 
@@ -165,7 +171,9 @@ describe('ApiProxyResponseTemplatesComponent', () => {
         const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
         expect(req.request.body.responseTemplates).toEqual({
           ...api.responseTemplates,
-          newTemplateKey: { 'application/json': { statusCode: 200, headers: undefined, body: 'newTemplateBody' } },
+          newTemplateKey: {
+            'application/json': { statusCode: 200, headers: { header1: 'value1' }, propagateErrorKeyToLogs: true, body: 'newTemplateBody' },
+          },
         });
       });
 
@@ -191,7 +199,7 @@ describe('ApiProxyResponseTemplatesComponent', () => {
           ...api.responseTemplates,
           ['DEFAULT']: {
             ...api.responseTemplates['DEFAULT'],
-            'application/json': { statusCode: 400, body: '' },
+            'application/json': { statusCode: 400, body: '', propagateErrorKeyToLogs: false },
           },
         });
       });
@@ -241,6 +249,7 @@ describe('ApiProxyResponseTemplatesComponent', () => {
                 header1: 'value1',
               },
               body: 'newTemplateBody',
+              propagateErrorKeyToLogs: false,
             },
           },
         });
@@ -268,7 +277,7 @@ describe('ApiProxyResponseTemplatesComponent', () => {
         const expectedResponseTemplates = cloneDeep(api.responseTemplates);
         delete expectedResponseTemplates['DEFAULT']['*/*'];
         expectedResponseTemplates.NewKey = {
-          'new/accept': { statusCode: 400, body: '' },
+          'new/accept': { statusCode: 400, body: '', propagateErrorKeyToLogs: false },
         };
 
         const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
