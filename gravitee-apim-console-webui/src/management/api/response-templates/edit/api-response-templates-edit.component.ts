@@ -102,6 +102,10 @@ export class ApiResponseTemplatesEditComponent implements OnInit, OnDestroy {
               value: this.responseTemplateToEdit?.body ?? '',
               disabled: this.isReadOnly,
             }),
+            propagateErrorKeyToLogs: new UntypedFormControl({
+              value: this.responseTemplateToEdit?.propagateErrorKeyToLogs ?? false,
+              disabled: this.isReadOnly,
+            }),
           });
           this.initialResponseTemplatesFormValue = this.responseTemplatesForm.getRawValue();
 
@@ -147,6 +151,7 @@ export class ApiResponseTemplatesEditComponent implements OnInit, OnDestroy {
       statusCode: parseInt(responseTemplateFormValue.statusCode, 10),
       headers: !isEmpty(headers) ? Object.fromEntries(headers.map((h) => [h.key, h.value])) : undefined,
       body: responseTemplateFormValue.body,
+      propagateErrorKeyToLogs: responseTemplateFormValue.propagateErrorKeyToLogs,
     };
 
     return this.apiService

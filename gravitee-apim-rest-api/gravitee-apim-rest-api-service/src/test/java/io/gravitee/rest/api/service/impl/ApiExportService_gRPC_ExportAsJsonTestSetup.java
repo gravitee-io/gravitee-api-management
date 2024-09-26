@@ -179,6 +179,7 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
         ResponseTemplate responseTemplate = new ResponseTemplate();
         responseTemplate.setStatusCode(400);
         responseTemplate.setBody("{\"bad\":\"news\"}");
+        responseTemplate.setPropagateErrorKeyToLogs(false);
         apiEntity.setResponseTemplates(Collections.singletonMap("API_KEY_MISSING", Collections.singletonMap("*/*", responseTemplate)));
 
         apiEntity.setPaths(null);
