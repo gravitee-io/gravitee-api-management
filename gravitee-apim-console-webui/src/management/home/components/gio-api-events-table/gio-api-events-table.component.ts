@@ -66,7 +66,8 @@ export class GioApiEventsTableComponent implements OnChanges {
           filters.searchTerm,
           filters.from,
           filters.to,
-          filters.pagination.index,
+          // Pagination index is 0-based
+          filters.pagination.index - 1,
           filters.pagination.size,
         )
         .pipe(
