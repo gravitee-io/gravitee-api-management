@@ -114,6 +114,9 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
         context.response().status(template.getStatusCode());
         context.response().reason(HttpResponseStatus.valueOf(template.getStatusCode()).reasonPhrase());
         context.response().headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+        if (template.isPropagateErrorKeyToLogs()) {
+            context.request().metrics().setErrorKey(failure.key());
+        }
 
         if (template.getBody() != null && !template.getBody().isEmpty()) {
             context.response().headers().set(HttpHeaderNames.CONTENT_TYPE, context.request().headers().getFirst(HttpHeaderNames.ACCEPT));
@@ -132,7 +135,6 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
             if (failure.parameters() != null && !failure.parameters().isEmpty()) {
                 context.getTemplateEngine().getTemplateContext().setVariable("parameters", failure.parameters());
             }
-
             // Apply templating
             String body = context.getTemplateEngine().getValue(template.getBody(), String.class);
             Buffer payload = Buffer.buffer(body);

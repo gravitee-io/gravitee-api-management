@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -211,5 +212,54 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         verify(mockResponse, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
         verify(mockResponse, times(1)).reason("Bad Request");
+    }
+
+    @Test
+    public void shouldFallbackToDefaultWithProcessorFailureKeyAndPropagateErrorKeyToLogs() {
+        ResponseTemplate template = new ResponseTemplate();
+        template.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
+        template.setPropagateErrorKeyToLogs(true);
+
+        Map<String, ResponseTemplate> mapTemplates = new HashMap<>();
+        mapTemplates.put(ResponseTemplateBasedFailureProcessor.WILDCARD_CONTENT_TYPE, template);
+
+        Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
+        templates.put("POLICY_ERROR_KEY", mapTemplates);
+        api.setResponseTemplates(templates);
+
+        // Set failure
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).key("POLICY_ERROR_KEY");
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+
+        templateBasedFailureProcessor.execute(spyCtx).test().assertResult();
+
+        verify(mockResponse, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
+        verify(mockResponse, times(1)).reason("Bad Request");
+        Assertions.assertEquals(spyCtx.metrics().getErrorKey(), "POLICY_ERROR_KEY");
+    }
+
+    @Test
+    public void shouldFallbackToDefaultWithProcessorFailureKeyAndNotPropagateErrorKeyToLogs() {
+        ResponseTemplate template = new ResponseTemplate();
+        template.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
+        // default value is false
+        template.setPropagateErrorKeyToLogs(false);
+
+        Map<String, ResponseTemplate> mapTemplates = new HashMap<>();
+        mapTemplates.put(ResponseTemplateBasedFailureProcessor.WILDCARD_CONTENT_TYPE, template);
+
+        Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
+        templates.put("POLICY_ERROR_KEY", mapTemplates);
+        api.setResponseTemplates(templates);
+
+        // Set failure
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).key("POLICY_ERROR_KEY");
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+
+        templateBasedFailureProcessor.execute(spyCtx).test().assertResult();
+
+        verify(mockResponse, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
+        verify(mockResponse, times(1)).reason("Bad Request");
+        Assertions.assertNull(spyCtx.metrics().getErrorKey());
     }
 }
