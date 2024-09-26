@@ -36,7 +36,7 @@
     "@asciidoctor/core": "3.0.4",
     "@asyncapi/web-component": "1.2.23",
     "@fontsource/ibm-plex-sans": "4.5.13",
-    "@gravitee/ui-components": "4.2.3",
+    "@gravitee/ui-components": "4.2.5",
     "@highcharts/map-collection": "2.0.0",
     "@ngx-translate/core": "14.0.0",
     "@ngx-translate/http-loader": "7.0.0",

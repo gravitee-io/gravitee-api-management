@@ -3732,7 +3732,7 @@ __metadata:
     "@asyncapi/web-component": "npm:1.2.23"
     "@babel/preset-env": "npm:7.16.11"
     "@fontsource/ibm-plex-sans": "npm:4.5.13"
-    "@gravitee/ui-components": "npm:4.2.3"
+    "@gravitee/ui-components": "npm:4.2.5"
     "@highcharts/map-collection": "npm:2.0.0"
     "@messageformat/core": "npm:3.3.0"
     "@ngneat/spectator": "npm:14.0.0"
@@ -3785,9 +3785,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@gravitee/ui-components@npm:4.2.3":
-  version: 4.2.3
-  resolution: "@gravitee/ui-components@npm:4.2.3"
+"@gravitee/ui-components@npm:4.2.5":
+  version: 4.2.5
+  resolution: "@gravitee/ui-components@npm:4.2.5"
   dependencies:
     "@codemirror/basic-setup": "npm:^0.19.1"
     "@codemirror/language-data": "npm:^0.19.1"
@@ -3826,7 +3826,7 @@ __metadata:
       optional: true
     highlight.js:
       optional: true
-  checksum: 10c0/001fcb8481b805e980a1871db125666780043550482cf90dfa8a9052f88e6f00a5c60672fe8b954cce5fb91dd90ad467688a5e355926440575b1eb65cb28aa51
+  checksum: 10c0/745f7dbf1fe9dcb9bc6cadb1d16bc5aa44d2575f9c70e29e583d86a14a058863ec40122a1dce034ea23a416d1385e7b25b7d90e9da67f067ea1a30514e3ce302
   languageName: node
   linkType: hard
 
