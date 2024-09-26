@@ -71,6 +71,7 @@ spec:
       '*/*':
         status: 400
         body: "{\"bad\":\"news\"}"
+        propagateErrorKeyToLogs: false
   contextRef:
     name: "apim-dev-ctx"
     namespace: "default"

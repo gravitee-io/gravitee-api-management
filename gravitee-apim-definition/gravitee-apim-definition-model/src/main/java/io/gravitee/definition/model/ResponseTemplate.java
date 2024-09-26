@@ -44,4 +44,5 @@ public class ResponseTemplate implements Serializable {
 
     private Map<String, String> headers;
     private String body;
+    private boolean propagateErrorKeyToLogs;
 }
