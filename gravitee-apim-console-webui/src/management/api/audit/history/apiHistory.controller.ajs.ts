@@ -162,6 +162,7 @@ class ApiHistoryControllerAjs {
   }
 
   $onInit() {
+<<<<<<< HEAD
     this.studio = document.querySelector('gv-policy-studio');
     Promise.all([
       this.ApiService.get(this.activatedRoute.snapshot.params.apiId),
@@ -198,32 +199,75 @@ class ApiHistoryControllerAjs {
         });
       }
     });
-  }
+=======
+    Promise.all([this.ApiService.get(this.$state.params.apiId), this.ApiService.isAPISynchronized(this.$state.params.apiId)]).then(
+      ([api, apiIsSynchronizedResult]) => {
+        this.api = api.data;
 
-  appendNextPage(toDeployEventTimeline?: any) {
-    this.eventPage++;
-    this.ApiService.searchApiEvents(this.eventTypes, this.api.id, undefined, undefined, this.eventPage, this.eventPageSize, true).then(
-      (response) => {
-        this.events = [...(this.events ?? []), ...response.data.content];
-        this.hasNextEventPageToLoad =
-          response.data.totalElements > response.data.pageNumber * this.eventPageSize + response.data.pageElements;
-
-        this.eventsTimeline = this.events.map((event) => ({
-          event: event,
-          badgeClass: 'info',
-          badgeIconClass: 'action:check_circle',
-          title: event.type,
-          when: event.created_at,
-          user: event.user,
-          deploymentLabel: event.properties.deployment_label,
-          deploymentNumber: event.properties.deployment_number,
-        }));
-
-        if (toDeployEventTimeline) {
-          this.eventsTimeline.unshift(toDeployEventTimeline);
-        }
+        this.eventPage = -1;
+        this.events = [];
+        const toDeployEventTimeline = !apiIsSynchronizedResult.data.is_synchronized
+          ? {
+              event: {
+                payload: this.stringifyCurrentApi(),
+              },
+              badgeClass: 'warning',
+              badgeIconClass: 'notification:sync',
+              title: 'TO_DEPLOY',
+              isCurrentAPI: true,
+            }
+          : undefined;
+        this.appendNextPage(toDeployEventTimeline);
       },
     );
+>>>>>>> ff7a2e761f (fix: null policy studio and api history showing warning for all policies)
+  }
+
+  async appendNextPage(toDeployEventTimeline?: any) {
+    this.eventPage++;
+    await this.ApiService.searchApiEvents(
+      this.eventTypes,
+      this.api.id,
+      undefined,
+      undefined,
+      this.eventPage,
+      this.eventPageSize,
+      true,
+    ).then((response) => {
+      this.events = [...(this.events ?? []), ...response.data.content];
+      this.hasNextEventPageToLoad =
+        response.data.totalElements > response.data.pageNumber * this.eventPageSize + response.data.pageElements;
+
+      this.eventsTimeline = this.events.map((event) => ({
+        event: event,
+        badgeClass: 'info',
+        badgeIconClass: 'action:check_circle',
+        title: event.type,
+        when: event.created_at,
+        user: event.user,
+        deploymentLabel: event.properties.deployment_label,
+        deploymentNumber: event.properties.deployment_number,
+      }));
+
+      if (toDeployEventTimeline) {
+        this.eventsTimeline.unshift(toDeployEventTimeline);
+      }
+    });
+    this.studio = document.querySelector('gv-policy-studio');
+    if (this.hasDesign()) {
+      Promise.all([
+        this.PolicyService.list(true, true),
+        this.ResourceService.list(true, true),
+        this.ApiService.getFlowSchemaForm(),
+        this.FlowService.getConfigurationSchema(),
+      ]).then(([policies, resources, flowSchema, configurationSchema]) => {
+        this.studio.policies = policies.data;
+        this.studio.resourceTypes = resources.data;
+        this.studio.flowSchema = flowSchema.data;
+        this.studio.configurationSchema = configurationSchema.data;
+        this.studio.propertyProviders = propertyProviders;
+      });
+    }
   }
 
   setEventToStudio(eventTimeline, api) {
