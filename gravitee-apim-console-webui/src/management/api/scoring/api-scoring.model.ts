@@ -48,6 +48,7 @@ export interface ApiScoringSummary {
   warnings: number;
   infos: number;
   hints: number;
+  score: number;
 }
 
 export interface ScoringAsset {

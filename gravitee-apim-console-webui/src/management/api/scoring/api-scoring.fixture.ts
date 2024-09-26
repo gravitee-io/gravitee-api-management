@@ -38,6 +38,7 @@ export const fakeApiScoring = (attributes?: Partial<ApiScoring>) => {
       warnings: 1,
       infos: 0,
       hints: 0,
+      score: 0.9,
     },
     assets: [
       {
