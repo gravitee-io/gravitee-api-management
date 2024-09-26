@@ -94,5 +94,21 @@
         "apiLifecycleState": "CREATED",
         "disableMembershipNotifications": false,
         "integrationId": "integration-id"
+    },
+    {
+        "id": "api7",
+        "environmentId": "env2",
+        "origin": "integration",
+        "name": "api 7",
+        "description": "federated api for test purposes",
+        "definitionVersion": "FEDERATED",
+        "version": "v1",
+        "definition": "{\"id\":\"federated-api\",\"providerId\":\"provider-id\",\"name\":\"Task Management\",\"apiVersion\":\"v1\",\"definitionVersion\":\"FEDERATED\",\"server\":{\"url\":\"https://testurl.com/Test\"}}",
+        "visibility": "PRIVATE",
+        "createdAt": 1439022010883,
+        "updatedAt": 1439022010883,
+        "apiLifecycleState": "CREATED",
+        "disableMembershipNotifications": false,
+        "integrationId": "integration-id"
     }
 ]

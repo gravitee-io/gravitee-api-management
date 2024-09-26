@@ -29,9 +29,12 @@ public interface ScoringReportAdapter {
     ScoringReport toEntity(io.gravitee.repository.management.model.ScoringReport source);
     EnvironmentOverview toEntity(io.gravitee.repository.management.model.ScoringEnvironmentSummary source);
 
-    @Mapping(target = "api", expression = "java(toEnvironmentApiScoringReportApi(source))")
-    @Mapping(target = "summary", expression = "java(toEnvironmentApiScoringReportSummary(source))")
-    EnvironmentApiScoringReport toEntity(io.gravitee.repository.management.model.ScoringEnvironmentApi source);
+    default EnvironmentApiScoringReport toEntity(io.gravitee.repository.management.model.ScoringEnvironmentApi source) {
+        return new EnvironmentApiScoringReport(
+            toEnvironmentApiScoringReportApi(source),
+            source.getReportId() != null ? toEnvironmentApiScoringReportSummary(source) : null
+        );
+    }
 
     @Mapping(target = "apiId", source = "apiId")
     @Mapping(target = "name", source = "apiName")
