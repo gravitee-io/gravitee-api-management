@@ -220,6 +220,13 @@ public class ScoringReportReportRepositoryTest extends AbstractManagementReposit
     }
 
     @Test
+    public void findEnvironmentLatestReports_should_return_apis_without_reports() throws Exception {
+        var result = scoringReportRepository.findEnvironmentLatestReports("env2", new PageableBuilder().pageNumber(0).pageSize(3).build());
+
+        Assertions.assertThat(result.getContent()).contains(new ScoringEnvironmentApi("api7", "api 7", new Date(1439022010883L)));
+    }
+
+    @Test
     public void findEnvironmentLatestReports_should_return_paginated_reports() throws Exception {
         var result = scoringReportRepository.findEnvironmentLatestReports("env1", new PageableBuilder().pageNumber(1).pageSize(3).build());
 
@@ -255,7 +262,7 @@ public class ScoringReportReportRepositoryTest extends AbstractManagementReposit
     public void getScoringEnvironmentSummary_should_return_empty_summary_when_no_data() throws Exception {
         var result = scoringReportRepository.getScoringEnvironmentSummary("env4");
 
-        Assertions.assertThat(result).isEqualTo(new ScoringEnvironmentSummary("env4", -1D, 0L, 0L, 0L, 0L));
+        Assertions.assertThat(result).isEqualTo(new ScoringEnvironmentSummary("env4"));
     }
 
     private static ScoringReport aScoring() {

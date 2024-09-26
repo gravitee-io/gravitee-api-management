@@ -29,17 +29,21 @@ public final class ScoringEnvironmentSummary {
     private String environmentId;
 
     @Builder.Default
-    private Double score = -1.0;
+    private Double score = null;
 
     @Builder.Default
-    private Long errors = 0L;
+    private Long errors = null;
 
     @Builder.Default
-    private Long warnings = 0L;
+    private Long warnings = null;
 
     @Builder.Default
-    private Long infos = 0L;
+    private Long infos = null;
 
     @Builder.Default
-    private Long hints = 0L;
+    private Long hints = null;
+
+    public ScoringEnvironmentSummary(String environmentId) {
+        this.environmentId = environmentId;
+    }
 }

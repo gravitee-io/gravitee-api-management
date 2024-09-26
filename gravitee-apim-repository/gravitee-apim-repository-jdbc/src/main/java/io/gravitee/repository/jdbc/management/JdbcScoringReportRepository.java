@@ -224,7 +224,7 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
     }
 
     @Override
-    public ScoringEnvironmentSummary getScoringEnvironmentSummary(String environmentId) throws TechnicalException {
+    public ScoringEnvironmentSummary getScoringEnvironmentSummary(String environmentId) {
         var result = jdbcTemplate.query(
             "select " +
             "environment_id, " +
@@ -243,7 +243,7 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
         );
 
         if (result == null) {
-            return ScoringEnvironmentSummary.builder().environmentId(environmentId).build();
+            return new ScoringEnvironmentSummary(environmentId);
         }
 
         return result;
@@ -388,10 +388,10 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
                             ? BigDecimal.valueOf(rs.getDouble("score")).setScale(2, RoundingMode.HALF_EVEN).doubleValue()
                             : null
                     )
-                    .errors(rs.getLong("errors"))
-                    .warnings(rs.getLong("warnings"))
-                    .infos(rs.getLong("infos"))
-                    .hints(rs.getLong("hints"))
+                    .errors(reportId != null ? rs.getLong("errors") : null)
+                    .warnings(reportId != null ? rs.getLong("warnings") : null)
+                    .infos(reportId != null ? rs.getLong("infos") : null)
+                    .hints(reportId != null ? rs.getLong("hints") : null)
                     .build()
             );
         }
