@@ -43,7 +43,7 @@
       <mat-card class="card" data-testid="overview-score">
         <mat-card-header>
           <mat-card-title class="card__title">
-            @if (!overviewData || overviewData.score === undefined) {
+            @if (!overviewData || overviewData.score === undefined || overviewData.score === null) {
               <span class="gio-badge-neutral">Not available</span>
             } @else if (overviewData.score >= 0.8) {
               <span class="average-score-badge gio-badge-success"
@@ -66,7 +66,7 @@
       <mat-card class="card">
         <mat-card-header>
           <mat-card-title class="card__title">
-            @if (!overviewData || overviewData.errors === undefined) {
+            @if (!overviewData || overviewData.errors === undefined || overviewData.errors === null) {
               <span class="mat-h5">-</span>
             } @else {
               {{ overviewData.errors }}
@@ -79,7 +79,7 @@
       <mat-card class="card">
         <mat-card-header>
           <mat-card-title class="card__title">
-            @if (!overviewData || overviewData.warnings === undefined) {
+            @if (!overviewData || overviewData.warnings === undefined || overviewData.warnings === null) {
               <span class="mat-h5">-</span>
             } @else {
               {{ overviewData.warnings }}
@@ -92,7 +92,7 @@
       <mat-card class="card">
         <mat-card-header>
           <mat-card-title class="card__title">
-            @if (!overviewData || overviewData.hints === undefined) {
+            @if (!overviewData || overviewData.hints === undefined || overviewData.hints === null) {
               <span class="mat-h5">-</span>
             } @else {
               {{ overviewData.hints }}
@@ -105,7 +105,7 @@
       <mat-card class="card">
         <mat-card-header>
           <mat-card-title class="card__title">
-            @if (!overviewData || overviewData.infos === undefined) {
+            @if (!overviewData || overviewData.infos === undefined || overviewData.infos === null) {
               <span class="mat-h5">-</span>
             } @else {
               {{ overviewData.infos }}
@@ -151,7 +151,7 @@
         <ng-container matColumnDef="score">
           <th mat-header-cell *matHeaderCellDef id="score">Score</th>
           <td mat-cell *matCellDef="let element">
-            @if (element.score === undefined) {
+            @if (element.score === undefined || element.score === null) {
               <span class="gio-badge-neutral">Not available</span>
             } @else if (element.score >= 0.8) {
               <span class="gio-badge-success"
@@ -172,7 +172,7 @@
         <ng-container matColumnDef="errors">
           <th mat-header-cell *matHeaderCellDef id="errors">Errors</th>
           <td mat-cell *matCellDef="let element">
-            @if (element.errors === undefined) {
+            @if (element.errors === undefined || element.errors === null) {
               <span class="mat-h5">-</span>
             } @else if (element.errors === 0) {
               <span class="gio-badge-neutral">{{ element.errors }}</span>
@@ -185,7 +185,7 @@
         <ng-container matColumnDef="warnings">
           <th mat-header-cell *matHeaderCellDef id="warnings">Warnings</th>
           <td mat-cell *matCellDef="let element">
-            @if (element.warnings === undefined) {
+            @if (element.warnings === undefined || element.warnings === null) {
               <span class="mat-h5">-</span>
             } @else if (element.warnings === 0) {
               <span class="gio-badge-neutral">{{ element.warnings }}</span>
@@ -198,7 +198,7 @@
         <ng-container matColumnDef="infos">
           <th mat-header-cell *matHeaderCellDef id="infos">Infos</th>
           <td mat-cell *matCellDef="let element">
-            @if (element.infos === undefined) {
+            @if (element.infos === undefined || element.infos === null) {
               <span class="mat-h5">-</span>
             } @else if (element.infos === 0) {
               <span class="gio-badge-neutral">{{ element.infos }}</span>
@@ -211,7 +211,7 @@
         <ng-container matColumnDef="hints">
           <th mat-header-cell *matHeaderCellDef id="hints">Hints</th>
           <td mat-cell *matCellDef="let element">
-            @if (element.hints === undefined) {
+            @if (element.hints === undefined || element.hints === null) {
               <span class="mat-h5">-</span>
             } @else if (element.hints === 0) {
               <span class="gio-badge-neutral">{{ element.hints }}</span>
