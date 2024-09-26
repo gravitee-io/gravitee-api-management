@@ -26,7 +26,9 @@ import static io.gravitee.repository.management.model.Subscription.AuditEvent.SU
 import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_RESUMED_BY_CONSUMER;
 import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_UPDATED;
 import static io.gravitee.repository.management.model.Subscription.Status.PENDING;
-import static io.gravitee.rest.api.model.ApiKeyMode.*;
+import static io.gravitee.rest.api.model.ApiKeyMode.EXCLUSIVE;
+import static io.gravitee.rest.api.model.ApiKeyMode.SHARED;
+import static io.gravitee.rest.api.model.ApiKeyMode.UNSPECIFIED;
 import static io.gravitee.rest.api.model.v4.plan.PlanValidationType.MANUAL;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.groupingBy;
@@ -41,15 +43,31 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Subscription;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.ApiKeyMode;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.NewSubscriptionEntity;
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.ProcessSubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
+import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.TransferSubscriptionEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -108,7 +126,14 @@ import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -147,6 +172,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     @Autowired
     private ApiKeyService apiKeyService;
+
+    @Lazy
+    @Autowired
+    private ApiKeyRepository apiKeyRepository;
 
     @Autowired
     private ApplicationService applicationService;
@@ -1525,7 +1554,20 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setPlan(transferSubscription.getPlan());
 
             subscription = subscriptionRepository.update(subscription);
-
+            // Properly update underlying api key to redeploy them on the gateway
+            Set<ApiKey> apiKeys = apiKeyRepository.findBySubscription(subscription.getId());
+            for (ApiKey apiKey : apiKeys) {
+                if (
+                    apiKey.getSubscriptions().contains(transferSubscription.getId()) ||
+                    apiKey.getSubscription().equals(transferSubscription.getId())
+                ) {
+                    apiKey.setUpdatedAt(new Date());
+                    if (apiKey.getPlan() != null) {
+                        apiKey.setPlan(transferSubscription.getPlan());
+                    }
+                    apiKeyRepository.update(apiKey);
+                }
+            }
             final ApplicationEntity application = applicationService.findById(executionContext, subscription.getApplication());
             final String apiId = subscriptionGenericPlanEntity.getApiId();
             final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
