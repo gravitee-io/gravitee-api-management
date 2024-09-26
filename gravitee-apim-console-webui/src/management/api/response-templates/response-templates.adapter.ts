@@ -24,6 +24,7 @@ export type ResponseTemplate = {
   statusCode?: number;
   body?: string;
   headers?: Record<string, string>;
+  propagateErrorKeyToLogs?: boolean;
 };
 
 export const toResponseTemplates = (responseTemplates: (ApiV1 | ApiV2)['responseTemplates']): ResponseTemplate[] => {
@@ -40,6 +41,7 @@ export const toResponseTemplates = (responseTemplates: (ApiV1 | ApiV2)['response
         statusCode: responseTemplate.statusCode,
         body: responseTemplate.body,
         headers: responseTemplate.headers,
+        propagateErrorKeyToLogs: responseTemplate.propagateErrorKeyToLogs,
       })),
     ];
   });
@@ -48,7 +50,7 @@ export const toResponseTemplates = (responseTemplates: (ApiV1 | ApiV2)['response
 export const fromResponseTemplates = (responseTemplates: ResponseTemplate[]): (ApiV1 | ApiV2)['responseTemplates'] => {
   return responseTemplates.reduce(
     (acc, responseTemplate) => {
-      const { key, contentType, statusCode, body, headers } = responseTemplate;
+      const { key, contentType, statusCode, body, headers, propagateErrorKeyToLogs } = responseTemplate;
       if (!acc[key]) {
         acc[key] = {};
       }
@@ -56,6 +58,7 @@ export const fromResponseTemplates = (responseTemplates: ResponseTemplate[]): (A
         statusCode,
         body,
         headers,
+        propagateErrorKeyToLogs,
       };
       return acc;
     },

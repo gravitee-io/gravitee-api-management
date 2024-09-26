@@ -39,6 +39,7 @@ public class ResponseTemplateSerializer extends StdScalarSerializer<ResponseTemp
             jgen.writeObjectField("headers", responseTemplate.getHeaders());
         }
         jgen.writeStringField("body", responseTemplate.getBody());
+        jgen.writeBooleanField("propagateErrorKeyToLogs", responseTemplate.isPropagateErrorKeyToLogs());
         jgen.writeEndObject();
     }
 }

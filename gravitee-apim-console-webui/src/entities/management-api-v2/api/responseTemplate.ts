@@ -18,4 +18,5 @@ export interface ResponseTemplate {
   statusCode?: number;
   headers?: { [key: string]: string };
   body?: string;
+  propagateErrorKeyToLogs?: boolean;
 }

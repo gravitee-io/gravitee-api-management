@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.handlers.api.processor.error.templates;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -266,5 +268,64 @@ public class ResponseTemplateBasedFailureProcessorTest {
 
         verify(response, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
         verify(response, times(1)).reason("Bad Request");
+    }
+
+    @Test
+    public void shouldFallbackToDefaultHandler_withProcessorFailureKeyAndPropagateErrorKeyToLogs() {
+        ResponseTemplate template = new ResponseTemplate();
+        template.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
+        template.setPropagateErrorKeyToLogs(true);
+
+        Map<String, ResponseTemplate> mapTemplates = new HashMap<>();
+        mapTemplates.put(ResponseTemplateBasedFailureProcessor.WILDCARD_CONTENT_TYPE, template);
+
+        Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
+        templates.put("POLICY_ERROR_KEY", mapTemplates);
+
+        processor = new ResponseTemplateBasedFailureProcessor(templates);
+        processor.handler(next);
+
+        // Set failure
+        DummyProcessorFailure failure = new DummyProcessorFailure();
+        failure.key("POLICY_ERROR_KEY");
+        failure.statusCode(HttpStatusCode.BAD_REQUEST_400);
+
+        when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
+
+        processor.handle(context);
+
+        verify(response, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
+        verify(response, times(1)).reason("Bad Request");
+        assertEquals(context.request().metrics().getErrorKey(), "POLICY_ERROR_KEY");
+    }
+
+    @Test
+    public void shouldFallbackToDefaultHandler_withProcessorFailureKeyAndNotPropagateErrorKeyToLogs() {
+        ResponseTemplate template = new ResponseTemplate();
+        template.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
+        // default value is false
+        template.setPropagateErrorKeyToLogs(false);
+
+        Map<String, ResponseTemplate> mapTemplates = new HashMap<>();
+        mapTemplates.put(ResponseTemplateBasedFailureProcessor.WILDCARD_CONTENT_TYPE, template);
+
+        Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
+        templates.put("POLICY_ERROR_KEY", mapTemplates);
+
+        processor = new ResponseTemplateBasedFailureProcessor(templates);
+        processor.handler(next);
+
+        // Set failure
+        DummyProcessorFailure failure = new DummyProcessorFailure();
+        failure.key("POLICY_ERROR_KEY");
+        failure.statusCode(HttpStatusCode.BAD_REQUEST_400);
+
+        when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
+
+        processor.handle(context);
+
+        verify(response, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
+        verify(response, times(1)).reason("Bad Request");
+        assertNull(context.request().metrics().getErrorKey());
     }
 }
