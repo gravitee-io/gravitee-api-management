@@ -88,7 +88,6 @@ public class ApiKeyAuthenticationHandlerTest {
         when(environment.getProperty(eq("policy.api-key.param"), anyString())).thenReturn("api-key");
 
         when(provider.getComponent(Environment.class)).thenReturn(environment);
-
         authenticationHandler.resolve(provider);
     }
 
