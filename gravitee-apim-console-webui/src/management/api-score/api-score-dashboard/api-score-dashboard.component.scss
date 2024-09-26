@@ -91,7 +91,14 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .gio-badge-neutral {
   text-transform: none;
+}
+
+[class^='gio-badge-'] {
   margin-left: 0;
+}
+
+.no-data {
+  margin-left: 8px;
 }
 
 .separator-hr {
