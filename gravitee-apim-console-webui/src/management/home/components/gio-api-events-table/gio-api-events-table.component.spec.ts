@@ -86,7 +86,7 @@ describe('GioApiEventsTableComponent', () => {
     const req = httpTestingController.expectOne({
       method: 'GET',
 
-      url: `${CONSTANTS_TESTING.env.baseURL}/platform/events?type=START_API,STOP_API,PUBLISH_API,UNPUBLISH_API&query=&api_ids=&from=1691565599784&to=1694157599784&page=1&size=5`,
+      url: `${CONSTANTS_TESTING.env.baseURL}/platform/events?type=START_API,STOP_API,PUBLISH_API,UNPUBLISH_API&query=&api_ids=&from=1691565599784&to=1694157599784&page=0&size=5`,
     });
     req.flush(SEARCH_RESPONSE);
   }
