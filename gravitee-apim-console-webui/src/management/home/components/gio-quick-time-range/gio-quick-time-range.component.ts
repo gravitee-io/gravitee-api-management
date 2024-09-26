@@ -16,6 +16,7 @@
 import { Component, EventEmitter, forwardRef, Output } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subject } from 'rxjs';
+import * as moment from 'moment';
 
 export type TimeRangeParams = {
   id: string;
@@ -29,10 +30,12 @@ const timeFrameRangesParams: (id: string, interval: number, nbValuesByBucket?: n
   interval: number,
   nbValuesByBucket = 30,
 ) => {
+  // eslint-disable-next-line import/namespace
+  const nowUtc = moment.utc().valueOf();
   return {
     id,
-    from: new Date().getTime() - interval,
-    to: Date.now(),
+    from: nowUtc - interval,
+    to: nowUtc,
     interval: interval / nbValuesByBucket,
   };
 };
