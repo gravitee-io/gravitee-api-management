@@ -39,8 +39,8 @@ public class UpdateFederatedApiDomainService {
     private final CategoryDomainService categoryDomainService;
     private final ApiIndexerDomainService apiIndexerDomainService;
 
-    public Api update(String apiId, UnaryOperator<Api> updater, AuditInfo auditInfo, PrimaryOwnerEntity primaryOwnerEntity) {
-        var currentApi = apiCrudService.get(apiId);
+    public Api update(Previous existingApi, UnaryOperator<Api> updater, AuditInfo auditInfo, PrimaryOwnerEntity primaryOwnerEntity) {
+        Api currentApi = loadPreviousIfNotAlreadyLoaded(existingApi);
 
         Api federatedApi = updater.apply(currentApi);
 
@@ -58,6 +58,16 @@ public class UpdateFederatedApiDomainService {
         updated.setCategories(categoryDomainService.toCategoryKey(updated, updated.getEnvironmentId()));
 
         return updated;
+    }
+
+    private Api loadPreviousIfNotAlreadyLoaded(Previous existingApi) {
+        if (existingApi instanceof Previous.Loaded loaded) {
+            return loaded.previous();
+        } else if (existingApi instanceof Previous.Id id) {
+            return apiCrudService.get(id.apiId());
+        } else {
+            throw new IllegalArgumentException("Unsupported previous api: " + existingApi);
+        }
     }
 
     private void createAuditLog(AuditInfo auditInfo, Api updatedApi, Api currentApi) {
@@ -83,5 +93,19 @@ public class UpdateFederatedApiDomainService {
             updateApi,
             primaryOwnerEntity
         );
+    }
+
+    public static sealed interface Previous {
+        record Loaded(Api previous) implements Previous {}
+
+        record Id(String apiId) implements Previous {}
+
+        public static Previous loaded(Api api) {
+            return new Loaded(api);
+        }
+
+        public static Previous id(String apiId) {
+            return new Id(apiId);
+        }
     }
 }

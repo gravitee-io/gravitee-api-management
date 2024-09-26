@@ -182,7 +182,12 @@ class UpdateFederatedApiDomainServiceTest {
         var ownerEntity = buildPrimaryOwnerEntity();
 
         //when
-        var updatedApi = usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity);
+        var updatedApi = usecase.update(
+            UpdateFederatedApiDomainService.Previous.id(apiToUpdate.getId()),
+            old -> apiToUpdate,
+            auditInfo,
+            ownerEntity
+        );
         //then
         assertThat(apiCrudService.storage()).extracting("federatedApiDefinition").doesNotContainNull();
         SoftAssertions.assertSoftly(soft -> {
@@ -217,7 +222,12 @@ class UpdateFederatedApiDomainServiceTest {
         var ownerEntity = buildPrimaryOwnerEntity();
 
         //when
-        var updatedApi = usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity);
+        var updatedApi = usecase.update(
+            UpdateFederatedApiDomainService.Previous.id(apiToUpdate.getId()),
+            old -> apiToUpdate,
+            auditInfo,
+            ownerEntity
+        );
         //then
         SoftAssertions.assertSoftly(soft -> {
             assertThat(updatedApi.getName()).isEqualTo("updated-name");
@@ -235,7 +245,9 @@ class UpdateFederatedApiDomainServiceTest {
         var ownerEntity = buildPrimaryOwnerEntity();
 
         assertThatExceptionOfType(ApiNotFoundException.class)
-            .isThrownBy(() -> usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity))
+            .isThrownBy(() ->
+                usecase.update(UpdateFederatedApiDomainService.Previous.id(apiToUpdate.getId()), old -> apiToUpdate, auditInfo, ownerEntity)
+            )
             .withMessage("Api not found.");
     }
 
@@ -247,7 +259,9 @@ class UpdateFederatedApiDomainServiceTest {
         var ownerEntity = buildPrimaryOwnerEntity();
 
         assertThatExceptionOfType(LifecycleStateChangeNotAllowedException.class)
-            .isThrownBy(() -> usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity))
+            .isThrownBy(() ->
+                usecase.update(UpdateFederatedApiDomainService.Previous.id(apiToUpdate.getId()), old -> apiToUpdate, auditInfo, ownerEntity)
+            )
             .withMessage("The API lifecycle state cannot be changed to PUBLISHED.");
     }
 
@@ -264,7 +278,9 @@ class UpdateFederatedApiDomainServiceTest {
         var ownerEntity = buildPrimaryOwnerEntity();
 
         assertThatExceptionOfType(InvalidDataException.class)
-            .isThrownBy(() -> usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity))
+            .isThrownBy(() ->
+                usecase.update(UpdateFederatedApiDomainService.Previous.id(apiToUpdate.getId()), old -> apiToUpdate, auditInfo, ownerEntity)
+            )
             .withMessage("These groupIds [[not-existing-group]] do not exist");
     }
 
@@ -275,7 +291,7 @@ class UpdateFederatedApiDomainServiceTest {
         var apiToUpdate = ApiFixtures.aFederatedApi();
         var ownerEntity = buildPrimaryOwnerEntity();
 
-        usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity);
+        usecase.update(UpdateFederatedApiDomainService.Previous.id(apiToUpdate.getId()), old -> apiToUpdate, auditInfo, ownerEntity);
 
         assertThat(auditCrudService.storage())
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
@@ -303,7 +319,12 @@ class UpdateFederatedApiDomainServiceTest {
         var apiToUpdate = ApiFixtures.aFederatedApi();
         var ownerEntity = buildPrimaryOwnerEntity();
 
-        var updatedApi = usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity);
+        var updatedApi = usecase.update(
+            UpdateFederatedApiDomainService.Previous.id(apiToUpdate.getId()),
+            old -> apiToUpdate,
+            auditInfo,
+            ownerEntity
+        );
 
         assertThat(indexer.storage())
             .isNotEmpty()

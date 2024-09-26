@@ -43,7 +43,12 @@ public class UpdateFederatedApiUseCase {
 
         var updating = update(input.apiToUpdate);
 
-        var updated = apiUpdateFederatedApiDomainService.update(input.apiToUpdate.getId(), updating, auditInfo, primaryOwnerEntity);
+        var updated = apiUpdateFederatedApiDomainService.update(
+            UpdateFederatedApiDomainService.Previous.id(input.apiToUpdate.getId()),
+            updating,
+            auditInfo,
+            primaryOwnerEntity
+        );
 
         return new Output(updated, primaryOwnerEntity);
     }

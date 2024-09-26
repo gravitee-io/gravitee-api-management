@@ -40,6 +40,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -49,6 +50,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -126,22 +128,24 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     }
 
     @Override
-    public Optional<Api> findById(String id) throws TechnicalException {
-        LOGGER.debug("JdbcApiRepository.findById({})", id);
+    public Collection<Api> find(Iterable<String> ids) throws TechnicalException {
+        LOGGER.debug("JdbcApiRepository.find({})", ids);
+        List<String> allIds = StreamSupport.stream(ids.spliterator(), false).toList();
         try {
             JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
             jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " a left join " + API_CATEGORIES + " ac on a.id = ac.api_id where a.id = ?",
-                rowMapper,
-                id
+                getOrm().getSelectAllSql() +
+                " a left join " +
+                API_CATEGORIES +
+                " ac on a.id = ac.api_id where a.id in (" +
+                getOrm().buildInClause(allIds) +
+                ")",
+                (PreparedStatement ps) -> getOrm().setArguments(ps, allIds, 1),
+                rowMapper
             );
-            Optional<Api> result = rowMapper.getRows().stream().findFirst();
-            if (result.isPresent()) {
-                addLabels(result.get());
-                addGroups(result.get());
-            }
-            LOGGER.debug("JdbcApiRepository.findById({}) = {}", id, result);
-            return result;
+            List<Api> results = rowMapper.getRows().stream().peek(this::addGroups).peek(this::addLabels).toList();
+            LOGGER.debug("JdbcApiRepository.find({}) = {}", ids, results);
+            return results;
         } catch (final Exception ex) {
             LOGGER.error("Failed to find api by id:", ex);
             throw new TechnicalException("Failed to find api by id", ex);

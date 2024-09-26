@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.*;
 import io.gravitee.repository.management.model.Api;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -62,4 +63,11 @@ public interface ApiRepository extends CrudRepository<Api, String> {
      * @throws TechnicalException
      */
     List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
+
+    @Override
+    default Optional<Api> findById(String id) throws TechnicalException {
+        return find(List.of(id)).stream().findFirst();
+    }
+
+    Collection<Api> find(Iterable<String> ids) throws TechnicalException;
 }
