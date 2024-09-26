@@ -64,3 +64,4 @@ spec:
       '*/*':
         status: 400
         body: "{\"bad\":\"news\"}"
+        propagateErrorKeyToLogs: false

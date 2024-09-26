@@ -4093,6 +4093,8 @@ components:
                         type: string
                 body:
                     type: string
+                propagateErrorKeyToLogs:
+                    type: boolean
         Sampling:
             type: object
             properties:
