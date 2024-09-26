@@ -34,18 +34,15 @@ public final class ScoringEnvironmentApi {
     private String reportId;
     private Date reportCreatedAt;
 
-    @Builder.Default
-    private Double score = -1.0;
+    private Double score;
+    private Long errors;
+    private Long warnings;
+    private Long infos;
+    private Long hints;
 
-    @Builder.Default
-    private Long errors = 0L;
-
-    @Builder.Default
-    private Long warnings = 0L;
-
-    @Builder.Default
-    private Long infos = 0L;
-
-    @Builder.Default
-    private Long hints = 0L;
+    public ScoringEnvironmentApi(String apiId, String apiName, Date apiUpdatedAt) {
+        this.apiId = apiId;
+        this.apiName = apiName;
+        this.apiUpdatedAt = apiUpdatedAt;
+    }
 }

@@ -189,7 +189,15 @@ public class ScoringReportQueryServiceImplTest {
         void should_find_scoring_report() {
             when(scoringReportRepository.getScoringEnvironmentSummary(any()))
                 .thenAnswer(invocation ->
-                    ScoringEnvironmentSummary.builder().environmentId("environment-id").score(0.95).warnings(1L).build()
+                    ScoringEnvironmentSummary
+                        .builder()
+                        .environmentId("environment-id")
+                        .score(0.95)
+                        .errors(0L)
+                        .warnings(1L)
+                        .infos(0L)
+                        .hints(0L)
+                        .build()
                 );
 
             // When
