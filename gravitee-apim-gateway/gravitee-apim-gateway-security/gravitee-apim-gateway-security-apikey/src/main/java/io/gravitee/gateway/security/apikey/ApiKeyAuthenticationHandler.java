@@ -28,7 +28,6 @@ import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.ComponentResolver;
-import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
@@ -67,8 +66,6 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Compo
 
     private ApiKeyService apiKeyService;
 
-    private SubscriptionService subscriptionService;
-
     @Override
     public boolean canHandle(AuthenticationContext context) {
         final String apiKey = readApiKey(context.request());
@@ -82,18 +79,7 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Compo
         if (apiKeyService != null) {
             // Get the api-key from the repository if not present in the context
             if (context.get(APIKEY_CONTEXT_ATTRIBUTE) == null) {
-                final Optional<ApiKey> optApiKey = apiKeyService
-                    .getByApiAndKey(api.getId(), apiKey)
-                    // Look for an update on the subscription (in case the subscription has been transferred to another plan)
-                    .map(dApiKey ->
-                        subscriptionService
-                            .getByApiAndSecurityToken(api.getId(), SecurityToken.forApiKey(apiKey), null)
-                            .map(subscription -> {
-                                dApiKey.setPlan(subscription.getPlan());
-                                return dApiKey;
-                            })
-                            .orElse(dApiKey)
-                    );
+                final Optional<ApiKey> optApiKey = apiKeyService.getByApiAndKey(api.getId(), apiKey);
 
                 if (optApiKey.isPresent()) {
                     context.request().metrics().setSecurityType(API_KEY);
@@ -151,7 +137,6 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Compo
     @Override
     public void resolve(ComponentProvider componentProvider) {
         apiKeyService = componentProvider.getComponent(ApiKeyService.class);
-        subscriptionService = componentProvider.getComponent(SubscriptionService.class);
         api = componentProvider.getComponent(Api.class);
 
         Environment environment = componentProvider.getComponent(Environment.class);
