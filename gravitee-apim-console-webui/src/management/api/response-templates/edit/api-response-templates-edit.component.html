@@ -41,7 +41,7 @@
             </mat-option>
           </mat-autocomplete>
 
-          <mat-error *ngIf="responseTemplatesForm.get('key').hasError('required')"> Status code is required. </mat-error>
+          <mat-error *ngIf="responseTemplatesForm.get('key').hasError('required')"> Status code is required.</mat-error>
         </mat-form-field>
       </div>
 
@@ -102,6 +102,12 @@
           <textarea matInput formControlName="body" rows="8"> </textarea>
         </mat-form-field>
       </div>
+
+      <!--      Propagate error key to logs-->
+      <gio-form-slide-toggle>
+        <gio-form-label>Add template key to logs</gio-form-label>
+        <mat-slide-toggle gioFormSlideToggle formControlName="propagateErrorKeyToLogs"></mat-slide-toggle>
+      </gio-form-slide-toggle>
     </mat-card-content>
   </mat-card>
 
