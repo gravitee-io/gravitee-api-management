@@ -118,6 +118,7 @@ import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApplicationRedirectUrisNotFound;
 import io.gravitee.rest.api.service.exceptions.ApplicationRenewClientSecretException;
 import io.gravitee.rest.api.service.exceptions.ApplicationTypeNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ClientCertificateChangeNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationTypeException;
@@ -131,7 +132,6 @@ import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.xml.bind.DatatypeConverter;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
@@ -721,7 +721,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 checkApiKeyModeUpdate(executionContext, updateApplicationEntity.getApiKeyMode(), applicationToUpdate);
             }
 
-            validateAndEncodeClientCertificate(updateApplicationEntity.getSettings(), activeApplicationsForCurrentEnvironment);
+            // Validate that the TLS certificate has not changed
+            if (updateApplicationEntity.getSettings().getTls() != null) {
+                String existingCertificate = applicationToUpdate.getMetadata().get(METADATA_CLIENT_CERTIFICATE);
+                String newCertificate = updateApplicationEntity.getSettings().getTls().getClientCertificate();
+                if (newCertificate != null && !newCertificate.equals(existingCertificate)) {
+                    throw new ClientCertificateChangeNotAllowedException();
+                }
+            }
 
             // Update application metadata
             Map<String, String> metadata = new HashMap<>();
