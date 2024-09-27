@@ -41,7 +41,7 @@ import { of } from 'rxjs/internal/observable/of';
 
 import { LoaderComponent } from '../../../../../components/loader/loader.component';
 import { Application } from '../../../../../entities/application/application';
-import { LogsResponse, LogsResponseMetadataApi, LogsResponseMetadataTotalData } from '../../../../../entities/log/log';
+import { LogsResponseMetadataApi, LogsResponseMetadataTotalData } from '../../../../../entities/log/log';
 import { CapitalizeFirstPipe } from '../../../../../pipe/capitalize-first.pipe';
 import { ApplicationLogService, HttpMethodVM } from '../../../../../services/application-log.service';
 import { SubscriptionService } from '../../../../../services/subscription.service';
@@ -113,7 +113,7 @@ export class ApplicationLogTableComponent implements OnInit {
   @Input()
   application!: Application;
 
-  logs$: Observable<LogVM[]> = of([]);
+  logs$: Observable<{ data: LogVM[]; error?: string }> = of({ data: [] });
   applicationApis$: Observable<ApiVM[]> = of([]);
 
   pagination: Signal<{ hasPreviousPage: boolean; hasNextPage: boolean; currentPage: number; totalPages: number }> = computed(() => {
@@ -187,25 +187,13 @@ export class ApplicationLogTableComponent implements OnInit {
       tap(values => this.initializeFiltersAndPagination(values)),
       switchMap(values => {
         const from = this.computeStartDateTimeFromQueryParams(values.from, values.to, values.period);
-        return this.applicationLogService.list(this.application.id, { ...values, from }).pipe(
-          catchError(err => {
-            console.error(err);
-            return of({
-              data: [],
-              metadata: {
-                data: {
-                  total: 0,
-                },
-              },
-            } as LogsResponse);
-          }),
-        );
+        return this.applicationLogService.list(this.application.id, { ...values, from });
       }),
-      tap(response => {
-        this.totalLogs.set((response.metadata['data'] as LogsResponseMetadataTotalData).total);
+      tap(({ metadata }) => {
+        this.totalLogs.set((metadata['data'] as LogsResponseMetadataTotalData).total);
       }),
-      map(response =>
-        response.data.map(log => ({
+      map(response => ({
+        data: response.data.map(log => ({
           id: log.id,
           apiName: (response.metadata[log.api] as LogsResponseMetadataApi).name,
           apiVersion: (response.metadata[log.api] as LogsResponseMetadataApi).version,
@@ -213,9 +201,12 @@ export class ApplicationLogTableComponent implements OnInit {
           status: log.status,
           timestamp: log.timestamp,
         })),
-      ),
+      })),
+      catchError(err => {
+        console.error(err);
+        return of({ data: [], error: err.message });
+      }),
     );
-
     this.applicationApis$ = this.subscriptionService
       .list({ applicationId: this.application.id, size: -1, statuses: ['ACCEPTED', 'PAUSED'] })
       .pipe(

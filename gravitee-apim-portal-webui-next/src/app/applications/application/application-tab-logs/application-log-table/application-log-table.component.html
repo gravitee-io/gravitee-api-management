@@ -163,8 +163,10 @@
   </div>
 </div>
 @if (logs$ | async; as logs) {
-  @if (logs.length) {
-    <table mat-table [dataSource]="logs" class="application-logs__table">
+  @if (logs.error) {
+    <div i18n="@@appLogError">An error has occurred.</div>
+  } @else if (logs.data.length) {
+    <table mat-table [dataSource]="logs.data" class="application-logs__table">
       <ng-container matColumnDef="api">
         <th mat-header-cell *matHeaderCellDef i18n="@@applicationLogsTableColumnApi" class="m3-title-medium">API</th>
         <td mat-cell *matCellDef="let log">
