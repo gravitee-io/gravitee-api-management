@@ -217,10 +217,6 @@ describe('ConstantsService', () => {
 
         expect(result).toMatchObject([
           {
-            planFormType: 'MTLS',
-            name: 'mTLS',
-          },
-          {
             planFormType: 'KEY_LESS',
             name: 'Keyless (public)',
           },
