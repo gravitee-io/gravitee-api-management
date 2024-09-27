@@ -53,11 +53,11 @@
   <div class="card__providers">
     <button
       *ngFor="let provider of identityProviders"
+      mat-raised-button
       (click)="authenticate(provider)"
       class="card__providers__button"
       [ngClass]="'card__providers__button--' + (provider.type | lowercase)"
-      [ngStyle]="{ 'background-color': provider.color }"
-      mat-raised-button
+      [ngStyle]="{ 'background-color': provider.color, color: provider.textColor }"
     >
       <span class="card__providers__button__wrapper">
         <mat-icon class="card__providers__button__wrapper__logo" [svgIcon]="'idp-' + provider.type | lowercase"></mat-icon>
