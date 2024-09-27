@@ -115,27 +115,6 @@ commands:
           key: << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
           paths:
             - ./<< parameters.apim-ui-project >>/node_modules
-  cmd-add-docker-image-in-snyk:
-    parameters:
-      docker-image-name:
-        type: string
-      version:
-        type: string
-    steps:
-      - run:
-          name: Add << parameters.docker-image-name >> << parameters.version >> to Snyk
-          command: |-
-            curl --fail \
-                --include \
-                --request POST \
-                --header "Content-Type: application/json; charset=utf-8" \
-                --header "Authorization: token ${SNYK_API_TOKEN}" \
-                --data-binary "{
-              \"target\": {
-                \"name\": \"<< parameters.docker-image-name >>:<< parameters.version >>\"
-              }
-            }" \
-            "https://api.snyk.io/api/v1/org/${SNYK_ORG_ID}/integrations/${SNYK_INTEGRATION_ID}/import"
   cmd-build-ui-image:
     parameters:
       docker-image-name:
@@ -182,18 +161,6 @@ commands:
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest
           scanner_url: https://82fb8f75da.cloud.aquasec.com
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_api_token
-          var-name: SNYK_API_TOKEN
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_id
-          var-name: SNYK_ORG_ID
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_acr_integration_id
-          var-name: SNYK_INTEGRATION_ID
-      - cmd-add-docker-image-in-snyk:
-          docker-image-name: << parameters.docker-image-name >>
-          version: master-latest
       - cmd-docker-azure-logout
 jobs:
   job-setup:
@@ -299,21 +266,6 @@ jobs:
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio.azurecr.io/apim-gateway:master-latest
           scanner_url: https://82fb8f75da.cloud.aquasec.com
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_api_token
-          var-name: SNYK_API_TOKEN
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_id
-          var-name: SNYK_ORG_ID
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_acr_integration_id
-          var-name: SNYK_INTEGRATION_ID
-      - cmd-add-docker-image-in-snyk:
-          docker-image-name: apim-management-api
-          version: master-latest
-      - cmd-add-docker-image-in-snyk:
-          docker-image-name: apim-gateway
-          version: master-latest
       - cmd-docker-azure-logout
   job-console-webui-build:
     docker:

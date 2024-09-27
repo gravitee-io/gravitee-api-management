@@ -33,27 +33,6 @@ commands:
           command: |-
             docker context create tls-env
             docker buildx create tls-env --use
-  cmd-add-docker-image-in-snyk:
-    parameters:
-      docker-image-name:
-        type: string
-      version:
-        type: string
-    steps:
-      - run:
-          name: Add << parameters.docker-image-name >> << parameters.version >> to Snyk
-          command: |-
-            curl --fail \
-                --include \
-                --request POST \
-                --header "Content-Type: application/json; charset=utf-8" \
-                --header "Authorization: token ${SNYK_API_TOKEN}" \
-                --data-binary "{
-              \"target\": {
-                \"name\": \"<< parameters.docker-image-name >>:<< parameters.version >>\"
-              }
-            }" \
-            "https://api.snyk.io/api/v1/org/${SNYK_ORG_ID}/integrations/${SNYK_INTEGRATION_ID}/import"
 jobs:
   job-publish-prod-docker-images:
     docker:
@@ -122,32 +101,6 @@ jobs:
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio/apim-portal-ui:4.1.0
           scanner_url: https://82fb8f75da.cloud.aquasec.com
-  job-add-docker-images-in-snyk:
-    docker:
-      - image: cimg/base:stable
-    resource_class: small
-    steps:
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_api_token
-          var-name: SNYK_API_TOKEN
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_id
-          var-name: SNYK_ORG_ID
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_acr_integration_id
-          var-name: SNYK_INTEGRATION_ID
-      - cmd-add-docker-image-in-snyk:
-          docker-image-name: apim-gateway
-          version: master-latest
-      - cmd-add-docker-image-in-snyk:
-          docker-image-name: apim-management-api
-          version: master-latest
-      - cmd-add-docker-image-in-snyk:
-          docker-image-name: apim-management-ui
-          version: master-latest
-      - cmd-add-docker-image-in-snyk:
-          docker-image-name: apim-portal-ui
-          version: master-latest
   job-publish-rpm-packages:
     machine:
       image: ubuntu-2204:current
@@ -174,12 +127,6 @@ workflows:
           context:
             - cicd-orchestrator
           name: Build and push docker images for APIM 4.1.0 - Dry Run
-      - job-add-docker-images-in-snyk:
-          context:
-            - cicd-orchestrator
-          name: Add images to Snyk
-          requires:
-            - Build and push docker images for APIM 4.1.0 - Dry Run
       - job-publish-rpm-packages:
           context:
             - cicd-orchestrator
