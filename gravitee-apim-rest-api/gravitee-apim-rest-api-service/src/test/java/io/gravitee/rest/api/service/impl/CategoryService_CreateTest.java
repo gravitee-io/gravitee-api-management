@@ -20,6 +20,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Category;
@@ -93,7 +94,26 @@ public class CategoryService_CreateTest {
         Category v1 = new Category();
         NewCategoryEntity nv1 = new NewCategoryEntity();
         v1.setName("v1");
+        v1.setKey(IdGenerator.generate(v1.getName()));
         nv1.setName("v1");
+        when(mockCategoryRepository.findAllByEnvironment(any())).thenReturn(Collections.singleton(v1));
+
+        try {
+            categoryService.create(GraviteeContext.getExecutionContext(), nv1);
+        } catch (DuplicateCategoryNameException e) {
+            verify(mockCategoryRepository, never()).create(any());
+            throw e;
+        }
+        Assert.fail("should throw DuplicateCategoryNameException");
+    }
+
+    @Test(expected = DuplicateCategoryNameException.class)
+    public void shouldNotCreateExistingCategoryBecauseSameName() throws TechnicalException {
+        Category v1 = new Category();
+        NewCategoryEntity nv1 = new NewCategoryEntity();
+        v1.setName("A Name With Capital Letters");
+        v1.setKey(IdGenerator.generate(v1.getName()));
+        nv1.setName("A name with CAPITAL letters");
         when(mockCategoryRepository.findAllByEnvironment(any())).thenReturn(Collections.singleton(v1));
 
         try {
