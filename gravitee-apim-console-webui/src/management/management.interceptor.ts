@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ILocationService } from 'angular';
-import { isEmpty } from 'lodash';
+import { isFunction } from 'lodash';
 
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
 import NotificationService from '../services/notification.service';
@@ -215,7 +215,8 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
   replaceEnvInterceptor.$inject = ['$q', '$injector'];
 
   const ifMatchEtagInterceptor = function (ngIfMatchEtagInterceptor: IfMatchEtagInterceptor): angular.IHttpInterceptor {
-    if (isEmpty(ngIfMatchEtagInterceptor)) {
+    if (!isFunction(ngIfMatchEtagInterceptor.interceptRequest) || !isFunction(ngIfMatchEtagInterceptor.interceptResponse)) {
+      // Useful to disable interceptor in tests
       return {};
     }
     return {
