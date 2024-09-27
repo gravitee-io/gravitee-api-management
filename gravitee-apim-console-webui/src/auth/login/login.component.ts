@@ -20,14 +20,15 @@ import { switchMap, takeUntil } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
-import { uniq } from 'lodash';
+import { isEmpty, uniq } from 'lodash';
 
 import { ReCaptchaService } from '../../services-ngx/re-captcha.service';
-import { IdentityProvider } from '../../entities/identity-provider';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { SocialIdentityProvider } from '../../entities/organization/socialIdentityProvider';
 import { AuthService } from '../auth.service';
 import { Constants } from '../../entities/Constants';
+
+export type SocialIdentityProviderVM = SocialIdentityProvider & { textColor?: string };
 
 @Component({
   selector: 'login',
@@ -37,7 +38,7 @@ import { Constants } from '../../entities/Constants';
 export class LoginComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
-  public identityProviders: SocialIdentityProvider[] = [];
+  public identityProviders: SocialIdentityProviderVM[] = [];
   public loginForm = new UntypedFormGroup({
     username: new UntypedFormControl('', Validators.required),
     password: new UntypedFormControl('', Validators.required),
@@ -57,7 +58,10 @@ export class LoginComponent implements OnInit, OnDestroy {
   ) {
     this.userCreationEnabled = constants.org.settings.management?.userCreation?.enabled ?? false;
     this.localLoginDisabled = !(constants.org.settings.authentication?.localLogin?.enabled ?? true);
-    this.identityProviders = this.constants.org.identityProviders ?? [];
+    this.identityProviders = (this.constants.org.identityProviders ?? []).map((idp) => ({
+      ...idp,
+      textColor: getProviderTextColor(idp),
+    }));
 
     uniq(this.identityProviders.map((i) => i.type)).forEach((type) => {
       this.iconRegistry.addSvgIcon(
@@ -115,31 +119,27 @@ export class LoginComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe();
   }
-
-  getProviderStyle(provider: IdentityProvider) {
-    return {
-      'background-color': getProviderBackGroundColor(provider),
-      color: getProviderColor(provider),
-    };
-  }
 }
 
-const getProviderColor = (provider: IdentityProvider) => {
-  if (provider.type === 'GRAVITEEIO_AM') {
-    return '#383E3F';
+const getProviderTextColor = (provider: SocialIdentityProviderVM) => {
+  if (isEmpty(provider.color)) {
+    return;
   }
-  return 'white';
+  return colorIsDarkAdvanced(provider.color) ? 'white' : 'black';
 };
 
-const getProviderBackGroundColor = (provider: IdentityProvider) => {
-  if (provider.color) {
-    return provider.color;
-  }
-  if (provider.type === 'OIDC') {
-    return 'black';
-  }
-  if (provider.type === 'GRAVITEEIO_AM') {
-    return '#86c3d0';
-  }
-  return '';
+const colorIsDarkAdvanced = (bgColor: string): boolean => {
+  const color = bgColor.charAt(0) === '#' ? bgColor.substring(1, 7) : bgColor;
+  const r = parseInt(color.substring(0, 2), 16); // hexToR
+  const g = parseInt(color.substring(2, 4), 16); // hexToG
+  const b = parseInt(color.substring(4, 6), 16); // hexToB
+  const uicolors = [r / 255, g / 255, b / 255];
+  const c = uicolors.map((col) => {
+    if (col <= 0.03928) {
+      return col / 12.92;
+    }
+    return Math.pow((col + 0.055) / 1.055, 2.4);
+  });
+  const L = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  return L <= 0.179;
 };
