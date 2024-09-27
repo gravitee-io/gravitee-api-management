@@ -41,7 +41,7 @@ import { of } from 'rxjs/internal/observable/of';
 
 import { LoaderComponent } from '../../../../../components/loader/loader.component';
 import { Application } from '../../../../../entities/application/application';
-import { LogsResponseMetadataApi, LogsResponseMetadataTotalData } from '../../../../../entities/log/log';
+import { LogsResponse, LogsResponseMetadataApi, LogsResponseMetadataTotalData } from '../../../../../entities/log/log';
 import { CapitalizeFirstPipe } from '../../../../../pipe/capitalize-first.pipe';
 import { ApplicationLogService, HttpMethodVM } from '../../../../../services/application-log.service';
 import { SubscriptionService } from '../../../../../services/subscription.service';
@@ -187,10 +187,22 @@ export class ApplicationLogTableComponent implements OnInit {
       tap(values => this.initializeFiltersAndPagination(values)),
       switchMap(values => {
         const from = this.computeStartDateTimeFromQueryParams(values.from, values.to, values.period);
-        return this.applicationLogService.list(this.application.id, { ...values, from });
+        return this.applicationLogService.list(this.application.id, { ...values, from }).pipe(
+          catchError(err => {
+            console.error(err);
+            return of({
+              data: [],
+              metadata: {
+                data: {
+                  total: 0,
+                },
+              },
+            } as LogsResponse);
+          }),
+        );
       }),
-      tap(({ metadata }) => {
-        this.totalLogs.set((metadata['data'] as LogsResponseMetadataTotalData).total);
+      tap(response => {
+        this.totalLogs.set((response.metadata['data'] as LogsResponseMetadataTotalData).total);
       }),
       map(response =>
         response.data.map(log => ({
@@ -202,10 +214,6 @@ export class ApplicationLogTableComponent implements OnInit {
           timestamp: log.timestamp,
         })),
       ),
-      catchError(err => {
-        console.error(err);
-        return of([]);
-      }),
     );
 
     this.applicationApis$ = this.subscriptionService
