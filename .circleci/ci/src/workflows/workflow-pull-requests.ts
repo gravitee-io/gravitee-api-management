@@ -34,7 +34,6 @@ import {
   PublishJob,
   ReleaseHelmJob,
   SetupJob,
-  SnykApimChartsJob,
   SonarCloudAnalysisJob,
   StorybookConsoleJob,
   TestApimChartsJob,
@@ -441,9 +440,6 @@ export class PullRequestsWorkflow {
     const communityBuildJob = CommunityBuildBackendJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(communityBuildJob);
 
-    const snykApimChartsJob = SnykApimChartsJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(snykApimChartsJob);
-
     const publishOnArtifactoryJob = PublishJob.create(dynamicConfig, environment, 'artifactory');
     dynamicConfig.addJob(publishOnArtifactoryJob);
 
@@ -458,7 +454,6 @@ export class PullRequestsWorkflow {
 
     return [
       new workflow.WorkflowJob(communityBuildJob, { name: 'Check build as Community user', context: config.jobContext }),
-      new workflow.WorkflowJob(snykApimChartsJob, { name: 'Scan snyk Helm chart', context: config.jobContext, requires: ['Setup'] }),
       new workflow.WorkflowJob(releaseHelmDryRunJob, {
         name: 'Publish Helm chart (internal repo)',
         context: config.jobContext,

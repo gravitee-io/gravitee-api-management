@@ -15,7 +15,6 @@
  */
 import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
 import {
-  AddDockerImagesInSnykJob,
   PackageBundleJob,
   PublishProdDockerImagesJob,
   PublishRpmPackagesJob,
@@ -61,9 +60,6 @@ export class FullReleaseWorkflow {
 
     const publishProdDockerImagesJob = PublishProdDockerImagesJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(publishProdDockerImagesJob);
-
-    const addDockerImagesInSnykJob = AddDockerImagesInSnykJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(addDockerImagesInSnykJob);
 
     const publishRpmPackagesJob = PublishRpmPackagesJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(publishRpmPackagesJob);
@@ -149,13 +145,6 @@ export class FullReleaseWorkflow {
         requires: ['Package bundle'],
       }),
 
-      // Add docker images in Snyk
-      new workflow.WorkflowJob(addDockerImagesInSnykJob, {
-        context: config.jobContext,
-        name: 'Push docker images to Snyk',
-        requires: [`Build and push docker images for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`],
-      }),
-
       // Publish RPM Packages
       new workflow.WorkflowJob(publishRpmPackagesJob, {
         context: config.jobContext,
@@ -184,7 +173,6 @@ export class FullReleaseWorkflow {
         message: `🎆 APIM - ${environment.graviteeioVersion} released!`,
         requires: [
           'Nexus staging',
-          'Push docker images to Snyk',
           'Create release note pull request',
           'Release Helm Chart',
           `Build and push RPM packages for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
