@@ -86,6 +86,7 @@ import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.IntegrationRepository;
+import io.gravitee.repository.management.api.ScoringReportRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
@@ -291,6 +292,9 @@ public class ApiServiceImplTest {
     @Mock
     private IntegrationRepository integrationRepository;
 
+    @Mock
+    private ScoringReportRepository scoringReportRepository;
+
     @InjectMocks
     private SynchronizationService synchronizationService = Mockito.spy(new SynchronizationService(this.objectMapper));
 
@@ -351,6 +355,7 @@ public class ApiServiceImplTest {
                 portalNotificationConfigService,
                 alertService,
                 apiQualityRuleRepository,
+                scoringReportRepository,
                 mediaService,
                 propertiesService,
                 apiNotificationService,
@@ -605,6 +610,16 @@ public class ApiServiceImplTest {
 
         verify(eventService, never())
             .createApiEvent(any(ExecutionContext.class), anySet(), anyString(), eq(EventType.UNPUBLISH_API), eq(API_ID), anyMap());
+    }
+
+    @Test
+    public void shouldDeleteScoringReport() throws Exception {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
+
+        verify(scoringReportRepository).deleteByApi(eq(API_ID));
+        verify(apiRepository).delete(eq(API_ID));
     }
 
     /*
