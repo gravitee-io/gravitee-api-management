@@ -165,7 +165,7 @@ export class ApplicationLogService {
 
   private createAsteriskQuerySegment(root: string, value?: string) {
     if (value && value.length) {
-      const cleanValue = value.replace('/', '\\\\/');
+      const cleanValue = value.replaceAll('/', '\\\\/');
       return `${root}\:*${cleanValue}*`;
     }
     return undefined;
