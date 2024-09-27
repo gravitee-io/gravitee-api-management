@@ -96,7 +96,6 @@ const orbs = {
   helm: '3.0.0',
   keeper: '0.6.3',
   slack: '4.12.5',
-  snyk: '1.7.0',
 };
 
 const secrets = {
@@ -129,10 +128,6 @@ const secrets = {
   jiraToken: 'keeper://hfnQD5TEfxzwRXUKhJhM-A/field/password',
   mavenSettings: 'keeper://7CgijuGiFDSLynRJt1Dm9w/custom_field/xml',
   slackAccessToken: 'keeper://ZOz4db245GNaETVwmPBk8w/field/password',
-  snykApiToken: 'keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_api_token',
-  snykDockerHubIntegrationId: 'keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_dockerhub_integration_id',
-  snykIntegrationId: 'keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_acr_integration_id',
-  snykOrgId: 'keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_id',
   sonarToken: 'keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password',
 };
 

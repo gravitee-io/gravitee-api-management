@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './cmd-add-docker-image-in-snyk';
 export * from './cmd-build-ui-image';
 export * from './cmd-create-docker-context';
 export * from './cmd-docker-azure-login';
