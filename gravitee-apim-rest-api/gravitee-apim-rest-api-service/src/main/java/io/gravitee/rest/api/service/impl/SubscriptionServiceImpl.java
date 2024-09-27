@@ -1461,16 +1461,18 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription = subscriptionRepository.update(subscription);
             // Properly update underlying api key to redeploy them on the gateway
             Set<ApiKey> apiKeys = apiKeyRepository.findBySubscription(subscription.getId());
-            for (ApiKey apiKey : apiKeys) {
-                if (
-                    apiKey.getSubscriptions().contains(transferSubscription.getId()) ||
-                    apiKey.getSubscription().equals(transferSubscription.getId())
-                ) {
-                    apiKey.setUpdatedAt(new Date());
-                    if (apiKey.getPlan() != null) {
-                        apiKey.setPlan(transferSubscription.getPlan());
+            if (apiKeys != null) {
+                for (ApiKey apiKey : apiKeys) {
+                    if (
+                        (apiKey.getSubscriptions() != null && apiKey.getSubscriptions().contains(transferSubscription.getId())) ||
+                        (apiKey.getSubscription() != null && apiKey.getSubscription().equals(transferSubscription.getId()))
+                    ) {
+                        apiKey.setUpdatedAt(new Date());
+                        if (apiKey.getPlan() != null) {
+                            apiKey.setPlan(transferSubscription.getPlan());
+                        }
+                        apiKeyRepository.update(apiKey);
                     }
-                    apiKeyRepository.update(apiKey);
                 }
             }
             final ApplicationEntity application = applicationService.findById(executionContext, subscription.getApplication());
