@@ -18,7 +18,7 @@ import { OpenJdkExecutor } from '../executors';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { computeImagesTag, isSupportBranchOrMaster } from '../utils';
 import { CircleCIEnvironment } from '../pipelines';
-import { AddDockerImageInSnykCommand, CreateDockerContextCommand, DockerAzureLoginCommand, DockerAzureLogoutCommand } from '../commands';
+import { CreateDockerContextCommand, DockerAzureLoginCommand, DockerAzureLogoutCommand } from '../commands';
 import { orbs } from '../orbs';
 import { config } from '../config';
 
@@ -98,29 +98,6 @@ gateway-docker-context`,
         new reusable.ReusedCommand(orbs.aquasec.commands['scan_docker_image'], {
           docker_image_to_scan: `graviteeio.azurecr.io/apim-gateway:${tag}`,
           scanner_url: config.aqua.scannerUrl,
-        }),
-      );
-
-      steps.push(
-        new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-          'secret-url': config.secrets.snykApiToken,
-          'var-name': 'SNYK_API_TOKEN',
-        }),
-        new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-          'secret-url': config.secrets.snykOrgId,
-          'var-name': 'SNYK_ORG_ID',
-        }),
-        new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-          'secret-url': config.secrets.snykIntegrationId,
-          'var-name': 'SNYK_INTEGRATION_ID',
-        }),
-        new reusable.ReusedCommand(AddDockerImageInSnykCommand.get(), {
-          'docker-image-name': 'apim-management-api',
-          version: tag,
-        }),
-        new reusable.ReusedCommand(AddDockerImageInSnykCommand.get(), {
-          'docker-image-name': 'apim-gateway',
-          version: tag,
         }),
       );
     }
