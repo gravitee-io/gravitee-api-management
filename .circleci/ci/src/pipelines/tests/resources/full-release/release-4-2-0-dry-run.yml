@@ -82,27 +82,6 @@ commands:
           name: Logout from Azure Container Registry
           command: docker logout graviteeio.azurecr.io
     description: Logout from Azure Container Registry
-  cmd-add-docker-image-in-snyk:
-    parameters:
-      docker-image-name:
-        type: string
-      version:
-        type: string
-    steps:
-      - run:
-          name: Add << parameters.docker-image-name >> << parameters.version >> to Snyk
-          command: |-
-            curl --fail \
-                --include \
-                --request POST \
-                --header "Content-Type: application/json; charset=utf-8" \
-                --header "Authorization: token ${SNYK_API_TOKEN}" \
-                --data-binary "{
-              \"target\": {
-                \"name\": \"<< parameters.docker-image-name >>:<< parameters.version >>\"
-              }
-            }" \
-            "https://api.snyk.io/api/v1/org/${SNYK_ORG_ID}/integrations/${SNYK_INTEGRATION_ID}/import"
   cmd-build-ui-image:
     parameters:
       docker-image-name:
@@ -149,18 +128,6 @@ commands:
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.2.x-latest
           scanner_url: https://82fb8f75da.cloud.aquasec.com
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_api_token
-          var-name: SNYK_API_TOKEN
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_id
-          var-name: SNYK_ORG_ID
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_acr_integration_id
-          var-name: SNYK_INTEGRATION_ID
-      - cmd-add-docker-image-in-snyk:
-          docker-image-name: << parameters.docker-image-name >>
-          version: 4.2.x-latest
       - cmd-docker-azure-logout
   cmd-restore-maven-job-cache:
     parameters:
@@ -557,32 +524,6 @@ jobs:
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio/apim-portal-ui:4.2.0
           scanner_url: https://82fb8f75da.cloud.aquasec.com
-  job-add-docker-images-in-snyk:
-    docker:
-      - image: cimg/base:stable
-    resource_class: small
-    steps:
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_api_token
-          var-name: SNYK_API_TOKEN
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_id
-          var-name: SNYK_ORG_ID
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_acr_integration_id
-          var-name: SNYK_INTEGRATION_ID
-      - cmd-add-docker-image-in-snyk:
-          docker-image-name: apim-gateway
-          version: 4.2.x-latest
-      - cmd-add-docker-image-in-snyk:
-          docker-image-name: apim-management-api
-          version: 4.2.x-latest
-      - cmd-add-docker-image-in-snyk:
-          docker-image-name: apim-management-ui
-          version: 4.2.x-latest
-      - cmd-add-docker-image-in-snyk:
-          docker-image-name: apim-portal-ui
-          version: 4.2.x-latest
   job-publish-rpm-packages:
     machine:
       image: ubuntu-2204:current
@@ -734,12 +675,6 @@ workflows:
           name: Build and push docker images for APIM 4.2.0 - Dry Run
           requires:
             - Package bundle
-      - job-add-docker-images-in-snyk:
-          context:
-            - cicd-orchestrator
-          name: Push docker images to Snyk
-          requires:
-            - Build and push docker images for APIM 4.2.0 - Dry Run
       - job-publish-rpm-packages:
           context:
             - cicd-orchestrator
@@ -765,7 +700,6 @@ workflows:
           message: 🎆 APIM - 4.2.0 released!
           requires:
             - Nexus staging
-            - Push docker images to Snyk
             - Create release note pull request
             - Release Helm Chart
             - Build and push RPM packages for APIM 4.2.0 - Dry Run
