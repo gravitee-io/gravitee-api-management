@@ -30,6 +30,7 @@ import { MenuLinkAddDialogHarness } from '../menu-link-dialog/menu-link-add-dial
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { fakePortalMenuLink, PortalMenuLink } from '../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('MenuLinkListComponent', () => {
   const fakeSnackBarService = {
@@ -46,7 +47,13 @@ describe('MenuLinkListComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [MatIconTestingModule, NoopAnimationsModule, GioTestingModule],
-      providers: [{ provide: SnackBarService, useValue: fakeSnackBarService }],
+      providers: [
+        { provide: SnackBarService, useValue: fakeSnackBarService },
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: ['environment-settings-u', 'environment-settings-d', 'environment-settings-c'],
+        },
+      ],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
