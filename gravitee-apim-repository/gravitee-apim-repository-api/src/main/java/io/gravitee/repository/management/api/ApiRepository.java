@@ -70,4 +70,15 @@ public interface ApiRepository extends CrudRepository<Api, String> {
     }
 
     Collection<Api> find(Iterable<String> ids) throws TechnicalException;
+
+    /**
+     * DO NOT USE THIS METHOD
+     * @deprecated use {@link #search(ApiCriteria, Sortable, ApiFieldFilter, int)} instead
+     */
+    @Deprecated(forRemoval = false)
+    default Set<Api> findAll() {
+        throw new IllegalStateException(
+            "Too many results, please use search(ApiCriteria, Sortable, ApiFieldFilter, int) returning a Stream instead."
+        );
+    }
 }

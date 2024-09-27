@@ -31,7 +31,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,11 +53,6 @@ public class MongoApiRepository implements ApiRepository {
 
     @Autowired
     private GraviteeMapper mapper;
-
-    @Override
-    public Set<Api> findAll() throws TechnicalException {
-        return internalApiRepo.findAll().stream().map(this::mapApi).collect(Collectors.toSet());
-    }
 
     @Override
     public Collection<Api> find(Iterable<String> ids) throws TechnicalException {
@@ -160,7 +154,7 @@ public class MongoApiRepository implements ApiRepository {
     }
 
     @Override
-    public Optional<String> findIdByEnvironmentIdAndCrossId(final String environmentId, final String crossId) throws TechnicalException {
+    public Optional<String> findIdByEnvironmentIdAndCrossId(final String environmentId, final String crossId) {
         return internalApiRepo.findIdByEnvironmentIdAndCrossId(environmentId, crossId).map(ApiMongo::getId);
     }
 
