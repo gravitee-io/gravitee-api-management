@@ -136,6 +136,21 @@ describe('ApiCreationV4Component - TCP Proxy', () => {
 
       expect(await entrypointsConfig.hasValidationDisabled()).toBeTruthy();
     }));
+    it('should not allow for mtls plans in tcp proxy', fakeAsync(async () => {
+      await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
+      await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('PROXY');
+      await stepperHelper.fillAndValidateStep2_1_EntrypointsList('PROXY', [
+        { id: 'tcp-proxy', supportedApiType: 'PROXY', name: 'TCP Proxy', supportedListenerType: 'TCP' },
+      ]);
+      await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig(tcpProxyEntrypoint);
+      await stepperHelper.fillAndValidateStep3_2_EndpointsConfig(tcpProxyEntrypoint);
+
+      const plansListHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
+      const availablePlans = await plansListHarness.getPlanNames();
+
+      // Check that mTLS plan is not available
+      expect(availablePlans).not.toContain('mTLS Plan');
+    }));
   });
 
   describe('API Creation', () => {
