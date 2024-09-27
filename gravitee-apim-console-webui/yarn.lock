@@ -4593,9 +4593,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/ui-components@npm:4.2.5":
-  version: 4.2.5
-  resolution: "@gravitee/ui-components@npm:4.2.5"
+"@gravitee/ui-components@npm:4.2.6":
+  version: 4.2.6
+  resolution: "@gravitee/ui-components@npm:4.2.6"
   dependencies:
     "@codemirror/basic-setup": "npm:^0.19.1"
     "@codemirror/language-data": "npm:^0.19.1"
@@ -4607,7 +4607,7 @@ __metadata:
     clipboard-copy: "npm:^4.0.0"
     codemirror-asciidoc: "npm:^2.0.0"
     date-fns: "npm:^2.26.0"
-    dompurify: "npm:^3.0.3"
+    dompurify: "npm:3.1.5"
     jdenticon: "npm:^3.1.0"
     jsonschema: "npm:^1.4.0"
     lit: "npm:^2.0.2"
@@ -4634,7 +4634,7 @@ __metadata:
       optional: true
     highlight.js:
       optional: true
-  checksum: 10c0/745f7dbf1fe9dcb9bc6cadb1d16bc5aa44d2575f9c70e29e583d86a14a058863ec40122a1dce034ea23a416d1385e7b25b7d90e9da67f067ea1a30514e3ce302
+  checksum: 10c0/07220cb68900b9e5864c8292165b08c333231faa65fb3986c37c25c71664079cdc163968514902094fd47d476fe5a98ffe8fbeef13a14e1e1bb23977ae220997
   languageName: node
   linkType: hard
 
@@ -12786,6 +12786,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dompurify@npm:3.1.5":
+  version: 3.1.5
+  resolution: "dompurify@npm:3.1.5"
+  checksum: 10c0/8227fb1328c02d94f823de8cd499fca5ee07051e03e6b52bce06b592348aeb6e56ea8e2a4b0a9cfaeac7d623e4b5a52e4326aedf72596a6c2510b88dfcf2a2b6
+  languageName: node
+  linkType: hard
+
 "dompurify@npm:=3.1.2":
   version: 3.1.2
   resolution: "dompurify@npm:3.1.2"
@@ -12800,7 +12807,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:^3.0.3, dompurify@npm:^3.0.5":
+"dompurify@npm:^3.0.5":
   version: 3.0.11
   resolution: "dompurify@npm:3.0.11"
   checksum: 10c0/38740deed057da8076e85026853635312a6720a21430218a85875e5f43e453c78637d93aa08c744460b0e91c652b06c736efb481c408a8f9c81894d8f76e0de1
@@ -14932,7 +14939,7 @@ __metadata:
     "@danielmoncada/angular-datetime-picker-moment-adapter": "npm:4.0.0"
     "@fontsource/libre-franklin": "npm:4.5.11"
     "@gravitee/ui-analytics": "npm:13.1.6"
-    "@gravitee/ui-components": "npm:4.2.5"
+    "@gravitee/ui-components": "npm:4.2.6"
     "@gravitee/ui-particles-angular": "npm:13.1.6"
     "@gravitee/ui-policy-studio-angular": "npm:13.1.6"
     "@gravitee/ui-schematics": "npm:13.1.6"
