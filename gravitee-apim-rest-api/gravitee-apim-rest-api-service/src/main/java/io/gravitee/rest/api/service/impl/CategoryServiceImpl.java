@@ -137,7 +137,8 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
         final List<CategoryEntity> categories = findAll(executionContext.getEnvironmentId());
         final Optional<CategoryEntity> optionalCategory = categories
             .stream()
-            .filter(v -> v.getName().equals((newCategory.getName())))
+            .filter(v -> v.getName().equalsIgnoreCase((newCategory.getName())))
+            .filter(v -> v.getKey().equalsIgnoreCase(IdGenerator.generate((newCategory.getName()))))
             .findAny();
 
         if (optionalCategory.isPresent()) {
