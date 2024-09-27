@@ -22,7 +22,6 @@ import { gravitee } from './gravitee';
 import { helm } from './helm';
 import { keeper } from './keeper';
 import { slack } from './slack';
-import { snyk } from './snyk';
 
 export const orbs = {
   aquasec,
@@ -34,5 +33,4 @@ export const orbs = {
   helm,
   keeper,
   slack,
-  snyk,
 };
