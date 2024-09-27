@@ -272,6 +272,7 @@ public class ApiServiceImpl_findAllTest {
                 portalNotificationConfigService,
                 alertService,
                 apiQualityRuleRepository,
+                null,
                 mediaService,
                 propertiesService,
                 apiNotificationService,
