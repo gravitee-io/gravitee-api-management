@@ -82,7 +82,7 @@ export class ConstantsService {
     const availablePlanMenuItems = this.getEnabledPlanMenuItems();
 
     if (definitionVersion === 'V4' && listenerTypes?.every((listenerType) => listenerType === 'TCP')) {
-      return availablePlanMenuItems.filter((p) => p.planFormType === 'KEY_LESS' || p.planFormType === 'MTLS');
+      return availablePlanMenuItems.filter((p) => p.planFormType === 'KEY_LESS');
     }
 
     if (definitionVersion === 'V4' && listenerTypes?.every((listenerType) => listenerType === 'SUBSCRIPTION')) {

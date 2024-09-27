@@ -73,4 +73,8 @@ public class PlanFixtures {
     public static SubscriptionParameter subscriptionParameter() {
         return new SubscriptionParameter.ApiKey(aFederatedPlan());
     }
+
+    public static Plan anMtlsPlanV4() {
+        return (Plan) BASE_V4.get().id("mtls").name("mTLS Plan").security(PlanSecurity.builder().type("mtls").build()).build();
+    }
 }

@@ -67,6 +67,16 @@ public class PlanFixtures {
         return BASE.get().id("push").name("Push Plan").planDefinitionV4(fixtures.definition.PlanFixtures.aPushPlan()).build();
     }
 
+    public static Plan anMtlsPlanV4() {
+        return BASE
+            .get()
+            .id("mtls")
+            .name("mTLS Plan")
+            .definitionVersion(DefinitionVersion.V4)
+            .planDefinitionV4(fixtures.definition.PlanFixtures.anMtlsPlanV4())
+            .build();
+    }
+
     public static Plan aFederatedPlan() {
         return BASE
             .get()

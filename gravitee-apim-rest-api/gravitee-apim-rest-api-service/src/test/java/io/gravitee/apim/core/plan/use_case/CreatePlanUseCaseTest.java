@@ -114,7 +114,10 @@ class CreatePlanUseCaseTest {
     @BeforeEach
     void setUp() {
         parametersQueryService.initWith(
-            List.of(new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true"))
+            List.of(
+                new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true"),
+                new Parameter(Key.PLAN_SECURITY_MTLS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
+            )
         );
     }
 
@@ -173,6 +176,38 @@ class CreatePlanUseCaseTest {
 
         // Then
         Assertions.assertThat(throwable).isInstanceOf(PlanInvalidException.class).hasMessage("Can't manually create Federated Plan");
+    }
+
+    @Test
+    void should_throw_when_creating_mtls_plan_for_tcp_api() {
+        // Given
+        var api = givenExistingApi(ApiFixtures.aTcpApiV4());
+        var mtlsPlan = PlanFixtures.anMtlsPlanV4().toBuilder().id(null).build();
+        var input = new Input(api.getId(), mtlsPlan, Collections.emptyList(), AUDIT_INFO);
+
+        // When
+        var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
+
+        // Then
+        Assertions.assertThat(throwable).isInstanceOf(PlanInvalidException.class).hasMessage("Cannot create mTLS plan for TCP API");
+    }
+
+    @Test
+    void should_create_mtls_plan_for_http_api() {
+        // Given
+        var api = givenExistingApi(ApiFixtures.aProxyApiV4());
+        var mtlsPlan = PlanFixtures.anMtlsPlanV4().toBuilder().id(null).build();
+        var input = new Input(api.getId(), mtlsPlan, Collections.emptyList(), AUDIT_INFO);
+
+        // When
+        var result = createPlanUseCase.execute(input);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(GENERATED_ID);
+        assertThat(result.plan())
+            .extracting(PlanWithFlows::getApiId, createdPlan -> createdPlan.getPlanSecurity().getType())
+            .containsExactly(api.getId(), "mtls");
     }
 
     private Api givenExistingApi(Api api) {
