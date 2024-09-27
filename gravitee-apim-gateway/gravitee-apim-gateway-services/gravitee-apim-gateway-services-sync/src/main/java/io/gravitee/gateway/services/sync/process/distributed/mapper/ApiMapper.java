@@ -17,6 +17,9 @@ package io.gravitee.gateway.services.sync.process.distributed.mapper;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
@@ -25,16 +28,43 @@ import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Date;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@RequiredArgsConstructor
 @Slf4j
 public class ApiMapper {
 
     private final ObjectMapper objectMapper;
     private final SubscriptionMapper subscriptionMapper;
     private final ApiKeyMapper apiKeyMapper;
+    private final List<Function<String, ReactableApi<?>>> parsers;
+
+    public ApiMapper(ObjectMapper objectMapper, SubscriptionMapper subscriptionMapper, ApiKeyMapper apiKeyMapper) {
+        this.objectMapper = objectMapper;
+        this.subscriptionMapper = subscriptionMapper;
+        this.apiKeyMapper = apiKeyMapper;
+
+        parsers =
+            List.of(
+                payload ->
+                    parseAndAssert(
+                        payload,
+                        Api.class,
+                        reactableApi ->
+                            reactableApi.getDefinitionVersion() == DefinitionVersion.V1 ||
+                            reactableApi.getDefinitionVersion() == DefinitionVersion.V2
+                    ),
+                payload ->
+                    parseAndAssert(
+                        payload,
+                        io.gravitee.gateway.reactive.handlers.api.v4.Api.class,
+                        reactableApi -> reactableApi.getDefinitionVersion() == DefinitionVersion.V4
+                    )
+            );
+    }
 
     public Maybe<ApiReactorDeployable> to(final DistributedEvent event) {
         return Maybe.fromCallable(() -> {
@@ -54,14 +84,19 @@ public class ApiMapper {
         });
     }
 
-    private ReactableApi<?> toReactable(final String payload) throws JsonProcessingException {
+    private ReactableApi<?> toReactable(final String payload) throws Exception {
         ReactableApi<?> reactableApi = null;
         if (payload != null && !payload.isBlank()) {
-            try {
-                reactableApi = objectMapper.readValue(payload, io.gravitee.gateway.reactive.handlers.api.v4.Api.class);
-            } catch (Exception e) {
-                reactableApi = objectMapper.readValue(payload, io.gravitee.gateway.handlers.api.definition.Api.class);
+            Exception lastException = null;
+            for (Function<String, ReactableApi<?>> parser : parsers) {
+                try {
+                    return parser.apply(payload);
+                } catch (Exception e) {
+                    lastException = e;
+                    // continue to next parser
+                }
             }
+            throw lastException;
         }
         return reactableApi;
     }
@@ -88,5 +123,28 @@ public class ApiMapper {
                 return null;
             }
         });
+    }
+
+    /**
+     * Try to parse a string payload into expected type and verify predicate is true.
+     * @throws {@link RuntimeException} built from original exception as cause.
+     * @return the payload parsed into the expected type
+     */
+    private ReactableApi<?> parseAndAssert(
+        String payload,
+        Class<? extends ReactableApi<?>> parseToClass,
+        Predicate<ReactableApi<?>> assertion
+    ) {
+        ReactableApi<?> result;
+        // try to map the payload into expected type
+        try {
+            result = this.objectMapper.readValue(payload, parseToClass);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        if (assertion.test(result)) {
+            return result;
+        }
+        throw new RuntimeException(new IllegalStateException("Parsing predicate is false for API: " + result.getId()));
     }
 }
