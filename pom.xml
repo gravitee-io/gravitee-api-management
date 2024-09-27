@@ -275,7 +275,7 @@
         <gravitee-entrypoint-http-get.version>1.2.0</gravitee-entrypoint-http-get.version>
         <gravitee-entrypoint-http-post.version>1.2.0</gravitee-entrypoint-http-post.version>
         <gravitee-entrypoint-sse.version>4.1.0</gravitee-entrypoint-sse.version>
-        <gravitee-entrypoint-webhook.version>3.1.0</gravitee-entrypoint-webhook.version>
+        <gravitee-entrypoint-webhook.version>3.1.1</gravitee-entrypoint-webhook.version>
         <gravitee-entrypoint-websocket.version>1.0.4</gravitee-entrypoint-websocket.version>
         <gravitee-endpoint-kafka.version>2.10.2</gravitee-endpoint-kafka.version>
         <gravitee-endpoint-mqtt5.version>2.2.0</gravitee-endpoint-mqtt5.version>
