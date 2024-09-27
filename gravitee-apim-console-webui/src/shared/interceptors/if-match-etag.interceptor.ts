@@ -32,15 +32,21 @@ export class IfMatchEtagInterceptor implements HttpInterceptor {
 
   private urlToKeyMatchers: ((url: string) => string | undefined)[] = [
     (url) => {
-      const matchArray = url.match(new RegExp(`/management/organizations/(.*)/environments/(.*)/apis/(.*)`));
+      const matchArray = url.match(new RegExp(`/management/organizations/([^\\/]+)/environments/([^\\/]+)/apis/([^\\/]+)`));
       if (matchArray) {
         return `api-${matchArray[3]}`;
       }
     },
     (url) => {
-      const matchArray = url.match(new RegExp(`/management/v2/environments/(.*)/apis/(.*)`));
+      const matchArray = url.match(new RegExp(`/management/v2/environments/([^\\/]+)/apis/([^\\/]+)`));
       if (matchArray) {
         return `api-${matchArray[2]}`;
+      }
+    },
+    (url) => {
+      const matchArray = url.match(new RegExp(`/management/v2/organizations/([^\\/]+)/environments/([^\\/]+)/apis/([^\\/]+)`));
+      if (matchArray) {
+        return `api-${matchArray[3]}`;
       }
     },
   ];
