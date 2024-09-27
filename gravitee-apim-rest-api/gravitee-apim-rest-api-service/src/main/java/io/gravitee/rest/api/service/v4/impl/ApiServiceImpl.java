@@ -34,6 +34,7 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.ScoringReportRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
@@ -163,6 +164,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final ApiAuthorizationService apiAuthorizationService;
     private final GroupService groupService;
     private final ApiCategoryService apiCategoryService;
+    private final ScoringReportRepository scoringReportRepository;
 
     private static final String EMAIL_METADATA_VALUE = "${(api.primaryOwner.email)!''}";
     private static final String EXPAND_PRIMARY_OWNER = "primaryOwner";
@@ -190,6 +192,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final PortalNotificationConfigService portalNotificationConfigService,
         @Lazy final AlertService alertService,
         @Lazy final ApiQualityRuleRepository apiQualityRuleRepository,
+        @Lazy final ScoringReportRepository scoringReportRepository,
         final MediaService mediaService,
         final PropertiesService propertiesService,
         final ApiNotificationService apiNotificationService,
@@ -227,6 +230,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.apiAuthorizationService = apiAuthorizationService;
         this.groupService = groupService;
         this.apiCategoryService = apiCategoryService;
+        this.scoringReportRepository = scoringReportRepository;
     }
 
     @Override
@@ -636,6 +640,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             mediaService.deleteAllByApi(apiId);
 
             apiMetadataService.deleteAllByApi(executionContext, apiId);
+
+            scoringReportRepository.deleteByApi(apiId);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to delete API " + apiId, ex);
         }
