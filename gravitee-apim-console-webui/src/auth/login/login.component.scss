@@ -24,20 +24,20 @@
 
       // Default color for all providers
       &--graviteeio_am {
-        color: #383e3f;
-        background-color: #86c3d0;
+        --mdc-protected-button-label-text-color: #1b1d3c;
+        --mdc-protected-button-container-color: #86c3d0;
       }
       &--google {
-        color: #fff;
-        background-color: #4285f4;
+        --mdc-protected-button-label-text-color: #fff;
+        --mdc-protected-button-container-color: #4285f4;
       }
       &--github {
-        color: #fff;
-        background-color: #444;
+        --mdc-protected-button-label-text-color: #fff;
+        --mdc-protected-button-container-color: #444;
       }
       &--oidc {
-        color: #fff;
-        background-color: #000000;
+        --mdc-protected-button-label-text-color: #fff;
+        --mdc-protected-button-container-color: #000000;
       }
 
       & + & {
