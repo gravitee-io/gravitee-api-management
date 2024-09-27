@@ -20,6 +20,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
@@ -31,6 +34,7 @@ import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import java.util.Date;
 import java.util.List;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -45,38 +49,76 @@ class ApiMapperTest {
 
     private final ObjectMapper objectMapper = new GraviteeMapper();
     private ApiMapper cut;
-    private DistributedEvent distributedEvent;
-    private ApiReactorDeployable apiReactorDeployable;
-    private Api api;
 
     @BeforeEach
     public void beforeEach() throws JsonProcessingException {
         cut = new ApiMapper(objectMapper, new SubscriptionMapper(objectMapper), new ApiKeyMapper(objectMapper));
-
-        io.gravitee.definition.model.v4.Api apiDef = new io.gravitee.definition.model.v4.Api();
-        apiDef.setId("apiId");
-        api = new io.gravitee.gateway.reactive.handlers.api.v4.Api(apiDef);
-
-        distributedEvent =
-            DistributedEvent
-                .builder()
-                .id("apiId")
-                .payload(objectMapper.writeValueAsString(api))
-                .updatedAt(new Date())
-                .type(DistributedEventType.API)
-                .syncAction(DistributedSyncAction.DEPLOY)
-                .build();
-
-        apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").reactableApi(api).syncAction(SyncAction.DEPLOY).build();
     }
 
+    @SneakyThrows
     @Test
-    void should_return_distributed_event() {
+    void should_return_distributed_event_for_v2_api() {
+        io.gravitee.definition.model.Api apiDef = new io.gravitee.definition.model.Api();
+        apiDef.setId("apiId");
+        apiDef.setDefinitionVersion(DefinitionVersion.V2);
+        final Proxy proxy = new Proxy();
+        proxy.setVirtualHosts(List.of(new VirtualHost("/path")));
+        apiDef.setProxy(proxy);
+        io.gravitee.gateway.handlers.api.definition.Api api = new io.gravitee.gateway.handlers.api.definition.Api(apiDef);
+
+        DistributedEvent distributedEvent = DistributedEvent
+            .builder()
+            .id("apiId")
+            .payload(objectMapper.writeValueAsString(api))
+            .updatedAt(new Date())
+            .type(DistributedEventType.API)
+            .syncAction(DistributedSyncAction.DEPLOY)
+            .build();
+
+        ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable
+            .builder()
+            .apiId("apiId")
+            .reactableApi(api)
+            .syncAction(SyncAction.DEPLOY)
+            .build();
+
         cut
             .to(distributedEvent)
             .test()
-            .assertValue(apiReactorDeployable -> {
-                assertThat(apiReactorDeployable).isEqualTo(this.apiReactorDeployable);
+            .assertValue(reactorDeployable -> {
+                assertThat(reactorDeployable).isEqualTo(apiReactorDeployable);
+                return true;
+            });
+    }
+
+    @SneakyThrows
+    @Test
+    void should_return_distributed_event_for_v4_api() {
+        io.gravitee.definition.model.v4.Api apiDef = new io.gravitee.definition.model.v4.Api();
+        apiDef.setId("apiId");
+        io.gravitee.gateway.reactive.handlers.api.v4.Api api = new io.gravitee.gateway.reactive.handlers.api.v4.Api(apiDef);
+
+        DistributedEvent distributedEvent = DistributedEvent
+            .builder()
+            .id("apiId")
+            .payload(objectMapper.writeValueAsString(api))
+            .updatedAt(new Date())
+            .type(DistributedEventType.API)
+            .syncAction(DistributedSyncAction.DEPLOY)
+            .build();
+
+        ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable
+            .builder()
+            .apiId("apiId")
+            .reactableApi(api)
+            .syncAction(SyncAction.DEPLOY)
+            .build();
+
+        cut
+            .to(distributedEvent)
+            .test()
+            .assertValue(reactorDeployable -> {
+                assertThat(reactorDeployable).isEqualTo(apiReactorDeployable);
                 return true;
             });
     }
@@ -88,19 +130,22 @@ class ApiMapperTest {
 
     @Test
     void should_map_api_reactor_deployable() {
+        io.gravitee.definition.model.v4.Api apiDef = new io.gravitee.definition.model.v4.Api();
+        apiDef.setId("apiId");
+        Api api = new io.gravitee.gateway.reactive.handlers.api.v4.Api(apiDef);
+
         ApiKey apiKey = new ApiKey();
         apiKey.setId("apiKey");
         Subscription subscription = new Subscription();
         subscription.setId("subscription");
-        apiReactorDeployable =
-            ApiReactorDeployable
-                .builder()
-                .apiId("apiId")
-                .reactableApi(api)
-                .syncAction(SyncAction.DEPLOY)
-                .apiKeys(List.of(apiKey))
-                .subscriptions(List.of(subscription))
-                .build();
+        ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable
+            .builder()
+            .apiId("apiId")
+            .reactableApi(api)
+            .syncAction(SyncAction.DEPLOY)
+            .apiKeys(List.of(apiKey))
+            .subscriptions(List.of(subscription))
+            .build();
         cut
             .to(apiReactorDeployable)
             .test()
