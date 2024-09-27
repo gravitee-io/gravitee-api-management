@@ -213,7 +213,7 @@ describe('ApplicationLogService', () => {
       const logsResponse: LogsResponse = fakeLogsResponse();
       const currentDateInMilliseconds = Date.now();
       const yesterdayInMilliseconds = currentDateInMilliseconds - 86400000;
-      const path = 'my-path';
+      const path = '/my/path';
       service.list(APP_ID, { path }).subscribe(response => {
         expect(response).toMatchObject(logsResponse);
         done();
@@ -221,7 +221,7 @@ describe('ApplicationLogService', () => {
 
       const req = httpTestingController.expectOne(
         `${TESTING_BASE_URL}/applications/${APP_ID}/logs?page=1&size=10&from=${yesterdayInMilliseconds}&to=${currentDateInMilliseconds}&order=DESC&field=@timestamp` +
-          `&query=uri:*${path}*`,
+          `&query=uri:*\\\\/my\\\\/path*`,
       );
       expect(req.request.method).toEqual('GET');
 
