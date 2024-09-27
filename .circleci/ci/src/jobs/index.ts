@@ -17,7 +17,6 @@ export * from './backend/index';
 export * from './e2e/index';
 export * from './frontend/index';
 export * from './helm/index';
-export * from './job-add-docker-images-in-snyk';
 export * from './job-build-backend-images';
 export * from './job-danger-js';
 export * from './job-deploy-on-azure';

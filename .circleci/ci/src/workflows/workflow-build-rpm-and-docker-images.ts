@@ -15,16 +15,14 @@
  */
 import { Config, Workflow, workflow } from '@circleci/circleci-config-sdk';
 import { CircleCIEnvironment } from '../pipelines';
-import { AddDockerImagesInSnykJob, PublishProdDockerImagesJob, PublishRpmPackagesJob } from '../jobs';
+import { PublishProdDockerImagesJob, PublishRpmPackagesJob } from '../jobs';
 import { config } from '../config';
 
 export class BuildRpmAndDockerImagesWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
     const publishProdDockerImagesJob = PublishProdDockerImagesJob.create(dynamicConfig, environment);
-    const addDockerImagesInSnykJob = AddDockerImagesInSnykJob.create(dynamicConfig, environment);
     const publishRpmPackagesJob = PublishRpmPackagesJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(publishProdDockerImagesJob);
-    dynamicConfig.addJob(addDockerImagesInSnykJob);
     dynamicConfig.addJob(publishRpmPackagesJob);
 
     let publishProdDockerImagesJobName = `Build and push docker images for APIM ${environment.graviteeioVersion}`;
@@ -39,11 +37,6 @@ export class BuildRpmAndDockerImagesWorkflow {
       new workflow.WorkflowJob(publishProdDockerImagesJob, {
         context: config.jobContext,
         name: publishProdDockerImagesJobName,
-      }),
-      new workflow.WorkflowJob(addDockerImagesInSnykJob, {
-        context: config.jobContext,
-        name: 'Add images to Snyk',
-        requires: [publishProdDockerImagesJobName],
       }),
       new workflow.WorkflowJob(publishRpmPackagesJob, {
         context: config.jobContext,
