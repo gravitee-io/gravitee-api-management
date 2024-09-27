@@ -115,27 +115,6 @@ commands:
           name: Logout from Azure Container Registry
           command: docker logout graviteeio.azurecr.io
     description: Logout from Azure Container Registry
-  cmd-add-docker-image-in-snyk:
-    parameters:
-      docker-image-name:
-        type: string
-      version:
-        type: string
-    steps:
-      - run:
-          name: Add << parameters.docker-image-name >> << parameters.version >> to Snyk
-          command: |-
-            curl --fail \
-                --include \
-                --request POST \
-                --header "Content-Type: application/json; charset=utf-8" \
-                --header "Authorization: token ${SNYK_API_TOKEN}" \
-                --data-binary "{
-              \"target\": {
-                \"name\": \"<< parameters.docker-image-name >>:<< parameters.version >>\"
-              }
-            }" \
-            "https://api.snyk.io/api/v1/org/${SNYK_ORG_ID}/integrations/${SNYK_INTEGRATION_ID}/import"
   cmd-build-ui-image:
     parameters:
       docker-image-name:
@@ -182,18 +161,6 @@ commands:
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest
           scanner_url: https://82fb8f75da.cloud.aquasec.com
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_api_token
-          var-name: SNYK_API_TOKEN
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_id
-          var-name: SNYK_ORG_ID
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_acr_integration_id
-          var-name: SNYK_INTEGRATION_ID
-      - cmd-add-docker-image-in-snyk:
-          docker-image-name: << parameters.docker-image-name >>
-          version: 4.1.x-latest
       - cmd-docker-azure-logout
 jobs:
   job-test-apim-charts:
@@ -779,21 +746,6 @@ jobs:
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio.azurecr.io/apim-gateway:4.1.x-latest
           scanner_url: https://82fb8f75da.cloud.aquasec.com
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_api_token
-          var-name: SNYK_API_TOKEN
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_id
-          var-name: SNYK_ORG_ID
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_acr_integration_id
-          var-name: SNYK_INTEGRATION_ID
-      - cmd-add-docker-image-in-snyk:
-          docker-image-name: apim-management-api
-          version: 4.1.x-latest
-      - cmd-add-docker-image-in-snyk:
-          docker-image-name: apim-gateway
-          version: 4.1.x-latest
       - cmd-docker-azure-logout
   job-e2e-generate-sdk:
     docker:
@@ -967,25 +919,6 @@ jobs:
       - cmd-notify-on-failure
       - cmd-save-maven-job-cache:
           jobName: job-community-build
-  job-snyk-apim-charts:
-    docker:
-      - image: cimg/base:stable
-    resource_class: small
-    steps:
-      - checkout
-      - keeper/env-export:
-          secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_api_token
-          var-name: SNYK_TOKEN
-      - helm/install_helm_client:
-          version: v3.12.3
-      - snyk/install
-      - run:
-          name: Build the Charts ouput and scan
-          command: |-
-            helm dependency update
-            helm template . --output-dir ./output
-            snyk iac test ./output --report --target-reference="4.1.x" --project-tags=version=4.1.x --severity-threshold=high
-          working_directory: ./helm
   job-publish-on-artifactory:
     docker:
       - image: cimg/openjdk:17.0.8
@@ -1333,12 +1266,6 @@ workflows:
           name: Check build as Community user
           context:
             - cicd-orchestrator
-      - job-snyk-apim-charts:
-          name: Scan snyk Helm chart
-          context:
-            - cicd-orchestrator
-          requires:
-            - Setup
       - job-release-helm:
           name: Publish Helm chart (internal repo)
           context:
@@ -1384,4 +1311,3 @@ orbs:
   helm: circleci/helm@3.0.0
   slack: circleci/slack@4.12.5
   gh: circleci/github-cli@1.0.5
-  snyk: snyk/snyk@1.7.0

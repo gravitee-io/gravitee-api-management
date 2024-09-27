@@ -22,7 +22,6 @@ import { DockerAzureLogoutCommand } from './cmd-docker-azure-logout';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { orbs } from '../orbs';
 import { config } from '../config';
-import { AddDockerImageInSnykCommand } from './cmd-add-docker-image-in-snyk';
 
 export class BuildUiImageCommand {
   private static commandName = 'cmd-build-ui-image';
@@ -92,27 +91,6 @@ export class BuildUiImageCommand {
         new reusable.ReusedCommand(orbs.aquasec.commands['scan_docker_image'], {
           docker_image_to_scan: `graviteeio.azurecr.io/<< parameters.docker-image-name >>:${tag}`,
           scanner_url: config.aqua.scannerUrl,
-        }),
-      );
-      const addDockerImageInSnykCommand = AddDockerImageInSnykCommand.get();
-      dynamicConfig.addReusableCommand(addDockerImageInSnykCommand);
-
-      steps.push(
-        new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-          'secret-url': config.secrets.snykApiToken,
-          'var-name': 'SNYK_API_TOKEN',
-        }),
-        new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-          'secret-url': config.secrets.snykOrgId,
-          'var-name': 'SNYK_ORG_ID',
-        }),
-        new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-          'secret-url': config.secrets.snykIntegrationId,
-          'var-name': 'SNYK_INTEGRATION_ID',
-        }),
-        new reusable.ReusedCommand(addDockerImageInSnykCommand, {
-          'docker-image-name': '<< parameters.docker-image-name >>',
-          version: tag,
         }),
       );
     }
