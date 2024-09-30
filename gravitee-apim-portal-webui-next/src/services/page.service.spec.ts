@@ -41,33 +41,37 @@ describe('PageService', () => {
   describe('mapToPageTreeNode', () => {
     it('should map page list to list of page tree nodes', () => {
       const treeNodes = service.mapToPageTreeNode(undefined, [
-        fakePage({ id: 'parent', name: 'Parent', parent: undefined }),
-        fakePage({ id: 'child-one', name: 'Child One', parent: 'parent' }),
-        fakePage({ id: 'child-two', name: 'Child Two', parent: 'parent' }),
-        fakePage({ id: 'grandchild', name: 'Grandchild', parent: 'child-two' }),
-        fakePage({ id: 'lone-page', name: 'Lone Page', parent: undefined }),
+        fakePage({ id: 'parent', name: 'Parent', parent: undefined, type: 'FOLDER' }),
+        fakePage({ id: 'child-one', name: 'Child One', parent: 'parent', type: 'MARKDOWN' }),
+        fakePage({ id: 'child-two', name: 'Child Two', parent: 'parent', type: 'FOLDER' }),
+        fakePage({ id: 'grandchild', name: 'Grandchild', parent: 'child-two', type: 'MARKDOWN' }),
+        fakePage({ id: 'lone-page', name: 'Lone Page', parent: undefined, type: 'MARKDOWN' }),
       ]);
 
       const expectedTreeNodes: PageTreeNode[] = [
         {
           id: 'parent',
           name: 'Parent',
+          isFolder: true,
           children: [
             {
               id: 'child-one',
               name: 'Child One',
+              isFolder: false,
               children: [],
             },
             {
               id: 'child-two',
               name: 'Child Two',
-              children: [{ id: 'grandchild', name: 'Grandchild', children: [] }],
+              isFolder: true,
+              children: [{ id: 'grandchild', name: 'Grandchild', isFolder: false, children: [] }],
             },
           ],
         },
         {
           id: 'lone-page',
           name: 'Lone Page',
+          isFolder: false,
           children: [],
         },
       ];
@@ -91,31 +95,35 @@ describe('PageService', () => {
 
     it('should sort page list to nodes', () => {
       const treeNodes = service.mapToPageTreeNode(undefined, [
-        fakePage({ id: 'parent', name: 'Parent', parent: undefined, order: 99 }),
-        fakePage({ id: 'child-one', name: 'Child One', parent: 'parent', order: 1 }),
-        fakePage({ id: 'child-two', name: 'Child Two', parent: 'parent', order: 0 }),
-        fakePage({ id: 'grandchild', name: 'Grandchild', parent: 'child-two', order: 0 }),
-        fakePage({ id: 'lone-page', name: 'Lone Page', parent: undefined, order: 1 }),
+        fakePage({ id: 'parent', name: 'Parent', parent: undefined, order: 99, type: 'FOLDER' }),
+        fakePage({ id: 'child-one', name: 'Child One', parent: 'parent', order: 1, type: 'MARKDOWN' }),
+        fakePage({ id: 'child-two', name: 'Child Two', parent: 'parent', order: 0, type: 'FOLDER' }),
+        fakePage({ id: 'grandchild', name: 'Grandchild', parent: 'child-two', order: 0, type: 'MARKDOWN' }),
+        fakePage({ id: 'lone-page', name: 'Lone Page', parent: undefined, order: 1, type: 'MARKDOWN' }),
       ]);
 
       const expectedTreeNodes: PageTreeNode[] = [
         {
           id: 'lone-page',
           name: 'Lone Page',
+          isFolder: false,
           children: [],
         },
         {
           id: 'parent',
           name: 'Parent',
+          isFolder: true,
           children: [
             {
               id: 'child-two',
               name: 'Child Two',
-              children: [{ id: 'grandchild', name: 'Grandchild', children: [] }],
+              isFolder: true,
+              children: [{ id: 'grandchild', name: 'Grandchild', isFolder: false, children: [] }],
             },
             {
               id: 'child-one',
               name: 'Child One',
+              isFolder: false,
               children: [],
             },
           ],
