@@ -42,7 +42,8 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
             "SETTINGS",
             "TAG",
             "TENANT",
-            "USER"
+            "USER",
+            "USER_TOKEN"
         ),
         "ENVIRONMENT",
         List.of(
