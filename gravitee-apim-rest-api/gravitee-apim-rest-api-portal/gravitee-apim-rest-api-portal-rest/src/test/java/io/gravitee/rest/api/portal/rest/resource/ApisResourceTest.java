@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 import inmemory.ApiAuthorizationDomainServiceInMemory;
@@ -499,6 +500,73 @@ public class ApisResourceTest extends AbstractResourceTest {
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(1, apiResponse.getData().size());
         assertTrue(getmaxLabelsListSize(apiResponse) == 0);
+    }
+
+    @Test
+    public void shouldPrioritizeApisContainingQueryInTheirNames() throws TechnicalException {
+        doReturn(new HashSet<>(List.of("1", "3", "4")))
+            .when(filteringService)
+            .searchApis(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+
+        ApiEntity api1 = new ApiEntity();
+        api1.setContextPath("/get13");
+        api1.setName("Hello");
+        api1.setId("1");
+
+        ApiEntity api3 = new ApiEntity();
+        api3.setName("API 3");
+        api3.setId("3");
+
+        ApiEntity api4 = new ApiEntity();
+        api4.setDescription("This also contains 3");
+        api4.setName("API 4");
+        api4.setId("4");
+
+        ApiQuery pageQuery = new ApiQuery();
+        pageQuery.setIds(List.of("1", "3", "4"));
+
+        doReturn(List.of(api1, api3, api4)).when(apiSearchService).search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
+
+        final Response response = target("/_search").queryParam("q", "3").request().post(Entity.json(null));
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+
+        assertEquals(3, apiResponse.getData().size());
+        assertEquals("API 3", apiResponse.getData().get(0).getName());
+    }
+
+    @Test
+    public void shouldNotPrioritizeWhenApiNameDoesNotContainsQuery() throws TechnicalException {
+        doReturn(new HashSet<>(List.of("3", "4")))
+            .when(filteringService)
+            .searchApis(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+
+        final Response response = target("/_search").queryParam("q", "no-match").request().post(Entity.json(null));
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        assertEquals(2, apiResponse.getData().size());
+
+        List<String> ids = apiResponse.getData().stream().map(entity -> entity.getName()).collect(Collectors.toList());
+        assertEquals("3", ids.get(0));
+        assertEquals("4", ids.get(1));
+    }
+
+    @Test
+    public void shouldReturnInternalServerErrorWhenExceptionThrown() throws TechnicalException {
+        doThrow(new TechnicalException("Service failure"))
+            .when(filteringService)
+            .searchApis(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+
+        final Response response = target("/_search").queryParam("q", "test").request().post(Entity.json(null));
+
+        assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
+
+        String errorMessage = response.readEntity(String.class);
+        assertTrue(errorMessage.contains("Service failure"));
     }
 
     @Test

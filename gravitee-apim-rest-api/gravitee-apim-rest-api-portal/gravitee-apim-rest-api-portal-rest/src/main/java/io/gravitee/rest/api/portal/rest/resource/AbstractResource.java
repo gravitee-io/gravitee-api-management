@@ -284,6 +284,17 @@ public abstract class AbstractResource<T, K> {
         Map<String, Map<String, Object>> metadata,
         boolean withPagination
     ) {
+        return createDataResponse(executionContext, dataList, paginationParam, metadata, withPagination, null);
+    }
+
+    protected DataResponse createDataResponse(
+        final ExecutionContext executionContext,
+        Collection dataList,
+        PaginationParam paginationParam,
+        Map<String, Map<String, Object>> metadata,
+        boolean withPagination,
+        String query
+    ) {
         Map<String, Object> dataMetadata = new HashMap<>();
         Map<String, Object> paginationMetadata = new HashMap<>();
 
@@ -310,13 +321,21 @@ public abstract class AbstractResource<T, K> {
             pageContent = new ArrayList();
         }
 
+        List<T> transformedContent = (query != null)
+            ? transformPageContent(executionContext, pageContent, query)
+            : transformPageContent(executionContext, pageContent);
+
         return new DataResponse()
-            .data(transformPageContent(executionContext, pageContent))
+            .data(transformedContent)
             .metadata(this.fillMetadata(executionContext, this.computeMetadata(metadata, dataMetadata, paginationMetadata), pageContent))
             .links(this.computePaginatedLinks(paginationParam.getPage(), paginationParam.getSize(), totalItems));
     }
 
     protected List<T> transformPageContent(ExecutionContext executionContext, List<K> pageContent) {
+        return transformPageContent(executionContext, pageContent, null);
+    }
+
+    protected List<T> transformPageContent(ExecutionContext executionContext, List<K> pageContent, String query) {
         return (List<T>) pageContent;
     }
 
@@ -346,6 +365,15 @@ public abstract class AbstractResource<T, K> {
     protected Response createListResponse(
         final ExecutionContext executionContext,
         Collection dataList,
+        String query,
+        PaginationParam paginationParam
+    ) {
+        return createListResponse(executionContext, dataList, query, paginationParam, null);
+    }
+
+    protected Response createListResponse(
+        final ExecutionContext executionContext,
+        Collection dataList,
         PaginationParam paginationParam,
         boolean withPagination
     ) {
@@ -364,11 +392,32 @@ public abstract class AbstractResource<T, K> {
     protected Response createListResponse(
         final ExecutionContext executionContext,
         Collection dataList,
+        String query,
+        PaginationParam paginationParam,
+        Map<String, Map<String, Object>> metadata
+    ) {
+        return createListResponse(executionContext, dataList, query, paginationParam, metadata, true);
+    }
+
+    protected Response createListResponse(
+        final ExecutionContext executionContext,
+        Collection dataList,
         PaginationParam paginationParam,
         Map<String, Map<String, Object>> metadata,
         boolean withPagination
     ) {
         return Response.ok(createDataResponse(executionContext, dataList, paginationParam, metadata, withPagination)).build();
+    }
+
+    protected Response createListResponse(
+        final ExecutionContext executionContext,
+        Collection dataList,
+        String query,
+        PaginationParam paginationParam,
+        Map<String, Map<String, Object>> metadata,
+        boolean withPagination
+    ) {
+        return Response.ok(createDataResponse(executionContext, dataList, paginationParam, metadata, withPagination, query)).build();
     }
 
     protected Response createPictureResponse(Request request, InlinePictureEntity image) {

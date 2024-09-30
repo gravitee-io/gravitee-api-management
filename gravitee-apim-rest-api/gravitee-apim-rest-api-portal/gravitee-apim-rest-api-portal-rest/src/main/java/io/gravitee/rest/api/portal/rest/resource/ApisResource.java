@@ -152,7 +152,7 @@ public class ApisResource extends AbstractResource<Api, String> {
         try {
             final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
             Collection<String> apisList = filteringService.searchApis(executionContext, getAuthenticatedUserOrNull(), query, category);
-            return createListResponse(executionContext, new ArrayList<>(apisList), paginationParam);
+            return createListResponse(executionContext, new ArrayList<>(apisList), query, paginationParam);
         } catch (TechnicalException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e).build();
         }
@@ -164,7 +164,7 @@ public class ApisResource extends AbstractResource<Api, String> {
     }
 
     @Override
-    protected List<Api> transformPageContent(ExecutionContext executionContext, List<String> pageContent) {
+    protected List<Api> transformPageContent(ExecutionContext executionContext, List<String> pageContent, String query) {
         if (pageContent.isEmpty()) {
             return Collections.emptyList();
         }
@@ -189,7 +189,18 @@ public class ApisResource extends AbstractResource<Api, String> {
                     api.setLabels(List.of());
                 }
             })
-            .sorted((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()))
+            .sorted((o1, o2) -> {
+                if (query != null && !query.isEmpty()) {
+                    // Prioritize APIs containing the query in their names
+                    boolean o1Matches = o1.getName().toLowerCase().contains(query.toLowerCase());
+                    boolean o2Matches = o2.getName().toLowerCase().contains(query.toLowerCase());
+                    if (o1Matches != o2Matches) {
+                        return o1Matches ? -1 : 1;
+                    }
+                }
+                // Fallback to ordering by id if query is null, empty, or both match/neither match
+                return orderingComparator.compare(o1.getId(), o2.getId());
+            })
             .collect(Collectors.toList());
     }
 
