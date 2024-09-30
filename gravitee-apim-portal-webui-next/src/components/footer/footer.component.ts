@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { Component, input, Input, InputSignal } from '@angular/core';
 
 import { CompanyTitleComponent } from '../company-title/company-title.component';
 
@@ -29,4 +29,5 @@ export class FooterComponent {
   title: string = 'Developer Portal';
 
   currentYear = new Date().getFullYear().toString();
+  logo: InputSignal<string> = input('');
 }
