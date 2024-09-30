@@ -15,8 +15,11 @@
  */
 package io.gravitee.apim.core.plan.use_case;
 
+import static java.util.Objects.isNull;
+
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.exception.PlanInvalidException;
@@ -41,11 +44,7 @@ public class CreatePlanUseCase {
             throw new PlanInvalidException("Can't manually create Federated Plan");
         }
 
-        if (
-            api.getDefinitionVersion() == DefinitionVersion.V4 &&
-            input.plan().getPlanSecurity().getType().equalsIgnoreCase("mtls") &&
-            api.getApiDefinitionV4().isTcpProxy()
-        ) {
+        if (isMtls(api, input) && api.getApiDefinitionV4().isTcpProxy()) {
             throw new PlanInvalidException("Cannot create mTLS plan for TCP API");
         }
 
@@ -66,6 +65,14 @@ public class CreatePlanUseCase {
         );
 
         return new Output(createdPlan.getId(), createdPlan);
+    }
+
+    private static boolean isMtls(Api api, Input input) {
+        return (
+            api.getDefinitionVersion() == DefinitionVersion.V4 &&
+            !isNull(input.plan().getPlanSecurity()) &&
+            input.plan().getPlanSecurity().getType().equalsIgnoreCase("mtls")
+        );
     }
 
     public record Input(String apiId, Plan plan, List<Flow> flows, AuditInfo auditInfo) {}
