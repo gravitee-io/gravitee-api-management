@@ -19,18 +19,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.SharedPolicyGroupFixtures;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.EventCrudInMemory;
+import inmemory.EventLatestCrudInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.SharedPolicyGroupHistoryCrudServiceInMemory;
+import inmemory.SharedPolicyGroupHistoryQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
+import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupNotFoundException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEvent;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
 import java.time.Instant;
@@ -64,6 +69,10 @@ public class DeleteSharedPolicyGroupUseCaseTest {
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final SharedPolicyGroupHistoryCrudServiceInMemory sharedPolicyGroupHistoryCrudService =
         new SharedPolicyGroupHistoryCrudServiceInMemory();
+    private final SharedPolicyGroupHistoryQueryServiceInMemory sharedPolicyGroupHistoryQueryService =
+        new SharedPolicyGroupHistoryQueryServiceInMemory();
+    private final EventCrudInMemory eventCrudInMemory = new EventCrudInMemory();
+    private final EventLatestCrudInMemory eventLatestCrudInMemory = new EventLatestCrudInMemory();
     private DeleteSharedPolicyGroupUseCase deleteSharedPolicyGroupUseCase;
 
     @BeforeAll
@@ -83,7 +92,13 @@ public class DeleteSharedPolicyGroupUseCaseTest {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
 
         deleteSharedPolicyGroupUseCase =
-            new DeleteSharedPolicyGroupUseCase(sharedPolicyGroupCrudService, sharedPolicyGroupHistoryCrudService, auditService);
+            new DeleteSharedPolicyGroupUseCase(
+                sharedPolicyGroupCrudService,
+                sharedPolicyGroupHistoryCrudService,
+                auditService,
+                eventCrudInMemory,
+                eventLatestCrudInMemory
+            );
     }
 
     @Test
@@ -92,6 +107,7 @@ public class DeleteSharedPolicyGroupUseCaseTest {
         var existingSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
         sharedPolicyGroupCrudService.initWith(List.of(existingSharedPolicyGroup));
         sharedPolicyGroupHistoryCrudService.initWith(List.of(existingSharedPolicyGroup));
+        sharedPolicyGroupHistoryQueryService.initWith(List.of(existingSharedPolicyGroup));
 
         // When
         deleteSharedPolicyGroupUseCase.execute(new DeleteSharedPolicyGroupUseCase.Input(existingSharedPolicyGroup.getId(), AUDIT_INFO));
@@ -107,27 +123,28 @@ public class DeleteSharedPolicyGroupUseCaseTest {
         var existingSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
         sharedPolicyGroupCrudService.initWith(List.of(existingSharedPolicyGroup));
         sharedPolicyGroupHistoryCrudService.initWith(List.of(existingSharedPolicyGroup));
+        sharedPolicyGroupHistoryQueryService.initWith(List.of(existingSharedPolicyGroup));
 
         // When
         deleteSharedPolicyGroupUseCase.execute(new DeleteSharedPolicyGroupUseCase.Input(existingSharedPolicyGroup.getId(), AUDIT_INFO));
 
         // Then
+        AuditEntity deletedAudit = AuditEntity
+            .builder()
+            .id("generated-id")
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .referenceType(AuditEntity.AuditReferenceType.ENVIRONMENT)
+            .referenceId(ENV_ID)
+            .user(USER_ID)
+            .properties(Map.of(AuditProperties.SHARED_POLICY_GROUP.name(), existingSharedPolicyGroup.getId()))
+            .event(SharedPolicyGroupAuditEvent.SHARED_POLICY_GROUP_DELETED.name())
+            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+            .build();
+
         assertThat(auditCrudService.storage())
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-            .containsExactly(
-                AuditEntity
-                    .builder()
-                    .id("generated-id")
-                    .organizationId(ORG_ID)
-                    .environmentId(ENV_ID)
-                    .referenceType(AuditEntity.AuditReferenceType.ENVIRONMENT)
-                    .referenceId(ENV_ID)
-                    .user(USER_ID)
-                    .properties(Map.of(AuditProperties.SHARED_POLICY_GROUP.name(), existingSharedPolicyGroup.getId()))
-                    .event(SharedPolicyGroupAuditEvent.SHARED_POLICY_GROUP_DELETED.name())
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+            .containsExactly(deletedAudit);
     }
 
     @Test
@@ -146,5 +163,20 @@ public class DeleteSharedPolicyGroupUseCaseTest {
         assertThat(throwable)
             .isInstanceOf(SharedPolicyGroupNotFoundException.class)
             .hasMessage("SharedPolicyGroup [sharedPolicyGroupId] cannot be found.");
+    }
+
+    @Test
+    void should_emit_event_when_shared_policy_is_deleted() {
+        // Given
+        var existingSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
+        sharedPolicyGroupCrudService.initWith(List.of(existingSharedPolicyGroup));
+        sharedPolicyGroupHistoryCrudService.initWith(List.of(existingSharedPolicyGroup));
+        sharedPolicyGroupHistoryQueryService.initWith(List.of(existingSharedPolicyGroup));
+
+        // When
+        deleteSharedPolicyGroupUseCase.execute(new DeleteSharedPolicyGroupUseCase.Input(existingSharedPolicyGroup.getId(), AUDIT_INFO));
+
+        // Then
+        assertThat(eventCrudInMemory.storage()).extracting(Event::getType).containsExactly(EventType.UNDEPLOY_SHARED_POLICY_GROUP);
     }
 }

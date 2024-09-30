@@ -21,13 +21,11 @@ import io.gravitee.apim.core.shared_policy_group.use_case.DeleteSharedPolicyGrou
 import io.gravitee.apim.core.shared_policy_group.use_case.DeploySharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.GetSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGroupHistoryUseCase;
-import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UndeploySharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGroupUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.SharedPolicyGroupMapper;
 import io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroupHistoriesResponse;
-import io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroupsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateSharedPolicyGroup;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
