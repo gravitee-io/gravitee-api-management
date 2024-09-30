@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.domain_service;
 
+import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.oneShotIndexation;
 import static io.gravitee.apim.core.workflow.model.Workflow.newApiReviewWorkflow;
 
 import io.gravitee.apim.core.DomainService;
@@ -32,7 +33,6 @@ import io.gravitee.apim.core.notification.crud_service.NotificationConfigCrudSer
 import io.gravitee.apim.core.notification.model.config.NotificationConfig;
 import io.gravitee.apim.core.parameters.model.ParameterContext;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
-import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.core.workflow.crud_service.WorkflowCrudService;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -40,41 +40,21 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.UnaryOperator;
+import lombok.RequiredArgsConstructor;
 
 @DomainService
+@RequiredArgsConstructor
 public class CreateApiDomainService {
 
     private final ApiCrudService apiCrudService;
     private final AuditDomainService auditService;
     private final ApiIndexerDomainService apiIndexerDomainService;
-    private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final ApiMetadataDomainService apiMetadataDomainService;
+    private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final FlowCrudService flowCrudService;
     private final NotificationConfigCrudService notificationConfigCrudService;
     private final ParametersQueryService parametersQueryService;
     private final WorkflowCrudService workflowCrudService;
-
-    public CreateApiDomainService(
-        ApiCrudService apiCrudService,
-        AuditDomainService auditService,
-        ApiIndexerDomainService apiIndexerDomainService,
-        ApiMetadataDomainService apiMetadataDomainService,
-        ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
-        FlowCrudService flowCrudService,
-        NotificationConfigCrudService notificationConfigCrudService,
-        ParametersQueryService parametersQueryService,
-        WorkflowCrudService workflowCrudService
-    ) {
-        this.apiCrudService = apiCrudService;
-        this.auditService = auditService;
-        this.apiIndexerDomainService = apiIndexerDomainService;
-        this.apiPrimaryOwnerDomainService = apiPrimaryOwnerDomainService;
-        this.apiMetadataDomainService = apiMetadataDomainService;
-        this.flowCrudService = flowCrudService;
-        this.notificationConfigCrudService = notificationConfigCrudService;
-        this.parametersQueryService = parametersQueryService;
-        this.workflowCrudService = workflowCrudService;
-    }
 
     /**
      * Create a new API in the datastore.
@@ -92,6 +72,32 @@ public class CreateApiDomainService {
      * @return The created API.
      */
     public ApiWithFlows create(Api api, PrimaryOwnerEntity primaryOwner, AuditInfo auditInfo, UnaryOperator<Api> sanitizer) {
+        return create(api, primaryOwner, auditInfo, sanitizer, oneShotIndexation(auditInfo));
+    }
+
+    /**
+     * Create a new API in the datastore.
+     * <p>
+     * This method will create the API, its primary owner, its default mail notification, its default metadata and its flows.
+     * </p>
+     * <p>
+     * Once created, the API is indexed in the search engine.
+     * </p>
+     *
+     * @param api          The API to create.
+     * @param primaryOwner The primary owner of the API.
+     * @param auditInfo    The audit information.
+     * @param sanitizer    A sanitizer function to apply on the API before creating it. This will be used to apply additional validation and sanitization.
+     * @param indexContext An index context that allow control how indexation is done (with commit or not)
+     * @return The created API.
+     */
+    public ApiWithFlows create(
+        Api api,
+        PrimaryOwnerEntity primaryOwner,
+        AuditInfo auditInfo,
+        UnaryOperator<Api> sanitizer,
+        ApiIndexerDomainService.Context indexContext
+    ) {
         var sanitized = sanitizer.apply(api);
 
         var created = apiCrudService.create(sanitized);
@@ -110,11 +116,7 @@ public class CreateApiDomainService {
             workflowCrudService.create(newApiReviewWorkflow(api.getId(), auditInfo.actor().userId()));
         }
 
-        apiIndexerDomainService.index(
-            new Indexer.IndexationContext(auditInfo.organizationId(), auditInfo.environmentId()),
-            created,
-            primaryOwner
-        );
+        apiIndexerDomainService.index(indexContext, created, primaryOwner);
         return new ApiWithFlows(created, createdFlows);
     }
 

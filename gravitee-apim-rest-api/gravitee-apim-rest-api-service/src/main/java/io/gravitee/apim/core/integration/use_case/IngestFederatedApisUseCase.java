@@ -19,6 +19,7 @@ import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateFederatedApiDomainService;
@@ -46,7 +47,6 @@ import io.gravitee.apim.core.plan.model.factory.PlanModelFactory;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.Date;
@@ -76,6 +76,7 @@ public class IngestFederatedApisUseCase {
     private final UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
     private final TriggerNotificationDomainService triggerNotificationDomainService;
     private final ApiMetadataDomainService apiMetadataDomainService;
+    private final ApiIndexerDomainService apiIndexerDomainService;
 
     public Completable execute(Input input) {
         log.info("Ingesting {} federated APIs [jobId={}]", input.apisToIngest().size(), input.ingestJobId);
@@ -85,68 +86,77 @@ public class IngestFederatedApisUseCase {
         return Maybe
             .defer(() -> Maybe.fromOptional(asyncJobCrudService.findById(ingestJobId)))
             .subscribeOn(Schedulers.computation())
-            .flatMapCompletable(job -> {
+            .doOnSuccess(job -> {
                 var environmentId = job.getEnvironmentId();
                 var userId = job.getInitiatorId();
                 var auditInfo = new AuditInfo(organizationId, environmentId, new AuditActor(userId, null, null));
                 var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, userId);
 
-                return Flowable
-                    .fromIterable(input.apisToIngest)
-                    .flatMapCompletable(api ->
-                        Completable.fromRunnable(() -> {
-                            var federatedApi = ApiModelFactory.fromIngestionJob(api, job);
+                try (var bulk = apiIndexerDomainService.bulk(auditInfo)) {
+                    for (IntegrationApi api : input.apisToIngest) {
+                        var federatedApi = ApiModelFactory.fromIngestionJob(api, job);
 
-                            apiCrudService
-                                .findById(federatedApi.getId())
-                                .ifPresentOrElse(
-                                    existingApi -> updateApi(federatedApi, api, auditInfo, primaryOwner),
-                                    () -> createApi(federatedApi, api, auditInfo, primaryOwner)
-                                );
-                            List<ApiMetadata> metadata = metadata(api, federatedApi);
-                            apiMetadataDomainService.saveApiMetadata(federatedApi.getId(), metadata, auditInfo);
-                        })
-                    )
-                    .doOnComplete(() -> {
-                        if (input.completed) {
-                            asyncJobCrudService.update(job.complete());
-                            triggerNotificationDomainService.triggerPortalNotification(
-                                organizationId,
-                                environmentId,
-                                new FederatedApisIngestionCompleteHookContext(job.getSourceId())
+                        apiCrudService
+                            .findById(federatedApi.getId())
+                            .ifPresentOrElse(
+                                existingApi -> updateApi(bulk, federatedApi, api, auditInfo, primaryOwner),
+                                () -> createApi(bulk, federatedApi, api, auditInfo, primaryOwner)
                             );
-                        }
-                    })
-                    .doOnError(throwable -> log.error("Ingestion error job {}", ingestJobId, throwable));
-            });
+                        List<ApiMetadata> metadata = metadata(api, federatedApi);
+                        apiMetadataDomainService.saveApiMetadata(federatedApi.getId(), metadata, bulk.auditInfo());
+                    }
+                }
+                if (input.completed) {
+                    asyncJobCrudService.update(job.complete());
+                    triggerNotificationDomainService.triggerPortalNotification(
+                        organizationId,
+                        environmentId,
+                        new FederatedApisIngestionCompleteHookContext(job.getSourceId())
+                    );
+                }
+            })
+            .ignoreElement();
     }
 
-    private void createApi(Api federatedApi, IntegrationApi integrationApi, AuditInfo auditInfo, PrimaryOwnerEntity primaryOwner) {
+    private void createApi(
+        ApiIndexerDomainService.Bulk bulk,
+        Api federatedApi,
+        IntegrationApi integrationApi,
+        AuditInfo auditInfo,
+        PrimaryOwnerEntity primaryOwner
+    ) {
         try {
             createApiDomainService.create(
                 federatedApi,
                 primaryOwner,
                 auditInfo,
-                newApi -> validateFederatedApi.validateAndSanitizeForCreation(newApi, primaryOwner)
+                newApi -> validateFederatedApi.validateAndSanitizeForCreation(newApi, primaryOwner),
+                bulk.get()
             );
 
             stream(integrationApi.plans())
                 .map(plan -> PlanModelFactory.fromIntegration(plan, federatedApi))
-                .forEach(p -> createPlanDomainService.create(p, List.of(), federatedApi, auditInfo));
+                .forEach(p -> createPlanDomainService.create(p, List.of(), federatedApi, bulk.auditInfo()));
 
             stream(integrationApi.pages())
                 .flatMap(page -> buildPage(page, integrationApi, federatedApi.getId()))
-                .forEach(page -> createApiDocumentationDomainService.createPage(page, auditInfo));
+                .forEach(page -> createApiDocumentationDomainService.createPage(page, bulk.auditInfo()));
         } catch (Exception e) {
             log.warn("An error occurred while importing api {}", federatedApi, e);
         }
     }
 
-    private void updateApi(Api federatedApi, IntegrationApi integrationApi, AuditInfo auditInfo, PrimaryOwnerEntity primaryOwner) {
+    private void updateApi(
+        ApiIndexerDomainService.Bulk bulk,
+        Api federatedApi,
+        IntegrationApi integrationApi,
+        AuditInfo auditInfo,
+        PrimaryOwnerEntity primaryOwner
+    ) {
         log.debug("API already ingested [id={}] [name={}], performing update", federatedApi.getId(), federatedApi.getName());
         try {
             UnaryOperator<Api> updater = update(federatedApi);
-            updateFederatedApiDomainService.update(federatedApi.getId(), updater, auditInfo, primaryOwner);
+            updateFederatedApiDomainService.update(federatedApi.getId(), updater, auditInfo, primaryOwner, bulk.get());
 
             stream(integrationApi.plans())
                 .map(p -> PlanModelFactory.fromIntegration(p, federatedApi))
@@ -154,8 +164,8 @@ public class IngestFederatedApisUseCase {
                     planCrudService
                         .findById(p.getId())
                         .ifPresentOrElse(
-                            existingPlan -> updatePlanDomainService.update(p, List.of(), Map.of(), null, auditInfo),
-                            () -> createPlanDomainService.create(p, List.of(), federatedApi, auditInfo)
+                            existingPlan -> updatePlanDomainService.update(p, List.of(), Map.of(), null, bulk.auditInfo()),
+                            () -> createPlanDomainService.create(p, List.of(), federatedApi, bulk.auditInfo())
                         )
                 );
 
@@ -174,9 +184,9 @@ public class IngestFederatedApisUseCase {
                                     .createdAt(existingPage.getCreatedAt())
                                     .id(existingPage.getId())
                                     .build();
-                                updateApiDocumentationDomainService.updatePage(pageWithProperCreatedAt, existingPage, auditInfo);
+                                updateApiDocumentationDomainService.updatePage(pageWithProperCreatedAt, existingPage, bulk.auditInfo());
                             },
-                            () -> createApiDocumentationDomainService.createPage(page, auditInfo)
+                            () -> createApiDocumentationDomainService.createPage(page, bulk.auditInfo())
                         )
                 );
         } catch (Exception e) {

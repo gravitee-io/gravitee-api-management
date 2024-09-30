@@ -22,9 +22,15 @@ import io.gravitee.rest.api.model.search.Indexable;
  * @author GraviteeSource Team
  */
 public interface Indexer {
-    record IndexationContext(String organizationId, String environmentId) {}
+    record IndexationContext(String organizationId, String environmentId, boolean autoCommit) {
+        public IndexationContext(String organizationId, String environmentId) {
+            this(organizationId, environmentId, true);
+        }
+    }
 
     void index(IndexationContext context, Indexable indexable);
 
     void delete(IndexationContext context, Indexable indexable);
+
+    void commit();
 }

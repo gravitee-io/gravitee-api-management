@@ -39,6 +39,9 @@ public class IndexerInMemory implements Indexer, InMemoryAlternative<Indexable> 
     }
 
     @Override
+    public void commit() {}
+
+    @Override
     public void initWith(List<Indexable> items) {
         reset();
         storage.addAll(items);

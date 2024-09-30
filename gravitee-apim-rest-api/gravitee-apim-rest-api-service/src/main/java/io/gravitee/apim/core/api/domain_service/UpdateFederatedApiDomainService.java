@@ -23,7 +23,6 @@ import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
-import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.common.utils.TimeProvider;
 import java.util.Collections;
 import java.util.function.UnaryOperator;
@@ -39,7 +38,13 @@ public class UpdateFederatedApiDomainService {
     private final CategoryDomainService categoryDomainService;
     private final ApiIndexerDomainService apiIndexerDomainService;
 
-    public Api update(String apiId, UnaryOperator<Api> updater, AuditInfo auditInfo, PrimaryOwnerEntity primaryOwnerEntity) {
+    public Api update(
+        String apiId,
+        UnaryOperator<Api> updater,
+        AuditInfo auditInfo,
+        PrimaryOwnerEntity primaryOwnerEntity,
+        ApiIndexerDomainService.Context ctx
+    ) {
         var currentApi = apiCrudService.get(apiId);
 
         Api federatedApi = updater.apply(currentApi);
@@ -51,7 +56,7 @@ public class UpdateFederatedApiDomainService {
         Api updated = apiCrudService.update(preparedApi);
 
         createAuditLog(auditInfo, preparedApi, currentApi);
-        createIndex(auditInfo, preparedApi, primaryOwnerEntity);
+        apiIndexerDomainService.index(ctx, preparedApi, primaryOwnerEntity);
 
         categoryDomainService.updateOrderCategoriesOfApi(updated.getId(), updated.getCategories());
 
@@ -74,14 +79,6 @@ public class UpdateFederatedApiDomainService {
                 .createdAt(updatedApi.getUpdatedAt())
                 .properties(Collections.emptyMap())
                 .build()
-        );
-    }
-
-    private void createIndex(AuditInfo auditInfo, Api updateApi, PrimaryOwnerEntity primaryOwnerEntity) {
-        apiIndexerDomainService.index(
-            new Indexer.IndexationContext(auditInfo.organizationId(), auditInfo.environmentId()),
-            updateApi,
-            primaryOwnerEntity
         );
     }
 }

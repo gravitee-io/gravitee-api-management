@@ -48,7 +48,7 @@ class DistributedLuceneIndexerTest {
     void should_call_index_with_execution_context_and_distribute_across_node() {
         var indexable = mock(Indexable.class);
         cut.index(new Indexer.IndexationContext(CONTEXT_ORG, CONTEXT_ENV), indexable);
-        verify(searchEngineService).index(new ExecutionContext(CONTEXT_ORG, CONTEXT_ENV), indexable, false);
+        verify(searchEngineService).index(new ExecutionContext(CONTEXT_ORG, CONTEXT_ENV), indexable, false, true);
     }
 
     @Test
