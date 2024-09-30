@@ -18,7 +18,7 @@
 <mat-card appearance="outlined">
   <mat-card-content class="guides">
     @if (pagesData$ | async; as pagesData) {
-      @if (pagesData.pages.length) {
+      @if (pagesData.nodes.length) {
         <div class="guides__side-bar">
           <app-page-tree
             class="guides__side-bar__tree"
