@@ -398,7 +398,6 @@ jobs:
             # Helm chart increase version, appVersion and clean the artifacthub.io/changes annotation
             sed -e "0,/^version:/{s/version:.*/version: 4.2.0-alpha.2/}" \
                 -e "0,/^appVersion:/{ s/appVersion.*/appVersion: 4.2.0-alpha.2/ }" \
-                -e '/artifacthub.io\/changes/,${ s/|//; /^[ ]*\- /d }' \
                 -i helm/Chart.yaml
 
             git add --update
