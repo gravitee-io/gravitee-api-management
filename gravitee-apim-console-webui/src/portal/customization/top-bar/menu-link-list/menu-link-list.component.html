@@ -22,7 +22,10 @@
         <h3>Menu Links</h3>
         <div class="menu-link-list__content__header__description">Customize the Developer Portal top bar menu with up to 5 links</div>
       </div>
-      <div class="menu-link-list__header__action">
+      <div
+        class="menu-link-list__header__action"
+        *gioPermission="{ anyOf: ['environment-settings-c', 'environment-settings-u', 'environment-settings-d'] }"
+      >
         <button
           [disabled]="!canAddLink"
           (click)="onAddLinkClick()"
@@ -85,7 +88,10 @@
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef data-testid="link_actions">Actions</th>
         <td mat-cell *matCellDef="let element">
-          <div class="menu-link-list__actions">
+          <div
+            class="menu-link-list__actions"
+            *gioPermission="{ anyOf: ['environment-settings-c', 'environment-settings-u', 'environment-settings-d'] }"
+          >
             <button
               mat-icon-button
               type="button"

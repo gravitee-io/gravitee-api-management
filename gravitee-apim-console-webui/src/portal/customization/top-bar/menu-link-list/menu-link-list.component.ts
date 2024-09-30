@@ -42,6 +42,7 @@ import {
   UpdatePortalMenuLink,
 } from '../../../../entities/management-api-v2';
 import { UiPortalMenuLinksService } from '../../../../services-ngx/ui-portal-menu-links.service';
+import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 
 type PortalMenuLinkListVM = PortalMenuLink & {
   readableType: string;
@@ -67,6 +68,7 @@ type PortalMenuLinkListVM = PortalMenuLink & {
     RouterLink,
     CdkDropList,
     CdkDrag,
+    GioPermissionModule,
   ],
 })
 export class MenuLinkListComponent implements OnInit, OnDestroy {
