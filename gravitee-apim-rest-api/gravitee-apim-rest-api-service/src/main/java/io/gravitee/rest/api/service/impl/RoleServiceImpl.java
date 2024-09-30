@@ -615,7 +615,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                     Collections.singletonMap(ROLE, systemRole.getScope() + ":" + systemRole.getName()),
                     ROLE_UPDATED,
                     systemRole.getCreatedAt(),
-                    existingRole,
+                    existingRole.get(),
                     systemRole
                 );
             } else if (!existingRole.isPresent()) {
