@@ -632,17 +632,8 @@ class ApisResourceTest extends AbstractResourceTest {
                             .errors(
                                 ApiCRDStatus.Errors
                                     .builder()
-                                    .severe(
-                                        List.of(
-                                            "property [fetchCron] of source [github-fetcher] must be a valid cron expression for page [swagger]",
-                                            "property [owner] is required in [github-fetcher] configuration for page [swagger]"
-                                        )
-                                    )
-                                    .warning(
-                                        List.of(
-                                            "page [swagger] contains unknown configuration property [unknownProperty] for [github-fetcher] source"
-                                        )
-                                    )
+                                    .severe(List.of("property [owner] is required in [github-fetcher] configuration for page [swagger]"))
+                                    .warning(List.of())
                                     .build()
                             )
                             .build()

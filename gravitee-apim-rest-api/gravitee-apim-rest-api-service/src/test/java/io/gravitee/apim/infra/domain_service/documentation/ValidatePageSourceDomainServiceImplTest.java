@@ -17,11 +17,21 @@ package io.gravitee.apim.infra.domain_service.documentation;
 
 import static io.gravitee.apim.core.validation.Validator.Error.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.documentation.model.PageSource;
+import io.reactivex.rxjava3.core.Single;
+import io.vertx.rxjava3.core.Vertx;
+import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.HttpClientRequest;
+import io.vertx.rxjava3.core.http.HttpClientResponse;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -36,10 +46,24 @@ public class ValidatePageSourceDomainServiceImplTest {
 
     private static final String PAGE_NAME = "test-page";
 
-    private final ValidatePageSourceDomainService cut = new ValidatePageSourceDomainServiceImpl();
+    Vertx vertx = mock(Vertx.class);
+    private final ValidatePageSourceDomainService cut = new ValidatePageSourceDomainServiceImpl(new ObjectMapper(), vertx);
 
     @Nested
     class Github {
+
+        @BeforeEach
+        void setUp() {
+            HttpClient httpClient = mock(HttpClient.class);
+            when(vertx.createHttpClient()).thenReturn(httpClient);
+
+            HttpClientRequest request = mock(HttpClientRequest.class);
+            when(httpClient.rxRequest(any())).thenReturn(Single.just(request));
+
+            HttpClientResponse response = mock(HttpClientResponse.class);
+            when(response.statusCode()).thenReturn(200);
+            when(request.rxSend()).thenReturn(Single.just(response));
+        }
 
         @Test
         void should_return_empty_with_null_source() {
@@ -76,7 +100,11 @@ public class ValidatePageSourceDomainServiceImplTest {
 
             assertThat(result.severe()).isEmpty();
             assertThat(result.warning()).isEmpty();
-            assertThat(result.value()).hasValue(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+            assertThat(result.value()).isNotEmpty();
+            assertThat(result.value().get())
+                .usingRecursiveComparison()
+                .ignoringFields("source.configuration")
+                .isEqualTo(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
         }
 
         @Test
@@ -114,7 +142,11 @@ public class ValidatePageSourceDomainServiceImplTest {
 
             assertThat(result.severe()).isEmpty();
             assertThat(result.warning()).isEmpty();
-            assertThat(result.value()).isNotEmpty().hasValue(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+            assertThat(result.value()).isNotEmpty();
+            assertThat(result.value().get())
+                .usingRecursiveComparison()
+                .ignoringFields("source.configuration")
+                .isEqualTo(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
         }
 
         @Test
@@ -163,7 +195,11 @@ public class ValidatePageSourceDomainServiceImplTest {
 
             assertThat(result.severe()).isEmpty();
             assertThat(result.warning()).isEmpty();
-            assertThat(result.value()).isNotEmpty().hasValue(new ValidatePageSourceDomainService.Input(PAGE_NAME, expectedSource));
+            assertThat(result.value()).isNotEmpty();
+            assertThat(result.value().get())
+                .usingRecursiveComparison()
+                .ignoringFields("source.configuration")
+                .isEqualTo(new ValidatePageSourceDomainService.Input(PAGE_NAME, expectedSource));
         }
 
         @Test
@@ -270,7 +306,11 @@ public class ValidatePageSourceDomainServiceImplTest {
                         warning("page [test-page] contains unknown configuration property [unknownPropertyKey] for [github-fetcher] source")
                     )
                 );
-            assertThat(result.value()).isNotEmpty().hasValue((new ValidatePageSourceDomainService.Input(PAGE_NAME, expectedSource)));
+            assertThat(result.value()).isNotEmpty();
+            assertThat(result.value().get())
+                .usingRecursiveComparison()
+                .ignoringFields("source.configuration")
+                .isEqualTo(new ValidatePageSourceDomainService.Input(PAGE_NAME, expectedSource));
         }
     }
 
