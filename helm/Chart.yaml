@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.1.25
-appVersion: 4.1.25
+version: 4.1.26
+appVersion: 4.1.26
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -18,9 +18,7 @@ kubeVersion: ">=1.14.0-0"
 annotations:
   # List of changes for the release in artifacthub.io
   # https://artifacthub.io/packages/helm/graviteeio/apim?modal=changelog
-  artifacthub.io/changes: |
-    - kind: fixed
+  artifacthub.io/changes: 
       description: 'Add support of SSL keystore secret'
       links:
-        - name: Github Issue
           url: https://github.com/gravitee-io/issues/issues/9854
