@@ -1048,8 +1048,7 @@ helm install \
 |===
 |Parameter |Description |Default
 
-|license.key |string |license.key file encoded in base64 |
-
+|license.key |string |license.key file encoded in base64
 |===
 
 
