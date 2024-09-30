@@ -30,6 +30,7 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.TokenNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -81,7 +82,7 @@ public class UserTokensResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = { RolePermissionAction.READ }))
+    @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS_TOKEN, acls = { RolePermissionAction.READ }))
     public List<TokenEntity> getUserTokens() {
         // Check that user belongs to current organization
         userService.findById(GraviteeContext.getExecutionContext(), userId);
@@ -99,7 +100,7 @@ public class UserTokensResource extends AbstractResource {
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TokenEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = { RolePermissionAction.READ, RolePermissionAction.CREATE }))
+    @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS_TOKEN, acls = { RolePermissionAction.CREATE }))
     public Response createToken(@Valid @NotNull final NewTokenEntity token) {
         // Check that user belongs to current organization
         userService.findById(GraviteeContext.getExecutionContext(), userId);
@@ -117,7 +118,7 @@ public class UserTokensResource extends AbstractResource {
     @ApiResponse(responseCode = "204", description = "User's personal token revoked")
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = { RolePermissionAction.READ, RolePermissionAction.DELETE }))
+    @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS_TOKEN, acls = { RolePermissionAction.DELETE }))
     public void revokeToken(@PathParam("token") String tokenId) {
         // Check that user belongs to current organization
         userService.findById(GraviteeContext.getExecutionContext(), userId);
