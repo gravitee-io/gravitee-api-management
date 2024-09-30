@@ -210,6 +210,22 @@ class CreatePlanUseCaseTest {
             .containsExactly(api.getId(), "mtls");
     }
 
+    @Test
+    void should_create_push_plan_with_null_security_type() {
+        // Given
+        var api = givenExistingApi(ApiFixtures.aProxyApiV4());
+        var pushPlan = PlanFixtures.aPushPlan().toBuilder().id(null).build();
+        var input = new Input(api.getId(), pushPlan, Collections.emptyList(), AUDIT_INFO);
+
+        // When
+        var result = createPlanUseCase.execute(input);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(GENERATED_ID);
+        assertThat(result.plan()).extracting(PlanWithFlows::getApiId, Plan::getPlanSecurity).containsExactly(api.getId(), null);
+    }
+
     private Api givenExistingApi(Api api) {
         apiCrudService.initWith(List.of(api));
         return api;
