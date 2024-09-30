@@ -15,17 +15,24 @@
  */
 package io.gravitee.apim.core.shared_policy_group.use_case;
 
+import static java.util.Map.entry;
+
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
+import io.gravitee.apim.core.event.crud_service.EventCrudService;
+import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
+import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupHistoryCrudService;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEvent;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.model.EventType;
 import java.util.Map;
+import java.util.Set;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -36,10 +43,14 @@ public class DeleteSharedPolicyGroupUseCase {
     private final SharedPolicyGroupCrudService sharedPolicyGroupCrudService;
     private final SharedPolicyGroupHistoryCrudService sharedPolicyGroupHistoryCrudService;
     private final AuditDomainService auditService;
+    private final EventCrudService eventCrudService;
+    private final EventLatestCrudService eventLatestCrudService;
 
     public Output execute(Input input) {
         var sharedPolicyGroupToDelete =
             this.sharedPolicyGroupCrudService.getByEnvironmentId(input.auditInfo().environmentId(), input.sharedPolicyGroupId());
+
+        publishUndeployEvent(input, sharedPolicyGroupToDelete);
 
         this.sharedPolicyGroupCrudService.delete(sharedPolicyGroupToDelete.getId());
         this.sharedPolicyGroupHistoryCrudService.delete(sharedPolicyGroupToDelete.getId());
@@ -67,5 +78,21 @@ public class DeleteSharedPolicyGroupUseCase {
                 .properties(Map.of(AuditProperties.SHARED_POLICY_GROUP, sharedPolicyGroup.getId()))
                 .build()
         );
+    }
+
+    private void publishUndeployEvent(Input input, SharedPolicyGroup sharedPolicyGroup) {
+        final Event event = eventCrudService.createEvent(
+            input.auditInfo.organizationId(),
+            input.auditInfo.environmentId(),
+            Set.of(input.auditInfo.environmentId()),
+            EventType.UNDEPLOY_SHARED_POLICY_GROUP,
+            sharedPolicyGroup.getDescription(),
+            Map.ofEntries(
+                entry(Event.EventProperties.USER, input.auditInfo.actor().userId()),
+                entry(Event.EventProperties.SHARED_POLICY_GROUP_ID, sharedPolicyGroup.getCrossId())
+            )
+        );
+
+        eventLatestCrudService.createOrPatchLatestEvent(input.auditInfo.organizationId(), sharedPolicyGroup.getId(), event);
     }
 }
