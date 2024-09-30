@@ -34,6 +34,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.definition.ApiDefinitionFixtures;
 import fixtures.definition.FlowFixtures;
@@ -148,6 +149,7 @@ import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.vertx.rxjava3.core.Vertx;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -311,7 +313,7 @@ class ImportApiCRDUseCaseTest {
             indexer
         );
 
-        var pageSourceValidator = new ValidatePageSourceDomainServiceImpl();
+        var pageSourceValidator = new ValidatePageSourceDomainServiceImpl(new ObjectMapper(), mock(Vertx.class));
         var accessControlValidator = new ValidatePageAccessControlsDomainService(groupQueryService);
 
         userDomainService.initWith(

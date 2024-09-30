@@ -145,6 +145,7 @@ import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.vertx.rxjava3.core.Vertx;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -749,7 +750,7 @@ public class ResourceContextConfiguration {
 
     @Bean
     public ValidatePageSourceDomainService validatePageSourceDomainService() {
-        return new ValidatePageSourceDomainServiceImpl();
+        return new ValidatePageSourceDomainServiceImpl(new ObjectMapper(), Vertx.vertx());
     }
 
     @Bean
