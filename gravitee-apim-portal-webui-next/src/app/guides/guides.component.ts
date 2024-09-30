@@ -50,8 +50,8 @@ export class GuidesComponent implements OnInit {
       combineLatestWith(this.activatedRoute.queryParams),
       map(([pagesResponse, queryParams]) => {
         this.selectedPageId.set(queryParams['page']);
-        const pages = pagesResponse.data ?? [];
-        const nodes = this.pageService.mapToPageTreeNode(undefined, pages).filter(node => node.name !== 'Aside');
+        const pages = (pagesResponse.data ?? []).filter(p => p.type !== 'LINK');
+        const nodes = this.pageService.mapToPageTreeNode(undefined, pages);
         return { pages, nodes };
       }),
     );

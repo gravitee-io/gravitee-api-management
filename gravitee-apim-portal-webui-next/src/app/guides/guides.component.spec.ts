@@ -76,12 +76,11 @@ describe('GuidesComponent', () => {
   });
 
   describe('With pages', () => {
-    it('should not show Aside folder + folder content', async () => {
+    it('should not show LINKS', async () => {
       expectGetPages(
         fakePagesResponse({
           data: [
-            fakePage({ id: 'aside-folder', name: 'Aside', type: 'FOLDER' }),
-            fakePage({ id: 'aside-folder-page', name: 'Aside page', type: 'MARKDOWN', parent: 'aside-folder' }),
+            fakePage({ id: 'link-id', name: 'a link', type: 'LINK' }),
             fakePage({ id: 'valid-page', name: 'valid page', type: 'MARKDOWN' }),
           ],
         }),
@@ -93,6 +92,24 @@ describe('GuidesComponent', () => {
       const displayedItems = await tree.displayedItems();
       expect(displayedItems).toHaveLength(1);
       expect(displayedItems).toEqual(['valid page']);
+    });
+    it('should not show empty folder', async () => {
+      expectGetPages(
+        fakePagesResponse({
+          data: [
+            fakePage({ id: 'empty-folder', name: 'an empty folder', type: 'FOLDER' }),
+            fakePage({ id: 'valid-folder', name: 'a valid folder', type: 'FOLDER' }),
+            fakePage({ id: 'valid-page', name: 'valid page', type: 'MARKDOWN', parent: 'valid-folder' }),
+          ],
+        }),
+      );
+
+      expectGetPageContent(fakePage({ id: 'valid-page', type: 'MARKDOWN' }));
+
+      const tree = await harnessLoader.getHarness(PageTreeHarness);
+      const displayedItems = await tree.displayedItems();
+      expect(displayedItems).toHaveLength(2);
+      expect(displayedItems).toEqual(['a valid folder', 'valid page']);
     });
     it('should not show page with parentId defined but invalid', async () => {
       expectGetPages(

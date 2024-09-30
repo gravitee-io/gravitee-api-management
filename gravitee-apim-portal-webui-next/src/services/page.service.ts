@@ -65,7 +65,9 @@ export class PageService {
       .map(p => ({
         id: p.id,
         name: p.name,
+        isFolder: p.type === 'FOLDER',
         children: this.mapToPageTreeNode(p.id, pages),
-      }));
+      }))
+      .filter(node => (node.isFolder && node.children?.length > 0) || !node.isFolder);
   }
 }
