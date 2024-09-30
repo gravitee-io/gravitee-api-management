@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.api.domain_service;
 
+import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.oneShotIndexation;
+
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.exception.ApiCreatedWithErrorException;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
@@ -96,7 +98,8 @@ public class ImportDefinitionCreateDomainService {
             ApiModelFactory.fromApiExport(apiWithIds.getApiExport(), environmentId),
             primaryOwner,
             auditInfo,
-            api -> validateApiDomainService.validateAndSanitizeForCreation(api, primaryOwner, environmentId, organizationId)
+            api -> validateApiDomainService.validateAndSanitizeForCreation(api, primaryOwner, environmentId, organizationId),
+            oneShotIndexation(auditInfo)
         );
 
         new ApiSubEntityCreator(createdApi.getId())

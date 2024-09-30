@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.cockpit.services;
 
+import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.oneShotIndexation;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -90,13 +92,15 @@ public class V4ApiServiceCockpitImpl implements V4ApiServiceCockpit {
         final ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
         var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, userId);
 
+        var auditInfo = new AuditInfo(organizationId, environmentId, AuditActor.builder().userId(userId).build());
         return Single
             .just(
                 createApiDomainService.create(
                     deserializeApi(node, environmentId),
                     primaryOwner,
-                    new AuditInfo(organizationId, environmentId, AuditActor.builder().userId(userId).build()),
-                    api -> validateApiDomainService.validateAndSanitizeForCreation(api, primaryOwner, environmentId, organizationId)
+                    auditInfo,
+                    api -> validateApiDomainService.validateAndSanitizeForCreation(api, primaryOwner, environmentId, organizationId),
+                    oneShotIndexation(auditInfo)
                 )
             )
             .flatMap(api -> publishApi(executionContext, api, userId, updateApiEntity))

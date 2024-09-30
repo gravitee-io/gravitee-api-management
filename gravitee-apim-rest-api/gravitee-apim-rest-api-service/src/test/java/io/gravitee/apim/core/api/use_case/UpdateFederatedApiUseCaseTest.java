@@ -37,6 +37,7 @@ import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
+import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.GroupValidationService;
 import io.gravitee.apim.core.api.domain_service.UpdateFederatedApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateFederatedApiDomainService;
@@ -81,6 +82,7 @@ class UpdateFederatedApiUseCaseTest {
     IndexerInMemory indexer = new IndexerInMemory();
     UpdateFederatedApiUseCase usecase;
     CategoryDomainService categoryDomainService = mock(CategoryDomainService.class);
+    CreateApiDomainService createApiDomainService = mock(CreateApiDomainService.class);
 
     @BeforeEach
     void setUp() {

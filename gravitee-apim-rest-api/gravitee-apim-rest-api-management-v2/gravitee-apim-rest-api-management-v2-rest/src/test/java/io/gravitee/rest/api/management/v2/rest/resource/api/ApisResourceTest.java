@@ -359,7 +359,7 @@ class ApisResourceTest extends AbstractResourceTest {
 
             when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-            when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any()))
+            when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any()))
                 .thenAnswer(invocation -> {
                     Api api = invocation.getArgument(0);
                     return new ApiWithFlows(api.toBuilder().id("api-id").build(), api.getApiDefinitionV4().getFlows());

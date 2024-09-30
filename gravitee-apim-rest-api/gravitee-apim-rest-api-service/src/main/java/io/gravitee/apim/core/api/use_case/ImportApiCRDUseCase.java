@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
+import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.oneShotIndexation;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
@@ -55,7 +56,6 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -187,7 +187,8 @@ public class ImportApiCRDUseCase {
                 ApiModelFactory.fromCrd(sanitizedInput.spec, environmentId),
                 primaryOwner,
                 sanitizedInput.auditInfo,
-                api -> validateApiDomainService.validateAndSanitizeForCreation(api, primaryOwner, environmentId, organizationId)
+                api -> validateApiDomainService.validateAndSanitizeForCreation(api, primaryOwner, environmentId, organizationId),
+                oneShotIndexation(sanitizedInput.auditInfo)
             );
 
             var planNameIdMapping = sanitizedInput.spec

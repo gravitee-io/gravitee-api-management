@@ -131,7 +131,7 @@ public class ApisResource_CreateApiFromSwagger extends AbstractResourceTest {
                     )
                     .build()
             );
-        when(createApiDomainService.create(any(), any(), any(), any())).thenThrow(new InvalidPathsException("Invalid paths"));
+        when(createApiDomainService.create(any(), any(), any(), any(), any())).thenThrow(new InvalidPathsException("Invalid paths"));
 
         var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
 

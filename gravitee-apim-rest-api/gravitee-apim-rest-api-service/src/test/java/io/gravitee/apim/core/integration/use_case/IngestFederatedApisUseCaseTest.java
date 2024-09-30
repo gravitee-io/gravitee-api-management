@@ -317,7 +317,8 @@ class IngestFederatedApisUseCaseTest {
                 createApiDocumentationDomainService,
                 updateApiDocumentationDomainService,
                 triggerNotificationDomainService,
-                apiMetadataDomainService
+                apiMetadataDomainService,
+                apiIndexerDomainService
             );
 
         enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode.USER);

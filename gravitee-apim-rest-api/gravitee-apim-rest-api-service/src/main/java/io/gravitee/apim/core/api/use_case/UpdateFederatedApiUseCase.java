@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
+import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.oneShotIndexation;
+
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.UpdateFederatedApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
@@ -43,7 +45,13 @@ public class UpdateFederatedApiUseCase {
 
         var updating = update(input.apiToUpdate);
 
-        var updated = apiUpdateFederatedApiDomainService.update(input.apiToUpdate.getId(), updating, auditInfo, primaryOwnerEntity);
+        var updated = apiUpdateFederatedApiDomainService.update(
+            input.apiToUpdate.getId(),
+            updating,
+            auditInfo,
+            primaryOwnerEntity,
+            oneShotIndexation(auditInfo)
+        );
 
         return new Output(updated, primaryOwnerEntity);
     }

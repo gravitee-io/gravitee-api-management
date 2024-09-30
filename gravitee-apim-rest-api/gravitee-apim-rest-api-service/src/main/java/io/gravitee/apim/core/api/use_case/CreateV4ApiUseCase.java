@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
+import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.oneShotIndexation;
+
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
@@ -64,7 +66,8 @@ public class CreateV4ApiUseCase {
                     primaryOwner,
                     auditInfo.environmentId(),
                     auditInfo.organizationId()
-                )
+                ),
+            oneShotIndexation(auditInfo)
         );
 
         return new Output(created);

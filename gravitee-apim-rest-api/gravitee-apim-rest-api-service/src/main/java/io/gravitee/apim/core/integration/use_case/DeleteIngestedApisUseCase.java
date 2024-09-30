@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.integration.use_case;
 
+import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.oneShotIndexation;
+
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
@@ -32,7 +34,6 @@ import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.membership.domain_service.DeleteMembershipDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
-import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.DeleteSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
@@ -126,7 +127,7 @@ public class DeleteIngestedApisUseCase {
         pageQueryService.searchByApiId(apiId).forEach(page -> deleteApiDocumentationDomainService.delete(api, page.getId(), auditInfo));
 
         //Delete API Index
-        apiIndexerDomainService.delete(new Indexer.IndexationContext(auditInfo.organizationId(), auditInfo.environmentId()), api);
+        apiIndexerDomainService.delete(oneShotIndexation(auditInfo), api);
 
         //Delete membership
         deleteMembershipDomainService.deleteApiMemberships(apiId, auditInfo);

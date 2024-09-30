@@ -19,8 +19,6 @@ import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -40,12 +38,17 @@ public class DistributedLuceneIndexer implements Indexer {
     @Override
     public void index(IndexationContext context, Indexable indexable) {
         var executionContext = new ExecutionContext(context.organizationId(), context.environmentId());
-        searchEngineService.index(executionContext, indexable, false);
+        searchEngineService.index(executionContext, indexable, false, context.autoCommit());
     }
 
     @Override
     public void delete(IndexationContext context, Indexable indexable) {
         var executionContext = new ExecutionContext(context.organizationId(), context.environmentId());
         searchEngineService.delete(executionContext, indexable);
+    }
+
+    @Override
+    public void commit() {
+        searchEngineService.commit();
     }
 }

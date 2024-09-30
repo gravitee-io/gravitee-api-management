@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.domain_service;
 
+import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.oneShotIndexation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -63,8 +64,6 @@ import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class UpdateFederatedApiDomainServiceTest {
@@ -88,6 +87,7 @@ class UpdateFederatedApiDomainServiceTest {
     IndexerInMemory indexer = new IndexerInMemory();
     UpdateFederatedApiDomainService usecase;
     CategoryDomainService categoryDomainService = mock(CategoryDomainService.class);
+    CreateApiDomainService createApiDomainService = mock(CreateApiDomainService.class);
 
     @BeforeEach
     void setUp() {
@@ -182,7 +182,7 @@ class UpdateFederatedApiDomainServiceTest {
         var ownerEntity = buildPrimaryOwnerEntity();
 
         //when
-        var updatedApi = usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity);
+        var updatedApi = usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo));
         //then
         assertThat(apiCrudService.storage()).extracting("federatedApiDefinition").doesNotContainNull();
         SoftAssertions.assertSoftly(soft -> {
@@ -217,7 +217,7 @@ class UpdateFederatedApiDomainServiceTest {
         var ownerEntity = buildPrimaryOwnerEntity();
 
         //when
-        var updatedApi = usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity);
+        var updatedApi = usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo));
         //then
         SoftAssertions.assertSoftly(soft -> {
             assertThat(updatedApi.getName()).isEqualTo("updated-name");
@@ -235,7 +235,7 @@ class UpdateFederatedApiDomainServiceTest {
         var ownerEntity = buildPrimaryOwnerEntity();
 
         assertThatExceptionOfType(ApiNotFoundException.class)
-            .isThrownBy(() -> usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity))
+            .isThrownBy(() -> usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo)))
             .withMessage("Api not found.");
     }
 
@@ -247,7 +247,7 @@ class UpdateFederatedApiDomainServiceTest {
         var ownerEntity = buildPrimaryOwnerEntity();
 
         assertThatExceptionOfType(LifecycleStateChangeNotAllowedException.class)
-            .isThrownBy(() -> usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity))
+            .isThrownBy(() -> usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo)))
             .withMessage("The API lifecycle state cannot be changed to PUBLISHED.");
     }
 
@@ -264,7 +264,7 @@ class UpdateFederatedApiDomainServiceTest {
         var ownerEntity = buildPrimaryOwnerEntity();
 
         assertThatExceptionOfType(InvalidDataException.class)
-            .isThrownBy(() -> usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity))
+            .isThrownBy(() -> usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo)))
             .withMessage("These groupIds [[not-existing-group]] do not exist");
     }
 
@@ -275,7 +275,7 @@ class UpdateFederatedApiDomainServiceTest {
         var apiToUpdate = ApiFixtures.aFederatedApi();
         var ownerEntity = buildPrimaryOwnerEntity();
 
-        usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity);
+        usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo));
 
         assertThat(auditCrudService.storage())
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
@@ -303,7 +303,7 @@ class UpdateFederatedApiDomainServiceTest {
         var apiToUpdate = ApiFixtures.aFederatedApi();
         var ownerEntity = buildPrimaryOwnerEntity();
 
-        var updatedApi = usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity);
+        var updatedApi = usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo));
 
         assertThat(indexer.storage())
             .isNotEmpty()
