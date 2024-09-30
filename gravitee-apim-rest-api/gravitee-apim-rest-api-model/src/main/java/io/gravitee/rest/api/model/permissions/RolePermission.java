@@ -83,6 +83,7 @@ public enum RolePermission {
     ENVIRONMENT_INTEGRATION(RoleScope.ENVIRONMENT, EnvironmentPermission.INTEGRATION),
 
     ORGANIZATION_USERS(RoleScope.ORGANIZATION, OrganizationPermission.USER),
+    ORGANIZATION_USERS_TOKEN(RoleScope.ORGANIZATION, OrganizationPermission.USER_TOKEN),
     ORGANIZATION_ROLE(RoleScope.ORGANIZATION, OrganizationPermission.ROLE),
     ORGANIZATION_ENVIRONMENT(RoleScope.ORGANIZATION, OrganizationPermission.ENVIRONMENT),
     ORGANIZATION_CUSTOM_USER_FIELDS(RoleScope.ORGANIZATION, OrganizationPermission.CUSTOM_USER_FIELDS),
