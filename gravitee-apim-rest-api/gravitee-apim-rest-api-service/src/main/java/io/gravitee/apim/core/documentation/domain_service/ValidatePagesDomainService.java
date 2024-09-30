@@ -71,8 +71,14 @@ public class ValidatePagesDomainService implements Validator<ValidatePagesDomain
                     .validateAndSanitize(new ValidatePageAccessControlsDomainService.Input(input.auditInfo, page.getAccessControls()))
                     .peek(sanitized -> page.setAccessControls(sanitized.accessControls()), errors::addAll);
 
-                Page sanitizedPage = validationDomainService.validateAndSanitizeForUpdate(page, input.auditInfo.organizationId(), false);
-                sanitizedPages.put(k, PageModelFactory.toCRDSpec(sanitizedPage));
+                if (errors.stream().noneMatch(Error::isSevere)) {
+                    Page sanitizedPage = validationDomainService.validateAndSanitizeForUpdate(
+                        page,
+                        input.auditInfo.organizationId(),
+                        false
+                    );
+                    sanitizedPages.put(k, PageModelFactory.toCRDSpec(sanitizedPage));
+                }
             } catch (Exception e) {
                 errors.add(Error.severe("invalid documentation page [%s]. Error: %s", k, e.getMessage()));
             }

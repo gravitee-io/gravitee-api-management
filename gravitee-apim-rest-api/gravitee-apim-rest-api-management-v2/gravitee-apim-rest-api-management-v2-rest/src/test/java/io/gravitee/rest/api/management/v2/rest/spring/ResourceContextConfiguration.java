@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.spring;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fakes.spring.FakeConfiguration;
 import inmemory.ApiCRDExportDomainServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
@@ -114,6 +115,7 @@ import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
+import io.vertx.rxjava3.core.Vertx;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -568,7 +570,7 @@ public class ResourceContextConfiguration {
 
     @Bean
     public ValidatePageSourceDomainService validatePageSourceDomainService() {
-        return new ValidatePageSourceDomainServiceImpl();
+        return new ValidatePageSourceDomainServiceImpl(new ObjectMapper(), Vertx.vertx());
     }
 
     @Bean
