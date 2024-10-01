@@ -91,7 +91,7 @@ const yarn = {
 };
 
 const orbs = {
-  aquasec: '1.0.1',
+  aquasec: '1.0.4',
   artifactory: '1.0.1',
   awsCli: '2.0.6',
   awsS3: '3.0.0',
