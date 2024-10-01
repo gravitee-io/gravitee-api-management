@@ -15,7 +15,7 @@
 #
 
 # First stage to share environment variable
-FROM graviteeio/java:17-alpine-3.20 as base
+FROM graviteeio/java:17 as base
 ENV GRAVITEEIO_HOME /opt/graviteeio-gateway
 
 RUN apk update  \
