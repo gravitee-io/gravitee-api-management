@@ -23,4 +23,24 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
+<<<<<<< HEAD
   artifacthub.io/changes: 
+=======
+  artifacthub.io/changes: |
+    - kind: fixed
+      description: 'Fix cloud configuration: avoid empty secret generation and fix example in value.yaml'
+    - kind: fixed
+      description: 'Fix cloud configuration: avoid empty volume mount'
+    - kind: fixed
+      description: 'Split hazelcast config for cluster and cache'
+    - kind: fixed
+      description: 'Add support of SSL keystore secret'
+      links:
+        - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/9854
+    - kind: fixed
+      description: 'Handle annotations for nginx ingress'
+      links:
+        - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/9831
+>>>>>>> ad15d4ee0f (fix: handle annotations for non nginx ingress)
