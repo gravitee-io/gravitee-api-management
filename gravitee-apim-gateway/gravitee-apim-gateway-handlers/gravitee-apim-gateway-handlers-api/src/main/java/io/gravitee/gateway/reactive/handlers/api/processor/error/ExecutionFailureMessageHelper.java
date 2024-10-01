@@ -43,7 +43,7 @@ public class ExecutionFailureMessageHelper {
         Buffer payload;
         String contentType;
 
-        if (accepts != null && (accepts.contains(MediaType.APPLICATION_JSON) || accepts.contains(MediaType.WILDCARD))) {
+        if (accepts != null && accepts.stream().anyMatch(s -> s.contains(MediaType.APPLICATION_JSON) || s.contains(MediaType.WILDCARD))) {
             // Write error as json when accepted by the client.
             contentType = MediaType.APPLICATION_JSON;
 
