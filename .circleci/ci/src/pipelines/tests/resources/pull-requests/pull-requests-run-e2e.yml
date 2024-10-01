@@ -1048,7 +1048,7 @@ workflows:
             - Build APIM Portal and publish image
 orbs:
   keeper: gravitee-io/keeper@0.6.3
-  aquasec: gravitee-io/aquasec@1.0.1
+  aquasec: gravitee-io/aquasec@1.0.3
   helm: circleci/helm@3.0.0
   slack: circleci/slack@4.12.5
   gh: circleci/github-cli@1.0.5
