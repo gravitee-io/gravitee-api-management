@@ -35,3 +35,8 @@ annotations:
       links:
         - name: Github Issue
           url: https://github.com/gravitee-io/issues/issues/9854
+    - kind: fixed
+      description: 'Handle annotations for nginx ingress'
+      links:
+        - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/9831
