@@ -29,6 +29,7 @@ import io.vertx.core.http.*;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -105,7 +106,7 @@ public class WebNotifierServiceImpl implements WebNotifierService {
 
         //headers
         options.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-        options.putHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.length()));
+        options.putHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.getBytes(StandardCharsets.UTF_8).length));
         headers.forEach(options::putHeader);
         options.putHeader("X-Gravitee-Request-Id", UuidString.generateRandom());
 
