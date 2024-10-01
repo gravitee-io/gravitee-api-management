@@ -725,6 +725,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             if (updateApplicationEntity.getSettings().getTls() != null) {
                 String existingCertificate = applicationToUpdate.getMetadata().get(METADATA_CLIENT_CERTIFICATE);
                 String newCertificate = updateApplicationEntity.getSettings().getTls().getClientCertificate();
+                existingCertificate = existingCertificate != null ? new String(Base64.getDecoder().decode(existingCertificate)) : null;
                 if (newCertificate != null && !newCertificate.equals(existingCertificate)) {
                     throw new ClientCertificateChangeNotAllowedException();
                 }
