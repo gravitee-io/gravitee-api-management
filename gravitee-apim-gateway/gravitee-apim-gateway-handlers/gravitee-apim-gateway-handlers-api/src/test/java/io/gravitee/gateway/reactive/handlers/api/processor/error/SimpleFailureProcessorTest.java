@@ -122,10 +122,42 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
     }
 
     @Test
+    void should_build_a_json_response_when_json_accept_header_with_comma() throws JsonProcessingException {
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message("error");
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+        spyRequestHeaders.add(ACCEPT, List.of("application/json, application/text"));
+
+        simpleFailureProcessor.execute(spyCtx).test().assertResult();
+
+        assertThat(spyResponseHeaders.contains(HttpHeaderNames.CONTENT_LENGTH)).isTrue();
+        assertThat(spyResponseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo("application/json");
+
+        String expectedJson = mapper.writeValueAsString(new ExecutionFailureAsJson(executionFailure));
+        verify(mockResponse).chunks(bufferCaptor.capture());
+        assertThat(bufferCaptor.getValue().blockingFirst()).hasToString(expectedJson);
+    }
+
+    @Test
     void should_build_a_json_response_when_wildcard_accept_header() throws JsonProcessingException {
         ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message("error");
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         spyRequestHeaders.add(ACCEPT, List.of(MediaType.WILDCARD));
+
+        simpleFailureProcessor.execute(spyCtx).test().assertResult();
+
+        assertThat(spyResponseHeaders.contains(HttpHeaderNames.CONTENT_LENGTH)).isTrue();
+        assertThat(spyResponseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo("application/json");
+
+        String contentAsJson = mapper.writeValueAsString(new ExecutionFailureAsJson(executionFailure));
+        verify(mockResponse).chunks(bufferCaptor.capture());
+        assertThat(bufferCaptor.getValue().blockingFirst()).hasToString(contentAsJson);
+    }
+
+    @Test
+    void should_build_a_json_response_when_wildcard_accept_header_with_comma() throws JsonProcessingException {
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message("error");
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+        spyRequestHeaders.add(ACCEPT, List.of("*/*, application/text"));
 
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
 
