@@ -23,4 +23,9 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: 
+  artifacthub.io/changes: |
+    - kind: fixed
+      description: 'Handle annotations for nginx ingress'
+      links:
+        - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/9831
