@@ -15,12 +15,24 @@
  */
 package io.gravitee.apim.core.api.crud_service;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface ApiCrudService {
-    Api get(String id);
-    Optional<Api> findById(String id);
+    default Api get(String id) {
+        return findById(id).orElseThrow(() -> new ApiNotFoundException(id));
+    }
+
+    default Optional<Api> findById(String id) {
+        return stream(find(List.of(id))).findFirst();
+    }
+
+    Collection<Api> find(Collection<String> ids);
     boolean existsById(String id);
     Api create(Api api);
     Api update(Api api);

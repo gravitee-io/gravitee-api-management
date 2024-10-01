@@ -27,10 +27,10 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.mongodb.management.internal.api.ApiMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,14 +55,8 @@ public class MongoApiRepository implements ApiRepository {
     private GraviteeMapper mapper;
 
     @Override
-    public Set<Api> findAll() throws TechnicalException {
-        return internalApiRepo.findAll().stream().map(this::mapApi).collect(Collectors.toSet());
-    }
-
-    @Override
-    public Optional<Api> findById(String apiId) throws TechnicalException {
-        ApiMongo apiMongo = internalApiRepo.findById(apiId).orElse(null);
-        return Optional.ofNullable(mapApi(apiMongo));
+    public Collection<Api> find(Iterable<String> ids) throws TechnicalException {
+        return internalApiRepo.findAllById(ids).stream().map(this::mapApi).toList();
     }
 
     @Override
@@ -160,7 +154,7 @@ public class MongoApiRepository implements ApiRepository {
     }
 
     @Override
-    public Optional<String> findIdByEnvironmentIdAndCrossId(final String environmentId, final String crossId) throws TechnicalException {
+    public Optional<String> findIdByEnvironmentIdAndCrossId(final String environmentId, final String crossId) {
         return internalApiRepo.findIdByEnvironmentIdAndCrossId(environmentId, crossId).map(ApiMongo::getId);
     }
 

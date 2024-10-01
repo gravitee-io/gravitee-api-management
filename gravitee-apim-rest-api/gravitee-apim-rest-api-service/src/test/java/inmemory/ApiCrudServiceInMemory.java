@@ -16,13 +16,11 @@
 package inmemory;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.plan.model.Plan;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.OptionalInt;
 
 public class ApiCrudServiceInMemory implements ApiCrudService, InMemoryAlternative<Api> {
@@ -30,14 +28,8 @@ public class ApiCrudServiceInMemory implements ApiCrudService, InMemoryAlternati
     final ArrayList<Api> storage = new ArrayList<>();
 
     @Override
-    public Api get(String id) {
-        var foundApi = storage.stream().filter(api -> id.equals(api.getId())).findFirst();
-        return foundApi.orElseThrow(() -> new ApiNotFoundException(id));
-    }
-
-    @Override
-    public Optional<Api> findById(String id) {
-        return storage.stream().filter(api -> id.equals(api.getId())).findFirst();
+    public Collection<Api> find(Collection<String> ids) {
+        return storage.stream().filter(api -> ids.contains(api.getId())).toList();
     }
 
     @Override

@@ -52,10 +52,13 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 
 @UseCase
 @Slf4j
@@ -90,23 +93,31 @@ public class IngestFederatedApisUseCase {
                 var userId = job.getInitiatorId();
                 var auditInfo = new AuditInfo(organizationId, environmentId, new AuditActor(userId, null, null));
                 var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, userId);
+                Map<String, Pair<IntegrationApi, Api>> apiToIngest = input
+                    .apisToIngest()
+                    .stream()
+                    .map(api -> Pair.of(api, ApiModelFactory.fromIngestionJob(api, job)))
+                    .collect(Collectors.toMap(p -> p.getRight().getId(), Function.identity()));
+                Map<String, Api> existingApis = apiCrudService
+                    .find(apiToIngest.keySet())
+                    .stream()
+                    .collect(Collectors.toMap(Api::getId, Function.identity()));
 
                 return Flowable
-                    .fromIterable(input.apisToIngest)
-                    .flatMapCompletable(api ->
-                        Completable.fromRunnable(() -> {
-                            var federatedApi = ApiModelFactory.fromIngestionJob(api, job);
+                    .fromIterable(apiToIngest.values())
+                    .doOnNext(pair -> {
+                        var api = pair.getLeft();
+                        var federatedApi = pair.getRight();
 
-                            apiCrudService
-                                .findById(federatedApi.getId())
-                                .ifPresentOrElse(
-                                    existingApi -> updateApi(federatedApi, api, auditInfo, primaryOwner),
-                                    () -> createApi(federatedApi, api, auditInfo, primaryOwner)
-                                );
-                            List<ApiMetadata> metadata = metadata(api, federatedApi);
-                            apiMetadataDomainService.saveApiMetadata(federatedApi.getId(), metadata, auditInfo);
-                        })
-                    )
+                        Api existingApi = existingApis.get(federatedApi.getId());
+                        if (existingApi != null) {
+                            updateApi(existingApi, federatedApi, api, auditInfo, primaryOwner);
+                        } else {
+                            createApi(federatedApi, api, auditInfo, primaryOwner);
+                        }
+                        List<ApiMetadata> metadata = metadata(api, federatedApi);
+                        apiMetadataDomainService.saveApiMetadata(federatedApi.getId(), metadata, auditInfo);
+                    })
                     .doOnComplete(() -> {
                         if (input.completed) {
                             asyncJobCrudService.update(job.complete());
@@ -117,7 +128,8 @@ public class IngestFederatedApisUseCase {
                             );
                         }
                     })
-                    .doOnError(throwable -> log.error("Ingestion error job {}", ingestJobId, throwable));
+                    .doOnError(throwable -> log.error("Ingestion error job {}", ingestJobId, throwable))
+                    .ignoreElements();
             });
     }
 
@@ -142,11 +154,22 @@ public class IngestFederatedApisUseCase {
         }
     }
 
-    private void updateApi(Api federatedApi, IntegrationApi integrationApi, AuditInfo auditInfo, PrimaryOwnerEntity primaryOwner) {
+    private void updateApi(
+        Api existingApi,
+        Api federatedApi,
+        IntegrationApi integrationApi,
+        AuditInfo auditInfo,
+        PrimaryOwnerEntity primaryOwner
+    ) {
         log.debug("API already ingested [id={}] [name={}], performing update", federatedApi.getId(), federatedApi.getName());
         try {
             UnaryOperator<Api> updater = update(federatedApi);
-            updateFederatedApiDomainService.update(federatedApi.getId(), updater, auditInfo, primaryOwner);
+            updateFederatedApiDomainService.update(
+                UpdateFederatedApiDomainService.Previous.loaded(existingApi),
+                updater,
+                auditInfo,
+                primaryOwner
+            );
 
             stream(integrationApi.plans())
                 .map(p -> PlanModelFactory.fromIntegration(p, federatedApi))
