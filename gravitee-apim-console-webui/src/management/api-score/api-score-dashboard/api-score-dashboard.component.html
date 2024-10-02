@@ -29,91 +29,99 @@
   </div>
 
   <!--  Overview -->
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>Overview</mat-card-title>
-      <mat-card-subtitle>Last evaluated {{ evaluatingDate | dateAgo }}</mat-card-subtitle>
-    </mat-card-header>
+  @if (isLoadingOverview) {
+    <gio-loader></gio-loader>
+  } @else if (!overviewData || overviewData.score == null) {
+    <gio-card-empty-state
+      icon="shield-alert"
+      title="No score results yet"
+      subtitle="There are no results to display. Please open an API and run the API score evaluation to start scoring your APIs."
+    ></gio-card-empty-state>
+  } @else {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Overview</mat-card-title>
+        <mat-card-subtitle>Last evaluated {{ evaluatingDate | dateAgo }}</mat-card-subtitle>
+      </mat-card-header>
 
-    <div class="separator-hr"></div>
+      <div class="separator-hr"></div>
 
-    <mat-card-content class="overview-cards">
-      <mat-card class="card" data-testid="overview-score">
-        <mat-card-header>
-          <mat-card-title class="card__title">
-            @if (!overviewData || overviewData.score == null) {
-              <span class="gio-badge-neutral">Not available</span>
-            } @else if (overviewData.score >= 0.8) {
-              <span class="average-score-badge gio-badge-success"
-                ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ overviewData.score * 100 | number: '1.0-0' }}%
-              </span>
-            } @else if (overviewData.score >= 0.4) {
-              <span class="average-score-badge gio-badge-warning"
-                ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ overviewData.score * 100 | number: '1.0-0' }}%
-              </span>
-            } @else {
-              <span class="average-score-badge gio-badge-error"
-                ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ overviewData.score * 100 | number: '1.0-0' }}%
-              </span>
-            }
-          </mat-card-title>
-          <mat-card-subtitle> Average score</mat-card-subtitle>
-        </mat-card-header>
-      </mat-card>
+      <mat-card-content class="overview-cards">
+        <mat-card class="card" data-testid="overview-score">
+          <mat-card-header>
+            <mat-card-title class="card__title">
+              @if (overviewData.score >= 0.8) {
+                <span class="average-score-badge gio-badge-success"
+                  ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ overviewData.score * 100 | number: '1.0-0' }}%
+                </span>
+              } @else if (overviewData.score >= 0.4) {
+                <span class="average-score-badge gio-badge-warning"
+                  ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ overviewData.score * 100 | number: '1.0-0' }}%
+                </span>
+              } @else {
+                <span class="average-score-badge gio-badge-error"
+                  ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ overviewData.score * 100 | number: '1.0-0' }}%
+                </span>
+              }
+            </mat-card-title>
+            <mat-card-subtitle> Average score</mat-card-subtitle>
+          </mat-card-header>
+        </mat-card>
 
-      <mat-card class="card">
-        <mat-card-header>
-          <mat-card-title class="card__title">
-            @if (!overviewData || overviewData.errors == null) {
-              <span class="mat-h5">-</span>
-            } @else {
-              {{ overviewData.errors }}
-            }
-          </mat-card-title>
-          <mat-card-subtitle> Errors</mat-card-subtitle>
-        </mat-card-header>
-      </mat-card>
+        <mat-card class="card">
+          <mat-card-header>
+            <mat-card-title class="card__title">
+              @if (!overviewData || overviewData.errors == null) {
+                <span class="mat-h5">-</span>
+              } @else {
+                {{ overviewData.errors }}
+              }
+            </mat-card-title>
+            <mat-card-subtitle> Errors</mat-card-subtitle>
+          </mat-card-header>
+        </mat-card>
 
-      <mat-card class="card">
-        <mat-card-header>
-          <mat-card-title class="card__title">
-            @if (!overviewData || overviewData.warnings == null) {
-              <span class="mat-h5">-</span>
-            } @else {
-              {{ overviewData.warnings }}
-            }
-          </mat-card-title>
-          <mat-card-subtitle> Warnings</mat-card-subtitle>
-        </mat-card-header>
-      </mat-card>
+        <mat-card class="card">
+          <mat-card-header>
+            <mat-card-title class="card__title">
+              @if (!overviewData || overviewData.warnings == null) {
+                <span class="mat-h5">-</span>
+              } @else {
+                {{ overviewData.warnings }}
+              }
+            </mat-card-title>
+            <mat-card-subtitle> Warnings</mat-card-subtitle>
+          </mat-card-header>
+        </mat-card>
 
-      <mat-card class="card">
-        <mat-card-header>
-          <mat-card-title class="card__title">
-            @if (!overviewData || overviewData.hints == null) {
-              <span class="mat-h5">-</span>
-            } @else {
-              {{ overviewData.hints }}
-            }
-          </mat-card-title>
-          <mat-card-subtitle> Hints</mat-card-subtitle>
-        </mat-card-header>
-      </mat-card>
+        <mat-card class="card">
+          <mat-card-header>
+            <mat-card-title class="card__title">
+              @if (!overviewData || overviewData.hints == null) {
+                <span class="mat-h5">-</span>
+              } @else {
+                {{ overviewData.hints }}
+              }
+            </mat-card-title>
+            <mat-card-subtitle> Hints</mat-card-subtitle>
+          </mat-card-header>
+        </mat-card>
 
-      <mat-card class="card">
-        <mat-card-header>
-          <mat-card-title class="card__title">
-            @if (!overviewData || overviewData.infos == null) {
-              <span class="mat-h5">-</span>
-            } @else {
-              {{ overviewData.infos }}
-            }
-          </mat-card-title>
-          <mat-card-subtitle> Infos</mat-card-subtitle>
-        </mat-card-header>
-      </mat-card>
-    </mat-card-content>
-  </mat-card>
+        <mat-card class="card">
+          <mat-card-header>
+            <mat-card-title class="card__title">
+              @if (!overviewData || overviewData.infos == null) {
+                <span class="mat-h5">-</span>
+              } @else {
+                {{ overviewData.infos }}
+              }
+            </mat-card-title>
+            <mat-card-subtitle> Infos</mat-card-subtitle>
+          </mat-card-header>
+        </mat-card>
+      </mat-card-content>
+    </mat-card>
+  }
 
   <!-- List of APIs  -->
   <mat-card>
