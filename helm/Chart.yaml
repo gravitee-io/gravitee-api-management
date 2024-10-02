@@ -29,3 +29,8 @@ annotations:
       links:
         - name: Github Issue
           url: https://github.com/gravitee-io/issues/issues/9831
+    - kind: fixed
+      description: 'Add service account to UI and portal components'
+      links:
+        - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/10057
