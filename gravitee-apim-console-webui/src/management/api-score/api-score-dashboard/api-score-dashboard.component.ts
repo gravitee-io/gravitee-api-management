@@ -33,6 +33,7 @@ import { ApisScoring, ApisScoringOverview, ApisScoringResponse } from '../api-sc
 export class ApiScoreDashboardComponent implements OnInit {
   private destroyRef: DestroyRef = inject(DestroyRef);
   public isLoading = false;
+  public isLoadingOverview = true;
   public apisScoringList: ApisScoring[] = [];
   public displayedColumns: string[] = ['picture', 'name', 'score', 'errors', 'warnings', 'infos', 'hints', 'actions'];
   public filters: GioTableWrapperFilters = {
@@ -52,16 +53,21 @@ export class ApiScoreDashboardComponent implements OnInit {
 
   ngOnInit() {
     this.initFilters();
+    this.getApisScoringOverview();
+  }
+
+  private getApisScoringOverview() {
+    this.isLoadingOverview = true;
     this.apiScoringService
       .getApisScoringOverview()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res: ApisScoringOverview) => {
-          this.isLoading = false;
+          this.isLoadingOverview = false;
           this.overviewData = res;
         },
         error: (e) => {
-          this.isLoading = false;
+          this.isLoadingOverview = false;
           this.snackBarService.error(e.error?.message ?? 'An error occurred while loading list.');
         },
       });

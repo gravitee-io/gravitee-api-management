@@ -22,7 +22,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { GioAvatarModule } from '@gravitee/ui-particles-angular';
+import { GioAvatarModule, GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 
 import { ApiScoreDashboardComponent } from './api-score-dashboard.component';
 
@@ -45,6 +45,8 @@ import { DateAgoPipe } from '../../../shared/pipes/date-ago.pipe';
     MatTooltipModule,
     MatIconModule,
     DateAgoPipe,
+    GioLoaderModule,
+    GioCardEmptyStateModule,
   ],
 })
 export class ApiScoreDashboardModule {}
