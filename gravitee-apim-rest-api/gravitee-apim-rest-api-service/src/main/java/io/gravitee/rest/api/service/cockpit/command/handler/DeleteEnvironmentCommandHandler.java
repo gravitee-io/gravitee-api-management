@@ -383,6 +383,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
                     apiCategoryOrderRepository.deleteByApiId(apiId);
                     apiQualityRuleRepository.deleteByApi(apiId);
                     auditRepository.deleteByReferenceIdAndReferenceType(apiId, Audit.AuditReferenceType.API);
+                    flowRepository.deleteByReferenceIdAndReferenceType(apiId, FlowReferenceType.API);
                     genericNotificationConfigRepository.deleteByReferenceIdAndReferenceType(apiId, NotificationReferenceType.API);
                     invitationRepository.deleteByReferenceIdAndReferenceType(apiId, InvitationReferenceType.API);
                     mediaRepository.deleteAllByApi(apiId);
