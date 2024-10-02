@@ -1,5 +1,6 @@
 {{- if and (.Values.portal.enabled) (not .Values.apim.dbLess) -}}
 {{- $base_href_defined := include "portal.base_href.defined" . -}}
+{{- $serviceAccount := include "apim.serviceAccount" . -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -85,6 +86,11 @@ spec:
         {{- end }}
     spec:
       securityContext: {{ toYaml .Values.portal.deployment.podSecurityContext | nindent 8 }}
+      {{- if not (eq .Values.portal.deployment.serviceAccount "") }}
+      serviceAccountName: {{ .Values.portal.deployment.serviceAccount }}
+      {{- else if $serviceAccount }}
+      serviceAccountName: {{ $serviceAccount }}
+      {{- end }}
       affinity: {{ toYaml .Values.portal.deployment.affinity | nindent 8 }}
       nodeSelector: {{ toYaml .Values.portal.deployment.nodeSelector | nindent 8 }}
       topologySpreadConstraints: {{ toYaml .Values.portal.deployment.topologySpreadConstraints | nindent 8 }}
