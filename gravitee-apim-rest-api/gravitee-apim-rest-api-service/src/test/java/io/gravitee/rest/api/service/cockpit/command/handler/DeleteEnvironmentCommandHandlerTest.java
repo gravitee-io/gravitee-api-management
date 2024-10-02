@@ -505,6 +505,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(invitationRepository).deleteByReferenceIdAndReferenceType(apiId, InvitationReferenceType.API);
         verify(ratingRepository).deleteByReferenceIdAndReferenceType(apiId, RatingReferenceType.API);
         verify(ratingAnswerRepository).deleteByRating(apiId);
+        verify(flowRepository).deleteByReferenceIdAndReferenceType(apiId, FlowReferenceType.API);
         verify(scoringReportRepository).deleteByApi(apiId);
     }
 
