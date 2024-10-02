@@ -1245,6 +1245,8 @@ portal:
       runAsUser: 101
       runAsGroup: 101
       runAsNonRoot: true
+    # Dedicated Service account provided for this component
+    serviceAccount: ""
     strategy:
       type: RollingUpdate
       rollingUpdate:
@@ -1430,6 +1432,8 @@ ui:
       runAsUser: 101
       runAsGroup: 101
       runAsNonRoot: true
+    # Dedicated Service account provided for this component
+    serviceAccount: ""
     strategy:
       type: RollingUpdate
       rollingUpdate:
