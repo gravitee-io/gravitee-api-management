@@ -120,6 +120,7 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
             if (PRIMARY_OWNER.name().equals(member.getRole())) {
                 errors.add(Error.severe("setting a member with the primary owner role is not allowed"));
                 members.remove();
+                return;
             }
 
             log.debug("checking that member {} is not the authenticated user who will be set as a primary owner", member.getSourceId());
