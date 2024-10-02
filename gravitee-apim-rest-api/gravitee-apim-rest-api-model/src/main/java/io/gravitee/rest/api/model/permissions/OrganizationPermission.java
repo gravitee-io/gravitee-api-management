@@ -37,7 +37,7 @@ public enum OrganizationPermission implements Permission {
     ENTRYPOINT("ENTRYPOINT", 2100),
     POLICIES("POLICIES", 2200),
     AUDIT("AUDIT", 2300),
-    USER_TOKEN("USER_TOKEN", 2400);
+    USER_TOKEN("USER_TOKEN", 2500);
 
     String name;
     int mask;
