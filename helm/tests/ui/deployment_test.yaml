@@ -176,3 +176,80 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].securityContext.runAsNonRoot
           value: true
+
+  - it: Deploy with managed ServiceAccount
+    template: ui/ui-deployment.yaml
+    set:
+      apim:
+        managedServiceAccount: true
+        serviceAccount: ""
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: "RELEASE-NAME-apim"
+
+  - it: Deploy with custom ServiceAccount
+    template: ui/ui-deployment.yaml
+    set:
+      apim:
+        managedServiceAccount: false
+        serviceAccount: "test-sa"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: "test-sa"
+
+  - it: Deploy without ServiceAccount
+    template: ui/ui-deployment.yaml
+    set:
+      apim:
+        managedServiceAccount: false
+        serviceAccount:
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - isEmpty:
+          path: spec.template.spec.serviceAccountName
+
+  - it: Deploy with custom managed ServiceAccount
+    template: ui/ui-deployment.yaml
+    set:
+      apim:
+        managedServiceAccount: true
+        serviceAccount: "test-sa"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: "test-sa"
+
+  - it: Deploy with component specific ServiceAccount
+    template: ui/ui-deployment.yaml
+    set:
+      apim:
+        managedServiceAccount: true
+        serviceAccount: "test-sa"
+      ui:
+        deployment:
+          serviceAccount: "apim-ui"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: "apim-ui"
