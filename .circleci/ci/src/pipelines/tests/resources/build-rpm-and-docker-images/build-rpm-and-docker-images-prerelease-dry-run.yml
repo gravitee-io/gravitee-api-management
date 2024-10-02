@@ -133,4 +133,4 @@ workflows:
           name: Build and push RPM packages for APIM 4.1.0-alpha.1 - Dry Run
 orbs:
   keeper: gravitee-io/keeper@0.6.3
-  aquasec: gravitee-io/aquasec@1.0.3
+  aquasec: gravitee-io/aquasec@1.0.4
