@@ -46,6 +46,7 @@ import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import jakarta.ws.rs.HEAD;
 import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -124,6 +125,8 @@ public class ApiService_StartTest {
         new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class))
     );
 
+    private ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
     @Before
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
@@ -131,7 +134,7 @@ public class ApiService_StartTest {
             new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
         );
         UserEntity u = new UserEntity();
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(u);
+        when(userService.findById(eq(executionContext), any())).thenReturn(u);
         when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(new UserEntity()));
         when(api.getId()).thenReturn(API_ID);
     }
@@ -145,24 +148,25 @@ public class ApiService_StartTest {
         final EventQuery query = new EventQuery();
         query.setApi(API_ID);
         query.setTypes(singleton(PUBLISH_API));
-        when(eventService.search(GraviteeContext.getExecutionContext(), query)).thenReturn(singleton(event));
+        query.setEnvironmentIds(Set.of(executionContext.getEnvironmentId()));
+        when(eventService.search(executionContext, query)).thenReturn(singleton(event));
         when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(ApiEntity.class)))
             .thenAnswer(invocation -> invocation.getArgument(1));
 
-        apiService.start(GraviteeContext.getExecutionContext(), API_ID, USER_NAME);
+        apiService.start(executionContext, API_ID, USER_NAME);
 
         verify(api).setUpdatedAt(any());
         verify(api).setLifecycleState(LifecycleState.STARTED);
         verify(apiRepository).update(api);
         verify(eventService)
             .createApiEvent(
-                eq(GraviteeContext.getExecutionContext()),
+                eq(executionContext),
                 eq(singleton(GraviteeContext.getCurrentEnvironment())),
                 eq(EventType.START_API),
                 argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
                 eq(event.getProperties())
             );
-        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_STARTED), eq(API_ID), any());
+        verify(notifierService, times(1)).trigger(eq(executionContext), eq(ApiHook.API_STARTED), eq(API_ID), any());
     }
 
     @Test
@@ -176,9 +180,10 @@ public class ApiService_StartTest {
         final EventQuery query = new EventQuery();
         query.setApi(API_ID);
         query.setTypes(singleton(PUBLISH_API));
-        when(eventService.search(GraviteeContext.getExecutionContext(), query)).thenReturn(singleton(event));
+        query.setEnvironmentIds(Set.of(executionContext.getEnvironmentId()));
+        when(eventService.search(executionContext, query)).thenReturn(singleton(event));
 
-        apiService.start(GraviteeContext.getExecutionContext(), API_ID, USER_NAME);
+        apiService.start(executionContext, API_ID, USER_NAME);
 
         verify(api).setUpdatedAt(any());
         verify(api).setLifecycleState(LifecycleState.STARTED);
@@ -191,18 +196,18 @@ public class ApiService_StartTest {
     public void shouldNotStartBecauseNotFound() throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
 
-        apiService.start(GraviteeContext.getExecutionContext(), API_ID, USER_NAME);
+        apiService.start(executionContext, API_ID, USER_NAME);
 
         verify(apiRepository, never()).update(api);
-        verify(notifierService, never()).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_STARTED), eq(API_ID), any());
+        verify(notifierService, never()).trigger(eq(executionContext), eq(ApiHook.API_STARTED), eq(API_ID), any());
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotStartBecauseTechnicalException() throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenThrow(TechnicalException.class);
 
-        apiService.start(GraviteeContext.getExecutionContext(), API_ID, USER_NAME);
-        verify(notifierService, never()).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_STARTED), eq(API_ID), any());
+        apiService.start(executionContext, API_ID, USER_NAME);
+        verify(notifierService, never()).trigger(eq(executionContext), eq(ApiHook.API_STARTED), eq(API_ID), any());
     }
 
     private EventEntity mockEvent(EventType eventType) throws Exception {
