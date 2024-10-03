@@ -75,7 +75,9 @@ public class ApiManagerImpl implements ApiManager {
                 Api.class,
                 new ApiDeployer(gatewayConfiguration, dataEncryptor),
                 io.gravitee.gateway.reactive.handlers.api.v4.Api.class,
-                new io.gravitee.gateway.reactive.handlers.api.v4.deployer.ApiDeployer(gatewayConfiguration, dataEncryptor)
+                new io.gravitee.gateway.reactive.handlers.api.v4.deployer.ApiDeployer(gatewayConfiguration, dataEncryptor),
+                io.gravitee.gateway.reactive.handlers.api.v4.NativeApi.class,
+                new io.gravitee.gateway.reactive.handlers.api.v4.deployer.NativeApiDeployer(gatewayConfiguration, dataEncryptor)
             );
     }
 
@@ -85,7 +87,12 @@ public class ApiManagerImpl implements ApiManager {
 
         List<Plugin> plugins;
         if (api.getDefinitionVersion() == DefinitionVersion.V4) {
-            plugins = ((io.gravitee.definition.model.v4.Api) api.getDefinition()).getPlugins();
+            plugins =
+                ((io.gravitee.definition.model.v4.AbstractApi) api.getDefinition()).getPlugins()
+                    // FIXME: Kafka Gateway - cheat to remove plugin containing "native" as they do not exist yet
+                    .stream()
+                    .filter(p -> !p.id().contains("native"))
+                    .toList();
         } else {
             plugins = ((io.gravitee.definition.model.Api) api.getDefinition()).getPlugins();
         }
