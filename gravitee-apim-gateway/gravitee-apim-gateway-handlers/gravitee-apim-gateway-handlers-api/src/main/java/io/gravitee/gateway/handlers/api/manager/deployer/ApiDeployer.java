@@ -38,7 +38,7 @@ public class ApiDeployer extends AbstractApiDeployer<Api> {
     private final DataEncryptor dataEncryptor;
 
     public ApiDeployer(final GatewayConfiguration gatewayConfiguration, final DataEncryptor dataEncryptor) {
-        super(gatewayConfiguration);
+        super(gatewayConfiguration, dataEncryptor);
         this.dataEncryptor = dataEncryptor;
     }
 
