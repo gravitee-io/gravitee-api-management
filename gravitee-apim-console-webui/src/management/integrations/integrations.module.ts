@@ -26,7 +26,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableModule } from '@angular/material/table';
 import { MatRadioModule } from '@angular/material/radio';
 import { CdkAccordionModule } from '@angular/cdk/accordion';
-import { MatStepperModule } from '@angular/material/stepper';
 import { ErrorStateMatcher, ShowOnDirtyErrorStateMatcher } from '@angular/material/core';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -47,7 +46,6 @@ import {
 
 import { MapProviderNamePipe } from './pipes/map-provider-name.pipe';
 import { IntegrationsComponent } from './integrations.component';
-import { CreateIntegrationComponent } from './create-integration/create-integration.component';
 import { IntegrationsRoutingModule } from './integrations-routing.module';
 import { IntegrationOverviewComponent } from './integration-overview/integration-overview.component';
 import { IntegrationsNavigationComponent } from './integrations-navigation/integrations-navigation.component';
@@ -58,6 +56,7 @@ import { DiscoveryPreviewComponent } from './discovery-preview/discovery-preview
 import { IntegrationGeneralConfigurationComponent } from './integration-configuration/general/integration-general-configuration.component';
 import { IntegrationUserPermissionsComponent } from './integration-configuration/user-permissions/integration-user-permissions.component';
 import { IntegrationUserGroupModule } from './user-group-access/integration-user-group.module';
+import { CreateIntegrationModule } from './create-integration/create-integration.module';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
@@ -65,7 +64,6 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
 @NgModule({
   declarations: [
     IntegrationsComponent,
-    CreateIntegrationComponent,
     IntegrationOverviewComponent,
     IntegrationsNavigationComponent,
     IntegrationConfigurationComponent,
@@ -80,13 +78,13 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     ReactiveFormsModule,
     IntegrationsRoutingModule,
     IntegrationUserGroupModule,
+    CreateIntegrationModule,
 
     MatCardModule,
     MatTableModule,
     MatSortModule,
     MatTabsModule,
     MatButtonModule,
-    MatStepperModule,
     MatFormFieldModule,
     MatInputModule,
     MatRadioModule,
