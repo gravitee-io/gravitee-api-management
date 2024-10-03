@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.manager.impl;
 
+import com.graviteesource.services.runtimesecrets.RuntimeSecretsProcessingService;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -29,7 +30,6 @@ import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.node.api.license.ForbiddenFeatureException;
 import io.gravitee.node.api.license.InvalidLicenseException;
-import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
 import java.util.Collection;
 import java.util.List;
@@ -60,16 +60,19 @@ public class ApiManagerImpl implements ApiManager {
     private final LicenseManager licenseManager;
     private final Map<String, ReactableApi<?>> apis = new ConcurrentHashMap<>();
     private final Map<Class<? extends ReactableApi<?>>, ? extends Deployer<?>> deployers;
+    private final RuntimeSecretsProcessingService runtimeSecretsProcessingService;
 
     public ApiManagerImpl(
         final EventManager eventManager,
         final GatewayConfiguration gatewayConfiguration,
         LicenseManager licenseManager,
-        final DataEncryptor dataEncryptor
+        final DataEncryptor dataEncryptor,
+        final RuntimeSecretsProcessingService runtimeSecretsProcessingService
     ) {
         this.eventManager = eventManager;
         this.gatewayConfiguration = gatewayConfiguration;
         this.licenseManager = licenseManager;
+        this.runtimeSecretsProcessingService = runtimeSecretsProcessingService;
         deployers =
             Map.of(
                 Api.class,
@@ -210,6 +213,13 @@ public class ApiManagerImpl implements ApiManager {
                 }
 
                 apis.put(api.getId(), api);
+
+                runtimeSecretsProcessingService.onDefinitionDeploy(
+                    api.getEnvironmentId(),
+                    api.getDefinition(),
+                    api.getDeploymentProperties()
+                );
+
                 eventManager.publishEvent(ReactorEvent.DEPLOY, api);
                 log.info("{} has been deployed", api);
             } else {

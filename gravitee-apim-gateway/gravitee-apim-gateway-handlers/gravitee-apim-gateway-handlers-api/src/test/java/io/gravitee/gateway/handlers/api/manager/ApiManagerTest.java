@@ -19,10 +19,17 @@ import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.graviteesource.services.runtimesecrets.RuntimeSecretsProcessingService;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.Plan;
@@ -79,11 +86,15 @@ public class ApiManagerTest {
     @Mock
     private LicenseManager licenseManager;
 
+    @Mock
+    RuntimeSecretsProcessingService runtimeSecretsProcessingService;
+
     private ApiManagerImpl apiManager;
 
     @Before
     public void setUp() throws Exception {
-        apiManager = spy(new ApiManagerImpl(eventManager, gatewayConfiguration, licenseManager, dataEncryptor));
+        apiManager =
+            spy(new ApiManagerImpl(eventManager, gatewayConfiguration, licenseManager, dataEncryptor, runtimeSecretsProcessingService));
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
         when(gatewayConfiguration.hasMatchingTags(any())).thenCallRealMethod();
     }

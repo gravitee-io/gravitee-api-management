@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.spring;
 
+import com.graviteesource.services.runtimesecrets.RuntimeSecretsProcessingService;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
@@ -88,9 +89,10 @@ public class ApiHandlerConfiguration {
         EventManager eventManager,
         GatewayConfiguration gatewayConfiguration,
         LicenseManager licenseManager,
+        RuntimeSecretsProcessingService runtimeSecretsProcessingService,
         DataEncryptor dataEncryptor
     ) {
-        return new ApiManagerImpl(eventManager, gatewayConfiguration, licenseManager, dataEncryptor);
+        return new ApiManagerImpl(eventManager, gatewayConfiguration, licenseManager, dataEncryptor, runtimeSecretsProcessingService);
     }
 
     @Bean

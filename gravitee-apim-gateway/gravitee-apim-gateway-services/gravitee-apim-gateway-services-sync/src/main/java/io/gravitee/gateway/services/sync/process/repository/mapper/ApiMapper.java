@@ -61,11 +61,13 @@ public class ApiMapper {
 
                     // Update definition with required information for deployment phase
                     reactableApi = new io.gravitee.gateway.handlers.api.definition.Api(eventApiDefinition);
+                    reactableApi.setDeploymentProperties(apiEvent.getProperties());
                 } else {
                     var eventApiDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class);
 
                     // Update definition with required information for deployment phase
                     reactableApi = new io.gravitee.gateway.reactive.handlers.api.v4.Api(eventApiDefinition);
+                    reactableApi.setDeploymentProperties(apiEvent.getProperties());
                 }
 
                 reactableApi.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);

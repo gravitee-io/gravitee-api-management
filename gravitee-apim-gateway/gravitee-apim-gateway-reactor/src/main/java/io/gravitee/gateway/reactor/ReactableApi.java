@@ -20,6 +20,7 @@ import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -44,6 +45,8 @@ public abstract class ReactableApi<T> implements Reactable, Serializable {
     private String organizationHrid;
 
     private DefinitionContext definitionContext = new DefinitionContext();
+
+    private Map<String, String> deploymentProperties;
 
     protected ReactableApi() {}
 
@@ -113,6 +116,14 @@ public abstract class ReactableApi<T> implements Reactable, Serializable {
 
     public void setDefinitionContext(DefinitionContext definitionContext) {
         this.definitionContext = definitionContext;
+    }
+
+    public void setDeploymentProperties(Map<String, String> deploymentProperties) {
+        this.deploymentProperties = deploymentProperties;
+    }
+
+    public Map<String, String> getDeploymentProperties() {
+        return deploymentProperties;
     }
 
     public T getDefinition() {
