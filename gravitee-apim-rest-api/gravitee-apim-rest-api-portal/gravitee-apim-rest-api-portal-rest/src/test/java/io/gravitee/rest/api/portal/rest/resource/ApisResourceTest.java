@@ -26,14 +26,11 @@ import static org.mockito.Mockito.when;
 
 import inmemory.ApiAuthorizationDomainServiceInMemory;
 import inmemory.ApiCategoryOrderQueryServiceInMemory;
-import inmemory.ApiCategoryQueryServiceInMemory;
-import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.category.model.ApiCategoryOrder;
 import io.gravitee.apim.core.category.model.Category;
-import io.gravitee.apim.core.category.query_service.CategoryQueryService;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.CategoryEntity;
@@ -413,9 +410,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldSearchApis() throws TechnicalException {
-        doReturn(new HashSet<>(List.of("3")))
-            .when(filteringService)
-            .searchApis(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+        doReturn(new HashSet<>(List.of("3"))).when(filteringService).searchApis(eq(GraviteeContext.getExecutionContext()), any(), any());
 
         final Response response = target("/_search").queryParam("q", "3").request().post(Entity.json(null));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -429,7 +424,7 @@ public class ApisResourceTest extends AbstractResourceTest {
     public void shouldSearchApisWithCategory() throws TechnicalException {
         doReturn(new HashSet<>(List.of("3")))
             .when(filteringService)
-            .searchApis(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+            .searchApisWithCategory(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
 
         final Response response = target("/_search").queryParam("q", "3").queryParam("category", "12345").request().post(Entity.json(null));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -441,9 +436,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldSearchApisWithEmptyQ() throws TechnicalException {
-        doReturn(new HashSet<>(List.of("3")))
-            .when(filteringService)
-            .searchApis(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+        doReturn(new HashSet<>(List.of("3"))).when(filteringService).searchApis(eq(GraviteeContext.getExecutionContext()), any(), any());
 
         final Response response = target("/_search").queryParam("q", "").request().post(Entity.json(null));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -455,9 +448,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldSearchApisWithNoQParameter() throws TechnicalException {
-        doReturn(new HashSet<>(List.of("3")))
-            .when(filteringService)
-            .searchApis(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+        doReturn(new HashSet<>(List.of("3"))).when(filteringService).searchApis(eq(GraviteeContext.getExecutionContext()), any(), any());
 
         final Response response = target("/_search").request().post(Entity.json(null));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -478,9 +469,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         )
             .thenReturn(false);
 
-        doReturn(new HashSet<>(List.of("3")))
-            .when(filteringService)
-            .searchApis(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+        doReturn(new HashSet<>(List.of("3"))).when(filteringService).searchApis(eq(GraviteeContext.getExecutionContext()), any(), any());
         final Response response = target("/_search").queryParam("q", "3").request().post(Entity.json(null));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 

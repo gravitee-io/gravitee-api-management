@@ -169,18 +169,25 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
     }
 
     @Override
-    public Collection<String> searchApis(ExecutionContext executionContext, String userId, String query, String category)
-        throws TechnicalException {
-        List<String> apiIds;
-        if (category != null && !category.isEmpty()) {
-            var categoryApisOutput = getCategoryApisUseCase.execute(
-                new GetCategoryApisUseCase.Input(executionContext, category, userId, false, true)
-            );
+    public Collection<String> searchApis(ExecutionContext executionContext, String userId, String query) throws TechnicalException {
+        List<String> apiIds = apiAuthorizationService
+            .findAccessibleApiIdsForUser(executionContext, userId, new ApiQuery())
+            .stream()
+            .toList();
 
-            apiIds = categoryApisOutput.results().stream().map(result -> result.api().getId()).collect(Collectors.toList());
-        } else {
-            apiIds = apiAuthorizationService.findAccessibleApiIdsForUser(executionContext, userId, new ApiQuery()).stream().toList();
-        }
+        Map<String, Object> filters = new HashMap<>();
+        filters.put("api", apiIds);
+        return apiSearchService.searchIds(executionContext, query, filters, null);
+    }
+
+    @Override
+    public Collection<String> searchApisWithCategory(ExecutionContext executionContext, String userId, String query, String category)
+        throws TechnicalException {
+        var categoryApisOutput = getCategoryApisUseCase.execute(
+            new GetCategoryApisUseCase.Input(executionContext, category, userId, false, true)
+        );
+
+        List<String> apiIds = categoryApisOutput.results().stream().map(result -> result.api().getId()).collect(Collectors.toList());
 
         Map<String, Object> filters = new HashMap<>();
         filters.put("api", apiIds);
