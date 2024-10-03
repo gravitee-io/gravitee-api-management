@@ -91,8 +91,16 @@ public class ApiEventsResource extends AbstractResource {
     ) {
         final EventQuery query = new EventQuery();
         query.setApi(api);
+
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        if (executionContext.hasOrganizationId()) {
+            query.setOrganizationIds(List.of(executionContext.getOrganizationId()));
+        }
+        if (executionContext.hasEnvironmentId()) {
+            query.setEnvironmentIds(List.of(executionContext.getEnvironmentId()));
+        }
         return eventService
-            .search(GraviteeContext.getExecutionContext(), query)
+            .search(executionContext, query)
             .stream()
             .filter(event -> eventTypeListParam.contains(event.getType()))
             .sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt()))

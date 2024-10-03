@@ -339,6 +339,12 @@ public class ApiStateServiceImpl implements ApiStateService {
         final EventQuery query = new EventQuery();
         query.setApi(apiId);
         query.setTypes(singleton(EventType.PUBLISH_API));
+        if (executionContext.hasOrganizationId()) {
+            query.setOrganizationIds(Set.of(executionContext.getOrganizationId()));
+        }
+        if (executionContext.hasEnvironmentId()) {
+            query.setEnvironmentIds(Set.of(executionContext.getEnvironmentId()));
+        }
 
         final Optional<EventEntity> optEvent = eventService
             .search(executionContext, query)
