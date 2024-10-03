@@ -39,7 +39,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import jakarta.inject.Inject;
-import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
@@ -151,7 +150,12 @@ public class ApisResource extends AbstractResource<Api, String> {
     ) {
         try {
             final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-            Collection<String> apisList = filteringService.searchApis(executionContext, getAuthenticatedUserOrNull(), query, category);
+            Collection<String> apisList;
+            if (category == null || category.isEmpty()) {
+                apisList = filteringService.searchApis(executionContext, getAuthenticatedUserOrNull(), query);
+            } else {
+                apisList = filteringService.searchApisWithCategory(executionContext, getAuthenticatedUserOrNull(), query, category);
+            }
             return createListResponse(executionContext, new ArrayList<>(apisList), paginationParam);
         } catch (TechnicalException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e).build();
