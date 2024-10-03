@@ -347,16 +347,19 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     @Override
     public Collection<EventEntity> search(ExecutionContext executionContext, final EventQuery query) {
         LOGGER.debug("Search APIs by {}", query);
-        return convert(executionContext, eventRepository.search(queryToCriteria(executionContext, query).build()));
+        return convert(executionContext, eventRepository.search(queryToCriteria(query).build()));
     }
 
-    private EventCriteria.EventCriteriaBuilder queryToCriteria(ExecutionContext executionContext, EventQuery query) {
-        final EventCriteria.EventCriteriaBuilder builder = EventCriteria
-            .builder()
-            // FIXME: Move this environments filter to EventQuery
-            .environment(executionContext.getEnvironmentId());
+    private EventCriteria.EventCriteriaBuilder queryToCriteria(EventQuery query) {
+        final EventCriteria.EventCriteriaBuilder builder = EventCriteria.builder();
         if (query == null) {
             return builder;
+        }
+        if (query.getOrganizationIds() != null) {
+            builder.organizations(query.getOrganizationIds());
+        }
+        if (query.getEnvironmentIds() != null) {
+            builder.environments(query.getEnvironmentIds());
         }
         builder.from(query.getFrom()).to(query.getTo());
 
