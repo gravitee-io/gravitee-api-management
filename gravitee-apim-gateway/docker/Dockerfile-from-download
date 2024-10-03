@@ -14,13 +14,13 @@
 # limitations under the License.
 #
 
-FROM graviteeio/java:17
+FROM graviteeio/java:17-alpine-3.18
 LABEL maintainer="contact@graviteesource.com"
 
 ARG GRAVITEEIO_VERSION=0
 ARG GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions
 ARG GRAVITEEIO_PACKAGE_NAME=graviteeio-full
-ENV GRAVITEEIO_HOME /opt/graviteeio-gateway
+ENV GRAVITEEIO_HOME=/opt/graviteeio-gateway
 
 RUN addgroup -g 1000 graviteeio \
     && adduser -D -H -u 1001 graviteeio --ingroup graviteeio
