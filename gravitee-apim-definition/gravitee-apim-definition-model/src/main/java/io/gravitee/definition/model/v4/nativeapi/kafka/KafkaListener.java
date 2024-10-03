@@ -47,4 +47,12 @@ public class KafkaListener extends NativeListener {
     @JsonProperty(required = true)
     @Accessors(chain = true)
     private Integer port;
+
+    public KafkaListener() {
+        super(ListenerType.KAFKA);
+    }
+
+    protected KafkaListener(KafkaListenerBuilder<?, ?> b) {
+        super(ListenerType.KAFKA, b);
+    }
 }

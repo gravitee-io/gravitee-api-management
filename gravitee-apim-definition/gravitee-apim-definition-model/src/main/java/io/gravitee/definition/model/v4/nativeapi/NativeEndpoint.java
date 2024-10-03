@@ -19,11 +19,13 @@ import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
+@NoArgsConstructor
 @Getter
 @Setter
 @ToString

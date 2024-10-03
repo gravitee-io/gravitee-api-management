@@ -56,4 +56,8 @@ public abstract class NativeListener extends AbstractListener<NativeEntrypoint> 
     protected NativeListener(ListenerType type) {
         this.type = type;
     }
+
+    public NativeListener(ListenerType type, NativeListenerBuilder<?, ?> b) {
+        super(type, b);
+    }
 }
