@@ -23,9 +23,6 @@ import static org.junit.Assert.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import inmemory.ApiAuthorizationDomainServiceInMemory;
-import inmemory.ApiCategoryOrderQueryServiceInMemory;
-import inmemory.CategoryQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.category.model.ApiCategoryOrder;
 import io.gravitee.apim.core.category.use_case.GetCategoryApisUseCase;
@@ -54,7 +51,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -423,7 +419,12 @@ public class FilteringServiceTest {
                 isNull()
             );
 
-        Collection<String> searchItems = filteringService.searchApis(GraviteeContext.getExecutionContext(), "user-#1", aQuery, category);
+        Collection<String> searchItems = filteringService.searchApisWithCategory(
+            GraviteeContext.getExecutionContext(),
+            "user-#1",
+            aQuery,
+            category
+        );
 
         assertThat(searchItems).containsExactly("api-#1", "api-#3", "api-#2");
     }
