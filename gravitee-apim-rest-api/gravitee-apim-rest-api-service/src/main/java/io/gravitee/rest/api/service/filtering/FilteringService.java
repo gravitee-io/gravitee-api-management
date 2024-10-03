@@ -43,13 +43,18 @@ public interface FilteringService {
         final ApiQuery apiQuery
     );
 
-    default Collection<String> searchApis(ExecutionContext executionContext, final String userId, final String query)
-        throws TechnicalException {
-        return searchApis(executionContext, userId, query, null);
+    default Collection<String> searchApis() throws TechnicalException {
+        return searchApis(null, null, null);
     }
 
-    Collection<String> searchApis(ExecutionContext executionContext, final String userId, final String query, final String category)
-        throws TechnicalException;
+    Collection<String> searchApis(ExecutionContext executionContext, final String userId, final String query) throws TechnicalException;
+
+    Collection<String> searchApisWithCategory(
+        ExecutionContext executionContext,
+        final String userId,
+        final String query,
+        final String category
+    ) throws TechnicalException;
 
     Set<CategoryEntity> listCategories(
         ExecutionContext executionContext,
