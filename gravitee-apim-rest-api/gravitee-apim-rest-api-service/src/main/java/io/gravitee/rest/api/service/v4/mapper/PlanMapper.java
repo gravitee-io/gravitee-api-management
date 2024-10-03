@@ -17,6 +17,8 @@ package io.gravitee.rest.api.service.v4.mapper;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
+import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -144,6 +146,25 @@ public class PlanMapper {
         planDefinition.setSecurity(planEntity.getSecurity());
         planDefinition.setMode(io.gravitee.definition.model.v4.plan.PlanMode.valueOf(planEntity.getMode().name()));
         planDefinition.setFlows(planEntity.getFlows());
+        planDefinition.setId(planEntity.getId());
+        planDefinition.setName(planEntity.getName());
+        planDefinition.setSelectionRule(planEntity.getSelectionRule());
+        planDefinition.setStatus(planEntity.getStatus());
+        planDefinition.setTags(planEntity.getTags());
+        return planDefinition;
+    }
+
+    public List<NativePlan> toNativeDefinitions(final Set<PlanEntity> planEntities) {
+        return planEntities.stream().map(this::toNativeDefinition).collect(Collectors.toList());
+    }
+
+    public NativePlan toNativeDefinition(final PlanEntity planEntity) {
+        NativePlan planDefinition = new NativePlan();
+        planDefinition.setId(planEntity.getId());
+        planDefinition.setSecurity(planEntity.getSecurity());
+        planDefinition.setMode(io.gravitee.definition.model.v4.plan.PlanMode.valueOf(planEntity.getMode().name()));
+        // FIXME: Kafka Gateway - PlanEntity is HTTP oriented, probably need a NativePlanEntity ?
+        planDefinition.setFlows(List.of());
         planDefinition.setId(planEntity.getId());
         planDefinition.setName(planEntity.getName());
         planDefinition.setSelectionRule(planEntity.getSelectionRule());

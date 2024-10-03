@@ -25,6 +25,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.AbstractApi;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventLatestRepository;
@@ -484,7 +487,25 @@ public class EventServiceImpl extends TransactionalService implements EventServi
      * @return API definition
      * @throws JsonProcessingException
      */
-    private io.gravitee.definition.model.v4.Api buildGatewayApiDefinitionV4(ExecutionContext executionContext, Api api)
+    private AbstractApi buildGatewayApiDefinitionV4(ExecutionContext executionContext, Api api) throws JsonProcessingException {
+        if (api.getType() == ApiType.NATIVE) {
+            return extractV4NativeApiDefinition(executionContext, api);
+        }
+        return extractV4ApiDefinition(executionContext, api);
+    }
+
+    /**
+     * Build gateway API definition for given Api.
+     *
+     * It reads API plans from plan collections, and API flows from flow collection ;
+     * And generates gateway API definition from management API definition (containing no plans or flows).
+     *
+     * @param executionContext
+     * @param api
+     * @return API definition
+     * @throws JsonProcessingException
+     */
+    private io.gravitee.definition.model.v4.Api extractV4ApiDefinition(ExecutionContext executionContext, Api api)
         throws JsonProcessingException {
         var apiDefinitionV4 = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class);
 
@@ -496,6 +517,33 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
         apiDefinitionV4.setPlans(planMapper.toDefinitions(plans));
         apiDefinitionV4.setFlows(flowServiceV4.findByReference(FlowReferenceType.API, api.getId()));
+        return apiDefinitionV4;
+    }
+
+    /**
+     * Build gateway API definition for given Api.
+     *
+     * It reads API plans from plan collections, and API flows from flow collection ;
+     * And generates gateway API definition from management API definition (containing no plans or flows).
+     *
+     * @param executionContext
+     * @param api
+     * @return API definition
+     * @throws JsonProcessingException
+     */
+    private NativeApi extractV4NativeApiDefinition(ExecutionContext executionContext, Api api) throws JsonProcessingException {
+        var apiDefinitionV4 = objectMapper.readValue(api.getDefinition(), NativeApi.class);
+
+        // FIXME: Kafka Gateway - look for plans from plan service, here we rely on the parameter because it is a first step
+        //        Set<io.gravitee.rest.api.model.v4.plan.PlanEntity> plans = planServiceV4
+        //            .findByApi(executionContext, api.getId())
+        //            .stream()
+        //            .filter(p -> p.getPlanStatus() != PlanStatus.CLOSED)
+        //            .collect(toSet());
+        //
+        //        apiDefinitionV4.setPlans(planMapper.toNativeDefinitions(plans));
+        // FIXME: Kafka Gateway - Work on the flow model to match NativeFlow definition
+        apiDefinitionV4.setFlows(List.of());
         return apiDefinitionV4;
     }
 
