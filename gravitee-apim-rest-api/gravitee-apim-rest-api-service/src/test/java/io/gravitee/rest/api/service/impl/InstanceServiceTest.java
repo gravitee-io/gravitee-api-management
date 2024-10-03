@@ -32,7 +32,6 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.model.Event;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventQuery;
 import io.gravitee.rest.api.model.EventType;
@@ -181,21 +180,102 @@ public class InstanceServiceTest {
     }
 
     @Test
+    public void shouldFindAllStarted() {
+        final EventEntity evt = new EventEntity();
+        evt.setId("evt-id1");
+        evt.setType(EventType.GATEWAY_STARTED);
+        evt.setEnvironments(Set.of(executionContext.getEnvironmentId()));
+        evt.setUpdatedAt(new Date());
+        evt.setProperties(Map.of("id", "instance-id1", "last_heartbeat_at", String.valueOf(evt.getUpdatedAt().getTime())));
+
+        final EventEntity evt2 = new EventEntity();
+        evt2.setType(EventType.GATEWAY_STARTED);
+        evt2.setId("evt-id2");
+        evt2.setEnvironments(Set.of(executionContext.getEnvironmentId()));
+        evt2.setUpdatedAt(new Date());
+        evt2.setProperties(Map.of("id", "instance-id1", "last_heartbeat_at", String.valueOf(evt.getUpdatedAt().getTime())));
+
+        when(
+            eventService.search(
+                eq(executionContext),
+                argThat(argument -> {
+                    assertThat(argument.getFrom()).isGreaterThan(Instant.now().minus(10, ChronoUnit.MINUTES).toEpochMilli());
+                    assertThat(argument.getOrganizationIds()).containsOnly(executionContext.getOrganizationId());
+                    assertThat(argument.getEnvironmentIds()).containsOnly(executionContext.getEnvironmentId());
+                    assertThat(argument.getTypes()).containsOnly(EventType.GATEWAY_STARTED);
+                    return true;
+                })
+            )
+        )
+            .thenReturn(List.of(evt, evt2));
+        final List<InstanceEntity> result = cut.findAllStarted(executionContext);
+        assertThat(result).hasSize(2);
+    }
+
+    @Test
     public void shouldFindAllStartedEvenIfNoEnvProperty() {
         final EventEntity evt = new EventEntity();
         evt.setId("evt-id1");
-        evt.setEnvironments(Set.of("env-id"));
-        evt.setProperties(Map.of("id", "instance-id2"));
+        evt.setType(EventType.GATEWAY_STARTED);
+        evt.setEnvironments(Set.of(executionContext.getEnvironmentId()));
+        evt.setUpdatedAt(new Date());
+        evt.setProperties(Map.of("id", "instance-id1", "last_heartbeat_at", String.valueOf(evt.getUpdatedAt().getTime())));
 
-        final EventEntity evtWithoutEnv = new EventEntity();
-        evtWithoutEnv.setId("evt-id2");
-        evtWithoutEnv.setProperties(Map.of("id", "instance-id2"));
+        final EventEntity evt2 = new EventEntity();
+        evt2.setType(EventType.GATEWAY_STARTED);
+        evt2.setId("evt-id2");
+        evt2.setUpdatedAt(new Date());
+        evt2.setProperties(Map.of("id", "instance-id1", "last_heartbeat_at", String.valueOf(evt.getUpdatedAt().getTime())));
 
-        when(eventService.search(eq(executionContext), any(EventQuery.class))).thenReturn(List.of(evt, evtWithoutEnv));
-
+        when(
+            eventService.search(
+                eq(executionContext),
+                argThat(argument -> {
+                    assertThat(argument.getFrom()).isGreaterThan(Instant.now().minus(10, ChronoUnit.MINUTES).toEpochMilli());
+                    assertThat(argument.getOrganizationIds()).containsOnly(executionContext.getOrganizationId());
+                    assertThat(argument.getEnvironmentIds()).containsOnly(executionContext.getEnvironmentId());
+                    assertThat(argument.getTypes()).containsOnly(EventType.GATEWAY_STARTED);
+                    return true;
+                })
+            )
+        )
+            .thenReturn(List.of(evt, evt2));
         final List<InstanceEntity> result = cut.findAllStarted(executionContext);
-
         assertThat(result).hasSize(2);
+    }
+
+    @Test
+    public void shouldFindAllStartedAngIgnoreUnknownState() {
+        final EventEntity evt = new EventEntity();
+        evt.setId("evt-id1");
+        evt.setType(EventType.GATEWAY_STARTED);
+        evt.setEnvironments(Set.of(executionContext.getEnvironmentId()));
+        evt.setUpdatedAt(new Date());
+        evt.setProperties(Map.of("id", "instance-id1", "last_heartbeat_at", String.valueOf(evt.getUpdatedAt().getTime())));
+
+        final EventEntity evt2 = new EventEntity();
+        evt2.setType(EventType.GATEWAY_STARTED);
+        evt2.setId("evt-id2");
+        evt2.setUpdatedAt(new Date());
+        evt2.setProperties(
+            Map.of("id", "instance-id2", "last_heartbeat_at", String.valueOf(Instant.now().minus(1, ChronoUnit.HOURS).toEpochMilli()))
+        );
+
+        when(
+            eventService.search(
+                eq(executionContext),
+                argThat(argument -> {
+                    assertThat(argument.getFrom()).isGreaterThan(Instant.now().minus(10, ChronoUnit.MINUTES).toEpochMilli());
+                    assertThat(argument.getOrganizationIds()).containsOnly(executionContext.getOrganizationId());
+                    assertThat(argument.getEnvironmentIds()).containsOnly(executionContext.getEnvironmentId());
+                    assertThat(argument.getTypes()).containsOnly(EventType.GATEWAY_STARTED);
+                    return true;
+                })
+            )
+        )
+            .thenReturn(List.of(evt, evt2));
+        final List<InstanceEntity> result = cut.findAllStarted(executionContext);
+        assertThat(result).hasSize(1);
     }
 
     @Test
