@@ -71,6 +71,7 @@ public class ManagementApiServicesManager extends AbstractService {
             .stream()
             .map(managementApiServiceFactory ->
                 managementApiServiceFactory.createService(
+                    // FIXME: Kafka Gateway - Manage properly NativeApi definition
                     new DefaultManagementDeploymentContext(api.getApiDefinitionV4(), applicationContext)
                 )
             )
