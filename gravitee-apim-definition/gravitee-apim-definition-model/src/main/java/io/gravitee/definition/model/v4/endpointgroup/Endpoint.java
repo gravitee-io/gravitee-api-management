@@ -29,7 +29,7 @@ import lombok.experimental.SuperBuilder;
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  */
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
