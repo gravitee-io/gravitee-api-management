@@ -291,6 +291,7 @@ public class Api {
             return self();
         }
 
+        // FIXME: Kafka Gateway - handle Native API definition in ApiAdapter
         public B apiDefinitionV4(io.gravitee.definition.model.v4.Api apiDefinitionV4) {
             this.apiDefinitionV4 = apiDefinitionV4;
             if (apiDefinitionV4 != null) {
