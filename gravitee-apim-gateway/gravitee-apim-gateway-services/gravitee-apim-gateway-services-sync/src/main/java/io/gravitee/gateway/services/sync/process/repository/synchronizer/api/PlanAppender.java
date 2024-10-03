@@ -19,6 +19,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
+import io.gravitee.definition.model.v4.nativeapi.NativePlan;
+import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
@@ -33,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -71,13 +76,20 @@ public class PlanAppender {
             })
             .filter(deployable -> {
                 ReactableApi<?> reactableApi = deployable.reactableApi();
-                if (reactableApi.getDefinition() instanceof io.gravitee.definition.model.v4.Api) {
-                    io.gravitee.definition.model.v4.Api v4definition = (io.gravitee.definition.model.v4.Api) reactableApi.getDefinition();
-                    return v4definition.getPlans() != null && !v4definition.getPlans().isEmpty();
-                } else if (reactableApi.getDefinition() instanceof io.gravitee.definition.model.Api) {
-                    return !((io.gravitee.definition.model.Api) reactableApi.getDefinition()).getPlans().isEmpty();
+                boolean hasPlan = false;
+                if (reactableApi.getDefinition() instanceof io.gravitee.definition.model.v4.Api v4Api) {
+                    hasPlan = v4Api.getPlans() != null && !v4Api.getPlans().isEmpty();
+                } else if (reactableApi.getDefinition() instanceof NativeApi nativeApi) {
+                    hasPlan = nativeApi.getPlans() != null && !nativeApi.getPlans().isEmpty();
+                } else if (reactableApi.getDefinition() instanceof io.gravitee.definition.model.Api api) {
+                    hasPlan = api.getPlans() != null && !api.getPlans().isEmpty();
                 }
-                return false;
+
+                if (!hasPlan) {
+                    log.warn("No plan found, skipping deployment for api: {}", deployable.apiId());
+                }
+
+                return hasPlan;
             })
             .collect(Collectors.toList());
     }
@@ -162,18 +174,28 @@ public class PlanAppender {
     }
 
     private void filterPlanForApiV4(final ReactableApi<?> reactableApi) {
-        io.gravitee.definition.model.v4.Api apiDefinition = (io.gravitee.definition.model.v4.Api) reactableApi.getDefinition();
-        var plans = apiDefinition.getPlans();
-        if (plans != null) {
-            apiDefinition.setPlans(
-                plans
-                    .stream()
-                    .filter(p -> p.getStatus() != null)
-                    .filter(p -> filterPlanStatus(p.getStatus().getLabel()))
-                    .filter(p -> filterShardingTag(p.getName(), reactableApi.getName(), p.getTags()))
-                    .collect(Collectors.toList())
-            );
+        io.gravitee.definition.model.v4.AbstractApi abstractApiDefinition =
+            (io.gravitee.definition.model.v4.AbstractApi) reactableApi.getDefinition();
+        if (ApiType.NATIVE != abstractApiDefinition.getType()) {
+            var apiDefinition = (io.gravitee.definition.model.v4.Api) abstractApiDefinition;
+            var plans = apiDefinition.getPlans();
+            if (plans != null) {
+                apiDefinition.setPlans(filterPlans(plans.stream(), reactableApi.getName()).collect(Collectors.toList()));
+            }
+        } else {
+            var apiDefinition = (NativeApi) abstractApiDefinition;
+            var plans = apiDefinition.getPlans();
+            if (plans != null) {
+                apiDefinition.setPlans(filterPlans(plans.stream(), reactableApi.getName()).collect(Collectors.toList()));
+            }
         }
+    }
+
+    private <T extends AbstractPlan> Stream<T> filterPlans(Stream<T> planStream, String reactableName) {
+        return planStream
+            .filter(p -> p.getStatus() != null)
+            .filter(p -> filterPlanStatus(p.getStatus().getLabel()))
+            .filter(p -> filterShardingTag(p.getName(), reactableName, p.getTags()));
     }
 
     private boolean filterPlanStatus(final String planStatus) {

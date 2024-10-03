@@ -28,6 +28,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.env.GatewayConfiguration;
@@ -293,6 +294,7 @@ class ApiSynchronizerTest {
             repoApi.setLifecycleState(LifecycleState.STARTED);
             repoApi.setEnvironmentId("env");
             repoApi.setDefinitionVersion(DefinitionVersion.V4);
+            repoApi.setType(ApiType.PROXY);
             repoApi.setDefinition(objectMapper.writeValueAsString(api));
         }
 

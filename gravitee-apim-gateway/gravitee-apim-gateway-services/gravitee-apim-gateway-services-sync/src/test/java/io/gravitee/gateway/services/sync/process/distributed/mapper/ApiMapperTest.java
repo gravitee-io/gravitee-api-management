@@ -23,9 +23,11 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
+import io.gravitee.gateway.reactive.handlers.api.v4.NativeApi;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
@@ -38,6 +40,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -60,9 +64,7 @@ class ApiMapperTest {
         io.gravitee.definition.model.Api apiDef = new io.gravitee.definition.model.Api();
         apiDef.setId("apiId");
         apiDef.setDefinitionVersion(DefinitionVersion.V2);
-        final Proxy proxy = new Proxy();
-        proxy.setVirtualHosts(List.of(new VirtualHost("/path")));
-        apiDef.setProxy(proxy);
+        apiDef.setProxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/path"))).build());
         io.gravitee.gateway.handlers.api.definition.Api api = new io.gravitee.gateway.handlers.api.definition.Api(apiDef);
 
         DistributedEvent distributedEvent = DistributedEvent
@@ -91,11 +93,48 @@ class ApiMapperTest {
     }
 
     @SneakyThrows
-    @Test
-    void should_return_distributed_event_for_v4_api() {
+    @ParameterizedTest
+    @EnumSource(value = ApiType.class, names = { "PROXY", "MESSAGE" })
+    void should_return_distributed_event_for_v4_api(ApiType apiType) {
         io.gravitee.definition.model.v4.Api apiDef = new io.gravitee.definition.model.v4.Api();
         apiDef.setId("apiId");
-        io.gravitee.gateway.reactive.handlers.api.v4.Api api = new io.gravitee.gateway.reactive.handlers.api.v4.Api(apiDef);
+        apiDef.setDefinitionVersion(DefinitionVersion.V4);
+        apiDef.setType(apiType);
+        Api api = new io.gravitee.gateway.reactive.handlers.api.v4.Api(apiDef);
+
+        DistributedEvent distributedEvent = DistributedEvent
+            .builder()
+            .id("apiId")
+            .payload(objectMapper.writeValueAsString(api))
+            .updatedAt(new Date())
+            .type(DistributedEventType.API)
+            .syncAction(DistributedSyncAction.DEPLOY)
+            .build();
+
+        ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable
+            .builder()
+            .apiId("apiId")
+            .reactableApi(api)
+            .syncAction(SyncAction.DEPLOY)
+            .build();
+
+        cut
+            .to(distributedEvent)
+            .test()
+            .assertValue(reactorDeployable -> {
+                assertThat(reactorDeployable).isEqualTo(apiReactorDeployable);
+                return true;
+            });
+    }
+
+    @SneakyThrows
+    @Test
+    void should_return_distributed_event_for_v4_native_api() {
+        io.gravitee.definition.model.v4.nativeapi.NativeApi apiDef = new io.gravitee.definition.model.v4.nativeapi.NativeApi();
+        apiDef.setId("apiId");
+        apiDef.setDefinitionVersion(DefinitionVersion.V4);
+        apiDef.setType(ApiType.NATIVE);
+        NativeApi api = new NativeApi(apiDef);
 
         DistributedEvent distributedEvent = DistributedEvent
             .builder()
