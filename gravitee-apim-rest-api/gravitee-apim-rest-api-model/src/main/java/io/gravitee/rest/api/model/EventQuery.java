@@ -17,12 +17,19 @@ package io.gravitee.rest.api.model;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
+@EqualsAndHashCode
+@ToString
 public class EventQuery {
 
     private Collection<EventType> types;
@@ -30,94 +37,5 @@ public class EventQuery {
     private long from, to;
     private String api;
     private String id;
-
-    public Collection<EventType> getTypes() {
-        return types;
-    }
-
-    public void setTypes(Collection<EventType> types) {
-        this.types = types;
-    }
-
-    public Map<String, Object> getProperties() {
-        return properties;
-    }
-
-    public void setProperties(Map<String, Object> properties) {
-        this.properties = properties;
-    }
-
-    public long getFrom() {
-        return from;
-    }
-
-    public void setFrom(long from) {
-        this.from = from;
-    }
-
-    public long getTo() {
-        return to;
-    }
-
-    public void setTo(long to) {
-        this.to = to;
-    }
-
-    public String getApi() {
-        return api;
-    }
-
-    public void setApi(String api) {
-        this.api = api;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof EventQuery)) return false;
-        EventQuery that = (EventQuery) o;
-        return (
-            from == that.from &&
-            to == that.to &&
-            Objects.equals(types, that.types) &&
-            Objects.equals(properties, that.properties) &&
-            Objects.equals(api, that.api) &&
-            Objects.equals(id, that.id)
-        );
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(types, properties, from, to, api, id);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "EventQuery{" +
-            "types=" +
-            types +
-            ", properties=" +
-            properties +
-            ", from=" +
-            from +
-            ", to=" +
-            to +
-            ", api='" +
-            api +
-            '\'' +
-            ", id='" +
-            id +
-            '\'' +
-            '}'
-        );
-    }
+    private Collection<String> environmentIds;
 }
