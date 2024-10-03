@@ -1,0 +1,54 @@
+### FIXME: Kafka Gateway - to remove, just a helper for early stage of the subject
+### POST a native API, body is optional
+POST http://localhost:8083/management/v2/environments/DEFAULT/nativeevents
+Content-Type: application/json
+
+{
+  "name": "Native API!",
+  "type": "native",
+  "definitionVersion": "4.0.0",
+  "listeners": [
+    {
+      "type": "kafka",
+      "entrypoints": [],
+      "host": "localhost",
+      "port": 9092
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-native",
+      "type": "native-kafka",
+      "loadBalancer": {
+        "type": "round-robin"
+      },
+      "endpoints": [
+        {
+          "name": "default-native",
+          "type": "native-kafka",
+          "secondary": false,
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {}
+        }
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "id": "10a07215-5369-4826-a072-1553695826bf",
+      "name": "Default Keyless (UNSECURED)",
+      "security": {
+        "type": "key-less",
+        "configuration": {}
+      },
+      "mode": "standard",
+      "tags": [],
+      "status": "published",
+      "flows": []
+    }
+  ],
+  "flows": []
+}
+
+###

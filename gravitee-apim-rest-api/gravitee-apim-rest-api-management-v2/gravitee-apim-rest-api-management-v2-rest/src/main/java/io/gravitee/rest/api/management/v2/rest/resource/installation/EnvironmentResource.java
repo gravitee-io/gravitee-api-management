@@ -89,6 +89,11 @@ public class EnvironmentResource extends AbstractResource {
         return resourceContext.getResource(EnvironmentScoringResource.class);
     }
 
+    @Path("/nativeevents")
+    public NativeEventsResource getNativeEventsResource() {
+        return resourceContext.getResource(NativeEventsResource.class);
+    }
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Environment getEnvironment(@PathParam("envId") String envId) {
