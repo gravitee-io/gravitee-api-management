@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
@@ -31,7 +32,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -61,7 +61,20 @@ public class ApiMapper {
                     parseAndAssert(
                         payload,
                         io.gravitee.gateway.reactive.handlers.api.v4.Api.class,
-                        reactableApi -> reactableApi.getDefinitionVersion() == DefinitionVersion.V4
+                        reactableApi ->
+                            reactableApi.getDefinitionVersion() == DefinitionVersion.V4 &&
+                            (
+                                ((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition()).getType() == ApiType.PROXY ||
+                                ((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition()).getType() == ApiType.MESSAGE
+                            )
+                    ),
+                payload ->
+                    parseAndAssert(
+                        payload,
+                        io.gravitee.gateway.reactive.handlers.api.v4.NativeApi.class,
+                        reactableApi ->
+                            reactableApi.getDefinitionVersion() == DefinitionVersion.V4 &&
+                            ((NativeApi) reactableApi.getDefinition()).getType() == ApiType.NATIVE
                     )
             );
     }

@@ -19,6 +19,8 @@ import static io.gravitee.repository.management.model.Event.EventProperties.API_
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.management.model.Event;
@@ -62,10 +64,19 @@ public class ApiMapper {
                     // Update definition with required information for deployment phase
                     reactableApi = new io.gravitee.gateway.handlers.api.definition.Api(eventApiDefinition);
                 } else {
-                    var eventApiDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class);
+                    if (api.getType() == ApiType.NATIVE) {
+                        var eventApiDefinition = objectMapper.readValue(api.getDefinition(), NativeApi.class);
 
-                    // Update definition with required information for deployment phase
-                    reactableApi = new io.gravitee.gateway.reactive.handlers.api.v4.Api(eventApiDefinition);
+                        // Update definition with required information for deployment phase
+                        reactableApi = new io.gravitee.gateway.reactive.handlers.api.v4.NativeApi(eventApiDefinition);
+                    } else if (api.getType() == ApiType.PROXY || api.getType() == ApiType.MESSAGE) {
+                        var eventApiDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class);
+
+                        // Update definition with required information for deployment phase
+                        reactableApi = new io.gravitee.gateway.reactive.handlers.api.v4.Api(eventApiDefinition);
+                    } else {
+                        throw new IllegalArgumentException("Unsupported ApiType [" + api.getType() + "] for api: " + api.getId());
+                    }
                 }
 
                 reactableApi.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);

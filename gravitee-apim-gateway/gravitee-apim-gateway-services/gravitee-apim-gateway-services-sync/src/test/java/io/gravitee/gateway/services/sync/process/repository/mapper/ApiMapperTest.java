@@ -27,6 +27,8 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -97,6 +99,7 @@ class ApiMapperTest {
         repoApiV4.setLifecycleState(LifecycleState.STARTED);
         repoApiV4.setEnvironmentId("env");
         repoApiV4.setDefinitionVersion(DefinitionVersion.V4);
+        repoApiV4.setType(ApiType.PROXY);
         repoApiV4.setDefinition(objectMapper.writeValueAsString(apiV4));
     }
 
@@ -146,6 +149,29 @@ class ApiMapperTest {
             .assertValue(reactableApi -> {
                 assertThat(reactableApi.getId()).isEqualTo(apiV4.getId());
                 assertThat(reactableApi.getDefinition()).isEqualTo(apiV4);
+                return true;
+            })
+            .assertComplete();
+    }
+
+    @Test
+    void should_map_native_api_v4() throws JsonProcessingException {
+        NativeApi nativeApi = new NativeApi();
+        nativeApi.setId("id");
+        nativeApi.setType(ApiType.NATIVE);
+        nativeApi.setDefinitionVersion(DefinitionVersion.V4);
+
+        repoApiV4.setType(ApiType.NATIVE);
+        repoApiV4.setDefinition(objectMapper.writeValueAsString(nativeApi));
+
+        Event event = new Event();
+        event.setPayload(objectMapper.writeValueAsString(repoApiV4));
+        cut
+            .to(event)
+            .test()
+            .assertValue(reactableApi -> {
+                assertThat(reactableApi.getId()).isEqualTo(nativeApi.getId());
+                assertThat(reactableApi.getDefinition()).isEqualTo(nativeApi);
                 return true;
             })
             .assertComplete();

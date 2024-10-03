@@ -26,6 +26,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.handlers.api.definition.Api;
@@ -198,6 +199,7 @@ class DistributedApiSynchronizerTest {
             api = new io.gravitee.definition.model.v4.Api();
             api.setId("api");
             api.setDefinitionVersion(DefinitionVersion.V4);
+            api.setType(ApiType.PROXY);
             PlanSecurity planSecurity = new PlanSecurity();
             planSecurity.setType("api-key");
             io.gravitee.definition.model.v4.plan.Plan plan = io.gravitee.definition.model.v4.plan.Plan
