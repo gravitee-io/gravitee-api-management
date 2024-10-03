@@ -16,9 +16,9 @@
 package io.gravitee.gateway.reactive.handlers.api.v4.deployer;
 
 import io.gravitee.common.util.DataEncryptor;
-import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.reactive.handlers.api.v4.Api;
+import io.gravitee.gateway.reactive.handlers.api.v4.NativeApi;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,20 +26,17 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiDeployer extends AbstractApiDeployer<Api> {
+public class NativeApiDeployer extends AbstractApiDeployer<NativeApi> {
 
-    public ApiDeployer(final GatewayConfiguration gatewayConfiguration, final DataEncryptor dataEncryptor) {
+    public NativeApiDeployer(final GatewayConfiguration gatewayConfiguration, final DataEncryptor dataEncryptor) {
         super(gatewayConfiguration, dataEncryptor);
     }
 
     @Override
-    public void initialize(final Api api) {
-        io.gravitee.definition.model.v4.Api apiDefinition = api.getDefinition();
+    public void initialize(final NativeApi nativeApi) {
+        io.gravitee.definition.model.v4.nativeapi.NativeApi apiDefinition = nativeApi.getDefinition();
 
-        // Keep the plan filtering for io.gravitee.gateway.services.localregistry.LocalApiDefinitionRegistry
-        if (apiDefinition.getPlans() != null) {
-            apiDefinition.setPlans(filterPlans(apiDefinition.getPlans()));
-        } else {
+        if (apiDefinition.getPlans() == null) {
             apiDefinition.setPlans(List.of());
         }
         if (apiDefinition.getProperties() != null) {
@@ -48,16 +45,7 @@ public class ApiDeployer extends AbstractApiDeployer<Api> {
     }
 
     @Override
-    public List<String> getPlans(final Api api) {
-        return api.getDefinition().getPlans().stream().map(Plan::getName).collect(Collectors.toList());
-    }
-
-    private List<Plan> filterPlans(final List<Plan> plans) {
-        return plans
-            .stream()
-            .filter(plan -> plan.getStatus() != null)
-            .filter(plan -> filterPlanStatus(plan.getStatus().getLabel()))
-            .filter(plan -> filterShardingTag(plan.getName(), plan.getId(), plan.getTags()))
-            .collect(Collectors.toList());
+    public List<String> getPlans(final NativeApi nativeApi) {
+        return nativeApi.getDefinition().getPlans().stream().map(NativePlan::getName).collect(Collectors.toList());
     }
 }

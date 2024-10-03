@@ -15,10 +15,14 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4.deployer;
 
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.manager.Deployer;
 import io.gravitee.gateway.reactor.ReactableApi;
+import java.security.GeneralSecurityException;
+import java.util.List;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,9 +36,11 @@ public abstract class AbstractApiDeployer<T extends ReactableApi<?>> implements 
     private final Logger logger = LoggerFactory.getLogger(AbstractApiDeployer.class);
 
     private final GatewayConfiguration gatewayConfiguration;
+    private final DataEncryptor dataEncryptor;
 
-    protected AbstractApiDeployer(final GatewayConfiguration gatewayConfiguration) {
+    protected AbstractApiDeployer(final GatewayConfiguration gatewayConfiguration, final DataEncryptor dataEncryptor) {
         this.gatewayConfiguration = gatewayConfiguration;
+        this.dataEncryptor = dataEncryptor;
     }
 
     protected boolean filterPlanStatus(final String planStatus) {
@@ -52,5 +58,18 @@ public abstract class AbstractApiDeployer<T extends ReactableApi<?>> implements 
             return hasMatchingTags;
         }
         return true;
+    }
+
+    protected void decryptProperties(final List<Property> properties) {
+        for (Property property : properties) {
+            if (property.isEncrypted()) {
+                try {
+                    property.setValue(dataEncryptor.decrypt(property.getValue()));
+                    property.setEncrypted(false);
+                } catch (GeneralSecurityException e) {
+                    logger.error("Error decrypting API property value for key {}", property.getKey(), e);
+                }
+            }
+        }
     }
 }
