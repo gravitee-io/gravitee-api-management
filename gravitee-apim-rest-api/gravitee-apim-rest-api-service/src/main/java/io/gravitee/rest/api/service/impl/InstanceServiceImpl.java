@@ -19,7 +19,6 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.model.Event;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventQuery;
 import io.gravitee.rest.api.model.EventType;
@@ -37,7 +36,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -45,17 +43,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -147,6 +140,7 @@ public class InstanceServiceImpl implements InstanceService {
         final EventQuery query = new EventQuery();
         query.setId(instanceId);
         query.setTypes(instancesAllState);
+        applyContextToQuery(executionContext, query);
 
         final Collection<EventEntity> events = eventService.search(executionContext, query);
         if (events == null || events.isEmpty()) {
@@ -154,6 +148,15 @@ public class InstanceServiceImpl implements InstanceService {
         }
 
         return convert(events.iterator().next());
+    }
+
+    private static void applyContextToQuery(final ExecutionContext executionContext, final EventQuery query) {
+        if (executionContext.hasOrganizationId()) {
+            query.setOrganizationIds(Set.of(executionContext.getOrganizationId()));
+        }
+        if (executionContext.hasEnvironmentId()) {
+            query.setEnvironmentIds(Set.of(executionContext.getEnvironmentId()));
+        }
     }
 
     @Override
@@ -174,10 +177,12 @@ public class InstanceServiceImpl implements InstanceService {
 
         final EventQuery query = new EventQuery();
         query.setTypes(instancesRunningOnly);
+        query.setFrom(Instant.now().minus(5, ChronoUnit.MINUTES).toEpochMilli());
+        applyContextToQuery(executionContext, query);
 
         Collection<EventEntity> events = eventService.search(executionContext, query);
 
-        return events.stream().map(this::convert).collect(Collectors.toList());
+        return events.stream().map(this::convert).filter(instanceEntity -> instanceEntity.getState() == InstanceState.STARTED).toList();
     }
 
     private InstanceEntity convert(EventEntity event) {
