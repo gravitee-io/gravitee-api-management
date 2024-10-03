@@ -154,7 +154,7 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
         return vertx
             .createHttpClient()
             .rxRequest(getGithubRequestOptions(config))
-            .flatMap(req -> req.rxSend().flatMap(resp -> Single.just(resp.statusCode() == 403)))
+            .flatMap(req -> req.rxSend().flatMap(resp -> Single.just(resp.statusCode() != 200)))
             .blockingGet();
     }
 
