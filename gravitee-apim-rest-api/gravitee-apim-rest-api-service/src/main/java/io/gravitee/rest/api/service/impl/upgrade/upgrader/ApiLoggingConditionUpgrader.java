@@ -187,6 +187,12 @@ public class ApiLoggingConditionUpgrader implements Upgrader {
         query.setApi(apiId);
         query.setTypes(singleton(PUBLISH_API));
 
+        if (executionContext.hasOrganizationId()) {
+            query.setOrganizationIds(Set.of(executionContext.getOrganizationId()));
+        }
+        if (executionContext.hasEnvironmentId()) {
+            query.setEnvironmentIds(Set.of(executionContext.getEnvironmentId()));
+        }
         final Optional<EventEntity> optEvent = eventService
             .search(executionContext, query)
             .stream()

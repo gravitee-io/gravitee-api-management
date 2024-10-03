@@ -33,11 +33,11 @@ import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
+import jakarta.ws.rs.HEAD;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -147,6 +147,7 @@ public class InstanceServiceImpl implements InstanceService {
         final EventQuery query = new EventQuery();
         query.setId(instanceId);
         query.setTypes(instancesAllState);
+        applyContextToQuery(executionContext, query);
 
         final Collection<EventEntity> events = eventService.search(executionContext, query);
         if (events == null || events.isEmpty()) {
@@ -154,6 +155,15 @@ public class InstanceServiceImpl implements InstanceService {
         }
 
         return convert(events.iterator().next());
+    }
+
+    private static void applyContextToQuery(final ExecutionContext executionContext, final EventQuery query) {
+        if (executionContext.hasOrganizationId()) {
+            query.setOrganizationIds(Set.of(executionContext.getOrganizationId()));
+        }
+        if (executionContext.hasEnvironmentId()) {
+            query.setEnvironmentIds(Set.of(executionContext.getEnvironmentId()));
+        }
     }
 
     @Override
@@ -177,6 +187,8 @@ public class InstanceServiceImpl implements InstanceService {
 
         final EventQuery query = new EventQuery();
         query.setTypes(instancesRunningOnly);
+        query.setFrom(Instant.now().minus(5, ChronoUnit.MINUTES).toEpochMilli());
+        applyContextToQuery(executionContext, query);
 
         Collection<EventEntity> events = eventService.search(executionContext, query);
 
@@ -187,6 +199,7 @@ public class InstanceServiceImpl implements InstanceService {
                 List<String> organizations = extractProperty(event, Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue());
                 return convert(event, environments, organizations);
             })
+            .filter(instanceEntity -> instanceEntity.getState() == InstanceState.STARTED)
             .collect(Collectors.toList());
     }
 
