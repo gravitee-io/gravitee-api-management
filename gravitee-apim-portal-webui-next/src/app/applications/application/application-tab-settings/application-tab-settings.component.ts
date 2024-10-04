@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgIf } from '@angular/common';
+import { AsyncPipe, NgIf } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { EMPTY, Subject, switchMap, takeUntil, tap } from 'rxjs';
+import { EMPTY, Observable, Subject, switchMap, take, takeUntil, tap } from 'rxjs';
 
 import { ApplicationTabSettingsEditComponent } from './application-tab-settings-edit/application-tab-settings-edit.component';
 import { ApplicationTabSettingsReadComponent } from './application-tab-settings-read/application-tab-settings-read.component';
@@ -30,18 +30,20 @@ import { ApplicationService } from '../../../../services/application.service';
 @Component({
   selector: 'app-application-tab-settings',
   standalone: true,
-  imports: [MatButtonModule, NgIf, ApplicationTabSettingsEditComponent, ApplicationTabSettingsReadComponent],
+  imports: [MatButtonModule, NgIf, ApplicationTabSettingsEditComponent, ApplicationTabSettingsReadComponent, AsyncPipe, MatDialogModule],
   templateUrl: './application-tab-settings.component.html',
 })
 export class ApplicationTabSettingsComponent implements OnInit {
   @Input()
-  application!: Application;
+  applicationId!: string;
 
   @Input()
   applicationTypeConfiguration!: ApplicationType;
 
   @Input()
   userApplicationPermissions!: UserApplicationPermissions;
+
+  application$!: Observable<Application>;
 
   canUpdate: boolean = false;
   canDelete: boolean = false;
@@ -55,21 +57,28 @@ export class ApplicationTabSettingsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.application$ = this.applicationService.get(this.applicationId);
     this.canDelete = this.userApplicationPermissions.DEFINITION?.includes('D') || false;
     this.canUpdate = this.userApplicationPermissions.DEFINITION?.includes('U') || false;
   }
 
   deleteApplication(): void {
-    this.matDialog
-      .open<DeleteConfirmDialogComponent, void, boolean>(DeleteConfirmDialogComponent, {
-        role: 'alertdialog',
-        id: 'confirmDialog',
-      })
-      .afterClosed()
+    this.application$
       .pipe(
-        switchMap(confirmed => (confirmed ? this.applicationService.delete(this.application.id) : EMPTY)),
-        tap(() => this.router.navigate(['/applications'])),
-        takeUntil(this.unsubscribe$),
+        take(1),
+        switchMap(application =>
+          this.matDialog
+            .open<DeleteConfirmDialogComponent, void, boolean>(DeleteConfirmDialogComponent, {
+              role: 'alertdialog',
+              id: 'confirmDialog',
+            })
+            .afterClosed()
+            .pipe(
+              switchMap(confirmed => (confirmed ? this.applicationService.delete(application.id) : EMPTY)),
+              tap(() => this.router.navigate(['/applications'])),
+              takeUntil(this.unsubscribe$),
+            ),
+        ),
       )
       .subscribe({ error: err => console.error(err) });
   }

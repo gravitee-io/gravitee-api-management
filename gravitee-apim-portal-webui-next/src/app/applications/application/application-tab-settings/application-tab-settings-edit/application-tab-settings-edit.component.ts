@@ -19,14 +19,13 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
-import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { isEqual } from 'lodash';
-import { map, Observable, startWith, Subject, takeUntil, tap } from 'rxjs';
+import { map, Observable, startWith, Subject, take, takeUntil, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { CopyCodeComponent } from '../../../../../components/copy-code/copy-code.component';
@@ -84,10 +83,12 @@ interface ApplicationGrantTypeVM {
 })
 export class ApplicationTabSettingsEditComponent implements OnInit {
   @Input()
-  application!: Application;
+  applicationId!: string;
 
   @Input()
   applicationTypeConfiguration!: ApplicationType;
+
+  application$!: Observable<Application>;
 
   initialValues: ApplicationSettingsVM = {
     name: '',
@@ -114,23 +115,30 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
   formUnchanged$: Observable<boolean> = of(true);
 
   private unsubscribe$ = new Subject();
+  private application!: Application;
 
   constructor(
     private readonly applicationService: ApplicationService,
-    private matDialog: MatDialog,
     private router: Router,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
     this.buildGrantTypeList();
-    this.addValidatorsOnForm();
-    // Populate the form with initial values
-    this.initialValues = this.convertToVM(this.application);
-    this.reset();
-    this.formUnchanged$ = this.applicationSettingsForm.valueChanges.pipe(
-      startWith(this.initialValues),
-      map(value => isEqual(this.initialValues, value)),
-    );
+    this.application$ = this.applicationService.get(this.applicationId);
+
+    this.application$.pipe(take(1)).subscribe(application => {
+      this.application = application;
+
+      this.addValidatorsOnForm();
+
+      this.initialValues = this.convertToVM(application);
+      this.reset();
+      this.formUnchanged$ = this.applicationSettingsForm.valueChanges.pipe(
+        startWith(this.initialValues),
+        map(value => isEqual(this.initialValues, value)),
+      );
+    });
   }
 
   deletePicture(): void {
@@ -184,6 +192,8 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
         tap(app => {
           this.initialValues = this.convertToVM(app);
           this.reset();
+          const url = this.router.url;
+          return this.router.navigate([url], { onSameUrlNavigation: 'reload' });
         }),
         takeUntil(this.unsubscribe$),
       )

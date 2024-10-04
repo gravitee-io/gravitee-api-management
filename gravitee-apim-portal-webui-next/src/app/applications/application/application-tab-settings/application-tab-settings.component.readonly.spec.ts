@@ -15,14 +15,14 @@
  */
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { HttpClientModule } from '@angular/common/http';
-import { HttpTestingController } from '@angular/common/http/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { ApplicationTabSettingsReadHarness } from './application-tab-settings-read/application-tab-settings-read.harness';
 import { ApplicationTabSettingsComponent } from './application-tab-settings.component';
 import { DeleteConfirmDialogComponent } from './delete-confirm-dialog/delete-confirm-dialog.component';
+import { Application, ApplicationType } from '../../../../entities/application/application';
 import {
   fakeApplication,
   fakeBackendToBackendApplicationType,
@@ -41,10 +41,17 @@ describe('ApplicationTabSettingsComponent', () => {
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
   let readonlyHarness: ApplicationTabSettingsReadHarness;
+  const applicationId = 'id1';
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ApplicationTabSettingsComponent, DeleteConfirmDialogComponent, HttpClientModule, NoopAnimationsModule, AppTestingModule],
+      imports: [
+        ApplicationTabSettingsComponent,
+        DeleteConfirmDialogComponent,
+        HttpClientTestingModule,
+        NoopAnimationsModule,
+        AppTestingModule,
+      ],
       providers: [
         {
           provide: ConfigService,
@@ -62,6 +69,7 @@ describe('ApplicationTabSettingsComponent', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
 
     component = fixture.componentInstance;
+    component.applicationId = applicationId;
     component.userApplicationPermissions = fakeUserApplicationPermissions({
       DEFINITION: ['R'],
     });
@@ -71,8 +79,35 @@ describe('ApplicationTabSettingsComponent', () => {
     httpTestingController.verify();
   });
 
+  async function initRestCalls(application: Application, applicationType: ApplicationType) {
+    component.applicationTypeConfiguration = applicationType;
+    fixture.detectChanges();
+
+    const applicationUrl = `${TESTING_BASE_URL}/applications/${applicationId}`;
+
+    const applicationRequest = httpTestingController.expectOne(applicationUrl);
+    expect(applicationRequest.request.method).toBe('GET');
+    applicationRequest.flush(application);
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const applicationRequests = httpTestingController.match(applicationUrl);
+
+    applicationRequests.forEach(req => {
+      expect(req.request.method).toBe('GET');
+      req.flush(application);
+      fixture.detectChanges();
+    });
+
+    await fixture.whenStable();
+
+    readonlyHarness = await loader.getHarness(ApplicationTabSettingsReadHarness);
+  }
+
   describe('Display a simple application', () => {
     const simpleApplication = fakeApplication({
+      id: applicationId,
       name: 'Simple application',
       description: 'Simple description',
       picture: 'data:image/png;base64,xxxxxxxx',
@@ -87,10 +122,7 @@ describe('ApplicationTabSettingsComponent', () => {
     });
 
     beforeEach(async () => {
-      component.application = simpleApplication;
-      component.applicationTypeConfiguration = fakeSimpleApplicationType();
-      fixture.detectChanges();
-      readonlyHarness = await loader.getHarness(ApplicationTabSettingsReadHarness);
+      await initRestCalls(simpleApplication, fakeSimpleApplicationType());
     });
 
     it('Should display name, description, picture, client ID & application type fields', async () => {
@@ -106,6 +138,7 @@ describe('ApplicationTabSettingsComponent', () => {
 
   describe('Display Backend to backend Application', () => {
     const b2bApplication = fakeApplication({
+      id: applicationId,
       name: 'B2b application',
       description: 'B2b description',
       picture: 'data:image/png;base64,xxxxxxxx',
@@ -124,10 +157,7 @@ describe('ApplicationTabSettingsComponent', () => {
     });
 
     beforeEach(async () => {
-      component.application = b2bApplication;
-      component.applicationTypeConfiguration = fakeBackendToBackendApplicationType();
-      fixture.detectChanges();
-      readonlyHarness = await loader.getHarness(ApplicationTabSettingsReadHarness);
+      await initRestCalls(b2bApplication, fakeBackendToBackendApplicationType());
     });
 
     it('Should display name, description, picture, client ID, client secret & grant types fields', async () => {
@@ -144,6 +174,7 @@ describe('ApplicationTabSettingsComponent', () => {
 
   describe('Display Native Application', () => {
     const nativeApplication = fakeApplication({
+      id: applicationId,
       name: 'Native application',
       description: 'Native description',
       picture: 'data:image/png;base64,xxxxxxxx',
@@ -162,10 +193,7 @@ describe('ApplicationTabSettingsComponent', () => {
     });
 
     beforeEach(async () => {
-      component.application = nativeApplication;
-      component.applicationTypeConfiguration = fakeNativeApplicationType();
-      fixture.detectChanges();
-      readonlyHarness = await loader.getHarness(ApplicationTabSettingsReadHarness);
+      await initRestCalls(nativeApplication, fakeNativeApplicationType());
     });
 
     it('Should display name, description, picture, client ID, client secret, redirect URIs & grant types fields', async () => {
@@ -182,6 +210,7 @@ describe('ApplicationTabSettingsComponent', () => {
 
   describe('Display Browser Application', () => {
     const browserApplication = fakeApplication({
+      id: applicationId,
       name: 'Browser application',
       description: 'Browser description',
       picture: 'data:image/png;base64,xxxxxxxx',
@@ -200,10 +229,7 @@ describe('ApplicationTabSettingsComponent', () => {
     });
 
     beforeEach(async () => {
-      component.application = browserApplication;
-      component.applicationTypeConfiguration = fakeBrowserApplicationType();
-      fixture.detectChanges();
-      readonlyHarness = await loader.getHarness(ApplicationTabSettingsReadHarness);
+      await initRestCalls(browserApplication, fakeBrowserApplicationType());
     });
 
     it('Should display name, description, picture, client ID, client secret, redirect URIs & grant types fields', async () => {
@@ -220,6 +246,7 @@ describe('ApplicationTabSettingsComponent', () => {
 
   describe('Display Web Application', () => {
     const webApplication = fakeApplication({
+      id: applicationId,
       name: 'Web application',
       description: 'Web description',
       picture: 'data:image/png;base64,xxxxxxxx',
@@ -238,10 +265,7 @@ describe('ApplicationTabSettingsComponent', () => {
     });
 
     beforeEach(async () => {
-      component.application = webApplication;
-      component.applicationTypeConfiguration = fakeWebApplicationType();
-      fixture.detectChanges();
-      readonlyHarness = await loader.getHarness(ApplicationTabSettingsReadHarness);
+      await initRestCalls(webApplication, fakeWebApplicationType());
     });
 
     it('Should display name, description, picture, client ID, client secret, redirect URIs & grant types fields', async () => {

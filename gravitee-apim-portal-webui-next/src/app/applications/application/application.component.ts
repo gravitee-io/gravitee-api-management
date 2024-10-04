@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, inject, Input, OnInit } from '@angular/core';
+import { Component, inject, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
@@ -50,13 +50,15 @@ import { CurrentUserService } from '../../../services/current-user.service';
   templateUrl: './application.component.html',
   styleUrl: './application.component.scss',
 })
-export class ApplicationComponent implements OnInit {
+export class ApplicationComponent implements OnChanges {
   @Input() application!: Application;
   isAuthenticated = inject(CurrentUserService).isUserAuthenticated;
 
   constructor(private breadcrumbService: BreadcrumbService) {}
 
-  ngOnInit(): void {
-    this.breadcrumbService.set('@appName', this.application.name);
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['application']) {
+      this.breadcrumbService.set('@appName', this.application.name);
+    }
   }
 }
