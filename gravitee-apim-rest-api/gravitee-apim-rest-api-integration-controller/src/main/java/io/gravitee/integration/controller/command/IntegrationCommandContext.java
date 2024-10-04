@@ -23,23 +23,29 @@ import lombok.Setter;
 public final class IntegrationCommandContext implements ControllerCommandContext {
 
     private final boolean valid;
+    private final String userId;
     private final String organizationId;
 
     @Setter
     private String integrationId;
 
-    public IntegrationCommandContext(boolean valid, String organizationId, String integrationId) {
+    public IntegrationCommandContext(boolean valid, String organizationId, String userId, String integrationId) {
         this.valid = valid;
         this.organizationId = organizationId;
+        this.userId = userId;
         this.integrationId = integrationId;
     }
 
     public IntegrationCommandContext(boolean valid) {
-        this(valid, null, null);
+        this(valid, null, null, null);
     }
 
     public IntegrationCommandContext(boolean valid, String organizationId) {
-        this(valid, organizationId, null);
+        this(valid, organizationId, null, null);
+    }
+
+    public IntegrationCommandContext(boolean valid, String organizationId, String userId) {
+        this(valid, organizationId, userId, null);
     }
 
     @Override
