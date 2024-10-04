@@ -17,6 +17,8 @@ package io.gravitee.integration.controller.command.hello;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.IntegrationFixture;
 import inmemory.EnvironmentCrudServiceInMemory;
@@ -26,6 +28,7 @@ import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.use_case.CheckIntegrationUseCase;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.exchange.api.command.hello.HelloReplyPayload;
@@ -33,6 +36,8 @@ import io.gravitee.integration.api.command.IntegrationCommandType;
 import io.gravitee.integration.api.command.hello.HelloCommand;
 import io.gravitee.integration.controller.command.IntegrationCommandContext;
 import io.gravitee.integration.controller.command.IntegrationControllerCommandHandlerFactory;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -51,12 +56,13 @@ class HelloCommandHandlerTest {
 
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
     private static final String ORGANIZATION_ID = "organization-id";
+    private static final String USER_ID = "user-id";
     private static final Environment ENVIRONMENT = Environment.builder().id("env1").organizationId(ORGANIZATION_ID).build();
     private static final String COMMAND_ID = "command-id";
     private static final String INTEGRATION_ID = "my-integration-id";
     private static final String INTEGRATION_PROVIDER = "aws-api-gateway";
 
-    private static final IntegrationCommandContext CONTEXT = new IntegrationCommandContext(true, ORGANIZATION_ID);
+    private static final IntegrationCommandContext CONTEXT = new IntegrationCommandContext(true, ORGANIZATION_ID, USER_ID);
     private static final HelloCommand COMMAND = new HelloCommand(
         COMMAND_ID,
         new HelloCommand.Payload(INTEGRATION_ID, INTEGRATION_PROVIDER)
@@ -64,6 +70,7 @@ class HelloCommandHandlerTest {
 
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory = new IntegrationCrudServiceInMemory();
     EnvironmentCrudServiceInMemory environmentCrudService = new EnvironmentCrudServiceInMemory();
+    PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
     HelloCommandHandler commandHandler;
 
     @BeforeAll
@@ -79,7 +86,7 @@ class HelloCommandHandlerTest {
     @BeforeEach
     void setUp() {
         var factory = new IntegrationControllerCommandHandlerFactory(
-            new CheckIntegrationUseCase(integrationCrudServiceInMemory, environmentCrudService),
+            new CheckIntegrationUseCase(integrationCrudServiceInMemory, environmentCrudService, permissionDomainService),
             null
         );
 
@@ -109,6 +116,14 @@ class HelloCommandHandlerTest {
                 .environmentId(ENVIRONMENT.getId())
                 .provider(INTEGRATION_PROVIDER)
                 .build()
+        );
+        givenPermission(
+            RolePermission.ENVIRONMENT_INTEGRATION,
+            ENVIRONMENT.getId(),
+            RolePermissionAction.CREATE,
+            RolePermissionAction.READ,
+            RolePermissionAction.UPDATE,
+            RolePermissionAction.DELETE
         );
 
         commandHandler
@@ -156,6 +171,14 @@ class HelloCommandHandlerTest {
                 .provider("other")
                 .build()
         );
+        givenPermission(
+            RolePermission.ENVIRONMENT_INTEGRATION,
+            ENVIRONMENT.getId(),
+            RolePermissionAction.CREATE,
+            RolePermissionAction.READ,
+            RolePermissionAction.UPDATE,
+            RolePermissionAction.DELETE
+        );
 
         commandHandler
             .handle(COMMAND)
@@ -179,7 +202,8 @@ class HelloCommandHandlerTest {
     void should_reply_error_when_exception_occurs() {
         var spied = Mockito.spy(integrationCrudServiceInMemory);
         lenient().when(spied.findById(any())).thenThrow(new TechnicalDomainException("error"));
-        commandHandler = new HelloCommandHandler(new CheckIntegrationUseCase(spied, environmentCrudService), CONTEXT);
+        commandHandler =
+            new HelloCommandHandler(new CheckIntegrationUseCase(spied, environmentCrudService, permissionDomainService), CONTEXT);
 
         commandHandler
             .handle(COMMAND)
@@ -200,5 +224,9 @@ class HelloCommandHandlerTest {
     private Integration givenIntegration(Integration integration) {
         integrationCrudServiceInMemory.initWith(List.of(integration));
         return integration;
+    }
+
+    private void givenPermission(RolePermission rolePermission, String referenceId, RolePermissionAction... acls) {
+        when(permissionDomainService.hasExactPermissions(ORGANIZATION_ID, USER_ID, rolePermission, referenceId, acls)).thenReturn(true);
     }
 }

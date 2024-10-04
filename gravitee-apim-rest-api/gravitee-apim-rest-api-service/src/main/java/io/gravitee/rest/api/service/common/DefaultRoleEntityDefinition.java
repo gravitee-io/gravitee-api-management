@@ -79,6 +79,17 @@ public interface DefaultRoleEntityDefinition {
             .build()
     );
 
+    public static final NewRoleEntity ROLE_ENVIRONMENT_FEDERATION_AGENT = new NewRoleEntity(
+        "FEDERATION_AGENT",
+        "Environment Role used by Federation agents. Created by Gravitee.io.",
+        ENVIRONMENT,
+        false,
+        Maps
+            .<String, char[]>builder()
+            .put(EnvironmentPermission.INTEGRATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .build()
+    );
+
     public static final NewRoleEntity DEFAULT_ROLE_API_USER = new NewRoleEntity(
         "USER",
         "Default API Role. Created by Gravitee.io.",
