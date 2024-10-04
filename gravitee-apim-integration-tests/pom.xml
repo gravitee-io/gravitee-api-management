@@ -541,6 +541,12 @@
             <version>${gravitee-reactor-message.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.graviteesource.reactor</groupId>
+            <artifactId>gravitee-reactor-native-kafka</artifactId>
+            <version>${gravitee-reactor-native-kafka.version}</version>
+            <scope>test</scope>
+        </dependency>
         <!-- V3 Connectors -->
         <dependency>
             <groupId>io.gravitee.connector</groupId>

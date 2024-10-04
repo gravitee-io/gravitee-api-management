@@ -1409,6 +1409,19 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.reactor</groupId>
+                    <artifactId>gravitee-reactor-native-kafka</artifactId>
+                    <version>${gravitee-reactor-native-kafka.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
 
                 <!-- Repositories -->
                 <dependency>
