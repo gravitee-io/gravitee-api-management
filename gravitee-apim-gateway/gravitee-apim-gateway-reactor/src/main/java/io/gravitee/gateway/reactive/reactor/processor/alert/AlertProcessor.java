@@ -118,6 +118,7 @@ public class AlertProcessor implements Processor {
                         .property(PROP_ERROR_KEY, ctx.metrics().getErrorKey())
                         .organization(ctx.getAttribute(ContextAttributes.ATTR_ORGANIZATION))
                         .environment(ctx.getAttribute(ContextAttributes.ATTR_ENVIRONMENT))
+                        .installation((String) node.metadata().get(Node.META_INSTALLATION))
                         .build()
                 )
             )

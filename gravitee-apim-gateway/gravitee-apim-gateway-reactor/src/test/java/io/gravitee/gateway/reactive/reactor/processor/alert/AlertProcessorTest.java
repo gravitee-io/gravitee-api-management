@@ -17,14 +17,20 @@ package io.gravitee.gateway.reactive.reactor.processor.alert;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import io.gravitee.alert.api.event.Event;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.reactive.reactor.processor.AbstractProcessorTest;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import io.gravitee.reporter.api.v4.metric.Metrics;
+import java.util.Map;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 
 /**
@@ -38,6 +44,9 @@ class AlertProcessorTest extends AbstractProcessorTest {
 
     @Mock
     Node mockNode;
+
+    @Captor
+    ArgumentCaptor<Event> eventCaptor;
 
     private AlertProcessor alertProcessor;
 
@@ -53,12 +62,28 @@ class AlertProcessorTest extends AbstractProcessorTest {
         ctx.setAttribute(ExecutionContext.ATTR_QUOTA_LIMIT, "2");
         ctx.setAttribute(ExecutionContext.ATTR_ORGANIZATION, "organization");
         ctx.setAttribute(ExecutionContext.ATTR_ENVIRONMENT, "environment");
+
+        when(mockNode.id()).thenReturn("node.id");
+        when(mockNode.hostname()).thenReturn("node.hostname");
+        when(mockNode.application()).thenReturn("node.application");
+        when(mockNode.metadata()).thenReturn(Map.ofEntries(Map.entry("tenant", "tenant-id"), Map.entry("installation", "installation-id")));
     }
 
     @Test
     public void shouldSendAlert() {
         alertProcessor.execute(ctx).test().assertResult();
-        verify(mockEventProducer).send(any());
+
+        verify(mockEventProducer).send(eventCaptor.capture());
+        SoftAssertions.assertSoftly(softly -> {
+            var event = eventCaptor.getValue();
+
+            softly
+                .assertThat(event.properties())
+                .containsEntry("tenant", "tenant-id")
+                .containsEntry("installation", "installation-id")
+                .containsEntry("organization", "organization")
+                .containsEntry("environment", "environment");
+        });
     }
 
     @Test

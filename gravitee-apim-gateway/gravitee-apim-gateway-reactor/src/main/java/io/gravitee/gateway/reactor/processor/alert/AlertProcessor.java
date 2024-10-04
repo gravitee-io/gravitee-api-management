@@ -19,6 +19,7 @@ import io.gravitee.alert.api.event.Event;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.NodeMetadataResolver;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,6 +112,7 @@ public class AlertProcessor extends AbstractProcessor<ExecutionContext> {
                     .property(PROP_ERROR_KEY, context.request().metrics().getErrorKey())
                     .organization((String) context.getAttribute(ExecutionContext.ATTR_ORGANIZATION))
                     .environment((String) context.getAttribute(ExecutionContext.ATTR_ENVIRONMENT))
+                    .installation((String) node.metadata().get(Node.META_INSTALLATION))
                     .build()
             );
         } catch (Exception ex) {
