@@ -18,6 +18,10 @@ package io.gravitee.apim.core.integration.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Ensure that the integration exists.
@@ -26,16 +30,13 @@ import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
  *     This allows us to ensure that the auth token provided by the Agent is allowed to manage the integration.
  * </p>
  */
+@RequiredArgsConstructor
 @UseCase
 public class CheckIntegrationUseCase {
 
     private final IntegrationCrudService integrationCrudService;
     private final EnvironmentCrudService environmentCrudService;
-
-    public CheckIntegrationUseCase(IntegrationCrudService integrationCrudService, EnvironmentCrudService environmentCrudService) {
-        this.integrationCrudService = integrationCrudService;
-        this.environmentCrudService = environmentCrudService;
-    }
+    private final PermissionDomainService permissionDomainService;
 
     public Output execute(Input input) {
         return integrationCrudService
@@ -43,6 +44,28 @@ public class CheckIntegrationUseCase {
             .filter(integration -> {
                 var environment = environmentCrudService.get(integration.getEnvironmentId());
                 return environment.getOrganizationId().equals(input.organizationId);
+            })
+            .filter(integration -> {
+                var hasEnvironmentIntegrationPermission = permissionDomainService.hasExactPermissions(
+                    input.organizationId,
+                    input.userId,
+                    io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_INTEGRATION,
+                    integration.getEnvironmentId(),
+                    RolePermissionAction.CREATE,
+                    RolePermissionAction.READ,
+                    RolePermissionAction.UPDATE,
+                    RolePermissionAction.DELETE
+                );
+
+                // Check same permissions used to preview & ingest APIs
+                var hasIntegrationPermission = permissionDomainService.hasPermission(
+                    input.organizationId,
+                    input.userId,
+                    RolePermission.INTEGRATION_DEFINITION,
+                    integration.getId(),
+                    RolePermissionAction.CREATE
+                );
+                return hasEnvironmentIntegrationPermission || hasIntegrationPermission;
             })
             .map(integration -> {
                 if (!integration.getProvider().equals(input.provider)) {
@@ -60,9 +83,9 @@ public class CheckIntegrationUseCase {
             .orElse(new Output(false, String.format("Integration [id=%s] not found", input.integrationId)));
     }
 
-    public record Input(String organizationId, String integrationId, String provider) {
+    public record Input(String organizationId, String userId, String integrationId, String provider) {
         public Input(String integrationId) {
-            this(null, integrationId, null);
+            this(null, null, integrationId, null);
         }
     }
 
