@@ -43,9 +43,9 @@ public class PermissionServiceImpl extends AbstractService implements Permission
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PermissionServiceImpl.class);
 
-    private static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
+    public static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
 
-    private static final Map<RoleScope, MembershipReferenceType> ROLE_SCOPE_TO_REFERENCE_TYPE = Map.ofEntries(
+    public static final Map<RoleScope, MembershipReferenceType> ROLE_SCOPE_TO_REFERENCE_TYPE = Map.ofEntries(
         Pair.of(RoleScope.API, MembershipReferenceType.API),
         Pair.of(RoleScope.APPLICATION, MembershipReferenceType.APPLICATION),
         Pair.of(RoleScope.ORGANIZATION, MembershipReferenceType.ORGANIZATION),
@@ -108,7 +108,7 @@ public class PermissionServiceImpl extends AbstractService implements Permission
         return hasOrganizationManagementRole(user) || hasEnvironmentManagementRole(user) || hasApiManagementRole(executionContext, user);
     }
 
-    private static boolean isOrganizationAdmin() {
+    public static boolean isOrganizationAdmin() {
         return (
             SecurityContextHolder.getContext().getAuthentication() != null &&
             SecurityContextHolder
