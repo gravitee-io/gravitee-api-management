@@ -48,6 +48,7 @@ import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainS
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
@@ -67,6 +68,7 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
+import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
@@ -740,5 +742,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ValidatePageSourceDomainService validatePageSourceDomainService() {
         return new ValidatePageSourceDomainServiceImpl(new ObjectMapper(), mock(Vertx.class));
+    }
+
+    @Bean
+    public PermissionDomainService permissionDomainService(MembershipService membershipService, PermissionService permissionService) {
+        return new PermissionDomainServiceLegacyWrapper(membershipService, permissionService);
     }
 }
