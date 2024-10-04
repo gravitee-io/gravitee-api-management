@@ -23,9 +23,11 @@ import io.gravitee.integration.controller.command.IntegrationCommandContext;
 import io.gravitee.rest.api.service.TokenService;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -54,9 +56,9 @@ public class IntegrationWebsocketControllerAuthentication implements WebSocketCo
 
                 return userCrudService
                     .findBaseUserById(token.getReferenceId())
-                    .map(BaseUserEntity::getOrganizationId)
-                    .filter(licenseDomainService::isFederationFeatureAllowed)
-                    .map(organizationId -> new IntegrationCommandContext(true, organizationId))
+                    .map(user -> Map.entry(user.getOrganizationId(), user.getId()))
+                    .filter(entry -> licenseDomainService.isFederationFeatureAllowed(entry.getKey()))
+                    .map(entry -> new IntegrationCommandContext(true, entry.getKey(), entry.getValue()))
                     .orElse(new IntegrationCommandContext(false));
             } catch (Exception e) {
                 log.warn("Unable to authenticate incoming websocket controller request");
