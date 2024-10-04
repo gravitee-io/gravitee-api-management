@@ -17,9 +17,11 @@ import { NgIf } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { Observable, take } from 'rxjs';
 
 import { CopyCodeComponent } from '../../../../../components/copy-code/copy-code.component';
 import { Application, ApplicationType } from '../../../../../entities/application/application';
+import { ApplicationService } from '../../../../../services/application.service';
 
 interface ReadOnlyApplicationSettingsVM {
   isSimple: boolean;
@@ -41,7 +43,7 @@ interface ReadOnlyApplicationSettingsVM {
 })
 export class ApplicationTabSettingsReadComponent implements OnInit {
   @Input()
-  application!: Application;
+  applicationId!: string;
 
   @Input()
   applicationTypeConfiguration!: ApplicationType;
@@ -57,31 +59,39 @@ export class ApplicationTabSettingsReadComponent implements OnInit {
     clientSecret: undefined,
   };
 
+  private application$!: Observable<Application>;
+
+  constructor(private readonly applicationService: ApplicationService) {}
+
   ngOnInit(): void {
-    if (this.applicationTypeConfiguration.id === 'simple') {
-      this.readOnlyValues = {
-        isSimple: true,
-        isRedirectUriRequired: false,
-        type: undefined,
-        typeDescription: this.application.settings.app?.type,
-        redirectUris: undefined,
-        grantTypes: undefined,
-        clientId: this.application.settings.app?.client_id,
-        clientSecret: undefined,
-      };
-    } else {
-      this.readOnlyValues = {
-        isSimple: false,
-        isRedirectUriRequired: this.applicationTypeConfiguration.requires_redirect_uris,
-        type: this.applicationTypeConfiguration.name,
-        typeDescription: this.applicationTypeConfiguration.description,
-        redirectUris: this.application.settings.oauth!.redirect_uris,
-        grantTypes: this.application.settings.oauth!.grant_types.map(
-          type => this.applicationTypeConfiguration.allowed_grant_types!.find(grantType => grantType.type === type)!.name ?? '',
-        ),
-        clientId: this.application.settings.oauth?.client_id,
-        clientSecret: this.application.settings.oauth?.client_secret,
-      };
-    }
+    this.application$ = this.applicationService.get(this.applicationId);
+
+    this.application$.pipe(take(1)).subscribe(application => {
+      if (this.applicationTypeConfiguration.id === 'simple') {
+        this.readOnlyValues = {
+          isSimple: true,
+          isRedirectUriRequired: false,
+          type: undefined,
+          typeDescription: application.settings.app?.type,
+          redirectUris: undefined,
+          grantTypes: undefined,
+          clientId: application.settings.app?.client_id,
+          clientSecret: undefined,
+        };
+      } else {
+        this.readOnlyValues = {
+          isSimple: false,
+          isRedirectUriRequired: this.applicationTypeConfiguration.requires_redirect_uris,
+          type: this.applicationTypeConfiguration.name,
+          typeDescription: this.applicationTypeConfiguration.description,
+          redirectUris: application.settings.oauth!.redirect_uris,
+          grantTypes: application.settings.oauth!.grant_types.map(
+            type => this.applicationTypeConfiguration.allowed_grant_types!.find(grantType => grantType.type === type)!.name ?? '',
+          ),
+          clientId: application.settings.oauth?.client_id,
+          clientSecret: application.settings.oauth?.client_secret,
+        };
+      }
+    });
   }
 }
