@@ -16,10 +16,10 @@
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { HttpClientModule } from '@angular/common/http';
-import { HttpTestingController } from '@angular/common/http/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatDialogModule } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router';
 
@@ -37,10 +37,27 @@ describe('ApplicationTabSettingsComponent - Test application deletion', () => {
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
+  const applicationId = fakeApplication().id;
+
+  async function flushGetApplicationRequest() {
+    httpTestingController.match(`${TESTING_BASE_URL}/applications/${applicationId}`).forEach(req => {
+      expect(req.request.method).toBe('GET');
+      req.flush(fakeApplication());
+      fixture.detectChanges();
+    });
+    await fixture.whenStable();
+  }
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ApplicationTabSettingsComponent, AppTestingModule, DeleteConfirmDialogComponent, HttpClientModule, NoopAnimationsModule],
+      imports: [
+        ApplicationTabSettingsComponent,
+        DeleteConfirmDialogComponent,
+        HttpClientTestingModule,
+        NoopAnimationsModule,
+        AppTestingModule,
+        MatDialogModule,
+      ],
       providers: [
         {
           provide: ConfigService,
@@ -64,10 +81,24 @@ describe('ApplicationTabSettingsComponent - Test application deletion', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     component = fixture.componentInstance;
-
-    component.application = fakeApplication();
-    component.applicationTypeConfiguration = fakeSimpleApplicationType();
+    component.applicationId = applicationId;
   });
+
+  async function initRestCalls() {
+    component.applicationTypeConfiguration = fakeSimpleApplicationType();
+    const application = fakeApplication();
+    fixture.detectChanges();
+
+    const applicationUrl = `${TESTING_BASE_URL}/applications/${applicationId}`;
+
+    const applicationRequest = httpTestingController.expectOne(applicationUrl);
+    expect(applicationRequest.request.method).toBe('GET');
+    applicationRequest.flush(application);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    await flushGetApplicationRequest();
+  }
 
   afterEach(() => {
     httpTestingController.verify();
@@ -77,7 +108,10 @@ describe('ApplicationTabSettingsComponent - Test application deletion', () => {
     component.userApplicationPermissions = fakeUserApplicationPermissions({
       DEFINITION: ['D'],
     });
+    await initRestCalls();
+
     fixture.detectChanges();
+    await fixture.whenStable();
 
     const router: Router = TestBed.inject(Router);
 
@@ -86,6 +120,10 @@ describe('ApplicationTabSettingsComponent - Test application deletion', () => {
     const deleteButton = await getDeleteButton();
     expect(await deleteButton!.isDisabled()).toBeFalsy();
     await deleteButton!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    await flushGetApplicationRequest();
 
     let confirmDialog = await deleteConfirmDialog();
     expect(confirmDialog).not.toBeNull();
@@ -94,12 +132,12 @@ describe('ApplicationTabSettingsComponent - Test application deletion', () => {
     confirmDialog = await deleteConfirmDialog();
     expect(confirmDialog).toBeNull();
     httpTestingController.expectNone({
-      url: `${TESTING_BASE_URL}/applications/${component.application.id}`,
+      url: `${TESTING_BASE_URL}/applications/${applicationId}`,
       method: 'DELETE',
     });
     expect(router.navigate).not.toHaveBeenCalled();
-
     await deleteButton!.click();
+    await flushGetApplicationRequest();
     confirmDialog = await deleteConfirmDialog();
     expect(confirmDialog).not.toBeNull();
     await confirmDialog!.confirm();
@@ -108,7 +146,7 @@ describe('ApplicationTabSettingsComponent - Test application deletion', () => {
     expect(confirmDialog).toBeNull();
     httpTestingController
       .expectOne({
-        url: `${TESTING_BASE_URL}/applications/${component.application.id}`,
+        url: `${TESTING_BASE_URL}/applications/${applicationId}`,
         method: 'DELETE',
       })
       .flush(null);
@@ -119,6 +157,8 @@ describe('ApplicationTabSettingsComponent - Test application deletion', () => {
     component.userApplicationPermissions = fakeUserApplicationPermissions({
       DEFINITION: ['R'],
     });
+    initRestCalls();
+
     fixture.detectChanges();
 
     const deleteButton = await getDeleteButton();

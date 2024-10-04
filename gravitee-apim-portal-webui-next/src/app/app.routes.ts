@@ -110,6 +110,7 @@ export const routes: Routes = [
       {
         path: ':applicationId',
         component: ApplicationComponent,
+        runGuardsAndResolvers: 'always',
         resolve: {
           application: applicationResolver,
           userApplicationPermissions: applicationPermissionResolver,
