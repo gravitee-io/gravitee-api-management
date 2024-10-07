@@ -47,7 +47,6 @@
         <dependency>
             <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-plugins-service</artifactId>
-            <version>${gravitee-node.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
