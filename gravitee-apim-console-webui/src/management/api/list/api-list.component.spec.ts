@@ -219,7 +219,7 @@ describe('ApisListComponent', () => {
 
         await loader.getHarness(GioTableWrapperHarness).then((tableWrapper) => tableWrapper.setSearchValue('bad-search'));
         await tick(400);
-        const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=25&manageOnly=false`);
+        const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=25`);
         expect(req.request.body).toEqual({ query: 'bad-search' });
 
         req.flush('Internal error', { status: 500, statusText: 'Internal error' });
@@ -426,7 +426,7 @@ describe('ApisListComponent', () => {
     tick(400);
 
     const req = httpTestingController.expectOne(
-      `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=${page}&perPage=25${sortBy ? `&sortBy=${sortBy}` : ''}&manageOnly=false`,
+      `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=${page}&perPage=25${sortBy ? `&sortBy=${sortBy}` : ''}`,
     );
     expect(req.request.method).toEqual('POST');
 
