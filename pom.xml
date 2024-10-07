@@ -79,7 +79,7 @@
         <gravitee-resource-oauth2-provider-api.version>1.4.0</gravitee-resource-oauth2-provider-api.version>
         <gravitee-resource-content-provider-api.version>1.0.0</gravitee-resource-content-provider-api.version>
         <gravitee-service-discovery-api.version>1.1.1</gravitee-service-discovery-api.version>
-        <gravitee-kubernetes.version>3.4.0</gravitee-kubernetes.version>
+        <gravitee-kubernetes.version>3.4.1</gravitee-kubernetes.version>
         <gravitee-json-validation.version>2.0.1</gravitee-json-validation.version>
         <gravitee-cloud-initializer.version>2.0.2</gravitee-cloud-initializer.version>
         <!-- Other dependencies version -->
