@@ -41,12 +41,10 @@
         <dependency>
             <groupId>io.gravitee.exchange</groupId>
             <artifactId>gravitee-exchange-controller-core</artifactId>
-            <version>${gravitee-exchange.version}</version>
         </dependency>
         <dependency>
             <groupId>io.gravitee.exchange</groupId>
             <artifactId>gravitee-exchange-controller-websocket</artifactId>
-            <version>${gravitee-exchange.version}</version>
         </dependency>
         <dependency>
             <groupId>io.gravitee.integration</groupId>

@@ -30,10 +30,6 @@
 
     <name>Gravitee.io APIM - Gateway - Core</name>
 
-    <properties>
-        <gravitee-resource-api.version>1.1.0</gravitee-resource-api.version>
-    </properties>
-
     <dependencies>
         <!-- Gravitee.io dependencies -->
         <dependency>
@@ -139,7 +135,6 @@
         <dependency>
             <groupId>org.openjdk.jcstress</groupId>
             <artifactId>jcstress-core</artifactId>
-            <version>${jcstress.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -154,7 +149,6 @@
         <dependency>
             <groupId>io.gravitee.resource</groupId>
             <artifactId>gravitee-resource-api</artifactId>
-            <version>${gravitee-resource-api.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

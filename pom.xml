@@ -338,6 +338,17 @@
             </dependency>
 
             <dependency>
+                <groupId>io.gravitee.exchange</groupId>
+                <artifactId>gravitee-exchange-controller-core</artifactId>
+                <version>${gravitee-exchange.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.exchange</groupId>
+                <artifactId>gravitee-exchange-controller-websocket</artifactId>
+                <version>${gravitee-exchange.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>io.gravitee.common</groupId>
                 <artifactId>gravitee-common</artifactId>
                 <version>${gravitee-common.version}</version>
@@ -434,6 +445,24 @@
             </dependency>
 
             <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-reporter</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-monitoring</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-plugins-service</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>io.gravitee.notifier</groupId>
                 <artifactId>gravitee-notifier-api</artifactId>
                 <version>${gravitee-notifier-api.version}</version>
@@ -515,6 +544,12 @@
                 <groupId>io.gravitee.reporter</groupId>
                 <artifactId>gravitee-reporter-api</artifactId>
                 <version>${gravitee-reporter-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.resource</groupId>
+                <artifactId>gravitee-resource-api</artifactId>
+                <version>${gravitee-resource-api.version}</version>
             </dependency>
 
             <dependency>
@@ -950,6 +985,13 @@
                 <groupId>org.jsoup</groupId>
                 <artifactId>jsoup</artifactId>
                 <version>${jsoup.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.openjdk.jcstress</groupId>
+                <artifactId>jcstress-core</artifactId>
+                <version>${jcstress.version}</version>
+                <scope>test</scope>
             </dependency>
 
             <dependency>

@@ -209,7 +209,6 @@
         <dependency>
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>
-            <version>${gravitee-common.version}</version>
         </dependency>
 
         <!-- Jackson-->
