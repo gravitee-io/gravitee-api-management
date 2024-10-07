@@ -61,8 +61,14 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
     private static final Set<String> REQUIRED_GITHUB_PROPERTIES = new HashSet<>(
         Set.of(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY, GITHUB_FILEPATH)
     );
-    private static final Set<String> OPTIONAL_GITHUB_PROPERTIES = new HashSet<>(
-        Set.of(GITHUB_URL_PROPERTY, FETCH_CRON_PROPERTY, GITHUB_REPOSITORY_BRANCH_OR_TAG, "autoFetch", "useSystemProxy")
+    private static final Set<String> OPTIONAL_GITHUB_PROPERTIES = Set.of(
+        GITHUB_USERNAME,
+        GITHUB_PERSONAL_ACCESS_TOKEN,
+        GITHUB_URL_PROPERTY,
+        FETCH_CRON_PROPERTY,
+        GITHUB_REPOSITORY_BRANCH_OR_TAG,
+        "autoFetch",
+        "useSystemProxy"
     );
 
     private static final String HTTP_URL_PROPERTY = "url";
@@ -113,29 +119,15 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
                 return Result.ofBoth(input.sanitized(sanitizedBuilder.build()), errors);
             }
 
-            Set<String> githubFetcherCredentialsFields = new HashSet<>();
-            if (githubPageSourceIsPrivate(config)) {
-                githubFetcherCredentialsFields.add(GITHUB_USERNAME);
-                githubFetcherCredentialsFields.add(GITHUB_PERSONAL_ACCESS_TOKEN);
-            } else {
-                OPTIONAL_GITHUB_PROPERTIES.add(GITHUB_USERNAME);
-                OPTIONAL_GITHUB_PROPERTIES.add(GITHUB_PERSONAL_ACCESS_TOKEN);
+            if (!canAccessResource(config)) {
+                errors.add(
+                    Error.severe(
+                        "Page [%s] cannot be fetched, this can come from either invalid / missing github credentials or an invalid file path",
+                        input.pageName()
+                    )
+                );
             }
 
-            if (!githubFetcherCredentialsFields.isEmpty()) {
-                checkRequiredProperties(input.pageName(), config, GITHUB_SOURCE_TYPE, githubFetcherCredentialsFields)
-                    .peek(sanitizedBuilder::configurationMap, errors::addAll);
-
-                if (errors.stream().anyMatch(Error::isSevere)) {
-                    return Result.ofBoth(input.sanitized(sanitizedBuilder.build()), errors);
-                }
-
-                if (!githubPageSourceCredentialsIsValid(config)) {
-                    errors.add(Error.severe("Page [%s] Github fetcher credentials is invalid", input.pageName()));
-                }
-            }
-
-            REQUIRED_GITHUB_PROPERTIES.addAll(githubFetcherCredentialsFields);
             checkUnknownProperties(input.pageName(), config, GITHUB_SOURCE_TYPE, REQUIRED_GITHUB_PROPERTIES, OPTIONAL_GITHUB_PROPERTIES)
                 .peek(sanitizedBuilder::configurationMap, errors::addAll);
 
@@ -150,18 +142,13 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
         }
     }
 
-    private boolean githubPageSourceIsPrivate(Map<String, Object> config) {
-        return vertx
-            .createHttpClient()
-            .rxRequest(getGithubRequestOptions(config))
-            .flatMap(req -> req.rxSend().flatMap(resp -> Single.just(resp.statusCode() != 200)))
-            .blockingGet();
-    }
-
-    private boolean githubPageSourceCredentialsIsValid(Map<String, Object> config) {
+    private boolean canAccessResource(Map<String, Object> config) {
         final RequestOptions reqOptions = getGithubRequestOptions(config);
-        String auth = config.get(GITHUB_USERNAME) + ":" + config.get(GITHUB_PERSONAL_ACCESS_TOKEN);
-        reqOptions.putHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString(auth.getBytes()));
+        // TODO: we could fallback to bearer auth here is the username is null
+        if (config.get(GITHUB_PERSONAL_ACCESS_TOKEN) != null && config.get(GITHUB_USERNAME) != null) {
+            String auth = config.get(GITHUB_USERNAME) + ":" + config.get(GITHUB_PERSONAL_ACCESS_TOKEN);
+            reqOptions.putHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString(auth.getBytes()));
+        }
 
         return vertx
             .createHttpClient()
