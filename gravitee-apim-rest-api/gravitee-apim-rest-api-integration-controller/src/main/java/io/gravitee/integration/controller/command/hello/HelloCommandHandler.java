@@ -46,7 +46,6 @@ public class HelloCommandHandler implements CommandHandler<HelloCommand, HelloRe
                 var result = checkIntegrationUseCase.execute(
                     new CheckIntegrationUseCase.Input(
                         integrationCommandContext.getOrganizationId(),
-                        integrationCommandContext.getUserId(),
                         payload.getTargetId(),
                         payload.getProvider()
                     )

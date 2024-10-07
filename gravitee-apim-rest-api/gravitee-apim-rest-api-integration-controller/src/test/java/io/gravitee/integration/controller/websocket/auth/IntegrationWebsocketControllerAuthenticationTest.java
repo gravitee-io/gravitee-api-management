@@ -50,7 +50,6 @@ class IntegrationWebsocketControllerAuthenticationTest {
 
     private static final String TOKEN_VALUE = "my-token-value";
     private static final String ORGANIZATION_ID = "organization-id";
-    private static final String USER_ID = "user-id";
 
     @Mock
     TokenService tokenService;
@@ -89,12 +88,12 @@ class IntegrationWebsocketControllerAuthenticationTest {
 
     @Test
     void should_return_a_valid_IntegrationCommandContext_when_authentication_succeed() {
-        var token = givenToken(Token.builder().token(TOKEN_VALUE).referenceId(USER_ID).build());
+        var token = givenToken(Token.builder().token(TOKEN_VALUE).referenceId("user-id").build());
         givenUser(BaseUserEntity.builder().id(token.getReferenceId()).organizationId(ORGANIZATION_ID).build());
 
         var result = authentication.authenticate(request);
 
-        assertThat(result).isEqualTo(new IntegrationCommandContext(true, ORGANIZATION_ID, USER_ID));
+        assertThat(result).isEqualTo(new IntegrationCommandContext(true, ORGANIZATION_ID));
     }
 
     @Test
@@ -108,7 +107,7 @@ class IntegrationWebsocketControllerAuthenticationTest {
 
     @Test
     void should_return_an_invalid_IntegrationCommandContext_when_no_user_found() {
-        givenToken(Token.builder().token(TOKEN_VALUE).referenceId(USER_ID).build());
+        givenToken(Token.builder().token(TOKEN_VALUE).referenceId("user-id").build());
 
         var result = authentication.authenticate(request);
 
@@ -126,7 +125,7 @@ class IntegrationWebsocketControllerAuthenticationTest {
 
     @Test
     void should_return_an_invalid_IntegrationCommandContext_when_no_enterprise_license_found() {
-        var token = givenToken(Token.builder().token(TOKEN_VALUE).referenceId(USER_ID).build());
+        var token = givenToken(Token.builder().token(TOKEN_VALUE).referenceId("user-id").build());
         givenUser(BaseUserEntity.builder().id(token.getReferenceId()).organizationId(ORGANIZATION_ID).build());
         when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anOssLicense());
 
