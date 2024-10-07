@@ -66,7 +66,8 @@ public class PortalNotificationSettingsResource extends AbstractResource {
                 PortalNotificationDefaultReferenceId.DEFAULT.name()
             )
         );
-        if (hasPermission(GraviteeContext.getExecutionContext(), ENVIRONMENT_NOTIFICATION, CREATE, UPDATE, DELETE)) {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        if (hasPermission(executionContext, ENVIRONMENT_NOTIFICATION, executionContext.getEnvironmentId(), CREATE, UPDATE, DELETE)) {
             settings.addAll(
                 genericNotificationConfigService.findByReference(
                     NotificationReferenceType.PORTAL,
@@ -88,11 +89,12 @@ public class PortalNotificationSettingsResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
             config.getConfigType().equals(NotificationConfigType.GENERIC) &&
-            hasPermission(executionContext, ENVIRONMENT_NOTIFICATION, CREATE)
+            hasPermission(executionContext, ENVIRONMENT_NOTIFICATION, executionContext.getEnvironmentId(), CREATE)
         ) {
             return genericNotificationConfigService.create(config);
         } else if (
-            config.getConfigType().equals(NotificationConfigType.PORTAL) && hasPermission(executionContext, ENVIRONMENT_NOTIFICATION, READ)
+            config.getConfigType().equals(NotificationConfigType.PORTAL) &&
+            hasPermission(executionContext, ENVIRONMENT_NOTIFICATION, executionContext.getEnvironmentId(), READ)
         ) {
             return portalNotificationConfigService.save(convert(config));
         }
