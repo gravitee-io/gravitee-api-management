@@ -31,13 +31,13 @@
     <gio-banner-info>
       Define an additional rule when you're managing multiple plans of the same type to improve the plan's selection process.
       <span gioBannerBody>
-        For example, if you want to check the issuer of a jwt token: &#123; #context.attributes['jwt'].claims['iss'] == 'my-issuer' &#125;
+        For example, if you want to check the issuer of a jwt token: &#123;#context.attributes['jwt'].claims['iss'] == 'my-issuer'&#125;
       </span>
     </gio-banner-info>
     <mat-form-field class="selectionRule-field">
       <mat-label>Selection Rule</mat-label>
       <input matInput formControlName="selectionRule" />
-      <mat-hint> Support EL (e.g: &#123; #context.attributes['jwt'].claims['iss'] == 'my-issuer' &#125;)</mat-hint>
+      <mat-hint> Support EL (e.g: &#123;#context.attributes['jwt'].claims['iss'] == 'my-issuer'&#125;)</mat-hint>
     </mat-form-field>
   </ng-container>
 </ng-container>
