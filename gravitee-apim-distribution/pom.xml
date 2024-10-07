@@ -1427,7 +1427,7 @@
                 <dependency>
                     <groupId>com.graviteesource.apim</groupId>
                     <artifactId>gravitee-apim-repository-bridge-http-server</artifactId>
-                    <version>${gravitee-repository-bridge.version}</version>
+                    <version>${gravitee-apim-repository-bridge.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
@@ -1440,7 +1440,7 @@
                 <dependency>
                     <groupId>com.graviteesource.apim</groupId>
                     <artifactId>gravitee-apim-repository-bridge-http-client</artifactId>
-                    <version>${gravitee-repository-bridge.version}</version>
+                    <version>${gravitee-apim-repository-bridge.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
