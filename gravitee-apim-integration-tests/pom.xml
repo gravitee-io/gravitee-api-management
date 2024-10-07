@@ -22,8 +22,9 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.gravitee.apim</groupId>
-        <artifactId>gravitee-api-management</artifactId>
+        <artifactId>gravitee-apim-parent</artifactId>
         <version>${revision}${sha1}${changelist}</version>
+        <relativePath>../gravitee-apim-parent/pom.xml</relativePath>
     </parent>
 
     <groupId>io.gravitee.apim.plugin.reactor</groupId>
