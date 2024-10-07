@@ -117,10 +117,6 @@ public abstract class AbstractResource {
         return securityContext.isUserInRole(role);
     }
 
-    protected boolean hasPermission(final ExecutionContext executionContext, RolePermission permission, RolePermissionAction... acls) {
-        return hasPermission(executionContext, permission, null, acls);
-    }
-
     protected boolean hasPermission(
         ExecutionContext executionContext,
         RolePermission permission,

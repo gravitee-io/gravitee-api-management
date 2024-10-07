@@ -65,6 +65,7 @@ public class CategoriesResource extends AbstractCategoryResource {
         boolean hasAllPermissions = hasPermission(
             executionContext,
             RolePermission.ENVIRONMENT_CATEGORY,
+            executionContext.getEnvironmentId(),
             RolePermissionAction.UPDATE,
             RolePermissionAction.CREATE,
             RolePermissionAction.DELETE
