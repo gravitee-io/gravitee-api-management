@@ -51,6 +51,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -94,6 +96,8 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
     @Lazy
     @Inject
     private TicketRepository ticketRepository;
+
+    private static final PolicyFactory HTML_SANITIZER = new HtmlPolicyBuilder().allowElements("br").toFactory();
 
     private boolean isEnabled(ExecutionContext executionContext, String referenceId, ParameterReferenceType referenceType) {
         if (referenceType == ParameterReferenceType.ENVIRONMENT) {
@@ -159,7 +163,8 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
                 applicationEntity = null;
             }
 
-            parameters.put("content", ticketEntity.getContent().replaceAll("(\r\n|\n)", "<br />"));
+            final String content = HTML_SANITIZER.sanitize(ticketEntity.getContent().replaceAll("(\r\n|\n)", "<br />"));
+            parameters.put("content", content);
             parameters.put("ticketSubject", ticketEntity.getSubject());
             final String fromName = user.getFirstname() == null ? user.getEmail() : user.getFirstname() + ' ' + user.getLastname();
             emailService.sendEmailNotification(
