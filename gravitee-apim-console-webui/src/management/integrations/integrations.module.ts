@@ -52,11 +52,11 @@ import { IntegrationsNavigationComponent } from './integrations-navigation/integ
 import { IntegrationConfigurationComponent } from './integration-configuration/integration-configuration.component';
 import { IntegrationAgentComponent } from './integration-agent/integration-agent.component';
 import { IntegrationStatusComponent } from './components/integration-status/integration-status.component';
-import { DiscoveryPreviewComponent } from './discovery-preview/discovery-preview.component';
 import { IntegrationGeneralConfigurationComponent } from './integration-configuration/general/integration-general-configuration.component';
 import { IntegrationUserPermissionsComponent } from './integration-configuration/user-permissions/integration-user-permissions.component';
 import { IntegrationUserGroupModule } from './user-group-access/integration-user-group.module';
 import { CreateIntegrationModule } from './create-integration/create-integration.module';
+import { DiscoveryPreviewModule } from './discovery-preview/discovery-preview.module';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
@@ -69,7 +69,6 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     IntegrationConfigurationComponent,
     IntegrationAgentComponent,
     IntegrationStatusComponent,
-    DiscoveryPreviewComponent,
     IntegrationGeneralConfigurationComponent,
     IntegrationUserPermissionsComponent,
   ],
@@ -79,6 +78,7 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     IntegrationsRoutingModule,
     IntegrationUserGroupModule,
     CreateIntegrationModule,
+    DiscoveryPreviewModule,
 
     MatCardModule,
     MatTableModule,
