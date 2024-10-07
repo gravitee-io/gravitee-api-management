@@ -20,6 +20,7 @@ import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.factory.PageModelFactory;
+import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -78,6 +79,10 @@ public class ValidatePagesDomainService implements Validator<ValidatePagesDomain
                         false
                     );
                     sanitizedPages.put(k, PageModelFactory.toCRDSpec(sanitizedPage));
+                }
+
+                if (page.getType() != Page.Type.ROOT && StringUtils.isEmpty(page.getName())) {
+                    errors.add(Error.severe("Page [%s] is missing required property [name]", k));
                 }
             } catch (Exception e) {
                 errors.add(Error.severe("invalid documentation page [%s]. Error: %s", k, e.getMessage()));
