@@ -72,6 +72,7 @@ public class TicketServiceTest {
     private static final String API_ID = "my-api-id";
     private static final String APPLICATION_ID = "my-application-id";
     private static final String EMAIL_CONTENT = "Email\nContent";
+    private static final String XSS_EMAIL_CONTENT = "<style>p {display: none; }</style>Email\nContent";
     private static final String EMAIL_SUBJECT = "Email\nSubject";
     private static final boolean EMAIL_COPY_TO_SENDER = false;
     private static final String EMAIL_SUPPORT = "email@support.com";
@@ -559,5 +560,88 @@ public class TicketServiceTest {
         TicketEntity ticketEntity = ticketService.findById(GraviteeContext.getExecutionContext(), "ticket1");
 
         assertEquals("Unknown", ticketEntity.getApplication());
+    }
+
+    @Test
+    public void shouldCreateAndSanitizeWithApi() throws TechnicalException {
+        when(
+            mockParameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.CONSOLE_SUPPORT_ENABLED,
+                REFERENCE_ID,
+                REFERENCE_TYPE
+            )
+        )
+            .thenReturn(Boolean.TRUE);
+        when(newTicketEntity.getApi()).thenReturn(API_ID);
+        when(newTicketEntity.getApplication()).thenReturn(APPLICATION_ID);
+        when(newTicketEntity.getSubject()).thenReturn(EMAIL_SUBJECT);
+        when(newTicketEntity.isCopyToSender()).thenReturn(EMAIL_COPY_TO_SENDER);
+        when(newTicketEntity.getContent()).thenReturn(XSS_EMAIL_CONTENT);
+
+        when(userService.findById(GraviteeContext.getExecutionContext(), USERNAME)).thenReturn(user);
+        when(user.getEmail()).thenReturn(USER_EMAIL);
+        when(user.getFirstname()).thenReturn(USER_FIRSTNAME);
+        when(user.getLastname()).thenReturn(USER_LASTNAME);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID, true)).thenReturn(api);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+
+        Ticket ticketToCreate = new Ticket();
+        ticketToCreate.setId("generatedId");
+        ticketToCreate.setApi(API_ID);
+        ticketToCreate.setApplication(APPLICATION_ID);
+        ticketToCreate.setSubject(EMAIL_SUBJECT);
+        ticketToCreate.setContent(XSS_EMAIL_CONTENT);
+        ticketToCreate.setCreatedAt(new Date());
+        ticketToCreate.setFromUser(USERNAME);
+        when(ticketRepository.create(any(Ticket.class))).thenReturn(ticketToCreate);
+
+        final Map<String, String> metadata = new HashMap<>();
+        metadata.put(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY, EMAIL_SUPPORT);
+        when(api.getMetadata()).thenReturn(metadata);
+
+        TicketEntity createdTicket = ticketService.create(
+            GraviteeContext.getExecutionContext(),
+            USERNAME,
+            newTicketEntity,
+            REFERENCE_ID,
+            REFERENCE_TYPE
+        );
+
+        verify(emailService)
+            .sendEmailNotification(
+                GraviteeContext.getExecutionContext(),
+                new EmailNotificationBuilder()
+                    .replyTo(USER_EMAIL)
+                    .fromName(USER_FIRSTNAME + ' ' + USER_LASTNAME)
+                    .to(EMAIL_SUPPORT)
+                    .copyToSender(EMAIL_COPY_TO_SENDER)
+                    .template(TEMPLATES_FOR_ACTION_SUPPORT_TICKET)
+                    .params(
+                        ImmutableMap.of(
+                            "user",
+                            user,
+                            "api",
+                            api,
+                            "content",
+                            "Email<br />Content",
+                            "application",
+                            application,
+                            "ticketSubject",
+                            EMAIL_SUBJECT
+                        )
+                    )
+                    .build()
+            );
+        verify(mockNotifierService, times(1))
+            .trigger(eq(GraviteeContext.getExecutionContext()), eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
+
+        assertEquals("Invalid saved ticket id", createdTicket.getId(), ticketToCreate.getId());
+        assertEquals("Invalid saved ticket api", createdTicket.getApi(), ticketToCreate.getApi());
+        assertEquals("Invalid saved ticket application", createdTicket.getApplication(), ticketToCreate.getApplication());
+        assertEquals("Invalid saved ticket subject", createdTicket.getSubject(), ticketToCreate.getSubject());
+        assertEquals("Invalid saved ticket content", createdTicket.getContent(), ticketToCreate.getContent());
+        assertEquals("Invalid saved ticket from user", createdTicket.getFromUser(), ticketToCreate.getFromUser());
+        assertEquals("Invalid saved ticket created at", createdTicket.getCreatedAt(), ticketToCreate.getCreatedAt());
     }
 }
