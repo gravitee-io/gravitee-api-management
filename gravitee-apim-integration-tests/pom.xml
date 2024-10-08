@@ -41,9 +41,9 @@
         <dependencies>
             <!-- Import bom to properly inherit all dependencies -->
             <dependency>
-                <groupId>io.gravitee</groupId>
-                <artifactId>gravitee-bom</artifactId>
-                <version>${gravitee-bom.version}</version>
+                <groupId>io.gravitee.apim</groupId>
+                <artifactId>gravitee-apim-bom</artifactId>
+                <version>${project.version}</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
