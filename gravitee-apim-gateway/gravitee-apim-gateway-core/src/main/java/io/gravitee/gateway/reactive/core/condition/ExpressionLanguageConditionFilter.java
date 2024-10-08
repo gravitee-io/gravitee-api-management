@@ -19,6 +19,7 @@ import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.el.spel.function.xml.DocumentBuilderFactoryUtils;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,12 +30,12 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ExpressionLanguageConditionFilter<T extends ConditionSupplier> implements ConditionFilter<T> {
+public class ExpressionLanguageConditionFilter<T extends ConditionSupplier> implements ConditionFilter<BaseExecutionContext, T> {
 
     private static final Logger log = LoggerFactory.getLogger(DocumentBuilderFactoryUtils.class);
 
     @Override
-    public Maybe<T> filter(GenericExecutionContext ctx, T elt) {
+    public Maybe<T> filter(BaseExecutionContext ctx, T elt) {
         final String condition = elt.getCondition();
 
         if (condition == null || condition.isEmpty()) {

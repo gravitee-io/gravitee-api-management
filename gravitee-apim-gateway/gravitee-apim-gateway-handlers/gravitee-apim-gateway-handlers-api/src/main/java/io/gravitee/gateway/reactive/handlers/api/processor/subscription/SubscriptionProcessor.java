@@ -26,7 +26,7 @@ import static io.gravitee.repository.management.model.Subscription.Status.ACCEPT
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
-import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.handlers.api.context.SubscriptionTemplateVariableProvider;
 import io.gravitee.reporter.api.v4.metric.Metrics;
@@ -69,7 +69,7 @@ public class SubscriptionProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final MutableExecutionContext ctx) {
+    public Completable execute(final HttpExecutionContextInternal ctx) {
         return Completable.fromRunnable(() -> {
             String planId = ctx.getAttribute(ATTR_PLAN);
             String applicationId = ctx.getAttribute(ATTR_APPLICATION);
@@ -154,7 +154,11 @@ public class SubscriptionProcessor implements Processor {
      * @param fallbackId
      * @return client identifier
      */
-    private String computeCtxClientIdentifier(final MutableExecutionContext ctx, final String subscriptionId, final String fallbackId) {
+    private String computeCtxClientIdentifier(
+        final HttpExecutionContextInternal ctx,
+        final String subscriptionId,
+        final String fallbackId
+    ) {
         if (subscriptionId != null && !subscriptionId.equals(ctx.request().remoteAddress())) {
             return subscriptionId;
         } else if (subscriptionId != null && subscriptionId.equals(ctx.request().remoteAddress())) {

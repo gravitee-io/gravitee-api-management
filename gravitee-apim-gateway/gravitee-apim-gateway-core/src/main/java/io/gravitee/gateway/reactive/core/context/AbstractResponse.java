@@ -20,6 +20,7 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.api.context.GenericResponse;
 import io.gravitee.gateway.reactive.api.context.Response;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.core.BufferFlow;
 import io.gravitee.gateway.reactive.core.MessageFlow;
@@ -37,7 +38,7 @@ import java.util.function.Function;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractResponse implements MutableResponse {
+public abstract class AbstractResponse implements MutableResponse, HttpResponseInternal {
 
     protected BufferFlow bufferFlow;
     protected MessageFlow messageFlow;
@@ -85,7 +86,7 @@ public abstract class AbstractResponse implements MutableResponse {
     }
 
     @Override
-    public Completable end(final GenericExecutionContext ctx) {
+    public Completable end(final HttpBaseExecutionContext ctx) {
         return Completable.defer(() -> {
             final BufferFlow bufferFlow = lazyBufferFlow();
             if (bufferFlow.hasChunks()) {

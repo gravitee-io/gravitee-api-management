@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.handlers.api.v4.security.plan;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.SecurityPolicy;
+import io.gravitee.gateway.reactive.api.policy.http.HttpSecurityPolicy;
 import io.gravitee.gateway.reactive.handlers.api.security.plan.SecurityPlan;
 import io.gravitee.gateway.reactive.handlers.api.v4.security.policy.SecurityPolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
@@ -48,7 +49,7 @@ public class SecurityPlanFactory {
             return null;
         }
 
-        final SecurityPolicy policy = SecurityPolicyFactory.forPlan(apiId, plan, policyManager, executionPhase);
+        final HttpSecurityPolicy policy = SecurityPolicyFactory.forPlan(apiId, plan, policyManager, executionPhase);
 
         if (policy != null) {
             return new SecurityPlan(plan.getId(), policy, plan.getSelectionRule());

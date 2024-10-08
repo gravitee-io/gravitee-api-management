@@ -20,7 +20,7 @@ import static org.mockito.Mockito.verify;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.policy.api.PolicyResult;
@@ -36,7 +36,7 @@ class PolicyChainAdapterTest {
 
     @Test
     public void shouldCompleteWhenDoNext() {
-        final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
+        final HttpPlainExecutionContext ctx = mock(HttpPlainExecutionContext.class);
         final CompletableEmitter emitter = mock(CompletableEmitter.class);
 
         final PolicyChainAdapter cut = new PolicyChainAdapter(ctx, emitter);
@@ -48,7 +48,7 @@ class PolicyChainAdapterTest {
 
     @Test
     public void shouldInterruptAndCompleteWhenFailWith() {
-        final HttpExecutionContext ctx = new DefaultExecutionContext(null, null);
+        final HttpPlainExecutionContext ctx = new DefaultExecutionContext(null, null);
         final PolicyResult policyResult = PolicyResult.failure("key", 500, "error");
 
         Completable
@@ -62,7 +62,7 @@ class PolicyChainAdapterTest {
 
     @Test
     public void shouldInterruptAndCompleteWhenStreamFailWith() {
-        final HttpExecutionContext ctx = new DefaultExecutionContext(null, null);
+        final HttpPlainExecutionContext ctx = new DefaultExecutionContext(null, null);
         final PolicyResult policyResult = PolicyResult.failure("key", 500, "error");
 
         Completable

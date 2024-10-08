@@ -25,6 +25,7 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.reactive.flow.FlowResolver;
@@ -46,7 +47,7 @@ class FlowResolverFactoryTest {
     protected static final String ORGANIZATION_ID = "ORGANIZATION_ID";
 
     @Mock
-    private ConditionFilter<Flow> filter;
+    private ConditionFilter<HttpBaseExecutionContext, Flow> filter;
 
     @Mock
     private AbstractBestMatchFlowSelector bestMatchFlowSelector;

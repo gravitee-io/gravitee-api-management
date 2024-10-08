@@ -20,7 +20,7 @@ import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
 import io.gravitee.gateway.reactive.policy.adapter.policy.PolicyAdapter;
 import io.gravitee.policy.api.PolicyConfiguration;
@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class DefaultPolicyFactory implements PolicyFactory {
 
-    private final ConcurrentMap<String, Policy> policies = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, HttpPolicy> policies = new ConcurrentHashMap<>();
     private final PolicyPluginFactory policyPluginFactory;
     private final io.gravitee.gateway.policy.PolicyFactory v3PolicyFactory;
     protected final ExpressionLanguageConditionFilter<ConditionalPolicy> filter;
@@ -56,7 +56,7 @@ public class DefaultPolicyFactory implements PolicyFactory {
     }
 
     @Override
-    public Policy create(
+    public HttpPolicy create(
         final ExecutionPhase executionPhase,
         final PolicyManifest policyManifest,
         final PolicyConfiguration policyConfiguration,
@@ -74,16 +74,16 @@ public class DefaultPolicyFactory implements PolicyFactory {
         );
     }
 
-    protected Policy createPolicy(
+    protected HttpPolicy createPolicy(
         final ExecutionPhase phase,
         final PolicyManifest policyManifest,
         final PolicyConfiguration policyConfiguration,
         final PolicyMetadata policyMetadata
     ) {
-        Policy policy = null;
+        HttpPolicy policy = null;
 
-        if (Policy.class.isAssignableFrom(policyManifest.policy())) {
-            policy = (Policy) policyPluginFactory.create(policyManifest.policy(), policyConfiguration);
+        if (HttpPolicy.class.isAssignableFrom(policyManifest.policy())) {
+            policy = (HttpPolicy) policyPluginFactory.create(policyManifest.policy(), policyConfiguration);
         } else if (phase == ExecutionPhase.REQUEST || phase == ExecutionPhase.RESPONSE) {
             StreamType streamType = phase == ExecutionPhase.REQUEST ? StreamType.ON_REQUEST : StreamType.ON_RESPONSE;
             if (policyManifest.accept(streamType)) {
@@ -106,7 +106,7 @@ public class DefaultPolicyFactory implements PolicyFactory {
         return policy;
     }
 
-    protected Policy createConditionalPolicy(PolicyMetadata policyMetadata, Policy policy) {
+    protected HttpPolicy createConditionalPolicy(PolicyMetadata policyMetadata, HttpPolicy policy) {
         if (policy != null) {
             final String condition = policyMetadata.getCondition();
 

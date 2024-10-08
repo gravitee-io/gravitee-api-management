@@ -17,11 +17,11 @@ package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging;
 
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
-import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
-import io.gravitee.gateway.reactive.core.context.MutableResponse;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
+import io.gravitee.gateway.reactive.core.context.HttpResponseInternal;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.request.LogEndpointRequest;
@@ -42,7 +42,7 @@ public class LoggingHook implements InvokerHook {
     }
 
     @Override
-    public Completable pre(String id, ExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
+    public Completable pre(String id, HttpExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
         return Completable.fromRunnable(() -> {
             final Log log = ctx.metrics().getLog();
             final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
@@ -51,13 +51,13 @@ public class LoggingHook implements InvokerHook {
             if (log != null && loggingContext != null && loggingContext.endpointRequest()) {
                 ((LogEndpointRequest) log.getEndpointRequest()).capture();
 
-                ((MutableExecutionContext) ctx).response().setHeaders(new LogHeadersCaptor(ctx.response().headers()));
+                ((HttpExecutionContextInternal) ctx).response().setHeaders(new LogHeadersCaptor(ctx.response().headers()));
             }
         });
     }
 
     @Override
-    public Completable post(String id, ExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
+    public Completable post(String id, HttpExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
         return Completable.fromRunnable(() -> {
             final Log log = ctx.metrics().getLog();
             final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
@@ -75,19 +75,24 @@ public class LoggingHook implements InvokerHook {
             if (log != null && loggingContext != null && loggingContext.endpointResponse()) {
                 ((LogEndpointResponse) log.getEndpointResponse()).capture();
 
-                final MutableResponse response = ((MutableExecutionContext) ctx).response();
+                final HttpResponseInternal response = ((HttpExecutionContextInternal) ctx).response();
                 response.setHeaders(((LogHeadersCaptor) response.headers()).getDelegate());
             }
         });
     }
 
     @Override
-    public Completable interrupt(String id, ExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
+    public Completable interrupt(String id, HttpExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
         return post(id, ctx, executionPhase);
     }
 
     @Override
-    public Completable interruptWith(String id, ExecutionContext ctx, @Nullable ExecutionPhase executionPhase, ExecutionFailure failure) {
+    public Completable interruptWith(
+        String id,
+        HttpExecutionContext ctx,
+        @Nullable ExecutionPhase executionPhase,
+        ExecutionFailure failure
+    ) {
         return post(id, ctx, executionPhase);
     }
 }

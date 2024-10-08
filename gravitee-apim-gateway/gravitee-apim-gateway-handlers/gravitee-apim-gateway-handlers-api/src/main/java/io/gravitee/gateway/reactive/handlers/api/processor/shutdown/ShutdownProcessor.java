@@ -19,6 +19,7 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.node.api.Node;
@@ -44,7 +45,7 @@ public class ShutdownProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final MutableExecutionContext ctx) {
+    public Completable execute(final HttpExecutionContextInternal ctx) {
         return Completable.fromRunnable(() -> {
             if (node.lifecycleState() != Lifecycle.State.STARTED) {
                 // The node is certainly shutting down, explicitly ask for closing connection.

@@ -22,8 +22,8 @@ import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.flow.condition.ConditionalFlowResolver;
 import io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.List;
@@ -62,7 +62,7 @@ public abstract class BestMatchFlowBaseTest extends FlowBaseTest {
             .collect(Collectors.toList());
     }
 
-    protected static class TestFlowResolver extends ConditionalFlowResolver implements FlowResolver {
+    protected static class TestFlowResolver extends ConditionalFlowResolver implements FlowResolver<BaseExecutionContext> {
 
         private final List<Flow> flows;
 
@@ -77,13 +77,13 @@ public abstract class BestMatchFlowBaseTest extends FlowBaseTest {
         }
 
         @Override
-        public Flowable<Flow> provideFlows(GenericExecutionContext ctx) {
+        public Flowable<Flow> provideFlows(BaseExecutionContext ctx) {
             return Flowable.fromIterable(flows);
         }
 
         @Override
-        public Flowable<Flow> resolve(GenericExecutionContext ctx) {
-            return Flowable.fromIterable(super.resolve(ExecutionContextAdapter.create((HttpExecutionContext) ctx)));
+        public Flowable<Flow> resolve(BaseExecutionContext ctx) {
+            return Flowable.fromIterable(super.resolve(ExecutionContextAdapter.create((HttpPlainExecutionContext) ctx)));
         }
     }
 }

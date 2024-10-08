@@ -16,12 +16,12 @@
 package io.gravitee.gateway.reactive.policy;
 
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.hook.Hook;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.Hookable;
+import io.gravitee.gateway.reactive.api.hook.HttpHook;
 import io.gravitee.gateway.reactive.api.hook.MessageHook;
 import io.gravitee.gateway.reactive.api.hook.PolicyHook;
-import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
@@ -39,12 +39,12 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PolicyChain implements Hookable<Hook> {
+public class PolicyChain implements Hookable<HttpHook> {
 
     private final Logger log = LoggerFactory.getLogger(PolicyChain.class);
 
     private final String id;
-    private final Flowable<Policy> policies;
+    private final Flowable<HttpPolicy> policies;
     private final ExecutionPhase phase;
     private List<PolicyHook> policyHooks;
     private List<MessageHook> messageHooks;
@@ -56,7 +56,7 @@ public class PolicyChain implements Hookable<Hook> {
      * @param policies the list of the policies to be part of the execution chain.
      * @param phase the execution phase that will be used to determine the method of the policies to execute.
      */
-    public PolicyChain(@Nonnull String id, @Nonnull List<Policy> policies, @Nonnull ExecutionPhase phase) {
+    public PolicyChain(@Nonnull String id, @Nonnull List<HttpPolicy> policies, @Nonnull ExecutionPhase phase) {
         this.id = id;
         this.phase = phase;
         this.policies = Flowable.fromIterable(policies);
@@ -67,7 +67,7 @@ public class PolicyChain implements Hookable<Hook> {
     }
 
     @Override
-    public void addHooks(final List<Hook> hooks) {
+    public void addHooks(final List<HttpHook> hooks) {
         if (this.policyHooks == null) {
             this.policyHooks = new ArrayList<>();
         }
@@ -91,11 +91,11 @@ public class PolicyChain implements Hookable<Hook> {
      * @return a {@link Completable} that completes when all the policies of the chain have been executed or the chain has been interrupted.
      * The {@link Completable} may complete in error in case of any error occurred while executing the policies.
      */
-    public Completable execute(ExecutionContext ctx) {
+    public Completable execute(HttpExecutionContext ctx) {
         return policies.concatMapCompletable(policy -> executePolicy(ctx, policy));
     }
 
-    private Completable executePolicy(final ExecutionContext ctx, final Policy policy) {
+    private Completable executePolicy(final HttpExecutionContext ctx, final HttpPolicy policy) {
         log.debug("Executing policy {} on phase {} in policy chain {}", policy.id(), phase, id);
 
         switch (phase) {

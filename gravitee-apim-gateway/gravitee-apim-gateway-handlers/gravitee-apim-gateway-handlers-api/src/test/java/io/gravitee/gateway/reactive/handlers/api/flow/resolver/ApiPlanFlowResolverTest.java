@@ -18,12 +18,15 @@ package io.gravitee.gateway.reactive.handlers.api.flow.resolver;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
@@ -45,10 +48,10 @@ class ApiPlanFlowResolverTest {
     private Api api;
 
     @Mock
-    private ConditionFilter<Flow> filter;
+    private ConditionFilter<HttpBaseExecutionContext, Flow> filter;
 
     @Mock
-    private HttpExecutionContext ctx;
+    private HttpPlainExecutionContext ctx;
 
     @Test
     public void shouldProvideApiPlanFlowsOrdered() {

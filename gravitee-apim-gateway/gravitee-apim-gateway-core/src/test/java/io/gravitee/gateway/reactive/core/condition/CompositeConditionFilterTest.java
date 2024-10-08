@@ -19,7 +19,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.ConditionSupplier;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.observers.TestObserver;
 import org.junit.jupiter.api.Test;
@@ -37,23 +38,27 @@ class CompositeConditionFilterTest {
     protected static final String MOCK_EXCEPTION = "Mock exception";
 
     @Mock
-    private ConditionFilter<ConditionSupplier> evaluator1;
+    private ConditionFilter<BaseExecutionContext, ConditionSupplier> evaluator1;
 
     @Mock
-    private ConditionFilter<ConditionSupplier> evaluator2;
+    private ConditionFilter<BaseExecutionContext, ConditionSupplier> evaluator2;
 
     @Mock
-    private ConditionFilter<ConditionSupplier> evaluator3;
+    private ConditionFilter<BaseExecutionContext, ConditionSupplier> evaluator3;
 
     @Mock
-    private HttpExecutionContext ctx;
+    private HttpPlainExecutionContext ctx;
 
     @Mock
     private ConditionSupplier conditionSupplier;
 
     @Test
     void shouldNotFilterWhenAllEvaluatorsReturnTheValue() {
-        final CompositeConditionFilter<ConditionSupplier> cut = new CompositeConditionFilter<>(evaluator1, evaluator2, evaluator3);
+        final CompositeConditionFilter<BaseExecutionContext, ConditionSupplier> cut = new CompositeConditionFilter<>(
+            evaluator1,
+            evaluator2,
+            evaluator3
+        );
 
         mockFilter(evaluator1);
         mockFilter(evaluator2);
@@ -66,7 +71,11 @@ class CompositeConditionFilterTest {
 
     @Test
     void shouldFilterWhenOneEvaluatorReturnsEmpty() {
-        final CompositeConditionFilter<ConditionSupplier> cut = new CompositeConditionFilter<>(evaluator1, evaluator2, evaluator3);
+        final CompositeConditionFilter<BaseExecutionContext, ConditionSupplier> cut = new CompositeConditionFilter<>(
+            evaluator1,
+            evaluator2,
+            evaluator3
+        );
 
         mockFilter(evaluator1);
         mockFilter(evaluator2);
@@ -80,7 +89,11 @@ class CompositeConditionFilterTest {
 
     @Test
     void shouldErrorWhenOneEvaluatorReturnsError() {
-        final CompositeConditionFilter<ConditionSupplier> cut = new CompositeConditionFilter<>(evaluator1, evaluator2, evaluator3);
+        final CompositeConditionFilter<BaseExecutionContext, ConditionSupplier> cut = new CompositeConditionFilter<>(
+            evaluator1,
+            evaluator2,
+            evaluator3
+        );
 
         mockFilter(evaluator1);
         mockFilter(evaluator2);
@@ -94,7 +107,11 @@ class CompositeConditionFilterTest {
 
     @Test
     void shouldNotContinueWhenReturnsEmpty() {
-        final CompositeConditionFilter<ConditionSupplier> cut = new CompositeConditionFilter<>(evaluator1, evaluator2, evaluator3);
+        final CompositeConditionFilter<BaseExecutionContext, ConditionSupplier> cut = new CompositeConditionFilter<>(
+            evaluator1,
+            evaluator2,
+            evaluator3
+        );
 
         mockFilterEmpty(evaluator1);
 
@@ -107,15 +124,15 @@ class CompositeConditionFilterTest {
         verifyNoInteractions(evaluator3);
     }
 
-    private void mockFilter(ConditionFilter<ConditionSupplier> filter) {
+    private void mockFilter(ConditionFilter<BaseExecutionContext, ConditionSupplier> filter) {
         when(filter.filter(ctx, conditionSupplier)).thenAnswer(i -> Maybe.just(i.getArgument(1)));
     }
 
-    private void mockFilterEmpty(ConditionFilter<ConditionSupplier> filter) {
+    private void mockFilterEmpty(ConditionFilter<BaseExecutionContext, ConditionSupplier> filter) {
         when(filter.filter(ctx, conditionSupplier)).thenAnswer(i -> Maybe.empty());
     }
 
-    private void mockFilterError(ConditionFilter<ConditionSupplier> filter) {
+    private void mockFilterError(ConditionFilter<BaseExecutionContext, ConditionSupplier> filter) {
         when(filter.filter(ctx, conditionSupplier)).thenAnswer(i -> Maybe.error(new RuntimeException(MOCK_EXCEPTION)));
     }
 }

@@ -21,6 +21,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
+import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.policy.AbstractPolicyManager;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
@@ -58,7 +59,7 @@ public class SharedPolicyGroupPolicyManager extends AbstractPolicyManager {
     }
 
     @Override
-    public io.gravitee.gateway.reactive.api.policy.Policy create(ExecutionPhase executionPhase, PolicyMetadata policyMetadata) {
+    public HttpPolicy create(ExecutionPhase executionPhase, PolicyMetadata policyMetadata) {
         return super.create(executionPhase, policyMetadata);
     }
 

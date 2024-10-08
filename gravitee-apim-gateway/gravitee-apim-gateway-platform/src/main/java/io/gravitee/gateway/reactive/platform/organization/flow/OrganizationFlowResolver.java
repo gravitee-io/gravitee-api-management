@@ -19,7 +19,8 @@ import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.flow.AbstractFlowResolver;
 import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
@@ -35,7 +36,7 @@ import java.util.Objects;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class OrganizationFlowResolver extends AbstractFlowResolver {
+public class OrganizationFlowResolver extends AbstractFlowResolver<HttpBaseExecutionContext> {
 
     private final String organizationId;
     private final OrganizationManager organizationManager;
@@ -46,7 +47,7 @@ public class OrganizationFlowResolver extends AbstractFlowResolver {
     public OrganizationFlowResolver(
         final String organizationId,
         final OrganizationManager organizationManager,
-        final ConditionFilter<Flow> filter,
+        final ConditionFilter<HttpBaseExecutionContext, Flow> filter,
         final AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector
     ) {
         super(filter);
@@ -57,7 +58,7 @@ public class OrganizationFlowResolver extends AbstractFlowResolver {
     }
 
     @Override
-    public Flowable<Flow> resolve(final GenericExecutionContext ctx) {
+    public Flowable<Flow> resolve(final HttpBaseExecutionContext ctx) {
         return super
             .resolve(ctx)
             .compose(upstream -> {
@@ -79,7 +80,7 @@ public class OrganizationFlowResolver extends AbstractFlowResolver {
     }
 
     @Override
-    public Flowable<Flow> provideFlows(GenericExecutionContext ctx) {
+    public Flowable<Flow> provideFlows(HttpBaseExecutionContext ctx) {
         initFlows();
         return this.flows;
     }

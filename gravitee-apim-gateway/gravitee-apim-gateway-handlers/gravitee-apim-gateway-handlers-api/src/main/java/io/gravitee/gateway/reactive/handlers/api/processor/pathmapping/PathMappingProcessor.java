@@ -20,7 +20,7 @@ import static java.util.Comparator.comparing;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
-import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Map;
@@ -47,7 +47,7 @@ public class PathMappingProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final MutableExecutionContext ctx) {
+    public Completable execute(final HttpExecutionContextInternal ctx) {
         return Completable.fromRunnable(() -> {
             Map<String, Pattern> pathMappings = getPathMappings(ctx);
 
@@ -67,7 +67,7 @@ public class PathMappingProcessor implements Processor {
         });
     }
 
-    private Map<String, Pattern> getPathMappings(final MutableExecutionContext ctx) {
+    private Map<String, Pattern> getPathMappings(final HttpExecutionContextInternal ctx) {
         try {
             io.gravitee.definition.model.v4.Api api = ctx.getComponent(io.gravitee.definition.model.v4.Api.class);
             return api

@@ -16,7 +16,7 @@
 package io.gravitee.gateway.reactive.reactor.processor.transaction;
 
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.reactivex.rxjava3.core.Completable;
 
@@ -51,7 +51,7 @@ public class TransactionPreProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final MutableExecutionContext ctx) {
+    public Completable execute(final HttpExecutionContextInternal ctx) {
         return Completable.fromRunnable(() -> {
             final String requestId = ctx.request().id();
             String transactionId = ctx.request().headers().get(transactionHeader);

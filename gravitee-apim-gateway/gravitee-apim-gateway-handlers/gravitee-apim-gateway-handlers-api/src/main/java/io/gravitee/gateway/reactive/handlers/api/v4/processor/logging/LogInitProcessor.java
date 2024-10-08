@@ -18,11 +18,11 @@ package io.gravitee.gateway.reactive.handlers.api.v4.processor.logging;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_API;
 
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
-import io.gravitee.gateway.reactive.api.context.HttpRequest;
-import io.gravitee.gateway.reactive.api.context.HttpResponse;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainResponse;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
-import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
@@ -54,7 +54,7 @@ public class LogInitProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final MutableExecutionContext ctx) {
+    public Completable execute(final HttpExecutionContextInternal ctx) {
         return Completable.defer(() -> {
             final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
 
@@ -69,9 +69,9 @@ public class LogInitProcessor implements Processor {
         });
     }
 
-    private void initLogEntity(final MutableExecutionContext ctx, final LoggingContext loggingContext) {
-        HttpRequest request = ctx.request();
-        HttpResponse response = ctx.response();
+    private void initLogEntity(final HttpExecutionContextInternal ctx, final LoggingContext loggingContext) {
+        HttpPlainRequest request = ctx.request();
+        HttpPlainResponse response = ctx.response();
 
         Log log = Log
             .builder()

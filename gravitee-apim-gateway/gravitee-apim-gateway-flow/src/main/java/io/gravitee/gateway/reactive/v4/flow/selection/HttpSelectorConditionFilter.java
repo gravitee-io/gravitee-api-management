@@ -18,13 +18,13 @@ package io.gravitee.gateway.reactive.v4.flow.selection;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.gateway.flow.condition.evaluation.PathPatterns;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
+import io.gravitee.gateway.reactive.core.condition.http.HttpConditionFilter;
 import io.reactivex.rxjava3.core.Maybe;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -34,12 +34,12 @@ import java.util.regex.Pattern;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpSelectorConditionFilter implements ConditionFilter<Flow> {
+public class HttpSelectorConditionFilter implements HttpConditionFilter<Flow> {
 
     private final PathPatterns pathPatterns = new PathPatterns();
 
     @Override
-    public Maybe<Flow> filter(final GenericExecutionContext ctx, final Flow flow) {
+    public Maybe<Flow> filter(final HttpBaseExecutionContext ctx, final Flow flow) {
         return flow
             .selectorByType(SelectorType.HTTP)
             .map(selector -> {
@@ -53,7 +53,7 @@ public class HttpSelectorConditionFilter implements ConditionFilter<Flow> {
             .orElse(Maybe.just(flow));
     }
 
-    private boolean isPathMatches(final GenericExecutionContext ctx, final HttpSelector httpSelector) {
+    private boolean isPathMatches(final HttpBaseExecutionContext ctx, final HttpSelector httpSelector) {
         Pattern pattern = pathPatterns.getOrCreate(httpSelector.getPath());
         String pathInfo = ctx.request().pathInfo();
         return (httpSelector.getPathOperator() == Operator.EQUALS)
@@ -61,7 +61,7 @@ public class HttpSelectorConditionFilter implements ConditionFilter<Flow> {
             : pattern.matcher(pathInfo).lookingAt();
     }
 
-    private boolean isMethodMatches(final GenericExecutionContext ctx, final HttpSelector httpSelector) {
+    private boolean isMethodMatches(final HttpBaseExecutionContext ctx, final HttpSelector httpSelector) {
         return (
             httpSelector.getMethods() == null ||
             httpSelector.getMethods().isEmpty() ||

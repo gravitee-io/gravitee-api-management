@@ -20,6 +20,7 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.v4.flow.AbstractFlowResolver;
 import io.reactivex.rxjava3.core.Flowable;
@@ -40,15 +41,15 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
 
     private final Api api;
 
-    private Map<String, Flowable<Flow>> flowsByPlanId = new ConcurrentHashMap<>();
+    private final Map<String, Flowable<Flow>> flowsByPlanId = new ConcurrentHashMap<>();
 
-    public ApiPlanFlowResolver(Api api, ConditionFilter<Flow> filter) {
+    public ApiPlanFlowResolver(Api api, ConditionFilter<BaseExecutionContext, Flow> filter) {
         super(filter);
         this.api = api;
     }
 
     @Override
-    public Flowable<Flow> provideFlows(GenericExecutionContext ctx) {
+    public Flowable<Flow> provideFlows(BaseExecutionContext ctx) {
         final List<Plan> plans = api.getPlans();
         if (plans == null || plans.isEmpty()) {
             return Flowable.empty();

@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.request;
 
-import io.gravitee.gateway.reactive.api.context.HttpRequest;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 
 /**
@@ -26,7 +26,7 @@ import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
  */
 public class LogEntrypointRequest extends LogRequest {
 
-    public LogEntrypointRequest(LoggingContext loggingContext, HttpRequest request) {
+    public LogEntrypointRequest(LoggingContext loggingContext, HttpPlainRequest request) {
         super(loggingContext, request);
         this.setUri(request.uri());
     }

@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.el;
 
-import static io.gravitee.gateway.reactive.api.context.HttpExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST;
-import static io.gravitee.gateway.reactive.api.context.HttpExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE;
+import static io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST;
+import static io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE;
 import static io.reactivex.rxjava3.core.Single.defer;
 
 import com.fasterxml.jackson.core.type.TypeReference;

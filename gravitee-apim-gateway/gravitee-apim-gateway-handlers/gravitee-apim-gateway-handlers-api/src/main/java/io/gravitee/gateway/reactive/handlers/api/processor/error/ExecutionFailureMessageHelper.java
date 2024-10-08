@@ -22,6 +22,8 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.GenericRequest;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseRequest;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -34,7 +36,7 @@ import lombok.NoArgsConstructor;
 public class ExecutionFailureMessageHelper {
 
     public static ExecutionFailureMessage createFailureMessage(
-        final GenericRequest request,
+        final HttpBaseRequest request,
         final ExecutionFailure executionFailure,
         final ObjectMapper objectMapper
     ) {

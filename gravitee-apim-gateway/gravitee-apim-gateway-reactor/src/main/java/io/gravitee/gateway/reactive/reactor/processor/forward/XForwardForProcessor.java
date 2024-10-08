@@ -16,10 +16,9 @@
 package io.gravitee.gateway.reactive.reactor.processor.forward;
 
 import io.gravitee.gateway.api.http.HttpHeaderNames;
-import io.gravitee.gateway.reactive.api.context.GenericRequest;
-import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseRequest;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
-import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Arrays;
 import java.util.regex.Pattern;
@@ -43,9 +42,9 @@ public class XForwardForProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final MutableExecutionContext ctx) {
+    public Completable execute(final HttpExecutionContextInternal ctx) {
         return Completable.fromRunnable(() -> {
-            final GenericRequest request = ctx.request();
+            final HttpBaseRequest request = ctx.request();
 
             String xForwardedForHeader = request.headers().get(HttpHeaderNames.X_FORWARDED_FOR);
 

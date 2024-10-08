@@ -177,7 +177,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
     @SuppressWarnings("java:S1845")
     protected FlowResolverFactory flowResolverFactory() {
         return new FlowResolverFactory(
-            new CompositeConditionFilter<>(new HttpSelectorConditionFilter(), new ConditionSelectorConditionFilter()),
+            new CompositeConditionFilter(new HttpSelectorConditionFilter(), new ConditionSelectorConditionFilter()),
             new BestMatchFlowSelector()
         );
     }

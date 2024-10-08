@@ -18,9 +18,9 @@ package io.gravitee.gateway.reactive.policy.adapter.policy;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
-import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
-import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.gravitee.gateway.reactive.api.context.http.HttpMessageExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
+import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PolicyAdapter implements Policy {
+public class PolicyAdapter implements HttpPolicy {
 
     private final io.gravitee.gateway.policy.Policy policy;
 
@@ -46,22 +46,22 @@ public class PolicyAdapter implements Policy {
     }
 
     @Override
-    public Completable onRequest(HttpExecutionContext ctx) {
+    public Completable onRequest(HttpPlainExecutionContext ctx) {
         return execute(ctx, ExecutionPhase.REQUEST);
     }
 
     @Override
-    public Completable onResponse(HttpExecutionContext ctx) {
+    public Completable onResponse(HttpPlainExecutionContext ctx) {
         return execute(ctx, ExecutionPhase.RESPONSE);
     }
 
     @Override
-    public Completable onMessageRequest(final MessageExecutionContext ctx) {
+    public Completable onMessageRequest(final HttpMessageExecutionContext ctx) {
         return Completable.error(new RuntimeException("Cannot adapt v3 policy for message execution"));
     }
 
     @Override
-    public Completable onMessageResponse(final MessageExecutionContext ctx) {
+    public Completable onMessageResponse(final HttpMessageExecutionContext ctx) {
         return Completable.error(new RuntimeException("Cannot adapt v3 policy for message execution"));
     }
 
@@ -76,7 +76,7 @@ public class PolicyAdapter implements Policy {
      *
      * @return a {@link Completable} indicating the execution is completed.
      */
-    private Completable execute(final HttpExecutionContext ctx, final ExecutionPhase phase) {
+    private Completable execute(final HttpPlainExecutionContext ctx, final ExecutionPhase phase) {
         final ExecutionContextAdapter adaptedCtx = ExecutionContextAdapter.create(ctx);
 
         Completable completable;
@@ -110,7 +110,7 @@ public class PolicyAdapter implements Policy {
         return Completable.create(emitter -> {
             try {
                 // Invoke the policy to get the appropriate read/write stream.
-                final HttpExecutionContext ctx = adaptedCtx.getDelegate();
+                final HttpPlainExecutionContext ctx = adaptedCtx.getDelegate();
                 final ReadWriteStream<Buffer> stream = policy.stream(new PolicyChainAdapter(ctx, emitter), adaptedCtx);
 
                 if (stream == null) {
@@ -147,7 +147,7 @@ public class PolicyAdapter implements Policy {
         });
     }
 
-    private Maybe<Buffer> getBody(HttpExecutionContext ctx, ExecutionPhase phase) {
+    private Maybe<Buffer> getBody(HttpPlainExecutionContext ctx, ExecutionPhase phase) {
         if (phase == ExecutionPhase.REQUEST) {
             return ctx.request().body();
         } else {
@@ -155,7 +155,7 @@ public class PolicyAdapter implements Policy {
         }
     }
 
-    private void setBody(HttpExecutionContext ctx, ExecutionPhase phase, Buffer newBuffer) {
+    private void setBody(HttpPlainExecutionContext ctx, ExecutionPhase phase, Buffer newBuffer) {
         if (phase == ExecutionPhase.REQUEST) {
             ctx.request().body(newBuffer);
         } else {

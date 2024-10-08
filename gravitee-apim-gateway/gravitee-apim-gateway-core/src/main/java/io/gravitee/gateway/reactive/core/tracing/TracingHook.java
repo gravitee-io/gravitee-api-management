@@ -16,7 +16,7 @@
 package io.gravitee.gateway.reactive.core.tracing;
 
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.ChainHook;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
 import io.gravitee.gateway.reactive.api.hook.ProcessorHook;
@@ -53,7 +53,7 @@ public class TracingHook extends AbstractTracingHook implements ProcessorHook, C
     }
 
     @Override
-    protected void withAttributes(String id, ExecutionContext ctx, ExecutionPhase executionPhase, Span span) {
+    protected void withAttributes(String id, HttpExecutionContext ctx, ExecutionPhase executionPhase, Span span) {
         super.withAttributes(id, ctx, executionPhase, span);
         span.withAttribute(key, id);
     }

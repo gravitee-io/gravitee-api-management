@@ -16,28 +16,31 @@
 package io.gravitee.gateway.reactive.policy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.Request;
-import io.gravitee.gateway.reactive.api.context.Response;
-import io.gravitee.gateway.reactive.api.message.DefaultMessage;
-import io.gravitee.gateway.reactive.api.message.Message;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
+import io.gravitee.gateway.reactive.api.context.http.HttpResponse;
 import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
-import io.gravitee.gateway.reactive.core.condition.MessageConditionFilter;
-import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
-import io.gravitee.gateway.reactive.core.context.MutableRequest;
-import io.gravitee.gateway.reactive.core.context.MutableResponse;
-import io.reactivex.rxjava3.core.*;
-import io.reactivex.rxjava3.subscribers.TestSubscriber;
-import java.util.function.Function;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
+import io.gravitee.gateway.reactive.core.context.HttpRequestInternal;
+import io.gravitee.gateway.reactive.core.context.HttpResponseInternal;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.CompletableObserver;
+import io.reactivex.rxjava3.core.Maybe;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -56,16 +59,16 @@ class ConditionalPolicyTest {
     private Policy policy;
 
     @Mock
-    private ConditionFilter<ConditionalPolicy> conditionFilter;
+    private ConditionFilter<BaseExecutionContext, ConditionalPolicy> conditionFilter;
 
-    @Mock(extraInterfaces = MutableExecutionContext.class)
-    private ExecutionContext ctx;
+    @Mock(extraInterfaces = { HttpExecutionContextInternal.class })
+    private HttpExecutionContext ctx;
 
-    @Mock(extraInterfaces = MutableRequest.class)
-    private Request request;
+    @Mock(extraInterfaces = HttpRequestInternal.class)
+    private HttpRequest request;
 
-    @Mock(extraInterfaces = MutableResponse.class)
-    private Response response;
+    @Mock(extraInterfaces = HttpResponseInternal.class)
+    private HttpResponse response;
 
     @Spy
     private Completable spyCompletable = Completable.complete();

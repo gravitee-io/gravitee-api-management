@@ -16,10 +16,10 @@
 package io.gravitee.gateway.reactive.policy;
 
 import io.gravitee.definition.model.ConditionSupplier;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
-import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
-import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpMessageExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
+import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.reactivex.rxjava3.core.Completable;
 import org.slf4j.Logger;
@@ -29,16 +29,20 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ConditionalPolicy implements Policy, ConditionSupplier {
+public class ConditionalPolicy implements HttpPolicy, ConditionSupplier {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(ConditionalPolicy.class);
 
-    protected final Policy policy;
+    protected final HttpPolicy policy;
     protected final String condition;
-    protected final ConditionFilter<ConditionalPolicy> conditionFilter;
+    protected final ConditionFilter<BaseExecutionContext, ConditionalPolicy> conditionFilter;
     protected final boolean conditionDefined;
 
-    public ConditionalPolicy(Policy policy, String condition, ConditionFilter<ConditionalPolicy> conditionFilter) {
+    public ConditionalPolicy(
+        HttpPolicy policy,
+        String condition,
+        ConditionFilter<BaseExecutionContext, ConditionalPolicy> conditionFilter
+    ) {
         this.policy = policy;
         this.condition = condition;
         this.conditionFilter = conditionFilter;
@@ -51,7 +55,7 @@ public class ConditionalPolicy implements Policy, ConditionSupplier {
     }
 
     @Override
-    public Completable onRequest(HttpExecutionContext ctx) {
+    public Completable onRequest(HttpPlainExecutionContext ctx) {
         if (!conditionDefined) {
             return policy.onRequest(ctx);
         }
@@ -60,7 +64,7 @@ public class ConditionalPolicy implements Policy, ConditionSupplier {
     }
 
     @Override
-    public Completable onResponse(HttpExecutionContext ctx) {
+    public Completable onResponse(HttpPlainExecutionContext ctx) {
         if (!conditionDefined) {
             return policy.onResponse(ctx);
         }
@@ -69,12 +73,12 @@ public class ConditionalPolicy implements Policy, ConditionSupplier {
     }
 
     @Override
-    public Completable onMessageRequest(final MessageExecutionContext ctx) {
+    public Completable onMessageRequest(final HttpMessageExecutionContext ctx) {
         return Completable.complete();
     }
 
     @Override
-    public Completable onMessageResponse(final MessageExecutionContext ctx) {
+    public Completable onMessageResponse(final HttpMessageExecutionContext ctx) {
         return Completable.complete();
     }
 

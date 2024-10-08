@@ -19,8 +19,8 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.flow.BestMatchFlowSelector;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
-import io.gravitee.gateway.reactive.api.context.HttpRequest;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
 import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import org.junit.Test;
@@ -36,10 +36,10 @@ import org.mockito.Mock;
 public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
 
     @Mock
-    public HttpExecutionContext executionContext;
+    public HttpPlainExecutionContext executionContext;
 
     @Mock
-    public HttpRequest request;
+    public HttpPlainRequest request;
 
     private AbstractBestMatchFlowSelector bestMatchFlowSelector = new BestMatchFlowSelector();
 

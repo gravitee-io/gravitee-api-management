@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactive.core.context;
 
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_PREFIX;
 
+import java.io.Serial;
 import java.util.HashMap;
 
 /**
@@ -24,6 +25,7 @@ import java.util.HashMap;
  */
 class ContextAttributeMap extends HashMap<String, Object> {
 
+    @Serial
     private static final long serialVersionUID = -8914016743809221307L;
 
     /**

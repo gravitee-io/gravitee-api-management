@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.core.condition;
+package io.gravitee.gateway.reactive.core.condition.http;
 
 import io.gravitee.definition.model.MessageConditionSupplier;
-import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
-import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.base.BaseMessageExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.api.message.Message;
+import io.gravitee.gateway.reactive.core.condition.MessageConditionFilter;
 import io.reactivex.rxjava3.core.Maybe;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MessageConditionFilter<C extends BaseExecutionContext, T extends MessageConditionSupplier> {
+public interface HttpMessageConditionFilter<T extends MessageConditionSupplier>
+    extends MessageConditionFilter<HttpBaseExecutionContext, T> {
     /**
      * Filters the given element by applying a message condition on it.
      *
@@ -35,5 +36,5 @@ public interface MessageConditionFilter<C extends BaseExecutionContext, T extend
      *
      * @return a {@link Maybe} containing the filtered element or empty if the element didn't pass the filter step.
      */
-    Maybe<T> filter(C ctx, T elt, Message message);
+    Maybe<T> filter(HttpBaseExecutionContext ctx, T elt, Message message);
 }

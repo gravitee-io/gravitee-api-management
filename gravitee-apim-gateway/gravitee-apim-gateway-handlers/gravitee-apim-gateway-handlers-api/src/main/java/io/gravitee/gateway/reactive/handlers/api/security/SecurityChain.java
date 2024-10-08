@@ -17,13 +17,15 @@ package io.gravitee.gateway.reactive.handlers.api.security;
 
 import static io.gravitee.common.http.HttpStatusCode.SERVICE_UNAVAILABLE_503;
 import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.*;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_FLOW_STAGE;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_TOKEN;
 import static io.reactivex.rxjava3.core.Completable.defer;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.Hookable;
 import io.gravitee.gateway.reactive.api.hook.SecurityPlanHook;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
@@ -97,7 +99,7 @@ public class SecurityChain implements Hookable<SecurityPlanHook> {
      * @return a {@link Completable} that completes if the request has been successfully handled by a {@link SecurityPlan} or returns
      * an error if no {@link SecurityPlan} can execute the request or the {@link SecurityPlan} failed.
      */
-    public Completable execute(ExecutionContext ctx) {
+    public Completable execute(HttpExecutionContext ctx) {
         return defer(() -> {
             if (!Objects.equals(true, ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP))) {
                 return chain
@@ -135,7 +137,7 @@ public class SecurityChain implements Hookable<SecurityPlanHook> {
         });
     }
 
-    private Single<Boolean> continueChain(ExecutionContext ctx, SecurityPlan securityPlan) {
+    private Single<Boolean> continueChain(HttpExecutionContext ctx, SecurityPlan securityPlan) {
         return securityPlan
             .canExecute(ctx)
             .onErrorResumeNext(throwable -> {

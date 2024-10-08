@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.reactive.reactor.processor.responsetime;
 
-import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
@@ -33,7 +33,7 @@ public class ResponseTimeProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final MutableExecutionContext ctx) {
+    public Completable execute(final HttpExecutionContextInternal ctx) {
         return Completable.fromRunnable(() -> {
             Metrics metrics = ctx.metrics();
             // Compute response-time and add it to the metrics

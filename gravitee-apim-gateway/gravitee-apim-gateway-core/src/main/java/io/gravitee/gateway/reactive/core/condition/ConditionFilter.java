@@ -15,14 +15,14 @@
  */
 package io.gravitee.gateway.reactive.core.condition;
 
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ConditionFilter<T> {
+public interface ConditionFilter<C extends BaseExecutionContext, T> {
     /**
      * Filters the given element by applying a condition on it.
      *
@@ -31,5 +31,5 @@ public interface ConditionFilter<T> {
      *
      * @return a {@link Maybe} containing the filtered element or empty if the element didn't pass the filter step.
      */
-    Maybe<T> filter(GenericExecutionContext ctx, T elt);
+    Maybe<T> filter(C ctx, T elt);
 }

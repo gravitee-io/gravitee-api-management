@@ -17,8 +17,8 @@ package io.gravitee.gateway.reactive.core.hook;
 
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.hook.Hook;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.hook.HttpHook;
 import io.gravitee.gateway.reactive.api.hook.MessageHook;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionHelper;
 import io.reactivex.rxjava3.core.Completable;
@@ -39,11 +39,11 @@ public class HookHelper {
 
     private HookHelper() {}
 
-    public static <T extends Hook> Completable hook(
+    public static <T extends HttpHook> Completable hook(
         final Supplier<Completable> completableSupplier,
         final String componentId,
         final List<T> hooks,
-        final ExecutionContext ctx,
+        final HttpExecutionContext ctx,
         final ExecutionPhase executionPhase
     ) {
         if (hooks != null && !hooks.isEmpty()) {
@@ -62,7 +62,7 @@ public class HookHelper {
         final Supplier<Maybe<T>> maybeSupplier,
         final String componentId,
         final List<MessageHook> hooks,
-        final ExecutionContext ctx,
+        final HttpExecutionContext ctx,
         final ExecutionPhase executionPhase
     ) {
         if (hooks != null && !hooks.isEmpty()) {
@@ -78,10 +78,10 @@ public class HookHelper {
         }
     }
 
-    private static <T extends Hook> Completable executeHookOnError(
+    private static <T extends HttpHook> Completable executeHookOnError(
         final String componentId,
         final List<T> hooks,
-        final ExecutionContext ctx,
+        final HttpExecutionContext ctx,
         final ExecutionPhase executionPhase,
         final Throwable throwable
     ) {
@@ -102,11 +102,11 @@ public class HookHelper {
         }
     }
 
-    private static <T extends Hook> Completable executeHooks(
+    private static <T extends HttpHook> Completable executeHooks(
         final String componentId,
         final List<T> hooks,
         final HookPhase phase,
-        final ExecutionContext ctx,
+        final HttpExecutionContext ctx,
         final ExecutionPhase executionPhase,
         final Throwable throwable,
         final ExecutionFailure executionFailure

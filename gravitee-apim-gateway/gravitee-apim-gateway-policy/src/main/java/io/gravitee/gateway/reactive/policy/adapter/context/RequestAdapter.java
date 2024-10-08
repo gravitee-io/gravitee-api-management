@@ -24,7 +24,7 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.http2.HttpFrame;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.ws.WebSocket;
-import io.gravitee.gateway.reactive.api.context.HttpRequest;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
 import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest;
 import io.gravitee.reporter.api.http.Metrics;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,7 +36,7 @@ import javax.net.ssl.SSLSession;
  */
 public class RequestAdapter implements io.gravitee.gateway.api.Request {
 
-    private final HttpRequest request;
+    private final HttpPlainRequest request;
     private MetricsAdapter metrics;
     private Runnable onResumeHandler;
     private Handler<Buffer> bodyHandler;
@@ -44,7 +44,7 @@ public class RequestAdapter implements io.gravitee.gateway.api.Request {
     private WebSocketAdapter adaptedWebSocket;
     private final AtomicBoolean hasBeenResumed;
 
-    public RequestAdapter(HttpRequest request, final io.gravitee.reporter.api.v4.metric.Metrics metrics) {
+    public RequestAdapter(HttpPlainRequest request, final io.gravitee.reporter.api.v4.metric.Metrics metrics) {
         this.request = request;
         if (metrics != null) {
             this.metrics = new MetricsAdapter(metrics);
@@ -154,7 +154,7 @@ public class RequestAdapter implements io.gravitee.gateway.api.Request {
 
     @Override
     public SSLSession sslSession() {
-        return request.sslSession();
+        return request.tlsSession();
     }
 
     @Override

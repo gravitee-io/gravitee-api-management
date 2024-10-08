@@ -15,11 +15,19 @@
  */
 package io.gravitee.gateway.reactive.core.context;
 
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.context.Response;
+import io.gravitee.gateway.reactive.api.context.http.HttpResponse;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Deprecated(forRemoval = true)
-public interface MutableResponse extends Response, OnMessagesInterceptor, HttpResponseInternal {}
+public interface HttpResponseInternal extends HttpResponse, OnMessagesInterceptor {
+    /**
+     * Allows to replace the response headers.
+     *
+     * @param headers the new response headers.
+     */
+    HttpResponseInternal setHeaders(final HttpHeaders headers);
+}

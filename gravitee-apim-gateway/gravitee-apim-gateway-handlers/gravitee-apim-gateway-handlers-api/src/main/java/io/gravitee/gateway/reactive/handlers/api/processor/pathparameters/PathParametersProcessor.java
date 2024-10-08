@@ -16,8 +16,7 @@
 package io.gravitee.gateway.reactive.handlers.api.processor.pathparameters;
 
 import io.gravitee.gateway.handlers.api.processor.pathparameters.AbstractPathParametersExtractor;
-import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersExtractor;
-import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.reactivex.rxjava3.core.Completable;
 
@@ -41,7 +40,7 @@ public class PathParametersProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(MutableExecutionContext ctx) {
+    public Completable execute(HttpExecutionContextInternal ctx) {
         return Completable.fromRunnable(() ->
             extractor
                 .extract(ctx.request().method().name(), ctx.request().pathInfo())
