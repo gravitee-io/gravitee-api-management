@@ -66,7 +66,7 @@ public class UpdateIntegrationUseCase {
 
     private Set<String> validateGroups(Input input) {
         var validationResult = validateGroupsDomainService.validateAndSanitize(
-            new ValidateGroupsDomainService.Input(input.auditInfo.environmentId(), input.integration.getGroups())
+            new ValidateGroupsDomainService.Input(input.auditInfo.environmentId(), input.integration.getGroups(), null)
         );
 
         if (validationResult.errors().isPresent() && !validationResult.errors().get().isEmpty()) {
