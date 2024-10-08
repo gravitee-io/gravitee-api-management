@@ -25,7 +25,6 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableModule } from '@angular/material/table';
 import { MatRadioModule } from '@angular/material/radio';
-import { CdkAccordionModule } from '@angular/cdk/accordion';
 import { ErrorStateMatcher, ShowOnDirtyErrorStateMatcher } from '@angular/material/core';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -50,12 +49,12 @@ import { IntegrationsRoutingModule } from './integrations-routing.module';
 import { IntegrationOverviewComponent } from './integration-overview/integration-overview.component';
 import { IntegrationsNavigationComponent } from './integrations-navigation/integrations-navigation.component';
 import { IntegrationConfigurationComponent } from './integration-configuration/integration-configuration.component';
-import { IntegrationAgentComponent } from './integration-agent/integration-agent.component';
 import { IntegrationStatusComponent } from './components/integration-status/integration-status.component';
 import { IntegrationGeneralConfigurationComponent } from './integration-configuration/general/integration-general-configuration.component';
 import { IntegrationUserPermissionsComponent } from './integration-configuration/user-permissions/integration-user-permissions.component';
 import { IntegrationUserGroupModule } from './user-group-access/integration-user-group.module';
 import { CreateIntegrationModule } from './create-integration/create-integration.module';
+import { IntegrationAgentModule } from './integration-agent/integration-agent.module';
 import { DiscoveryPreviewModule } from './discovery-preview/discovery-preview.module';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
@@ -67,8 +66,6 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     IntegrationOverviewComponent,
     IntegrationsNavigationComponent,
     IntegrationConfigurationComponent,
-    IntegrationAgentComponent,
-    IntegrationStatusComponent,
     IntegrationGeneralConfigurationComponent,
     IntegrationUserPermissionsComponent,
   ],
@@ -79,6 +76,7 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     IntegrationUserGroupModule,
     CreateIntegrationModule,
     DiscoveryPreviewModule,
+    IntegrationAgentModule,
 
     MatCardModule,
     MatTableModule,
@@ -91,7 +89,6 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     MatSlideToggleModule,
     MatIconModule,
     MatTooltipModule,
-    CdkAccordionModule,
 
     GioBreadcrumbModule,
     GioSubmenuModule,
@@ -108,6 +105,8 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     GioCardEmptyStateModule,
 
     MapProviderNamePipe,
+
+    IntegrationStatusComponent,
   ],
   providers: [{ provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher }],
 })
