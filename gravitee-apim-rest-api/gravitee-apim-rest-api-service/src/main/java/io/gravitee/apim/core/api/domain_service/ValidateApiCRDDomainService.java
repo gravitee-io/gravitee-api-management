@@ -79,7 +79,13 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
             .peek(sanitized -> sanitizedBuilder.members(sanitized.members()), errors::addAll);
 
         groupsValidator
-            .validateAndSanitize(new ValidateGroupsDomainService.Input(input.auditInfo.environmentId(), input.spec().getGroups()))
+            .validateAndSanitize(
+                new ValidateGroupsDomainService.Input(
+                    input.auditInfo.environmentId(),
+                    input.spec().getGroups(),
+                    input.spec().getDefinitionVersion()
+                )
+            )
             .peek(sanitized -> sanitizedBuilder.groups(sanitized.groups()), errors::addAll);
 
         resourceValidator
