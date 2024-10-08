@@ -57,7 +57,7 @@ import io.gravitee.gateway.reactive.platform.organization.policy.DefaultPlatform
 import io.gravitee.gateway.reactive.platform.organization.reactor.DefaultOrganizationReactorFactory;
 import io.gravitee.gateway.reactive.platform.organization.reactor.OrganizationReactorFactory;
 import io.gravitee.gateway.reactive.platform.organization.reactor.OrganizationReactorRegistry;
-import io.gravitee.gateway.reactive.policy.DefaultPolicyFactory;
+import io.gravitee.gateway.reactive.policy.HttpPolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
@@ -295,7 +295,7 @@ public class DebugConfiguration {
 
     @Bean
     public PolicyFactory debugPolicyFactory(final PolicyPluginFactory policyPluginFactory) {
-        return new DefaultPolicyFactory(policyPluginFactory, new DebugExpressionLanguageConditionFilter());
+        return new HttpPolicyFactory(policyPluginFactory, new DebugExpressionLanguageConditionFilter());
     }
 
     @Bean

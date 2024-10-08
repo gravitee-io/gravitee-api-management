@@ -46,7 +46,7 @@ class PolicyChainTest {
 
     @Test
     public void shouldExecuteNothingWithEmptyPolicyList() {
-        PolicyChain cut = new PolicyChain(CHAIN_ID, new ArrayList<>(), ExecutionPhase.REQUEST);
+        HttpPolicyChain cut = new HttpPolicyChain(CHAIN_ID, new ArrayList<>(), ExecutionPhase.REQUEST);
         final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
         final TestObserver<Void> obs = cut.execute(ctx).test();
 
@@ -59,7 +59,7 @@ class PolicyChainTest {
         final Policy policy2 = mock(Policy.class);
         final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
 
-        final PolicyChain cut = new PolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
+        final HttpPolicyChain cut = new HttpPolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
 
         when(policy1.onRequest(ctx)).thenReturn(Completable.complete());
         when(policy2.onRequest(ctx)).thenReturn(Completable.complete());
@@ -77,7 +77,7 @@ class PolicyChainTest {
         final Policy policy2 = mock(Policy.class);
         final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
 
-        final PolicyChain cut = new PolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.RESPONSE);
+        final HttpPolicyChain cut = new HttpPolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.RESPONSE);
 
         when(policy1.onResponse(ctx)).thenReturn(Completable.complete());
         when(policy2.onResponse(ctx)).thenReturn(Completable.complete());
@@ -95,7 +95,7 @@ class PolicyChainTest {
         final Policy policy2 = mock(Policy.class);
         final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
 
-        final PolicyChain cut = new PolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.MESSAGE_REQUEST);
+        final HttpPolicyChain cut = new HttpPolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.MESSAGE_REQUEST);
 
         when(policy1.onMessageRequest(ctx)).thenReturn(Completable.complete());
         when(policy2.onMessageRequest(ctx)).thenReturn(Completable.complete());
@@ -113,7 +113,7 @@ class PolicyChainTest {
         final Policy policy2 = mock(Policy.class);
         final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
 
-        final PolicyChain cut = new PolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.MESSAGE_RESPONSE);
+        final HttpPolicyChain cut = new HttpPolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.MESSAGE_RESPONSE);
 
         when(policy1.onMessageResponse(ctx)).thenReturn(Completable.complete());
         when(policy2.onMessageResponse(ctx)).thenReturn(Completable.complete());
@@ -132,7 +132,7 @@ class PolicyChainTest {
         final HttpExecutionContext ctx = new DefaultExecutionContext(null, null);
         when(policy1.onRequest(ctx)).thenAnswer(invocation -> ((HttpExecutionContext) invocation.getArgument(0)).interrupt());
 
-        final PolicyChain cut = new PolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
+        final HttpPolicyChain cut = new HttpPolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
 
         cut.execute(ctx).test().assertFailure(InterruptionException.class);
 
@@ -148,7 +148,7 @@ class PolicyChainTest {
         final MutableResponse response = mock(MutableResponse.class);
         final HttpExecutionContext ctx = new DefaultExecutionContext(null, response);
 
-        final PolicyChain cut = new PolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
+        final HttpPolicyChain cut = new HttpPolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
         when(policy1.onRequest(ctx)).thenAnswer(invocation -> ctx.interruptWith(new ExecutionFailure(400).message(MOCK_ERROR_MESSAGE)));
 
         cut.execute(ctx).test().assertFailure(InterruptionFailureException.class);
@@ -164,7 +164,7 @@ class PolicyChainTest {
         final MutableResponse response = mock(MutableResponse.class);
         final HttpExecutionContext ctx = new DefaultExecutionContext(null, response);
 
-        final PolicyChain cut = new PolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
+        final HttpPolicyChain cut = new HttpPolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
         when(policy1.onRequest(ctx)).thenReturn(Completable.complete());
         when(policy1.onRequest(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE)));
 

@@ -25,7 +25,7 @@ import io.gravitee.gateway.reactive.api.hook.ChainHook;
 import io.gravitee.gateway.reactive.api.hook.Hookable;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.gravitee.gateway.reactive.flow.FlowResolver;
-import io.gravitee.gateway.reactive.policy.PolicyChain;
+import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
@@ -49,10 +49,10 @@ public class FlowChain implements Hookable<ChainHook> {
     private final String id;
     private final FlowResolver flowResolver;
     private final String resolvedFlowAttribute;
-    private final PolicyChainFactory policyChainFactory;
+    private final PolicyChainFactory<HttpPolicyChain> policyChainFactory;
     private List<ChainHook> hooks;
 
-    public FlowChain(String id, FlowResolver flowResolver, PolicyChainFactory policyChainFactory) {
+    public FlowChain(String id, FlowResolver flowResolver, PolicyChainFactory<HttpPolicyChain> policyChainFactory) {
         this.id = id;
         this.flowResolver = flowResolver;
         this.resolvedFlowAttribute = "flow." + id;
@@ -114,7 +114,7 @@ public class FlowChain implements Hookable<ChainHook> {
     /**
      * Execute the given flow by first checking the current execution context has not been interrupted.
      * If the current execution context is marked as interrupted, the execution will be discarded and the chain will be completed immediately.
-     * If the current execution context is not interrupted, a {@link PolicyChain} is created and executed.
+     * If the current execution context is not interrupted, a {@link HttpPolicyChain} is created and executed.
      *
      * @param ctx the execution context that will be passed to each policy of each resolved flow.
      * @param flow the flow to execute.
@@ -123,7 +123,7 @@ public class FlowChain implements Hookable<ChainHook> {
      * @return a {@link Completable} that completes when the flow policy chain completes.
      */
     private Completable executeFlow(final ExecutionContext ctx, final Flow flow, final ExecutionPhase phase) {
-        PolicyChain policyChain = policyChainFactory.create(id, flow, phase);
+        HttpPolicyChain policyChain = policyChainFactory.create(id, flow, phase);
         return HookHelper
             .hook(() -> policyChain.execute(ctx), policyChain.getId(), hooks, ctx, phase)
             .doOnSubscribe(subscription -> log.debug("\t-> Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name()));

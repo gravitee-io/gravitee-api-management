@@ -20,7 +20,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyManager;
-import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
+import io.gravitee.gateway.reactive.policy.HttpPolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
@@ -48,15 +48,15 @@ public class DefaultOrganizationReactorFactory implements OrganizationReactorFac
     @Override
     public OrganizationReactor create(final ReactableOrganization reactableOrganization) {
         OrganizationPolicyManager organizationPolicyManager = platformPolicyManager(reactableOrganization);
-        DefaultPolicyChainFactory policyChainFactory = policyChainFactory(reactableOrganization, organizationPolicyManager);
+        HttpPolicyChainFactory policyChainFactory = policyChainFactory(reactableOrganization, organizationPolicyManager);
         return new DefaultOrganizationReactor(reactableOrganization, policyChainFactory, organizationPolicyManager);
     }
 
-    protected DefaultPolicyChainFactory policyChainFactory(
+    protected HttpPolicyChainFactory policyChainFactory(
         final ReactableOrganization reactableOrganization,
         final OrganizationPolicyManager organizationPolicyManager
     ) {
-        return new DefaultPolicyChainFactory("organization-" + reactableOrganization.getId(), organizationPolicyManager, configuration);
+        return new HttpPolicyChainFactory("organization-" + reactableOrganization.getId(), organizationPolicyManager, configuration);
     }
 
     protected OrganizationPolicyManager platformPolicyManager(ReactableOrganization reactableOrganization) {

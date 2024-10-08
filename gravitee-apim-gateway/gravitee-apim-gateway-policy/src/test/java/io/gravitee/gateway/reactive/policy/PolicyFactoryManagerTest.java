@@ -43,7 +43,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class PolicyFactoryManagerTest {
 
-    private static final DefaultPolicyFactory DEFAULT_POLICY_FACTORY = new DefaultPolicyFactory(null, null);
+    private static final HttpPolicyFactory DEFAULT_POLICY_FACTORY = new HttpPolicyFactory(null, null);
     private PolicyFactoryManager cut;
 
     @Test
@@ -103,7 +103,7 @@ class PolicyFactoryManagerTest {
 
     @Test
     void should_cleanup_a_manifest() {
-        final DefaultPolicyFactory policyFactoryMock = mock(DefaultPolicyFactory.class);
+        final HttpPolicyFactory policyFactoryMock = mock(HttpPolicyFactory.class);
         cut = new PolicyFactoryManager(new HashSet<>(Set.of(policyFactoryMock)));
         final PolicyManifest policyManifest = fakePolicyManifest("unknown");
         cut.cleanup(policyManifest);
@@ -140,7 +140,7 @@ class PolicyFactoryManagerTest {
         return new PolicyManifestBuilder().setId(id).build();
     }
 
-    class MyDefaultPolicyFactory implements PolicyFactory {
+    class MyDefaultPolicyFactory implements PolicyFactory<Policy> {
 
         @Override
         public boolean accept(PolicyManifest policyManifest) {

@@ -50,7 +50,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-class ConditionalPolicyTest {
+class HttpConditionalPolicyTest {
 
     protected static final String CONDITION = "{#context.attributes != null}";
     protected static final String POLICY_ID = "policyId";
@@ -59,7 +59,7 @@ class ConditionalPolicyTest {
     private Policy policy;
 
     @Mock
-    private ConditionFilter<BaseExecutionContext, ConditionalPolicy> conditionFilter;
+    private ConditionFilter<BaseExecutionContext, HttpConditionalPolicy> conditionFilter;
 
     @Mock(extraInterfaces = { HttpExecutionContextInternal.class })
     private HttpExecutionContext ctx;
@@ -87,7 +87,7 @@ class ConditionalPolicyTest {
     @ParameterizedTest
     @NullAndEmptySource
     void shouldNotExecuteConditionOnRequestWhenNoCondition(String condition) {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, condition, conditionFilter);
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, condition, conditionFilter);
 
         cut.onRequest(ctx).test().assertComplete();
 
@@ -100,7 +100,7 @@ class ConditionalPolicyTest {
     @ParameterizedTest
     @NullAndEmptySource
     void shouldNotExecuteConditionOnResponseWhenNoCondition(String condition) {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, condition, conditionFilter);
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, condition, conditionFilter);
 
         cut.onResponse(ctx).test().assertComplete();
 
@@ -113,7 +113,7 @@ class ConditionalPolicyTest {
     @ParameterizedTest
     @NullAndEmptySource
     void shouldExecuteConditionOnMessageRequestWhenNoCondition(String condition) {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, condition, conditionFilter);
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, condition, conditionFilter);
 
         cut.onMessageRequest(ctx).test().assertComplete();
 
@@ -125,7 +125,7 @@ class ConditionalPolicyTest {
     @ParameterizedTest
     @NullAndEmptySource
     void shouldExecuteConditionOnMessageResponseWhenNoCondition(String condition) {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, condition, conditionFilter);
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, condition, conditionFilter);
 
         cut.onMessageResponse(ctx).test().assertComplete();
 
@@ -136,7 +136,7 @@ class ConditionalPolicyTest {
 
     @Test
     void shouldExecuteConditionAndPolicyOnRequest() {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, CONDITION, conditionFilter);
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
 
         when(conditionFilter.filter(ctx, cut)).thenReturn(Maybe.just(cut));
 
@@ -149,7 +149,7 @@ class ConditionalPolicyTest {
 
     @Test
     void shouldNotExecutePolicyOnRequestWhenConditionIsNotMet() {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, CONDITION, conditionFilter);
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
 
         when(conditionFilter.filter(ctx, cut)).thenReturn(Maybe.empty());
 
@@ -162,7 +162,7 @@ class ConditionalPolicyTest {
 
     @Test
     void shouldExecuteConditionAndPolicyOnResponse() {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, CONDITION, conditionFilter);
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
 
         when(conditionFilter.filter(ctx, cut)).thenReturn(Maybe.just(cut));
 
@@ -175,7 +175,7 @@ class ConditionalPolicyTest {
 
     @Test
     void shouldNotExecutePolicyOnResponseWhenConditionIsNotMet() {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, CONDITION, conditionFilter);
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
 
         when(conditionFilter.filter(ctx, cut)).thenReturn(Maybe.empty());
 
@@ -188,7 +188,7 @@ class ConditionalPolicyTest {
 
     @Test
     void shouldGetOriginalPolicyId() {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, null, conditionFilter);
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, null, conditionFilter);
 
         when(policy.id()).thenReturn(POLICY_ID);
         assertEquals(POLICY_ID, cut.id());
@@ -196,7 +196,7 @@ class ConditionalPolicyTest {
 
     @Test
     void shouldGetCondition() {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, CONDITION, conditionFilter);
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
 
         assertEquals(CONDITION, cut.getCondition());
     }

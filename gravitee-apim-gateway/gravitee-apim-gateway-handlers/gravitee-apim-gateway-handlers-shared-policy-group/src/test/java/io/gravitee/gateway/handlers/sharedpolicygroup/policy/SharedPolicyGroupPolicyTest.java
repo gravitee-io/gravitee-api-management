@@ -32,7 +32,7 @@ import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupR
 import io.gravitee.gateway.handlers.sharedpolicygroup.registry.SharedPolicyGroupRegistry;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.policy.PolicyChain;
+import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.reactivex.rxjava3.core.Completable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -61,7 +61,7 @@ class SharedPolicyGroupPolicyTest {
     private SharedPolicyGroupRegistry sharedPolicyGroupRegistry;
 
     @Mock
-    private PolicyChain policyChain;
+    private HttpPolicyChain policyChain;
 
     private ListAppender<ILoggingEvent> listAppender;
     private SharedPolicyGroupPolicy cut;
@@ -127,9 +127,9 @@ class SharedPolicyGroupPolicyTest {
 
     static class FakeSharedPolicyGroupReactor implements SharedPolicyGroupReactor {
 
-        private final PolicyChain chain;
+        private final HttpPolicyChain chain;
 
-        public FakeSharedPolicyGroupReactor(PolicyChain policyChain) {
+        public FakeSharedPolicyGroupReactor(HttpPolicyChain policyChain) {
             chain = policyChain;
         }
 
@@ -144,7 +144,7 @@ class SharedPolicyGroupPolicyTest {
         }
 
         @Override
-        public PolicyChain policyChain() {
+        public HttpPolicyChain policyChain() {
             return chain;
         }
 

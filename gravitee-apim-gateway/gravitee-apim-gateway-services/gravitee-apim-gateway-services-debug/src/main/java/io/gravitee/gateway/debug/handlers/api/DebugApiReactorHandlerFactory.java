@@ -45,7 +45,7 @@ import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
-import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
+import io.gravitee.gateway.reactive.policy.HttpPolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactor.handler.context.V3ExecutionContextFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
@@ -139,7 +139,7 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
     }
 
     @Override
-    protected DefaultPolicyChainFactory createPolicyChainFactory(
+    protected HttpPolicyChainFactory createPolicyChainFactory(
         Api api,
         io.gravitee.gateway.reactive.policy.PolicyManager policyManager,
         Configuration configuration

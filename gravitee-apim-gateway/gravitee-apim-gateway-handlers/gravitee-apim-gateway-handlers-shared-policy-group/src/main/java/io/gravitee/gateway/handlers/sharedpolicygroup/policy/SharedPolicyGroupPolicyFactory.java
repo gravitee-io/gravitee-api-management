@@ -21,15 +21,15 @@ import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
-import io.gravitee.gateway.reactive.policy.ConditionalPolicy;
-import io.gravitee.gateway.reactive.policy.DefaultPolicyFactory;
+import io.gravitee.gateway.reactive.policy.HttpConditionalPolicy;
+import io.gravitee.gateway.reactive.policy.HttpPolicyFactory;
 import io.gravitee.policy.api.PolicyConfiguration;
 
-public class SharedPolicyGroupPolicyFactory extends DefaultPolicyFactory {
+public class SharedPolicyGroupPolicyFactory extends HttpPolicyFactory {
 
     public SharedPolicyGroupPolicyFactory(
         PolicyPluginFactory policyPluginFactory,
-        ExpressionLanguageConditionFilter<ConditionalPolicy> filter
+        ExpressionLanguageConditionFilter<HttpConditionalPolicy> filter
     ) {
         super(policyPluginFactory, filter);
     }

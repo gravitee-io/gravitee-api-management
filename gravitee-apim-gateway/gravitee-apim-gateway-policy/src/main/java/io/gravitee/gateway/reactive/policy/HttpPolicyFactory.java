@@ -32,16 +32,16 @@ import java.util.concurrent.ConcurrentMap;
  * @author Guillaume Lamirand (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultPolicyFactory implements PolicyFactory {
+public class HttpPolicyFactory implements PolicyFactory<HttpPolicy> {
 
     private final ConcurrentMap<String, HttpPolicy> policies = new ConcurrentHashMap<>();
     private final PolicyPluginFactory policyPluginFactory;
     private final io.gravitee.gateway.policy.PolicyFactory v3PolicyFactory;
-    protected final ExpressionLanguageConditionFilter<ConditionalPolicy> filter;
+    protected final ExpressionLanguageConditionFilter<HttpConditionalPolicy> filter;
 
-    public DefaultPolicyFactory(
+    public HttpPolicyFactory(
         final PolicyPluginFactory policyPluginFactory,
-        final ExpressionLanguageConditionFilter<ConditionalPolicy> filter
+        final ExpressionLanguageConditionFilter<HttpConditionalPolicy> filter
     ) {
         this.policyPluginFactory = policyPluginFactory;
         this.filter = filter;
@@ -112,7 +112,7 @@ public class DefaultPolicyFactory implements PolicyFactory {
 
             // Avoid creating a conditional policy if no condition or message condition is defined.
             if (isNotBlank(condition)) {
-                policy = new ConditionalPolicy(policy, condition, filter);
+                policy = new HttpConditionalPolicy(policy, condition, filter);
             }
         }
         return policy;

@@ -19,6 +19,7 @@ import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
 import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.policy.api.PolicyConfiguration;
 
@@ -29,14 +30,14 @@ import io.gravitee.policy.api.PolicyConfiguration;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PolicyFactory {
+public interface PolicyFactory<P extends BasePolicy> {
     /**
      * Verify if a policy can be built by the current implementation of PolicyFactory
      * @return true if the factory can build a policy depending on its manifest
      */
     boolean accept(PolicyManifest policyManifest);
 
-    HttpPolicy create(
+    P create(
         final ExecutionPhase phase,
         final PolicyManifest policyManifest,
         final PolicyConfiguration policyConfiguration,

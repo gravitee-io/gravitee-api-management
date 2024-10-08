@@ -20,7 +20,7 @@ import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.platform.organization.reactor.DefaultOrganizationReactor;
 import io.gravitee.gateway.reactive.platform.organization.reactor.OrganizationReactor;
 import io.gravitee.gateway.reactive.platform.organization.reactor.OrganizationReactorRegistry;
-import io.gravitee.gateway.reactive.policy.PolicyChain;
+import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import lombok.RequiredArgsConstructor;
 
@@ -29,13 +29,13 @@ import lombok.RequiredArgsConstructor;
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-public class OrganizationPolicyChainFactory implements PolicyChainFactory {
+public class OrganizationPolicyChainFactory implements PolicyChainFactory<HttpPolicyChain> {
 
     private final String organizationId;
     private final OrganizationReactorRegistry organizationReactorRegistry;
 
     @Override
-    public PolicyChain create(final String flowChainId, final Flow flow, final ExecutionPhase phase) {
+    public HttpPolicyChain create(final String flowChainId, final Flow flow, final ExecutionPhase phase) {
         OrganizationReactor organizationReactor = organizationReactorRegistry.get(organizationId);
         if (organizationReactor instanceof DefaultOrganizationReactor defaultOrganizationReactor) {
             return defaultOrganizationReactor.policyChainFactory().create(flowChainId, flow, phase);

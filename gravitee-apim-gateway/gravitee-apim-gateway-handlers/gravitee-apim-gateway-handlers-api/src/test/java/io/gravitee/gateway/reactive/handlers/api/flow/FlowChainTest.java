@@ -23,7 +23,7 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.flow.FlowResolver;
-import io.gravitee.gateway.reactive.policy.PolicyChain;
+import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
@@ -68,8 +68,8 @@ class FlowChainTest {
         final Flowable<Flow> resolvedFlows = Flowable.just(flow1, flow2);
         when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
 
-        final PolicyChain policyChain1 = mock(PolicyChain.class);
-        final PolicyChain policyChain2 = mock(PolicyChain.class);
+        final HttpPolicyChain policyChain1 = mock(HttpPolicyChain.class);
+        final HttpPolicyChain policyChain2 = mock(HttpPolicyChain.class);
 
         when(policyChainFactory.create(FLOW_CHAIN_ID, flow1, ExecutionPhase.REQUEST)).thenReturn(policyChain1);
         when(policyChainFactory.create(FLOW_CHAIN_ID, flow2, ExecutionPhase.REQUEST)).thenReturn(policyChain2);
@@ -92,8 +92,8 @@ class FlowChainTest {
         final Flowable<Flow> resolvedFlows = Flowable.just(flow1, flow2);
         when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
 
-        final PolicyChain policyChain1 = mock(PolicyChain.class);
-        final PolicyChain policyChain2 = mock(PolicyChain.class);
+        final HttpPolicyChain policyChain1 = mock(HttpPolicyChain.class);
+        final HttpPolicyChain policyChain2 = mock(HttpPolicyChain.class);
 
         when(policyChainFactory.create(FLOW_CHAIN_ID, flow1, ExecutionPhase.RESPONSE)).thenReturn(policyChain1);
         when(policyChainFactory.create(FLOW_CHAIN_ID, flow2, ExecutionPhase.RESPONSE)).thenReturn(policyChain2);
@@ -116,8 +116,8 @@ class FlowChainTest {
         final Flowable<Flow> resolvedFlows = Flowable.just(flow1, flow2);
         when(ctx.getInternalAttribute(eq("flow." + FLOW_CHAIN_ID))).thenReturn(resolvedFlows);
 
-        final PolicyChain policyChain1 = mock(PolicyChain.class);
-        final PolicyChain policyChain2 = mock(PolicyChain.class);
+        final HttpPolicyChain policyChain1 = mock(HttpPolicyChain.class);
+        final HttpPolicyChain policyChain2 = mock(HttpPolicyChain.class);
 
         when(policyChainFactory.create(FLOW_CHAIN_ID, flow1, ExecutionPhase.RESPONSE)).thenReturn(policyChain1);
         when(policyChainFactory.create(FLOW_CHAIN_ID, flow2, ExecutionPhase.RESPONSE)).thenReturn(policyChain2);
@@ -141,7 +141,7 @@ class FlowChainTest {
         final Flowable<Flow> resolvedFlows = Flowable.just(flow1, flow2);
         when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
 
-        final PolicyChain policyChain1 = mock(PolicyChain.class);
+        final HttpPolicyChain policyChain1 = mock(HttpPolicyChain.class);
 
         when(policyChainFactory.create(FLOW_CHAIN_ID, flow1, ExecutionPhase.REQUEST)).thenReturn(policyChain1);
         when(policyChain1.execute(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE)));

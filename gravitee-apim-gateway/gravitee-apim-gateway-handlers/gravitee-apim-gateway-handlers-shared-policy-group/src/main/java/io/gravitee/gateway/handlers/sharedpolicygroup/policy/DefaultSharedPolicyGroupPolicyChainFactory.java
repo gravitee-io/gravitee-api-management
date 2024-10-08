@@ -22,7 +22,7 @@ import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.hook.HttpHook;
 import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
-import io.gravitee.gateway.reactive.policy.PolicyChain;
+import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook;
 import io.gravitee.node.api.cache.Cache;
@@ -41,7 +41,7 @@ public class DefaultSharedPolicyGroupPolicyChainFactory implements SharedPolicyG
     public static final long CACHE_TIME_TO_IDLE_IN_MS = 3_600_000;
     protected final List<HttpHook> policyHooks = new ArrayList<>();
     protected final PolicyManager policyManager;
-    protected final Cache<String, PolicyChain> policyChains;
+    protected final Cache<String, HttpPolicyChain> policyChains;
 
     public DefaultSharedPolicyGroupPolicyChainFactory(
         final String id,
@@ -68,9 +68,9 @@ public class DefaultSharedPolicyGroupPolicyChainFactory implements SharedPolicyG
     }
 
     @Override
-    public PolicyChain create(final String sharedPolicyGroupPolicyId, String environmentId, List<Step> steps, ExecutionPhase phase) {
+    public HttpPolicyChain create(final String sharedPolicyGroupPolicyId, String environmentId, List<Step> steps, ExecutionPhase phase) {
         final String key = getSharedPolicyGroupKey(sharedPolicyGroupPolicyId, environmentId, steps, phase);
-        PolicyChain policyChain = policyChains.get(key);
+        HttpPolicyChain policyChain = policyChains.get(key);
 
         if (policyChain == null) {
             final List<HttpPolicy> policies = steps
@@ -88,7 +88,7 @@ public class DefaultSharedPolicyGroupPolicyChainFactory implements SharedPolicyG
                 .filter(Objects::nonNull)
                 .toList();
 
-            policyChain = new PolicyChain(sharedPolicyGroupPolicyId, policies, phase);
+            policyChain = new HttpPolicyChain(sharedPolicyGroupPolicyId, policies, phase);
             policyChain.addHooks(policyHooks);
             policyChains.put(key, policyChain);
         }
