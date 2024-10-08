@@ -48,7 +48,7 @@ public class ValidateApplicationCRDDomainService implements Validator<ValidateAp
         var sanitizedBuilder = input.spec().toBuilder();
 
         groupsValidator
-            .validateAndSanitize(new ValidateGroupsDomainService.Input(input.auditInfo.environmentId(), input.spec().getGroups()))
+            .validateAndSanitize(new ValidateGroupsDomainService.Input(input.auditInfo.environmentId(), input.spec().getGroups(), null))
             .peek(sanitized -> sanitizedBuilder.groups(sanitized.groups()), errors::addAll);
 
         membersValidator
