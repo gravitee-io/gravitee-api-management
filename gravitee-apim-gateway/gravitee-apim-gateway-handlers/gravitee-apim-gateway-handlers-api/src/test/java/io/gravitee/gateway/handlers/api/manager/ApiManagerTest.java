@@ -29,7 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.graviteesource.services.runtimesecrets.RuntimeSecretsProcessingService;
+import com.graviteesource.services.runtimesecrets.RuntimeSecretsService;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.Plan;
@@ -87,14 +87,13 @@ public class ApiManagerTest {
     private LicenseManager licenseManager;
 
     @Mock
-    RuntimeSecretsProcessingService runtimeSecretsProcessingService;
+    RuntimeSecretsService runtimeSecretsService;
 
     private ApiManagerImpl apiManager;
 
     @Before
     public void setUp() throws Exception {
-        apiManager =
-            spy(new ApiManagerImpl(eventManager, gatewayConfiguration, licenseManager, dataEncryptor, runtimeSecretsProcessingService));
+        apiManager = spy(new ApiManagerImpl(eventManager, gatewayConfiguration, licenseManager, dataEncryptor, runtimeSecretsService));
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
         when(gatewayConfiguration.hasMatchingTags(any())).thenCallRealMethod();
     }

@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.manager.impl;
 
-import com.graviteesource.services.runtimesecrets.RuntimeSecretsProcessingService;
+import com.graviteesource.services.runtimesecrets.RuntimeSecretsService;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -60,19 +60,19 @@ public class ApiManagerImpl implements ApiManager {
     private final LicenseManager licenseManager;
     private final Map<String, ReactableApi<?>> apis = new ConcurrentHashMap<>();
     private final Map<Class<? extends ReactableApi<?>>, ? extends Deployer<?>> deployers;
-    private final RuntimeSecretsProcessingService runtimeSecretsProcessingService;
+    private final RuntimeSecretsService runtimeSecretsService;
 
     public ApiManagerImpl(
         final EventManager eventManager,
         final GatewayConfiguration gatewayConfiguration,
         LicenseManager licenseManager,
         final DataEncryptor dataEncryptor,
-        final RuntimeSecretsProcessingService runtimeSecretsProcessingService
+        final RuntimeSecretsService runtimeSecretsService
     ) {
         this.eventManager = eventManager;
         this.gatewayConfiguration = gatewayConfiguration;
         this.licenseManager = licenseManager;
-        this.runtimeSecretsProcessingService = runtimeSecretsProcessingService;
+        this.runtimeSecretsService = runtimeSecretsService;
         deployers =
             Map.of(
                 Api.class,
@@ -214,11 +214,7 @@ public class ApiManagerImpl implements ApiManager {
 
                 apis.put(api.getId(), api);
 
-                runtimeSecretsProcessingService.onDefinitionDeploy(
-                    api.getEnvironmentId(),
-                    api.getDefinition(),
-                    api.getDeploymentProperties()
-                );
+                runtimeSecretsService.onDefinitionDeploy(api.getEnvironmentId(), api.getDefinition(), api.getDeploymentProperties());
 
                 eventManager.publishEvent(ReactorEvent.DEPLOY, api);
                 log.info("{} has been deployed", api);
@@ -260,6 +256,9 @@ public class ApiManagerImpl implements ApiManager {
             }
 
             apis.put(api.getId(), api);
+
+            runtimeSecretsService.onDefinitionDeploy(api.getEnvironmentId(), api.getDefinition(), api.getDeploymentProperties());
+
             eventManager.publishEvent(ReactorEvent.UPDATE, api);
             log.info("{} has been updated", api);
         } else {

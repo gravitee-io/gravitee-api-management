@@ -7,6 +7,7 @@ import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServic
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.node.api.secrets.runtime.discovery.Definition;
 import io.gravitee.node.api.secrets.runtime.discovery.DefinitionBrowser;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -49,20 +51,18 @@ public class ApiV4DefinitionBrowser implements DefinitionBrowser<Api> {
             });
 
         // resources
-        definition
-            .getResources()
+        getSafe(definition::getResources)
             .forEach(resource -> {
                 String payload = resource.getConfiguration();
                 notifier.onPayload(payload, new PayloadLocation(PLUGIN_KIND, resource.getType()), resource::setConfiguration);
             });
 
         // flows api and plan
-        List<Flow> flows = definition
-            .getPlans()
+        List<Flow> flows = getSafe(definition::getPlans)
             .stream()
-            .flatMap(p -> p.getFlows().stream())
+            .flatMap(p -> getSafe(p::getFlows).stream())
             .collect(Collectors.toCollection(ArrayList::new));
-        flows.addAll(definition.getFlows());
+        flows.addAll(getSafe(definition::getFlows));
         Stream
             .concat(
                 Stream.concat(
@@ -79,8 +79,7 @@ public class ApiV4DefinitionBrowser implements DefinitionBrowser<Api> {
                 notifier.onPayload(payload, new PayloadLocation(PLUGIN_KIND, step.getPolicy()), step::setConfiguration);
             });
 
-        definition
-            .getPlans()
+        getSafe(definition::getPlans)
             .forEach(plan -> {
                 PlanSecurity security = plan.getSecurity();
                 String payload = security.getConfiguration();
@@ -88,13 +87,13 @@ public class ApiV4DefinitionBrowser implements DefinitionBrowser<Api> {
             });
 
         // endpoint groups
-        definition
-            .getEndpointGroups()
+        getSafe(definition::getEndpointGroups)
             .stream()
             .flatMap(endpointGroup -> {
                 EndpointGroupServices services = endpointGroup.getServices();
                 Stream
                     .of(services.getDiscovery(), services.getHealthCheck())
+                    .filter(Objects::nonNull)
                     .filter(Service::isEnabled)
                     .forEach(service -> {
                         String payload = service.getConfiguration();
@@ -106,12 +105,13 @@ public class ApiV4DefinitionBrowser implements DefinitionBrowser<Api> {
                     new PayloadLocation(PLUGIN_KIND, endpointGroup.getType()),
                     endpointGroup::setSharedConfiguration
                 );
-                return endpointGroup.getEndpoints().stream();
+                return getSafe(endpointGroup::getEndpoints).stream();
             })
             .forEach(endpoint -> {
                 EndpointServices services = endpoint.getServices();
                 Stream
                     .of(services.getHealthCheck())
+                    .filter(Objects::nonNull)
                     .filter(Service::isEnabled)
                     .forEach(service -> {
                         String payload = service.getConfiguration();
@@ -124,8 +124,17 @@ public class ApiV4DefinitionBrowser implements DefinitionBrowser<Api> {
             });
 
         // services
-        Service dynamicProperty = definition.getServices().getDynamicProperty();
-        String payload = dynamicProperty.getConfiguration();
-        notifier.onPayload(payload, new PayloadLocation(PLUGIN_KIND, dynamicProperty.getType()), dynamicProperty::setConfiguration);
+        ApiServices apiServices = definition.getServices();
+
+        if (apiServices != null && apiServices.getDynamicProperty() != null && apiServices.getDynamicProperty().isEnabled()) {
+            Service dynamicProperty = apiServices.getDynamicProperty();
+            String payload = dynamicProperty.getConfiguration();
+            notifier.onPayload(payload, new PayloadLocation(PLUGIN_KIND, dynamicProperty.getType()), dynamicProperty::setConfiguration);
+        }
+    }
+
+    private <T> List<T> getSafe(Supplier<List<T>> getter) {
+        List<T> list = getter.get();
+        return list == null ? List.of() : list;
     }
 }

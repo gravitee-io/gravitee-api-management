@@ -62,7 +62,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -158,6 +157,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         Api apiDefinition = api != null ? buildApiEventPayload(executionContext, api) : null;
         if (apiDefinition != null) {
             eventProperties.put(Event.EventProperties.API_ID.getValue(), apiDefinition.getId());
+            eventProperties.put(Event.EventProperties.API_CROSS_ID.getValue(), api.getCrossId());
         }
         EventEntity event = createEvent(executionContext, environmentsIds, organizationId, type, apiDefinition, eventProperties);
         if (apiDefinition != null) {
