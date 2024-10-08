@@ -83,7 +83,7 @@
                         [contentToCopy]="codeForEditor"
                       ></div>
                       <div class="editor__lines">
-                        @for (line of codeForEditor.split('\n'); track line; let i = $index) {
+                        @for (line of codeForEditor.split('\n'); track line + i; let i = $index) {
                           <div class="line">
                             <span class="line__number">{{ i + 1 }}</span>
                             <span>{{ line.replaceAll(' ', '&nbsp;') }}</span>

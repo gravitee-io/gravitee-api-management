@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 import { Component, Input } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
+import { CommonModule } from '@angular/common';
 
 import { AgentStatus } from '../../integrations.model';
 
 @Component({
   selector: 'app-integration-status',
   templateUrl: './integration-status.component.html',
+  standalone: true,
+  imports: [CommonModule, MatIconModule],
 })
 export class IntegrationStatusComponent {
   @Input() agentStatus = AgentStatus.DISCONNECTED;
