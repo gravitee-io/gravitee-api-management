@@ -100,7 +100,13 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
             .peek(sanitized -> api.setMembers(ApiCRDEntityAdapter.INSTANCE.toApiCRDMembers(sanitized.members())), errors::addAll);
 
         validateGroupsDomainService
-            .validateAndSanitize(new ValidateGroupsDomainService.Input(executionContext.getEnvironmentId(), api.getGroups()))
+            .validateAndSanitize(
+                new ValidateGroupsDomainService.Input(
+                    executionContext.getEnvironmentId(),
+                    api.getGroups(),
+                    api.getGraviteeDefinitionVersion()
+                )
+            )
             .peek(sanitized -> api.setGroups(sanitized.groups()), errors::addAll);
 
         pagesValidator
