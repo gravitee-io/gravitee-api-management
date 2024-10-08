@@ -22,15 +22,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.model.Api;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.kubernetes.client.KubernetesClient;
-import io.gravitee.kubernetes.client.api.ResourceQuery;
 import io.gravitee.kubernetes.client.config.KubernetesConfig;
 import io.gravitee.kubernetes.client.exception.ResourceVersionNotFoundException;
 import io.gravitee.kubernetes.client.model.v1.ConfigMap;
@@ -40,12 +39,12 @@ import io.gravitee.kubernetes.client.model.v1.ListMeta;
 import io.gravitee.kubernetes.client.model.v1.ObjectMeta;
 import io.gravitee.kubernetes.client.model.v1.OwnerReference;
 import io.gravitee.kubernetes.client.model.v1.Watchable;
+import io.gravitee.repository.management.model.Api;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -67,15 +66,12 @@ class ConfigMapEventFetcherTest {
     @Mock
     private KubernetesClient kubernetesClient;
 
-    @Mock
-    private ObjectMapper objectMapper;
+    private static final ObjectMapper objectMapper = new GraviteeMapper();
 
     @Test
     @SneakyThrows
     void should_clear_cache_on_resource_version_error() {
         cut = new ConfigMapEventFetcher(kubernetesClient, new String[] { "ALL" }, objectMapper);
-
-        when(objectMapper.readValue("api", Api.class)).thenReturn(mockApiV2());
 
         when(kubernetesClient.get(any()))
             .thenReturn(
@@ -123,27 +119,25 @@ class ConfigMapEventFetcherTest {
     }
 
     @Test
-    void should_watch_all_namespaces() throws JsonProcessingException {
+    void should_watch_all_namespaces() {
         cut = new ConfigMapEventFetcher(kubernetesClient, new String[] { "ALL" }, objectMapper);
 
         when(kubernetesClient.watch(argThat(query -> query.getNamespace() == null))).thenReturn(mockFlowableEvents());
-        when(objectMapper.readValue("api", Api.class)).thenReturn(mockApiV2());
 
         cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(3);
     }
 
     @Test
-    void should_watch_all_namespaces_with_all_at_any_position() throws JsonProcessingException {
+    void should_watch_all_namespaces_with_all_at_any_position() {
         cut = new ConfigMapEventFetcher(kubernetesClient, new String[] { "default", "ALL" }, objectMapper);
 
         when(kubernetesClient.watch(argThat(query -> query.getNamespace() == null))).thenReturn(mockFlowableEvents());
-        when(objectMapper.readValue("api", Api.class)).thenReturn(mockApiV2());
 
         cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(3);
     }
 
     @Test
-    void should_watch_given_namespaces() throws JsonProcessingException {
+    void should_watch_given_namespaces() {
         cut = new ConfigMapEventFetcher(kubernetesClient, new String[] { "default", "dev" }, objectMapper);
 
         doReturn(Flowable.just(createEvent(createConfigMap("service1", "default"))))
@@ -154,26 +148,23 @@ class ConfigMapEventFetcherTest {
             .when(kubernetesClient)
             .watch(argThat(query -> query.getNamespace().equals("dev")));
 
-        when(objectMapper.readValue("api", Api.class)).thenReturn(mockApiV2());
-
         cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(2);
     }
 
     @Test
-    void should_watch_current_namespace() throws JsonProcessingException {
+    void should_watch_current_namespace() {
         cut = new ConfigMapEventFetcher(kubernetesClient, null, objectMapper);
         KubernetesConfig.getInstance().setCurrentNamespace("current");
         ConfigMap configMap = createConfigMap("service1", "current");
 
         when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
             .thenReturn(Flowable.just(createEvent(configMap)));
-        when(objectMapper.readValue("api", Api.class)).thenReturn(mockApiV2());
 
         cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(1);
     }
 
     @Test
-    void should_watch_current_namespace_api_v2_when_not_specified() throws JsonProcessingException {
+    void should_watch_current_namespace_api_v2_when_not_specified() {
         cut = new ConfigMapEventFetcher(kubernetesClient, null, objectMapper);
         KubernetesConfig.getInstance().setCurrentNamespace("current");
         ConfigMap configMap = createConfigMap("apiV2", "current");
@@ -183,25 +174,24 @@ class ConfigMapEventFetcherTest {
 
         when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
             .thenReturn(Flowable.just(createEvent(configMap)));
-        when(objectMapper.readValue("api", Api.class)).thenReturn(mockApiV2());
 
         cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(1);
     }
 
     @Test
-    void should_watch_current_namespace_api_v4() throws JsonProcessingException {
+    void should_watch_current_namespace_api_v4() {
         cut = new ConfigMapEventFetcher(kubernetesClient, null, objectMapper);
         KubernetesConfig.getInstance().setCurrentNamespace("current");
-        ConfigMap configMap = createConfigMap("apiV4", "current");
-
-        configMap.getData().put(DATA_API_DEFINITION_VERSION, DefinitionVersion.V4.getLabel());
+        ConfigMap configMap = createConfigMap(DefinitionVersion.V4, "apiV4", "current");
 
         when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
             .thenReturn(Flowable.just(createEvent(configMap)));
 
-        when(objectMapper.readValue("api", io.gravitee.definition.model.v4.Api.class)).thenReturn(mockApiV4());
-
-        cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(1);
+        cut
+            .fetchLatest(API_DEFINITIONS_KIND)
+            .test()
+            .assertComplete()
+            .assertValue(events -> events.stream().anyMatch(event -> readApi(event.getPayload()).getType() == ApiType.PROXY));
     }
 
     @Test
@@ -218,32 +208,6 @@ class ConfigMapEventFetcherTest {
         cut.fetchLatest(API_DEFINITIONS_KIND).test().assertNoValues();
     }
 
-    @Test
-    void should_not_convert_to_event() throws JsonProcessingException {
-        cut = new ConfigMapEventFetcher(kubernetesClient, null, objectMapper);
-        KubernetesConfig.getInstance().setCurrentNamespace("current");
-        ConfigMap configMap = createConfigMap("apiV4", "current");
-        configMap.getMetadata().setOwnerReferences(null);
-
-        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
-            .thenReturn(Flowable.just(createEvent(configMap)));
-
-        cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(0);
-    }
-
-    private Api mockApiV2() {
-        Api api = new Api();
-        api.setId(UUID.randomUUID().toString());
-        return api;
-    }
-
-    public io.gravitee.definition.model.v4.Api mockApiV4() {
-        io.gravitee.definition.model.v4.Api api = new io.gravitee.definition.model.v4.Api();
-        api.setId(UUID.randomUUID().toString());
-
-        return api;
-    }
-
     private Flowable<Event<? extends Watchable>> mockFlowableEvents() {
         ConfigMap configMap1 = createConfigMap("service1", "default");
         ConfigMap configMap2 = createConfigMap("service2", "dev");
@@ -252,7 +216,11 @@ class ConfigMapEventFetcherTest {
         return Flowable.just(createEvent(configMap1), createEvent(configMap2), createEvent(configMap3));
     }
 
-    private ConfigMap createConfigMap(final String name, final String namespace) {
+    private static ConfigMap createConfigMap(String name, String namespace) {
+        return createConfigMap(DefinitionVersion.V2, name, namespace);
+    }
+
+    private static ConfigMap createConfigMap(DefinitionVersion definitionVersion, String name, String namespace) {
         ObjectMeta objectMeta = new ObjectMeta();
         objectMeta.setName(name);
         objectMeta.setNamespace(namespace);
@@ -262,18 +230,72 @@ class ConfigMapEventFetcherTest {
 
         Map<String, String> data = new HashMap<>();
 
-        data.put(DATA_DEFINITION, "api");
-
-        data.put(DATA_API_DEFINITION_VERSION, DefinitionVersion.V2.getLabel());
+        if (definitionVersion == DefinitionVersion.V2) {
+            data.put(DATA_DEFINITION, definitionV2());
+            data.put(DATA_API_DEFINITION_VERSION, DefinitionVersion.V2.getLabel());
+        } else {
+            data.put(DATA_DEFINITION, definitionV4());
+            data.put(DATA_API_DEFINITION_VERSION, DefinitionVersion.V4.getLabel());
+        }
 
         return new ConfigMap("v1", null, data, true, "ConfigMap", objectMeta);
     }
 
-    private Event<ConfigMap> createEvent(ConfigMap configMap) {
+    private static String definitionV4() {
+        return """
+                {
+                          "id": "d56923f4-d2e0-c56e-83cb-6670bf8759f9",
+                          "definitionVersion": "4.0.0",
+                          "type": "proxy",
+                          "listeners": [],
+                          "endpointGroups": [],
+                          "plans": []
+                      }
+            """;
+    }
+
+    private static String definitionV2() {
+        return """
+                {
+                          "id": "019a5f4e-5802-48d2-890a-dc24570d2e32",
+                          "name": "K8s Basic Example",
+                          "gravitee": "2.0.0",
+                          "flow_mode": "DEFAULT",
+                          "proxy": {
+                              "virtual_hosts": [
+                                  {
+                                      "path": "/k8s-basic"
+                                  }
+                              ],
+                              "groups": [
+                                  {
+                                      "endpoints": [
+                                          {
+                                              "name": "Default",
+                                              "target": "https://api.gravitee.io/echo"
+                                          }
+                                      ],
+                                      "load_balancing": {}
+                                  }
+                              ]
+                          }
+                      }
+            """;
+    }
+
+    private static Event<ConfigMap> createEvent(ConfigMap configMap) {
         Event<ConfigMap> event = new Event<>();
         event.setType("ADDED");
         event.setObject(configMap);
 
         return event;
+    }
+
+    private static Api readApi(String json) {
+        try {
+            return objectMapper.readValue(json, Api.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

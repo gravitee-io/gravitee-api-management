@@ -19,6 +19,7 @@ import static io.gravitee.repository.management.model.Event.EventProperties.API_
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.kubernetes.client.KubernetesClient;
 import io.gravitee.kubernetes.client.api.LabelSelector;
 import io.gravitee.kubernetes.client.api.ResourceQuery;
@@ -157,6 +158,7 @@ public class ConfigMapEventFetcher {
 
             if (definition != null) {
                 String apiId;
+                ApiType apiType = null;
                 DefinitionVersion definitionVersion = DefinitionVersion.valueOfLabel(apiDefinitionVersion);
 
                 if (definitionVersion == DefinitionVersion.V2) {
@@ -172,6 +174,7 @@ public class ConfigMapEventFetcher {
                         io.gravitee.definition.model.v4.Api.class
                     );
                     apiId = apiDefinition.getId();
+                    apiType = apiDefinition.getType();
                     definitionVersion = apiDefinition.getDefinitionVersion();
                 } else {
                     return Maybe.error(new RuntimeException("ApiDefinitionVersion is missing for this configmap: " + definition));
@@ -187,6 +190,10 @@ public class ConfigMapEventFetcher {
                 api.setDefinition(definition);
                 api.setDefinitionVersion(definitionVersion);
                 api.setId(apiId);
+
+                if (apiType != null) {
+                    api.setType(apiType);
+                }
 
                 switch (configMapEvent.getType()) {
                     case EVENT_ADDED, EVENT_MODIFIED:
