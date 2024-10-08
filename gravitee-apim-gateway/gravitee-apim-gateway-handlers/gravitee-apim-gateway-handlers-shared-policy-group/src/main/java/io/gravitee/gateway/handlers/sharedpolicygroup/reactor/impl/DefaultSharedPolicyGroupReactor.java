@@ -21,7 +21,7 @@ import io.gravitee.gateway.handlers.sharedpolicygroup.SharedPolicyGroupPolicyMan
 import io.gravitee.gateway.handlers.sharedpolicygroup.policy.SharedPolicyGroupPolicyChainFactory;
 import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupReactor;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.policy.PolicyChain;
+import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -32,7 +32,7 @@ public class DefaultSharedPolicyGroupReactor
     private final ReactableSharedPolicyGroup reactableSharedPolicyGroup;
     private final SharedPolicyGroupPolicyChainFactory policyChainFactory;
     private final SharedPolicyGroupPolicyManager sharedPolicyGroupPolicyManager;
-    private PolicyChain policyChain;
+    private HttpPolicyChain policyChain;
 
     public DefaultSharedPolicyGroupReactor(
         ReactableSharedPolicyGroup reactableSharedPolicyGroup,
@@ -55,7 +55,7 @@ public class DefaultSharedPolicyGroupReactor
     }
 
     @Override
-    public PolicyChain policyChain() {
+    public HttpPolicyChain policyChain() {
         return policyChain;
     }
 

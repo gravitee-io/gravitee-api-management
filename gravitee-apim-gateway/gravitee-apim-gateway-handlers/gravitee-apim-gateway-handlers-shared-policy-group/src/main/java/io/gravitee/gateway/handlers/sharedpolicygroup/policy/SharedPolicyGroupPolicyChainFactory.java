@@ -18,15 +18,15 @@ package io.gravitee.gateway.handlers.sharedpolicygroup.policy;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.policy.PolicyChain;
+import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import java.util.List;
 
 public interface SharedPolicyGroupPolicyChainFactory extends PolicyChainFactory {
     @Override
-    default PolicyChain create(String flowChainId, Flow flow, ExecutionPhase phase) {
+    default HttpPolicyChain create(String flowChainId, Flow flow, ExecutionPhase phase) {
         throw new IllegalArgumentException("Cannot build a policy chain from a Flow for Shared Policy Group");
     }
 
-    PolicyChain create(final String sharedPolicyGroupPolicyId, String environmentId, List<Step> steps, ExecutionPhase phase);
+    HttpPolicyChain create(final String sharedPolicyGroupPolicyId, String environmentId, List<Step> steps, ExecutionPhase phase);
 }

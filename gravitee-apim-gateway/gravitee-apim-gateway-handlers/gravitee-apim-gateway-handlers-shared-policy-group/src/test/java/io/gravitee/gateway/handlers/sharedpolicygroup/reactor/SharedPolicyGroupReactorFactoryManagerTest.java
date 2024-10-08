@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
-import io.gravitee.gateway.reactive.policy.PolicyChain;
+import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -104,7 +104,7 @@ class SharedPolicyGroupReactorFactoryManagerTest {
                 }
 
                 @Override
-                public PolicyChain policyChain() {
+                public HttpPolicyChain policyChain() {
                     return null;
                 }
 

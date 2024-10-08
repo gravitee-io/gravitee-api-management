@@ -17,15 +17,16 @@ package io.gravitee.gateway.reactive.v4.policy;
 
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
+import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyChain;
 
 /**
- * Allows creating {@link PolicyChain}.
+ * Allows creating {@link HttpPolicyChain}.
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PolicyChainFactory {
+public interface PolicyChainFactory<P extends PolicyChain<?>> {
     /**
      * Creates a policy chain from the provided flow, for the given execution phase.
      * The policies composing the policy chain, depends on the specified execution phase:
@@ -40,7 +41,7 @@ public interface PolicyChainFactory {
      * @param flow the flow where to extract the policies to create the policy chain.
      * @param phase the execution phase used to select the pre- or post-steps.
      *
-     * @return the created {@link PolicyChain}.
+     * @return the created {@link HttpPolicyChain}.
      */
-    PolicyChain create(String flowChainId, Flow flow, ExecutionPhase phase);
+    P create(String flowChainId, Flow flow, ExecutionPhase phase);
 }

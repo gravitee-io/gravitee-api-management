@@ -21,7 +21,7 @@ import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.reactive.debug.policy.DebugPolicyChainFactory;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyManager;
 import io.gravitee.gateway.reactive.platform.organization.reactor.DefaultOrganizationReactorFactory;
-import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
+import io.gravitee.gateway.reactive.policy.HttpPolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
@@ -46,7 +46,7 @@ public class DebugOrganizationReactorFactory extends DefaultOrganizationReactorF
         super(defaultClassLoader, applicationContext, policyFactoryManager, policyClassLoaderFactory, componentProvider, configuration);
     }
 
-    protected DefaultPolicyChainFactory policyChainFactory(
+    protected HttpPolicyChainFactory policyChainFactory(
         final ReactableOrganization reactableOrganization,
         final OrganizationPolicyManager organizationPolicyManager
     ) {

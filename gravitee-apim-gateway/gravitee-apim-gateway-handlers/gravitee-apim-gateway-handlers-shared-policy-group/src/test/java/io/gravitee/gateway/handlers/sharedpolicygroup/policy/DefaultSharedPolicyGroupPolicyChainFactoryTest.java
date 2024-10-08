@@ -35,7 +35,7 @@ import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.Policy;
-import io.gravitee.gateway.reactive.policy.PolicyChain;
+import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook;
 import io.gravitee.node.api.configuration.Configuration;
@@ -102,12 +102,12 @@ class DefaultSharedPolicyGroupPolicyChainFactoryTest {
     @Test
     void should_not_create_policy_chain_if_already_registered_and_return_it() {
         final List<Step> steps = List.of(STEP_FOR_ALREADY_REGISTERED_CHAIN);
-        final PolicyChain expectedPolicyChain = new PolicyChain("result", List.of(), ExecutionPhase.REQUEST);
+        final HttpPolicyChain expectedPolicyChain = new HttpPolicyChain("result", List.of(), ExecutionPhase.REQUEST);
         cut.policyChains.put(
             cut.getSharedPolicyGroupKey(SHARED_GROUP_POLICY_ID, ENV_ID, steps, ExecutionPhase.REQUEST),
             expectedPolicyChain
         );
-        final PolicyChain result = cut.create(SHARED_GROUP_POLICY_ID, ENV_ID, steps, ExecutionPhase.REQUEST);
+        final HttpPolicyChain result = cut.create(SHARED_GROUP_POLICY_ID, ENV_ID, steps, ExecutionPhase.REQUEST);
 
         assertThat(result).isEqualTo(expectedPolicyChain);
 
@@ -127,7 +127,7 @@ class DefaultSharedPolicyGroupPolicyChainFactoryTest {
         lenient()
             .when(policyManager.create(any(), any()))
             .thenAnswer(answer -> fakePolicy(answer.<PolicyMetadata>getArgument(1).getName()));
-        final PolicyChain result = cut.create(SHARED_GROUP_POLICY_ID, ENV_ID, steps, phase);
+        final HttpPolicyChain result = cut.create(SHARED_GROUP_POLICY_ID, ENV_ID, steps, phase);
         int nestedSharedPolicyGroupLog = 0;
         for (Step step : steps) {
             final boolean isSharedPolicyGroup = step.getPolicy().equals(SharedPolicyGroupPolicy.POLICY_ID);

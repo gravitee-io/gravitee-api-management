@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.reactive.debug.policy;
 
-import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
+import io.gravitee.gateway.reactive.policy.HttpPolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.node.api.configuration.Configuration;
 
@@ -23,7 +23,7 @@ import io.gravitee.node.api.configuration.Configuration;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DebugPolicyChainFactory extends DefaultPolicyChainFactory {
+public class DebugPolicyChainFactory extends HttpPolicyChainFactory {
 
     public DebugPolicyChainFactory(final String id, final PolicyManager policyManager, final Configuration configuration) {
         super(id, policyManager, configuration);

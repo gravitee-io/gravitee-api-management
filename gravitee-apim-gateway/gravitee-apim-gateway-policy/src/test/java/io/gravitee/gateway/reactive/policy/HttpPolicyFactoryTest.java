@@ -58,9 +58,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-class DefaultPolicyFactoryTest {
+class HttpPolicyFactoryTest {
 
-    private DefaultPolicyFactory cut;
+    private HttpPolicyFactory cut;
 
     @Spy
     private PolicyPluginFactory policyPluginFactory = new PolicyPluginFactoryImpl();
@@ -78,7 +78,7 @@ class DefaultPolicyFactoryTest {
 
     @BeforeEach
     void init() {
-        cut = new DefaultPolicyFactory(policyPluginFactory, new ExpressionLanguageConditionFilter<>());
+        cut = new HttpPolicyFactory(policyPluginFactory, new ExpressionLanguageConditionFilter<>());
         policyConfiguration = new DummyPolicyConfiguration();
         ((DummyPolicyConfiguration) policyConfiguration).setValue(1);
         policyMetadata = new PolicyMetadata("dummy-reactive", "{\"value\": 1}");
@@ -114,7 +114,7 @@ class DefaultPolicyFactoryTest {
         policyMetadata = new PolicyMetadata("dummy-reactive", "{\"value\": 1}", "condition");
         HttpPolicy policy = cut.create(phase, policyManifest, null, policyMetadata);
 
-        assertInstanceOf(ConditionalPolicy.class, policy);
+        assertInstanceOf(HttpConditionalPolicy.class, policy);
     }
 
     @ParameterizedTest

@@ -38,7 +38,7 @@ public class SecurityPolicyFactory {
     private SecurityPolicyFactory() {}
 
     @SuppressWarnings("unchecked")
-    public static <T extends BaseSecurityPolicy> T forPlan(Plan plan, PolicyManager policyManager) {
+    public static <T extends BaseSecurityPolicy> T forPlan(Plan plan, PolicyManager<HttpPolicy> policyManager) {
         final String security = plan.getSecurity();
 
         if (security == null) {

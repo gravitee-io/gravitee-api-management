@@ -29,19 +29,19 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ConditionalPolicy implements HttpPolicy, ConditionSupplier {
+public class HttpConditionalPolicy implements HttpPolicy, ConditionSupplier {
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(ConditionalPolicy.class);
+    public static final Logger LOGGER = LoggerFactory.getLogger(HttpConditionalPolicy.class);
 
     protected final HttpPolicy policy;
     protected final String condition;
-    protected final ConditionFilter<BaseExecutionContext, ConditionalPolicy> conditionFilter;
+    protected final ConditionFilter<BaseExecutionContext, HttpConditionalPolicy> conditionFilter;
     protected final boolean conditionDefined;
 
-    public ConditionalPolicy(
+    public HttpConditionalPolicy(
         HttpPolicy policy,
         String condition,
-        ConditionFilter<BaseExecutionContext, ConditionalPolicy> conditionFilter
+        ConditionFilter<BaseExecutionContext, HttpConditionalPolicy> conditionFilter
     ) {
         this.policy = policy;
         this.condition = condition;

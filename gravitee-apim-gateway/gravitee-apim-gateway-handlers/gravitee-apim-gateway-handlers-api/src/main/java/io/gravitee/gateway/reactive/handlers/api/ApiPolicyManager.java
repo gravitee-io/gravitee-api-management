@@ -18,14 +18,10 @@ package io.gravitee.gateway.reactive.handlers.api;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
-import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
-import io.gravitee.gateway.policy.PolicyManifest;
-import io.gravitee.gateway.reactive.policy.AbstractPolicyManager;
-import io.gravitee.gateway.reactive.policy.PolicyFactory;
+import io.gravitee.gateway.reactive.policy.AbstractHttpPolicyManager;
+import io.gravitee.gateway.reactive.policy.HttpPolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
-import io.gravitee.gateway.reactive.reactor.ApiReactor;
-import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
@@ -36,14 +32,14 @@ import java.util.Set;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiPolicyManager extends AbstractPolicyManager {
+public class ApiPolicyManager extends AbstractHttpPolicyManager {
 
     private final ReactableApi<?> reactableApi;
 
     public ApiPolicyManager(
         DefaultClassLoader classLoader,
         ReactableApi<?> reactableApi,
-        PolicyFactoryManager policyFactoryManager,
+        PolicyFactoryManager<HttpPolicyFactory> policyFactoryManager,
         PolicyConfigurationFactory policyConfigurationFactory,
         ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
         PolicyClassLoaderFactory policyClassLoaderFactory,

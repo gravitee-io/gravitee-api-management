@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactive.platform.organization.reactor;
 
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyManager;
+import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,12 +28,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DefaultOrganizationReactor extends AbstractOrganizationReactor {
 
-    private final PolicyChainFactory policyChainFactory;
+    private final PolicyChainFactory<HttpPolicyChain> policyChainFactory;
     private final OrganizationPolicyManager organizationPolicyManager;
 
     public DefaultOrganizationReactor(
         final ReactableOrganization reactableOrganization,
-        final PolicyChainFactory policyChainFactory,
+        final PolicyChainFactory<HttpPolicyChain> policyChainFactory,
         final OrganizationPolicyManager organizationPolicyManager
     ) {
         super(reactableOrganization);
@@ -40,7 +41,7 @@ public class DefaultOrganizationReactor extends AbstractOrganizationReactor {
         this.organizationPolicyManager = organizationPolicyManager;
     }
 
-    public PolicyChainFactory policyChainFactory() {
+    public PolicyChainFactory<HttpPolicyChain> policyChainFactory() {
         return policyChainFactory;
     }
 

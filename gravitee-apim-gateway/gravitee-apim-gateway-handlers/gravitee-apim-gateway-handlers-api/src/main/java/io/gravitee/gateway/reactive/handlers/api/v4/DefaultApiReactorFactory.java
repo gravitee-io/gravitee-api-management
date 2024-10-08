@@ -41,7 +41,7 @@ import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
-import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
+import io.gravitee.gateway.reactive.policy.HttpPolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
@@ -233,7 +233,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
                     componentProvider
                 );
 
-                final PolicyChainFactory policyChainFactory = new DefaultPolicyChainFactory(api.getId(), policyManager, configuration);
+                final PolicyChainFactory policyChainFactory = new HttpPolicyChainFactory(api.getId(), policyManager, configuration);
 
                 final io.gravitee.gateway.reactive.v4.policy.PolicyChainFactory v4PolicyChainFactory = policyChainFactory(
                     api,
@@ -321,8 +321,8 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
 
     protected void customComponents(Api api, CustomComponentProvider customComponentProvider) {}
 
-    protected io.gravitee.gateway.reactive.v4.policy.DefaultPolicyChainFactory policyChainFactory(Api api, PolicyManager policyManager) {
-        return new io.gravitee.gateway.reactive.v4.policy.DefaultPolicyChainFactory(api.getId(), policyManager, configuration);
+    protected io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory policyChainFactory(Api api, PolicyManager policyManager) {
+        return new io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory(api.getId(), policyManager, configuration);
     }
 
     /**

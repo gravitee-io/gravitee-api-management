@@ -47,7 +47,7 @@ import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFact
 import io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactorFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.TcpApiReactorFactory;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
-import io.gravitee.gateway.reactive.policy.DefaultPolicyFactory;
+import io.gravitee.gateway.reactive.policy.HttpPolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
@@ -125,7 +125,7 @@ public class ApiHandlerConfiguration {
 
     @Bean
     public PolicyFactory policyFactory(final PolicyPluginFactory policyPluginFactory) {
-        return new DefaultPolicyFactory(policyPluginFactory, new ExpressionLanguageConditionFilter<>());
+        return new HttpPolicyFactory(policyPluginFactory, new ExpressionLanguageConditionFilter<>());
     }
 
     @Bean

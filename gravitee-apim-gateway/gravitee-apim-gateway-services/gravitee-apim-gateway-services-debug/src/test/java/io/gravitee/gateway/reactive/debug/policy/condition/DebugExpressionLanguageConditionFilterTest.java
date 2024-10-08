@@ -24,7 +24,7 @@ import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.debug.policy.steps.PolicyRequestStep;
 import io.gravitee.gateway.reactive.debug.reactor.context.DebugExecutionContext;
-import io.gravitee.gateway.reactive.policy.ConditionalPolicy;
+import io.gravitee.gateway.reactive.policy.HttpConditionalPolicy;
 import io.reactivex.rxjava3.core.Maybe;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,13 +49,13 @@ class DebugExpressionLanguageConditionFilterTest {
     private TemplateEngine templateEngine;
 
     private DebugExpressionLanguageConditionFilter conditionFilter;
-    private ConditionalPolicy conditionalPolicy;
+    private HttpConditionalPolicy conditionalPolicy;
     private PolicyRequestStep policyRequestStep;
 
     @BeforeEach
     public void beforeEach() {
         conditionFilter = new DebugExpressionLanguageConditionFilter();
-        conditionalPolicy = new ConditionalPolicy(mock(Policy.class), CONDITION, conditionFilter);
+        conditionalPolicy = new HttpConditionalPolicy(mock(Policy.class), CONDITION, conditionFilter);
         when(debugCtx.getTemplateEngine()).thenReturn(templateEngine);
         policyRequestStep = new PolicyRequestStep("policyId", ExecutionPhase.REQUEST, "flowPhase");
         doReturn(policyRequestStep).when(debugCtx).getCurrentDebugStep();

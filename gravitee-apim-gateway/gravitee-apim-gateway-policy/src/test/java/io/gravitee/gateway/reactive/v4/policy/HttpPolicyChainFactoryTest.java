@@ -34,7 +34,7 @@ import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.Policy;
-import io.gravitee.gateway.reactive.policy.PolicyChain;
+import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.node.container.spring.SpringEnvironmentConfiguration;
 import java.util.List;
@@ -51,16 +51,16 @@ import org.springframework.core.env.StandardEnvironment;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-class DefaultPolicyChainFactoryTest {
+class HttpPolicyChainFactoryTest {
 
     @Mock
     private PolicyManager policyManager;
 
-    private DefaultPolicyChainFactory cut;
+    private HttpPolicyChainFactory cut;
 
     @BeforeEach
     public void init() {
-        cut = new DefaultPolicyChainFactory("unit-test", policyManager, new SpringEnvironmentConfiguration(new StandardEnvironment()));
+        cut = new HttpPolicyChainFactory("unit-test", policyManager, new SpringEnvironmentConfiguration(new StandardEnvironment()));
     }
 
     @Test
@@ -84,7 +84,7 @@ class DefaultPolicyChainFactoryTest {
         when(step2.getConfiguration()).thenReturn("config-step2");
         when(step2.getCondition()).thenReturn("condition-step2");
 
-        final PolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.REQUEST);
+        final HttpPolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.REQUEST);
         assertNotNull(policyChain);
 
         verify(policyManager, times(1))
@@ -128,7 +128,7 @@ class DefaultPolicyChainFactoryTest {
         when(step2.getConfiguration()).thenReturn("config-step2");
         when(step2.getCondition()).thenReturn("condition-step2");
 
-        final PolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.REQUEST);
+        final HttpPolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.REQUEST);
         assertNotNull(policyChain);
 
         verify(policyManager, times(1))
@@ -206,7 +206,7 @@ class DefaultPolicyChainFactoryTest {
 
         when(policyManager.create(eq(ExecutionPhase.RESPONSE), any(PolicyMetadata.class))).thenReturn(policy);
 
-        final PolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.RESPONSE);
+        final HttpPolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.RESPONSE);
         assertNotNull(policyChain);
 
         verify(policyManager, times(1)).create(eq(ExecutionPhase.RESPONSE), any(PolicyMetadata.class));
@@ -224,7 +224,7 @@ class DefaultPolicyChainFactoryTest {
 
         when(policyManager.create(eq(ExecutionPhase.RESPONSE), any(PolicyMetadata.class))).thenReturn(policy);
 
-        final PolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.RESPONSE);
+        final HttpPolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.RESPONSE);
         assertNotNull(policyChain);
 
         verify(policyManager, times(1)).create(eq(ExecutionPhase.RESPONSE), any(PolicyMetadata.class));
@@ -252,7 +252,7 @@ class DefaultPolicyChainFactoryTest {
         when(step2.getConfiguration()).thenReturn("config-step2");
         when(step2.getCondition()).thenReturn("condition-step2");
 
-        final PolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.REQUEST);
+        final HttpPolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.REQUEST);
         assertNotNull(policyChain);
 
         verify(policyManager, times(2)).create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class));
@@ -269,7 +269,7 @@ class DefaultPolicyChainFactoryTest {
         when(selector.getMethods()).thenReturn(null);
         when(selector.getPath()).thenReturn("path");
 
-        final PolicyChain policyChain = cut.create("flowchain-test", flow, ExecutionPhase.REQUEST);
+        final HttpPolicyChain policyChain = cut.create("flowchain-test", flow, ExecutionPhase.REQUEST);
         assertNotNull(policyChain);
         assertEquals("flowchain-test-all-path", policyChain.getId());
     }

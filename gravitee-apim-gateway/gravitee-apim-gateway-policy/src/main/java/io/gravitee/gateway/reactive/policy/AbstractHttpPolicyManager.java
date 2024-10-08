@@ -24,7 +24,6 @@ import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.impl.PolicyLoader;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
@@ -33,22 +32,21 @@ import io.gravitee.policy.api.PolicyConfiguration;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractPolicyManager extends AbstractLifecycleComponent<PolicyManager> implements PolicyManager {
+public abstract class AbstractHttpPolicyManager extends AbstractLifecycleComponent<PolicyManager> implements PolicyManager<HttpPolicy> {
 
     protected final Map<String, PolicyManifest> manifests;
-    protected final PolicyFactoryManager policyFactoryManager;
+    protected final PolicyFactoryManager<HttpPolicyFactory> policyFactoryManager;
     protected final PolicyConfigurationFactory policyConfigurationFactory;
     protected final PolicyLoader policyLoader;
 
-    protected AbstractPolicyManager(
+    protected AbstractHttpPolicyManager(
         DefaultClassLoader classLoader,
-        PolicyFactoryManager policyFactoryManager,
+        PolicyFactoryManager<HttpPolicyFactory> policyFactoryManager,
         PolicyConfigurationFactory policyConfigurationFactory,
         ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
         PolicyClassLoaderFactory policyClassLoaderFactory,

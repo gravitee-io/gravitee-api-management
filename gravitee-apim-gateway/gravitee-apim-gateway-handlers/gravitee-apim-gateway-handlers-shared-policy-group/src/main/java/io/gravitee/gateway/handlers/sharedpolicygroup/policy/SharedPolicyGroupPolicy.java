@@ -15,14 +15,13 @@
  */
 package io.gravitee.gateway.handlers.sharedpolicygroup.policy;
 
-import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupReactor;
 import io.gravitee.gateway.handlers.sharedpolicygroup.registry.SharedPolicyGroupRegistry;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.Policy;
-import io.gravitee.gateway.reactive.policy.PolicyChain;
+import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -75,7 +74,7 @@ public class SharedPolicyGroupPolicy implements Policy {
         };
     }
 
-    private Optional<PolicyChain> getPolicyChain(HttpExecutionContext ctx) {
+    private Optional<HttpPolicyChain> getPolicyChain(HttpExecutionContext ctx) {
         final SharedPolicyGroupRegistry sharedPolicyGroupRegistry = ctx.getComponent(SharedPolicyGroupRegistry.class);
         return Optional
             .ofNullable(

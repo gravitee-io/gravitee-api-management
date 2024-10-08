@@ -21,23 +21,23 @@ import java.util.Set;
 
 /**
  * A manager of Policy factories. It allows to select a particular policy factory depending on specific criteria tested against the {@link PolicyManifest}.
- * If no custom implementation of {@link PolicyFactory} has been found, then it will fallback to {@link DefaultPolicyFactory} or a user defined implementation of {@link PolicyFactory}
+ * If no custom implementation of {@link PolicyFactory} has been found, then it will fallback to {@link HttpPolicyFactory} or a user defined implementation of {@link PolicyFactory}
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PolicyFactoryManager {
+public class PolicyFactoryManager<P extends PolicyFactory<?>> {
 
-    private final Class<? extends PolicyFactory> defaultPolicyFactoryClass;
-    private final Set<PolicyFactory> policyFactories;
-    private final PolicyFactory defaultPolicyFactory;
+    private final Class<? extends PolicyFactory<?>> defaultPolicyFactoryClass;
+    private final Set<P> policyFactories;
+    private final P defaultPolicyFactory;
 
     /**
-     * Build the manager with a set of {@link PolicyFactory} and select {@link DefaultPolicyFactory} as fall back factory
+     * Build the manager with a set of {@link PolicyFactory} and select {@link HttpPolicyFactory} as fall back factory
      * @param policyFactories
      */
-    public PolicyFactoryManager(Set<PolicyFactory> policyFactories) {
+    public PolicyFactoryManager(Set<P> policyFactories) {
         this.policyFactories = policyFactories;
-        defaultPolicyFactoryClass = DefaultPolicyFactory.class;
+        defaultPolicyFactoryClass = HttpPolicyFactory.class;
         defaultPolicyFactory = extractDefaultPolicyFactory(policyFactories);
     }
 
@@ -46,7 +46,7 @@ public class PolicyFactoryManager {
      * @param defaultPolicyFactoryClass the class that will operate as the default policy factory
      * @param policyFactories
      */
-    public PolicyFactoryManager(Class<? extends PolicyFactory> defaultPolicyFactoryClass, Set<PolicyFactory> policyFactories) {
+    public PolicyFactoryManager(Class<? extends PolicyFactory<?>> defaultPolicyFactoryClass, Set<P> policyFactories) {
         this.defaultPolicyFactoryClass = defaultPolicyFactoryClass;
         this.policyFactories = policyFactories;
         defaultPolicyFactory = extractDefaultPolicyFactory(policyFactories);
@@ -57,7 +57,7 @@ public class PolicyFactoryManager {
      * @param manifest to select the appropriate {@link PolicyFactory}
      * @return the {@link PolicyFactory}
      */
-    public PolicyFactory get(PolicyManifest manifest) {
+    public P get(PolicyManifest manifest) {
         return policyFactories.stream().filter(policyFactory -> policyFactory.accept(manifest)).findFirst().orElse(defaultPolicyFactory);
     }
 
@@ -65,9 +65,9 @@ public class PolicyFactoryManager {
         get(policyManifest).cleanup(policyManifest);
     }
 
-    private PolicyFactory extractDefaultPolicyFactory(Set<PolicyFactory> policyFactories) {
-        final Iterator<PolicyFactory> iterator = policyFactories.iterator();
-        PolicyFactory toExtract = null;
+    private P extractDefaultPolicyFactory(Set<P> policyFactories) {
+        final Iterator<P> iterator = policyFactories.iterator();
+        P toExtract = null;
         while (iterator.hasNext()) {
             toExtract = iterator.next();
             if (defaultPolicyFactoryClass.equals(toExtract.getClass())) {
