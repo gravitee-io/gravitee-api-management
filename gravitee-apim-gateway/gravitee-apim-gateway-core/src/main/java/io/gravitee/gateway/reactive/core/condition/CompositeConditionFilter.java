@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.reactive.core.condition;
 
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Arrays;
 import java.util.List;
@@ -26,20 +26,20 @@ import java.util.List;
  * @author Jeoffrey HAEYAERT (jeoffrey.HAEYAERT at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class CompositeConditionFilter<T> implements ConditionFilter<T> {
+public class CompositeConditionFilter<C extends BaseExecutionContext, T> implements ConditionFilter<C, T> {
 
-    private final List<ConditionFilter<T>> filters;
+    private final List<ConditionFilter<C, T>> filters;
 
     @SafeVarargs
-    public CompositeConditionFilter(ConditionFilter<T>... filters) {
+    public CompositeConditionFilter(ConditionFilter<C, T>... filters) {
         this.filters = Arrays.asList(filters);
     }
 
     @Override
-    public Maybe<T> filter(GenericExecutionContext ctx, T elt) {
+    public Maybe<T> filter(C ctx, T elt) {
         Maybe<T> filtered = Maybe.just(elt);
 
-        for (ConditionFilter<T> filter : filters) {
+        for (ConditionFilter<C, T> filter : filters) {
             filtered = filtered.flatMap(filteredElt -> filter.filter(ctx, filteredElt));
         }
 

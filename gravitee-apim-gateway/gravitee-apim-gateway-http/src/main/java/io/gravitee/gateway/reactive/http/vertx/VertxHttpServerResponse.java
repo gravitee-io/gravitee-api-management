@@ -20,6 +20,7 @@ import io.gravitee.common.http.HttpVersion;
 import io.gravitee.gateway.http.utils.RequestUtils;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.core.context.AbstractResponse;
 import io.reactivex.rxjava3.core.Completable;
@@ -84,7 +85,7 @@ public class VertxHttpServerResponse extends AbstractResponse {
     }
 
     @Override
-    public Completable end(final GenericExecutionContext ctx) {
+    public Completable end(final HttpBaseExecutionContext ctx) {
         return Completable.defer(() -> {
             if (vertxHttpServerRequest.isWebSocketUpgraded()) {
                 return chunks().ignoreElements();

@@ -22,6 +22,8 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
+import io.gravitee.gateway.reactive.core.context.HttpRequestInternal;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.processor.Processor;
@@ -53,14 +55,14 @@ public class MetricsProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final MutableExecutionContext ctx) {
+    public Completable execute(final HttpExecutionContextInternal ctx) {
         return Completable.fromRunnable(() -> prepareMetrics(ctx, isAnalyticsEnabled(ctx)));
     }
 
-    private void prepareMetrics(final MutableExecutionContext ctx, final boolean enabled) {
+    private void prepareMetrics(final HttpExecutionContextInternal ctx, final boolean enabled) {
         Metrics.MetricsBuilder<?, ?> metricsBuilder = Metrics.builder();
         if (enabled) {
-            MutableRequest request = ctx.request();
+            HttpRequestInternal request = ctx.request();
             if (request != null) {
                 metricsBuilder
                     .timestamp(request.timestamp())
@@ -102,7 +104,7 @@ public class MetricsProcessor implements Processor {
         }
     }
 
-    private boolean isAnalyticsEnabled(final MutableExecutionContext ctx) {
+    private boolean isAnalyticsEnabled(final HttpExecutionContextInternal ctx) {
         ReactableApi<?> reactableApi = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API);
         if (reactableApi != null) {
             DefinitionVersion definitionVersion = reactableApi.getDefinitionVersion();

@@ -19,6 +19,8 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.flow.AbstractFlowResolver;
 import io.reactivex.rxjava3.core.Flowable;
@@ -31,18 +33,18 @@ import java.util.stream.Collectors;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-class ApiPlanFlowResolver extends AbstractFlowResolver {
+class ApiPlanFlowResolver extends AbstractFlowResolver<HttpBaseExecutionContext> {
 
     private final Api api;
 
-    public ApiPlanFlowResolver(Api api, ConditionFilter<Flow> filter) {
+    public ApiPlanFlowResolver(Api api, ConditionFilter<HttpBaseExecutionContext, Flow> filter) {
         super(filter);
         this.api = api;
         api.getPlans();
     }
 
     @Override
-    public Flowable<Flow> provideFlows(GenericExecutionContext ctx) {
+    public Flowable<Flow> provideFlows(HttpBaseExecutionContext ctx) {
         if (api.getPlans() == null || api.getPlans().isEmpty()) {
             return Flowable.empty();
         }

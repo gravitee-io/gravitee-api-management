@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.observers.TestObserver;
 import org.junit.jupiter.api.Test;
@@ -40,7 +40,7 @@ class ExpressionLanguageConditionFilterTest {
     final ExpressionLanguageConditionFilter<ConditionSupplier> cut = new ExpressionLanguageConditionFilter<>();
 
     @Mock
-    private HttpExecutionContext ctx;
+    private HttpPlainExecutionContext ctx;
 
     @Mock
     private TemplateEngine templateEngine;

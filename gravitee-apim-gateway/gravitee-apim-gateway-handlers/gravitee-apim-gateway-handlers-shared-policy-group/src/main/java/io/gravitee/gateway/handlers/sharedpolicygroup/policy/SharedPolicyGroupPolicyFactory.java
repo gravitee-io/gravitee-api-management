@@ -19,7 +19,7 @@ import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
 import io.gravitee.gateway.reactive.policy.ConditionalPolicy;
 import io.gravitee.gateway.reactive.policy.DefaultPolicyFactory;
@@ -40,13 +40,16 @@ public class SharedPolicyGroupPolicyFactory extends DefaultPolicyFactory {
     }
 
     @Override
-    protected Policy createPolicy(
+    protected HttpPolicy createPolicy(
         ExecutionPhase phase,
         PolicyManifest policyManifest,
         PolicyConfiguration policyConfiguration,
         PolicyMetadata policyMetadata
     ) {
-        Policy policy = new SharedPolicyGroupPolicy(policyMetadata.getName(), (SharedPolicyGroupPolicyConfiguration) policyConfiguration);
+        HttpPolicy policy = new SharedPolicyGroupPolicy(
+            policyMetadata.getName(),
+            (SharedPolicyGroupPolicyConfiguration) policyConfiguration
+        );
         policy = createConditionalPolicy(policyMetadata, policy);
         return policy;
     }

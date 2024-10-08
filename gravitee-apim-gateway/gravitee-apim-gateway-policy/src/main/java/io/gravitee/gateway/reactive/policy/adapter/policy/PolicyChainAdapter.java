@@ -18,7 +18,7 @@ package io.gravitee.gateway.reactive.policy.adapter.policy;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.policy.adapter.context.ProcessFailureAdapter;
 import io.gravitee.policy.api.PolicyResult;
 import io.reactivex.rxjava3.core.CompletableEmitter;
@@ -29,10 +29,10 @@ import io.reactivex.rxjava3.core.CompletableEmitter;
  */
 public class PolicyChainAdapter implements io.gravitee.policy.api.PolicyChain {
 
-    private final HttpExecutionContext ctx;
+    private final HttpPlainExecutionContext ctx;
     private final CompletableEmitter emitter;
 
-    public PolicyChainAdapter(final HttpExecutionContext ctx, final CompletableEmitter emitter) {
+    public PolicyChainAdapter(final HttpPlainExecutionContext ctx, final CompletableEmitter emitter) {
         this.ctx = ctx;
         this.emitter = emitter;
     }

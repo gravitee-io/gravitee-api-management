@@ -151,7 +151,7 @@ public class ApiHandlerConfiguration {
     @Bean
     public io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory() {
         return new io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory(
-            new CompositeConditionFilter<>(
+            new CompositeConditionFilter(
                 new HttpMethodConditionFilter(),
                 new PathBasedConditionFilter(),
                 new ExpressionLanguageConditionFilter<>()

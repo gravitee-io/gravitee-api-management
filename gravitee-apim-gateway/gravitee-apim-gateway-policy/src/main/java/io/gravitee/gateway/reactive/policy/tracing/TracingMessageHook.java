@@ -16,7 +16,7 @@
 package io.gravitee.gateway.reactive.policy.tracing;
 
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.MessageHook;
 import io.gravitee.tracing.api.Span;
 
@@ -34,7 +34,7 @@ public class TracingMessageHook extends AbstractTracingPolicyHook implements Mes
     }
 
     @Override
-    protected void withAttributes(final String id, final ExecutionContext ctx, final ExecutionPhase executionPhase, final Span span) {
+    protected void withAttributes(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase, final Span span) {
         super.withAttributes(id, ctx, executionPhase, span);
         if (ExecutionPhase.MESSAGE_REQUEST == executionPhase) {
             span.withAttribute(SPAN_MESSAGE_ATTR, "incoming");

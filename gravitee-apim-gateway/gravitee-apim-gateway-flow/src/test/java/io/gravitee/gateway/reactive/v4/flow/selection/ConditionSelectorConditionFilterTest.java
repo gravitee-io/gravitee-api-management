@@ -15,18 +15,14 @@
  */
 package io.gravitee.gateway.reactive.v4.flow.selection;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
-import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Optional;
@@ -46,7 +42,7 @@ class ConditionSelectorConditionFilterTest {
     final ConditionSelectorConditionFilter cut = new ConditionSelectorConditionFilter();
 
     @Mock
-    private HttpExecutionContext ctx;
+    private HttpPlainExecutionContext ctx;
 
     @Mock
     private TemplateEngine templateEngine;

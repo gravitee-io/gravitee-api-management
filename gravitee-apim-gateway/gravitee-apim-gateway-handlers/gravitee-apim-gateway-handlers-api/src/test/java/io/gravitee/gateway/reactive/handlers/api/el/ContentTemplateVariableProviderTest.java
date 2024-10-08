@@ -15,11 +15,21 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.el;
 
-import static io.gravitee.gateway.reactive.api.context.HttpExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST;
-import static io.gravitee.gateway.reactive.api.context.HttpExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE;
-import static io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariableProvider.*;
+import static io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST;
+import static io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE;
+import static io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariableProvider.TEMPLATE_ATTRIBUTE_REQUEST_CONTENT;
+import static io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariableProvider.TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_JSON;
+import static io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariableProvider.TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML;
+import static io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariableProvider.TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT;
+import static io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariableProvider.TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_JSON;
+import static io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariableProvider.TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_XML;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;

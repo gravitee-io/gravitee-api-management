@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactive.tcp;
 
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.core.context.AbstractResponse;
 import io.reactivex.rxjava3.core.Completable;
 
@@ -52,7 +53,7 @@ public class VertxTcpResponse extends AbstractResponse {
      * @return a Completable that performs the piping at subscription time.
      */
     @Override
-    public Completable end(GenericExecutionContext ctx) {
+    public Completable end(HttpBaseExecutionContext ctx) {
         return Completable
             .defer(() -> Completable.mergeArray(request.upstreamPipe(), this.downstreamPipe))
             .doFinally(() -> this.ended = true);

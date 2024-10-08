@@ -22,10 +22,10 @@ import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
-import io.gravitee.gateway.reactive.api.context.GenericRequest;
-import io.gravitee.gateway.reactive.api.context.GenericResponse;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
-import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseRequest;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseResponse;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Completable;
@@ -54,7 +54,7 @@ public abstract class AbstractFailureProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final MutableExecutionContext ctx) {
+    public Completable execute(final HttpExecutionContextInternal ctx) {
         ExecutionFailure executionFailure = ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
 
         if (executionFailure == null) {
@@ -73,9 +73,9 @@ public abstract class AbstractFailureProcessor implements Processor {
         return processFailure(ctx, executionFailure);
     }
 
-    protected Completable processFailure(final HttpExecutionContext ctx, final ExecutionFailure executionFailure) {
-        final GenericRequest request = ctx.request();
-        final GenericResponse response = ctx.response();
+    protected Completable processFailure(final HttpPlainExecutionContext ctx, final ExecutionFailure executionFailure) {
+        final HttpBaseRequest request = ctx.request();
+        final HttpBaseResponse response = ctx.response();
 
         ctx.metrics().setErrorKey(executionFailure.key());
         response.status(executionFailure.statusCode());

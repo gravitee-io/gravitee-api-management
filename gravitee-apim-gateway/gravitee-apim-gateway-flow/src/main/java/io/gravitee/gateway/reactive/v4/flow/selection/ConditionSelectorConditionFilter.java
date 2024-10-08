@@ -17,13 +17,11 @@ package io.gravitee.gateway.reactive.v4.flow.selection;
 
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
-import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
 import io.reactivex.rxjava3.core.Maybe;
-import java.util.Optional;
 
 /**
  * This {@link ConditionFilter} evaluates to true if the request is matching the
@@ -32,12 +30,12 @@ import java.util.Optional;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ConditionSelectorConditionFilter implements ConditionFilter<Flow> {
+public class ConditionSelectorConditionFilter implements ConditionFilter<BaseExecutionContext, Flow> {
 
     private final ExpressionLanguageConditionFilter<ConditionSelector> elConditionFilter = new ExpressionLanguageConditionFilter<>();
 
     @Override
-    public Maybe<Flow> filter(final GenericExecutionContext ctx, final Flow flow) {
+    public Maybe<Flow> filter(final BaseExecutionContext ctx, final Flow flow) {
         return flow
             .selectorByType(SelectorType.CONDITION)
             .map(conditionSelector ->

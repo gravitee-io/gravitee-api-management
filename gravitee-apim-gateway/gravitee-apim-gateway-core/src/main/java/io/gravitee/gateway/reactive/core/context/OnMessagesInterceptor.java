@@ -25,7 +25,7 @@ import java.util.function.Function;
  */
 public interface OnMessagesInterceptor {
     /**
-     * Set an interceptor allowing to capture any call to {@link MutableRequest#onMessages(FlowableTransformer)} or {@link MutableResponse#onMessages(FlowableTransformer)}.
+     * Set an interceptor allowing to capture any call to {@link io.gravitee.gateway.reactive.api.context.base.BaseMessageRequest#onMessages(FlowableTransformer)} or {@link io.gravitee.gateway.reactive.api.context.base.BaseMessageResponse#onMessages(FlowableTransformer)}.
      * The captured {@link FlowableTransformer} will then be provided to the specified function which will be able to provide its own {@link FlowableTransformer}.
      * <p/>
      * This can be particularly useful to avoid, replace or compose the transformation set by a policy on the incoming messages.
@@ -45,13 +45,13 @@ public interface OnMessagesInterceptor {
      *         );
      * </pre>
      *
-     * @param interceptor the function taking the {@link FlowableTransformer} provided by the call to {@link MutableRequest#onMessages(FlowableTransformer)} or {@link MutableResponse#onMessages(FlowableTransformer)} and returns another {@link FlowableTransformer} as a replacement.
+     * @param interceptor the function taking the {@link FlowableTransformer} provided by the call to {@link io.gravitee.gateway.reactive.api.context.base.BaseMessageRequest#onMessages(FlowableTransformer)} or {@link io.gravitee.gateway.reactive.api.context.base.BaseMessageResponse#onMessages(FlowableTransformer)} and returns another {@link FlowableTransformer} as a replacement.
      */
     void setMessagesInterceptor(Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor);
 
     /**
      * Unset the <code>onMessages</code> interceptor.
-     * Removing the interceptor has only effect on future calls to {@link MutableRequest#onMessages(FlowableTransformer)} or {@link MutableResponse#onMessages(FlowableTransformer)}.
+     * Removing the interceptor has only effect on future calls to {@link io.gravitee.gateway.reactive.api.context.base.BaseMessageRequest#onMessages(FlowableTransformer)} or {@link io.gravitee.gateway.reactive.api.context.base.BaseMessageResponse#onMessages(FlowableTransformer)}.
      *
      * <b>WARN: </b> it is the responsibility of the caller to make sure the interceptor is set and unset at the right time to avoid any undesired side effects.
      */

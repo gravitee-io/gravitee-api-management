@@ -27,8 +27,9 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.flow.BestMatchFlowSelector;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
-import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.platform.organization.flow.OrganizationFlowResolver;
 import io.reactivex.rxjava3.core.Maybe;
@@ -56,13 +57,13 @@ class OrganizationFlowResolverTest {
     private ReactableOrganization reactableOrganization;
 
     @Mock
-    private ConditionFilter<Flow> filter;
+    private ConditionFilter<HttpBaseExecutionContext, Flow> filter;
 
     @Mock
-    private HttpExecutionContext ctx;
+    private HttpPlainExecutionContext ctx;
 
     @Mock
-    private Request request;
+    private HttpRequest request;
 
     @Test
     public void shouldProvidePlatformFlows() {

@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactive.policy.tracing;
 
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.core.tracing.AbstractTracingHook;
 import io.gravitee.tracing.api.Span;
 
@@ -42,7 +43,7 @@ public abstract class AbstractTracingPolicyHook extends AbstractTracingHook {
     }
 
     @Override
-    protected void withAttributes(final String id, final ExecutionContext ctx, final ExecutionPhase executionPhase, final Span span) {
+    protected void withAttributes(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase, final Span span) {
         span.withAttribute(SPAN_POLICY_ATTR, id);
     }
 }

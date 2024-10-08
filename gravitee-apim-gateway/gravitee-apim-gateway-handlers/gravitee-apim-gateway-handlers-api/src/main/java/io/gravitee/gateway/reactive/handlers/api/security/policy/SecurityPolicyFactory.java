@@ -20,6 +20,9 @@ import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.api.policy.SecurityPolicy;
+import io.gravitee.gateway.reactive.api.policy.base.BaseSecurityPolicy;
+import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
+import io.gravitee.gateway.reactive.api.policy.http.HttpSecurityPolicy;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +37,8 @@ public class SecurityPolicyFactory {
 
     private SecurityPolicyFactory() {}
 
-    public static SecurityPolicy forPlan(Plan plan, PolicyManager policyManager) {
+    @SuppressWarnings("unchecked")
+    public static <T extends BaseSecurityPolicy> T forPlan(Plan plan, PolicyManager policyManager) {
         final String security = plan.getSecurity();
 
         if (security == null) {
@@ -42,10 +46,13 @@ public class SecurityPolicyFactory {
         }
 
         String policyName = security.toLowerCase().replaceAll("_", "-");
-        final Policy policy = policyManager.create(ExecutionPhase.REQUEST, new PolicyMetadata(policyName, plan.getSecurityDefinition()));
+        final HttpPolicy policy = policyManager.create(
+            ExecutionPhase.REQUEST,
+            new PolicyMetadata(policyName, plan.getSecurityDefinition())
+        );
 
-        if (policy instanceof SecurityPolicy) {
-            return (SecurityPolicy) policy;
+        if (policy instanceof BaseSecurityPolicy) {
+            return (T) policy;
         }
 
         log.warn("Policy [{}] (plan [{}], api [{}]) is not a security policy.", policyName, plan.getName(), plan.getApi());

@@ -19,6 +19,7 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.CompositeConditionFilter;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.flow.FlowBaseTest;
@@ -72,18 +73,18 @@ public abstract class BestMatchFlowBaseTest extends FlowBaseTest {
 
         private final List<Flow> flows;
 
-        public TestFlowResolver(ConditionFilter<Flow> conditionFilter, List<Flow> flows) {
+        public TestFlowResolver(ConditionFilter<BaseExecutionContext, Flow> conditionFilter, List<Flow> flows) {
             super(conditionFilter);
             this.flows = flows;
         }
 
         @Override
-        public Flowable<Flow> provideFlows(GenericExecutionContext ctx) {
+        public Flowable<Flow> provideFlows(BaseExecutionContext ctx) {
             return Flowable.fromIterable(flows);
         }
 
         @Override
-        public Flowable<Flow> resolve(GenericExecutionContext ctx) {
+        public Flowable<Flow> resolve(BaseExecutionContext ctx) {
             return super.resolve(ctx);
         }
     }

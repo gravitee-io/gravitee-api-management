@@ -41,7 +41,7 @@ import javax.net.ssl.SSLSession;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractRequest implements MutableRequest {
+public abstract class AbstractRequest implements MutableRequest, HttpRequestInternal {
 
     protected BufferFlow bufferFlow;
     protected MessageFlow messageFlow;

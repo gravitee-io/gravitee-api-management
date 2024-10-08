@@ -15,12 +15,11 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.processor.cors;
 
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
-import io.gravitee.gateway.reactive.api.context.GenericRequest;
-import io.gravitee.gateway.reactive.api.context.GenericResponse;
-import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseRequest;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseResponse;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.reactivex.rxjava3.core.Completable;
 
 /**
@@ -44,14 +43,14 @@ public class CorsSimpleRequestProcessor extends AbstractCorsRequestProcessor {
     }
 
     @Override
-    public Completable execute(final MutableExecutionContext ctx) {
+    public Completable execute(final HttpExecutionContextInternal ctx) {
         return Completable.fromRunnable(() -> {
             Cors cors = getCors(ctx);
             handleSimpleCrossOriginRequest(cors, ctx.request(), ctx.response());
         });
     }
 
-    private void handleSimpleCrossOriginRequest(final Cors cors, final GenericRequest request, final GenericResponse response) {
+    private void handleSimpleCrossOriginRequest(final Cors cors, final HttpBaseRequest request, final HttpBaseResponse response) {
         // 1. If the Origin header is not present terminate this set of steps. The request is outside the scope of
         // this specification.
         // 2. If the value of the Origin header is not a case-sensitive match for any of the values in list of origins,

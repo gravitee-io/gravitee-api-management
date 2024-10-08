@@ -25,6 +25,7 @@ import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.impl.PolicyLoader;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -81,7 +82,7 @@ public abstract class AbstractPolicyManager extends AbstractLifecycleComponent<P
     }
 
     @Override
-    public Policy create(final ExecutionPhase executionPhase, final PolicyMetadata policyMetadata) {
+    public HttpPolicy create(final ExecutionPhase executionPhase, final PolicyMetadata policyMetadata) {
         PolicyManifest manifest = manifests.get(policyMetadata.getName());
         if (manifest != null) {
             PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(

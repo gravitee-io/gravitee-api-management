@@ -19,6 +19,7 @@ import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.policy.api.PolicyConfiguration;
 
 /**
@@ -35,7 +36,7 @@ public interface PolicyFactory {
      */
     boolean accept(PolicyManifest policyManifest);
 
-    Policy create(
+    HttpPolicy create(
         final ExecutionPhase phase,
         final PolicyManifest policyManifest,
         final PolicyConfiguration policyConfiguration,

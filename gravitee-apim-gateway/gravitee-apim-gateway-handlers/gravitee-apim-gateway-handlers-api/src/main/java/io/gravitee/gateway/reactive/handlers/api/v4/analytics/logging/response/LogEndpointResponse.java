@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response;
 
 import io.gravitee.gateway.reactive.api.context.HttpResponse;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainResponse;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 
 /**
@@ -26,7 +27,7 @@ import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
  */
 public class LogEndpointResponse extends LogResponse {
 
-    public LogEndpointResponse(LoggingContext loggingContext, HttpResponse response) {
+    public LogEndpointResponse(LoggingContext loggingContext, HttpPlainResponse response) {
         super(loggingContext, response);
     }
 

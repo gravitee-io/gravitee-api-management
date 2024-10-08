@@ -22,7 +22,7 @@ import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.handlers.api.processor.error.AbstractFailureProcessor;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Completable;
@@ -55,7 +55,7 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
     }
 
     @Override
-    protected Completable processFailure(final HttpExecutionContext ctx, final ExecutionFailure executionFailure) {
+    protected Completable processFailure(final HttpPlainExecutionContext ctx, final ExecutionFailure executionFailure) {
         if (executionFailure.key() != null) {
             Map<String, Map<String, ResponseTemplate>> templates = getResponseTemplate(ctx);
 
@@ -79,7 +79,7 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
         }
     }
 
-    private Map<String, Map<String, ResponseTemplate>> getResponseTemplate(final HttpExecutionContext ctx) {
+    private Map<String, Map<String, ResponseTemplate>> getResponseTemplate(final HttpPlainExecutionContext ctx) {
         try {
             io.gravitee.definition.model.v4.Api api = ctx.getComponent(io.gravitee.definition.model.v4.Api.class);
             return api.getResponseTemplates();
@@ -90,7 +90,7 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
     }
 
     private Completable handleAcceptHeader(
-        final HttpExecutionContext context,
+        final HttpPlainExecutionContext context,
         final Map<String, ResponseTemplate> templates,
         final ExecutionFailure executionFailure
     ) {
@@ -118,7 +118,7 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
     }
 
     private Completable handleWildcardTemplate(
-        final HttpExecutionContext context,
+        final HttpPlainExecutionContext context,
         final Map<String, ResponseTemplate> templates,
         final ExecutionFailure executionFailure
     ) {
@@ -132,7 +132,7 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
     }
 
     private Completable handleTemplate(
-        final HttpExecutionContext context,
+        final HttpPlainExecutionContext context,
         final ResponseTemplate template,
         final ExecutionFailure executionFailure
     ) {

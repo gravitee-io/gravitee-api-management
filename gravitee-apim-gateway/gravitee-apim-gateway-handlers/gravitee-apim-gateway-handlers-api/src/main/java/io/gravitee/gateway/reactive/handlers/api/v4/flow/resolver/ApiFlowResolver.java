@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.v4.flow.AbstractFlowResolver;
 import io.reactivex.rxjava3.core.Flowable;
@@ -34,14 +35,14 @@ class ApiFlowResolver extends AbstractFlowResolver {
 
     private final Flowable<Flow> flows;
 
-    public ApiFlowResolver(Api api, ConditionFilter<Flow> filter) {
+    public ApiFlowResolver(Api api, ConditionFilter<BaseExecutionContext, Flow> filter) {
         super(filter);
         // Api flows can be determined once and then reused.
         this.flows = provideFlows(api);
     }
 
     @Override
-    public Flowable<Flow> provideFlows(GenericExecutionContext ctx) {
+    public Flowable<Flow> provideFlows(BaseExecutionContext ctx) {
         return this.flows;
     }
 

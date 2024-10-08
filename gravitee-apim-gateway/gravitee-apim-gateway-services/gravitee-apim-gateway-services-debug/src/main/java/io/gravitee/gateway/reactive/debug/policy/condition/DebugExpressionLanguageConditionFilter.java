@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.debug.policy.condition;
 
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
 import io.gravitee.gateway.reactive.debug.reactor.context.DebugExecutionContext;
 import io.gravitee.gateway.reactive.policy.ConditionalPolicy;
@@ -28,7 +29,7 @@ import io.reactivex.rxjava3.core.Maybe;
 public class DebugExpressionLanguageConditionFilter extends ExpressionLanguageConditionFilter<ConditionalPolicy> {
 
     @Override
-    public Maybe<ConditionalPolicy> filter(final GenericExecutionContext ctx, final ConditionalPolicy elt) {
+    public Maybe<ConditionalPolicy> filter(final BaseExecutionContext ctx, final ConditionalPolicy elt) {
         return super
             .filter(ctx, elt)
             .doOnEvent((conditionalPolicy, throwable) -> {

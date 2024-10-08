@@ -23,8 +23,8 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.el.EvaluableMessage;
 import io.gravitee.gateway.reactive.api.el.EvaluableRequest;
 import io.gravitee.gateway.reactive.api.el.EvaluableResponse;
@@ -35,9 +35,15 @@ import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS extends MutableResponse> implements ExecutionContext {
+public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS extends MutableResponse>
+    extends AbstractBaseExecutionContext
+    implements ExecutionContext, io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext {
 
     protected RQ request;
     protected RS response;
@@ -222,9 +228,9 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
         final EvaluableResponse evaluableResp = getEvaluableResponse();
         final EvaluableExecutionContext evaluableCtx = getEvaluableExecutionContext();
 
-        templateContext.setVariable(HttpExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST, evaluableReq);
-        templateContext.setVariable(HttpExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE, evaluableResp);
-        templateContext.setVariable(HttpExecutionContext.TEMPLATE_ATTRIBUTE_CONTEXT, evaluableCtx);
+        templateContext.setVariable(HttpPlainExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST, evaluableReq);
+        templateContext.setVariable(HttpPlainExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE, evaluableResp);
+        templateContext.setVariable(HttpPlainExecutionContext.TEMPLATE_ATTRIBUTE_CONTEXT, evaluableCtx);
     }
 
     private EvaluableRequest getEvaluableRequest() {

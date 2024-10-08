@@ -21,11 +21,11 @@ import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsPreflightInvoker;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
-import io.gravitee.gateway.reactive.api.context.GenericRequest;
-import io.gravitee.gateway.reactive.api.context.GenericResponse;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
-import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseRequest;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseResponse;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Arrays;
 import java.util.List;
@@ -54,7 +54,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
     }
 
     @Override
-    public Completable execute(final MutableExecutionContext ctx) {
+    public Completable execute(final HttpExecutionContextInternal ctx) {
         return Completable.defer(() -> {
             // Test if we are in the context of a preflight request
             if (isPreflightRequest(ctx.request())) {
@@ -77,7 +77,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
         });
     }
 
-    private boolean isPreflightRequest(final GenericRequest request) {
+    private boolean isPreflightRequest(final HttpBaseRequest request) {
         String originHeader = request.headers().get(HttpHeaderNames.ORIGIN);
         String accessControlRequestMethod = request.headers().get(HttpHeaderNames.ACCESS_CONTROL_REQUEST_METHOD);
         return request.method() == HttpMethod.OPTIONS && originHeader != null && accessControlRequestMethod != null;
@@ -89,9 +89,9 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
      * @param ctx current context
      * @return true if the Preflight Request pass, false otherwise
      */
-    private boolean handlePreflightRequest(final Cors cors, final GenericExecutionContext ctx) {
-        final GenericRequest request = ctx.request();
-        final GenericResponse response = ctx.response();
+    private boolean handlePreflightRequest(final Cors cors, final HttpBaseExecutionContext ctx) {
+        final HttpBaseRequest request = ctx.request();
+        final HttpBaseResponse response = ctx.response();
 
         // In case of pre-flight request, we are not able to define what is the calling application.
         // Define it as unknown

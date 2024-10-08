@@ -16,7 +16,7 @@
 package io.gravitee.gateway.reactive.handlers.api.processor.forward;
 
 import io.gravitee.gateway.api.http.HttpHeaderNames;
-import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.reactivex.rxjava3.core.Completable;
 
@@ -41,7 +41,7 @@ public class XForwardedPrefixProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final MutableExecutionContext ctx) {
+    public Completable execute(final HttpExecutionContextInternal ctx) {
         return Completable.fromRunnable(() ->
             // Override the X-Forwarded-Prefix with context path
             ctx.request().headers().set(HttpHeaderNames.X_FORWARDED_PREFIX, ctx.request().contextPath())

@@ -16,8 +16,10 @@
 package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.request;
 
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
+import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 
@@ -29,11 +31,11 @@ import io.gravitee.reporter.api.v4.metric.Metrics;
  */
 public class LogEndpointRequest extends LogRequest {
 
-    public LogEndpointRequest(LoggingContext loggingContext, ExecutionContext ctx) {
+    public LogEndpointRequest(LoggingContext loggingContext, HttpPlainExecutionContext ctx) {
         super(loggingContext, ctx.request());
         this.setUri("");
         Metrics metrics = ctx.metrics();
-        Request request = ctx.request();
+        HttpPlainRequest request = ctx.request();
         request.chunks(request.chunks().doOnSubscribe(s -> this.setUri(metrics.getEndpoint() != null ? metrics.getEndpoint() : "")));
     }
 

@@ -21,44 +21,5 @@ import io.gravitee.gateway.reactive.api.context.Request;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MutableRequest extends Request, OnMessagesInterceptor {
-    /**
-     * Allow setting context path.
-     *
-     * @param contextPath the context path to set.
-     * @return {@link MutableRequest}.
-     */
-    MutableRequest contextPath(final String contextPath);
-
-    /**
-     * Allow setting path info.
-     *
-     * @param pathInfo the path info to set.
-     * @return {@link MutableRequest}.
-     */
-    MutableRequest pathInfo(final String pathInfo);
-
-    /**
-     * Allow setting transaction id.
-     *
-     * @param transactionId the transaction identifier to set.
-     * @return {@link MutableRequest}.
-     */
-    MutableRequest transactionId(final String transactionId);
-
-    /**
-     * Allow setting client identifier.
-     *
-     * @param clientIdentifier the client identifier to set.
-     * @return {@link MutableRequest}.
-     */
-    MutableRequest clientIdentifier(final String clientIdentifier);
-
-    /**
-     * Allow overriding remote address.
-     *
-     * @param remoteAddress the remote address to set.
-     * @return {@link MutableRequest}.
-     */
-    MutableRequest remoteAddress(final String remoteAddress);
-}
+@Deprecated(forRemoval = true)
+public interface MutableRequest extends Request, OnMessagesInterceptor, HttpRequestInternal {}

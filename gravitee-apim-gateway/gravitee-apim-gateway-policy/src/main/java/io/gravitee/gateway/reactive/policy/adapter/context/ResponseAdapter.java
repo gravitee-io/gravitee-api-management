@@ -18,7 +18,7 @@ package io.gravitee.gateway.reactive.policy.adapter.context;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.stream.WriteStream;
-import io.gravitee.gateway.reactive.api.context.HttpResponse;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainResponse;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -26,9 +26,9 @@ import io.gravitee.gateway.reactive.api.context.HttpResponse;
  */
 public class ResponseAdapter implements io.gravitee.gateway.api.Response {
 
-    private final HttpResponse response;
+    private final HttpPlainResponse response;
 
-    public ResponseAdapter(HttpResponse response) {
+    public ResponseAdapter(HttpPlainResponse response) {
         this.response = response;
     }
 

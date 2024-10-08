@@ -28,6 +28,7 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.SecurityPolicy;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
@@ -59,7 +60,7 @@ class SecurityChainTest {
     private PolicyManager policyManager;
 
     @Mock
-    private ExecutionContext ctx;
+    private HttpExecutionContext ctx;
 
     @Test
     void shouldExecuteSecurityPolicyWhenHasRelevantSecurityToken() {

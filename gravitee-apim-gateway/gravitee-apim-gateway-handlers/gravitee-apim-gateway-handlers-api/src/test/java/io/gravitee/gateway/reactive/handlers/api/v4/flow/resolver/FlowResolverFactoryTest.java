@@ -22,6 +22,8 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
@@ -40,7 +42,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class FlowResolverFactoryTest {
 
     @Mock
-    private ConditionFilter<Flow> conditionFilter;
+    private ConditionFilter<BaseExecutionContext, Flow> conditionFilter;
 
     @Mock
     private AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector;

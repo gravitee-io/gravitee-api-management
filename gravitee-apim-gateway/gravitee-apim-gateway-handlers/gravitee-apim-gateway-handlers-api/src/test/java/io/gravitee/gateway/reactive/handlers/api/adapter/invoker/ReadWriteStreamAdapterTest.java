@@ -16,12 +16,16 @@
 package io.gravitee.gateway.reactive.handlers.api.adapter.invoker;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
-import io.gravitee.gateway.reactive.api.context.HttpRequest;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.gravitee.gateway.reactive.policy.adapter.context.RequestAdapter;
 import io.reactivex.rxjava3.core.CompletableEmitter;
@@ -51,10 +55,10 @@ class ReadWriteStreamAdapterTest {
     private RequestAdapter requestAdapter;
 
     @Mock
-    private HttpExecutionContext syncCtx;
+    private HttpPlainExecutionContext syncCtx;
 
     @Mock
-    private HttpRequest request;
+    private HttpPlainRequest request;
 
     @Mock
     private CompletableEmitter nexEmitter;

@@ -15,13 +15,10 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.request;
 
-import static io.gravitee.gateway.core.logging.utils.LoggingUtils.isContentTypeLoggable;
-
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.reactive.api.context.GenericRequest;
-import io.gravitee.gateway.reactive.api.context.HttpRequest;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
 import io.gravitee.gateway.reactive.core.v4.analytics.BufferUtils;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 
@@ -32,9 +29,9 @@ import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 abstract class LogRequest extends io.gravitee.reporter.api.common.Request {
 
     protected final LoggingContext loggingContext;
-    protected final HttpRequest request;
+    protected final HttpPlainRequest request;
 
-    protected LogRequest(LoggingContext loggingContext, HttpRequest request) {
+    protected LogRequest(LoggingContext loggingContext, HttpPlainRequest request) {
         this.loggingContext = loggingContext;
         this.request = request;
 

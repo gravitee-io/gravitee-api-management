@@ -19,17 +19,17 @@ import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_AP
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_APPLICATION;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_PLAN;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_SUBSCRIPTION_ID;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.*;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_TOKEN;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_VALIDATE_SUBSCRIPTION;
 
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
-import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
-import io.gravitee.gateway.reactive.api.policy.Policy;
-import io.gravitee.gateway.reactive.api.policy.SecurityPolicy;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
+import io.gravitee.gateway.reactive.api.policy.http.HttpSecurityPolicy;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -39,7 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * {@link SecurityPlan} allows to wrap a {@link Policy} implementing {@link SecurityPolicy} and make it working in a security chain.
+ * {@link SecurityPlan} allows to wrap a {@link io.gravitee.gateway.reactive.api.policy.http.HttpPolicy} implementing {@link HttpSecurityPolicy} and make it working in a security chain.
  * Security plan is responsible to
  * <ul>
  *     <li>Check if a policy can handle the security or not</li>
@@ -57,10 +57,10 @@ public class SecurityPlan {
     protected static final Maybe<Boolean> FALSE = Maybe.just(false);
     private static final Logger log = LoggerFactory.getLogger(SecurityPlan.class);
     private final String planId;
-    private final SecurityPolicy policy;
+    private final HttpSecurityPolicy policy;
     private final String selectionRule;
 
-    public SecurityPlan(@Nonnull final String planId, @Nonnull final SecurityPolicy policy, final String selectionRule) {
+    public SecurityPlan(@Nonnull final String planId, @Nonnull final HttpSecurityPolicy policy, final String selectionRule) {
         this.planId = planId;
         this.policy = policy;
         this.selectionRule = getSelectionRule(selectionRule);
@@ -76,7 +76,7 @@ public class SecurityPlan {
      * @param ctx the current execution context.
      * @return <code>true</code> if this security plan can be executed for the request, <code>false</code> otherwise.
      */
-    public Single<Boolean> canExecute(HttpExecutionContext ctx) {
+    public Single<Boolean> canExecute(HttpPlainExecutionContext ctx) {
         return policy
             .extractSecurityToken(ctx)
             .flatMap(securityToken -> {
@@ -95,16 +95,15 @@ public class SecurityPlan {
      * @param ctx the current execution context.
      * @return a {@link Completable} that completes when the security policy has been successfully executed or returns an error otherwise.
      */
-    public Completable execute(final GenericExecutionContext ctx, final ExecutionPhase executionPhase) {
+    public Completable execute(final HttpPlainExecutionContext ctx, final ExecutionPhase executionPhase) {
         return executeSecurityPolicy(ctx, executionPhase).doOnSubscribe(disposable -> ctx.setAttribute(ATTR_PLAN, planId));
     }
 
-    private Completable executeSecurityPolicy(final GenericExecutionContext ctx, final ExecutionPhase executionPhase) {
+    private Completable executeSecurityPolicy(final HttpPlainExecutionContext ctx, final ExecutionPhase executionPhase) {
         switch (executionPhase) {
             case REQUEST:
-                return policy.onRequest((HttpExecutionContext) ctx);
+                return policy.onRequest(ctx);
             case MESSAGE_REQUEST:
-                return policy.onMessageRequest((MessageExecutionContext) ctx);
             case RESPONSE:
             case MESSAGE_RESPONSE:
             default:
@@ -128,7 +127,7 @@ public class SecurityPlan {
         return selectionRule;
     }
 
-    private Maybe<Boolean> isApplicableWithValidSubscription(GenericExecutionContext ctx, SecurityToken securityToken) {
+    private Maybe<Boolean> isApplicableWithValidSubscription(HttpPlainExecutionContext ctx, SecurityToken securityToken) {
         if (selectionRule == null || selectionRule.isEmpty()) {
             return Maybe.just(validateSubscription(ctx, securityToken));
         }
@@ -146,7 +145,7 @@ public class SecurityPlan {
             });
     }
 
-    private boolean validateSubscription(GenericExecutionContext ctx, SecurityToken securityToken) {
+    private boolean validateSubscription(HttpPlainExecutionContext ctx, SecurityToken securityToken) {
         Boolean validateSubscriptionEnabled = ctx.getInternalAttribute(ATTR_INTERNAL_VALIDATE_SUBSCRIPTION);
 
         // Skip validating the subscription

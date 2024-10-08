@@ -17,7 +17,7 @@ package io.gravitee.gateway.reactive.reactor.processor.alert;
 
 import io.gravitee.alert.api.event.Event;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
-import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
@@ -86,7 +86,7 @@ public class AlertProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final MutableExecutionContext ctx) {
+    public Completable execute(final HttpExecutionContextInternal ctx) {
         return Completable
             .fromRunnable(() ->
                 eventProducer.send(

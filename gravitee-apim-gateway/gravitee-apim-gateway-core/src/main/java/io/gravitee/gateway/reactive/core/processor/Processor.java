@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.core.processor;
 
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.reactivex.rxjava3.core.Completable;
 
@@ -25,5 +26,5 @@ import io.reactivex.rxjava3.core.Completable;
 public interface Processor {
     String getId();
 
-    Completable execute(final MutableExecutionContext ctx);
+    Completable execute(final HttpExecutionContextInternal ctx);
 }

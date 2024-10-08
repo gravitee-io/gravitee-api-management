@@ -16,14 +16,14 @@
 package io.gravitee.gateway.reactive.v4.flow;
 
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.reactivex.rxjava3.core.Flowable;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface FlowResolver {
+public interface FlowResolver<C extends BaseExecutionContext> {
     /**
      * Provides the initial list of flows.
      * It's up to the implementation to decide to use the current execution context or not.
@@ -32,16 +32,16 @@ public interface FlowResolver {
      * @param ctx the current context
      * @return a {@link Flowable} of {@link Flow}.
      */
-    Flowable<Flow> provideFlows(final GenericExecutionContext ctx);
+    Flowable<Flow> provideFlows(final C ctx);
 
     /**
      * Resolve the flows against the current context.
      * Each flow of the initial flow list is filtered thanks to the provided evaluator before being returned.
      *
-     * Initial flow list must be provided by a concrete implementation of {@link #provideFlows(GenericExecutionContext)}.
+     * Initial flow list must be provided by a concrete implementation of {@link #provideFlows(BaseExecutionContext)} )}.
      *
      * @param ctx the current context.
      * @return a {@link Flowable} of {@link Flow} that have passed the filter step.
      */
-    Flowable<Flow> resolve(final GenericExecutionContext ctx);
+    Flowable<Flow> resolve(final C ctx);
 }

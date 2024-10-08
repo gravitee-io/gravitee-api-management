@@ -22,8 +22,8 @@ import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.hook.Hook;
-import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.gravitee.gateway.reactive.api.hook.HttpHook;
+import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.policy.PolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook;
@@ -51,7 +51,7 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
     public static final long CACHE_MAX_SIZE = 15;
     public static final long CACHE_TIME_TO_IDLE_IN_MS = 3_600_000;
     private static final String ID_SEPARATOR = "-";
-    protected final List<Hook> policyHooks = new ArrayList<>();
+    protected final List<HttpHook> policyHooks = new ArrayList<>();
     protected final PolicyManager policyManager;
     protected final Cache<String, PolicyChain> policyChains;
 
@@ -83,7 +83,7 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
         if (policyChain == null) {
             final List<Step> steps = getSteps(flow, phase);
 
-            final List<Policy> policies = steps
+            final List<HttpPolicy> policies = steps
                 .stream()
                 .filter(Step::isEnabled)
                 .map(this::buildPolicyMetadata)

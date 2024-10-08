@@ -15,7 +15,11 @@
  */
 package io.gravitee.gateway.reactive.policy.adapter.context;
 
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.*;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
 
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.Request;
@@ -23,8 +27,7 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.gravitee.tracing.api.Tracer;
 import java.util.Collections;
@@ -37,23 +40,23 @@ import java.util.Map;
  */
 public class ExecutionContextAdapter implements io.gravitee.gateway.api.ExecutionContext, MutableExecutionContext {
 
-    private final HttpExecutionContext ctx;
+    private final HttpPlainExecutionContext ctx;
     private Request adaptedRequest;
     private Response adaptedResponse;
     private TemplateEngineAdapter adaptedTemplateEngine;
 
-    private ExecutionContextAdapter(HttpExecutionContext ctx) {
+    private ExecutionContextAdapter(HttpPlainExecutionContext ctx) {
         this.ctx = ctx;
     }
 
     /**
-     * Creates an {@link ExecutionContextAdapter} from a {@link ExecutionContext}.
+     * Creates an {@link ExecutionContextAdapter} from a {@link HttpPlainExecutionContext}.
      * Once created, the adapted context is stored in internal attribute in order to be reused and avoid useless successive instantiations.
      *
      * @param ctx the context to adapt for v3 compatibility mode.
      * @return the v3 compatible {@link io.gravitee.gateway.api.ExecutionContext}.
      */
-    public static ExecutionContextAdapter create(HttpExecutionContext ctx) {
+    public static ExecutionContextAdapter create(HttpPlainExecutionContext ctx) {
         ExecutionContextAdapter adaptedCtx = ctx.getInternalAttribute(ATTR_INTERNAL_ADAPTED_CONTEXT);
 
         if (adaptedCtx == null) {
@@ -64,7 +67,7 @@ public class ExecutionContextAdapter implements io.gravitee.gateway.api.Executio
         return adaptedCtx;
     }
 
-    public HttpExecutionContext getDelegate() {
+    public HttpPlainExecutionContext getDelegate() {
         return ctx;
     }
 
