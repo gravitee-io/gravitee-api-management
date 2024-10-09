@@ -158,6 +158,43 @@ secrets:
 #    proxyProtocol: false
 #    proxyProtocolTimeout: 10000
 
+# Gateway Kafka server
+#kafka:
+#  enabled: false
+#  port: 9092
+#  host: 0.0.0.0
+#  idleTimeout: 0
+#  tcpKeepAlive: true
+#  instances: 0
+#  requestTimeout: 0 (in v4 mode, default is 30_000 ms)
+#  # TCP REQUIRES TLS to be set up properly
+#  secured: true
+#  ssl:
+#    # TCP REQUIRES SNI to be setup to match APIs
+#    sni: true
+#    clientAuth: none # Supports none, request, required
+#    tlsProtocols: TLSv1.2, TLSv1.3
+#    tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+#    keystore:
+#      type: jks # Supports jks, pem, pkcs12, self-signed
+#      path: ${gravitee.home}/security/keystore.jks # A path is required if certificate's type is jks or pkcs12
+#      certificates: # Certificates are required if keystore's type is pem
+#        - cert: ${gravitee.home}/security/mycompany.org.pem
+#          key: ${gravitee.home}/security/mycompany.org.key
+#        - cert: ${gravitee.home}/security/mycompany.com.pem
+#          key: ${gravitee.home}/security/mycompany.com.key
+#      password: secret
+#      watch: true # Watch for any updates on the keystore and reload it. Default is true.
+#    truststore:
+#      type: jks # Supports jks, pem, pkcs12, pem-folder (for the latter watch supports added/updated/removed files)
+#      path: ${gravitee.home}/security/truststore.jks
+#      password: secret
+#      watch: true # Watch for any updates on the keystore/pem and reload it. Default is true.
+#    openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
+#  haproxy: # Support for https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt
+#    proxyProtocol: false
+#    proxyProtocolTimeout: 10000
+
 # Plugins repository
 #plugins:
 #  path:
