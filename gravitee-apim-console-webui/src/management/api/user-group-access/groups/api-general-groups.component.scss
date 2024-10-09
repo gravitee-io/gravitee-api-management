@@ -4,7 +4,7 @@
 @use '../../../../scss/gio-layout' as gio-layout;
 $typography: map.get(gio.$mat-theme, typography);
 
-.integration-access-groups {
+.api-portal-access-groups {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
