@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.crud_service.documentation;
 
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
+import io.gravitee.apim.core.documentation.exception.ApiPageInvalidReferenceTypeException;
 import io.gravitee.apim.core.documentation.exception.ApiPageNotDeletedException;
 import io.gravitee.apim.core.documentation.model.*;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
@@ -23,6 +24,7 @@ import io.gravitee.apim.infra.adapter.PageAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
+import java.util.Collection;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -80,6 +82,16 @@ public class PageCrudServiceImpl implements PageCrudService {
         } catch (TechnicalException e) {
             logger.error("An error occurred while deleting Page by id {}", id, e);
             throw new ApiPageNotDeletedException(id, e);
+        }
+    }
+
+    @Override
+    public void unsetHomepage(Collection<String> ids) {
+        try {
+            pageRepository.unsetHomepage(ids);
+        } catch (TechnicalException e) {
+            logger.error("An error occurred while deleting Page by id {}", ids, e);
+            throw new ApiPageInvalidReferenceTypeException(ids.iterator().next(), e.getMessage());
         }
     }
 

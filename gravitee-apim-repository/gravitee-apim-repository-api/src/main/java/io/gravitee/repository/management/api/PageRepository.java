@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,6 +36,8 @@ public interface PageRepository extends FindAllRepository<Page> {
     Page update(Page page) throws TechnicalException;
 
     void delete(String id) throws TechnicalException;
+
+    void unsetHomepage(Collection<String> ids) throws TechnicalException;
 
     Optional<Page> findById(String id) throws TechnicalException;
 

@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -34,4 +35,6 @@ public interface PageMongoRepositoryCustom {
     Page<PageMongo> findAll(Pageable pageable);
 
     long countByParentIdAndIsPublished(String parentId);
+
+    void unsetHomepage(Collection<String> ids);
 }

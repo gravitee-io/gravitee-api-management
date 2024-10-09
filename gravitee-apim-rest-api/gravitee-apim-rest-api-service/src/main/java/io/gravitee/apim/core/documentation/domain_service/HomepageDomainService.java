@@ -15,29 +15,32 @@
  */
 package io.gravitee.apim.core.documentation.domain_service;
 
+import static java.util.function.Predicate.not;
+
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
+import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @DomainService
+@RequiredArgsConstructor
 public class HomepageDomainService {
 
     private final PageQueryService pageQueryService;
     private final PageCrudService pageCrudService;
 
-    public HomepageDomainService(PageQueryService pageQueryService, PageCrudService pageCrudService) {
-        this.pageQueryService = pageQueryService;
-        this.pageCrudService = pageCrudService;
-    }
-
     public void setPreviousHomepageToFalse(String apiId, String currentHomepageId) {
-        var pages = pageQueryService.findHomepageByApiId(apiId);
-        pages
+        List<String> previous = pageQueryService
+            .findHomepageByApiId(apiId)
             .stream()
-            .filter(p -> !p.getId().equals(currentHomepageId))
-            .forEach(p -> {
-                p.setHomepage(false);
-                pageCrudService.updateDocumentationPage(p);
-            });
+            .filter(Page::isHomepage)
+            .map(Page::getId)
+            .filter(not(currentHomepageId::equals))
+            .toList();
+        if (!previous.isEmpty()) {
+            pageCrudService.unsetHomepage(previous);
+        }
     }
 }
