@@ -46,7 +46,6 @@ import {
 import { MapProviderNamePipe } from './pipes/map-provider-name.pipe';
 import { IntegrationsComponent } from './integrations.component';
 import { IntegrationsRoutingModule } from './integrations-routing.module';
-import { IntegrationOverviewComponent } from './integration-overview/integration-overview.component';
 import { IntegrationsNavigationComponent } from './integrations-navigation/integrations-navigation.component';
 import { IntegrationConfigurationComponent } from './integration-configuration/integration-configuration.component';
 import { IntegrationStatusComponent } from './components/integration-status/integration-status.component';
@@ -56,6 +55,7 @@ import { IntegrationUserGroupModule } from './user-group-access/integration-user
 import { CreateIntegrationModule } from './create-integration/create-integration.module';
 import { IntegrationAgentModule } from './integration-agent/integration-agent.module';
 import { DiscoveryPreviewModule } from './discovery-preview/discovery-preview.module';
+import { IntegrationOverviewModule } from './integration-overview/integration-overview.module';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
@@ -63,7 +63,6 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
 @NgModule({
   declarations: [
     IntegrationsComponent,
-    IntegrationOverviewComponent,
     IntegrationsNavigationComponent,
     IntegrationConfigurationComponent,
     IntegrationGeneralConfigurationComponent,
@@ -72,11 +71,6 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    IntegrationsRoutingModule,
-    IntegrationUserGroupModule,
-    CreateIntegrationModule,
-    DiscoveryPreviewModule,
-    IntegrationAgentModule,
 
     MatCardModule,
     MatTableModule,
@@ -104,9 +98,14 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     GioIconsModule,
     GioCardEmptyStateModule,
 
-    MapProviderNamePipe,
-
+    IntegrationsRoutingModule,
+    IntegrationUserGroupModule,
+    CreateIntegrationModule,
+    DiscoveryPreviewModule,
+    IntegrationAgentModule,
+    IntegrationOverviewModule,
     IntegrationStatusComponent,
+    MapProviderNamePipe,
   ],
   providers: [{ provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher }],
 })
