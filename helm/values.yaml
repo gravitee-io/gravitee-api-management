@@ -1114,61 +1114,61 @@ gateway:
     #   tcp:
     #     connectTimeout: 5000 # in milliseconds
     #     idleTimeout: 0 # in milliseconds
-    management:
-        http:
-        #  url: "https://bridge.example.com:18092"
-        #  # default values
-        #  keepAlive: true
-        #  idleTimeout: 30000
-        #  connectTimeout: 5000
-        #  readTimeout: 10000
-        #  useCompression: true
-        #  clearTextUpgrade: true
-        #  version: HTTP_1_1     # or HTTP_2
-        #  # retry less and less often until we reach 60s (default)
-        #  # formula is factor^attempt x delay
-        #  # in this case retry occurs like this: 2s, 3s, 4.5s, 6.7s, 10.1s, 15,2s etc.
-        #  connectionRetry:
-        #    delaySec: 2
-        #    maxDelaySec: 60
-        #    backoffFactor: 1.5 # how exponential we get to 60s (1.0 means linear)
-        #  authentication:
-        #    type: none # or basic or jwt
-        #    basic:
-        #      username: admin
-        #      password: adminadmin
-        #    jwt:
-        #      token: eyJhbGciOiJIUzI1NiI...
-        #  ssl:
-        #    # defaults
-        #    ### beware: since 4.4 default is false (see upgrade guide)
-        #    trustAll: false
-        #    verifyHostname: true
-        #    # custom config for mTLS
-        #    keystore:
-        #      type: pkcs12 # can be jks / pkcs12 / pem
-        #      path: ${gravitee.home}/security/bridge/mtls-keystore.p12
-        #      password: s3cr3t
-        #      # for pem
-        #      # certPath: ${gravitee.home}/security/mtls-bridge-cert.pem
-        #      # keyPath: ${gravitee.home}/security/mtls-bridge-key.pem
-        #      # certContent: secret://...  # or raw pem, same for key content
-        #      # keyContent:
-        #    # config for non public CAs
-        #    truststore:
-        #      type: pem # can be jks / pkcs12 / pem
-        #      path: ${gravitee.home}/security/bridge/rootCA.pem
-        #      # certContent: secret://...  # or raw pem, same for key content
-        #      # for jks/pkcs12
-        #      # password:
-        #  proxy:
-        #    enabled: true
-        #    host: proxy.example.com
-        #    port: 8080
-        #    username: proxy
-        #    password: pa$$w0rd
-        #    type: HTTP
-        #    # useSystemProxy: true # reuses apim-gateway proxy config for other services
+  management:
+      http:
+      #  url: "https://bridge.example.com:18092"
+      #  # default values
+      #  keepAlive: true
+      #  idleTimeout: 30000
+      #  connectTimeout: 5000
+      #  readTimeout: 10000
+      #  useCompression: true
+      #  clearTextUpgrade: true
+      #  version: HTTP_1_1     # or HTTP_2
+      #  # retry less and less often until we reach 60s (default)
+      #  # formula is factor^attempt x delay
+      #  # in this case retry occurs like this: 2s, 3s, 4.5s, 6.7s, 10.1s, 15,2s etc.
+      #  connectionRetry:
+      #    delaySec: 2
+      #    maxDelaySec: 60
+      #    backoffFactor: 1.5 # how exponential we get to 60s (1.0 means linear)
+      #  authentication:
+      #    type: none # or basic or jwt
+      #    basic:
+      #      username: admin
+      #      password: adminadmin
+      #    jwt:
+      #      token: eyJhbGciOiJIUzI1NiI...
+      #  ssl:
+      #    # defaults
+      #    ### beware: since 4.4 default is false (see upgrade guide)
+      #    trustAll: false
+      #    verifyHostname: true
+      #    # custom config for mTLS
+      #    keystore:
+      #      type: pkcs12 # can be jks / pkcs12 / pem
+      #      path: ${gravitee.home}/security/bridge/mtls-keystore.p12
+      #      password: s3cr3t
+      #      # for pem
+      #      # certPath: ${gravitee.home}/security/mtls-bridge-cert.pem
+      #      # keyPath: ${gravitee.home}/security/mtls-bridge-key.pem
+      #      # certContent: secret://...  # or raw pem, same for key content
+      #      # keyContent:
+      #    # config for non public CAs
+      #    truststore:
+      #      type: pem # can be jks / pkcs12 / pem
+      #      path: ${gravitee.home}/security/bridge/rootCA.pem
+      #      # certContent: secret://...  # or raw pem, same for key content
+      #      # for jks/pkcs12
+      #      # password:
+      #  proxy:
+      #    enabled: true
+      #    host: proxy.example.com
+      #    port: 8080
+      #    username: proxy
+      #    password: pa$$w0rd
+      #    type: HTTP
+      #    # useSystemProxy: true # reuses apim-gateway proxy config for other services
 
   # system: {}
   services:
