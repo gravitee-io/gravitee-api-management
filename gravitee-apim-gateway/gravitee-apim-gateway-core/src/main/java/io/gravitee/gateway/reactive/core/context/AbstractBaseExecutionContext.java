@@ -19,7 +19,6 @@ import io.gravitee.common.util.ListUtils;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
-import io.gravitee.reporter.api.v4.metric.Metrics;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,14 +29,8 @@ public abstract class AbstractBaseExecutionContext implements BaseExecutionConte
 
     protected Map<String, Object> attributes = new ContextAttributeMap();
     protected Map<String, Object> internalAttributes = new HashMap<>();
-    protected Metrics metrics;
     protected ComponentProvider componentProvider;
     protected TemplateEngine templateEngine;
-
-    @Override
-    public Metrics metrics() {
-        return metrics;
-    }
 
     @Override
     public <T> T getComponent(Class<T> componentClass) {
