@@ -264,13 +264,6 @@
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java-util</artifactId>
                 <version>${protobuf-java.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- 19.0 ??? 20.0 is required -->
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
 
             <dependency>
