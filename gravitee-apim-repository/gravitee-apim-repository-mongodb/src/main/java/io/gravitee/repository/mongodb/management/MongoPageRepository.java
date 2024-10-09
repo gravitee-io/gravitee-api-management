@@ -26,6 +26,7 @@ import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PageSourceMongo;
 import io.gravitee.repository.mongodb.management.internal.page.PageMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -161,6 +162,11 @@ public class MongoPageRepository implements PageRepository {
             logger.error("An error occurred when deleting page [{}]", pageId, e);
             throw new TechnicalException("An error occurred when deleting page");
         }
+    }
+
+    @Override
+    public void unsetHomepage(Collection<String> ids) {
+        internalPageRepo.unsetHomepage(ids);
     }
 
     @Override
