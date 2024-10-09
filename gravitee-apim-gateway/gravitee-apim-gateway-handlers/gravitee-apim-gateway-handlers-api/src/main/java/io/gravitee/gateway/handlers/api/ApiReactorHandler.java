@@ -42,6 +42,7 @@ import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.reactiverse.contextual.logging.ContextualData;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -126,6 +127,9 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
         // keep track of executing request to avoid 500 errors
         // when stop is called while running a policy chain
         pendingRequests.incrementAndGet();
+
+        ContextualData.put("orgId", reactable.getOrganizationId());
+        ContextualData.put("envId", reactable.getEnvironmentId());
 
         // It's time to process incoming client request
         handleClientRequest(context, endHandler);
