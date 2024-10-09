@@ -251,8 +251,8 @@ public class EventsLatestUpgraderTest {
         assertThat(eventsSaved)
             .extracting(Event::getId, Event::getType)
             .containsExactlyInAnyOrder(
-                tuple("dictionary1" + EventService.EVENT_LATEST_DYNAMIC_SUFFIX, EventType.PUBLISH_DICTIONARY),
-                tuple("dictionary1", EventType.STOP_DICTIONARY),
+                tuple("dictionary1", EventType.PUBLISH_DICTIONARY),
+                tuple("dictionary1" + EventService.EVENT_LATEST_DYNAMIC_SUFFIX, EventType.STOP_DICTIONARY),
                 tuple("dictionary2", EventType.UNPUBLISH_DICTIONARY)
             );
 
