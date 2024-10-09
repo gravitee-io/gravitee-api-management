@@ -167,12 +167,7 @@ public class EventsLatestUpgrader implements Upgrader {
         );
         if (eventPage.getPageElements() > 0) {
             Event event = eventPage.getContent().get(0);
-            processEvent(
-                event,
-                DictionaryType.DYNAMIC.equals(dictionary.getType())
-                    ? dictionary.getId() + EventService.EVENT_LATEST_DYNAMIC_SUFFIX
-                    : dictionary.getId()
-            );
+            processEvent(event, dictionary.getId());
         }
 
         if (DictionaryType.DYNAMIC.equals(dictionary.getType())) {
@@ -184,7 +179,7 @@ public class EventsLatestUpgrader implements Upgrader {
                 );
             if (eventPage.getPageElements() > 0) {
                 Event event = eventPage.getContent().get(0);
-                processEvent(event, dictionary.getId());
+                processEvent(event, dictionary.getId() + EventService.EVENT_LATEST_DYNAMIC_SUFFIX);
             }
         }
     }
