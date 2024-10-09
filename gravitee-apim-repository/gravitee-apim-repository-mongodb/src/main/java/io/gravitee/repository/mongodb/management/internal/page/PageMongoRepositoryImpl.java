@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +31,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.mongodb.core.query.UpdateDefinition;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -117,5 +120,13 @@ public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
         query.addCriteria(where("parentId").is(parentId));
         query.addCriteria(where("published").is(true));
         return mongoTemplate.count(query, PageMongo.class);
+    }
+
+    @Override
+    public void unsetHomepage(Collection<String> ids) {
+        Query query = new Query();
+        query.addCriteria(where("_id").in(ids));
+        UpdateDefinition upd = new Update().set("homepage", false);
+        mongoTemplate.upsert(query, upd, PageMongo.class);
     }
 }

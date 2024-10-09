@@ -28,28 +28,19 @@ import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.core.search.Indexer.IndexationContext;
 import io.gravitee.apim.core.search.model.IndexablePage;
 import java.time.ZoneId;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 
 @DomainService
+@RequiredArgsConstructor
 public class UpdateApiDocumentationDomainService {
 
     private final PageCrudService pageCrudService;
     private final PageRevisionCrudService pageRevisionCrudService;
     private final AuditDomainService auditDomainService;
     private final Indexer indexer;
-
-    public UpdateApiDocumentationDomainService(
-        PageCrudService pageCrudService,
-        PageRevisionCrudService pageRevisionCrudService,
-        AuditDomainService auditDomainService,
-        Indexer indexer
-    ) {
-        this.pageCrudService = pageCrudService;
-        this.pageRevisionCrudService = pageRevisionCrudService;
-        this.auditDomainService = auditDomainService;
-        this.indexer = indexer;
-    }
 
     public Page updatePage(Page page, Page oldPage, AuditInfo auditInfo) {
         var updatedPage = pageCrudService.updateDocumentationPage(page);

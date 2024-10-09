@@ -19,6 +19,7 @@ import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateFederatedApiDomainService;
@@ -30,6 +31,7 @@ import io.gravitee.apim.core.async_job.crud_service.AsyncJobCrudService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
@@ -49,10 +51,13 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -76,6 +81,8 @@ public class IngestFederatedApisUseCase {
     private final UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
     private final TriggerNotificationDomainService triggerNotificationDomainService;
     private final ApiMetadataDomainService apiMetadataDomainService;
+    private final ApiIndexerDomainService apiIndexerDomainService;
+    private final HomepageDomainService homepageDomainService;
 
     public Completable execute(Input input) {
         log.info("Ingesting {} federated APIs [jobId={}]", input.apisToIngest().size(), input.ingestJobId);
@@ -159,26 +166,37 @@ public class IngestFederatedApisUseCase {
                         )
                 );
 
-            stream(integrationApi.pages())
+            var existingPages = pageQueryService
+                .searchByApiId(federatedApi.getId())
+                .stream()
+                .collect(Collectors.toMap(Page::getName, Function.identity()));
+            List<Page> updatedOrNewPages = stream(integrationApi.pages())
                 .flatMap(page -> buildPage(page, integrationApi, federatedApi.getId()))
-                .forEach(page ->
+                .map(page -> {
                     /*
                      * We let agent choose coherent page name and rely on it to updating
                      */
-                    pageQueryService
-                        .findByNameAndReferenceId(page.getName(), federatedApi.getId())
-                        .ifPresentOrElse(
-                            existingPage -> {
-                                var pageWithProperCreatedAt = page
-                                    .toBuilder()
-                                    .createdAt(existingPage.getCreatedAt())
-                                    .id(existingPage.getId())
-                                    .build();
-                                updateApiDocumentationDomainService.updatePage(pageWithProperCreatedAt, existingPage, auditInfo);
-                            },
-                            () -> createApiDocumentationDomainService.createPage(page, auditInfo)
-                        )
-                );
+                    Page existingPage = existingPages.get(page.getName());
+                    if (existingPage == null) {
+                        return createApiDocumentationDomainService.createPage(page, auditInfo);
+                    } else {
+                        var pageWithProperCreatedAt = page
+                            .toBuilder()
+                            .createdAt(existingPage.getCreatedAt())
+                            .id(existingPage.getId())
+                            .build();
+                        return updateApiDocumentationDomainService.updatePage(pageWithProperCreatedAt, existingPage, auditInfo);
+                    }
+                })
+                .toList();
+            updatedOrNewPages
+                .stream()
+                .filter(Page::isHomepage)
+                .sorted(Comparator.comparing(Page::getCreatedAt).reversed())
+                .map(Page::getId)
+                .distinct()
+                .findFirst()
+                .ifPresent(homepageId -> homepageDomainService.setPreviousHomepageToFalse(federatedApi.getId(), homepageId));
         } catch (Exception e) {
             log.warn("An error occurred while updating api {}", federatedApi, e);
         }

@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.documentation.crud_service;
 
 import io.gravitee.apim.core.documentation.model.Page;
+import java.util.Collection;
 import java.util.Optional;
 
 public interface PageCrudService {
@@ -24,4 +25,5 @@ public interface PageCrudService {
     Page get(String id);
     Optional<Page> findById(String id);
     void delete(String id);
+    void unsetHomepage(Collection<String> ids);
 }

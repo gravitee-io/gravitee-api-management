@@ -465,6 +465,14 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     }
 
     @Override
+    public void unsetHomepage(Collection<String> ids) {
+        jdbcTemplate.update(
+            "update from " + this.tableName + " where page_id  in (" + getOrm().buildInClause(ids) + ") set homepage = false",
+            ids.toArray()
+        );
+    }
+
+    @Override
     public Page create(Page item) throws TechnicalException {
         LOGGER.debug("JdbcPageRepository.create({})", item);
         try {

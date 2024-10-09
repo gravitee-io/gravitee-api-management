@@ -73,6 +73,7 @@ import io.gravitee.apim.core.audit.model.event.MembershipAuditEvent;
 import io.gravitee.apim.core.audit.model.event.PageAuditEvent;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -114,6 +115,7 @@ import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -126,6 +128,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.Condition;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -302,6 +305,8 @@ class IngestFederatedApisUseCaseTest {
             apiIndexerDomainService
         );
 
+        var homepageDomainService = new HomepageDomainService(pageQueryServiceInMemory, pageCrudService);
+
         useCase =
             new IngestFederatedApisUseCase(
                 asyncJobCrudService,
@@ -317,7 +322,9 @@ class IngestFederatedApisUseCaseTest {
                 createApiDocumentationDomainService,
                 updateApiDocumentationDomainService,
                 triggerNotificationDomainService,
-                apiMetadataDomainService
+                apiMetadataDomainService,
+                apiIndexerDomainService,
+                homepageDomainService
             );
 
         enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode.USER);
@@ -1463,6 +1470,62 @@ class IngestFederatedApisUseCaseTest {
 
             // Then
             assertThat(pageCrudService.storage()).contains(expectedPage);
+        }
+
+        @Test
+        void should_new_page_replace_previous_homepage() {
+            //Given
+            String newPageName = "MyPage.json";
+            var apiToIngest =
+                (
+                    IntegrationApiFixtures
+                        .anIntegrationApiForIntegration(INTEGRATION_ID)
+                        .toBuilder()
+                        .uniqueId("uid-1")
+                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some updated async Doc", newPageName)))
+                        .build()
+                );
+            givenExistingApi(
+                ApiFixtures
+                    .aFederatedApi()
+                    .toBuilder()
+                    .id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1")
+                    .name("An alien API")
+                    .description("my description")
+                    .version("1.1.1")
+                    .build()
+            );
+            Page oldPage = Page
+                .builder()
+                .id("old-homepage")
+                .name("MyOldPage.json")
+                .referenceId("environment-idintegration-iduid-1")
+                .referenceType(Page.ReferenceType.API)
+                .type(Page.Type.ASYNCAPI)
+                .visibility(Page.Visibility.PRIVATE)
+                .createdAt(Date.from(INSTANT_NOW.minus(Duration.ofDays(1))))
+                .updatedAt(Date.from(INSTANT_NOW.minus(Duration.ofDays(1))))
+                .content("some async Doc")
+                .homepage(true)
+                .published(true)
+                .build();
+            givenExistingPage(oldPage);
+            TimeProvider.overrideClock(Clock.fixed(UPDATE_TIME, ZoneId.systemDefault()));
+
+            // When
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
+
+            // Then
+            var homepage = new Condition<>(Page::isHomepage, "homepage");
+            assertThat(pageCrudService.storage())
+                .describedAs("new page is homepage")
+                .filteredOn(homepage)
+                .map(Page::getName)
+                .containsExactly(newPageName);
+            assertThat(pageCrudService.storage()).describedAs("only one page is homepage").hasSize(2).areExactly(1, homepage);
         }
 
         @Test
