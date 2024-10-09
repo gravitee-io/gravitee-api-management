@@ -202,7 +202,7 @@
         <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
         <!--    <gravitee-policy-quota.version>2.1.1</gravitee-policy-quota.version>    -->
         <!--    <gravitee-policy-spikearrest.version>2.1.1</gravitee-policy-spikearrest.version>    -->
-        <gravitee-policy-ratelimit.version>2.1.2</gravitee-policy-ratelimit.version>
+        <gravitee-policy-ratelimit.version>2.1.3</gravitee-policy-ratelimit.version>
         <gravitee-policy-regex-threat-protection.version>1.5.0</gravitee-policy-regex-threat-protection.version>
         <gravitee-policy-request-content-limit.version>1.8.1</gravitee-policy-request-content-limit.version>
         <gravitee-policy-request-validation.version>1.15.1</gravitee-policy-request-validation.version>
