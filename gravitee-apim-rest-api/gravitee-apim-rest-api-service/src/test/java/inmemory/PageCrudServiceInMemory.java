@@ -20,10 +20,10 @@ import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.model.*;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
-import java.util.stream.Collectors;
 
 public class PageCrudServiceInMemory implements InMemoryAlternative<Page>, PageCrudService {
 
@@ -58,6 +58,11 @@ public class PageCrudServiceInMemory implements InMemoryAlternative<Page>, PageC
     @Override
     public void delete(String id) {
         pages.removeIf(page -> page.getId().equals(id));
+    }
+
+    @Override
+    public void unsetHomepage(Collection<String> ids) {
+        pages.stream().filter(page -> ids.contains(page.getId())).forEach(page -> page.setHomepage(false));
     }
 
     @Override
