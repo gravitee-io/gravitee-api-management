@@ -399,7 +399,7 @@ jobs:
             sed -e "0,/^version:/{s/version:.*/version: 4.2.1/}" \
                 -e "0,/^appVersion:/{ s/appVersion.*/appVersion: 4.2.1/ }" \
                 -e '/artifacthub.io\/changes/,${ s/|// }' \
-                -e '/artifacthub.io\/changes:/q0'
+                -e '/artifacthub.io\/changes:/q0' \
                 -i helm/Chart.yaml
 
             git add --update
