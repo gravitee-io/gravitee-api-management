@@ -69,7 +69,12 @@ public class QualityRulesResource extends AbstractResource {
     public List<QualityRuleEntity> getQualityRules() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
-            !hasPermission(executionContext, RolePermission.ENVIRONMENT_QUALITY_RULE, RolePermissionAction.READ) &&
+            !hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_QUALITY_RULE,
+                executionContext.getEnvironmentId(),
+                RolePermissionAction.READ
+            ) &&
             !canReadAPIConfiguration()
         ) {
             throw new ForbiddenAccessException();

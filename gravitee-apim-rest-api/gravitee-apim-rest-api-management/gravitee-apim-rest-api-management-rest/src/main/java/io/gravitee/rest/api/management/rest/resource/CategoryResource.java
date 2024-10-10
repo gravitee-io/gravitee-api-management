@@ -85,7 +85,12 @@ public class CategoryResource extends AbstractCategoryResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public CategoryEntity getCategory() {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        boolean canShowCategory = hasPermission(executionContext, RolePermission.ENVIRONMENT_CATEGORY, RolePermissionAction.READ);
+        boolean canShowCategory = hasPermission(
+            executionContext,
+            RolePermission.ENVIRONMENT_CATEGORY,
+            executionContext.getEnvironmentId(),
+            RolePermissionAction.READ
+        );
         CategoryEntity category = categoryService.findById(categoryId, executionContext.getEnvironmentId());
 
         if (!canShowCategory && category.isHidden()) {
@@ -135,7 +140,12 @@ public class CategoryResource extends AbstractCategoryResource {
     }
 
     private Response getImageResponse(final ExecutionContext executionContext, Request request, InlinePictureEntity image) {
-        boolean canShowCategory = hasPermission(executionContext, RolePermission.ENVIRONMENT_CATEGORY, RolePermissionAction.READ);
+        boolean canShowCategory = hasPermission(
+            executionContext,
+            RolePermission.ENVIRONMENT_CATEGORY,
+            executionContext.getEnvironmentId(),
+            RolePermissionAction.READ
+        );
         CategoryEntity category = categoryService.findById(categoryId, GraviteeContext.getCurrentEnvironment());
 
         if (!canShowCategory && category.isHidden()) {
