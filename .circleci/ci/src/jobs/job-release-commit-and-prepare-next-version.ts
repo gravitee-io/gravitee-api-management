@@ -31,7 +31,7 @@ export class ReleaseCommitAndPrepareNextVersionJob {
     if (!nextQualifier) {
       command += `
     -e '/artifacthub.io\\/changes/,\${ s/|// }' \\
-    -e '/artifacthub.io\\/changes:/q0'`;
+    -e '/artifacthub.io\\/changes:/q0' \\`;
     }
     command += `
     -i helm/Chart.yaml`;
