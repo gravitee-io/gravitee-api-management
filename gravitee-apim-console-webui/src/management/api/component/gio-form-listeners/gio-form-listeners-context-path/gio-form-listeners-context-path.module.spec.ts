@@ -27,7 +27,6 @@ import { GioFormListenersContextPathHarness } from './gio-form-listeners-context
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { AjsRootScope } from '../../../../../ajs-upgraded-providers';
-import { PortalSettings } from '../../../../../entities/portal/portalSettings';
 import { PathV4 } from '../../../../../entities/management-api-v2';
 
 @Component({
@@ -57,6 +56,7 @@ describe('GioFormListenersContextPathModule', () => {
   ];
 
   beforeEach(() => {
+    fakeConstants.env.settings.portal = { entrypoint: 'localhost' };
     TestBed.configureTestingModule({
       declarations: [TestComponent],
       imports: [NoopAnimationsModule, GioFormListenersContextPathModule, MatIconTestingModule, ReactiveFormsModule, GioHttpTestingModule],
@@ -73,18 +73,8 @@ describe('GioFormListenersContextPathModule', () => {
     testComponent = fixture.componentInstance;
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-    expectGetPortalSettings();
     expectApiVerify();
   });
-
-  afterEach(() => {
-    httpTestingController.verify({ ignoreCancelled: true });
-  });
-
-  const expectGetPortalSettings = () => {
-    const settings: PortalSettings = { portal: { entrypoint: 'localhost' } };
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/settings`, method: 'GET' }).flush(settings);
-  };
 
   const expectApiVerify = (inError = false) => {
     httpTestingController
