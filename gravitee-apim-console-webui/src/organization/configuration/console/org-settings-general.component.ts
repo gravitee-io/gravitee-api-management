@@ -18,7 +18,7 @@ import { Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { cloneDeep, get, merge } from 'lodash';
+import { get } from 'lodash';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
@@ -189,10 +189,92 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
 
     const formSettingsValue = this.formSettings.getRawValue();
 
-    const settingsToSave = merge(cloneDeep(this.settings), formSettingsValue);
+    const updatedSettingsPayload = {
+      ...this.settings,
+
+      management: {
+        ...this.settings.management,
+        ...formSettingsValue.management,
+        support: {
+          ...this.settings.management?.support,
+          ...formSettingsValue.management?.support,
+        },
+        userCreation: {
+          ...this.settings.management?.userCreation,
+          ...formSettingsValue.management?.userCreation,
+        },
+        automaticValidation: {
+          ...this.settings.management?.automaticValidation,
+          ...formSettingsValue.management?.automaticValidation,
+        },
+      },
+
+      scheduler: {
+        ...this.settings.scheduler,
+        ...formSettingsValue.scheduler,
+      },
+
+      cors: {
+        ...this.settings.cors,
+        ...formSettingsValue.cors,
+      },
+
+      email: {
+        ...this.settings.email,
+        ...formSettingsValue.email,
+        properties: {
+          ...this.settings.email?.properties,
+          ...formSettingsValue.email?.properties,
+        },
+      },
+
+      authentication: {
+        ...this.settings.authentication,
+        ...formSettingsValue.authentication,
+      },
+
+      reCaptcha: {
+        ...this.settings.reCaptcha,
+        ...formSettingsValue.reCaptcha,
+      },
+
+      analyticsPendo: {
+        ...this.settings.analyticsPendo,
+        ...formSettingsValue.analyticsPendo,
+      },
+
+      logging: {
+        ...this.settings.logging,
+        ...formSettingsValue.logging,
+        audit: {
+          ...this.settings.logging?.audit,
+          ...formSettingsValue.logging?.audit,
+        },
+      },
+
+      maintenance: {
+        ...this.settings.maintenance,
+        ...formSettingsValue.maintenance,
+      },
+
+      newsletter: {
+        ...this.settings.newsletter,
+        ...formSettingsValue.newsletter,
+      },
+
+      v4EmulationEngine: {
+        ...this.settings.emulateV4Engine,
+        ...formSettingsValue.v4EmulationEngine,
+      },
+
+      alertEngine: {
+        ...this.settings.alertEngine,
+        ...formSettingsValue.alertEngine,
+      },
+    };
 
     this.consoleSettingsService
-      .save(settingsToSave)
+      .save(updatedSettingsPayload)
       .pipe(
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
         takeUntil(this.unsubscribe$),
