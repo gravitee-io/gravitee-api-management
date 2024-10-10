@@ -133,6 +133,7 @@ public class ApplicationService_UpdateTest {
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
         clientSettings.setClientId(CLIENT_ID);
         settings.setApp(clientSettings);
+        settings.setTls(TlsSettings.builder().clientCertificate(VALID_PEM_1).build());
 
         // 'Shared API KEY' setting is enabled, allows to update to SHARED mode
         when(

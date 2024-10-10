@@ -721,18 +721,19 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 checkApiKeyModeUpdate(executionContext, updateApplicationEntity.getApiKeyMode(), applicationToUpdate);
             }
 
+            // Update application metadata
+            Map<String, String> metadata = new HashMap<>();
+
             // Validate that the TLS certificate has not changed
             if (updateApplicationEntity.getSettings().getTls() != null) {
                 String existingCertificate = applicationToUpdate.getMetadata().get(METADATA_CLIENT_CERTIFICATE);
+                metadata.put(METADATA_CLIENT_CERTIFICATE, existingCertificate);
                 String newCertificate = updateApplicationEntity.getSettings().getTls().getClientCertificate();
                 existingCertificate = existingCertificate != null ? new String(Base64.getDecoder().decode(existingCertificate)) : null;
                 if (newCertificate != null && !newCertificate.equals(existingCertificate)) {
                     throw new ClientCertificateChangeNotAllowedException();
                 }
             }
-
-            // Update application metadata
-            Map<String, String> metadata = new HashMap<>();
 
             // Update a simple application
             if (applicationToUpdate.getType() == ApplicationType.SIMPLE && updateApplicationEntity.getSettings().getApp() != null) {
