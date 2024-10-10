@@ -76,7 +76,7 @@ public class SubscriptionEntity {
     private Integer generalConditionsContentRevision;
     private String generalConditionsContentPageId;
     private Boolean generalConditionsAccepted;
-    /** Number of days before the expiration of this subscription when the last pre-expiration notification was sent */
+    /** Number of days before the pollInterval of this subscription when the last pre-pollInterval notification was sent */
     private Integer daysToExpirationOnLastNotification;
     private SubscriptionConfiguration configuration;
     private Map<String, String> metadata;

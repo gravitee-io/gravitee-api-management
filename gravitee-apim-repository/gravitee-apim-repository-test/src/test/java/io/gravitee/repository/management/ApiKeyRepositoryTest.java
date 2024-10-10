@@ -72,11 +72,11 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         assertNotNull("API Key not found", keyFound);
 
         assertEquals("Key value saved doesn't match", apiKey.getKey(), keyFound.getKey());
-        assertTrue("Key expiration doesn't match", compareDate(apiKey.getExpireAt(), keyFound.getExpireAt()));
+        assertTrue("Key pollInterval doesn't match", compareDate(apiKey.getExpireAt(), keyFound.getExpireAt()));
         assertEquals("Key paused status doesn't match", apiKey.isPaused(), keyFound.isPaused());
         assertEquals("Key revoked status doesn't match", apiKey.isRevoked(), keyFound.isRevoked());
         assertEquals(
-            "Days to expiration on last notification don't match",
+            "Days to pollInterval on last notification don't match",
             apiKey.getDaysToExpirationOnLastNotification(),
             keyFound.getDaysToExpirationOnLastNotification()
         );
@@ -116,7 +116,7 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue("Key paused status doesn't match", keyFound.isPaused());
         assertTrue("Key revoked status doesn't match", keyFound.isRevoked());
         assertEquals(
-            "Days to expiration on last notification don't match",
+            "Days to pollInterval on last notification don't match",
             Integer.valueOf(30),
             keyFound.getDaysToExpirationOnLastNotification()
         );

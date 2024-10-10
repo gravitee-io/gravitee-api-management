@@ -786,7 +786,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 subscription.setUpdatedAt(new Date());
                 subscription.setStartingAt(updateSubscription.getStartingAt());
                 subscription.setEndingAt(updateSubscription.getEndingAt());
-                // Reset info about pre expiration notification as the expiration date has changed
+                // Reset info about pre pollInterval notification as the pollInterval date has changed
                 subscription.setDaysToExpirationOnLastNotification(null);
                 subscriptionTransformer.accept(subscription);
 
@@ -801,7 +801,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     subscription
                 );
 
-                // Update the expiration date for not yet revoked api-keys relative to this subscription (except for shared API Keys)
+                // Update the pollInterval date for not yet revoked api-keys relative to this subscription (except for shared API Keys)
                 PlanSecurity planSecurity = genericPlanEntity.getPlanSecurity();
                 if (planSecurity != null) {
                     Date endingAt = subscription.getEndingAt();

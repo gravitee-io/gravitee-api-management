@@ -15,11 +15,49 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.rest.api.model.parameters.Key.*;
+import static io.gravitee.rest.api.model.parameters.Key.ALERT_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.ANALYTICS_CLIENT_TIMEOUT;
+import static io.gravitee.rest.api.model.parameters.Key.API_LABELS_DICTIONARY;
+import static io.gravitee.rest.api.model.parameters.Key.COMPANY_NAME;
+import static io.gravitee.rest.api.model.parameters.Key.CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS;
+import static io.gravitee.rest.api.model.parameters.Key.CONSOLE_SCHEDULER_NOTIFICATIONS;
+import static io.gravitee.rest.api.model.parameters.Key.EMAIL_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.EMAIL_FROM;
+import static io.gravitee.rest.api.model.parameters.Key.EMAIL_HOST;
+import static io.gravitee.rest.api.model.parameters.Key.EMAIL_PASSWORD;
+import static io.gravitee.rest.api.model.parameters.Key.EMAIL_PORT;
+import static io.gravitee.rest.api.model.parameters.Key.EMAIL_PROPERTIES_AUTH_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.EMAIL_PROPERTIES_SSL_TRUST;
+import static io.gravitee.rest.api.model.parameters.Key.EMAIL_PROPERTIES_STARTTLS_ENABLE;
+import static io.gravitee.rest.api.model.parameters.Key.EMAIL_PROTOCOL;
+import static io.gravitee.rest.api.model.parameters.Key.EMAIL_SUBJECT;
+import static io.gravitee.rest.api.model.parameters.Key.EMAIL_USERNAME;
+import static io.gravitee.rest.api.model.parameters.Key.LOGGING_AUDIT_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.LOGGING_AUDIT_TRAIL_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.LOGGING_DEFAULT_MAX_DURATION;
+import static io.gravitee.rest.api.model.parameters.Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT;
+import static io.gravitee.rest.api.model.parameters.Key.LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT;
+import static io.gravitee.rest.api.model.parameters.Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT;
+import static io.gravitee.rest.api.model.parameters.Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT;
+import static io.gravitee.rest.api.model.parameters.Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_DEFAULT;
+import static io.gravitee.rest.api.model.parameters.Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT;
+import static io.gravitee.rest.api.model.parameters.Key.LOGGING_USER_DISPLAYED;
+import static io.gravitee.rest.api.model.parameters.Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.PORTAL_ANALYTICS_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.PORTAL_HTTP_CORS_EXPOSED_HEADERS;
+import static io.gravitee.rest.api.model.parameters.Key.PORTAL_SCHEDULER_NOTIFICATIONS;
+import static io.gravitee.rest.api.model.parameters.Key.PORTAL_URL;
+import static io.gravitee.rest.api.model.parameters.Key.TRIAL_INSTANCE;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.repository.management.model.Parameter;
@@ -232,7 +270,9 @@ public class ConfigServiceTest {
         assertThat(consoleSettings.getCors().getExposedHeaders()).as("cors exposed headers").hasSize(2);
         assertThat(consoleSettings.getAnalyticsPendo().getEnabled()).as("analytics pendo enabled").isFalse();
         assertThat(consoleSettings.getAnalyticsPendo().getApiKey()).as("analytics pendo apiKey").isEmpty();
-        assertThat(consoleSettings.getLicenseExpirationNotification().getEnabled()).as("license expiration notification enabled").isTrue();
+        assertThat(consoleSettings.getLicenseExpirationNotification().getEnabled())
+            .as("license pollInterval notification enabled")
+            .isTrue();
         assertThat(consoleSettings.getEmail().getEnabled()).as("email enabled").isTrue();
     }
 
@@ -268,7 +308,9 @@ public class ConfigServiceTest {
         assertThat(consoleSettings.getCors().getExposedHeaders()).as("cors exposed headers").hasSize(2);
         assertThat(consoleSettings.getAnalyticsPendo().getEnabled()).as("analytics pendo enabled").isFalse();
         assertThat(consoleSettings.getAnalyticsPendo().getApiKey()).as("analytics pendo apiKey").isEmpty();
-        assertThat(consoleSettings.getLicenseExpirationNotification().getEnabled()).as("license expiration notification enabled").isTrue();
+        assertThat(consoleSettings.getLicenseExpirationNotification().getEnabled())
+            .as("license pollInterval notification enabled")
+            .isTrue();
         assertThat(consoleSettings.getEmail()).as("email should be null").isNull();
     }
 
@@ -299,7 +341,7 @@ public class ConfigServiceTest {
         assertThat(consoleConfig.getReCaptcha().getSiteKey()).as("recaptcha siteKey").isEqualTo("my-site-key");
         assertThat(consoleConfig.getAlert().getEnabled()).as("alerting enabled").isTrue();
         assertThat(consoleConfig.getReCaptcha().getEnabled()).as("recaptcha enabled").isTrue();
-        assertThat(consoleConfig.getLicenseExpirationNotification().getEnabled()).as("license expiration notification enabled").isTrue();
+        assertThat(consoleConfig.getLicenseExpirationNotification().getEnabled()).as("license pollInterval notification enabled").isTrue();
     }
 
     @Test

@@ -33,7 +33,6 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
@@ -195,7 +194,7 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
 
         if (!invalidValues.isEmpty()) {
             logger.warn(
-                "The configuration key `services.subscription.pre-expiration-notification-schedule` contains some invalid values: {}. Values should be between {} and {} (days).",
+                "The configuration key `services.subscription.pre-pollInterval-notification-schedule` contains some invalid values: {}. Values should be between {} and {} (days).",
                 invalidValues.stream().map(Object::toString).collect(Collectors.joining(", ")),
                 min,
                 max

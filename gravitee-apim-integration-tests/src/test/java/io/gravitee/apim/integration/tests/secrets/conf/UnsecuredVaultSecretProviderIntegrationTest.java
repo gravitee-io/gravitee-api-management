@@ -26,7 +26,12 @@ import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
 import org.testcontainers.containers.Container;
 
@@ -52,7 +57,14 @@ class UnsecuredVaultSecretProviderIntegrationTest {
                 .withInitCommand("kv put secret/test top_secret=thatWillRemainOurDirtyLittleSecret");
         vaultContainer.start();
         // create a renewable token so the plugin does not start panicking
-        Container.ExecResult execResult = vaultContainer.execInContainer("vault", "token", "create", "-period=10m", "-field", "token");
+        Container.ExecResult execResult = vaultContainer.execInContainer(
+            "vault",
+            "token",
+            "create",
+            "-pollInterval=10m",
+            "-field",
+            "token"
+        );
         token = execResult.getStdout();
     }
 

@@ -58,7 +58,7 @@ public class ApiKeyEntity {
     private boolean federated;
 
     /**
-     * Number of days before the expiration of this API Key when the last pre-expiration notification was sent
+     * Number of days before the pollInterval of this API Key when the last pre-pollInterval notification was sent
      */
     private Integer daysToExpirationOnLastNotification;
 

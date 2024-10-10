@@ -15,11 +15,15 @@
  */
 package io.gravitee.rest.api.model;
 
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -75,7 +79,7 @@ public class ApiKeyEntity {
     private boolean federated;
 
     /**
-     * Number of days before the expiration of this API Key when the last pre-expiration notification was sent
+     * Number of days before the pollInterval of this API Key when the last pre-pollInterval notification was sent
      */
     private Integer daysToExpirationOnLastNotification;
 

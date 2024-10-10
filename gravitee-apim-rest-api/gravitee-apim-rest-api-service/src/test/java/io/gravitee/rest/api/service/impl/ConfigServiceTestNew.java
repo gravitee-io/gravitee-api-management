@@ -262,7 +262,7 @@ class ConfigServiceTestNew {
         assertThat(consoleSettings.getAnalyticsPendo().getEnabled()).as("analytics pendo enabled").isEqualTo(Boolean.FALSE);
         assertThat(consoleSettings.getAnalyticsPendo().getApiKey()).as("analytics pendo apiKey").isEqualTo("");
         assertThat(consoleSettings.getLicenseExpirationNotification().getEnabled())
-            .as("license expiration notification enabled")
+            .as("license pollInterval notification enabled")
             .isEqualTo(Boolean.TRUE);
     }
 
@@ -294,7 +294,7 @@ class ConfigServiceTestNew {
         assertThat(consoleConfig.getAlert().getEnabled()).as("alerting enabled").isEqualTo(Boolean.TRUE);
         assertThat(consoleConfig.getReCaptcha().getEnabled()).as("recaptcha enabled").isEqualTo(Boolean.TRUE);
         assertThat(consoleConfig.getLicenseExpirationNotification().getEnabled())
-            .as("license expiration notification enabled")
+            .as("license pollInterval notification enabled")
             .isEqualTo(Boolean.TRUE);
     }
 

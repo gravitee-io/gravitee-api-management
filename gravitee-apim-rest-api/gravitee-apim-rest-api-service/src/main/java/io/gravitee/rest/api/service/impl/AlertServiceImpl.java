@@ -51,19 +51,44 @@ import io.gravitee.repository.management.model.AlertEventType;
 import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.rest.api.model.AlertEventQuery;
 import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.model.alert.*;
+import io.gravitee.rest.api.model.alert.AlertEventEntity;
+import io.gravitee.rest.api.model.alert.AlertReferenceType;
+import io.gravitee.rest.api.model.alert.AlertStatusEntity;
+import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
+import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
+import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.AlertService;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.converter.AlertTriggerConverter;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.AlertNotFoundException;
+import io.gravitee.rest.api.service.exceptions.AlertTemplateInvalidException;
+import io.gravitee.rest.api.service.exceptions.AlertUnavailableException;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.alert.EmailNotifierConfiguration;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -315,7 +340,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                             from.toInstant().minus(Duration.ofDays(30))
                         )
                         .entrySet()
-                        // Get the count of events for each time period in parallel to speed up the process
+                        // Get the count of events for each time pollInterval in parallel to speed up the process
                         .parallelStream()
                         .map(entry ->
                             new AbstractMap.SimpleEntry<>(

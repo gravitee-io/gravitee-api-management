@@ -117,7 +117,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
 
         if (enabled) {
             try {
-                // Initialize the JWT processor which will handle JWT signature verification and assertions such as expiration time.
+                // Initialize the JWT processor which will handle JWT signature verification and assertions such as pollInterval time.
                 final RSAKey rsaKey = new RSAKey.Builder((RSAPublicKey) getPublicKey()).keyID(KID).build();
                 final JWSAlgorithmFamilyJWSKeySelector<SecurityContext> jwsKeySelector = new JWSAlgorithmFamilyJWSKeySelector<>(
                     JWSAlgorithm.Family.RSA,

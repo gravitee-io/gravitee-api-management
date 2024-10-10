@@ -17,7 +17,6 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -160,7 +159,7 @@ public class ApiKeyMongo {
     private boolean federated;
 
     /**
-     * Number of days before the expiration of this API Key when the last pre-expiration notification was sent
+     * Number of days before the pollInterval of this API Key when the last pre-pollInterval notification was sent
      */
     @Setter
     @Getter

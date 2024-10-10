@@ -89,7 +89,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         assertEquals("Subscription configuration", "{}", subscription.getConfiguration());
         assertEquals("Subscription type", Subscription.Type.STANDARD, subscription.getType());
         assertEquals(
-            "Subscription days to expiration on last notification",
+            "Subscription days to pollInterval on last notification",
             Integer.valueOf(30),
             subscription.getDaysToExpirationOnLastNotification()
         );

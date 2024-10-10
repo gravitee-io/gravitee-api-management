@@ -135,7 +135,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
@@ -1841,7 +1840,7 @@ public class SubscriptionServiceTest {
         // Run
         subscriptionService.update(GraviteeContext.getExecutionContext(), updatedSubscription);
 
-        // verify apikey 1 and 3 expiration date has been updated as they are not revoked nor expired
+        // verify apikey 1 and 3 pollInterval date has been updated as they are not revoked nor expired
         verify(subscriptionRepository, times(1)).update(subscription);
         verify(apiKeyService, times(1)).findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
         verify(apiKeyService, times(1))

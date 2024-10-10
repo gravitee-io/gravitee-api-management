@@ -34,8 +34,8 @@ public class ApiV4DefinitionBrowser implements DefinitionBrowser<Api> {
     }
 
     @Override
-    public Definition getDefinitionKindLocation(Api definition, Map<String, String> metadata) {
-        return new Definition("api-v4", metadata.get("api_cross_id"), Optional.ofNullable(metadata.get("deployment_number")));
+    public Definition getDefinitionLocation(Api definition, Map<String, String> metadata) {
+        return new Definition("api-v4", definition.getId(), Optional.ofNullable(metadata.get("deployment_number")));
     }
 
     @Override

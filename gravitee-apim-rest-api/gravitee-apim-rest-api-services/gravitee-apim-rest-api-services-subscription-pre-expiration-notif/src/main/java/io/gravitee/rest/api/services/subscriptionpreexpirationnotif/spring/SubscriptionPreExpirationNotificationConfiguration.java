@@ -28,7 +28,7 @@ public class SubscriptionPreExpirationNotificationConfiguration {
     @Qualifier("subscriptionPreExpirationTaskScheduler")
     public TaskScheduler taskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-        scheduler.setThreadNamePrefix("subscription-pre-expiration-notification-");
+        scheduler.setThreadNamePrefix("subscription-pre-pollInterval-notification-");
         return scheduler;
     }
 }

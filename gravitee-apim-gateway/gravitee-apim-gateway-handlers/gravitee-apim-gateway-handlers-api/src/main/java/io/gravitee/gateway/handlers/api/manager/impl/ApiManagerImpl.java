@@ -274,6 +274,11 @@ public class ApiManagerImpl implements ApiManager {
         if (currentApi != null) {
             MDC.put("api", apiId);
             log.debug("Undeployment of {}", currentApi);
+            runtimeSecretsService.onDefinitionUnDeploy(
+                currentApi.getEnvironmentId(),
+                currentApi.getDefinition(),
+                currentApi.getDeploymentProperties()
+            );
 
             eventManager.publishEvent(ReactorEvent.UNDEPLOY, currentApi);
             log.info("{} has been undeployed", currentApi);

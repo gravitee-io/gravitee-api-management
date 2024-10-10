@@ -55,47 +55,47 @@
 #      password: secret
 
 http:
-  api:
-    # Configure the listening path for the API. Default to /
-#    entrypoint: /
+    api:
+        # Configure the listening path for the API. Default to /
+    #    entrypoint: /
     # Configure Management API and Portal API.
-#    management:
-#      enabled: true
-#      entrypoint: ${http.api.entrypoint}management
-#      cors:
-# Allows to configure the header Access-Control-Allow-Origin (default value: *)
-# '*' is a valid value but is considered as a security risk as it will be opened to cross origin requests from anywhere.
-#        allow-origin: '*'
-# Allows to define how long the result of the preflight request should be cached for (default value; 1728000 [20 days])
-#        max-age: 1728000
-# Which methods to allow (default value: OPTIONS, GET, POST, PUT, DELETE)
-#        allow-methods: 'OPTIONS, GET, POST, PUT, DELETE'
-# Which headers to allow (default values: Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token)
-#        allow-headers: 'Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token'
-#  Allows to configure the header Access-Control-Expose-Headers
-#        exposed-headers: 'ETag;X-Xsrf-Token'
-#    portal:
-#      enabled: true
-#      entrypoint: ${http.api.entrypoint}portal
-#      cors:
-# Allows to configure the header Access-Control-Allow-Origin (default value: *)
-# '*' is a valid value but is considered as a security risk as it will be opened to cross origin requests from anywhere.
-#        allow-origin: '*'
-# Allows to define how long the result of the preflight request should be cached for (default value; 1728000 [20 days])
-#        max-age: 1728000
-# Which methods to allow (default value: OPTIONS, GET, POST, PUT, DELETE)
-#        allow-methods: 'OPTIONS, GET, POST, PUT, DELETE'
-# Which headers to allow (default values: Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token)
-#        allow-headers: 'Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token'
-#  Allows to configure the header Access-Control-Expose-Headers
-#        exposed-headers: 'ETag;X-Xsrf-Token'
-  csrf:
-    # Allows to enable or disable the CSRF protection. Enabled by default.
-    enabled: true
-  hsts:
-    enabled: true
-    include-sub-domains: true
-    max-age: 31536000
+    #    management:
+    #      enabled: true
+    #      entrypoint: ${http.api.entrypoint}management
+    #      cors:
+    # Allows to configure the header Access-Control-Allow-Origin (default value: *)
+    # '*' is a valid value but is considered as a security risk as it will be opened to cross origin requests from anywhere.
+    #        allow-origin: '*'
+    # Allows to define how long the result of the preflight request should be cached for (default value; 1728000 [20 days])
+    #        max-age: 1728000
+    # Which methods to allow (default value: OPTIONS, GET, POST, PUT, DELETE)
+    #        allow-methods: 'OPTIONS, GET, POST, PUT, DELETE'
+    # Which headers to allow (default values: Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token)
+    #        allow-headers: 'Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token'
+    #  Allows to configure the header Access-Control-Expose-Headers
+    #        exposed-headers: 'ETag;X-Xsrf-Token'
+    #    portal:
+    #      enabled: true
+    #      entrypoint: ${http.api.entrypoint}portal
+    #      cors:
+    # Allows to configure the header Access-Control-Allow-Origin (default value: *)
+    # '*' is a valid value but is considered as a security risk as it will be opened to cross origin requests from anywhere.
+    #        allow-origin: '*'
+    # Allows to define how long the result of the preflight request should be cached for (default value; 1728000 [20 days])
+    #        max-age: 1728000
+    # Which methods to allow (default value: OPTIONS, GET, POST, PUT, DELETE)
+    #        allow-methods: 'OPTIONS, GET, POST, PUT, DELETE'
+    # Which headers to allow (default values: Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token)
+    #        allow-headers: 'Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token'
+    #  Allows to configure the header Access-Control-Expose-Headers
+    #        exposed-headers: 'ETag;X-Xsrf-Token'
+    csrf:
+        # Allows to enable or disable the CSRF protection. Enabled by default.
+        enabled: true
+    hsts:
+        enabled: true
+        include-sub-domains: true
+        max-age: 31536000
 
 # Plugins repository
 #plugins:
@@ -109,12 +109,12 @@ http:
 # For more information about MongoDB configuration, please have a look to:
 # - http://mongodb.github.io/mongo-java-driver/4.1/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html
 management:
-  type: mongodb                  # repository type
-  mongodb:                       # mongodb repository
-#    prefix:                      # collections prefix
-    dbname: ${ds.mongodb.dbname} # mongodb name (default gravitee)
-    host: ${ds.mongodb.host}     # mongodb host (default localhost)
-    port: ${ds.mongodb.port}     # mongodb port (default 27017)
+    type: mongodb # repository type
+    mongodb: # mongodb repository
+        #    prefix:                      # collections prefix
+        dbname: ${ds.mongodb.dbname} # mongodb name (default gravitee)
+        host: ${ds.mongodb.host} # mongodb host (default localhost)
+        port: ${ds.mongodb.port} # mongodb port (default 27017)
 
 ## Client settings
 #    description:                 # mongodb description (default gravitee.io)
@@ -183,93 +183,92 @@ management:
 #    socketTimeout: 250
 
 services:
-  core:
-    http:
-      enabled: true
-      port: 18083
-      host: localhost
-      authentication:
-        # authentication type to be used for the core services
-        # - none : to disable authentication
-        # - basic : to use basic authentication
-        # default is "basic"
-        type: basic
-        users:
-          admin: adminadmin
-  bridge:
-    http:
-      enabled: false
-  #      port: 18092
-  #      host: localhost
-  #      tcpKeepAlive: true
-  #      maxHeaderSize: 8192
-  #      maxChunkSize: 8192
-  #      alpn: false
-  #      authentication:
-  #        type: none # Supports: Basic, JWT
-  #        # type = JWT
-  #        jwt:
-  #          signature:
-  #            algorithm: RS256
-  #            path: ${gravitee.home}/security/bridge/public_key.pem
-  #            value: # raw pem file as a strign block
-  #          verifyClaims: true
-  #        # type = Basic
-  #        users:
-  #          admin: secret
-  #          superadmin: password
-  #      secured: true
-  #      ssl:
-  #        clientAuth: None # Supports: Request, Required
-  #        keystore:
-  #          type: jks # Supports: PKCS12, PEM
-  #          path: ${gravitee.home}/security/keystore.jks
-  #          password: secret
-  #          defaultAlias:
-  #          secret: secret://kubernetes/my-tls
-  #          watch: true
-  #          # for type= PEM
-  #          certificates:
-  #            - cert: ${gravitee.home}/security/cert1.pem
-  #              key: ${gravitee.home}/security/key1.pem
-  #            - cert: ${gravitee.home}/security/cert2.pem
-  #              key: ${gravitee.home}/security/key2.pem
-  #        truststore:
-  #          type: jks # Supports: PKCS12, PEM
-  #          path: ${gravitee.home}/security/truststore.jks
-  #          password: secret
-  #           secret: secret://kubernetes/my-tls
+    core:
+        http:
+            enabled: true
+            port: 18083
+            host: localhost
+            authentication:
+                # authentication type to be used for the core services
+                # - none : to disable authentication
+                # - basic : to use basic authentication
+                # default is "basic"
+                type: basic
+                users:
+                    admin: adminadmin
+    bridge:
+        http:
+            enabled: false
+    #      port: 18092
+    #      host: localhost
+    #      tcpKeepAlive: true
+    #      maxHeaderSize: 8192
+    #      maxChunkSize: 8192
+    #      alpn: false
+    #      authentication:
+    #        type: none # Supports: Basic, JWT
+    #        # type = JWT
+    #        jwt:
+    #          signature:
+    #            algorithm: RS256
+    #            path: ${gravitee.home}/security/bridge/public_key.pem
+    #            value: # raw pem file as a strign block
+    #          verifyClaims: true
+    #        # type = Basic
+    #        users:
+    #          admin: secret
+    #          superadmin: password
+    #      secured: true
+    #      ssl:
+    #        clientAuth: None # Supports: Request, Required
+    #        keystore:
+    #          type: jks # Supports: PKCS12, PEM
+    #          path: ${gravitee.home}/security/keystore.jks
+    #          password: secret
+    #          defaultAlias:
+    #          secret: secret://kubernetes/my-tls
+    #          watch: true
+    #          # for type= PEM
+    #          certificates:
+    #            - cert: ${gravitee.home}/security/cert1.pem
+    #              key: ${gravitee.home}/security/key1.pem
+    #            - cert: ${gravitee.home}/security/cert2.pem
+    #              key: ${gravitee.home}/security/key2.pem
+    #        truststore:
+    #          type: jks # Supports: PKCS12, PEM
+    #          path: ${gravitee.home}/security/truststore.jks
+    #          password: secret
+    #           secret: secret://kubernetes/my-tls
 
-  # metrics service
-  metrics:
-    enabled: false
-    prometheus:
-      enabled: true
+    # metrics service
+    metrics:
+        enabled: false
+        prometheus:
+            enabled: true
 
-  # v3 upgrader service. Can be disabled after first launch.
-  v3-upgrader:
-    enabled: true
-  # AutoFetch service. (since 3.2)
-  # Use to fetch periodically documentation pages.
-  auto_fetch:
-    enabled: true
-    cron: "0 */5 * * * *"
+    # v3 upgrader service. Can be disabled after first launch.
+    v3-upgrader:
+        enabled: true
+    # AutoFetch service. (since 3.2)
+    # Use to fetch periodically documentation pages.
+    auto_fetch:
+        enabled: true
+        cron: "0 */5 * * * *"
 
-  # Subscription service
-  subscription:
-    enabled: true
-    #  Pre-expiration notification, number of days before the expiration an email should be send to subscriber and primary owner
-    pre-expiration-notification-schedule: 90,45,30
-
+    # Subscription service
+    subscription:
+        enabled: true
+        #  Pre-pollInterval notification, number of days before the pollInterval an email should be send to subscriber and primary owner
+        pre-expiration-notification-schedule: 90,45,30
 
 # Analytics repository is used to store all reporting, metrics, health-checks stored by gateway instances
 # This is the default configuration using Elasticsearch. If you want to disable it completely, you can set
 # the type as "none"
 analytics:
-  type: elasticsearch # or none
-  elasticsearch:
-    endpoints:
-      - http://${ds.elastic.host}:${ds.elastic.port}
+    type: elasticsearch # or none
+    elasticsearch:
+        endpoints:
+            - http://${ds.elastic.host}:${ds.elastic.port}
 #    index: gravitee
 #    index_per_type: true
 #    index_mode: daily    # "daily" indexes, suffixed with date. Or "ilm" managed indexes, without date
@@ -315,60 +314,60 @@ analytics:
 #  API_CONSUMER: Can create and manage Applications
 #  ADMIN: Can manage global system
 security:
-  # When using an authentication providers, use trustAll mode for TLS connections
-  # trustAll: false
-  providers:  # authentication providers
-    - type: memory
-      # allow search results to display the user email. Be careful, It may be contrary to the user privacy.
+    # When using an authentication providers, use trustAll mode for TLS connections
+    # trustAll: false
+    providers: # authentication providers
+        - type: memory
+          # allow search results to display the user email. Be careful, It may be contrary to the user privacy.
+          #      allow-email-in-search-results: true
+          # password encoding/hashing algorithm. One of:
+          # - bcrypt : passwords are hashed with bcrypt (supports only $2a$ algorithm)
+          # - none : passwords are not hashed/encrypted
+          # default value is bcrypt
+          password-encoding-algo: bcrypt
+          users:
+              - user:
+                username: user
+                #firstname:
+                #lastname:
+                # Passwords are encoded using BCrypt
+                # Password value: password
+                password: $2a$10$9kjw/SH9gucCId3Lnt6EmuFreUAcXSZgpvAYuW2ISv7hSOhHRH1AO
+                roles: ORGANIZATION:USER,ENVIRONMENT:USER
+                # Useful to receive notifications
+                #email:
+              - user:
+                username: admin
+                #firstname:
+                #lastname:
+                # Password value: admin
+                password: $2a$10$Ihk05VSds5rUSgMdsMVi9OKMIx2yUvMz7y9VP3rJmQeizZLrhLMyq
+                roles: ORGANIZATION:ADMIN,ENVIRONMENT:ADMIN
+                #email:
+              - user:
+                username: api1
+                #firstname:
+                #lastname:
+                # Password value: api1
+                password: $2a$10$iXdXO4wAYdhx2LOwijsp7.PsoAZQ05zEdHxbriIYCbtyo.y32LTji
+                # You can declare multiple roles using comma separator
+                roles: ORGANIZATION:USER,ENVIRONMENT:API_PUBLISHER
+                #email:
+              - user:
+                username: application1
+                #firstname:
+                #lastname:
+                # Password value: application1
+                password: $2a$10$2gtKPYRB9zaVaPcn5RBx/.3T.7SeZoDGs9GKqbo9G64fKyXFR1He.
+                roles: ORGANIZATION:USER,ENVIRONMENT:USER
+                #email:
+        # Enable authentication using internal repository
+        - type: gravitee
+          # allow search results to display the user email. Be careful, It may be contrary to the user privacy.
 #      allow-email-in-search-results: true
-      # password encoding/hashing algorithm. One of:
-      # - bcrypt : passwords are hashed with bcrypt (supports only $2a$ algorithm)
-      # - none : passwords are not hashed/encrypted
-      # default value is bcrypt
-      password-encoding-algo: bcrypt
-      users:
-        - user:
-          username: user
-          #firstname:
-          #lastname:
-          # Passwords are encoded using BCrypt
-          # Password value: password
-          password: $2a$10$9kjw/SH9gucCId3Lnt6EmuFreUAcXSZgpvAYuW2ISv7hSOhHRH1AO
-          roles: ORGANIZATION:USER,ENVIRONMENT:USER
-          # Useful to receive notifications
-          #email:
-        - user:
-          username: admin
-          #firstname:
-          #lastname:
-          # Password value: admin
-          password: $2a$10$Ihk05VSds5rUSgMdsMVi9OKMIx2yUvMz7y9VP3rJmQeizZLrhLMyq
-          roles: ORGANIZATION:ADMIN,ENVIRONMENT:ADMIN
-          #email:
-        - user:
-          username: api1
-          #firstname:
-          #lastname:
-          # Password value: api1
-          password: $2a$10$iXdXO4wAYdhx2LOwijsp7.PsoAZQ05zEdHxbriIYCbtyo.y32LTji
-          # You can declare multiple roles using comma separator
-          roles: ORGANIZATION:USER,ENVIRONMENT:API_PUBLISHER
-          #email:
-        - user:
-          username: application1
-          #firstname:
-          #lastname:
-          # Password value: application1
-          password: $2a$10$2gtKPYRB9zaVaPcn5RBx/.3T.7SeZoDGs9GKqbo9G64fKyXFR1He.
-          roles: ORGANIZATION:USER,ENVIRONMENT:USER
-          #email:
-    # Enable authentication using internal repository
-    - type: gravitee
-      # allow search results to display the user email. Be careful, It may be contrary to the user privacy.
-#      allow-email-in-search-results: true
-    # Enable authentication using an LDAP/Active Directory
+# Enable authentication using an LDAP/Active Directory
 #    - type: ldap
-      # This is default LDAP configuration for ApacheDS
+# This is default LDAP configuration for ApacheDS
 #      context:
 #        username: "uid=admin,ou=system"
 #        password: "secret"
@@ -377,16 +376,16 @@ security:
 #        referral: "ignore"
 #      authentication:
 #        user:
-          # Search base for user authentication. Defaults to "". Only used with user filter.
-          # It should be relative to the Base DN. If the whole DN is o=user accounts,c=io,o=gravitee then the base should be like this:
+# Search base for user authentication. Defaults to "". Only used with user filter.
+# It should be relative to the Base DN. If the whole DN is o=user accounts,c=io,o=gravitee then the base should be like this:
 #          base: "o=user accounts"
-          # The LDAP filter used to search for user during authentication. For example "(uid={0})". The substituted parameter is the user's login name.
+# The LDAP filter used to search for user during authentication. For example "(uid={0})". The substituted parameter is the user's login name.
 #          filter: "mail={0}"
-          # Specifies the attribute name which contains the user photo (URL or binary)
+# Specifies the attribute name which contains the user photo (URL or binary)
 #          photo-attribute: "jpegPhoto"
 #        group:
-          # Search base for groups searches. Defaults to "". Only used with group filter.
-          # It should be relative to the Base DN. If the whole DN is o=authorization groups,c=io,o=gravitee then the base should be like this:
+# Search base for groups searches. Defaults to "". Only used with group filter.
+# It should be relative to the Base DN. If the whole DN is o=authorization groups,c=io,o=gravitee then the base should be like this:
 #          base: "o=authorization groups"
 #          filter: "member={0}"
 #          role:
@@ -398,13 +397,13 @@ security:
 #              GRAVITEE-USERS: USER
 #            }
 #      lookup:
-         # allow search results to display the user email. Be careful, It may be contrary to the user privacy.
+# allow search results to display the user email. Be careful, It may be contrary to the user privacy.
 #         allow-email-in-search-results: true
 #        user:
-          # Search base for user searches. Defaults to "". Only used with user filter.
-          # It should be relative to the Base DN. If the whole DN is o=user accounts,c=io,o=gravitee then the base should be like this:
+# Search base for user searches. Defaults to "". Only used with user filter.
+# It should be relative to the Base DN. If the whole DN is o=user accounts,c=io,o=gravitee then the base should be like this:
 #          base: "o=user accounts"
-          # The LDAP filter used to search for user during authentication. For example "(uid={0})". The substituted parameter is the user's login name.
+# The LDAP filter used to search for user during authentication. For example "(uid={0})". The substituted parameter is the user's login name.
 #          filter: "(&(objectClass=Person)(|(cn=*{0}*)(uid={0})))"
 
 # Define absolute path for the a default API icon (png format)
@@ -414,11 +413,11 @@ security:
 
 # SMTP configuration used to send mails
 email:
-  enabled: false
-  host: smtp.my.domain
-  subject: "[Gravitee.io] %s"
-  port: 587
-  from: noreply@my.domain
+    enabled: false
+    host: smtp.my.domain
+    subject: "[Gravitee.io] %s"
+    port: 587
+    from: noreply@my.domain
 #  username: user@my.domain
 #  password: password
 #  properties:
@@ -433,89 +432,90 @@ email:
 #portal:
 #  themes:
 #    path: ${gravitee.home}/themes
-  # Allows domains to be used while generating some emails from the portal. ie. registration, forget password
-  # Empty whitelist means all urls are allowed.
+# Allows domains to be used while generating some emails from the portal. ie. registration, forget password
+# Empty whitelist means all urls are allowed.
 #  whitelist:
 #    - https://portal.domain.com
 #    - https://private-portal.domain.com
 
 # Referenced properties
 ds:
-  mongodb:
-    dbname: gravitee
-    host: localhost
-    port: 27017
-  elastic:
-    host: localhost
-    port: 9200
+    mongodb:
+        dbname: gravitee
+        host: localhost
+        port: 27017
+    elastic:
+        host: localhost
+        port: 9200
 
 jwt:
-  secret: myJWT4Gr4v1t33_S3cr3t
-  # Allows to define the end of validity of the token in seconds (default 604800 = a week)
-  #expire-after: 604800
-  # Allows to define the end of validity of the token in seconds for email registration (default 86400 = a day)
-  #email-registration-expire-after: 86400
-  # Allows to define issuer (default gravitee-management-auth)
-  #issuer: gravitee-management-auth
-  # Allows to define cookie context path (default /)
-  #cookie-path: /
-  # Allows to define cookie domain (default "")
-  #cookie-domain: .gravitee.io
-  # Allows to define if cookie secure only (default false)
-  #cookie-secure: true
+    secret: myJWT4Gr4v1t33_S3cr3t
+    # Allows to define the end of validity of the token in seconds (default 604800 = a week)
+    #expire-after: 604800
+    # Allows to define the end of validity of the token in seconds for email registration (default 86400 = a day)
+    #email-registration-expire-after: 86400
+    # Allows to define issuer (default gravitee-management-auth)
+    #issuer: gravitee-management-auth
+    # Allows to define cookie context path (default /)
+    #cookie-path: /
+    # Allows to define cookie domain (default "")
+    #cookie-domain: .gravitee.io
+    # Allows to define if cookie secure only (default false)
+    #cookie-secure: true
 
 swagger:
-  # Default scheme used when creating an API from a Swagger descriptor if there is no scheme specified.
-  scheme: https
+    # Default scheme used when creating an API from a Swagger descriptor if there is no scheme specified.
+    scheme: https
 
 # User management configuration
 user:
-  login:
-    # Create a default application when user connects to the portal for the very first time (default true)
-    #defaultApplication: true
+    login:
+        # Create a default application when user connects to the portal for the very first time (default true)
+        #defaultApplication: true
 
-  # Password complexity validation policy
-  # Applications should enforce password complexity rules to discourage easy to guess passwords.
-  # Passwords should require a minimum level of complexity that makes sense for the application and its user population.
-  password:
-    policy:
-      # description field is used to display a message to the user enter a password that does not match the policy. Leave it blank to disable the message.
-      description: Password must be at least 12 characters long, contain at least one digit, one upper case letter, one lower case letter, one special character, and no more than 2 consecutive equal characters.
-      pattern: ^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!~<>.,;:_=?/*+\-#\"'&§`£€%°()|\[\]$^@])(?!.*(.)\1{2,}).{12,128}$
-              # Example : ^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!~<>.,;:_=?/*+\-#\"'&§`£€%°()|\[\]$^@])(?!.*(.)\1{2,}).{12,128}$
-              # ^                                            # start-of-string
-              #(?=.*[0-9])                                   # a digit must occur at least once
-              #(?=.*[A-Z])                                   # an upper case letter must occur at least once
-              #(?=.*[a-z])                                   # a lower case letter must occur at least once
-              #(?=.*[!~<>.,;:_=?/*+\-#\"'&§`£€%°()|\[\]$^@]) # a special character must occur at least once
-              #((?!.*(.)\1{2,})                              # no more than 2 consecutive equal characters
-              #.{12,128}                                     # anything, between 12 and 128 characters
-              #$                                             # end-of-string
-  creation:
-    token:
-      #expire-after: 86400
-  reference:
-      # Secret key used to generate reference of a user which is unique (default: s3cR3t4grAv1t33.1Ous3D4R3f3r3nc3)
-      # Must contains 32 chars (256 bits)
-      #secret:
-  anonymize-on-delete:
-    #enabled: false
+    # Password complexity validation policy
+    # Applications should enforce password complexity rules to discourage easy to guess passwords.
+    # Passwords should require a minimum level of complexity that makes sense for the application and its user population.
+    password:
+        policy:
+            # description field is used to display a message to the user enter a password that does not match the policy. Leave it blank to disable the message.
+            description: Password must be at least 12 characters long, contain at least one digit, one upper case letter, one lower case letter, one special character, and no more than 2 consecutive equal characters.
+            pattern:
+                ^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!~<>.,;:_=?/*+\-#\"'&§`£€%°()|\[\]$^@])(?!.*(.)\1{2,}).{12,128}$
+                # Example : ^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!~<>.,;:_=?/*+\-#\"'&§`£€%°()|\[\]$^@])(?!.*(.)\1{2,}).{12,128}$
+                # ^                                            # start-of-string
+                #(?=.*[0-9])                                   # a digit must occur at least once
+                #(?=.*[A-Z])                                   # an upper case letter must occur at least once
+                #(?=.*[a-z])                                   # a lower case letter must occur at least once
+                #(?=.*[!~<>.,;:_=?/*+\-#\"'&§`£€%°()|\[\]$^@]) # a special character must occur at least once
+                #((?!.*(.)\1{2,})                              # no more than 2 consecutive equal characters
+                #.{12,128}                                     # anything, between 12 and 128 characters
+                #$                                             # end-of-string
+    creation:
+        token:
+            #expire-after: 86400
+    reference:
+        # Secret key used to generate reference of a user which is unique (default: s3cR3t4grAv1t33.1Ous3D4R3f3r3nc3)
+        # Must contains 32 chars (256 bits)
+        #secret:
+    anonymize-on-delete:
+        #enabled: false
 
 # Enable / disable documentation sanitize. Enabled by default.
 documentation:
-  markdown:
-    sanitize: true
+    markdown:
+        sanitize: true
 
 #imports:
-  # Enable / disable import from private hosts. Enabled by default. (See https://en.wikipedia.org/wiki/Private_network)
+# Enable / disable import from private hosts. Enabled by default. (See https://en.wikipedia.org/wiki/Private_network)
 #  allow-from-private: true
-  # Empty whitelist means all urls are allowed. Note: allow-from-private is ignored when whitelist is defined.
+# Empty whitelist means all urls are allowed. Note: allow-from-private is ignored when whitelist is defined.
 #  whitelist:
 #      - https://whitelist.domain1.com
 #      - https://restricted.domain2.com/whitelisted/path
 
 search:
-  data: ${gravitee.home}/data
+    data: ${gravitee.home}/data
 
 # global configuration of the http client
 #httpClient:
@@ -537,11 +537,11 @@ search:
 #      password: secret
 
 notifiers:
-  email:
-    enabled: true
-    host: ${email.host}
-    subject: ${email.subject}
-    port: ${email.port}
+    email:
+        enabled: true
+        host: ${email.host}
+        subject: ${email.subject}
+        port: ${email.port}
 #    username: ${email.username}
 #    password: ${email.password}
 #    starttls.enabled: false
@@ -555,7 +555,7 @@ notifiers:
 #      keyStorePassword:
 #  webhook:
 #    enabled: true
-    # Empty whitelist means all urls are allowed.
+# Empty whitelist means all urls are allowed.
 #    whitelist:
 #      - https://whitelist.domain1.com
 #      - https://restricted.domain2.com/whitelisted/path
@@ -569,43 +569,43 @@ notifiers:
 #  serviceUrl: https://www.google.com/recaptcha/api/siteverify
 
 #el:
-  # Allows to define which methods or classes are accessible to the Expression Language engine (/!\ caution, changing default whitelist may expose you to security issues).
-  # A complete list of default whitelist methods can be found here (https://raw.githubusercontent.com/gravitee-io/gravitee-expression-language/master/src/main/resources/whitelist).
+# Allows to define which methods or classes are accessible to the Expression Language engine (/!\ caution, changing default whitelist may expose you to security issues).
+# A complete list of default whitelist methods can be found here (https://raw.githubusercontent.com/gravitee-io/gravitee-expression-language/master/src/main/resources/whitelist).
 #  whitelist:
-    # Allows to define if the specified list of method or classes should be append to the default one or should replace it.
-    # We recommend you to always choose 'append' unless you absolutely kwnow what you are doing.
+# Allows to define if the specified list of method or classes should be append to the default one or should replace it.
+# We recommend you to always choose 'append' unless you absolutely kwnow what you are doing.
 #    mode: append
-    # Define the list of classes or methods to append (or set) to made accessible to the Expression Language.
-    # start with 'method' to allow a specific method (complete signature).
-    # start with 'class' to allow a complete class. All methods of the class will then be accessible.
+# Define the list of classes or methods to append (or set) to made accessible to the Expression Language.
+# start with 'method' to allow a specific method (complete signature).
+# start with 'class' to allow a complete class. All methods of the class will then be accessible.
 #    list:
-      # Ex: allow access to DateTimeFormatter.ofLocalizedDate(FormatStyle) method
-      # - method java.time.format.DateTimeFormatter ofLocalizedDate java.time.format.FormatStyle
-      # Ex: allow access to all methods of DateTimeFormatter class
-      # - class java.time.format.DateTimeFormatter
+# Ex: allow access to DateTimeFormatter.ofLocalizedDate(FormatStyle) method
+# - method java.time.format.DateTimeFormatter ofLocalizedDate java.time.format.FormatStyle
+# Ex: allow access to all methods of DateTimeFormatter class
+# - class java.time.format.DateTimeFormatter
 
 #groovy:
-  # Allows to define which methods, fields, constructors, annotations or classes are accessible to the Groovy Script (/!\ caution, changing default whitelist may expose you to security issues).
-  # A complete list of default whitelist methods can be found here (https://raw.githubusercontent.com/gravitee-io/gravitee-policy-groovy/master/src/main/resources/groovy-whitelist).
+# Allows to define which methods, fields, constructors, annotations or classes are accessible to the Groovy Script (/!\ caution, changing default whitelist may expose you to security issues).
+# A complete list of default whitelist methods can be found here (https://raw.githubusercontent.com/gravitee-io/gravitee-policy-groovy/master/src/main/resources/groovy-whitelist).
 #  whitelist:
-    # Allows to define if the specified list of methods, fields, constructors or classes should be append to the default one or should replace it.
-    # We recommend you to always choose 'append' unless you absolutely know what you are doing.
+# Allows to define if the specified list of methods, fields, constructors or classes should be append to the default one or should replace it.
+# We recommend you to always choose 'append' unless you absolutely know what you are doing.
 #    mode: append
-    # Define the list of classes, methods, constructors, fields or annotations to append (or set) to made accessible to the Groovy Script.
-    # start with 'method' to allow a specific method (complete signature).
-    # start with 'class' to allow a complete class. All methods, constructors and fields of the class will then be accessible.
-    # start with 'new' to allow a specific constructor (complete signature).
-    # start with 'field' to allow access to a specific field of a class.
-    # start with 'annotation' to allow use of a specific annotation.
+# Define the list of classes, methods, constructors, fields or annotations to append (or set) to made accessible to the Groovy Script.
+# start with 'method' to allow a specific method (complete signature).
+# start with 'class' to allow a complete class. All methods, constructors and fields of the class will then be accessible.
+# start with 'new' to allow a specific constructor (complete signature).
+# start with 'field' to allow access to a specific field of a class.
+# start with 'annotation' to allow use of a specific annotation.
 #    list:
-      # Ex: allow access to DateTimeFormatter.ofLocalizedDate(FormatStyle) method
-      # - method java.time.format.DateTimeFormatter ofLocalizedDate java.time.format.FormatStyle
-      # Ex: allow access to all methods, constructors and fields of DateTimeFormatter class
-      # - class java.time.format.DateTimeFormatter
-      # Ex: allow usage of field Integer.MAX_VALUE
-      # - field java.lang.Integer MAX_VALUE
-      # Ex: allow usage of @Override annotation
-      # - annotation java.lang.Override
+# Ex: allow access to DateTimeFormatter.ofLocalizedDate(FormatStyle) method
+# - method java.time.format.DateTimeFormatter ofLocalizedDate java.time.format.FormatStyle
+# Ex: allow access to all methods, constructors and fields of DateTimeFormatter class
+# - class java.time.format.DateTimeFormatter
+# Ex: allow usage of field Integer.MAX_VALUE
+# - field java.lang.Integer MAX_VALUE
+# Ex: allow usage of @Override annotation
+# - annotation java.lang.Override
 
 # Allows to enable or disable the 'Subscribe to newsletter' feature when user completes his profile on first log in. Default is enabled.
 #newsletter:
@@ -696,23 +696,23 @@ notifiers:
 
 # Integration
 integration:
-  enabled: false
-  controller:
-    ws:
-      port: 8072
+    enabled: false
+    controller:
+        ws:
+            port: 8072
 
 api:
-  v2:
-    # V4 Emulation engine allows strict respect of the policy execution order, as it defines it the policy studio whereas, in "v3" mode, execution order may differ depending on policy REQUEST_CONTENT or RESPONSE_CONTENT scope.
-    emulateV4Engine:
-      # Allow to emulate v4 engine by default when no execution mode is specified on an api
-      # Possible values: yes | creation_only | no; Default: yes
-      default: yes
-  # Encrypt API properties using this secret
-  properties:
-    encryption:
-      secret: vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6
+    v2:
+        # V4 Emulation engine allows strict respect of the policy execution order, as it defines it the policy studio whereas, in "v3" mode, execution order may differ depending on policy REQUEST_CONTENT or RESPONSE_CONTENT scope.
+        emulateV4Engine:
+            # Allow to emulate v4 engine by default when no execution mode is specified on an api
+            # Possible values: yes | creation_only | no; Default: yes
+            default: yes
+    # Encrypt API properties using this secret
+    properties:
+        encryption:
+            secret: vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6
 
 # Scoring
 scoring:
-  enabled: false
+    enabled: false

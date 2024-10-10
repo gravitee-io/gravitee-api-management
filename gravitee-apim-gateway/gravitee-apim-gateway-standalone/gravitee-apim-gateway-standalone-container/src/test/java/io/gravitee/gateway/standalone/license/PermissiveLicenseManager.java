@@ -66,6 +66,6 @@ public class PermissiveLicenseManager extends AbstractService<LicenseManager> im
 
     @Override
     public void onLicenseExpires(Consumer<License> expirationListener) {
-        // Don't do anything as there is no license expiration.
+        // Don't do anything as there is no license pollInterval.
     }
 }

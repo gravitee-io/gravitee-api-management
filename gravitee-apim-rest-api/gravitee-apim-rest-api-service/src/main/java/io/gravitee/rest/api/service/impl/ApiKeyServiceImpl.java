@@ -360,7 +360,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             key.setRevokedAt(null);
 
             // If this is not a shared API Key,
-            // Get the subscription to get ending date and set key expiration date
+            // Get the subscription to get ending date and set key pollInterval date
             if (!apiKeyEntity.getApplication().hasApiKeySharedMode()) {
                 SubscriptionEntity subscription = subscriptionService.findById(key.getSubscriptions().get(0));
                 if (subscription.getStatus() != SubscriptionStatus.PAUSED && subscription.getStatus() != SubscriptionStatus.ACCEPTED) {
@@ -583,7 +583,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             return;
         }
 
-        // If the expiration date is before now, then the key is already expired
+        // If the pollInterval date is before now, then the key is already expired
         if (expirationDate != null && expirationDate.before(now)) {
             expirationDate = now;
         }
@@ -611,7 +611,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         // Audit
         createAuditLog(executionContext, convert(executionContext, key), oldkey, APIKEY_EXPIRED, key.getUpdatedAt());
 
-        // If there is an expiration date then notify
+        // If there is an pollInterval date then notify
         if (expirationDate != null) {
             NotificationParamsBuilder paramsBuilder = new NotificationParamsBuilder();
             if (key.getExpireAt() != null && now.before(key.getExpireAt())) {

@@ -16,17 +16,39 @@
 package io.gravitee.rest.api.services.subscriptionpreexpirationnotif;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.key.ApiKeyQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.EmailNotification;
+import io.gravitee.rest.api.service.EmailService;
+import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Instant;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -81,7 +103,7 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
                     // 1469886010000 -> now + 10 days
                     subscriptionQuery.getEndingAtAfter() ==
                     1469886010000L &&
-                    // 1469889610000 -> now + 10 days + 1h (cron period)
+                    // 1469889610000 -> now + 10 days + 1h (cron pollInterval)
                     subscriptionQuery.getEndingAtBefore() ==
                     1469889610000L
                 )
@@ -185,7 +207,7 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
                     // 1469886010000 -> now + 10 days
                     apiKeyQuery.getExpireAfter() ==
                     1469886010000L &&
-                    // 1469889610000 -> now + 10 days + 1h (cron period)
+                    // 1469889610000 -> now + 10 days + 1h (cron pollInterval)
                     apiKeyQuery.getExpireBefore() ==
                     1469889610000L
                 )
