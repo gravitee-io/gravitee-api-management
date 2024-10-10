@@ -26,6 +26,26 @@ spec:
       visibility: "PUBLIC"
       homepage: false
       excludedAccessControls: false
+    Github-Fetcher:
+      name: "Github-Fetcher"
+      type: "ROOT"
+      order: 2
+      published: false
+      visibility: "PUBLIC"
+      source:
+        type: "github-fetcher"
+      homepage: false
+      excludedAccessControls: false
+    HTTP-Fetcher:
+      name: "HTTP-Fetcher"
+      type: "SWAGGER"
+      order: 5
+      published: false
+      visibility: "PUBLIC"
+      source:
+        type: "http-fetcher"
+      homepage: false
+      excludedAccessControls: false
   plans:
   - id: "plan-id"
     crossId: "test-plan-cross-id"
