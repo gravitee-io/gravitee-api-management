@@ -26,6 +26,7 @@ import io.gravitee.repository.management.model.PageRevision;
 import io.gravitee.rest.api.model.PageRevisionEntity;
 import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.PageRevisionServiceImpl;
 import java.util.Date;
@@ -148,5 +149,17 @@ public class PageRevisionServiceTest {
         when(page.getId()).thenReturn(PAGE_ID);
         when(page.getType()).thenReturn(PageType.FOLDER.name());
         pageRevisionService.create(page);
+    }
+
+    @Test
+    public void shouldDeletePageRevision() throws TechnicalException {
+        pageRevisionService.deleteAllByPageId(PAGE_ID);
+        verify(pageRevisionRepository).deleteAllByPageId(PAGE_ID);
+    }
+
+    @Test(expected = TechnicalException.class)
+    public void shouldNotDeletePageRevisionBecauseTechnicalException() throws TechnicalException {
+        doThrow(TechnicalException.class).when(pageRevisionRepository).deleteAllByPageId(PAGE_ID);
+        pageRevisionService.deleteAllByPageId(PAGE_ID);
     }
 }

@@ -147,4 +147,17 @@ public class PageRevisionRepositoryTest extends AbstractManagementRepositoryTest
         assertNotNull(pageShouldExists);
         assertFalse(pageShouldExists.isPresent());
     }
+
+    @Test
+    public void shouldDeleteAllByPageId() throws TechnicalException {
+        List<PageRevision> revisionsBefore = pageRevisionRepository.findAllByPageId("findByPageId");
+        assertNotNull(revisionsBefore);
+        assertEquals(3, revisionsBefore.size());
+
+        pageRevisionRepository.deleteAllByPageId("findByPageId");
+
+        List<PageRevision> revisionsAfter = pageRevisionRepository.findAllByPageId("findByPageId");
+        assertNotNull(revisionsAfter);
+        assertEquals(0, revisionsAfter.size());
+    }
 }
