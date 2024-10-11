@@ -59,6 +59,7 @@ describe('PortalSettingsService', () => {
       expect(req.request.body).toEqual(portalSettingsToSave);
 
       req.flush(null);
+      httpTestingController.expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/portal` }).flush({});
     });
   });
 

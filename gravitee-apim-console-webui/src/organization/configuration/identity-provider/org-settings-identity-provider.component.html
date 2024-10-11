@@ -156,16 +156,17 @@
             index as groupMappingIndex
           "
           [formGroupName]="groupMappingIndex"
+          class="identity-provider__card__group-mapping"
         >
-          <mat-card-content class="identity-provider__card__group-mapping">
-            <mat-form-field class="identity-provider__card__group-mapping__form-field">
+          <mat-card-content class="identity-provider__card__group-mapping__content">
+            <mat-form-field class="identity-provider__card__group-mapping__content__form-field">
               <mat-label>Condition</mat-label>
               <input #groupMappingConditionInput matInput name="condition" formControlName="condition" required />
               <mat-hint>The condition which should be validated to associate below groups at login time.</mat-hint>
               <mat-error *ngIf="groupMappingControl.get('condition').hasError('required')">Condition is required.</mat-error>
             </mat-form-field>
 
-            <mat-form-field class="identity-provider__card__group-mapping__form-field">
+            <mat-form-field class="identity-provider__card__group-mapping__content__form-field">
               <mat-label>Group</mat-label>
               <mat-select formControlName="groups" multiple required>
                 <mat-option *ngFor="let group of groups$ | async" [value]="group.id">{{ group.name }}</mat-option>
