@@ -149,6 +149,7 @@ public class PageRevisionRepositoryTest extends AbstractManagementRepositoryTest
     }
 
     @Test
+<<<<<<< HEAD
     public void should_delete_by_page_id() throws Exception {
         List<String> beforeDeletion = pageRevisionRepository
             .findAllByPageId("ToBeDeleted")
@@ -161,5 +162,26 @@ public class PageRevisionRepositoryTest extends AbstractManagementRepositoryTest
         assertEquals(2, beforeDeletion.size());
         assertTrue(beforeDeletion.containsAll(deleted));
         assertEquals(0, nbAfterDeletion);
+=======
+    public void shouldDeleteAllByPageId() throws TechnicalException {
+        List<PageRevision> revisionsBefore = pageRevisionRepository.findAllByPageId("findByPageId");
+        assertNotNull(revisionsBefore);
+        assertEquals(3, revisionsBefore.size());
+
+        pageRevisionRepository.deleteAllByPageId("findByPageId");
+
+        List<PageRevision> revisionsAfter = pageRevisionRepository.findAllByPageId("findByPageId");
+        assertNotNull(revisionsAfter);
+        assertEquals(0, revisionsAfter.size());
+    }
+
+    @Test
+    public void shouldDoNothingWhenNoRevisionsFoundWhileDeleting() throws TechnicalException {
+        pageRevisionRepository.deleteAllByPageId("nonExistingPageId");
+
+        List<PageRevision> revisionsAfter = pageRevisionRepository.findAllByPageId("nonExistingPageId");
+        assertNotNull(revisionsAfter);
+        assertEquals(0, revisionsAfter.size());
+>>>>>>> 9fa0033e0f (fix: delete page revisions when api is deleted)
     }
 }

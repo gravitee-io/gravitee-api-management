@@ -47,5 +47,9 @@ public interface PageRevisionRepository extends FindAllRepository<PageRevision> 
      */
     Optional<PageRevision> findLastByPageId(String pageId) throws TechnicalException;
 
+<<<<<<< HEAD
     List<String> deleteByPageId(String pageId) throws TechnicalException;
+=======
+    void deleteAllByPageId(String pageId) throws TechnicalException;
+>>>>>>> 9fa0033e0f (fix: delete page revisions when api is deleted)
 }

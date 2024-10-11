@@ -29,8 +29,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PageRevisionMongoRepository
     extends MongoRepository<PageRevisionMongo, PageRevisionPkMongo>, PageRevisionMongoRepositoryCustom {
+<<<<<<< HEAD
     @Query(value = "{ '_id.pageId' : ?0 }", sort = "{ 'revision': 1 }", delete = true)
     List<PageRevisionMongo> deleteByPageId(String pageId);
+=======
+    @Query(value = "{ '_id.pageId' : ?0 }", delete = true)
+    void deleteAllByPageId(String pageId);
+>>>>>>> 9fa0033e0f (fix: delete page revisions when api is deleted)
 
     @Query(value = "{ '_id.pageId' : ?0 }", sort = "{ 'revision': 1 }")
     List<PageRevisionMongo> findAllByPageId(String pageId);
