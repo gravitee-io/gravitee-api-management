@@ -11,6 +11,7 @@ $foreground: map.get(gio.$mat-theme, foreground);
 }
 
 .org-settings-tags {
+<<<<<<< HEAD
   &__add-button-container {
     display: flex;
     justify-content: flex-end;
@@ -23,7 +24,12 @@ $foreground: map.get(gio.$mat-theme, foreground);
     }
   }
 
+=======
+>>>>>>> a633a57155 (feat(console): org settings - allow to change portal default entrypoint for all env)
   &__tags-card {
+    &__headerRightBtn {
+      margin: auto 0 auto auto;
+    }
     margin-bottom: 16px;
 
     .mat-column-actions {
@@ -32,17 +38,50 @@ $foreground: map.get(gio.$mat-theme, foreground);
   }
 
   &__entrypoints-card {
+<<<<<<< HEAD
     display: flex;
     flex-direction: column;
 
     &__form-field {
       &__icon {
         color: mat.get-color-from-palette($foreground, disabled);
+=======
+    &__headerRightBtn {
+      margin: auto 0 auto auto;
+    }
+    &__content {
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      &__env {
+        margin-bottom: 8px;
+
+        &__config {
+          display: flex;
+          flex-direction: row;
+          gap: 16px;
+
+          &__form-field-entrypoint {
+            flex: 2 1 auto;
+          }
+
+          &__form-field-port,
+          &__form-field-entrypoint {
+            &__icon {
+              color: mat.m2-get-color-from-palette($foreground, disabled);
+            }
+          }
+        }
+>>>>>>> a633a57155 (feat(console): org settings - allow to change portal default entrypoint for all env)
       }
     }
 
     .mat-column-actions {
       width: 104px;
+    }
+
+    & + & {
+      margin-top: 16px;
     }
   }
 }

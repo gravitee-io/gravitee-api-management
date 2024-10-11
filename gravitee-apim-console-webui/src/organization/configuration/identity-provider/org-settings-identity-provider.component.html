@@ -136,6 +136,7 @@
     </ng-container>
 
     <mat-card *ngIf="mode === 'edit'" class="identity-provider__card" formArrayName="groupMappings">
+<<<<<<< HEAD
       <h2 gioTableOfContents>Groups Mapping</h2>
       <mat-card
         *ngFor="let groupMappingControl of this.identityProviderFormGroup.get('groupMappings')?.controls; index as groupMappingIndex"
@@ -164,6 +165,41 @@
         </mat-card-actions>
       </mat-card>
 
+=======
+      <mat-card-content>
+        <h2 gioTableOfContents>Groups Mapping</h2>
+        <mat-card
+          *ngFor="
+            let groupMappingControl of $any(this.identityProviderFormGroup.get('groupMappings'))?.controls;
+            index as groupMappingIndex
+          "
+          [formGroupName]="groupMappingIndex"
+          class="identity-provider__card__group-mapping"
+        >
+          <mat-card-content class="identity-provider__card__group-mapping__content">
+            <mat-form-field class="identity-provider__card__group-mapping__content__form-field">
+              <mat-label>Condition</mat-label>
+              <input #groupMappingConditionInput matInput name="condition" formControlName="condition" required />
+              <mat-hint>The condition which should be validated to associate below groups at login time.</mat-hint>
+              <mat-error *ngIf="groupMappingControl.get('condition').hasError('required')">Condition is required.</mat-error>
+            </mat-form-field>
+
+            <mat-form-field class="identity-provider__card__group-mapping__content__form-field">
+              <mat-label>Group</mat-label>
+              <mat-select formControlName="groups" multiple required>
+                <mat-option *ngFor="let group of groups$ | async" [value]="group.id">{{ group.name }}</mat-option>
+              </mat-select>
+              <mat-error *ngIf="groupMappingControl.get('groups').hasError('required')">At least one group is required.</mat-error>
+            </mat-form-field>
+          </mat-card-content>
+          <mat-card-actions align="end">
+            <button mat-button type="button" (click)="removeGroupMappingFromIdentityProviderFormGroup(groupMappingIndex)">
+              <mat-icon>delete</mat-icon> Delete
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </mat-card-content>
+>>>>>>> a633a57155 (feat(console): org settings - allow to change portal default entrypoint for all env)
       <mat-card-actions>
         <button mat-button color="accent" type="button" (click)="addGroupMappingToIdentityProviderFormGroup()">
           <mat-icon>add</mat-icon> Add group mapping

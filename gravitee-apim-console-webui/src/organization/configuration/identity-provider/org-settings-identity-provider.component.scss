@@ -46,11 +46,17 @@
 
     &__group-mapping,
     &__role-mapping {
-      display: flex;
-      flex-direction: column;
-
       & + & {
         margin-top: 16px;
+      }
+
+      &__content {
+        display: flex;
+        flex-direction: column;
+
+        & + & {
+          margin-top: 16px;
+        }
       }
     }
     &__role-mapping {
