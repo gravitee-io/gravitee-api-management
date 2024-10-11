@@ -46,4 +46,6 @@ public interface PageRevisionRepository extends FindAllRepository<PageRevision> 
      * @return
      */
     Optional<PageRevision> findLastByPageId(String pageId) throws TechnicalException;
+
+    void deleteAllByPageId(String pageId) throws TechnicalException;
 }
