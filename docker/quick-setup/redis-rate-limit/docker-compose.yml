@@ -87,7 +87,7 @@ services:
     image: redislabs/redisinsight:latest
     container_name: gio_redis_client
     ports:
-      - "8001:8001"
+      - "5540:5540"
     depends_on:
       - redis_rate_limit
     volumes:
