@@ -32,6 +32,9 @@ public interface PageRevisionMongoRepository
     @Query(value = "{ '_id.pageId' : ?0 }", sort = "{ 'revision': 1 }", delete = true)
     List<PageRevisionMongo> deleteByPageId(String pageId);
 
+    @Query(value = "{ '_id.pageId' : ?0 }", delete = true)
+    void deleteAllByPageId(String pageId);
+
     @Query(value = "{ '_id.pageId' : ?0 }", sort = "{ 'revision': 1 }")
     List<PageRevisionMongo> findAllByPageId(String pageId);
 }
