@@ -156,4 +156,21 @@ public class JdbcPageRevisionRepository extends JdbcAbstractFindAllRepository<Pa
             throw new TechnicalException("Failed to delete page revision by page id", ex);
         }
     }
+
+    @Override
+    public void deleteAllByPageId(String pageId) throws TechnicalException {
+        LOGGER.debug("JdbcPageRevisionRepository.deleteAllByPageId({})", pageId);
+        try {
+            String sql = "DELETE FROM " + this.tableName + " WHERE page_id = ?";
+            int rowsAffected = jdbcTemplate.update(sql, pageId);
+            LOGGER.debug("JdbcPageRevisionRepository.deleteAllByPageId({}) = {} rows deleted", pageId, rowsAffected);
+
+            if (rowsAffected == 0) {
+                LOGGER.warn("No revisions found for page id: {}", pageId);
+            }
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete revisions by page id: {}", pageId, ex);
+            throw new TechnicalException("Failed to delete revisions by page id", ex);
+        }
+    }
 }
