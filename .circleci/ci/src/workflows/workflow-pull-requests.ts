@@ -513,10 +513,13 @@ function shouldBuildPortal(changedFiles: string[]): boolean {
 
 function shouldBuildBackend(changedFiles: string[]): boolean {
   const mavenProjectsIdentifiers = [
+    'gravitee-apim-bom',
+    'gravitee-apim-common',
     'gravitee-apim-definition',
     'gravitee-apim-distribution',
     'gravitee-apim-gateway',
     'gravitee-apim-integration-tests',
+    'gravitee-apim-parent',
     'gravitee-apim-plugin',
     'gravitee-apim-repository',
     'gravitee-apim-rest-api',
@@ -527,7 +530,13 @@ function shouldBuildBackend(changedFiles: string[]): boolean {
 }
 
 function shouldTestAllBackend(changedFiles: string[]): boolean {
-  const mavenProjectsIdentifiers = ['gravitee-apim-definition', 'gravitee-apim-repository'];
+  const mavenProjectsIdentifiers = [
+    'gravitee-apim-bom',
+    'gravitee-apim-common',
+    'gravitee-apim-definition',
+    'gravitee-apim-parent',
+    'gravitee-apim-repository',
+  ];
   return (
     shouldBuildAll(changedFiles) || changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
   );
@@ -539,9 +548,12 @@ function shouldTestDefinition(changedFiles: string[]): boolean {
 
 function shouldTestIntegrationTests(changedFiles: string[]): boolean {
   const mavenProjectsIdentifiers = [
+    'gravitee-apim-bom',
+    'gravitee-apim-common',
     'gravitee-apim-definition',
     'gravitee-apim-gateway',
     'gravitee-apim-integration-tests',
+    'gravitee-apim-parent',
     'gravitee-apim-plugin',
   ];
   return (
