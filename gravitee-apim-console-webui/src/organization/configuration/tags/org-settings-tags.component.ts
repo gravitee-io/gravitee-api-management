@@ -18,7 +18,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
-import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
 
 import { OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData } from './org-settings-add-tag-dialog.component';
@@ -35,6 +35,8 @@ import { TagService } from '../../../services-ngx/tag.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { ApimFeature } from '../../../shared/components/gio-license/gio-license-data';
+import { EnvironmentService } from '../../../services-ngx/environment.service';
+import { Environment } from '../../../entities/environment/environment';
 
 type TagTableDS = {
   id: string;
@@ -65,7 +67,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   tagsTableUnpaginatedLength = 0;
   tagsTableDisplayedColumns: string[] = ['id', 'name', 'description', 'restrictedGroupsName', 'actions'];
 
-  portalSettings: PortalSettings;
+  environmentsPortalSettings: { environment: Environment; portalSettings: PortalSettings }[];
   defaultConfigForm: UntypedFormGroup;
   initialDefaultConfigFormValues: unknown;
 
@@ -83,6 +85,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
     private readonly tagService: TagService,
     private readonly groupService: GroupService,
     private readonly portalSettingsService: PortalSettingsService,
+    private readonly environmentService: EnvironmentService,
     private readonly entrypointService: EntrypointService,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
@@ -91,14 +94,25 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.hasShardingTagsLock$ = this.gioLicenseService.isMissingFeature$(this.shardingTagsLicenseOptions.feature);
+
+    const environmentsPortalSettings$ = this.environmentService.list().pipe(
+      switchMap((environments) => {
+        return combineLatest(
+          environments.map((env) =>
+            this.portalSettingsService.getByEnvironmentId(env.id).pipe(map((portalSettings) => ({ environment: env, portalSettings }))),
+          ),
+        );
+      }),
+    );
+
     combineLatest([
       this.tagService.list(),
       this.groupService.listByOrganization(),
-      this.portalSettingsService.get(),
+      environmentsPortalSettings$,
       this.entrypointService.list(),
     ])
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(([tags, groups, portalSettings, entrypoints]) => {
+      .subscribe(([tags, groups, environmentsPortalSettings, entrypoints]) => {
         this.tags = tags;
         this.tagsTableDS = tags.map((tag) => ({
           id: tag.id,
@@ -111,21 +125,28 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
         this.filteredTagsTableDS = this.tagsTableDS;
         this.tagsTableUnpaginatedLength = this.tagsTableDS.length;
 
-        this.portalSettings = portalSettings;
+        this.environmentsPortalSettings = environmentsPortalSettings;
 
-        this.defaultConfigForm = new UntypedFormGroup({
-          entrypoint: new UntypedFormControl({
-            value: this.portalSettings.portal.entrypoint,
-            disabled: this.isReadonlySetting('portal.entrypoint'),
-          }),
-          tcpPort: new UntypedFormControl(
-            {
-              value: this.portalSettings.portal.tcpPort,
-              disabled: this.isReadonlySetting('portal.tcpPort'),
-            },
-            [tcpPortValidator],
-          ),
-        });
+        this.defaultConfigForm = new UntypedFormGroup(
+          environmentsPortalSettings.reduce((acc, { environment, portalSettings }) => {
+            acc[environment.id] = new UntypedFormGroup({
+              _environmentName: new UntypedFormControl({ value: environment.name ?? environment.id, disabled: true }),
+              entrypoint: new UntypedFormControl({
+                value: portalSettings.portal.entrypoint,
+                disabled: PortalSettingsService.isReadonly(portalSettings, 'portal.entrypoint'),
+              }),
+              tcpPort: new UntypedFormControl(
+                {
+                  value: portalSettings.portal.tcpPort,
+                  disabled: PortalSettingsService.isReadonly(portalSettings, 'portal.tcpPort'),
+                },
+                [tcpPortValidator],
+              ),
+            });
+            return acc;
+          }, {}),
+        );
+
         this.initialDefaultConfigFormValues = this.defaultConfigForm.getRawValue();
 
         this.entrypoints = entrypoints;
@@ -153,22 +174,37 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
     this.tagsTableUnpaginatedLength = filtered.unpaginatedLength;
   }
 
-  isReadonlySetting(property: string): boolean {
-    return PortalSettingsService.isReadonly(this.portalSettings, property);
+  isReadonlySetting(envId: string, property: string): boolean {
+    const portalSettings = this.environmentsPortalSettings.find((s) => s.environment.id === envId)?.portalSettings;
+
+    return PortalSettingsService.isReadonly(portalSettings, property);
   }
 
   submitForm() {
-    const portalSettingsToSave = {
-      ...this.portalSettings,
-      portal: {
-        ...this.portalSettings.portal,
-        entrypoint: this.defaultConfigForm.get('entrypoint').value,
-        tcpPort: this.defaultConfigForm.get('tcpPort').value,
-      },
-    };
+    const environmentsPortalSettingsToSave = Object.entries(this.defaultConfigForm.controls).filter(([_key, formControl]) => {
+      return formControl.dirty;
+    });
 
-    this.portalSettingsService
-      .save(portalSettingsToSave)
+    const environmentsPortalSettingsToSave$ = environmentsPortalSettingsToSave.map(([envId, portalSettingsFormGroup]) => {
+      const portalSettings = this.environmentsPortalSettings.find((s) => s.environment.id === envId)?.portalSettings;
+      if (!portalSettings) {
+        // Should never happen
+        throw new Error('Portal settings not found');
+      }
+
+      const portalSettingsToSave = {
+        ...portalSettings,
+        portal: {
+          ...portalSettings.portal,
+          entrypoint: portalSettingsFormGroup.get('entrypoint').value,
+          tcpPort: portalSettingsFormGroup.get('tcpPort').value,
+        },
+      };
+
+      return this.portalSettingsService.saveByEnvironmentId(envId, portalSettingsToSave);
+    });
+
+    combineLatest(environmentsPortalSettingsToSave$)
       .pipe(
         tap(() => {
           this.snackBarService.success('Configuration saved!');
