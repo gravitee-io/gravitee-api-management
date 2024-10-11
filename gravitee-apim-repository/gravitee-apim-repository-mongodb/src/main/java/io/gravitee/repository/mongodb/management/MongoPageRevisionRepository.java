@@ -104,6 +104,16 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
     }
 
     @Override
+    public void deleteAllByPageId(String pageId) throws TechnicalException {
+        try {
+            internalPageRevisionRepo.deleteAllByPageId(pageId);
+        } catch (Exception e) {
+            logger.error("An error occurred when deleting revision for page [{}]", pageId, e);
+            throw new TechnicalException("An error occurred when deleting the page revisions");
+        }
+    }
+
+    @Override
     public Set<PageRevision> findAll() throws TechnicalException {
         return internalPageRevisionRepo
             .findAll()
