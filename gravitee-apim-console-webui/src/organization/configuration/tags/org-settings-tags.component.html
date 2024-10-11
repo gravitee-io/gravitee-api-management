@@ -22,9 +22,9 @@
   <h4>Copy/paste the sharding tag's id to the API gateway configuration file in order to manage API deployments.</h4>
 
   <mat-card class="org-settings-tags__tags-card">
-    <mat-card-content>
-      <div class="org-settings-tags__add-button-container" *gioPermission="{ anyOf: ['organization-tag-c'] }">
-        <h2>Tags</h2>
+    <mat-card-header>
+      <mat-card-title>Tags</mat-card-title>
+      <div class="org-settings-tags__tags-card__headerRightBtn" *gioPermission="{ anyOf: ['organization-tag-c'] }">
         <button
           [gioLicense]="shardingTagsLicenseOptions"
           (click)="onAddTagClicked()"
@@ -37,7 +37,7 @@
           <mat-icon *ngIf="hasShardingTagsLock$ | async" iconPositionEnd svgIcon="gio:lock"></mat-icon>
         </button>
       </div>
-    </mat-card-content>
+    </mat-card-header>
     <gio-table-wrapper [length]="tagsTableUnpaginatedLength" (filtersChange)="onTagsFiltersChanged($event)">
       <table
         mat-table
@@ -117,10 +117,9 @@
   </mat-card>
 
   <mat-card class="org-settings-tags__entrypoints-card">
-    <mat-card-content class="org-settings-tags__entrypoints-card__content">
-      <div class="org-settings-tags__add-button-container">
-        <h2>Entrypoint mappings</h2>
-
+    <mat-card-header>
+      <mat-card-title>Entrypoint mappings</mat-card-title>
+      <div class="org-settings-tags__entrypoints-card__headerRightBtn">
         <button
           *gioPermission="{ anyOf: ['organization-entrypoint-c'] }"
           (click)="onAddEntrypointClicked()"
@@ -132,27 +131,55 @@
           <mat-icon>add</mat-icon>Add a mapping
         </button>
       </div>
+    </mat-card-header>
+    <mat-card-content class="org-settings-tags__entrypoints-card__content">
+      <div
+        *ngFor="let configForm of defaultConfigForm.controls | keyvalue"
+        [formGroupName]="configForm.key"
+        class="org-settings-tags__entrypoints-card__content__env"
+      >
+        <h4>
+          Default config for environment:
+          <div class="gio-badge-primary">{{ configForm.value.get('_environmentName').value }}</div>
+        </h4>
+        <div class="org-settings-tags__entrypoints-card__content__env__config">
+          <mat-form-field
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonlySetting(configForm.key, 'entrypoint')"
+            class="org-settings-tags__entrypoints-card__content__env__config__form-field-entrypoint"
+          >
+            <mat-icon
+              *ngIf="isReadonlySetting(configForm.key, 'entrypoint')"
+              class="org-settings-tags__entrypoints-card__content__env__config__form-field-entrypoint__icon"
+              matPrefix
+              >lock</mat-icon
+            >
+            <mat-label>Default entrypoint</mat-label>
+            <input #entrypointInput matInput formControlName="entrypoint" />
+            <gio-clipboard-copy-icon matSuffix [contentToCopy]="entrypointInput.value"></gio-clipboard-copy-icon>
+          </mat-form-field>
 
-      <mat-form-field [matTooltip]="providedConfigurationMessage" [matTooltipDisabled]="!isReadonlySetting('entrypoint')">
-        <mat-icon *ngIf="isReadonlySetting('entrypoint')" class="org-settings-tags__entrypoints-card__content__form-field__icon" matPrefix
-          >lock</mat-icon
-        >
-        <mat-label>Default entrypoint</mat-label>
-        <input #entrypointInput matInput formControlName="entrypoint" />
-        <gio-clipboard-copy-icon matSuffix [contentToCopy]="entrypointInput.value"></gio-clipboard-copy-icon>
-      </mat-form-field>
-
-      <mat-form-field [matTooltip]="providedConfigurationMessage" [matTooltipDisabled]="!isReadonlySetting('tcpPort')">
-        <mat-icon *ngIf="isReadonlySetting('tcpPort')" class="org-settings-tags__entrypoints-card__content__form-field__icon" matPrefix
-          >lock</mat-icon
-        >
-        <mat-label>Default TCP port</mat-label>
-        <input #tcpPortInput matInput formControlName="tcpPort" type="number" />
-        <mat-error *ngIf="defaultConfigForm.get('tcpPort').hasError('invalidTcpPort')"
-          >TCP port should be in range between 1025 and 65535</mat-error
-        >
-        <gio-clipboard-copy-icon matSuffix [contentToCopy]="tcpPortInput.value"></gio-clipboard-copy-icon>
-      </mat-form-field>
+          <mat-form-field
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonlySetting(configForm.key, 'tcpPort')"
+            class="org-settings-tags__entrypoints-card__content__env__config__form-field-port"
+          >
+            <mat-icon
+              *ngIf="isReadonlySetting(configForm.key, 'tcpPort')"
+              class="org-settings-tags__entrypoints-card__content__env__config__form-field-port__icon"
+              matPrefix
+              >lock</mat-icon
+            >
+            <mat-label>Default TCP port</mat-label>
+            <input #tcpPortInput matInput formControlName="tcpPort" type="number" />
+            <mat-error *ngIf="configForm.value.get('tcpPort').hasError('invalidTcpPort')"
+              >TCP port should be in range between 1025 and 65535</mat-error
+            >
+            <gio-clipboard-copy-icon matSuffix [contentToCopy]="tcpPortInput.value"></gio-clipboard-copy-icon>
+          </mat-form-field>
+        </div>
+      </div>
+      <h4>Mappings</h4>
     </mat-card-content>
     <gio-table-wrapper [length]="entrypointsTableUnpaginatedLength" (filtersChange)="onEntrypointsFiltersChanged($event)">
       <table
