@@ -40,6 +40,8 @@ import { fakePortalSettings } from '../../../entities/portal/portalSettings.fixt
 import { Entrypoint } from '../../../entities/entrypoint/entrypoint';
 import { fakeEntrypoint } from '../../../entities/entrypoint/entrypoint.fixture';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { Environment } from '../../../entities/environment/environment';
+import { fakeEnvironment } from '../../../entities/environment/environment.fixture';
 
 describe('OrgSettingsTagsComponent', () => {
   let fixture: ComponentFixture<OrgSettingsTagsComponent>;
@@ -80,6 +82,8 @@ describe('OrgSettingsTagsComponent', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     fixture.detectChanges();
+
+    expectEnvironmentListRequest([fakeEnvironment({ id: 'DEFAULT', name: 'Environment DEFAULT' })]);
   }
 
   describe('without license', () => {
@@ -339,6 +343,7 @@ describe('OrgSettingsTagsComponent', () => {
       req.flush(null);
 
       // expect new ngOnInit()
+      expectEnvironmentListRequest([fakeEnvironment({ id: 'DEFAULT', name: 'Environment DEFAULT' })]);
       expectTagsListRequest();
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       expectPortalSettingsGetRequest(fakePortalSettings());
@@ -450,6 +455,8 @@ describe('OrgSettingsTagsComponent', () => {
       req.flush(null);
 
       // expect new ngOnInit()
+
+      expectEnvironmentListRequest([fakeEnvironment({ id: 'DEFAULT', name: 'Environment DEFAULT' })]);
       expectTagsListRequest();
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       expectPortalSettingsGetRequest(fakePortalSettings());
@@ -496,5 +503,12 @@ describe('OrgSettingsTagsComponent', () => {
         method: 'GET',
       })
       .flush(entrypoints);
+  }
+
+  function expectEnvironmentListRequest(environments: Environment[]) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/environments`);
+    expect(req.request.method).toEqual('GET');
+    req.flush(environments);
+    fixture.detectChanges();
   }
 });

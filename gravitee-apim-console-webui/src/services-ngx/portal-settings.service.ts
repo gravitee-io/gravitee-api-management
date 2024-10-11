@@ -44,10 +44,22 @@ export class PortalSettingsService {
     return this.http.get<PortalSettings>(`${this.constants.env.baseURL}/settings`);
   }
 
+  getByEnvironmentId(environmentId: string): Observable<PortalSettings> {
+    return this.http.get<PortalSettings>(`${this.constants.org.baseURL}/environments/${environmentId}/settings`);
+  }
+
   save(portalSettings: PortalSettings): Observable<void> {
     return this.http.post<void>(`${this.constants.env.baseURL}/settings`, portalSettings).pipe(
       tap(() => {
-        this.environmentSettingsService.load();
+        this.environmentSettingsService.load().subscribe();
+      }),
+    );
+  }
+
+  saveByEnvironmentId(environmentId: string, portalSettings: PortalSettings): Observable<PortalSettings> {
+    return this.http.post<PortalSettings>(`${this.constants.org.baseURL}/environments/${environmentId}/settings`, portalSettings).pipe(
+      tap(() => {
+        this.environmentSettingsService.load().subscribe();
       }),
     );
   }
