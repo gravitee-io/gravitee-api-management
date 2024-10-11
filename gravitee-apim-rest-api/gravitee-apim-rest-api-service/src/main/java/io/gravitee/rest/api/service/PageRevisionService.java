@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.rest.api.model.PageRevisionEntity;
@@ -35,4 +36,6 @@ public interface PageRevisionService {
     List<PageRevisionEntity> findAllByPageId(String pageId);
 
     PageRevisionEntity create(Page page);
+
+    void deleteAllByPageId(String pageId) throws TechnicalException;
 }
