@@ -22,21 +22,20 @@ import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
-import io.gravitee.gateway.reactive.policy.AbstractHttpPolicyManager;
-import io.gravitee.gateway.reactive.policy.HttpPolicyFactory;
+import io.gravitee.gateway.reactive.policy.AbstractPolicyManager;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import java.util.Set;
 
-public class SharedPolicyGroupPolicyManager extends AbstractHttpPolicyManager {
+public class SharedPolicyGroupPolicyManager extends AbstractPolicyManager {
 
     private final ReactableSharedPolicyGroup reactableSharedPolicyGroup;
 
     public SharedPolicyGroupPolicyManager(
         DefaultClassLoader classLoader,
-        PolicyFactoryManager<HttpPolicyFactory> policyFactoryManager,
+        PolicyFactoryManager policyFactoryManager,
         PolicyConfigurationFactory policyConfigurationFactory,
         ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
         PolicyClassLoaderFactory policyClassLoaderFactory,

@@ -18,11 +18,8 @@ package io.gravitee.gateway.reactive.handlers.api.security.policy;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.policy.Policy;
-import io.gravitee.gateway.reactive.api.policy.SecurityPolicy;
 import io.gravitee.gateway.reactive.api.policy.base.BaseSecurityPolicy;
 import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
-import io.gravitee.gateway.reactive.api.policy.http.HttpSecurityPolicy;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +35,7 @@ public class SecurityPolicyFactory {
     private SecurityPolicyFactory() {}
 
     @SuppressWarnings("unchecked")
-    public static <T extends BaseSecurityPolicy> T forPlan(Plan plan, PolicyManager<HttpPolicy> policyManager) {
+    public static <T extends BaseSecurityPolicy> T forPlan(Plan plan, PolicyManager policyManager) {
         final String security = plan.getSecurity();
 
         if (security == null) {

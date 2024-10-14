@@ -140,7 +140,7 @@ class PolicyFactoryManagerTest {
         return new PolicyManifestBuilder().setId(id).build();
     }
 
-    class MyDefaultPolicyFactory implements PolicyFactory<Policy> {
+    class MyDefaultPolicyFactory implements PolicyFactory {
 
         @Override
         public boolean accept(PolicyManifest policyManifest) {

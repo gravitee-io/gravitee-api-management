@@ -18,14 +18,12 @@ package io.gravitee.gateway.reactive.policy;
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
-import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PolicyManager<P extends BasePolicy> extends LifecycleComponent<PolicyManager> {
-    P create(final ExecutionPhase executionPhase, final PolicyMetadata policy);
+public interface PolicyManager extends LifecycleComponent<PolicyManager> {
+    <P extends BasePolicy> P create(final ExecutionPhase executionPhase, final PolicyMetadata policy);
 }

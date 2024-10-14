@@ -24,7 +24,7 @@ import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.impl.PolicyLoader;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
+import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -37,16 +37,16 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractHttpPolicyManager extends AbstractLifecycleComponent<PolicyManager> implements PolicyManager<HttpPolicy> {
+public abstract class AbstractPolicyManager extends AbstractLifecycleComponent<PolicyManager> implements PolicyManager {
 
     protected final Map<String, PolicyManifest> manifests;
-    protected final PolicyFactoryManager<HttpPolicyFactory> policyFactoryManager;
+    protected final PolicyFactoryManager policyFactoryManager;
     protected final PolicyConfigurationFactory policyConfigurationFactory;
     protected final PolicyLoader policyLoader;
 
-    protected AbstractHttpPolicyManager(
+    protected AbstractPolicyManager(
         DefaultClassLoader classLoader,
-        PolicyFactoryManager<HttpPolicyFactory> policyFactoryManager,
+        PolicyFactoryManager policyFactoryManager,
         PolicyConfigurationFactory policyConfigurationFactory,
         ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
         PolicyClassLoaderFactory policyClassLoaderFactory,
@@ -80,7 +80,7 @@ public abstract class AbstractHttpPolicyManager extends AbstractLifecycleCompone
     }
 
     @Override
-    public HttpPolicy create(final ExecutionPhase executionPhase, final PolicyMetadata policyMetadata) {
+    public <P extends BasePolicy> P create(final ExecutionPhase executionPhase, final PolicyMetadata policyMetadata) {
         PolicyManifest manifest = manifests.get(policyMetadata.getName());
         if (manifest != null) {
             PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(
