@@ -71,22 +71,12 @@
         <!-- Vert.x -->
         <dependency>
             <groupId>io.vertx</groupId>
-            <artifactId>vertx-core</artifactId>
+            <artifactId>vertx-web-client</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-consul-client</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>io.vertx</groupId>
-                    <artifactId>vertx-web</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.vertx</groupId>
-                    <artifactId>vertx-core</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>

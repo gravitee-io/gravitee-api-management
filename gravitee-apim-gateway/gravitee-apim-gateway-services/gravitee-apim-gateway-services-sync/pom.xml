@@ -105,6 +105,14 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Provided by the gravitee-node-license lib -->
+        <!-- FIXME: should we explicitly declare it in gateway container ? -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>io.gravitee.kubernetes</groupId>
             <artifactId>gravitee-kubernetes-client</artifactId>
