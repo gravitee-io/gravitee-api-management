@@ -704,6 +704,7 @@ workflows:
             - Create release note pull request
             - Release Helm Chart
             - Build and push RPM packages for APIM 4.2.0 - Dry Run
+            - Build and push docker images for APIM 4.2.0 - Dry Run
 orbs:
   keeper: gravitee-io/keeper@0.6.3
   slack: circleci/slack@4.12.5
