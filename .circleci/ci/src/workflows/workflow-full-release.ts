@@ -175,6 +175,7 @@ export class FullReleaseWorkflow {
           'Nexus staging',
           'Release Helm Chart',
           `Build and push RPM packages for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+          `Build and push docker images for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
         ],
       }),
     ]);
