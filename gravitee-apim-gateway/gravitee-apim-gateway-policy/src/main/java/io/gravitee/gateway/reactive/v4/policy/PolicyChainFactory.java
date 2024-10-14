@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.reactive.v4.policy;
 
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyChain;
@@ -26,22 +26,16 @@ import io.gravitee.gateway.reactive.policy.PolicyChain;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PolicyChainFactory<P extends PolicyChain<?>> {
+public interface PolicyChainFactory<P extends PolicyChain<?>, F extends AbstractFlow> {
     /**
      * Creates a policy chain from the provided flow, for the given execution phase.
-     * The policies composing the policy chain, depends on the specified execution phase:
-     * <ul>
-     *     <li>{@link ExecutionPhase#REQUEST}: {@link Flow#getRequest()}</li>
-     *     <li>{@link ExecutionPhase#MESSAGE_REQUEST}: {@link Flow#getPublish()}</li>
-     *     <li>{@link ExecutionPhase#RESPONSE}: {@link Flow#getResponse()} </li>
-     *     <li>{@link ExecutionPhase#MESSAGE_RESPONSE}: {@link Flow#getSubscribe()}</li>
-     * </ul>
+     * The policies composing the policy chain, depends on the specified execution phase.
      *
      * @param flowChainId the flow chain id in which one the policy chain will be executed
      * @param flow the flow where to extract the policies to create the policy chain.
-     * @param phase the execution phase used to select the pre- or post-steps.
+     * @param phase the execution phase used to select the relevant steps list in the flow.
      *
-     * @return the created {@link HttpPolicyChain}.
+     * @return the created {@link PolicyChain}.
      */
-    P create(String flowChainId, Flow flow, ExecutionPhase phase);
+    P create(String flowChainId, F flow, ExecutionPhase phase);
 }
