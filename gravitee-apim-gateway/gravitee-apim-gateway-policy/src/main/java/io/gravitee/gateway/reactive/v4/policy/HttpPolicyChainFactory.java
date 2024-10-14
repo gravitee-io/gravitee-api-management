@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpPolicyChainFactory implements PolicyChainFactory<HttpPolicyChain> {
+public class HttpPolicyChainFactory implements PolicyChainFactory<HttpPolicyChain, Flow> {
 
     public static final long CACHE_MAX_SIZE = 15;
     public static final long CACHE_TIME_TO_IDLE_IN_MS = 3_600_000;
@@ -75,6 +75,22 @@ public class HttpPolicyChainFactory implements PolicyChainFactory<HttpPolicyChai
         }
     }
 
+    /**
+     * Creates a policy chain from the provided flow, for the given execution phase.
+     * The policies composing the policy chain, depends on the specified execution phase:
+     * <ul>
+     *     <li>{@link ExecutionPhase#REQUEST}: {@link Flow#getRequest()}</li>
+     *     <li>{@link ExecutionPhase#MESSAGE_REQUEST}: {@link Flow#getPublish()}</li>
+     *     <li>{@link ExecutionPhase#RESPONSE}: {@link Flow#getResponse()} </li>
+     *     <li>{@link ExecutionPhase#MESSAGE_RESPONSE}: {@link Flow#getSubscribe()}</li>
+     * </ul>
+     *
+     * @param flowChainId the flow chain id in which one the policy chain will be executed
+     * @param flow the flow where to extract the policies to create the policy chain.
+     * @param phase the execution phase used to select the relevant steps list in the flow.
+     *
+     * @return the created {@link HttpPolicyChain}.
+     */
     @Override
     public HttpPolicyChain create(final String flowChainId, Flow flow, ExecutionPhase phase) {
         final String key = getFlowKey(flow, phase);

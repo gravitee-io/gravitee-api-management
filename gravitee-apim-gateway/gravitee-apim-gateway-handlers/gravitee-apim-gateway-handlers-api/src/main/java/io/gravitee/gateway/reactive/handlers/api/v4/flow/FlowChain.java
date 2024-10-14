@@ -52,19 +52,19 @@ public class FlowChain implements Hookable<ChainHook> {
     private final String id;
     private final FlowResolver flowResolver;
     private final String resolvedFlowAttribute;
-    private final PolicyChainFactory<HttpPolicyChain> policyChainFactory;
+    private final PolicyChainFactory<HttpPolicyChain, Flow> policyChainFactory;
     private final boolean validateFlowMatching;
     private final boolean interruptIfNoMatch;
     private List<ChainHook> hooks;
 
-    public FlowChain(final String id, final FlowResolver flowResolver, final PolicyChainFactory<HttpPolicyChain> policyChainFactory) {
+    public FlowChain(final String id, final FlowResolver flowResolver, final PolicyChainFactory<HttpPolicyChain, Flow> policyChainFactory) {
         this(id, flowResolver, policyChainFactory, false, false);
     }
 
     public FlowChain(
         final String id,
         final FlowResolver flowResolver,
-        final PolicyChainFactory<HttpPolicyChain> policyChainFactory,
+        final PolicyChainFactory<HttpPolicyChain, Flow> policyChainFactory,
         final boolean validateFlowMatching,
         final boolean interruptIfNoMatch
     ) {
