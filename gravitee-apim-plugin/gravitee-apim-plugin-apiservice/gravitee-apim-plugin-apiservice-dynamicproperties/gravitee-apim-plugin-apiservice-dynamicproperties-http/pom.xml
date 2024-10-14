@@ -30,10 +30,6 @@
     <artifactId>gravitee-apim-plugin-apiservice-dynamicproperties-http</artifactId>
     <name>Gravitee.io APIM - Plugin - Dynamic Properties - Api Service Dynamic Properties Http</name>
     <description>Api Service dedicated to manage dynamic properties for apis</description>
-    <properties>
-        <jolt-core.version>0.1.8</jolt-core.version>
-        <json-utils.version>0.1.8</json-utils.version>
-    </properties>
 
     <dependencies>
         <!-- Gravitee dependencies -->
@@ -57,12 +53,10 @@
         <dependency>
             <groupId>com.bazaarvoice.jolt</groupId>
             <artifactId>jolt-core</artifactId>
-            <version>${jolt-core.version}</version>
         </dependency>
         <dependency>
             <groupId>com.bazaarvoice.jolt</groupId>
             <artifactId>json-utils</artifactId>
-            <version>${json-utils.version}</version>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>

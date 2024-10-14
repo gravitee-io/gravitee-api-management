@@ -117,6 +117,7 @@
         <awaitility.version>4.2.2</awaitility.version>
         <jmh.version>1.37</jmh.version>
         <jcstress.version>0.15</jcstress.version>
+        <jolt.version>0.1.8</jolt.version>
         <jsonassert.version>1.5.3</jsonassert.version>
         <json-unit.version>3.3.0</json-unit.version>
         <json-patch.version>1.13</json-patch.version>
