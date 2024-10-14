@@ -18,26 +18,24 @@ package io.gravitee.gateway.reactive.policy;
 import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
-import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.policy.api.PolicyConfiguration;
 
 /**
- * A factory to create an instance of {@link Policy} with its {@link PolicyConfiguration}.
+ * A factory to create an instance of {@link BasePolicy} with its {@link PolicyConfiguration}.
  * This factory is called during request processing while creating the {@link io.gravitee.policy.api.PolicyChain}
  *
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PolicyFactory<P extends BasePolicy> {
+public interface PolicyFactory {
     /**
      * Verify if a policy can be built by the current implementation of PolicyFactory
      * @return true if the factory can build a policy depending on its manifest
      */
     boolean accept(PolicyManifest policyManifest);
 
-    P create(
+    <P extends BasePolicy> P create(
         final ExecutionPhase phase,
         final PolicyManifest policyManifest,
         final PolicyConfiguration policyConfiguration,

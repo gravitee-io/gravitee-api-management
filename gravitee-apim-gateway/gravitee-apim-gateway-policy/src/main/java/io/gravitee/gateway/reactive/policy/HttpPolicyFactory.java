@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentMap;
  * @author Guillaume Lamirand (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpPolicyFactory implements PolicyFactory<HttpPolicy> {
+public class HttpPolicyFactory implements PolicyFactory {
 
     private final ConcurrentMap<String, HttpPolicy> policies = new ConcurrentHashMap<>();
     private final PolicyPluginFactory policyPluginFactory;

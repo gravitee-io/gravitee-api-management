@@ -39,7 +39,7 @@ public class SecurityPolicyFactory {
     public static <T extends BaseSecurityPolicy> T forPlan(
         final String apiId,
         final Plan plan,
-        final PolicyManager<HttpPolicy> policyManager,
+        final PolicyManager policyManager,
         final ExecutionPhase executionPhase
     ) {
         if (plan.useStandardMode()) {

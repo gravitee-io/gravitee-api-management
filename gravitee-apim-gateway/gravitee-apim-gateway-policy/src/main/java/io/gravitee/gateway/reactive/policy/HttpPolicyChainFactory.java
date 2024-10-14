@@ -53,10 +53,10 @@ public class HttpPolicyChainFactory implements PolicyChainFactory<HttpPolicyChai
     public static final long CACHE_TIME_TO_IDLE_MS = 3_600_000;
     private static final String ID_SEPARATOR = "-";
     protected final List<HttpHook> policyHooks = new ArrayList<>();
-    private final PolicyManager<HttpPolicy> policyManager;
+    private final PolicyManager policyManager;
     private final Cache<String, HttpPolicyChain> policyChains;
 
-    public HttpPolicyChainFactory(final String id, final PolicyManager<HttpPolicy> policyManager, final Configuration configuration) {
+    public HttpPolicyChainFactory(final String id, final PolicyManager policyManager, final Configuration configuration) {
         this.policyManager = policyManager;
 
         final CacheConfiguration cacheConfiguration = CacheConfiguration
@@ -94,7 +94,7 @@ public class HttpPolicyChainFactory implements PolicyChainFactory<HttpPolicyChai
                 .stream()
                 .filter(Step::isEnabled)
                 .map(this::buildPolicyMetadata)
-                .map(policyMetadata -> policyManager.create(phase, policyMetadata))
+                .map(policyMetadata -> (HttpPolicy) policyManager.create(phase, policyMetadata))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
