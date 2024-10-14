@@ -45,31 +45,6 @@
         <module>gravitee-apim-rest-api-services-subscription-pre-expiration-notif</module>
     </modules>
 
-    <properties>
-        <jolt.version>0.1.8</jolt.version>
-    </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.bazaarvoice.jolt</groupId>
-                <artifactId>jolt-core</artifactId>
-                <version>${jolt.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.bazaarvoice.jolt</groupId>
-                <artifactId>json-utils</artifactId>
-                <version>${jolt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.core</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <dependency>
             <groupId>io.gravitee.apim.rest.api</groupId>

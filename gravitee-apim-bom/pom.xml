@@ -232,6 +232,24 @@
             </dependency>
 
             <dependency>
+                <groupId>com.bazaarvoice.jolt</groupId>
+                <artifactId>jolt-core</artifactId>
+                <version>${jolt.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.bazaarvoice.jolt</groupId>
+                <artifactId>json-utils</artifactId>
+                <version>${jolt.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.core</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
                 <groupId>com.github.dozermapper</groupId>
                 <artifactId>dozer-core</artifactId>
                 <version>${dozer.version}</version>
