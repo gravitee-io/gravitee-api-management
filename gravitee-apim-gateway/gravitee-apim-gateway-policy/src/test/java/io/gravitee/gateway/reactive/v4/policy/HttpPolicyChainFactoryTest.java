@@ -214,24 +214,6 @@ class HttpPolicyChainFactoryTest {
     }
 
     @Test
-    public void shouldCreatePolicyChainForMessageRequestPhase() {
-        final Policy policy = mock(Policy.class);
-        final Flow flow = mock(Flow.class);
-        final Step step1 = mock(Step.class);
-
-        when(step1.isEnabled()).thenReturn(true);
-        when(flow.getResponse()).thenReturn(List.of(step1));
-
-        when(policyManager.create(eq(ExecutionPhase.RESPONSE), any(PolicyMetadata.class))).thenReturn(policy);
-
-        final HttpPolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.RESPONSE);
-        assertNotNull(policyChain);
-
-        verify(policyManager, times(1)).create(eq(ExecutionPhase.RESPONSE), any(PolicyMetadata.class));
-        verifyNoMoreInteractions(policyManager);
-    }
-
-    @Test
     public void shouldFilterNullPoliciesReturnedByPolicyManager() {
         final Policy policy = mock(Policy.class);
         final Flow flow = mock(Flow.class);
