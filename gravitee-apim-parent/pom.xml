@@ -179,7 +179,6 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>${maven-assembly-plugin.version}</version>
                     <inherited>true</inherited>
                     <executions>
                         <execution>
