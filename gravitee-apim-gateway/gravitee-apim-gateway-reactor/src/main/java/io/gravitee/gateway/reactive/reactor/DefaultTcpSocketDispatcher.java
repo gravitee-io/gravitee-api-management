@@ -26,6 +26,7 @@ import io.gravitee.gateway.reactive.reactor.handler.TcpAcceptorResolver;
 import io.gravitee.gateway.reactive.tcp.VertxTcpRequest;
 import io.gravitee.gateway.reactive.tcp.VertxTcpResponse;
 import io.gravitee.gateway.reactor.handler.TcpAcceptor;
+import io.reactiverse.contextual.logging.ContextualData;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.rxjava3.core.net.NetSocket;
 import lombok.RequiredArgsConstructor;
@@ -55,6 +56,9 @@ public class DefaultTcpSocketDispatcher implements TcpSocketDispatcher {
             }
 
             if (acceptor.reactor() instanceof ApiReactor<?> tcpReactor) {
+                ContextualData.put("envId", tcpReactor.api().getEnvironmentId());
+                ContextualData.put("orgId", tcpReactor.api().getOrganizationId());
+
                 // pause the socket as soon as possible
                 proxySocket.pause();
 

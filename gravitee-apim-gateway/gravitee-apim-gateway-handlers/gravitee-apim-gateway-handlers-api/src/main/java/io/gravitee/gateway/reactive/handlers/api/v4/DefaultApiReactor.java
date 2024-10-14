@@ -219,6 +219,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
         prepareContextAttributes(ctx);
         prepareMetrics(ctx);
 
+        log.info("Contextual logging should appear ... contextualized");
+
         return handleRequest(ctx);
     }
 
