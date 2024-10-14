@@ -72,7 +72,7 @@ services:
       - storage
 
   redis_rate_limit:
-    image: redis:6.2.14
+    image: redis:6.2.16
     command: ["redis-server", "--appendonly", "yes"]
     container_name: gio_redis_ratelimit
     restart: always
