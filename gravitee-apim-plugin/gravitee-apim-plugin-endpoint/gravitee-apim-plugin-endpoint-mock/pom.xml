@@ -31,18 +31,6 @@
     <name>Gravitee.io APIM - Plugin - Endpoint mock</name>
     <description>Use a Mock backend to emulate the behaviour of a typical HTTP server and test processes</description>
 
-    <dependencyManagement>
-        <dependencies>
-            <!-- Import bom to properly inherit all dependencies -->
-            <dependency>
-                <groupId>io.gravitee.apim</groupId>
-                <artifactId>gravitee-apim-bom</artifactId>
-                <version>${project.version}</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <dependencies>
         <!-- Gravitee dependencies -->

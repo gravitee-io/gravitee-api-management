@@ -31,19 +31,6 @@
     <name>Gravitee.io APIM - Plugin - Entrypoint HTTP Proxy</name>
     <description>Web APIs can be accessed using the HTTP protocol. Defines endpoints, valid request and response formats.</description>
 
-    <dependencyManagement>
-        <dependencies>
-            <!-- Import bom to properly inherit all dependencies -->
-            <dependency>
-                <groupId>io.gravitee.apim</groupId>
-                <artifactId>gravitee-apim-bom</artifactId>
-                <version>${project.version}</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <!-- Gravitee dependencies -->
         <dependency>
