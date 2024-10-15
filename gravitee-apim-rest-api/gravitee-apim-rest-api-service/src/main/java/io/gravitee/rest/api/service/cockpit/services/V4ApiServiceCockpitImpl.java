@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.NewApi;
+import io.gravitee.apim.core.api.model.NewV4Api;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -109,7 +109,7 @@ public class V4ApiServiceCockpitImpl implements V4ApiServiceCockpit {
 
     private Api deserializeApi(JsonNode node, String environmentId) throws JsonProcessingException {
         final String newApiEntityNode = mapper.writeValueAsString(node.at(NEW_API_ENTITY_NODE));
-        var newApi = graviteeMapper.readValue(newApiEntityNode, NewApi.class);
+        var newApi = graviteeMapper.readValue(newApiEntityNode, NewV4Api.class);
         return ApiModelFactory.fromNewApi(newApi, environmentId);
     }
 
