@@ -31,19 +31,6 @@
     <name>Gravitee.io APIM - Plugin - Endpoint HTTP proxy</name>
     <description>Endpoint that allows exposing HTTP SyncApi.</description>
 
-    <dependencyManagement>
-        <dependencies>
-            <!-- Import bom to properly inherit all dependencies -->
-            <dependency>
-                <groupId>io.gravitee.apim</groupId>
-                <artifactId>gravitee-apim-bom</artifactId>
-                <version>${project.version}</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <!-- Gravitee dependencies -->
         <dependency>

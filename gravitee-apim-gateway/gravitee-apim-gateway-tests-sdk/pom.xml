@@ -33,19 +33,6 @@
         <reactiverse-junit5-rx-java2-web-client.version>0.3.0</reactiverse-junit5-rx-java2-web-client.version>
     </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <!-- Import bom to properly inherit all dependencies -->
-            <dependency>
-                <groupId>io.gravitee.apim</groupId>
-                <artifactId>gravitee-apim-bom</artifactId>
-                <version>${project.version}</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <!-- Gravitee.io -->
         <dependency>
