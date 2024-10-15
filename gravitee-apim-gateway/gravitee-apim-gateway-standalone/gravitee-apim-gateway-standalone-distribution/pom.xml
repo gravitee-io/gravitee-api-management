@@ -127,6 +127,13 @@
             </exclusions>
         </dependency>
 
+        <!-- Mapstruct -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- logback -->
         <dependency>
             <groupId>org.slf4j</groupId>
