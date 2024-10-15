@@ -15,8 +15,6 @@
  */
 package io.gravitee.apim.core.api.model;
 
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
@@ -24,33 +22,21 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.Listener;
 import java.util.List;
-import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Setter(lombok.AccessLevel.NONE)
-public class NewApi {
-
-    private String name;
-
-    private String apiVersion;
-
-    @Builder.Default
-    private DefinitionVersion definitionVersion = DefinitionVersion.V4;
-
-    private ApiType type;
-
-    private String description;
-
-    @Builder.Default
-    private Set<String> tags = Set.of();
+public class NewHttpApi extends AbstractNewApi {
 
     private List<Listener> listeners;
 
@@ -63,28 +49,10 @@ public class NewApi {
     @Builder.Default
     private List<Flow> flows = List.of();
 
-    @Builder.Default
-    private Set<String> groups = Set.of();
-
     private Failover failover;
 
     /**
-     * @return An instance of {@link Api.ApiBuilder} based on the current state of this NewApi.
-     */
-    public Api.ApiBuilder toApiBuilder() {
-        // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to allow MapStruct in core.
-        return Api
-            .builder()
-            .name(name)
-            .version(apiVersion)
-            .type(type)
-            .definitionVersion(definitionVersion)
-            .description(description)
-            .groups(groups);
-    }
-
-    /**
-     * @return An instance of {@link io.gravitee.definition.model.v4.Api.ApiBuilder} based on the current state of this NewApi.
+     * @return An instance of {@link io.gravitee.definition.model.v4.Api.ApiBuilder} based on the current state of this NewV4Api.
      */
     public io.gravitee.definition.model.v4.Api.ApiBuilder<?, ?> toApiDefinitionBuilder() {
         // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to allow MapStruct in core.

@@ -21,7 +21,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
-import io.gravitee.apim.core.api.model.NewApi;
+import io.gravitee.apim.core.api.model.NewHttpApi;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
@@ -43,7 +43,7 @@ public class CreateV4ApiUseCase {
         this.createApiDomainService = createApiDomainService;
     }
 
-    public record Input(NewApi newApi, AuditInfo auditInfo) {}
+    public record Input(NewHttpApi newHttpApi, AuditInfo auditInfo) {}
 
     public record Output(ApiWithFlows api) {}
 
@@ -57,7 +57,7 @@ public class CreateV4ApiUseCase {
         );
 
         var created = createApiDomainService.create(
-            ApiModelFactory.fromNewApi(input.newApi, auditInfo.environmentId()),
+            ApiModelFactory.fromNewHttpApi(input.newHttpApi, auditInfo.environmentId()),
             primaryOwner,
             auditInfo,
             api ->

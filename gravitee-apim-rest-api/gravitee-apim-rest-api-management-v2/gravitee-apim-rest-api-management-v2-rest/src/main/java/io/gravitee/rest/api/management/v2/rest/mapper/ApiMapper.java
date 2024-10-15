@@ -17,7 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import static java.util.stream.Collectors.toMap;
 
-import io.gravitee.apim.core.api.model.NewApi;
+import io.gravitee.apim.core.api.model.NewHttpApi;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -188,7 +188,7 @@ public interface ApiMapper {
     ApiExport toApiExport(ApiV4 api);
 
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
-    NewApi map(CreateApiV4 api);
+    NewHttpApi map(CreateApiV4 api);
 
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
     @Mapping(target = "plans", qualifiedByName = "mapPlanCRD")
