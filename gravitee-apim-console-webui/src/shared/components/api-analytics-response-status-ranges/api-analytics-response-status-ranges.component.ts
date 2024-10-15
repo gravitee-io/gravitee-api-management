@@ -17,8 +17,8 @@ import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { MatCard } from '@angular/material/card';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 
-import { GioChartPieModule } from '../../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
-import { GioChartPieInput } from '../../../../../../shared/components/gio-chart-pie/gio-chart-pie.component';
+import { GioChartPieModule } from '../gio-chart-pie/gio-chart-pie.module';
+import { GioChartPieInput } from '../gio-chart-pie/gio-chart-pie.component';
 
 export type ApiAnalyticsResponseStatusRanges = {
   isLoading: boolean;
@@ -44,8 +44,8 @@ export class ApiAnalyticsResponseStatusRangesComponent implements OnChanges {
   input: GioChartPieInput[];
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.responseStatusRanges && !this.responseStatusRanges.isLoading) {
-      this.input = this.responseStatusRanges.data.map((data) => ({
+    if (changes.responseStatusRanges && !this.responseStatusRanges?.isLoading) {
+      this.input = this.responseStatusRanges?.data.map((data) => ({
         label: getLabel(data.label),
         value: data.value,
         color: getColor(data.label),

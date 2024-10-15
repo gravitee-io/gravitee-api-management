@@ -36,7 +36,7 @@ import { ApiAnalyticsFiltersBarComponent } from '../components/api-analytics-fil
 import {
   ApiAnalyticsResponseStatusRanges,
   ApiAnalyticsResponseStatusRangesComponent,
-} from '../components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component';
+} from '../../../../../shared/components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component';
 import { AnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
 
 type ApiAnalyticsVM = {

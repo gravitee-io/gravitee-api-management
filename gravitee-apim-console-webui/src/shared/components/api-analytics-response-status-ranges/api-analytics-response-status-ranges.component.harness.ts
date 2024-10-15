@@ -16,7 +16,7 @@
 
 import { BaseHarnessFilters, ComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
 
-import { GioChartPieHarness } from '../../../../../../shared/components/gio-chart-pie/gio-chart-pie.harness';
+import { GioChartPieHarness } from '../gio-chart-pie/gio-chart-pie.harness';
 
 export type ApiAnalyticsResponseStatusRangesHarnessFilters = BaseHarnessFilters & {
   title?: string | RegExp;

@@ -19,7 +19,7 @@
   <div class="home-overview__time-selector">
     <gio-quick-time-range [formControl]="timeRangeControl" (onRefreshClicked)="fetchAnalyticsRequest()"></gio-quick-time-range>
   </div>
-  <div class="home-overview__row">
+  <div class="home-overview__row-cards">
     <mat-card class="home-overview__card flex">
       <mat-card-content>
         <div class="mat-body-1">Summary</div>
@@ -35,32 +35,35 @@
         </div>
       </mat-card-content>
     </mat-card>
-
     <mat-card class="home-overview__card">
       <mat-card-content>
         <div class="mat-body-1">API Lifecycle State</div>
         <ng-container *ngIf="apiLifecycleState; else loader">
-          <gio-api-lifecycle-state [data]="apiLifecycleState"></gio-api-lifecycle-state> </ng-container
-      ></mat-card-content>
+          <gio-api-lifecycle-state [data]="apiLifecycleState"></gio-api-lifecycle-state>
+        </ng-container>
+      </mat-card-content>
     </mat-card>
-
     <mat-card class="home-overview__card">
       <mat-card-content>
         <div class="mat-body-1">API State</div>
-        <ng-container *ngIf="apiState; else loader"> <gio-api-state [data]="apiState"></gio-api-state> </ng-container
-      ></mat-card-content>
+        <ng-container *ngIf="apiState; else loader">
+          <gio-api-state [data]="apiState"></gio-api-state>
+        </ng-container>
+      </mat-card-content>
     </mat-card>
   </div>
-  <div class="home-overview__row">
+
+  <h2 class="home-overview__row-title">V2 APIs</h2>
+  <div class="home-overview__row-cards">
     <mat-card class="home-overview__card">
       <mat-card-content>
         <div class="mat-body-1">API Response Status</div>
 
         <ng-container *ngIf="apiResponseStatus; else loader">
-          <gio-api-response-status [data]="apiResponseStatus"></gio-api-response-status> </ng-container
-      ></mat-card-content>
+          <gio-api-response-status [data]="apiResponseStatus"></gio-api-response-status>
+        </ng-container>
+      </mat-card-content>
     </mat-card>
-
     <mat-card class="home-overview__card">
       <mat-card-content>
         <div class="mat-body-1">
@@ -72,7 +75,6 @@
         <gio-top-apis-table [data]="topApis"></gio-top-apis-table>
       </ng-container>
     </mat-card>
-
     <mat-card class="home-overview__card flex">
       <mat-card-content>
         <ng-container *ngIf="requestStats; else loader">
@@ -80,6 +82,17 @@
         </ng-container>
       </mat-card-content>
     </mat-card>
+  </div>
+
+  <!--   V4 data overview row -->
+  <h2 class="home-overview__row-title">V4 APIs</h2>
+  <div class="home-overview__row-cards">
+    <api-analytics-response-status-ranges
+      title="API Response Status"
+      [responseStatusRanges]="v4ApiAnalyticsResponseStatusRanges"
+    ></api-analytics-response-status-ranges>
+
+    <app-top-apis-widget [data]="topApisV4"></app-top-apis-widget>
   </div>
 </div>
 <div class="home-api-events" *gioPermission="{ anyOf: ['environment-platform-r'] }">
@@ -89,6 +102,8 @@
   </ng-container>
 </div>
 
-<ng-template #loader
-  ><div class="loader"><gio-loader></gio-loader></div
-></ng-template>
+<ng-template #loader>
+  <div class="loader">
+    <gio-loader></gio-loader>
+  </div>
+</ng-template>

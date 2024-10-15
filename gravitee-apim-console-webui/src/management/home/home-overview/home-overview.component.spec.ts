@@ -59,6 +59,7 @@ describe('HomeOverviewComponent', () => {
       expectCountApiRequest();
       expectCountApplicationRequest();
       expectSearchApiEventsRequest();
+      expectConsoleSettingsGetRequest();
 
       const stats = await loader.getHarness(GioRequestStatsHarness);
       expect(await stats.getAverage()).toEqual('8.43 ms');
@@ -73,6 +74,7 @@ describe('HomeOverviewComponent', () => {
       expectCountApiRequest();
       expectCountApplicationRequest();
       expectSearchApiEventsRequest();
+      expectConsoleSettingsGetRequest();
 
       const timeRangeHarness = await loader.getHarness(GioQuickTimeRangeHarness);
       await timeRangeHarness.selectTimeRangeByText('last hour');
@@ -98,6 +100,7 @@ describe('HomeOverviewComponent', () => {
       expect(req.request.url).toContain('interval=120000');
 
       expectSearchApiEventsRequest();
+      expectConsoleSettingsGetRequest();
     });
   });
 
@@ -122,6 +125,7 @@ describe('HomeOverviewComponent', () => {
       expectTopApiRequest();
       expectCountApiRequest();
       expectCountApplicationRequest();
+      expectConsoleSettingsGetRequest();
 
       const stats = await loader.getHarness(GioRequestStatsHarness);
       expect(await stats.getAverage()).toEqual('8.43 ms');
@@ -223,5 +227,15 @@ describe('HomeOverviewComponent', () => {
       content: [],
     });
     return req;
+  }
+
+  // v4
+  function expectConsoleSettingsGetRequest() {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/analytics/response-status-ranges`;
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(url);
+    });
+    req.flush({ requests: {} });
+    expect(req.request.method).toEqual('GET');
   }
 });
