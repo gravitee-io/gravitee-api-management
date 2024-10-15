@@ -122,6 +122,7 @@
         <json-smart.version>2.5.1</json-smart.version>
         <json-unit.version>3.3.0</json-unit.version>
         <jsoup.version>1.17.2</jsoup.version>
+        <kafka.version>3.7.1</kafka.version>
         <lucene.version>9.11.1</lucene.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <mapstruct.version>1.6.0.Beta2</mapstruct.version>
