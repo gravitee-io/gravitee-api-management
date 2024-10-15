@@ -452,7 +452,7 @@ class CreateV4ApiUseCaseTest {
     @Test
     void should_save_all_flows() {
         // Given
-        var flows = List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build());
+        List<Flow> flows = List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build());
         var newApi = NewApiFixtures.aProxyApiV4().toBuilder().flows(flows).build();
 
         // When
