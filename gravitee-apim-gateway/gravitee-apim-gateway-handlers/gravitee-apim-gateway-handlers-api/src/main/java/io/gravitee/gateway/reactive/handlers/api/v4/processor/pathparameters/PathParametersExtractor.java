@@ -23,6 +23,7 @@ import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.handlers.api.processor.pathparameters.AbstractPathParametersExtractor;
 import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParameterHttpMethod;
 import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParameters;
+import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,6 +50,7 @@ public class PathParametersExtractor extends AbstractPathParametersExtractor<Api
         return plan.getFlows();
     }
 
+    @Nullable
     @Override
     protected List<Plan> getPlans(Api api) {
         return api.getPlans();

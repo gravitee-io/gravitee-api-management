@@ -34,14 +34,10 @@ public class ApiDeployer extends AbstractApiDeployer<Api> {
 
     @Override
     public void initialize(final Api api) {
-        io.gravitee.definition.model.v4.Api apiDefinition = api.getDefinition();
+        var apiDefinition = api.getDefinition();
 
         // Keep the plan filtering for io.gravitee.gateway.services.localregistry.LocalApiDefinitionRegistry
-        if (apiDefinition.getPlans() != null) {
-            apiDefinition.setPlans(filterPlans(apiDefinition.getPlans()));
-        } else {
-            apiDefinition.setPlans(List.of());
-        }
+        apiDefinition.setPlans(filterPlans(apiDefinition.getPlans()));
         if (apiDefinition.getProperties() != null) {
             decryptProperties(apiDefinition.getProperties());
         }
@@ -49,10 +45,15 @@ public class ApiDeployer extends AbstractApiDeployer<Api> {
 
     @Override
     public List<String> getPlans(final Api api) {
-        return api.getDefinition().getPlans().stream().map(Plan::getName).collect(Collectors.toList());
+        return api.getDefinition().getPlans() != null
+            ? api.getDefinition().getPlans().stream().map(Plan::getName).collect(Collectors.toList())
+            : List.of();
     }
 
     private List<Plan> filterPlans(final List<Plan> plans) {
+        if (plans == null) {
+            return List.of();
+        }
         return plans
             .stream()
             .filter(plan -> plan.getStatus() != null)
