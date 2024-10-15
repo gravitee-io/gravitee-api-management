@@ -22,9 +22,12 @@ import io.gravitee.gateway.reactive.handlers.api.v4.security.plan.SecurityPlanFa
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.reactivex.rxjava3.core.Flowable;
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  *
@@ -36,9 +39,7 @@ public class SecurityChain extends io.gravitee.gateway.reactive.handlers.api.sec
     public SecurityChain(@Nonnull final Api api, @Nonnull final PolicyManager policyManager, @Nonnull final ExecutionPhase executionPhase) {
         super(
             Flowable.fromIterable(
-                api
-                    .getPlans()
-                    .stream()
+                stream(api.getPlans())
                     .map(plan -> SecurityPlanFactory.forPlan(api.getId(), plan, policyManager, executionPhase))
                     .filter(Objects::nonNull)
                     .sorted(Comparator.comparingInt(SecurityPlan::order))
@@ -46,5 +47,10 @@ public class SecurityChain extends io.gravitee.gateway.reactive.handlers.api.sec
             ),
             executionPhase
         );
+    }
+
+    @Nonnull
+    private static <T> Stream<T> stream(@Nullable Collection<T> collection) {
+        return collection != null ? collection.stream() : Stream.empty();
     }
 }

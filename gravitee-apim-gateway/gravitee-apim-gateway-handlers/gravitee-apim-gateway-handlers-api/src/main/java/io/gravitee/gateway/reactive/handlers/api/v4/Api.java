@@ -70,12 +70,16 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
 
     @Override
     public Set<String> getSubscribablePlans() {
-        return definition.getPlans().stream().filter(plan -> plan.isSubscribable()).map(Plan::getId).collect(Collectors.toSet());
+        return definition.getPlans() != null
+            ? definition.getPlans().stream().filter(Plan::isSubscribable).map(Plan::getId).collect(Collectors.toSet())
+            : Set.of();
     }
 
     @Override
     public Set<String> getApiKeyPlans() {
-        return definition.getPlans().stream().filter(plan -> plan.isApiKey()).map(Plan::getId).collect(Collectors.toSet());
+        return definition.getPlans() != null
+            ? definition.getPlans().stream().filter(Plan::isApiKey).map(Plan::getId).collect(Collectors.toSet())
+            : Set.of();
     }
 
     @Override

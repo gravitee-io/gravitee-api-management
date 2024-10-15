@@ -35,6 +35,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -86,6 +87,7 @@ public class Api extends AbstractApi {
         return plans.get(plan);
     }
 
+    @Nullable
     public List<Plan> getPlans() {
         if (plans != null) {
             return new ArrayList<>(this.plans.values());
