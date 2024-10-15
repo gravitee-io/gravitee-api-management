@@ -252,6 +252,22 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- Kafka -->
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-metadata</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-server-common</artifactId>
+        </dependency>
+
         <!-- Mapstruct -->
         <dependency>
             <groupId>org.mapstruct</groupId>
