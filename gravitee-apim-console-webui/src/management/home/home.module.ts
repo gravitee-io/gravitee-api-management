@@ -44,6 +44,8 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
 import { TasksComponent } from '../../user/tasks/tasks.component';
 import { MessagesComponent } from '../messages/messages.component';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
+import { ApiAnalyticsResponseStatusRangesComponent } from '../../shared/components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component';
+import { TopApisWidgetComponent } from '../../shared/components/top-apis-widget/top-apis-widget.component';
 
 const homeRoutes: Route[] = [
   {
@@ -106,6 +108,8 @@ const homeRoutes: Route[] = [
     GioApiLifecycleStateModule,
     GioApiEventsTableModule,
     GioPermissionModule,
+    ApiAnalyticsResponseStatusRangesComponent,
+    TopApisWidgetComponent,
   ],
   declarations: [HomeLayoutComponent, HomeOverviewComponent, HomeApiHealthCheckComponent],
 })

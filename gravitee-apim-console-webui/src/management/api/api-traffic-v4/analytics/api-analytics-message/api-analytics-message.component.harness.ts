@@ -18,7 +18,7 @@ import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { ApiAnalyticsRequestStatsHarness } from '../components/api-analytics-requests-stats/api-analytics-request-stats.component.harness';
 import { ApiAnalyticsFiltersBarHarness } from '../components/api-analytics-filters-bar/api-analytics-filters-bar.component.harness';
-import { ApiAnalyticsResponseStatusRangesHarness } from '../components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component.harness';
+import { ApiAnalyticsResponseStatusRangesHarness } from '../../../../../shared/components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component.harness';
 
 export class ApiAnalyticsMessageHarness extends ComponentHarness {
   static hostSelector = 'api-analytics-message';

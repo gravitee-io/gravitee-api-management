@@ -17,6 +17,7 @@ import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { forkJoin, Subject } from 'rxjs';
 import { UntypedFormControl, Validators } from '@angular/forms';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
+import { toNumber } from 'lodash';
 
 import { AnalyticsService } from '../../../services-ngx/analytics.service';
 import { GioQuickTimeRangeComponent, TimeRangeParams } from '../components/gio-quick-time-range/gio-quick-time-range.component';
@@ -25,6 +26,9 @@ import { RequestStats } from '../components/gio-request-stats/gio-request-stats.
 import { ApiResponseStatusData } from '../components/gio-api-response-status/gio-api-response-status.component';
 import { ApiStateData } from '../components/gio-api-state/gio-api-state.component';
 import { ApiLifecycleStateData } from '../components/gio-api-lifecycle-state/gio-api-lifecycle-state.component';
+import { ApiAnalyticsResponseStatusRanges } from '../../../shared/components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component';
+import { TopApisV4 } from '../../../shared/components/top-apis-widget/top-apis-widget.component';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'home-overview',
@@ -38,12 +42,15 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   constructor(
     private readonly statsService: AnalyticsService,
-    private changeDetectorRef: ChangeDetectorRef,
+    private readonly changeDetectorRef: ChangeDetectorRef,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   topApis?: TopApisData;
+  topApisV4: TopApisV4[];
   requestStats?: RequestStats;
   apiResponseStatus?: ApiResponseStatusData;
+  v4ApiAnalyticsResponseStatusRanges: ApiAnalyticsResponseStatusRanges;
   apiState?: ApiStateData;
   apiLifecycleState?: ApiLifecycleStateData;
   apiNb?: number;
@@ -136,6 +143,26 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
       )
       .subscribe(() => this.changeDetectorRef.markForCheck());
 
+    // V4 API response status
+    this.fetchAnalyticsRequest$
+      .pipe(
+        tap(() => (this.v4ApiAnalyticsResponseStatusRanges = undefined)),
+        switchMap((val) => this.statsService.getV4ApiResponseStatus(val.from, val.to)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe({
+        next: (data) => {
+          this.v4ApiAnalyticsResponseStatusRanges = {
+            isLoading: false,
+            data: Object.entries(data.ranges ?? {}).map(([label, value]) => ({ label, value: toNumber(value) })),
+          };
+          this.changeDetectorRef.markForCheck();
+        },
+        error: () => {
+          this.snackBarService.error('Can not get V4 Api Analytics Response Status');
+        },
+      });
+
     // Top APIs
     this.fetchAnalyticsRequest$
       .pipe(
@@ -145,6 +172,23 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.changeDetectorRef.markForCheck());
+
+    // Top APIs V4
+    this.fetchAnalyticsRequest$
+      .pipe(
+        tap(() => (this.topApisV4 = undefined)),
+        switchMap((val) => this.statsService.getV4TopApis(val.from, val.to)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe({
+        next: (data) => {
+          this.topApisV4 = data;
+          this.changeDetectorRef.markForCheck();
+        },
+        error: () => {
+          this.snackBarService.error('Can not get V4 Top APIs');
+        },
+      });
 
     // Request Stats
     this.fetchAnalyticsRequest$
