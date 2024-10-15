@@ -15,12 +15,17 @@
  */
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { isNil } from 'lodash';
 
 import { Constants } from '../entities/Constants';
 import { AnalyticsRequestParam } from '../entities/analytics/analyticsRequestParam';
-import { AnalyticsCountResponse, AnalyticsGroupByResponse, AnalyticsStatsResponse } from '../entities/analytics/analyticsResponse';
+import {
+  AnalyticsCountResponse,
+  AnalyticsGroupByResponse,
+  AnalyticsStatsResponse,
+  ResponseStatusRanges,
+} from '../entities/analytics/analyticsResponse';
 
 @Injectable({
   providedIn: 'root',
@@ -58,5 +63,21 @@ export class AnalyticsService {
       `&from=${params.from}` +
       `&to=${params.to}`;
     return this.http.get<AnalyticsCountResponse>(url);
+  }
+
+  getV4ApiResponseStatus(from: number, to: number): Observable<ResponseStatusRanges> {
+    // const url = `${this.constants.env.v2BaseURL}/analytics/response-status-ranges?from=${from}&to=${to}`;
+    // return this.http.get<ResponseStatusRanges>(url);
+
+    // toDo: change to use backend when ready
+    return of({
+      ranges: {
+        '100.0-200.0': 20,
+        '200.0-300.0': 75,
+        '300.0-400.0': 10,
+        '400.0-500.0': to,
+        '500.0-600.0': from,
+      },
+    });
   }
 }

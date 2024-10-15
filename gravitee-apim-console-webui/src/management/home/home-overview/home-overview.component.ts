@@ -17,6 +17,7 @@ import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { forkJoin, Subject } from 'rxjs';
 import { UntypedFormControl, Validators } from '@angular/forms';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
+import { toNumber } from 'lodash';
 
 import { AnalyticsService } from '../../../services-ngx/analytics.service';
 import { GioQuickTimeRangeComponent, TimeRangeParams } from '../components/gio-quick-time-range/gio-quick-time-range.component';
@@ -25,6 +26,7 @@ import { RequestStats } from '../components/gio-request-stats/gio-request-stats.
 import { ApiResponseStatusData } from '../components/gio-api-response-status/gio-api-response-status.component';
 import { ApiStateData } from '../components/gio-api-state/gio-api-state.component';
 import { ApiLifecycleStateData } from '../components/gio-api-lifecycle-state/gio-api-lifecycle-state.component';
+import { ApiAnalyticsResponseStatusRanges } from '../../../shared/components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component';
 
 @Component({
   selector: 'home-overview',
@@ -44,6 +46,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
   topApis?: TopApisData;
   requestStats?: RequestStats;
   apiResponseStatus?: ApiResponseStatusData;
+  v4ApiAnalyticsResponseStatusRanges: ApiAnalyticsResponseStatusRanges;
   apiState?: ApiStateData;
   apiLifecycleState?: ApiLifecycleStateData;
   apiNb?: number;
@@ -132,6 +135,21 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
           }),
         ),
         tap((data) => (this.apiResponseStatus = data)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => this.changeDetectorRef.markForCheck());
+
+    // V4 API response status
+    this.fetchAnalyticsRequest$
+      .pipe(
+        tap(() => (this.v4ApiAnalyticsResponseStatusRanges = undefined)),
+        switchMap((val) => this.statsService.getV4ApiResponseStatus(val.from, val.to)),
+        tap((data) => {
+          this.v4ApiAnalyticsResponseStatusRanges = {
+            isLoading: false,
+            data: Object.entries(data.ranges ?? {}).map(([label, value]) => ({ label, value: toNumber(value) })),
+          };
+        }),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.changeDetectorRef.markForCheck());
