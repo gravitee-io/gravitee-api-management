@@ -36,7 +36,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
 
@@ -57,15 +56,20 @@ public class VertxReactorConfiguration {
         int counter = 0;
 
         final DefaultServerManager serverManager = new DefaultServerManager();
-        if (environment.getProperty(SERVERS_PREFIX + "[" + counter + "].type") != null) {
+        if (getServerType(environment, SERVERS_PREFIX + "[" + counter + "]") != null) {
             // There is, at least one server configured in the list.
             String prefix = SERVERS_PREFIX + "[" + counter++ + "]";
 
-            while ((environment.getProperty(prefix + ".type")) != null) {
+            while (getServerType(environment, prefix) != null) {
+                String property = getServerType(environment, prefix);
+                boolean isTcpServer = Objects.equals(property, TCP_PREFIX);
                 final VertxServerOptions options = VertxServerOptions
                     .builder(environment, prefix)
-                    .defaultPort(Objects.equals(environment.getProperty("%s.type".formatted(prefix)), TCP_PREFIX) ? TCP_DEFAULT_PORT : 8082)
+                    .defaultPort(isTcpServer ? TCP_DEFAULT_PORT : 8082)
                     .build();
+                if (isTcpServer) {
+                    assertTcpOptions(options);
+                }
                 serverManager.register(serverFactory.create(options));
                 prefix = SERVERS_PREFIX + "[" + counter++ + "]";
             }
@@ -91,11 +95,22 @@ public class VertxReactorConfiguration {
                     .environment(environment)
                     .id("tcp")
                     .build();
+                assertTcpOptions(tcpOptions);
                 serverManager.register(serverFactory.create(tcpOptions));
             }
         }
 
         return serverManager;
+    }
+
+    private void assertTcpOptions(VertxServerOptions options) {
+        if (!(options.isSecured() && options.isSni())) {
+            throw new IllegalArgumentException("TCP API requires TLS and SNI to be enabled");
+        }
+    }
+
+    private static String getServerType(Environment environment, String prefix) {
+        return environment.getProperty("%s.type".formatted(prefix));
     }
 
     @Bean
