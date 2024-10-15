@@ -16,11 +16,13 @@
 package io.gravitee.gateway.standalone.vertx;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.node.api.server.ServerManager;
-import io.gravitee.node.certificates.KeyStoreLoaderManager;
 import io.gravitee.node.vertx.server.VertxServer;
 import io.gravitee.node.vertx.server.VertxServerFactory;
 import io.gravitee.node.vertx.server.VertxServerOptions;
@@ -29,6 +31,8 @@ import io.gravitee.node.vertx.server.tcp.VertxTcpServerOptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -156,6 +160,8 @@ class VertxReactorConfigurationTest {
         when(tcpVertxServer.id()).thenReturn("tcp");
 
         environment.setProperty("tcp.enabled", "true");
+        environment.setProperty("tcp.secured", "true");
+        environment.setProperty("tcp.ssl.sni", "true");
 
         when(serverFactory.create(any(VertxHttpServerOptions.class))).thenReturn(httpVertxServer);
         when(serverFactory.create(any(VertxTcpServerOptions.class))).thenReturn(tcpVertxServer);
@@ -164,5 +170,34 @@ class VertxReactorConfigurationTest {
 
         assertThat(serverManager.servers()).isNotNull();
         assertThat(serverManager.servers()).containsExactlyInAnyOrder(httpVertxServer, tcpVertxServer);
+    }
+
+    @ParameterizedTest
+    @CsvSource({ "true,false", "false,false", "false,true" })
+    void should_fail_creating_default_tcp_server(String secured, String sni) {
+        // there is always a http server
+        final VertxServer httpVertxServer = mock(VertxServer.class);
+        when(httpVertxServer.id()).thenReturn("http");
+        when(serverFactory.create(any(VertxHttpServerOptions.class))).thenReturn(httpVertxServer);
+
+        environment.setProperty("tcp.enabled", "true");
+        environment.setProperty("tcp.secured", secured);
+        environment.setProperty("tcp.ssl.sni", sni);
+
+        assertThatCode(() -> cut.serverManager(serverFactory, environment))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("SNI");
+    }
+
+    @ParameterizedTest
+    @CsvSource({ "true,false", "false,false", "false,true" })
+    void should_fail_creating_multi_tcp_server(String secured, String sni) {
+        environment.setProperty("servers[0].type", "tcp");
+        environment.setProperty("servers[0].secured", secured);
+        environment.setProperty("servers[0].ssl.sni", sni);
+
+        assertThatCode(() -> cut.serverManager(serverFactory, environment))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("SNI");
     }
 }
