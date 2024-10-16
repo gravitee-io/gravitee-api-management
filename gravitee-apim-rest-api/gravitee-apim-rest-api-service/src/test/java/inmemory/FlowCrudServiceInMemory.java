@@ -16,42 +16,46 @@
 package inmemory;
 
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlternative<Flow> {
+public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlternative<AbstractFlow> {
 
-    final Map<String, List<Flow>> apiFlows = new HashMap<>();
-    final Map<String, List<Flow>> planFlows = new HashMap<>();
+    final Map<String, List<Flow>> apiFlowsHttpV4 = new HashMap<>();
+    final Map<String, List<Flow>> planFlowsHttpV4 = new HashMap<>();
+
+    final Map<String, List<NativeFlow>> apiFlowsNativeV4 = new HashMap<>();
+    final Map<String, List<NativeFlow>> planFlowsNativeV4 = new HashMap<>();
 
     final Map<String, List<io.gravitee.definition.model.flow.Flow>> apiFlowsV2 = new HashMap<>();
     final Map<String, List<io.gravitee.definition.model.flow.Flow>> planFlowsV2 = new HashMap<>();
 
     @Override
     public List<Flow> savePlanFlows(String planId, List<Flow> flows) {
-        planFlows.put(planId, flows);
+        planFlowsHttpV4.put(planId, flows);
         return flows;
     }
 
     @Override
     public List<Flow> saveApiFlows(String apiId, List<Flow> flows) {
-        apiFlows.put(apiId, flows);
+        apiFlowsHttpV4.put(apiId, flows);
         return flows;
     }
 
     @Override
     public List<Flow> getApiV4Flows(String apiId) {
-        return apiFlows.getOrDefault(apiId, new ArrayList<>());
+        return apiFlowsHttpV4.getOrDefault(apiId, new ArrayList<>());
     }
 
     @Override
     public List<Flow> getPlanV4Flows(String planId) {
-        return planFlows.getOrDefault(planId, new ArrayList<>());
+        return planFlowsHttpV4.getOrDefault(planId, new ArrayList<>());
     }
 
     @Override
@@ -65,28 +69,46 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
     }
 
     @Override
-    public void initWith(List<Flow> items) {
+    public List<NativeFlow> saveNativeApiFlows(String apiId, List<NativeFlow> flows) {
+        apiFlowsNativeV4.put(apiId, flows);
+        return flows;
+    }
+
+    @Override
+    public void initWith(List<AbstractFlow> items) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public void reset() {
-        planFlows.clear();
+        planFlowsHttpV4.clear();
     }
 
     @Override
-    public List<Flow> storage() {
-        return Collections.unmodifiableList(
-            Stream
-                .concat(planFlows.values().stream(), apiFlows.values().stream())
-                .reduce(
-                    new ArrayList<>(),
-                    (acc, flow) -> {
-                        acc.addAll(flow);
-                        return acc;
-                    }
-                )
-        );
+    public List<AbstractFlow> storage() {
+        var v4Flows = Stream
+            .concat(planFlowsHttpV4.values().stream(), apiFlowsHttpV4.values().stream())
+            .reduce(
+                new ArrayList<>(),
+                (acc, flow) -> {
+                    acc.addAll(flow);
+                    return acc;
+                }
+            );
+        var nativeFlows = Stream
+            .concat(planFlowsNativeV4.values().stream(), apiFlowsNativeV4.values().stream())
+            .reduce(
+                new ArrayList<>(),
+                (acc, flow) -> {
+                    acc.addAll(flow);
+                    return acc;
+                }
+            );
+
+        var flows = new ArrayList<AbstractFlow>();
+        flows.addAll(v4Flows);
+        flows.addAll(nativeFlows);
+        return flows;
     }
 
     public List<io.gravitee.definition.model.flow.Flow> savePlanFlowsV2(String planId, List<io.gravitee.definition.model.flow.Flow> flows) {
