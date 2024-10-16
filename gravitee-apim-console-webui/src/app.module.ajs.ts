@@ -257,6 +257,7 @@ import { ApiAnalyticsOverviewComponentAjs } from './management/api/analytics/ove
 import { Router } from '@angular/router';
 import SettingsAnalyticsComponentAjs from './management/settings/analytics/settings-analytics.component.ajs';
 import AnalyticsDashboardComponentAjs from './management/analytics/analytics-dashboard/analytics-dashboard.component.ajs';
+import { GroupV2Service } from './services-ngx/group-v2.service';
 
 (<any>window).jQuery = jQuery;
 
@@ -498,6 +499,7 @@ graviteeManagementModule.service('EnvironmentService', EnvironmentService);
 graviteeManagementModule.service('FlowService', FlowService);
 graviteeManagementModule.factory('ngApiV2Service', downgradeInjectable(ApiV2Service));
 graviteeManagementModule.factory('ngGioPermissionService', downgradeInjectable(GioPermissionService));
+graviteeManagementModule.factory('ngGroupV2Service', downgradeInjectable(GroupV2Service));
 
 graviteeManagementModule.controller('DialogGenerateTokenController', DialogGenerateTokenController);
 

@@ -23,6 +23,7 @@ import { cloneDeep, isEmpty } from 'lodash';
 
 import { ApiService } from '../../../../services/api.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { GroupV2Service } from '../../../../services-ngx/group-v2.service';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const copy = require('clipboard-copy');
@@ -121,6 +122,7 @@ class ApiHistoryControllerAjs {
   private studio: any;
   private mode: string;
   private api: any;
+  private groups: any;
   private events: any;
   private eventsSelected: any;
   private eventsTimeline: any;
@@ -147,6 +149,7 @@ class ApiHistoryControllerAjs {
     private ResourceService,
     private FlowService,
     private ngApiV2Service: ApiV2Service,
+    private ngGroupV2Service: GroupV2Service,
   ) {
     this.eventsSelected = [];
     this.eventsTimeline = [];
@@ -163,10 +166,13 @@ class ApiHistoryControllerAjs {
 
   $onInit() {
     Promise.all([
+      this.ngGroupV2Service.list(1, 99999).toPromise(),
       this.ApiService.get(this.activatedRoute.snapshot.params.apiId),
       this.ApiService.isAPISynchronized(this.activatedRoute.snapshot.params.apiId),
-    ]).then(([api, apiIsSynchronizedResult]) => {
+    ]).then(([groups, api, apiIsSynchronizedResult]) => {
       this.api = api.data;
+      this.groups = groups.data;
+
       this.eventPage = -1;
       this.events = [];
       const toDeployEventTimeline = !apiIsSynchronizedResult.data.is_synchronized
@@ -406,7 +412,7 @@ class ApiHistoryControllerAjs {
         _apiDefinition.picture = pictureResponse.status === 'fulfilled' ? pictureResponse?.value : null;
         _apiDefinition.background = backgroundResponse.status === 'fulfilled' ? backgroundResponse?.value : null;
 
-        return this.ApiService.rollback(this.api.id, _apiDefinition);
+        return this.ApiService.rollback(this.api.id, { ..._apiDefinition, groups: this.listGroups(_apiPayload.groups) });
       })
       .then(() => {
         this.NotificationService.show('API successfully rollbacked!');
@@ -525,6 +531,7 @@ class ApiHistoryControllerAjs {
       resources: eventPayloadDefinition.resources,
       path_mappings: eventPayloadDefinition.path_mappings,
       response_templates: eventPayloadDefinition.response_templates,
+      groups: this.listGroups(_event.groups),
     };
     if (reorganizedEvent.flow_mode != null) {
       reorganizedEvent.flow_mode = reorganizedEvent.flow_mode.toLowerCase();
@@ -551,6 +558,13 @@ class ApiHistoryControllerAjs {
       })
       .catch(() => (target.documentation = null));
   }
+
+  private listGroups(groupIds: string[]): string[] {
+    if (!groupIds) {
+      return [];
+    }
+    return groupIds.map((groupId) => this.groups.find((group) => group.id === groupId)?.name).filter((groupName) => groupName != null);
+  }
 }
 ApiHistoryControllerAjs.$inject = [
   '$mdDialog',
@@ -560,6 +574,7 @@ ApiHistoryControllerAjs.$inject = [
   'ResourceService',
   'FlowService',
   'ngApiV2Service',
+  'ngGroupV2Service',
 ];
 
 export default ApiHistoryControllerAjs;
