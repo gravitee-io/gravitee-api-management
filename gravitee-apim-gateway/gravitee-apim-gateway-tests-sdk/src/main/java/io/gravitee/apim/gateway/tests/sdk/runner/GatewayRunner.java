@@ -28,6 +28,7 @@ import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.container.GatewayTestContainer;
 import io.gravitee.apim.gateway.tests.sdk.converters.ApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.converters.LegacyApiDeploymentPreparer;
+import io.gravitee.apim.gateway.tests.sdk.converters.NativeApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.converters.V4ApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.plugin.PluginManifestLoader;
 import io.gravitee.apim.gateway.tests.sdk.policy.KeylessPolicy;
@@ -127,7 +128,7 @@ public class GatewayRunner {
     private final ObjectMapper graviteeMapper;
     private final Map<String, ReactableApi<?>> deployedForTestClass;
     private final Map<String, ReactableApi<?>> deployedForTest;
-    private final Map<DefinitionVersion, ApiDeploymentPreparer> apiDeploymentPreparers;
+    private final Map<Class<?>, ApiDeploymentPreparer> apiDeploymentPreparers;
     private final Properties configuredSystemProperties;
     private final Map<String, ReactableOrganization> deployedOrganizationsForTestClass;
     private final Map<String, ReactableOrganization> deployedOrganizationsForTest;
@@ -158,12 +159,12 @@ public class GatewayRunner {
 
         this.apiDeploymentPreparers =
             Map.of(
-                DefinitionVersion.V1,
+                Api.class,
                 new LegacyApiDeploymentPreparer(),
-                DefinitionVersion.V2,
-                new LegacyApiDeploymentPreparer(),
-                DefinitionVersion.V4,
-                new V4ApiDeploymentPreparer()
+                io.gravitee.definition.model.v4.Api.class,
+                new V4ApiDeploymentPreparer(),
+                NativeApi.class,
+                new NativeApiDeploymentPreparer()
             );
     }
 
@@ -564,10 +565,10 @@ public class GatewayRunner {
                 api = graviteeMapper.treeToValue(apiAsJson, io.gravitee.definition.model.v4.Api.class);
             }
 
-            reactableApi = apiDeploymentPreparers.get(definitionVersion).toReactable(api, environmentId);
+            reactableApi = apiDeploymentPreparers.get(api.getClass()).toReactable(api, environmentId);
         } else {
             final Api api = graviteeMapper.treeToValue(apiAsJson, Api.class);
-            reactableApi = apiDeploymentPreparers.get(definitionVersion).toReactable(api, environmentId);
+            reactableApi = apiDeploymentPreparers.get(api.getClass()).toReactable(api, environmentId);
         }
         return reactableApi;
     }
@@ -705,7 +706,7 @@ public class GatewayRunner {
     }
 
     private void ensureMinimalRequirementForApi(ReactableApi<?> reactableApi) {
-        apiDeploymentPreparers.get(reactableApi.getDefinitionVersion()).ensureMinimalRequirementForApi(reactableApi.getDefinition());
+        apiDeploymentPreparers.get(reactableApi.getDefinition().getClass()).ensureMinimalRequirementForApi(reactableApi.getDefinition());
         if (reactableApi.getOrganizationId() == null) {
             reactableApi.setOrganizationId("DEFAULT");
         }
