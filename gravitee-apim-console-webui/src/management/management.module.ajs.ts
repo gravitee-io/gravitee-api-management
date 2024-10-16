@@ -452,6 +452,7 @@ import { EnvironmentNotificationSettingsDetailsComponent } from './configuration
 import { EnvironmentMetadataComponent } from './configuration/metadata/environment-metadata.component';
 import { ApplicationMetadataComponent } from './application/details/metadata/application-metadata.component';
 import { ApplicationGeneralComponent } from './application/details/general/general-ng/application-general.component';
+import { GroupV2Service } from '../services-ngx/group-v2.service';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -666,6 +667,7 @@ graviteeManagementModule.service('SpelService', SpelService);
 graviteeManagementModule.service('ConnectorService', ConnectorService);
 graviteeManagementModule.factory('ngApiV2Service', downgradeInjectable(ApiV2Service));
 graviteeManagementModule.factory('ngGioPermissionService', downgradeInjectable(GioPermissionService));
+graviteeManagementModule.factory('ngGroupV2Service', downgradeInjectable(GroupV2Service));
 
 graviteeManagementModule.controller('DialogGenerateTokenController', DialogGenerateTokenController);
 
