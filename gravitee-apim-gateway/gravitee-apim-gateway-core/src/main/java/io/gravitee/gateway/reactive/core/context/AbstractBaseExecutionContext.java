@@ -31,6 +31,7 @@ public abstract class AbstractBaseExecutionContext implements BaseExecutionConte
     protected Map<String, Object> internalAttributes = new HashMap<>();
     protected ComponentProvider componentProvider;
     protected TemplateEngine templateEngine;
+    private final long timestamp = System.currentTimeMillis();
 
     @Override
     public <T> T getComponent(Class<T> componentClass) {
@@ -99,4 +100,9 @@ public abstract class AbstractBaseExecutionContext implements BaseExecutionConte
 
     @Override
     public abstract TemplateEngine getTemplateEngine();
+
+    @Override
+    public long timestamp() {
+        return timestamp;
+    }
 }
