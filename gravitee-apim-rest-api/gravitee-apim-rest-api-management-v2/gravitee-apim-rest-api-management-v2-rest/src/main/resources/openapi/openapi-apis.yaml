@@ -2406,6 +2406,52 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    # API SpecGen
+    /environments/{envId}/apis/{apiId}/spec-gen/_state:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+      get:
+        tags:
+          - API SpecGen
+        summary: Evaluate the state of the API SpecGen
+        description: |-
+          Evaluate the state of the API SpecGen
+          
+          User must have the API_DOCUMENTATION[READ] permission.
+        operationId: getSpecGenState
+        responses:
+          "200":
+            description: API Scoring trigger response
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ApiSpecGenRequestState"
+          default:
+            $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/{apiId}/spec-gen/_start:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+      get:
+        tags:
+          - API SpecGen
+        summary: Starts the API SpecGen
+        description: |-
+          Starts the API SpecGen
+          
+          User must have the API_DOCUMENTATION[CREATE] permission.
+        operationId: post
+        responses:
+          "200":
+            description: API Scoring trigger response
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ApiSpecGenRequestState"
+          default:
+            $ref: "#/components/responses/Error"
     # API Scoring
     /environments/{envId}/apis/{apiId}/scoring/_evaluate:
         parameters:
@@ -6863,8 +6909,23 @@ components:
                         type: string
             required:
                 - name
-
-        # API Scoring
+      # API SpecGen
+        ApiSpecGenRequestState:
+            type: object
+            description: API SpecGen state.
+            properties:
+              state:
+                $ref: "#/components/schemas/SpecGenState"
+        SpecGenState:
+            type: string
+            description: API SpecGen state value
+            example: AVAILABLE
+            enum:
+              - AVAILABLE
+              - UNAVAILABLE
+              - STARTED
+              - GENERATING
+      # API Scoring
         ApiScoringTriggerResponse:
             type: object
             properties:

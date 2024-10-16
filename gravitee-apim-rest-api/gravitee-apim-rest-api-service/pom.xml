@@ -88,10 +88,14 @@
 			<groupId>io.gravitee.integration</groupId>
 			<artifactId>gravitee-integration-api</artifactId>
 		</dependency>
-        <dependency>
-            <groupId>io.gravitee.scoring</groupId>
-            <artifactId>gravitee-scoring-api</artifactId>
-        </dependency>
+    <dependency>
+        <groupId>io.gravitee.scoring</groupId>
+        <artifactId>gravitee-scoring-api</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>io.gravitee.spec.gen.api</groupId>
+        <artifactId>gravitee-spec-gen-api</artifactId>
+    </dependency>
 
 		<!-- Gravitee Dependencies -->
 		<dependency>
