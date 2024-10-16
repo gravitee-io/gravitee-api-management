@@ -23,11 +23,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.DigestUtils;
 
 @Slf4j
 public class ApiKeyCacheService implements ApiKeyService {
 
     private final Map<String, ApiKey> cacheApiKeys = new ConcurrentHashMap<>();
+    private final Map<String, ApiKey> cacheMd5ApiKeys = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> cacheApiKeysByApi = new ConcurrentHashMap<>();
 
     @Override
@@ -42,6 +44,14 @@ public class ApiKeyCacheService implements ApiKeyService {
                 apiKey.getApplication()
             );
             cacheApiKeys.put(cacheKey, apiKey);
+            /*
+             FIXME: Kafka Gateway - find a way to not systematically cache md5 version of apiKey.
+              We could use md5 cache only if `cache.apikey.md5` property is true (`config.kafka.enabled`value by default)
+              Or
+              We could also add a `md5Key` field in the `keys` collection, populated only when it's required.
+              Based on that, we could cache only what is required
+             */
+            cacheMd5ApiKeys.put(buildMd5CacheKey(apiKey), apiKey);
             Set<String> keysByApi = cacheApiKeysByApi.get(apiKey.getApi());
             if (keysByApi == null) {
                 keysByApi = new HashSet<>();
@@ -64,6 +74,7 @@ public class ApiKeyCacheService implements ApiKeyService {
             apiKey.getApplication()
         );
         if (cacheApiKeys.remove(cacheKey) != null) {
+            cacheMd5ApiKeys.remove(buildMd5CacheKey(apiKey));
             Set<String> keysByApi = cacheApiKeysByApi.get(apiKey.getApi());
             if (keysByApi != null && keysByApi.remove(cacheKey)) {
                 if (keysByApi.isEmpty()) {
@@ -83,6 +94,7 @@ public class ApiKeyCacheService implements ApiKeyService {
             keysByApi.forEach(cacheKey -> {
                 ApiKey evictedApiKey = cacheApiKeys.remove(cacheKey);
                 if (evictedApiKey != null) {
+                    cacheMd5ApiKeys.remove(buildMd5CacheKey(evictedApiKey));
                     log.debug(
                         "Unload inactive api-key [id: {}] [api: {}] [plan: {}] [app: {}]",
                         evictedApiKey.getId(),
@@ -100,11 +112,20 @@ public class ApiKeyCacheService implements ApiKeyService {
         return Optional.ofNullable(cacheApiKeys.get(buildCacheKey(api, key)));
     }
 
+    @Override
+    public Optional<ApiKey> getByApiAndMd5Key(String api, String md5ApiKey) {
+        return Optional.ofNullable(cacheMd5ApiKeys.get(buildCacheKey(api, md5ApiKey)));
+    }
+
     String buildCacheKey(ApiKey apiKey) {
         return buildCacheKey(apiKey.getApi(), apiKey.getKey());
     }
 
     String buildCacheKey(String api, String key) {
         return String.format("%s.%s", api, key);
+    }
+
+    String buildMd5CacheKey(ApiKey apiKey) {
+        return buildCacheKey(apiKey.getApi(), DigestUtils.md5DigestAsHex(apiKey.getKey().getBytes()));
     }
 }

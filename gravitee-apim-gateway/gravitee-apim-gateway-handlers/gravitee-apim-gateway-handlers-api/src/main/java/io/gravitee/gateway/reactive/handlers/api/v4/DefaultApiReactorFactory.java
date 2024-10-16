@@ -339,7 +339,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
 
     @SuppressWarnings("unchecked")
     public ResourceLifecycleManager resourceLifecycleManager(
-        Api api,
+        Reactable reactable,
         ResourceClassLoaderFactory resourceClassLoaderFactory,
         ResourceConfigurationFactory resourceConfigurationFactory,
         ApplicationContext applicationContext,
@@ -355,7 +355,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
 
         return new DefaultResourceManager(
             applicationContext.getBean(DefaultClassLoader.class),
-            api,
+            reactable,
             cpm,
             resourceClassLoaderFactory,
             resourceConfigurationFactory,

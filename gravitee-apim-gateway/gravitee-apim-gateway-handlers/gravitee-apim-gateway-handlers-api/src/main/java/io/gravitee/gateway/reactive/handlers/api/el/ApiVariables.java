@@ -16,7 +16,8 @@
 package io.gravitee.gateway.reactive.handlers.api.el;
 
 import io.gravitee.common.util.TemplatedValueHashMap;
-import io.gravitee.gateway.reactive.handlers.api.v4.Api;
+import io.gravitee.definition.model.v4.AbstractApi;
+import io.gravitee.gateway.reactor.ReactableApi;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -26,11 +27,11 @@ import java.util.stream.Collectors;
  */
 class ApiVariables {
 
-    private final Api api;
+    private final ReactableApi<? extends AbstractApi> api;
 
     private Map<String, String> apiProperties;
 
-    ApiVariables(final Api api) {
+    ApiVariables(final ReactableApi<? extends AbstractApi> api) {
         this.api = api;
     }
 

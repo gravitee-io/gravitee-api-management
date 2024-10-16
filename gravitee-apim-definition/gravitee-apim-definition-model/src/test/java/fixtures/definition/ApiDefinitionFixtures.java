@@ -25,11 +25,11 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
-import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Supplier;
@@ -48,6 +48,9 @@ public class ApiDefinitionFixtures {
             .version("1.0.0")
             .executionMode(ExecutionMode.V3)
             .proxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/"))).build());
+
+    private static final Supplier<NativeApi.NativeApiBuilder<?, ?>> BASE_NATIVE = () ->
+        NativeApi.builder().name("an-api").apiVersion("1.0.0").type(ApiType.NATIVE);
 
     public static Api anApiV4() {
         return aSyncApiV4();
@@ -99,6 +102,14 @@ public class ApiDefinitionFixtures {
             .flows(List.of())
             .flowExecution(new FlowExecution())
             .build();
+    }
+
+    public static NativeApi aNativeApiV4() {
+        return BASE_NATIVE.get().build();
+    }
+
+    public static NativeApi aNativeApiV4(String apiId) {
+        return BASE_NATIVE.get().id(apiId).build();
     }
 
     public static io.gravitee.definition.model.Api anApiV2() {

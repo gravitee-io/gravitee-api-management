@@ -26,7 +26,6 @@ import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.security.core.SubscriptionTrustStoreLoaderManager;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -55,6 +54,9 @@ public class SubscriptionCacheService implements SubscriptionService {
         return switch (SecurityToken.TokenType.valueOfOrNone(securityToken.getTokenType())) {
             case API_KEY -> apiKeyService
                 .getByApiAndKey(api, securityToken.getTokenValue())
+                .flatMap(apiKey -> getById(apiKey.getSubscription()));
+            case MD5_API_KEY -> apiKeyService
+                .getByApiAndMd5Key(api, securityToken.getTokenValue())
                 .flatMap(apiKey -> getById(apiKey.getSubscription()));
             case CLIENT_ID -> getByApiAndClientIdAndPlan(api, securityToken.getTokenValue(), plan);
             case CERTIFICATE -> subscriptionTrustStoreLoaderManager.getByCertificate(api, securityToken.getTokenValue(), plan);
