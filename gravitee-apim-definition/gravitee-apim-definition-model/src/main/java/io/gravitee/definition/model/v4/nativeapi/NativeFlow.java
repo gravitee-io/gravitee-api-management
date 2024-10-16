@@ -50,7 +50,7 @@ public class NativeFlow extends AbstractFlow {
     private List<Step> connect;
 
     @Valid
-    private List<Step> all;
+    private List<Step> interact;
 
     @Valid
     private List<Step> subscribe;
@@ -62,7 +62,7 @@ public class NativeFlow extends AbstractFlow {
     @Override
     public List<Plugin> getPlugins() {
         return Stream
-            .of(computePlugins(this.connect), computePlugins(this.all), computePlugins(this.publish), computePlugins(this.subscribe))
+            .of(computePlugins(this.connect), computePlugins(this.interact), computePlugins(this.publish), computePlugins(this.subscribe))
             .flatMap(List::stream)
             .collect(Collectors.toList());
     }

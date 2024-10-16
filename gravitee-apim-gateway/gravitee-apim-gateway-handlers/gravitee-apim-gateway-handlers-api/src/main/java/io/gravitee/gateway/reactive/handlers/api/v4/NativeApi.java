@@ -17,11 +17,9 @@ package io.gravitee.gateway.reactive.handlers.api.v4;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.AbstractPlan;
-import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -129,7 +127,7 @@ public class NativeApi extends ReactableApi<io.gravitee.definition.model.v4.nati
             .filter(NativeFlow::isEnabled)
             .forEach(flow -> {
                 policies.addAll(getPolicies(flow.getConnect()));
-                policies.addAll(getPolicies(flow.getAll()));
+                policies.addAll(getPolicies(flow.getInteract()));
                 policies.addAll(getPolicies(flow.getSubscribe()));
                 policies.addAll(getPolicies(flow.getPublish()));
             });
