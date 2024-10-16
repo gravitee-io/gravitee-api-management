@@ -23,7 +23,6 @@ import io.gravitee.node.monitoring.handler.NodeMonitoringEventHandler;
 import io.gravitee.node.monitoring.healthcheck.NodeHealthCheckService;
 import io.gravitee.node.monitoring.infos.NodeInfosService;
 import io.gravitee.node.monitoring.monitor.NodeMonitorService;
-import io.gravitee.node.plugins.service.ServiceManager;
 import io.gravitee.plugin.alert.AlertEventProducerManager;
 import java.util.List;
 
@@ -40,7 +39,6 @@ public class GatewayTestNode extends GatewayNode {
         List<Class<? extends LifecycleComponent>> components = super.components();
 
         components.remove(AlertEventProducerManager.class);
-        components.remove(ServiceManager.class);
         components.remove(ManagementService.class);
         components.remove(NodeMonitoringReporterService.class);
         components.remove(NodeHealthCheckService.class);
