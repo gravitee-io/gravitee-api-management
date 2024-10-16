@@ -77,7 +77,7 @@ class GetApiDefinitionUseCaseTest {
         void should_return_api_definition_with_flows() {
             // Given
             //   Api flow
-            var flows = List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build());
+            List<Flow> flows = List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build());
             flowCrudServiceInMemory.saveApiFlows(API_ID, flows);
 
             //   Plan flow
@@ -89,7 +89,7 @@ class GetApiDefinitionUseCaseTest {
             planStaging.setPlanStatus(PlanStatus.STAGING);
             planQueryServiceInMemory.initWith(List.of(planPublished, planDeprecated, planStaging));
 
-            var planFlows = List.of(Flow.builder().name("plan-flow").selectors(List.of(new HttpSelector())).build());
+            List<Flow> planFlows = List.of(Flow.builder().name("plan-flow").selectors(List.of(new HttpSelector())).build());
             flowCrudServiceInMemory.savePlanFlows(planPublished.getId(), planFlows);
             flowCrudServiceInMemory.savePlanFlows(planDeprecated.getId(), planFlows);
             flowCrudServiceInMemory.savePlanFlows(planStaging.getId(), planFlows);

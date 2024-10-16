@@ -282,4 +282,5 @@ public class ApiFixtures {
             .federatedApiDefinition(FederatedApi.builder().id(MY_API).providerId("provider-id").name("My Api").apiVersion("1.0.0").build())
             .build();
     }
+    // TODO Kafka Gateway: add aNativeKafkaApi()
 }

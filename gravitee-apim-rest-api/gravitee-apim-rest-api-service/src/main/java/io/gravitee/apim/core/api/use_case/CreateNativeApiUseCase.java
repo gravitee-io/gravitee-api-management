@@ -21,19 +21,19 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
-import io.gravitee.apim.core.api.model.NewV4Api;
+import io.gravitee.apim.core.api.model.NewNativeApi;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 
 @UseCase
-public class CreateV4ApiUseCase {
+public class CreateNativeApiUseCase {
 
     private final ValidateApiDomainService validateApiDomainService;
     private final ApiPrimaryOwnerFactory apiPrimaryOwnerFactory;
     private final CreateApiDomainService createApiDomainService;
 
-    public CreateV4ApiUseCase(
+    public CreateNativeApiUseCase(
         ValidateApiDomainService validateApiDomainService,
         ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
         CreateApiDomainService createApiDomainService
@@ -43,12 +43,12 @@ public class CreateV4ApiUseCase {
         this.createApiDomainService = createApiDomainService;
     }
 
-    public record Input(NewV4Api newV4Api, AuditInfo auditInfo) {}
+    public record Input(NewNativeApi newApi, AuditInfo auditInfo) {}
 
     public record Output(ApiWithFlows api) {}
 
     public Output execute(Input input) {
-        // TODO: if a native API, throw error
+        // TODO: if not v4 or not a Native API, throw error
         var auditInfo = input.auditInfo;
 
         var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(
@@ -58,7 +58,7 @@ public class CreateV4ApiUseCase {
         );
 
         var created = createApiDomainService.create(
-            ApiModelFactory.fromNewV4Api(input.newV4Api, auditInfo.environmentId()),
+            ApiModelFactory.fromNewNativeApi(input.newApi, auditInfo.environmentId()),
             primaryOwner,
             auditInfo,
             api ->

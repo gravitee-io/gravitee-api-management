@@ -110,7 +110,7 @@ public class V4ApiServiceCockpitImpl implements V4ApiServiceCockpit {
     private Api deserializeApi(JsonNode node, String environmentId) throws JsonProcessingException {
         final String newApiEntityNode = mapper.writeValueAsString(node.at(NEW_API_ENTITY_NODE));
         var newApi = graviteeMapper.readValue(newApiEntityNode, NewV4Api.class);
-        return ApiModelFactory.fromNewApi(newApi, environmentId);
+        return ApiModelFactory.fromNewV4Api(newApi, environmentId);
     }
 
     private UpdateApiEntity getUpdateApiEntity(JsonNode node) throws JsonProcessingException {
