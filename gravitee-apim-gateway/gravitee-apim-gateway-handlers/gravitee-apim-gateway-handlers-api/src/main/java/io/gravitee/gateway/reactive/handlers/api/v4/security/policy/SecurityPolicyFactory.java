@@ -15,30 +15,28 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4.security.policy;
 
-import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
+import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
 import io.gravitee.gateway.reactive.api.policy.base.BaseSecurityPolicy;
-import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class SecurityPolicyFactory {
-
-    private static final Logger log = LoggerFactory.getLogger(SecurityPolicyFactory.class);
 
     private SecurityPolicyFactory() {}
 
     @SuppressWarnings("unchecked")
     public static <T extends BaseSecurityPolicy> T forPlan(
         final String apiId,
-        final Plan plan,
+        final AbstractPlan plan,
         final PolicyManager policyManager,
         final ExecutionPhase executionPhase
     ) {
@@ -49,7 +47,7 @@ public class SecurityPolicyFactory {
             }
 
             String policyName = planSecurity.getType().toLowerCase().replaceAll("_", "-");
-            final HttpPolicy policy = policyManager.create(executionPhase, new PolicyMetadata(policyName, planSecurity.getConfiguration()));
+            final BasePolicy policy = policyManager.create(executionPhase, new PolicyMetadata(policyName, planSecurity.getConfiguration()));
 
             if (policy instanceof BaseSecurityPolicy) {
                 return (T) policy;

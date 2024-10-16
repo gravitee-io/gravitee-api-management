@@ -50,6 +50,11 @@ public class DefaultExecutionContext extends AbstractExecutionContext<MutableReq
         return this;
     }
 
+    @Override
+    public long timestamp() {
+        return this.request.timestamp();
+    }
+
     public DefaultExecutionContext componentProvider(final ComponentProvider componentProvider) {
         this.componentProvider = componentProvider;
         return this;
