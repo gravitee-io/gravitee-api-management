@@ -94,4 +94,12 @@ public class GatewayConfigurationBuilder {
             .set("tcp.instances", 1)
             .set("tcp.ssl.sni", true);
     }
+
+    public GatewayConfigurationBuilder configureKafkaGateway(int port) {
+        return this.set("kafka.enabled", true)
+            .set("kafka.secured", true)
+            .set("kafka.port", port)
+            .set("kafka.instances", 1)
+            .set("kafka.ssl.sni", true);
+    }
 }
