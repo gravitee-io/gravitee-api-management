@@ -83,6 +83,12 @@
             </dependency>
 
             <dependency>
+              <groupId>io.gravitee.spec.gen.api</groupId>
+              <artifactId>gravitee-spec-gen-api</artifactId>
+              <version>${gravitee-spec-gen-api.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>io.gravitee.exchange</groupId>
                 <artifactId>gravitee-exchange-api</artifactId>
                 <version>${gravitee-exchange.version}</version>

@@ -76,6 +76,8 @@ import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGrou
 import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UndeploySharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGroupUseCase;
+import io.gravitee.apim.core.specgen.service_provider.SpecGenProvider;
+import io.gravitee.apim.core.specgen.use_case.SpecGenRequestUseCase;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.apim.core.user.domain_service.UserDomainService;
@@ -84,6 +86,7 @@ import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDom
 import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
+import io.gravitee.apim.infra.specgen.SpecGenProviderImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -583,5 +586,10 @@ public class ResourceContextConfiguration {
     @Bean
     public PermissionDomainService permissionDomainService(MembershipService membershipService, PermissionService permissionService) {
         return new PermissionDomainServiceLegacyWrapper(membershipService, permissionService);
+    }
+
+    @Bean
+    public SpecGenRequestUseCase specGenRequestUseCase() {
+        return mock(SpecGenRequestUseCase.class);
     }
 }

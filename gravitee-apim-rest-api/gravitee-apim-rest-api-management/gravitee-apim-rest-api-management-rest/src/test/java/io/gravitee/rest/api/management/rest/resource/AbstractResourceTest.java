@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.debug.use_case.DebugApiUseCase;
+import io.gravitee.apim.core.specgen.use_case.SpecGenRequestUseCase;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.rest.api.management.rest.JerseySpringTest;
@@ -287,6 +288,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected MonitoringService monitoringService;
+
+    @Autowired
+    protected SpecGenRequestUseCase specGenRequestUseCase;
 
     @Before
     public void setUp() throws Exception {

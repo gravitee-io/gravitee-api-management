@@ -34,6 +34,8 @@ import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.specgen.service_provider.SpecGenProvider;
+import io.gravitee.apim.core.specgen.use_case.SpecGenRequestUseCase;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -205,6 +207,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected CategoryQueryServiceInMemory categoryQueryService;
+
+    @Autowired
+    protected SpecGenRequestUseCase specGenRequestUseCase;
 
     @BeforeEach
     public void setUp() {

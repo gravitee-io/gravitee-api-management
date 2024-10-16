@@ -25,6 +25,7 @@ import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
+import inmemory.ApiSpecGenQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ApplicationMetadataCrudServiceInMemory;
 import inmemory.ApplicationMetadataQueryServiceInMemory;
@@ -76,6 +77,7 @@ import inmemory.ScoringReportCrudServiceInMemory;
 import inmemory.ScoringReportQueryServiceInMemory;
 import inmemory.ScoringRulesetCrudServiceInMemory;
 import inmemory.ScoringRulesetQueryServiceInMemory;
+import inmemory.SpecGenProviderInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.TagQueryServiceInMemory;
@@ -88,6 +90,8 @@ import inmemory.UpdateCategoryApiDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.ValidateResourceDomainServiceInMemory;
+import io.gravitee.apim.core.specgen.query_service.ApiSpecGenQueryService;
+import io.gravitee.apim.core.specgen.service_provider.SpecGenProvider;
 import io.gravitee.apim.infra.query_service.audit.AuditEventQueryServiceImpl;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -471,5 +475,15 @@ public class InMemoryConfiguration {
     @Bean
     public ScoringRulesetQueryServiceInMemory scoringRulesetQueryService(ScoringRulesetCrudServiceInMemory scoringRulesetCrudService) {
         return new ScoringRulesetQueryServiceInMemory(scoringRulesetCrudService);
+    }
+
+    @Bean
+    public ApiSpecGenQueryService apiSpecGenQueryServiceInMemory() {
+        return new ApiSpecGenQueryServiceInMemory();
+    }
+
+    @Bean
+    public SpecGenProvider SpecGenProviderInMemory() {
+        return new SpecGenProviderInMemory();
     }
 }
