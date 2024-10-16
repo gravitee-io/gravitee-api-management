@@ -18,7 +18,9 @@ package io.gravitee.apim.infra.crud_service.flow;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.infra.adapter.FlowAdapter;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
@@ -31,6 +33,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -48,12 +51,12 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
 
     @Override
     public List<Flow> savePlanFlows(String planId, List<Flow> flows) {
-        return save(FlowReferenceType.PLAN, planId, flows);
+        return FlowAdapter.INSTANCE.toFlowV4(save(FlowReferenceType.PLAN, planId, flows));
     }
 
     @Override
     public List<Flow> saveApiFlows(String apiId, List<Flow> flows) {
-        return save(FlowReferenceType.API, apiId, flows);
+        return FlowAdapter.INSTANCE.toFlowV4(save(FlowReferenceType.API, apiId, flows));
     }
 
     @Override
@@ -76,7 +79,16 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
         return getV2(FlowReferenceType.PLAN, planId);
     }
 
-    private List<Flow> save(FlowReferenceType flowReferenceType, String referenceId, List<Flow> flows) {
+    @Override
+    public List<NativeFlow> saveNativeApiFlows(String apiId, List<NativeFlow> flows) {
+        return FlowAdapter.INSTANCE.toNativeFlow(save(FlowReferenceType.API, apiId, flows));
+    }
+
+    private List<io.gravitee.repository.management.model.flow.Flow> save(
+        FlowReferenceType flowReferenceType,
+        String referenceId,
+        List<? extends AbstractFlow> flows
+    ) {
         try {
             log.debug("Save flows for reference {},{}", flowReferenceType, flowReferenceType);
             if (flows == null || flows.isEmpty()) {
@@ -88,7 +100,7 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
                 .stream()
                 .collect(Collectors.toMap(io.gravitee.repository.management.model.flow.Flow::getId, Function.identity()));
 
-            Set<String> flowIdsToSave = flows.stream().map(Flow::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+            Set<String> flowIdsToSave = flows.stream().map(AbstractFlow::getId).filter(Objects::nonNull).collect(Collectors.toSet());
 
             Set<String> flowIdsToDelete = dbFlowsById
                 .keySet()
@@ -99,16 +111,20 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
                 flowRepository.deleteAllById(flowIdsToDelete);
             }
 
-            List<Flow> savedFlows = new ArrayList<>();
+            List<io.gravitee.repository.management.model.flow.Flow> savedFlows = new ArrayList<>();
             io.gravitee.repository.management.model.flow.Flow dbFlow;
             for (int order = 0; order < flows.size(); ++order) {
-                Flow flow = flows.get(order);
+                var flow = flows.get(order);
                 if (flow.getId() == null || !dbFlowsById.containsKey(flow.getId())) {
-                    dbFlow = flowRepository.create(FlowAdapter.INSTANCE.toRepository(flow, flowReferenceType, referenceId, order));
+                    dbFlow =
+                        flowRepository.create(FlowAdapter.INSTANCE.toRepositoryFromAbstract(flow, flowReferenceType, referenceId, order));
                 } else {
-                    dbFlow = flowRepository.update(FlowAdapter.INSTANCE.toRepositoryUpdate(dbFlowsById.get(flow.getId()), flow, order));
+                    dbFlow =
+                        flowRepository.update(
+                            FlowAdapter.INSTANCE.toRepositoryUpdateFromAbstract(dbFlowsById.get(flow.getId()), flow, order)
+                        );
                 }
-                savedFlows.add(FlowAdapter.INSTANCE.toFlowV4(dbFlow));
+                savedFlows.add(dbFlow);
             }
             return savedFlows;
         } catch (TechnicalException ex) {
