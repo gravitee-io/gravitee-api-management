@@ -63,6 +63,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.api.audit.ApiAuditsResou
 import io.gravitee.rest.api.management.v2.rest.resource.api.event.ApiEventsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.log.ApiLogsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.scoring.ApiScoringResource;
+import io.gravitee.rest.api.management.v2.rest.resource.api.specgen.ApiSpecGenResource;
 import io.gravitee.rest.api.management.v2.rest.resource.documentation.ApiPagesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
@@ -586,6 +587,11 @@ public class ApiResource extends AbstractResource {
     @Path("/scoring")
     public ApiScoringResource getApiScoringResource() {
         return resourceContext.getResource(ApiScoringResource.class);
+    }
+
+    @Path("/spec-gen")
+    public ApiSpecGenResource getApiSpecGenResource() {
+        return resourceContext.getResource(ApiSpecGenResource.class);
     }
 
     @POST
