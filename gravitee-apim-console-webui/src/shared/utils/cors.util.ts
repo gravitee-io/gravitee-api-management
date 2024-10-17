@@ -16,9 +16,10 @@
 import { ValidatorFn } from '@angular/forms';
 
 export const CorsUtil = {
-  httpMethods: ['GET', 'DELETE', 'PATCH', 'POST', 'PUT', 'OPTIONS', 'TRACE', 'HEAD'] as const,
+  httpMethods: ['*', 'GET', 'DELETE', 'PATCH', 'POST', 'PUT', 'OPTIONS', 'TRACE', 'HEAD'] as const,
 
   defaultHttpHeaders: [
+    '*',
     'Accept',
     'Accept-Charset',
     'Accept-Encoding',

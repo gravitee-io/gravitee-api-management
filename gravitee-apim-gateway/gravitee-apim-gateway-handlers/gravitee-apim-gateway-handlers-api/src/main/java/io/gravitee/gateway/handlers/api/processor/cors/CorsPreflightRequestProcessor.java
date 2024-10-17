@@ -105,6 +105,25 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
             response.headers().set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, ALLOW_ORIGIN_PUBLIC_WILDCARD);
         }
 
+        if (cors.getAccessControlAllowMethods().contains("*")) {
+            response.headers().set(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "*");
+        } else {
+            response
+                .headers()
+                .set(
+                    HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
+                    cors.getAccessControlAllowMethods().stream().map(String::toUpperCase).collect(Collectors.joining(JOINER_CHAR_SEQUENCE))
+                );
+        }
+
+        if (cors.getAccessControlAllowHeaders().contains("*")) {
+            response.headers().set(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, "*");
+        } else {
+            response
+                .headers()
+                .set(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, String.join(JOINER_CHAR_SEQUENCE, cors.getAccessControlAllowHeaders()));
+        }
+
         // 8. Optionally add a single Access-Control-Max-Age header with as value the amount of seconds the user agent
         // is allowed to cache the result of the request.
         if (cors.getAccessControlMaxAge() > -1) {
@@ -130,11 +149,17 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
     }
 
     private boolean isRequestHeadersValid(String accessControlRequestHeaders) {
-        return isRequestValid(accessControlRequestHeaders, cors.getAccessControlAllowHeaders(), false);
+        return (
+            cors.getAccessControlAllowHeaders().contains("*") ||
+            isRequestValid(accessControlRequestHeaders, cors.getAccessControlAllowHeaders(), false)
+        );
     }
 
     private boolean isRequestMethodsValid(String accessControlRequestMethods) {
-        return isRequestValid(accessControlRequestMethods, cors.getAccessControlAllowMethods(), true);
+        return (
+            cors.getAccessControlAllowMethods().contains("*") ||
+            isRequestValid(accessControlRequestMethods, cors.getAccessControlAllowMethods(), true)
+        );
     }
 
     private boolean isRequestValid(String incoming, Set<String> configuredValues, boolean required) {

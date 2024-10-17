@@ -58,6 +58,9 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         cors.setEnabled(true);
         cors.setAccessControlAllowOrigin(Set.of("*"));
         cors.setAccessControlAllowMethods(Set.of("GET"));
+
+        cors.setAccessControlAllowHeaders(Set.of());
+
         proxy.setCors(cors);
         api.setProxy(proxy);
     }
@@ -68,11 +71,23 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
         corsPreflightRequestProcessor.execute(spyCtx).test().assertError(InterruptionException.class);
         assertThat(spyCtx.metrics().getApplicationId()).isEqualTo("1");
-        verify(mockResponse, times(2)).headers();
+        verify(mockResponse, times(5)).headers();
 
-        verify(spyResponseHeaders, times(2)).set(any(), anyString());
+        verify(spyResponseHeaders, times(5)).set(any(), anyString());
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("origin");
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS)).isEqualTo("GET");
+        assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS))
+            .isEqualTo(String.join(", ", api.getProxy().getCors().getAccessControlAllowHeaders()));
+
+        if (api.getProxy().getCors().isAccessControlAllowCredentials()) {
+            assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS)).isEqualTo("true");
+        }
+
+        if (api.getProxy().getCors().getAccessControlMaxAge() > -1) {
+            assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE))
+                .isEqualTo(Integer.toString(api.getProxy().getCors().getAccessControlMaxAge()));
+        }
+
         assertThat(spyCtx.<Boolean>getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP)).isNull();
         assertThat(spyCtx.<CorsPreflightInvoker>getInternalAttribute(ATTR_INTERNAL_INVOKER)).isNull();
     }
@@ -84,11 +99,20 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
         corsPreflightRequestProcessor.execute(spyCtx).test().assertError(InterruptionException.class);
         assertThat(spyCtx.metrics().getApplicationId()).isEqualTo("1");
-        verify(mockResponse, times(3)).headers();
-        verify(spyResponseHeaders, times(3)).set(any(), anyString());
-        assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS)).isEqualTo("true");
+        verify(mockResponse, times(6)).headers();
+
+        verify(spyResponseHeaders, times(6)).set(any(), anyString());
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("origin");
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS)).isEqualTo("GET");
+        if (api.getProxy().getCors().getAccessControlAllowHeaders() != null) {
+            assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS))
+                .isEqualTo(String.join(", ", api.getProxy().getCors().getAccessControlAllowHeaders()));
+        }
+        assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS)).isEqualTo("true");
+        if (api.getProxy().getCors().getAccessControlMaxAge() > -1) {
+            assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE))
+                .isEqualTo(Integer.toString(api.getProxy().getCors().getAccessControlMaxAge()));
+        }
         assertThat(spyCtx.<Boolean>getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP)).isNull();
         assertThat(spyCtx.<CorsPreflightInvoker>getInternalAttribute(ATTR_INTERNAL_INVOKER)).isNull();
     }
@@ -100,11 +124,24 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
         corsPreflightRequestProcessor.execute(spyCtx).test().assertError(InterruptionException.class);
         assertThat(spyCtx.metrics().getApplicationId()).isEqualTo("1");
-        verify(mockResponse, times(3)).headers();
-        verify(spyResponseHeaders, times(3)).set(any(), anyString());
+        verify(mockResponse, times(6)).headers();
+        verify(spyResponseHeaders, times(6)).set(any(), anyString());
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("origin");
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS)).isEqualTo("GET");
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE)).isEqualTo("10");
+
+        if (
+            api.getProxy().getCors().getAccessControlAllowHeaders() != null &&
+            !api.getProxy().getCors().getAccessControlAllowHeaders().isEmpty()
+        ) {
+            assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS))
+                .isEqualTo(String.join(", ", api.getProxy().getCors().getAccessControlAllowHeaders()));
+        }
+
+        if (api.getProxy().getCors().isAccessControlAllowCredentials()) {
+            assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS)).isEqualTo("true");
+        }
+
         assertThat(spyCtx.<Boolean>getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP)).isNull();
         assertThat(spyCtx.<CorsPreflightInvoker>getInternalAttribute(ATTR_INTERNAL_INVOKER)).isNull();
     }
@@ -148,12 +185,24 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
         corsPreflightRequestProcessor.execute(spyCtx).test().assertError(InterruptionException.class);
         assertThat(spyCtx.metrics().getApplicationId()).isEqualTo("1");
-        verify(mockResponse, times(3)).headers();
-        verify(spyResponseHeaders, times(3)).set(any(), anyString());
+
+        verify(mockResponse, times(5)).headers();
+        verify(spyResponseHeaders, times(5)).set(any(), anyString());
+
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("origin");
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS)).isEqualTo("GET");
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS))
             .isEqualTo(String.join(", ", accessControlAllowHeaders));
+
+        if (api.getProxy().getCors().isAccessControlAllowCredentials()) {
+            assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS)).isEqualTo("true");
+        }
+
+        if (api.getProxy().getCors().getAccessControlMaxAge() > -1) {
+            assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE))
+                .isEqualTo(Integer.toString(api.getProxy().getCors().getAccessControlMaxAge()));
+        }
+
         assertThat(spyCtx.<Boolean>getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP)).isNull();
         assertThat(spyCtx.<CorsPreflightInvoker>getInternalAttribute(ATTR_INTERNAL_INVOKER)).isNull();
     }
@@ -187,6 +236,84 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
     @Test
     public void shouldCompleteWithoutAddingHeadersWhenCorsEnableButNoHeaderMethod() {
         spyRequestHeaders.set(ORIGIN, "origin");
+        corsPreflightRequestProcessor.execute(spyCtx).test().assertResult();
+        verify(spyCtx, never()).metrics();
+        verifyNoInteractions(mockResponse);
+    }
+
+    @Test
+    public void shouldInterruptWithWildcardMethodsWhenCorsEnabledAndValidRequest() {
+        api.getProxy().getCors().setAccessControlAllowMethods(Set.of("*"));
+
+        spyRequestHeaders.set(ORIGIN, "origin");
+        spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "POST");
+
+        corsPreflightRequestProcessor.execute(spyCtx).test().assertError(InterruptionException.class);
+        assertThat(spyCtx.metrics().getApplicationId()).isEqualTo("1");
+
+        verify(mockResponse, times(5)).headers();
+        verify(spyResponseHeaders, times(5)).set(any(), anyString());
+
+        assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("origin");
+        assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS)).isEqualTo("*");
+
+        if (
+            api.getProxy().getCors().getAccessControlAllowHeaders() != null &&
+            !api.getProxy().getCors().getAccessControlAllowHeaders().isEmpty()
+        ) {
+            assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS))
+                .isEqualTo(String.join(", ", api.getProxy().getCors().getAccessControlAllowHeaders()));
+        }
+
+        if (api.getProxy().getCors().isAccessControlAllowCredentials()) {
+            assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS)).isEqualTo("true");
+        }
+
+        if (api.getProxy().getCors().getAccessControlMaxAge() > -1) {
+            assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE))
+                .isEqualTo(Integer.toString(api.getProxy().getCors().getAccessControlMaxAge()));
+        }
+
+        assertThat(spyCtx.<Boolean>getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP)).isNull();
+        assertThat(spyCtx.<CorsPreflightInvoker>getInternalAttribute(ATTR_INTERNAL_INVOKER)).isNull();
+    }
+
+    @Test
+    public void shouldInterruptWithWildcardHeadersWhenCorsEnabledAndValidRequest() {
+        api.getProxy().getCors().setAccessControlAllowHeaders(Set.of("*"));
+
+        spyRequestHeaders.set(ORIGIN, "origin");
+        spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
+
+        corsPreflightRequestProcessor.execute(spyCtx).test().assertError(InterruptionException.class);
+        assertThat(spyCtx.metrics().getApplicationId()).isEqualTo("1");
+
+        verify(mockResponse, times(5)).headers();
+        verify(spyResponseHeaders, times(5)).set(any(), anyString());
+
+        assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("origin");
+        assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS)).isEqualTo("GET");
+        assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS)).isEqualTo("*");
+
+        if (api.getProxy().getCors().isAccessControlAllowCredentials()) {
+            assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS)).isEqualTo("true");
+        }
+
+        if (api.getProxy().getCors().getAccessControlMaxAge() > -1) {
+            assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE))
+                .isEqualTo(Integer.toString(api.getProxy().getCors().getAccessControlMaxAge()));
+        }
+
+        assertThat(spyCtx.<Boolean>getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP)).isNull();
+        assertThat(spyCtx.<CorsPreflightInvoker>getInternalAttribute(ATTR_INTERNAL_INVOKER)).isNull();
+    }
+
+    @Test
+    public void shouldCompleteWithoutAddingHeadersWhenCorsWildcardAndInvalidRequest() {
+        api.getProxy().getCors().setAccessControlAllowMethods(Set.of("*"));
+        api.getProxy().getCors().setAccessControlAllowHeaders(Set.of("*"));
+
+        spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
         corsPreflightRequestProcessor.execute(spyCtx).test().assertResult();
         verify(spyCtx, never()).metrics();
         verifyNoInteractions(mockResponse);
