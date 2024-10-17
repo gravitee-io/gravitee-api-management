@@ -44,6 +44,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.util.DigestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class SubscriptionCacheServiceTest {
@@ -416,6 +417,20 @@ class SubscriptionCacheServiceTest {
             ApiKey apiKey = new ApiKey();
             apiKey.setSubscription(SUB_ID);
             when(apiKeyService.getByApiAndKey(API_ID, "apiKeyValue")).thenReturn(Optional.of(apiKey));
+
+            Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID);
+            assertThat(subscriptionOpt).contains(subscription);
+        }
+
+        @Test
+        void should_get_subscription_by_api_id_and_md5_apiKey() {
+            Subscription subscription = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
+            subscriptionService.register(subscription);
+            String md5ApiKeyValue = DigestUtils.md5DigestAsHex("apiKeyValue".getBytes());
+            SecurityToken securityToken = SecurityToken.forMD5ApiKey(md5ApiKeyValue);
+            ApiKey apiKey = new ApiKey();
+            apiKey.setSubscription(SUB_ID);
+            when(apiKeyService.getByApiAndMd5Key(API_ID, md5ApiKeyValue)).thenReturn(Optional.of(apiKey));
 
             Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID);
             assertThat(subscriptionOpt).contains(subscription);

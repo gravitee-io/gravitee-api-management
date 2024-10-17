@@ -15,11 +15,12 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.el;
 
+import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.el.TemplateVariableScope;
 import io.gravitee.el.annotations.TemplateVariable;
-import io.gravitee.gateway.reactive.handlers.api.v4.Api;
+import io.gravitee.gateway.reactor.ReactableApi;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -30,7 +31,7 @@ public class ApiTemplateVariableProvider implements TemplateVariableProvider {
 
     private final ApiVariables apiVariables;
 
-    public ApiTemplateVariableProvider(final Api api) {
+    public ApiTemplateVariableProvider(final ReactableApi<? extends AbstractApi> api) {
         this.apiVariables = new ApiVariables(api);
     }
 
