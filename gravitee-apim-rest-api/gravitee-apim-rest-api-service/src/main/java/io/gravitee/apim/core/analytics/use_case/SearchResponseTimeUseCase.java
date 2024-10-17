@@ -20,51 +20,39 @@ import static io.gravitee.apim.core.analytics.utils.AnalyticsUtils.validateHttpV
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
+import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Optional;
+import io.reactivex.rxjava3.core.Single;
+import java.time.Duration;
+import java.time.ZonedDateTime;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @RequiredArgsConstructor
 @UseCase
-public class SearchAverageMessagesPerRequestAnalyticsUseCase {
+public class SearchResponseTimeUseCase {
 
     private final AnalyticsQueryService analyticsQueryService;
     private final ApiCrudService apiCrudService;
 
-    public Output execute(ExecutionContext executionContext, Input input) {
-        // Verify v4 api
+    public Single<Output> execute(ExecutionContext executionContext, Input input) {
         validateApiRequirements(input);
 
-        return analyticsQueryService.searchAverageMessagesPerRequest(executionContext, input.apiId()).map(Output::new).orElse(new Output());
+        ZonedDateTime now = TimeProvider.now();
+        return analyticsQueryService
+            .searchAvgResponseTimeOverTime(executionContext, input.apiId, now.minusDays(1), now, Duration.ofMinutes(30))
+            .defaultIfEmpty(new AverageAggregate(0D, Map.of()))
+            .map(Output::new);
     }
 
     private void validateApiRequirements(Input input) {
         final Api api = apiCrudService.get(input.apiId);
         validateHttpV4Api(api, input.environmentId);
-        validateApiType(api.getType(), input.apiId);
-    }
-
-    private void validateApiType(ApiType type, String apiId) {
-        if (!ApiType.MESSAGE.equals(type)) {
-            throw new ApiInvalidTypeException(apiId, ApiType.MESSAGE);
-        }
     }
 
     public record Input(String apiId, String environmentId) {}
 
-    public record Output(Optional<AverageMessagesPerRequest> averageMessagesPerRequest) {
-        Output(AverageMessagesPerRequest averageMessagesPerRequest) {
-            this(Optional.of(averageMessagesPerRequest));
-        }
-
-        Output() {
-            this(Optional.of(new AverageMessagesPerRequest()));
-        }
-    }
+    public record Output(AverageAggregate obj) {}
 }

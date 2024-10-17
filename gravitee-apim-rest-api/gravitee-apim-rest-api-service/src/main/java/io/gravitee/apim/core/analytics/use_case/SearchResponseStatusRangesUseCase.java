@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.analytics.use_case;
 
+import static io.gravitee.apim.core.analytics.utils.AnalyticsUtils.validateHttpV4Api;
+
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
@@ -24,8 +26,6 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import static io.gravitee.apim.core.analytics.utils.AnalyticsUtils.validateHttpV4Api;
 
 @Slf4j
 @RequiredArgsConstructor

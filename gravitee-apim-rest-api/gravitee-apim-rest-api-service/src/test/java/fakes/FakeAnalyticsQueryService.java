@@ -16,11 +16,15 @@
 package fakes;
 
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
+import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.reactivex.rxjava3.core.Maybe;
+import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Optional;
 
@@ -34,6 +38,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public AverageMessagesPerRequest averageMessagesPerRequest;
     public AverageConnectionDuration averageConnectionDuration;
     public ResponseStatusRanges responseStatusRanges;
+    public AverageAggregate averageAggregate;
 
     @Override
     public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId) {
@@ -59,5 +64,16 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     @Override
     public Optional<ResponseStatusRanges> searchResponseStatusRanges(ExecutionContext executionContext, String apiId) {
         return Optional.ofNullable(responseStatusRanges);
+    }
+
+    @Override
+    public Maybe<AverageAggregate> searchAvgResponseTimeOverTime(
+        ExecutionContext executionContext,
+        String apiId,
+        ZonedDateTime startTime,
+        ZonedDateTime endTime,
+        Duration interval
+    ) {
+        return Maybe.just(averageAggregate);
     }
 }
