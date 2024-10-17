@@ -15,14 +15,13 @@
  */
 package io.gravitee.apim.core.analytics.use_case;
 
+import static io.gravitee.apim.core.analytics.utils.AnalyticsUtils.validateHttpV4Api;
+
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
-import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -39,41 +38,21 @@ public class SearchAverageMessagesPerRequestAnalyticsUseCase {
     private final ApiCrudService apiCrudService;
 
     public Output execute(ExecutionContext executionContext, Input input) {
+        // Verify v4 api
         validateApiRequirements(input);
 
-        // Verify v4 api
         return analyticsQueryService.searchAverageMessagesPerRequest(executionContext, input.apiId()).map(Output::new).orElse(new Output());
     }
 
     private void validateApiRequirements(Input input) {
         final Api api = apiCrudService.get(input.apiId);
-        validateApiDefinitionVersion(api.getDefinitionVersion(), input.apiId);
-        validateApiIsNotTcp(api.getApiDefinitionV4());
+        validateHttpV4Api(api, input.environmentId);
         validateApiType(api.getType(), input.apiId);
-        validateApiMultiTenancyAccess(api, input.environmentId);
     }
 
     private void validateApiType(ApiType type, String apiId) {
         if (!ApiType.MESSAGE.equals(type)) {
             throw new ApiInvalidTypeException(apiId, ApiType.MESSAGE);
-        }
-    }
-
-    private static void validateApiMultiTenancyAccess(Api api, String environmentId) {
-        if (!api.belongsToEnvironment(environmentId)) {
-            throw new ApiNotFoundException(api.getId());
-        }
-    }
-
-    private static void validateApiDefinitionVersion(DefinitionVersion definitionVersion, String apiId) {
-        if (!DefinitionVersion.V4.equals(definitionVersion)) {
-            throw new ApiInvalidDefinitionVersionException(apiId);
-        }
-    }
-
-    private void validateApiIsNotTcp(io.gravitee.definition.model.v4.Api apiDefinitionV4) {
-        if (apiDefinitionV4.isTcpProxy()) {
-            throw new IllegalArgumentException("Analytics are not supported for TCP Proxy APIs");
         }
     }
 
