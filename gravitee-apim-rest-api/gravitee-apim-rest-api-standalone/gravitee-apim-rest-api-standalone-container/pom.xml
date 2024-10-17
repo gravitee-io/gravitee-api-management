@@ -251,6 +251,13 @@
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk18on</artifactId>
         </dependency>
+
+        <!-- Mapstruct -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
 
     <build>
