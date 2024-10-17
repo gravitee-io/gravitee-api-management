@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.specgen.service_provider;
 
 import io.gravitee.cockpit.api.command.v1.specgen.request.SpecGenRequestReply;
+import io.gravitee.spec.gen.api.Operation;
 import io.reactivex.rxjava3.core.Single;
 
 /**
@@ -24,7 +25,5 @@ import io.reactivex.rxjava3.core.Single;
  */
 
 public interface SpecGenProvider {
-    Single<SpecGenRequestReply> getState(String apiId);
-
-    Single<SpecGenRequestReply> postJob(String apiId);
+    Single<SpecGenRequestReply> performRequest(String apiId, Operation operation);
 }

@@ -80,7 +80,7 @@ public class ApiSpecGenResourceTest extends AbstractResourceTest {
     @ParameterizedTest
     @MethodSource("params_that_must_return_state")
     public void must_test_get_state(SpecGenRequestState state) {
-        when(specGenService.getState(API_ID)).thenReturn(Single.just(new SpecGenRequestReply(generateRandom(), SUCCEEDED, state)));
+        when(specGenRequestUseCase.getState(API_ID)).thenReturn(Single.just(new SpecGenRequestReply(generateRandom(), SUCCEEDED, state)));
 
         var response = getState.request().get();
 
@@ -90,7 +90,7 @@ public class ApiSpecGenResourceTest extends AbstractResourceTest {
     @ParameterizedTest
     @MethodSource("params_that_must_return_state")
     public void must_test_post_job(SpecGenRequestState state) {
-        when(specGenService.postJob(API_ID)).thenReturn(Single.just(new SpecGenRequestReply(generateRandom(), SUCCEEDED, state)));
+        when(specGenRequestUseCase.postJob(API_ID)).thenReturn(Single.just(new SpecGenRequestReply(generateRandom(), SUCCEEDED, state)));
 
         var response = postJob.request().post(null);
 

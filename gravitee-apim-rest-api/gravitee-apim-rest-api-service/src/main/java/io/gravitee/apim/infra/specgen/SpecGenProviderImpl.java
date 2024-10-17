@@ -36,7 +36,6 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.spec.gen.api.Operation;
 import io.gravitee.spec.gen.api.SpecGenRequest;
 import io.reactivex.rxjava3.core.Single;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
@@ -52,39 +51,22 @@ public class SpecGenProviderImpl implements SpecGenProvider {
 
     private final CockpitConnector cockpitConnector;
     private final InstallationService installationService;
-    private final ApiSpecGenQueryService apiSpecGenQueryService;
 
-    public SpecGenProviderImpl(
-        @Lazy CockpitConnector cockpitConnector,
-        @Lazy InstallationService installationService,
-        @Lazy ApiSpecGenQueryService apiSpecGenQueryService
-    ) {
+    public SpecGenProviderImpl(@Lazy CockpitConnector cockpitConnector, @Lazy InstallationService installationService) {
         this.cockpitConnector = cockpitConnector;
         this.installationService = installationService;
-        this.apiSpecGenQueryService = apiSpecGenQueryService;
     }
 
     public Single<SpecGenRequestReply> getState(String apiId) {
-        return performCommand(apiId, GET_STATE);
+        return performRequest(apiId, GET_STATE);
     }
 
     public Single<SpecGenRequestReply> postJob(String apiId) {
-        return performCommand(apiId, POST_JOB);
+        return performRequest(apiId, POST_JOB);
     }
 
-    @NotNull
-    private Single<SpecGenRequestReply> performCommand(String apiId, Operation operation) {
-        var context = getExecutionContext();
-
-        return apiSpecGenQueryService
-            .findByIdAndType(context, apiId, PROXY)
-            .map(api -> new SpecGenRequestCommand(buildPayload(context, api.getId(), operation)))
-            .map(this::sendCommand)
-            .orElse(Single.just(new SpecGenRequestReply(null, ERROR, UNAVAILABLE)));
-    }
-
-    @NotNull
-    private Single<SpecGenRequestReply> sendCommand(SpecGenRequestCommand command) {
+    public Single<SpecGenRequestReply> performRequest(String apiId, Operation operation) {
+        var command = new SpecGenRequestCommand(buildPayload(apiId, operation));
         return cockpitConnector
             .sendCommand(command)
             .doOnError(t ->
@@ -95,7 +77,9 @@ public class SpecGenProviderImpl implements SpecGenProvider {
     }
 
     @NotNull
-    private SpecGenCommandPayload<SpecGenRequest> buildPayload(ExecutionContext context, String apiId, Operation operation) {
+    private SpecGenCommandPayload<SpecGenRequest> buildPayload(String apiId, Operation operation) {
+        var context = getExecutionContext();
+
         return new SpecGenCommandPayload<>(
             generateRandom(),
             context.getOrganizationId(),

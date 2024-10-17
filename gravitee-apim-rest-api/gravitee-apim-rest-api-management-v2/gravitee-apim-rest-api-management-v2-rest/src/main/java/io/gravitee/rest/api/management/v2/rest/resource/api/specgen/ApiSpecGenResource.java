@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api.specgen;
 
 import io.gravitee.apim.core.specgen.model.ApiSpecGenState;
-import io.gravitee.apim.core.specgen.service_provider.SpecGenProvider;
+import io.gravitee.apim.core.specgen.use_case.SpecGenRequestUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -35,7 +35,7 @@ import jakarta.ws.rs.container.Suspended;
 public class ApiSpecGenResource extends AbstractResource {
 
     @Inject
-    private SpecGenProvider provider;
+    private SpecGenRequestUseCase useCase;
 
     @PathParam("apiId")
     private String apiId;
@@ -45,7 +45,7 @@ public class ApiSpecGenResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
     public void getState(@Suspended final AsyncResponse response) {
-        provider.getState(apiId).map(reply -> new ApiSpecGenState(reply.getRequestState())).subscribe(response::resume, response::resume);
+        useCase.getState(apiId).map(reply -> new ApiSpecGenState(reply.getRequestState())).subscribe(response::resume, response::resume);
     }
 
     @POST
@@ -53,6 +53,6 @@ public class ApiSpecGenResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.CREATE }) })
     public void postJob(@Suspended final AsyncResponse response) {
-        provider.postJob(apiId).map(reply -> new ApiSpecGenState(reply.getRequestState())).subscribe(response::resume, response::resume);
+        useCase.postJob(apiId).map(reply -> new ApiSpecGenState(reply.getRequestState())).subscribe(response::resume, response::resume);
     }
 }

@@ -77,6 +77,7 @@ import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGrou
 import io.gravitee.apim.core.shared_policy_group.use_case.UndeploySharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.specgen.service_provider.SpecGenProvider;
+import io.gravitee.apim.core.specgen.use_case.SpecGenRequestUseCase;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.apim.core.user.domain_service.UserDomainService;
@@ -588,7 +589,7 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public SpecGenProvider specGenService() {
-        return mock(SpecGenProvider.class);
+    public SpecGenRequestUseCase specGenRequestUseCase() {
+        return mock(SpecGenRequestUseCase.class);
     }
 }
