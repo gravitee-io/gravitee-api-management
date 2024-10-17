@@ -1,0 +1,170 @@
+[
+  {
+    "id": "flow-tag1",
+    "name": "tag-1",
+    "referenceType": "ORGANIZATION",
+    "referenceId": "orga-1",
+    "createdAt": 1470157767000,
+    "updatedAt": 1470157767000,
+    "order": 1,
+    "enabled": true,
+    "tags": [ "tag-1", "tag-2" ],
+    "connect": [
+      {
+        "name": "Debug Log",
+        "description": "Debug log",
+        "enabled": true,
+        "condition": "{#request.headers != null}",
+        "messageCondition": "{#message.content != null}",
+        "policy": "debug-log",
+        "configuration": "{\n          \"rootElement\": \"root\",\n          \"scope\": \"CONNECT\"\n        }",
+        "order": 1
+      }
+    ],
+    "interact": [
+      {
+        "name": "Debug Log",
+        "description": "Debug log",
+        "enabled": true,
+        "condition": "{#response.headers != null}",
+        "messageCondition": "{#message.headers != null}",
+        "policy": "debug-log",
+        "configuration": "{\n          \"rootElement\": \"root\",\n          \"scope\": \"INTERACT\"\n        }",
+        "order": 1
+      }
+    ]
+  },
+  {
+    "id": "tag-updated",
+    "name": "tag-1",
+    "referenceType": "ORGANIZATION",
+    "referenceId": "my-orga",
+    "createdAt": 1470157767000,
+    "updatedAt": 1470157767000,
+    "order": 2,
+    "enabled": true,
+    "publish": [
+      {
+        "name": "Debug Log",
+        "description": "Debug log",
+        "enabled": true,
+        "condition": "{#request.headers != null}",
+        "messageCondition": "{#message.content != null}",
+        "policy": "debug-log",
+        "configuration": "{\n          \"rootElement\": \"root\",\n          \"scope\": \"PUBLISH\"\n        }",
+        "order": 1
+      }
+    ],
+    "subscribe": [
+      {
+        "name": "Debug Log",
+        "description": "Debug log",
+        "enabled": true,
+        "condition": "{#request.headers != null}",
+        "messageCondition": "{#message.content != null}",
+        "policy": "debug-log",
+        "configuration": "{\n          \"rootElement\": \"root\",\n          \"scope\": \"SUBSCRIBE\"\n        }",
+        "order": 1
+      }
+    ]
+  },
+  {
+    "id": "tag-native-deleted",
+    "referenceType": "ORGANIZATION",
+    "referenceId": "my-orga",
+    "createdAt": 1456790400000,
+    "updatedAt": 1456790400000,
+    "order": 3,
+    "enabled": true,
+    "connect": [
+      {
+        "name": "Debug Log",
+        "description": "Debug log",
+        "enabled": true,
+        "condition": "{#request.headers != null}",
+        "messageCondition": "{#message.content != null}",
+        "policy": "debug-log",
+        "configuration": "{\n          \"rootElement\": \"root\",\n          \"scope\": \"CONNECT\"\n        }",
+        "order": 1
+      }
+    ],
+    "interact": [
+      {
+        "name": "Debug Log",
+        "description": "Debug log",
+        "enabled": true,
+        "condition": "{#request.headers != null}",
+        "messageCondition": "{#message.content != null}",
+        "policy": "debug-log",
+        "configuration": "{\n          \"rootElement\": \"root\",\n          \"scope\": \"INTERACT\"\n        }",
+        "order": 1
+      }
+    ]
+  },
+  {
+    "id": "tag-native-ref-deleted",
+    "referenceType": "ORGANIZATION",
+    "referenceId": "orga-v4-deleted",
+    "createdAt": 1456790400000,
+    "updatedAt": 1456790400000,
+    "order": 3,
+    "enabled": true,
+    "publish": [
+      {
+        "name": "Debug Log",
+        "description": "Debug log",
+        "enabled": true,
+        "condition": "{#request.headers != null}",
+        "messageCondition": "{#message.content != null}",
+        "policy": "debug-log",
+        "configuration": "{\n          \"rootElement\": \"root\",\n          \"scope\": \"PUBLISH\"\n        }",
+        "order": 1
+      }
+    ],
+    "subscribe": [
+      {
+        "name": "Debug Log",
+        "description": "Debug log",
+        "enabled": true,
+        "condition": "{#request.headers != null}",
+        "messageCondition": "{#message.content != null}",
+        "policy": "debug-log",
+        "configuration": "{\n          \"rootElement\": \"root\",\n          \"scope\": \"SUBSCRIBE\"\n        }",
+        "order": 1
+      }
+    ]
+  },
+  {
+    "id": "tag-native-ref-deleted-1",
+    "referenceType": "ORGANIZATION",
+    "referenceId": "orga-v4-deleted",
+    "createdAt": 1456790400000,
+    "updatedAt": 1456790400000,
+    "order": 3,
+    "enabled": true,
+    "publish": [
+      {
+        "name": "Debug Log",
+        "description": "Debug log",
+        "enabled": true,
+        "condition": "{#request.headers != null}",
+        "messageCondition": "{#message.content != null}",
+        "policy": "debug-log",
+        "configuration": "{\n          \"rootElement\": \"root\",\n          \"scope\": \"PUBLISH\"\n        }",
+        "order": 1
+      }
+    ],
+    "subscribe": [
+      {
+        "name": "Debug Log",
+        "description": "Debug log",
+        "enabled": true,
+        "condition": "{#request.headers != null}",
+        "messageCondition": "{#message.content != null}",
+        "policy": "debug-log",
+        "configuration": "{\n          \"rootElement\": \"root\",\n          \"scope\": \"SUBSCRIBE\"\n        }",
+        "order": 1
+      }
+    ]
+  }
+]
