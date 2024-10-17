@@ -15,7 +15,10 @@
  */
 package io.gravitee.gateway.reactive.reactor;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.v4.Api;
@@ -79,9 +82,7 @@ class DefaultTcpSocketDispatcherTest {
         when(netSocket.indicatedServerName()).thenReturn("turlututu");
         cut
             .dispatch(netSocket, "server1")
-            .doFinally(() -> {
-                verify(reactorHandler.handle(any(DefaultExecutionContext.class)), never());
-            })
+            .doFinally(() -> verify(reactorHandler.handle(any(DefaultExecutionContext.class)), never()))
             .test()
             .assertError(err -> err.getMessage().contains("SNI: turlututu"))
             .awaitDone(100, TimeUnit.MILLISECONDS);
@@ -94,9 +95,7 @@ class DefaultTcpSocketDispatcherTest {
         when(netSocket.pause()).thenThrow(unexpected);
         cut
             .dispatch(netSocket, "server1")
-            .doFinally(() -> {
-                verify(reactorHandler.handle(any(DefaultExecutionContext.class)), never());
-            })
+            .doFinally(() -> verify(reactorHandler.handle(any(DefaultExecutionContext.class)), never()))
             .test()
             .assertError(unexpected)
             .awaitDone(100, TimeUnit.MILLISECONDS);
