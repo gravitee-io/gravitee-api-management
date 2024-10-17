@@ -196,6 +196,8 @@ databaseChangeLog:
     - include:
           - file: liquibase/changelogs/v4_4_10/00_add_media_org_env.yml
     - include:
+          - file: liquibase/changelogs/v4_4_12/00_increase_length_integration_provider_column.yml
+    - include:
           - file: liquibase/changelogs/v4_5_0/00_integrations_nullable_agent_status.yml
     - include:
           - file: liquibase/changelogs/v4_5_0/01_add_async_jobs_table.yml
