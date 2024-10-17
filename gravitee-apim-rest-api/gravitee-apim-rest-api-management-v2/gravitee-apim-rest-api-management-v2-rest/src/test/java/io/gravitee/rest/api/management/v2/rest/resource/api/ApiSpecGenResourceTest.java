@@ -45,7 +45,7 @@ public class ApiSpecGenResourceTest extends AbstractResourceTest {
     String ENVIRONMENT = "ENV";
     String API_ID = generateRandom();
 
-  @Override
+    @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/apis/" + API_ID + "/spec-gen";
     }
@@ -54,57 +54,46 @@ public class ApiSpecGenResourceTest extends AbstractResourceTest {
 
     WebTarget postJob;
 
-
-
     @BeforeEach
     @Override
     public void setUp() {
-      super.setUp();
+        super.setUp();
 
-      getState = rootTarget().path("/_state");
-      postJob = rootTarget().path("/_start");
+        getState = rootTarget().path("/_state");
+        postJob = rootTarget().path("/_start");
 
-      GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
-      GraviteeContext.setCurrentOrganization(ORGANIZATION);
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
+        GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-      final EnvironmentEntity environment = new EnvironmentEntity();
-      environment.setId(ENVIRONMENT);
-      environment.setName(ENVIRONMENT);
-      environment.setOrganizationId(ORGANIZATION);
+        final EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId(ENVIRONMENT);
+        environment.setName(ENVIRONMENT);
+        environment.setOrganizationId(ORGANIZATION);
 
-      when(environmentService.findByOrgAndIdOrHrid(any(), any()))
-          .thenReturn(environment);
+        when(environmentService.findByOrgAndIdOrHrid(any(), any())).thenReturn(environment);
     }
 
-  public static Stream<SpecGenRequestState> params_that_must_return_state() {
-    return Arrays.stream(SpecGenRequestState.values());
-  }
+    public static Stream<SpecGenRequestState> params_that_must_return_state() {
+        return Arrays.stream(SpecGenRequestState.values());
+    }
 
     @ParameterizedTest
     @MethodSource("params_that_must_return_state")
     public void must_test_get_state(SpecGenRequestState state) {
-        when(specGenService.getState(API_ID))
-            .thenReturn(Single.just(new SpecGenRequestReply(generateRandom(), SUCCEEDED, state)));
+        when(specGenService.getState(API_ID)).thenReturn(Single.just(new SpecGenRequestReply(generateRandom(), SUCCEEDED, state)));
 
         var response = getState.request().get();
 
-        assertThat(response).hasStatus(200)
-            .asEntity(SpecGenState.class)
-            .extracting(SpecGenState::state)
-            .isEqualTo(state);
+        assertThat(response).hasStatus(200).asEntity(SpecGenState.class).extracting(SpecGenState::state).isEqualTo(state);
     }
 
-  @ParameterizedTest
-  @MethodSource("params_that_must_return_state")
-  public void must_test_post_job(SpecGenRequestState state) {
-    when(specGenService.postJob(API_ID))
-        .thenReturn(Single.just(new SpecGenRequestReply(generateRandom(), SUCCEEDED, state)));
+    @ParameterizedTest
+    @MethodSource("params_that_must_return_state")
+    public void must_test_post_job(SpecGenRequestState state) {
+        when(specGenService.postJob(API_ID)).thenReturn(Single.just(new SpecGenRequestReply(generateRandom(), SUCCEEDED, state)));
 
-    var response = postJob.request().post(null);
+        var response = postJob.request().post(null);
 
-    assertThat(response).hasStatus(200)
-        .asEntity(SpecGenState.class)
-        .extracting(SpecGenState::state)
-        .isEqualTo(state);
-  }
+        assertThat(response).hasStatus(200).asEntity(SpecGenState.class).extracting(SpecGenState::state).isEqualTo(state);
+    }
 }
