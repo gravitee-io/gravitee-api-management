@@ -48,7 +48,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -69,11 +68,11 @@ class SpecGenServiceTest {
     @Mock
     InstallationService installationService;
 
-    private SpecGenService specGenService;
+    private SpecGenProviderImpl specGenService;
 
     @BeforeEach
     void setUp() {
-        specGenService = new SpecGenService(cockpitConnector, installationService, apiRepository);
+        specGenService = new SpecGenProviderImpl(cockpitConnector, installationService, apiRepository);
     }
 
     @Test

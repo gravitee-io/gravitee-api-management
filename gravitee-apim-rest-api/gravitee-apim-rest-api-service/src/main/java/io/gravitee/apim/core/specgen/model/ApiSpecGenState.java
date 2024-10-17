@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.resource.api.specgen.response;
+package io.gravitee.apim.core.specgen.model;
 
 import io.gravitee.spec.gen.api.SpecGenRequestState;
 
-public record SpecGenState(SpecGenRequestState state) {}
+public record ApiSpecGenState(SpecGenRequestState state) {}

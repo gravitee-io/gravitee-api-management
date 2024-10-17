@@ -95,7 +95,6 @@
     <dependency>
       <groupId>io.gravitee.spec.gen.api</groupId>
       <artifactId>gravitee-spec-gen-api</artifactId>
-      <version>${gravitee-spec-gen-api.version}</version>
     </dependency>
 
 		<!-- Gravitee Dependencies -->

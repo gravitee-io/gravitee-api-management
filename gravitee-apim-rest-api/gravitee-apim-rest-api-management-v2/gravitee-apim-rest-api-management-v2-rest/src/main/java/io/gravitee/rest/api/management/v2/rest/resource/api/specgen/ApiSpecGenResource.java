@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api.specgen;
 
-import io.gravitee.apim.infra.specgen.SpecGenService;
+import io.gravitee.apim.core.specgen.model.ApiSpecGenState;
+import io.gravitee.apim.core.specgen.service_provider.SpecGenProvider;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
-import io.gravitee.rest.api.management.v2.rest.resource.api.specgen.response.SpecGenState;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
@@ -35,7 +35,7 @@ import jakarta.ws.rs.container.Suspended;
 public class ApiSpecGenResource extends AbstractResource {
 
     @Inject
-    private SpecGenService specGenService;
+    private SpecGenProvider provider;
 
     @PathParam("apiId")
     private String apiId;
@@ -45,10 +45,7 @@ public class ApiSpecGenResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
     public void getState(@Suspended final AsyncResponse response) {
-        specGenService
-            .getState(apiId)
-            .map(reply -> new SpecGenState(reply.getRequestState()))
-            .subscribe(response::resume, response::resume);
+        provider.getState(apiId).map(reply -> new ApiSpecGenState(reply.getRequestState())).subscribe(response::resume, response::resume);
     }
 
     @POST
@@ -56,6 +53,6 @@ public class ApiSpecGenResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.CREATE }) })
     public void postJob(@Suspended final AsyncResponse response) {
-        specGenService.postJob(apiId).map(reply -> new SpecGenState(reply.getRequestState())).subscribe(response::resume, response::resume);
+        provider.postJob(apiId).map(reply -> new ApiSpecGenState(reply.getRequestState())).subscribe(response::resume, response::resume);
     }
 }

@@ -21,9 +21,9 @@ import static io.gravitee.rest.api.service.common.UuidString.generateRandom;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.specgen.model.ApiSpecGenState;
 import io.gravitee.cockpit.api.command.v1.specgen.request.SpecGenRequestReply;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
-import io.gravitee.rest.api.management.v2.rest.resource.api.specgen.response.SpecGenState;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.spec.gen.api.SpecGenRequestState;
@@ -84,7 +84,7 @@ public class ApiSpecGenResourceTest extends AbstractResourceTest {
 
         var response = getState.request().get();
 
-        assertThat(response).hasStatus(200).asEntity(SpecGenState.class).extracting(SpecGenState::state).isEqualTo(state);
+        assertThat(response).hasStatus(200).asEntity(ApiSpecGenState.class).extracting(ApiSpecGenState::state).isEqualTo(state);
     }
 
     @ParameterizedTest
@@ -94,6 +94,6 @@ public class ApiSpecGenResourceTest extends AbstractResourceTest {
 
         var response = postJob.request().post(null);
 
-        assertThat(response).hasStatus(200).asEntity(SpecGenState.class).extracting(SpecGenState::state).isEqualTo(state);
+        assertThat(response).hasStatus(200).asEntity(ApiSpecGenState.class).extracting(ApiSpecGenState::state).isEqualTo(state);
     }
 }

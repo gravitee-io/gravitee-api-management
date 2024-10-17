@@ -25,6 +25,7 @@ import static io.gravitee.spec.gen.api.Operation.GET_STATE;
 import static io.gravitee.spec.gen.api.Operation.POST_JOB;
 import static io.gravitee.spec.gen.api.SpecGenRequestState.UNAVAILABLE;
 
+import io.gravitee.apim.core.specgen.service_provider.SpecGenProvider;
 import io.gravitee.cockpit.api.CockpitConnector;
 import io.gravitee.cockpit.api.command.v1.specgen.SpecGenCommandPayload;
 import io.gravitee.cockpit.api.command.v1.specgen.request.SpecGenRequestCommand;
@@ -46,13 +47,13 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
-public class SpecGenService {
+public class SpecGenProviderImpl implements SpecGenProvider {
 
     private final CockpitConnector cockpitConnector;
     private final InstallationService installationService;
     private final ApiRepository apiRepository;
 
-    public SpecGenService(
+    public SpecGenProviderImpl(
         @Lazy CockpitConnector cockpitConnector,
         @Lazy InstallationService installationService,
         @Lazy ApiRepository apiRepository
