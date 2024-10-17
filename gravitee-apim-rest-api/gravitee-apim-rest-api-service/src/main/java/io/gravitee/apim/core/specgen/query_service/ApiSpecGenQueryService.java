@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.specgen.service_provider;
+package io.gravitee.apim.core.specgen.query_service;
 
-import io.gravitee.cockpit.api.command.v1.specgen.request.SpecGenRequestReply;
-import io.reactivex.rxjava3.core.Single;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.Optional;
 
 /**
  * @author Rémi SULTAN (remi.sultan at graviteesource.com)
  * @author GraviteeSource Team
  */
 
-public interface SpecGenProvider {
-    Single<SpecGenRequestReply> getState(String apiId);
-
-    Single<SpecGenRequestReply> postJob(String apiId);
+public interface ApiSpecGenQueryService {
+    Optional<Api> findByIdAndType(ExecutionContext context, String id, ApiType type);
 }

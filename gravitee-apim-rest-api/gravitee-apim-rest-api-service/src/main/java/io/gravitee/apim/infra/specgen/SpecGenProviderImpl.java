@@ -25,13 +25,14 @@ import static io.gravitee.spec.gen.api.Operation.GET_STATE;
 import static io.gravitee.spec.gen.api.Operation.POST_JOB;
 import static io.gravitee.spec.gen.api.SpecGenRequestState.UNAVAILABLE;
 
+import io.gravitee.apim.core.specgen.query_service.ApiSpecGenQueryService;
 import io.gravitee.apim.core.specgen.service_provider.SpecGenProvider;
 import io.gravitee.cockpit.api.CockpitConnector;
 import io.gravitee.cockpit.api.command.v1.specgen.SpecGenCommandPayload;
 import io.gravitee.cockpit.api.command.v1.specgen.request.SpecGenRequestCommand;
 import io.gravitee.cockpit.api.command.v1.specgen.request.SpecGenRequestReply;
-import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.service.InstallationService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.spec.gen.api.Operation;
 import io.gravitee.spec.gen.api.SpecGenRequest;
 import io.reactivex.rxjava3.core.Single;
@@ -51,43 +52,33 @@ public class SpecGenProviderImpl implements SpecGenProvider {
 
     private final CockpitConnector cockpitConnector;
     private final InstallationService installationService;
-    private final ApiRepository apiRepository;
+    private final ApiSpecGenQueryService apiSpecGenQueryService;
 
     public SpecGenProviderImpl(
         @Lazy CockpitConnector cockpitConnector,
         @Lazy InstallationService installationService,
-        @Lazy ApiRepository apiRepository
+        @Lazy ApiSpecGenQueryService apiSpecGenQueryService
     ) {
         this.cockpitConnector = cockpitConnector;
         this.installationService = installationService;
-        this.apiRepository = apiRepository;
+        this.apiSpecGenQueryService = apiSpecGenQueryService;
     }
 
     public Single<SpecGenRequestReply> getState(String apiId) {
-        try {
-            return performCommand(apiId, GET_STATE);
-        } catch (Exception e) {
-            log.error("An unexpected error has occurred", e);
-            return Single.just(new SpecGenRequestReply(null, ERROR, UNAVAILABLE));
-        }
+        return performCommand(apiId, GET_STATE);
     }
 
     public Single<SpecGenRequestReply> postJob(String apiId) {
-        try {
-            return performCommand(apiId, POST_JOB);
-        } catch (Exception e) {
-            log.error("An unexpected error has occurred", e);
-            return Single.just(new SpecGenRequestReply(null, ERROR, UNAVAILABLE));
-        }
+        return performCommand(apiId, POST_JOB);
     }
 
     @NotNull
-    @SneakyThrows
     private Single<SpecGenRequestReply> performCommand(String apiId, Operation operation) {
-        return apiRepository
-            .findById(apiId)
-            .filter(api -> PROXY.equals(api.getType()))
-            .map(api -> new SpecGenRequestCommand(buildPayload(api.getId(), operation)))
+        var context = getExecutionContext();
+
+        return apiSpecGenQueryService
+            .findByIdAndType(context, apiId, PROXY)
+            .map(api -> new SpecGenRequestCommand(buildPayload(context, api.getId(), operation)))
             .map(this::sendCommand)
             .orElse(Single.just(new SpecGenRequestReply(null, ERROR, UNAVAILABLE)));
     }
@@ -104,12 +95,11 @@ public class SpecGenProviderImpl implements SpecGenProvider {
     }
 
     @NotNull
-    private SpecGenCommandPayload<SpecGenRequest> buildPayload(String apiId, Operation operation) {
-        var executionContext = getExecutionContext();
+    private SpecGenCommandPayload<SpecGenRequest> buildPayload(ExecutionContext context, String apiId, Operation operation) {
         return new SpecGenCommandPayload<>(
             generateRandom(),
-            executionContext.getOrganizationId(),
-            executionContext.getEnvironmentId(),
+            context.getOrganizationId(),
+            context.getEnvironmentId(),
             installationService.get().getAdditionalInformation().get(COCKPIT_INSTALLATION_ID),
             new SpecGenRequest(apiId, OPEN_API, operation)
         );

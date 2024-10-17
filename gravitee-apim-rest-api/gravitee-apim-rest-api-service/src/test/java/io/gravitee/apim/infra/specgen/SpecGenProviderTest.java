@@ -16,7 +16,6 @@
 package io.gravitee.apim.infra.specgen;
 
 import static io.gravitee.cockpit.api.command.v1.CockpitCommandType.SPEC_GEN_REQUEST;
-import static io.gravitee.definition.model.v4.ApiType.MESSAGE;
 import static io.gravitee.definition.model.v4.ApiType.PROXY;
 import static io.gravitee.exchange.api.command.CommandStatus.ERROR;
 import static io.gravitee.exchange.api.command.CommandStatus.SUCCEEDED;
@@ -27,13 +26,14 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.specgen.query_service.ApiSpecGenQueryService;
 import io.gravitee.cockpit.api.CockpitConnector;
 import io.gravitee.cockpit.api.command.v1.specgen.request.SpecGenRequestReply;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.InstallationService;
@@ -57,10 +57,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-class SpecGenServiceTest {
+class SpecGenProviderTest {
 
     @Mock
-    ApiRepository apiRepository;
+    ApiSpecGenQueryService apiSpecGenQueryService;
 
     @Mock
     CockpitConnector cockpitConnector;
@@ -68,71 +68,19 @@ class SpecGenServiceTest {
     @Mock
     InstallationService installationService;
 
-    private SpecGenProviderImpl specGenService;
+    private SpecGenProviderImpl specGenProvider;
 
     @BeforeEach
     void setUp() {
-        specGenService = new SpecGenProviderImpl(cockpitConnector, installationService, apiRepository);
-    }
-
-    @Test
-    void must_return_unavailable_get_state_with_technical_exception() throws TechnicalException {
-        when(apiRepository.findById(any())).thenThrow(new TechnicalException("An unexpected error has occurred"));
-
-        specGenService
-            .getState(generateRandom())
-            .test()
-            .awaitDone(2, SECONDS)
-            .assertComplete()
-            .assertNoErrors()
-            .assertValue(reply -> isNull(reply.getCommandId()))
-            .assertValue(reply -> SPEC_GEN_REQUEST.name().equals(reply.getType()))
-            .assertValue(reply -> ERROR.equals(reply.getCommandStatus()))
-            .assertValue(reply -> UNAVAILABLE.equals(reply.getRequestState()));
-    }
-
-    @Test
-    void must_return_unavailable_post_job_with_technical_exception() throws TechnicalException {
-        when(apiRepository.findById(any())).thenThrow(new TechnicalException("An unexpected error has occurred"));
-
-        specGenService
-            .postJob(generateRandom())
-            .test()
-            .awaitDone(2, SECONDS)
-            .assertComplete()
-            .assertNoErrors()
-            .assertValue(reply -> isNull(reply.getCommandId()))
-            .assertValue(reply -> SPEC_GEN_REQUEST.name().equals(reply.getType()))
-            .assertValue(reply -> ERROR.equals(reply.getCommandStatus()))
-            .assertValue(reply -> UNAVAILABLE.equals(reply.getRequestState()));
+        specGenProvider = new SpecGenProviderImpl(cockpitConnector, installationService, apiSpecGenQueryService);
     }
 
     @Test
     void must_return_unavailable_get_state_with_absent_api() throws TechnicalException {
-        when(apiRepository.findById(any())).thenReturn(Optional.empty());
+        when(apiSpecGenQueryService.findByIdAndType(any(), any(), any())).thenReturn(Optional.empty());
 
-        specGenService
+        specGenProvider
             .getState(generateRandom())
-            .test()
-            .awaitDone(2, SECONDS)
-            .assertComplete()
-            .assertNoErrors()
-            .assertValue(reply -> isNull(reply.getCommandId()))
-            .assertValue(reply -> SPEC_GEN_REQUEST.name().equals(reply.getType()))
-            .assertValue(reply -> ERROR.equals(reply.getCommandStatus()))
-            .assertValue(reply -> UNAVAILABLE.equals(reply.getRequestState()));
-    }
-
-    @Test
-    void must_return_unavailable_get_state_with_non_proxy_api() throws TechnicalException {
-        var api = mock(Api.class);
-        when(api.getId()).thenReturn(generateRandom());
-        when(api.getType()).thenReturn(MESSAGE);
-
-        when(apiRepository.findById(api.getId())).thenReturn(Optional.of(api));
-
-        specGenService
-            .getState(api.getId())
             .test()
             .awaitDone(2, SECONDS)
             .assertComplete()
@@ -145,9 +93,9 @@ class SpecGenServiceTest {
 
     @Test
     void must_return_unavailable_post_job_with_absent_api() throws TechnicalException {
-        when(apiRepository.findById(any())).thenReturn(Optional.empty());
+        when(apiSpecGenQueryService.findByIdAndType(any(), any(), any())).thenReturn(Optional.empty());
 
-        specGenService
+        specGenProvider
             .postJob(generateRandom())
             .test()
             .awaitDone(2, SECONDS)
@@ -160,32 +108,13 @@ class SpecGenServiceTest {
     }
 
     @Test
-    void must_return_unavailable_post_job_with_non_proxy_api() throws TechnicalException {
+    void must_return_unavailable_get_state_with_get_state_sendCommand_error() {
+        final String apiId = generateRandom();
+
         var api = mock(Api.class);
-        when(api.getId()).thenReturn(generateRandom());
-        when(api.getType()).thenReturn(MESSAGE);
+        when(api.getId()).thenReturn(apiId);
 
-        when(apiRepository.findById(api.getId())).thenReturn(Optional.of(api));
-
-        specGenService
-            .postJob(api.getId())
-            .test()
-            .awaitDone(2, SECONDS)
-            .assertComplete()
-            .assertNoErrors()
-            .assertValue(reply -> isNull(reply.getCommandId()))
-            .assertValue(reply -> SPEC_GEN_REQUEST.name().equals(reply.getType()))
-            .assertValue(reply -> ERROR.equals(reply.getCommandStatus()))
-            .assertValue(reply -> UNAVAILABLE.equals(reply.getRequestState()));
-    }
-
-    @Test
-    void must_return_unavailable_get_state_with_get_state_sendCommand_error() throws TechnicalException {
-        var api = mock(Api.class);
-        when(api.getId()).thenReturn(generateRandom());
-        when(api.getType()).thenReturn(PROXY);
-
-        when(apiRepository.findById(api.getId())).thenReturn(Optional.of(api));
+        when(apiSpecGenQueryService.findByIdAndType(any(), eq(apiId), eq(PROXY))).thenReturn(Optional.of(api));
 
         var installationEntity = mock(InstallationEntity.class);
         var additionalInformation = Map.of(COCKPIT_INSTALLATION_ID, generateRandom());
@@ -196,8 +125,8 @@ class SpecGenServiceTest {
         when(cockpitConnector.sendCommand(any()))
             .thenReturn(Single.error(new IllegalArgumentException("An unexpected error has occurred")));
 
-        specGenService
-            .getState(api.getId())
+        specGenProvider
+            .getState(apiId)
             .test()
             .awaitDone(2, SECONDS)
             .assertComplete()
@@ -209,12 +138,13 @@ class SpecGenServiceTest {
     }
 
     @Test
-    void must_return_unavailable_get_state_with_post_job_sendCommand_error() throws TechnicalException {
-        var api = mock(Api.class);
-        when(api.getId()).thenReturn(generateRandom());
-        when(api.getType()).thenReturn(PROXY);
+    void must_return_unavailable_get_state_with_post_job_sendCommand_error() {
+        final String apiId = generateRandom();
 
-        when(apiRepository.findById(api.getId())).thenReturn(Optional.of(api));
+        var api = mock(Api.class);
+        when(api.getId()).thenReturn(apiId);
+
+        when(apiSpecGenQueryService.findByIdAndType(any(), eq(apiId), eq(PROXY))).thenReturn(Optional.of(api));
 
         var installationEntity = mock(InstallationEntity.class);
         var additionalInformation = Map.of(COCKPIT_INSTALLATION_ID, generateRandom());
@@ -225,8 +155,8 @@ class SpecGenServiceTest {
         when(cockpitConnector.sendCommand(any()))
             .thenReturn(Single.error(new IllegalArgumentException("An unexpected error has occurred")));
 
-        specGenService
-            .postJob(api.getId())
+        specGenProvider
+            .postJob(apiId)
             .test()
             .awaitDone(2, SECONDS)
             .assertComplete()
@@ -243,12 +173,13 @@ class SpecGenServiceTest {
 
     @ParameterizedTest
     @MethodSource("params_that_must_return_state_request_reply")
-    void must_return_state_based_on_get_state_request_reply(SpecGenRequestState state) throws TechnicalException {
-        var api = mock(Api.class);
-        when(api.getId()).thenReturn(generateRandom());
-        when(api.getType()).thenReturn(PROXY);
+    void must_return_state_based_on_get_state_request_reply(SpecGenRequestState state) {
+        final String apiId = generateRandom();
 
-        when(apiRepository.findById(api.getId())).thenReturn(Optional.of(api));
+        var api = mock(Api.class);
+        when(api.getId()).thenReturn(apiId);
+
+        when(apiSpecGenQueryService.findByIdAndType(any(), eq(apiId), eq(PROXY))).thenReturn(Optional.of(api));
 
         var installationEntity = mock(InstallationEntity.class);
         var additionalInformation = Map.of(COCKPIT_INSTALLATION_ID, generateRandom());
@@ -259,8 +190,8 @@ class SpecGenServiceTest {
         when(cockpitConnector.sendCommand(any()))
             .thenReturn(Single.just(new SpecGenRequestReply(UuidString.generateRandom(), SUCCEEDED, state)));
 
-        specGenService
-            .postJob(api.getId())
+        specGenProvider
+            .postJob(apiId)
             .test()
             .awaitDone(2, SECONDS)
             .assertComplete()
@@ -273,12 +204,12 @@ class SpecGenServiceTest {
 
     @ParameterizedTest
     @MethodSource("params_that_must_return_state_request_reply")
-    void must_return_state_based_on_post_job_request_reply(SpecGenRequestState state) throws TechnicalException {
+    void must_return_state_based_on_post_job_request_reply(SpecGenRequestState state) {
         var api = mock(Api.class);
-        when(api.getId()).thenReturn(generateRandom());
-        when(api.getType()).thenReturn(PROXY);
+        final String apiId = generateRandom();
+        when(api.getId()).thenReturn(apiId);
 
-        when(apiRepository.findById(api.getId())).thenReturn(Optional.of(api));
+        when(apiSpecGenQueryService.findByIdAndType(any(), eq(apiId), eq(PROXY))).thenReturn(Optional.of(api));
 
         var installationEntity = mock(InstallationEntity.class);
         var additionalInformation = Map.of(COCKPIT_INSTALLATION_ID, generateRandom());
@@ -289,8 +220,8 @@ class SpecGenServiceTest {
         when(cockpitConnector.sendCommand(any()))
             .thenReturn(Single.just(new SpecGenRequestReply(UuidString.generateRandom(), SUCCEEDED, state)));
 
-        specGenService
-            .postJob(api.getId())
+        specGenProvider
+            .postJob(apiId)
             .test()
             .awaitDone(2, SECONDS)
             .assertComplete()
