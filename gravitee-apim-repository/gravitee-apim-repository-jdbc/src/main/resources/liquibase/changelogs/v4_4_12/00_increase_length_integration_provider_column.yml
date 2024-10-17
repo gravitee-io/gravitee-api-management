@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.4.11_increase_length_integration_provider_column
+      author: GraviteeSource Team
+      changes:
+        - modifyDataType:
+            tableName: ${gravitee_prefix}integrations
+            columnName: provider
+            newDataType: nvarchar(64)
