@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { of } from 'rxjs';
+
 import ApiHistoryControllerAjs from './apiHistory.controller.ajs';
 
 describe('ApiHistoryControllerAjs', () => {
@@ -27,6 +29,7 @@ describe('ApiHistoryControllerAjs', () => {
   let ResourceServiceMock;
   let FlowServiceMock;
   let ngApiV2ServiceMock;
+  let ngGroupV2ServiceMock;
   let controller;
 
   enum Modes {
@@ -62,6 +65,7 @@ describe('ApiHistoryControllerAjs', () => {
     ResourceServiceMock = { list: jest.fn().mockResolvedValue({ data: [] }) };
     FlowServiceMock = { getConfigurationSchema: jest.fn().mockResolvedValue({ data: [] }) };
     ngApiV2ServiceMock = jest.fn();
+    ngGroupV2ServiceMock = { list: jest.fn().mockReturnValue(of({ data: [] })) };
 
     controller = new ApiHistoryControllerAjs(
       $mdDialogMock,
@@ -75,6 +79,7 @@ describe('ApiHistoryControllerAjs', () => {
       ResourceServiceMock,
       FlowServiceMock,
       ngApiV2ServiceMock,
+      ngGroupV2ServiceMock,
     );
   });
 
@@ -89,7 +94,14 @@ describe('ApiHistoryControllerAjs', () => {
   test('should trigger $onInit and load API data', async () => {
     await controller.$onInit();
     expect(ApiServiceMock.get).toHaveBeenCalledWith('123');
-    await Promise.resolve();
+    expect(ngGroupV2ServiceMock.list).toHaveBeenCalled();
+
+    await Promise.all([
+      ngGroupV2ServiceMock.list(1, 99999).toPromise(),
+      ApiServiceMock.get('123'),
+      ApiServiceMock.isAPISynchronized('123'),
+    ]);
+
     expect(controller.api).toEqual({ id: '123', name: 'test-api' });
   });
 
