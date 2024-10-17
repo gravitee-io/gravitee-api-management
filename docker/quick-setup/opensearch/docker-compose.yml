@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-version: '3.5'
+version: '3.8'
 
 networks:
   frontend:
@@ -38,24 +38,40 @@ services:
       - storage
 
   opensearch:
-    image: opensearchproject/opensearch:${OPENSEARCH_VERSION:-1.1.0}
-    container_name: gio_apim_opensearch
-    restart: always
-    volumes:
-      - data-opensearch:/usr/share/opensearch/data
+    image: opensearchproject/opensearch:latest
+    container_name: opensearch
     environment:
-      - http.host=0.0.0.0
-      - transport.host=0.0.0.0
-      - cluster.name=opensearch
+      - cluster.name=opensearch-cluster
+      - node.name=opensearch
+      - discovery.seed_hosts=opensearch
+      - cluster.initial_cluster_manager_nodes=opensearch
       - bootstrap.memory_lock=true
-      - discovery.type=single-node
-      - plugins.security.disabled=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "DISABLE_INSTALL_DEMO_CONFIG=true"
+      - "DISABLE_SECURITY_PLUGIN=true"
     ulimits:
       memlock:
         soft: -1
         hard: -1
-      nofile: 65536
+      nofile:
+        soft: 6553
+        hard: 65536
+    volumes:
+      - data-opensearch:/usr/share/opensearch/data
+    ports:
+      - 9200:9200
+      - 9600:9600
+    networks:
+      - storage
+
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:latest
+    container_name: opensearch-dashboards
+    ports:
+      - 5601:5601
+    environment:
+      - 'OPENSEARCH_HOSTS=["http://opensearch:9200"]'
+      - "DISABLE_SECURITY_DASHBOARDS_PLUGIN=true"
     networks:
       - storage
 
