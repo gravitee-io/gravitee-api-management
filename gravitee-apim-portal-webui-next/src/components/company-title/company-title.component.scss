@@ -21,6 +21,7 @@
   white-space: nowrap;
 }
 
-.company-logo {
-  height: 36px;
+.company-logo > img {
+  display: flex;
+  max-height: 36px;
 }
