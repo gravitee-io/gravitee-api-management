@@ -24,6 +24,7 @@ import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
+import io.gravitee.apim.core.plugin.model.FlowPhase;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupHistoryCrudService;
@@ -338,7 +339,7 @@ public class InitializeSharedPolicyGroupUseCase {
             .organizationId(input.organizationId())
             .environmentId(input.environmentId())
             .apiType(ApiType.PROXY)
-            .phase(PolicyPlugin.ExecutionPhase.REQUEST)
+            .phase(FlowPhase.REQUEST)
             .version(0)
             .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.DEPLOYED)
             .deployedAt(TimeProvider.now())

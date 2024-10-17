@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.shared_policy_group.model;
 
+import io.gravitee.apim.core.plugin.model.FlowPhase;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.definition.model.v4.ApiType;
 import lombok.AccessLevel;
@@ -55,7 +56,7 @@ public class SharedPolicyGroupPolicyPlugin {
     /**
      * The shared policy group phase
      */
-    private PolicyPlugin.ExecutionPhase phase;
+    private FlowPhase phase;
 
     /**
      * The policy id to use in steps definition

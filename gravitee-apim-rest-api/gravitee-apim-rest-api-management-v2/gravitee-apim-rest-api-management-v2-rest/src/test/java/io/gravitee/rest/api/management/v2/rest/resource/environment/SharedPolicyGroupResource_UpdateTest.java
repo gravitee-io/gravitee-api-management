@@ -33,7 +33,7 @@ import fixtures.core.model.SharedPolicyGroupFixtures;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGroupUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
-import io.gravitee.rest.api.management.v2.rest.model.ExecutionPhase;
+import io.gravitee.rest.api.management.v2.rest.model.FlowPhase;
 import io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroupLifecycleState;
 import io.gravitee.rest.api.management.v2.rest.model.StepV4;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -111,10 +111,7 @@ public class SharedPolicyGroupResource_UpdateTest extends AbstractResourceTest {
                 SharedPolicyGroupLifecycleState.fromValue(SharedPolicyGroupFixtures.aSharedPolicyGroup().getLifecycleState().name())
             )
             .hasFieldOrPropertyWithValue("apiType", ApiType.fromValue(SharedPolicyGroupFixtures.aSharedPolicyGroup().getApiType().name()))
-            .hasFieldOrPropertyWithValue(
-                "phase",
-                ExecutionPhase.fromValue(SharedPolicyGroupFixtures.aSharedPolicyGroup().getPhase().name())
-            )
+            .hasFieldOrPropertyWithValue("phase", FlowPhase.fromValue(SharedPolicyGroupFixtures.aSharedPolicyGroup().getPhase().name()))
             .satisfies(sharedPolicyGroup -> {
                 Assertions
                     .assertThat(sharedPolicyGroup.getSteps())

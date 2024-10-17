@@ -439,12 +439,12 @@ components:
                           type: array
                           uniqueItems: true
                           items:
-                              $ref: "#/components/schemas/ExecutionPhase"
+                              $ref: "./openapi-plugins.yaml#/components/schemas/FlowPhase"
                       message:
                           type: array
                           uniqueItems: true
                           items:
-                              $ref: "#/components/schemas/ExecutionPhase"
+                              $ref: "./openapi-plugins.yaml#/components/schemas/FlowPhase"
         PlatformPlugin:
             type: object
             properties:
@@ -515,15 +515,6 @@ components:
                 - SUBSCRIBE
                 - PUBLISH
                 - REQUEST_RESPONSE
-        ExecutionPhase:
-            type: string
-            description: The execution phase of a policy.
-            example: REQUEST
-            enum:
-                - REQUEST
-                - RESPONSE
-                - MESSAGE_REQUEST
-                - MESSAGE_RESPONSE
         Qos:
             type: string
             description: Type of the quality of service.

@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.SharedPolicyGroupFixtures;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.plugin.model.FlowPhase;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupNotFoundException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
@@ -124,7 +125,7 @@ public class SharedPolicyGroupCrudServiceImplTest {
                             Step.builder().policy("my-policy").name("my-step-2").build()
                         )
                     );
-                soft.assertThat(result.getPhase()).isEqualTo(PolicyPlugin.ExecutionPhase.REQUEST);
+                soft.assertThat(result.getPhase()).isEqualTo(FlowPhase.REQUEST);
                 soft.assertThat(result.getDeployedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(result.getCreatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(result.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
@@ -291,7 +292,7 @@ public class SharedPolicyGroupCrudServiceImplTest {
                             Step.builder().policy("my-policy").name("my-step-2").build()
                         )
                     );
-                soft.assertThat(result.getPhase()).isEqualTo(PolicyPlugin.ExecutionPhase.REQUEST);
+                soft.assertThat(result.getPhase()).isEqualTo(FlowPhase.REQUEST);
                 soft.assertThat(result.getDeployedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(result.getCreatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(result.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
@@ -311,7 +312,7 @@ public class SharedPolicyGroupCrudServiceImplTest {
             .description("sharedPolicyGroup-description")
             .version(1)
             .apiType(ApiType.PROXY)
-            .phase(io.gravitee.repository.management.model.SharedPolicyGroup.ExecutionPhase.REQUEST)
+            .phase(io.gravitee.repository.management.model.SharedPolicyGroup.FlowPhase.REQUEST)
             .definition(
                 """
                         {

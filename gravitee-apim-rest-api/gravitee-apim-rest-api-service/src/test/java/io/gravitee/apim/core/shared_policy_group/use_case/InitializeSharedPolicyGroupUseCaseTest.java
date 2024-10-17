@@ -24,6 +24,7 @@ import inmemory.EventLatestCrudInMemory;
 import inmemory.PolicyPluginCrudServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.SharedPolicyGroupHistoryCrudServiceInMemory;
+import io.gravitee.apim.core.plugin.model.FlowPhase;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
@@ -110,23 +111,9 @@ public class InitializeSharedPolicyGroupUseCaseTest {
                 SharedPolicyGroup::getEnvironmentId
             )
             .containsExactly(
-                tuple("\uD83E\uDD16 AI - Redirect to HuggingFace", DEPLOYED, 0, ApiType.PROXY, PolicyPlugin.ExecutionPhase.REQUEST, ENV_ID),
-                tuple(
-                    "\uD83E\uDD16 AI - Prompt Templating Example",
-                    DEPLOYED,
-                    0,
-                    ApiType.PROXY,
-                    PolicyPlugin.ExecutionPhase.REQUEST,
-                    ENV_ID
-                ),
-                tuple(
-                    "\uD83E\uDD16 AI - Rate Limit & Request token limit",
-                    DEPLOYED,
-                    0,
-                    ApiType.PROXY,
-                    PolicyPlugin.ExecutionPhase.REQUEST,
-                    ENV_ID
-                )
+                tuple("\uD83E\uDD16 AI - Redirect to HuggingFace", DEPLOYED, 0, ApiType.PROXY, FlowPhase.REQUEST, ENV_ID),
+                tuple("\uD83E\uDD16 AI - Prompt Templating Example", DEPLOYED, 0, ApiType.PROXY, FlowPhase.REQUEST, ENV_ID),
+                tuple("\uD83E\uDD16 AI - Rate Limit & Request token limit", DEPLOYED, 0, ApiType.PROXY, FlowPhase.REQUEST, ENV_ID)
             );
 
         // - Check events

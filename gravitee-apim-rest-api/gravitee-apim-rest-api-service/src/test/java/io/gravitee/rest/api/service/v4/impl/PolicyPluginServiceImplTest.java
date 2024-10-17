@@ -27,7 +27,7 @@ import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
-import io.gravitee.rest.api.model.v4.policy.ExecutionPhase;
+import io.gravitee.rest.api.model.v4.policy.FlowPhase;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
@@ -139,8 +139,8 @@ public class PolicyPluginServiceImplTest {
         assertEquals(1, result.size());
         PolicyPluginEntity policyPlugin = result.iterator().next();
         assertEquals(PLUGIN_ID, policyPlugin.getId());
-        assertEquals(Set.of(ExecutionPhase.REQUEST), policyPlugin.getProxy());
-        assertEquals(Set.of(ExecutionPhase.MESSAGE_REQUEST), policyPlugin.getMessage());
+        assertEquals(Set.of(FlowPhase.REQUEST), policyPlugin.getProxy());
+        assertEquals(Set.of(FlowPhase.MESSAGE_REQUEST), policyPlugin.getMessage());
     }
 
     @Test

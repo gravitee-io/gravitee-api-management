@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.domain_service.policy;
 
+import io.gravitee.apim.core.plugin.model.FlowPhase;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.policy.exception.UnexpectedPoliciesException;
@@ -41,8 +42,7 @@ public class PolicyValidationDomainServiceLegacyWrapper implements PolicyValidat
     }
 
     @Override
-    public void validatePoliciesExecutionPhase(List<String> policyIds, ApiType apiType, PolicyPlugin.ExecutionPhase phase)
-        throws UnexpectedPoliciesException {
+    public void validatePoliciesFlowPhase(List<String> policyIds, ApiType apiType, FlowPhase phase) throws UnexpectedPoliciesException {
         Map<String, PolicyPluginEntity> policiesMap = policyPluginService
             .findAll()
             .stream()

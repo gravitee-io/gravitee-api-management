@@ -80,7 +80,7 @@ public class SharedPolicyGroup {
     /**
      * The shared policy group phase
      */
-    private ExecutionPhase phase;
+    private FlowPhase phase;
     /**
      * The shared policy group JSON definition
      */
@@ -135,10 +135,14 @@ public class SharedPolicyGroup {
         SHARED_POLICY_GROUP_DELETED,
     }
 
-    public enum ExecutionPhase {
+    public enum FlowPhase {
         REQUEST,
         RESPONSE,
         MESSAGE_REQUEST,
         MESSAGE_RESPONSE,
+        INTERACT,
+        CONNECT,
+        PUBLISH,
+        SUBSCRIBE,
     }
 }

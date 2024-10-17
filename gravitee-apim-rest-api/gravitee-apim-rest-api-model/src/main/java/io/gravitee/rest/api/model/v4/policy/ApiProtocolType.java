@@ -13,23 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.plugin.model;
+package io.gravitee.rest.api.model.v4.policy;
 
-import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
-@AllArgsConstructor
-@SuperBuilder(toBuilder = true)
-public class PolicyPlugin extends PlatformPlugin {
-
-    private Set<FlowPhase> proxy;
-
-    private Set<FlowPhase> message;
+public enum ApiProtocolType {
+    HTTP_PROXY,
+    HTTP_MESSAGE,
+    NATIVE_KAFKA,
 }

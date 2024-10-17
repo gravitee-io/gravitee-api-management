@@ -1,0 +1,46 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.apim.core.plugin.model;
+
+import java.util.Arrays;
+import java.util.List;
+import lombok.Getter;
+
+@Getter
+public enum FlowPhase {
+    INTERACT(ApiProtocolType.NATIVE_KAFKA),
+    CONNECT(ApiProtocolType.NATIVE_KAFKA),
+    PUBLISH(ApiProtocolType.NATIVE_KAFKA, ApiProtocolType.HTTP_MESSAGE),
+    SUBSCRIBE(ApiProtocolType.NATIVE_KAFKA, ApiProtocolType.HTTP_MESSAGE),
+    REQUEST(ApiProtocolType.NATIVE_KAFKA, ApiProtocolType.HTTP_PROXY, ApiProtocolType.HTTP_MESSAGE),
+    RESPONSE(ApiProtocolType.NATIVE_KAFKA, ApiProtocolType.HTTP_PROXY, ApiProtocolType.HTTP_MESSAGE),
+    /**
+     * @deprecated use {@link FlowPhase#PUBLISH} instead
+     */
+    @Deprecated
+    MESSAGE_REQUEST,
+    /**
+     * @deprecated use {@link FlowPhase#SUBSCRIBE} instead
+     */
+    @Deprecated
+    MESSAGE_RESPONSE;
+
+    private final List<ApiProtocolType> apiProtocolType;
+
+    FlowPhase(ApiProtocolType... apiProtocolType) {
+        this.apiProtocolType = Arrays.asList(apiProtocolType);
+    }
+}

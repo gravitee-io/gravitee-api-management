@@ -108,7 +108,7 @@ public class CreateSharedPolicyGroupUseCase {
                     )
                 );
 
-            policyValidationDomainService.validatePoliciesExecutionPhase(
+            policyValidationDomainService.validatePoliciesFlowPhase(
                 sharedPolicyGroupToCreate.getSteps().stream().map(Step::getPolicy).toList(),
                 sharedPolicyGroupToCreate.getApiType(),
                 sharedPolicyGroupToCreate.getPhase()

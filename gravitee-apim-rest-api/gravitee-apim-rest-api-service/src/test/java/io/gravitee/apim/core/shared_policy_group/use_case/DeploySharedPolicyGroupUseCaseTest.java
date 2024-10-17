@@ -31,6 +31,7 @@ import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.core.plugin.model.FlowPhase;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupNotFoundException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
@@ -120,7 +121,7 @@ class DeploySharedPolicyGroupUseCaseTest {
         final SharedPolicyGroup existingSharedPolicyGroup = SharedPolicyGroup
             .builder()
             .environmentId(ENV_ID)
-            .phase(PolicyPlugin.ExecutionPhase.REQUEST)
+            .phase(FlowPhase.REQUEST)
             .id(SHARED_POLICY_GROUP_ID)
             .crossId(SHARED_POLICY_GROUP_CROSS_ID)
             .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)

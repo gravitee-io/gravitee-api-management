@@ -15,6 +15,7 @@
  */
 package fakes;
 
+import io.gravitee.apim.core.plugin.model.FlowPhase;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.policy.exception.UnexpectedPoliciesException;
@@ -33,8 +34,7 @@ public class FakePolicyValidationDomainService implements PolicyValidationDomain
     }
 
     @Override
-    public void validatePoliciesExecutionPhase(List<String> policyIds, ApiType apiType, PolicyPlugin.ExecutionPhase phase)
-        throws UnexpectedPoliciesException {
+    public void validatePoliciesFlowPhase(List<String> policyIds, ApiType apiType, FlowPhase phase) throws UnexpectedPoliciesException {
         policyIds.forEach(policyId -> {
             if (policyId.contains("throw_unexpected_policy_exception")) {
                 throw new UnexpectedPoliciesException(List.of(policyId), apiType.name(), phase.name());

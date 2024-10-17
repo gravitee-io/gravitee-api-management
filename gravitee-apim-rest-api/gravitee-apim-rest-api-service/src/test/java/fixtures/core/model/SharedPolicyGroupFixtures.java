@@ -15,6 +15,7 @@
  */
 package fixtures.core.model;
 
+import io.gravitee.apim.core.plugin.model.FlowPhase;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.shared_policy_group.model.CreateSharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
@@ -44,7 +45,7 @@ public class SharedPolicyGroupFixtures {
             .apiType(ApiType.MESSAGE)
             .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.DEPLOYED)
             .steps(List.of(Step.builder().policy("policyId").name("Step name").configuration("{\"key\":\"value\"}").build()))
-            .phase(PolicyPlugin.ExecutionPhase.REQUEST)
+            .phase(FlowPhase.REQUEST)
             .deployedAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
             .createdAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
             .updatedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()));
@@ -54,7 +55,7 @@ public class SharedPolicyGroupFixtures {
     }
 
     private static final Supplier<CreateSharedPolicyGroup.CreateSharedPolicyGroupBuilder> CREATE_BASE = () ->
-        CreateSharedPolicyGroup.builder().name("name").apiType(ApiType.MESSAGE).phase(PolicyPlugin.ExecutionPhase.REQUEST);
+        CreateSharedPolicyGroup.builder().name("name").apiType(ApiType.MESSAGE).phase(FlowPhase.REQUEST);
 
     public static CreateSharedPolicyGroup aCreateSharedPolicyGroup() {
         return CREATE_BASE.get().build();
@@ -76,7 +77,7 @@ public class SharedPolicyGroupFixtures {
             .name("name")
             .description("description")
             .apiType(ApiType.MESSAGE)
-            .phase(PolicyPlugin.ExecutionPhase.MESSAGE_RESPONSE)
+            .phase(FlowPhase.MESSAGE_RESPONSE)
             .policyId("shared-policy-group-policy")
             .build();
     }

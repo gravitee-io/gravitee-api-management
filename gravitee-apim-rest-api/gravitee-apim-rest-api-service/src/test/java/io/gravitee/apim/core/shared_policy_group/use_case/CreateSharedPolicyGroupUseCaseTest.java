@@ -27,6 +27,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
+import io.gravitee.apim.core.plugin.model.FlowPhase;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.policy.exception.UnexpectedPoliciesException;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupDuplicateCrossIdException;
@@ -295,7 +296,7 @@ public class CreateSharedPolicyGroupUseCaseTest {
         // Given
         var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup();
         toCreate.setApiType(ApiType.PROXY);
-        toCreate.setPhase(PolicyPlugin.ExecutionPhase.MESSAGE_RESPONSE);
+        toCreate.setPhase(FlowPhase.MESSAGE_RESPONSE);
 
         // When
         var throwable = Assertions.catchThrowable(() ->
