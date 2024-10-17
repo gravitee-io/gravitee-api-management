@@ -19,8 +19,10 @@ version: '3.8'
 networks:
   frontend:
     name: frontend
+    external: true
   storage:
     name: storage
+    external: true
 
 volumes:
   data-elasticsearch:
@@ -70,7 +72,7 @@ services:
       - storage
 
   alert_engine:
-    image: graviteeio/ae-engine:${AE_VERSION:-2.1.5}
+    image: graviteeio/ae-engine:${AE_VERSION:-2.1.6}
     container_name: gio_ae_engine
     restart: always
     ports:
@@ -101,6 +103,12 @@ services:
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
       - gravitee_plugins_path_0=$${gravitee.home}/plugins
       - gravitee_plugins_path_1=$${gravitee.home}/plugins-ext
+      # AE configuration
+      - gravitee_alerts_alert-engine_enabled=true
+      - gravitee_alerts_alert-engine_ws_discovery=true
+      - gravitee_alerts_alert-engine_ws_endpoints[0]=http://host.docker.internal:8072/
+      - gravitee_alerts_alert-engine_ws_security_username=admin
+      - gravitee_alerts_alert-engine_ws_security_password=adminadmin
     networks:
       - storage
       - frontend
@@ -126,13 +134,14 @@ services:
     environment:
       - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
-      - gravitee_alerts_alert-engine_enabled=true
-      - gravitee_alerts_alert-engine_ws_discovery=true
-      - gravitee_alerts_alert-engine_ws_endpoints[0]=http://alert-engine:8072/
-      - gravitee_alerts_alert-engine_ws_security_username=admin
-      - gravitee_alerts_alert-engine_ws_security_password=adminadmin
       - gravitee_plugins_path_0=$${gravitee.home}/plugins
       - gravitee_plugins_path_1=$${gravitee.home}/plugins-ext
+      # AE configuration
+      - gravitee_alerts_alert-engine_enabled=true
+      - gravitee_alerts_alert-engine_ws_discovery=true
+      - gravitee_alerts_alert-engine_ws_endpoints[0]=http://host.docker.internal:8072/
+      - gravitee_alerts_alert-engine_ws_security_username=admin
+      - gravitee_alerts_alert-engine_ws_security_password=adminadmin
     networks:
       - storage
       - frontend
