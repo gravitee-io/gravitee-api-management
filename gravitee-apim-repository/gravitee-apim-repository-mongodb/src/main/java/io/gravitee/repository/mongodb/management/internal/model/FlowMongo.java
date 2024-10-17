@@ -88,6 +88,14 @@ public class FlowMongo extends Auditable {
      */
     private List<FlowStep> publish = new ArrayList<>();
     /**
+     * Flow interact steps
+     */
+    private List<FlowStep> interact = new ArrayList<>();
+    /**
+     * Flow connect steps
+     */
+    private List<FlowStep> connect = new ArrayList<>();
+    /**
      * Flow state
      */
     private boolean enabled;
@@ -148,6 +156,16 @@ public class FlowMongo extends Auditable {
 
     public FlowMongo setPublish(final List<FlowStep> publish) {
         this.publish = publish;
+        return this;
+    }
+
+    public FlowMongo setInteract(final List<FlowStep> interact) {
+        this.interact = interact;
+        return this;
+    }
+
+    public FlowMongo setConnect(final List<FlowStep> connect) {
+        this.connect = connect;
         return this;
     }
 
