@@ -51,6 +51,12 @@
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
+            <!--
+                Even if MapStruct is required at runtime, it is set as provided to avoid being added in plugin zip files
+                It is however declared as 'runtime' in Rest API & Gateway in:
+                  - Standalone container, to be used with `java -jar` command
+                  - Standalone distribution, to be used with the docker images
+            -->
             <scope>provided</scope>
         </dependency>
         <dependency>
