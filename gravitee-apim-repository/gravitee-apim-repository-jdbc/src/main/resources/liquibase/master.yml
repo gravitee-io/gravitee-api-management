@@ -195,3 +195,5 @@ databaseChangeLog:
       - file: liquibase/changelogs/v4_4_4/00_drop_not_null_constraint.yml
   - include:
       - file: liquibase/changelogs/v4_4_10/00_add_media_org_env.yml
+  - include:
+      - file: liquibase/changelogs/v4_4_12/00_increase_length_integration_provider_column.yml
