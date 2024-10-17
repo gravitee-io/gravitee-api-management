@@ -70,9 +70,14 @@
         </p>
         <mat-form-field class="cors-card__allow-methods__form-field">
           <mat-label>Access-Control-Allow-Methods</mat-label>
-          <mat-select formControlName="allowMethods" multiple>
-            <mat-option *ngFor="let method of httpMethods" [value]="method">{{ method }}</mat-option>
-          </mat-select>
+          <gio-form-tags-input
+            aria-label="Allow-Methods selection"
+            formControlName="allowMethods"
+            placeholder="GET, POST, ..."
+            [addOnBlur]="false"
+            [autocompleteOptions]="httpMethods"
+          >
+          </gio-form-tags-input>
         </mat-form-field>
       </div>
 

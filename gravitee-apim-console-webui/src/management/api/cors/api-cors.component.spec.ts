@@ -20,7 +20,6 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { GioFormTagsInputHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
@@ -101,14 +100,14 @@ describe('ApiCorsComponent', () => {
       const allowOriginInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="allowOrigin"]' }));
       expect(await allowOriginInput.isDisabled()).toEqual(true);
 
-      const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="allowMethods"]' }));
+      const allowMethodsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="allowMethods"]' }));
       expect(await allowMethodsInput.isDisabled()).toEqual(true);
 
       // Enable Cors & set some values
       await enabledSlideToggle.toggle();
 
       await allowOriginInput.addTag('toto');
-      await allowMethodsInput.clickOptions({ text: 'GET' });
+      await allowMethodsInput.addTag('GET');
 
       expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
       await saveBar.clickSubmit();
@@ -155,8 +154,8 @@ describe('ApiCorsComponent', () => {
       expect(await allowOriginInput.getTags()).toEqual(['allowOrigin']);
       await allowOriginInput.removeTag('allowOrigin');
 
-      const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="allowMethods"]' }));
-      await allowMethodsInput.clickOptions({ text: 'GET' });
+      const allowMethodsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="allowMethods"]' }));
+      await allowMethodsInput.removeTag('GET');
 
       const allowHeadersInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="allowHeaders"]' }));
       expect(await allowHeadersInput.getTags()).toEqual(['allowHeaders']);
@@ -254,7 +253,7 @@ describe('ApiCorsComponent', () => {
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isVisible()).toBe(false);
 
-      const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="allowMethods"]' }));
+      const allowMethodsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="allowMethods"]' }));
       expect(await allowMethodsInput.isDisabled()).toEqual(true);
 
       const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
@@ -281,14 +280,14 @@ describe('ApiCorsComponent', () => {
       const allowOriginInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="allowOrigin"]' }));
       expect(await allowOriginInput.isDisabled()).toEqual(true);
 
-      const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="allowMethods"]' }));
+      const allowMethodsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="allowMethods"]' }));
       expect(await allowMethodsInput.isDisabled()).toEqual(true);
 
       // Enable Cors & set some values
       await enabledSlideToggle.toggle();
 
       await allowOriginInput.addTag('toto');
-      await allowMethodsInput.clickOptions({ text: 'GET' });
+      await allowMethodsInput.addTag('GET');
 
       expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
       await saveBar.clickSubmit();
@@ -332,14 +331,14 @@ describe('ApiCorsComponent', () => {
       const allowOriginInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="allowOrigin"]' }));
       expect(await allowOriginInput.isDisabled()).toEqual(true);
 
-      const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="allowMethods"]' }));
+      const allowMethodsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="allowMethods"]' }));
       expect(await allowMethodsInput.isDisabled()).toEqual(true);
 
       // Enable Cors & set some values
       await enabledSlideToggle.toggle();
 
       await allowOriginInput.addTag('toto');
-      await allowMethodsInput.clickOptions({ text: 'GET' });
+      await allowMethodsInput.addTag('GET');
 
       expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
       await saveBar.clickSubmit();
@@ -392,8 +391,8 @@ describe('ApiCorsComponent', () => {
       expect(await allowOriginInput.getTags()).toEqual(['allowOrigin']);
       await allowOriginInput.removeTag('allowOrigin');
 
-      const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="allowMethods"]' }));
-      await allowMethodsInput.clickOptions({ text: 'GET' });
+      const allowMethodsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="allowMethods"]' }));
+      await allowMethodsInput.removeTag('GET');
 
       const allowHeadersInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="allowHeaders"]' }));
       expect(await allowHeadersInput.getTags()).toEqual(['allowHeaders']);
@@ -485,7 +484,7 @@ describe('ApiCorsComponent', () => {
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isVisible()).toBe(false);
 
-      const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="allowMethods"]' }));
+      const allowMethodsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="allowMethods"]' }));
       expect(await allowMethodsInput.isDisabled()).toEqual(true);
 
       const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));

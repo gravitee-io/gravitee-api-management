@@ -36,7 +36,7 @@ import { ConnectorPluginsV2Service } from '../../../services-ngx/connector-plugi
 export class ApiCorsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  public httpMethods = CorsUtil.httpMethods;
+  public httpMethods = CorsUtil.httpMethods.map((e) => e);
   public defaultHttpHeaders = CorsUtil.defaultHttpHeaders.map((e) => e);
   public corsForm: UntypedFormGroup;
   public initialCorsFormValue: unknown;
