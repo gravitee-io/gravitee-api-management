@@ -18,6 +18,7 @@ package io.gravitee.apim.core.shared_policy_group.model;
 import static java.util.Collections.emptyList;
 import static java.util.Optional.ofNullable;
 
+import io.gravitee.apim.core.plugin.model.FlowPhase;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.ApiType;
@@ -77,7 +78,7 @@ public class SharedPolicyGroup {
     /**
      * The shared policy group phase
      */
-    private PolicyPlugin.ExecutionPhase phase;
+    private FlowPhase phase;
     /**
      * The shared policy group steps
      */
@@ -211,13 +212,13 @@ public class SharedPolicyGroup {
 
     public boolean hasValidPhase() {
         if (this.apiType == ApiType.PROXY) {
-            return this.phase == PolicyPlugin.ExecutionPhase.REQUEST || this.phase == PolicyPlugin.ExecutionPhase.RESPONSE;
+            return this.phase == FlowPhase.REQUEST || this.phase == FlowPhase.RESPONSE;
         } else if (this.apiType == ApiType.MESSAGE) {
             return (
-                this.phase == PolicyPlugin.ExecutionPhase.REQUEST ||
-                this.phase == PolicyPlugin.ExecutionPhase.RESPONSE ||
-                this.phase == PolicyPlugin.ExecutionPhase.MESSAGE_REQUEST ||
-                this.phase == PolicyPlugin.ExecutionPhase.MESSAGE_RESPONSE
+                this.phase == FlowPhase.REQUEST ||
+                this.phase == FlowPhase.RESPONSE ||
+                this.phase == FlowPhase.MESSAGE_REQUEST ||
+                this.phase == FlowPhase.MESSAGE_RESPONSE
             );
         }
         return false;
@@ -234,7 +235,7 @@ public class SharedPolicyGroup {
         private String prerequisiteMessage;
         private Integer version;
         private ApiType apiType;
-        private PolicyPlugin.ExecutionPhase phase;
+        private FlowPhase phase;
         private List<Step> steps;
         private ZonedDateTime deployedAt;
         private ZonedDateTime createdAt;
@@ -288,7 +289,7 @@ public class SharedPolicyGroup {
             return this;
         }
 
-        public SharedPolicyGroupBuilder phase(PolicyPlugin.ExecutionPhase phase) {
+        public SharedPolicyGroupBuilder phase(FlowPhase phase) {
             this.phase = phase;
             return this;
         }

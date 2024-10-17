@@ -518,12 +518,12 @@ components:
                           type: array
                           uniqueItems: true
                           items:
-                              $ref: "#/components/schemas/ExecutionPhase"
+                              $ref: "#/components/schemas/FlowPhase"
                       message:
                           type: array
                           uniqueItems: true
                           items:
-                              $ref: "#/components/schemas/ExecutionPhase"
+                              $ref: "#/components/schemas/FlowPhase"
         ResourcePlugin:
           type: object
           allOf:
@@ -598,7 +598,7 @@ components:
                 - SUBSCRIBE
                 - PUBLISH
                 - REQUEST_RESPONSE
-        ExecutionPhase:
+        FlowPhase:
             type: string
             description: The execution phase of a policy.
             example: REQUEST
@@ -607,6 +607,10 @@ components:
                 - RESPONSE
                 - MESSAGE_REQUEST
                 - MESSAGE_RESPONSE
+                - INTERACT
+                - CONNECT
+                - PUBLISH
+                - SUBSCRIBE
         Qos:
             type: string
             description: Type of the quality of service.

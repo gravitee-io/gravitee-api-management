@@ -1,6 +1,7 @@
 ### FIXME: Kafka Gateway - to remove, just a helper for early stage of the subject
 ### POST a native API, body is optional
 POST http://localhost:8083/management/v2/environments/DEFAULT/nativeevents
+Authorization: Basic admin admin
 Content-Type: application/json
 
 {
@@ -10,8 +11,8 @@ Content-Type: application/json
   "listeners": [
     {
       "type": "kafka",
-      "entrypoints": [],
-      "host": "localhost",
+      "entrypoints": [ ],
+      "host": "kafka.local",
       "port": 9092
     }
   ],
@@ -43,12 +44,29 @@ Content-Type: application/json
         "configuration": {}
       },
       "mode": "standard",
-      "tags": [],
+      "tags": [ ],
       "status": "published",
-      "flows": []
+      "flows": [ ]
     }
   ],
-  "flows": []
+  "flows": [
+    {
+      "id": "10a07215-5369-4826-a072-1553695826bh",
+      "name": "default",
+      "enabled": true,
+      "connect": [ ],
+      "all": [
+        {
+          "name": "Debug Log policy",
+          "enabled": true,
+          "policy": "debug-log",
+          "configuration": {}
+        }
+      ],
+      "subscribe": [ ],
+      "publish": [ ]
+    }
+  ]
 }
 
 ###

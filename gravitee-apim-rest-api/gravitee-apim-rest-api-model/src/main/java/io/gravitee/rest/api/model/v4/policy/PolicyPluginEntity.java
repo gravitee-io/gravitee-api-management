@@ -29,7 +29,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 public class PolicyPluginEntity extends PlatformPluginEntity {
 
-    private Set<ExecutionPhase> proxy;
+    private Set<FlowPhase> proxy;
 
-    private Set<ExecutionPhase> message;
+    private Set<FlowPhase> message;
 }

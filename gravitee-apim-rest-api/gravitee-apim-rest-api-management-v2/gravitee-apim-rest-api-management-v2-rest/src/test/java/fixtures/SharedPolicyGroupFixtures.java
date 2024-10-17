@@ -17,7 +17,7 @@ package fixtures;
 
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.CreateSharedPolicyGroup;
-import io.gravitee.rest.api.management.v2.rest.model.ExecutionPhase;
+import io.gravitee.rest.api.management.v2.rest.model.FlowPhase;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateSharedPolicyGroup;
 
 @SuppressWarnings("ALL")
@@ -29,7 +29,7 @@ public class SharedPolicyGroupFixtures {
         .builder()
         .name("My Shared Policy Group")
         .apiType(ApiType.PROXY)
-        .phase(ExecutionPhase.REQUEST);
+        .phase(FlowPhase.REQUEST);
 
     public static CreateSharedPolicyGroup aCreateSharedPolicyGroup() {
         return CREATE_BASE.build();

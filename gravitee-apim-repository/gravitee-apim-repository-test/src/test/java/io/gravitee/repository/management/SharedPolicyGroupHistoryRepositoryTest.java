@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.search.SharedPolicyGroupCriteria;
 import io.gravitee.repository.management.api.search.SharedPolicyGroupHistoryCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
@@ -319,7 +318,7 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
             .description("description")
             .crossId("crossId_" + id)
             .apiType(ApiType.PROXY)
-            .phase(SharedPolicyGroup.ExecutionPhase.REQUEST)
+            .phase(SharedPolicyGroup.FlowPhase.REQUEST)
             .definition("definition")
             .lifecycleState(SharedPolicyGroupLifecycleState.UNDEPLOYED)
             .environmentId("environmentId")

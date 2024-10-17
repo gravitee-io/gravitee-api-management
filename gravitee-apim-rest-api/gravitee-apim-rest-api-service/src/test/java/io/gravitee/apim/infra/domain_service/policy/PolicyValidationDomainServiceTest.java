@@ -18,10 +18,9 @@ package io.gravitee.apim.infra.domain_service.policy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.policy.exception.UnexpectedPoliciesException;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.rest.api.model.v4.policy.ExecutionPhase;
+import io.gravitee.rest.api.model.v4.policy.FlowPhase;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import java.util.List;
@@ -36,7 +35,7 @@ class PolicyValidationDomainServiceTest {
     PolicyValidationDomainServiceLegacyWrapper service = new PolicyValidationDomainServiceLegacyWrapper(policyPluginService);
 
     @Nested
-    class validatePoliciesExecutionPhase {
+    class validatePoliciesFlowPhase {
 
         @Test
         void should_validate() {
@@ -44,12 +43,16 @@ class PolicyValidationDomainServiceTest {
             when(policyPluginService.findAll())
                 .thenReturn(
                     Set.of(
-                        PolicyPluginEntity.builder().id("policy-1").proxy(Set.of(ExecutionPhase.REQUEST, ExecutionPhase.RESPONSE)).build(),
-                        PolicyPluginEntity.builder().id("policy-2").proxy(Set.of(ExecutionPhase.REQUEST)).build()
+                        PolicyPluginEntity.builder().id("policy-1").proxy(Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE)).build(),
+                        PolicyPluginEntity.builder().id("policy-2").proxy(Set.of(FlowPhase.REQUEST)).build()
                     )
                 );
             // When
-            service.validatePoliciesExecutionPhase(List.of("policy-1", "policy-2"), ApiType.PROXY, PolicyPlugin.ExecutionPhase.REQUEST);
+            service.validatePoliciesFlowPhase(
+                List.of("policy-1", "policy-2"),
+                ApiType.PROXY,
+                io.gravitee.apim.core.plugin.model.FlowPhase.REQUEST
+            );
         }
 
         @Test
@@ -62,15 +65,19 @@ class PolicyValidationDomainServiceTest {
                             .builder()
                             .id("policy-1")
                             .name("Policy 1")
-                            .proxy(Set.of(ExecutionPhase.REQUEST, ExecutionPhase.RESPONSE))
+                            .proxy(Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE))
                             .build(),
-                        PolicyPluginEntity.builder().id("policy-2").name("Policy 2").message(Set.of(ExecutionPhase.MESSAGE_REQUEST)).build()
+                        PolicyPluginEntity.builder().id("policy-2").name("Policy 2").message(Set.of(FlowPhase.MESSAGE_REQUEST)).build()
                     )
                 );
 
             // When
             var throwable = Assertions.catchThrowable(() ->
-                service.validatePoliciesExecutionPhase(List.of("policy-1", "policy-2"), ApiType.PROXY, PolicyPlugin.ExecutionPhase.RESPONSE)
+                service.validatePoliciesFlowPhase(
+                    List.of("policy-1", "policy-2"),
+                    ApiType.PROXY,
+                    io.gravitee.apim.core.plugin.model.FlowPhase.RESPONSE
+                )
             );
 
             // Then
@@ -90,24 +97,19 @@ class PolicyValidationDomainServiceTest {
                             .builder()
                             .id("policy-1")
                             .name("Policy 1")
-                            .message(Set.of(ExecutionPhase.MESSAGE_REQUEST, ExecutionPhase.MESSAGE_RESPONSE))
+                            .message(Set.of(FlowPhase.MESSAGE_REQUEST, FlowPhase.MESSAGE_RESPONSE))
                             .build(),
-                        PolicyPluginEntity
-                            .builder()
-                            .id("policy-2")
-                            .name("Policy 2")
-                            .message(Set.of(ExecutionPhase.MESSAGE_REQUEST))
-                            .build(),
+                        PolicyPluginEntity.builder().id("policy-2").name("Policy 2").message(Set.of(FlowPhase.MESSAGE_REQUEST)).build(),
                         PolicyPluginEntity.builder().id("policy-3").name("Policy 3").build()
                     )
                 );
             // When
 
             var throwable = Assertions.catchThrowable(() ->
-                service.validatePoliciesExecutionPhase(
+                service.validatePoliciesFlowPhase(
                     List.of("policy-1", "policy-2", "policy-3"),
                     ApiType.MESSAGE,
-                    PolicyPlugin.ExecutionPhase.MESSAGE_RESPONSE
+                    io.gravitee.apim.core.plugin.model.FlowPhase.MESSAGE_RESPONSE
                 )
             );
 

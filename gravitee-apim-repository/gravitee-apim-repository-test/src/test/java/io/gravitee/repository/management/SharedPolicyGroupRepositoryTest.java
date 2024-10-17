@@ -49,7 +49,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
                 .description("description")
                 .crossId("crossId" + i)
                 .apiType(ApiType.PROXY)
-                .phase(SharedPolicyGroup.ExecutionPhase.REQUEST)
+                .phase(SharedPolicyGroup.FlowPhase.REQUEST)
                 .definition("definition")
                 .lifecycleState(i % 2 == 0 ? SharedPolicyGroupLifecycleState.UNDEPLOYED : SharedPolicyGroupLifecycleState.DEPLOYED)
                 .environmentId("environmentId")
@@ -74,7 +74,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
             .prerequisiteMessage("prerequisiteMessage")
             .crossId("crossId")
             .apiType(ApiType.PROXY)
-            .phase(SharedPolicyGroup.ExecutionPhase.REQUEST)
+            .phase(SharedPolicyGroup.FlowPhase.REQUEST)
             .definition("definition")
             .lifecycleState(SharedPolicyGroupLifecycleState.UNDEPLOYED)
             .environmentId("environmentId")
@@ -114,7 +114,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
             .prerequisiteMessage("new prerequisiteMessage")
             .crossId("new crossId")
             .apiType(ApiType.MESSAGE)
-            .phase(SharedPolicyGroup.ExecutionPhase.MESSAGE_REQUEST)
+            .phase(SharedPolicyGroup.FlowPhase.MESSAGE_REQUEST)
             .definition("new definition")
             .lifecycleState(SharedPolicyGroupLifecycleState.DEPLOYED)
             .environmentId("new environmentId")
@@ -150,7 +150,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
         assertThat(optional.get().getDescription()).isEqualTo("description");
         assertThat(optional.get().getCrossId()).isEqualTo("id_find-by-id_test_crossId");
         assertThat(optional.get().getApiType()).isEqualTo(ApiType.PROXY);
-        assertThat(optional.get().getPhase()).isEqualTo(SharedPolicyGroup.ExecutionPhase.RESPONSE);
+        assertThat(optional.get().getPhase()).isEqualTo(SharedPolicyGroup.FlowPhase.RESPONSE);
         assertThat(optional.get().getDefinition()).isEqualTo("definition");
         assertThat(optional.get().getLifecycleState()).isEqualTo(SharedPolicyGroupLifecycleState.UNDEPLOYED);
         assertThat(optional.get().getEnvironmentId()).isEqualTo("environmentId");
@@ -282,7 +282,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
         assertThat(optional.get().getDescription()).isEqualTo("description");
         assertThat(optional.get().getCrossId()).isEqualTo("id_find-by-id_test_crossId");
         assertThat(optional.get().getApiType()).isEqualTo(ApiType.PROXY);
-        assertThat(optional.get().getPhase()).isEqualTo(SharedPolicyGroup.ExecutionPhase.RESPONSE);
+        assertThat(optional.get().getPhase()).isEqualTo(SharedPolicyGroup.FlowPhase.RESPONSE);
         assertThat(optional.get().getDefinition()).isEqualTo("definition");
         assertThat(optional.get().getLifecycleState()).isEqualTo(SharedPolicyGroupLifecycleState.UNDEPLOYED);
         assertThat(optional.get().getEnvironmentId()).isEqualTo("environmentId");

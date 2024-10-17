@@ -19,7 +19,7 @@ import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
-import io.gravitee.rest.api.model.v4.policy.ExecutionPhase;
+import io.gravitee.rest.api.model.v4.policy.FlowPhase;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.impl.AbstractPluginService;
@@ -68,13 +68,13 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         entity.setCategory(plugin.manifest().category());
         entity.setDeployed(plugin.deployed());
 
-        entity.setProxy(getExecutionPhase(plugin, "proxy"));
-        entity.setMessage(getExecutionPhase(plugin, "message"));
+        entity.setProxy(getFlowPhase(plugin, "proxy"));
+        entity.setMessage(getFlowPhase(plugin, "message"));
 
         return entity;
     }
 
-    private static Set<ExecutionPhase> getExecutionPhase(Plugin plugin, String property) {
+    private static Set<FlowPhase> getFlowPhase(Plugin plugin, String property) {
         if (
             plugin.manifest().properties() != null &&
             plugin.manifest().properties().get(property) != null &&
@@ -83,7 +83,7 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
             return Arrays
                 .stream(plugin.manifest().properties().get(property).split(","))
                 .map(String::trim)
-                .map(ExecutionPhase::valueOf)
+                .map(FlowPhase::valueOf)
                 .collect(Collectors.toSet());
         } else {
             return Collections.emptySet();

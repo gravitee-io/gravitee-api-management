@@ -23,13 +23,10 @@ import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupDuplicateCrossIdException;
-import io.gravitee.apim.core.shared_policy_group.model.CreateSharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEvent;
 import io.gravitee.apim.core.shared_policy_group.model.UpdateSharedPolicyGroup;
-import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.step.Step;
-import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.Map;
 import lombok.Builder;
@@ -84,7 +81,7 @@ public class UpdateSharedPolicyGroupUseCase {
                     )
                 );
 
-            policyValidationDomainService.validatePoliciesExecutionPhase(
+            policyValidationDomainService.validatePoliciesFlowPhase(
                 sharedPolicyGroup.getSteps().stream().map(Step::getPolicy).toList(),
                 sharedPolicyGroup.getApiType(),
                 sharedPolicyGroup.getPhase()

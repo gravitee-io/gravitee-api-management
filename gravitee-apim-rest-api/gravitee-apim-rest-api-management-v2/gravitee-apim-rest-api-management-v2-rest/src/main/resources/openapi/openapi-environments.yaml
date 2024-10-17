@@ -313,7 +313,7 @@ components:
                 apiType:
                     $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
                 phase:
-                    $ref: "./openapi-plugins.yaml#/components/schemas/ExecutionPhase"
+                    $ref: "./openapi-plugins.yaml#/components/schemas/FlowPhase"
                 steps:
                     type: array
                     description: The list of steps (policies) in the shared policy group
@@ -386,7 +386,7 @@ components:
                     items:
                         $ref: "./openapi-apis.yaml#/components/schemas/StepV4"
                 phase:
-                    $ref: "./openapi-plugins.yaml#/components/schemas/ExecutionPhase"
+                    $ref: "./openapi-plugins.yaml#/components/schemas/FlowPhase"
                 deployedAt:
                     type: string
                     format: date-time
@@ -432,7 +432,7 @@ components:
                 apiType:
                     $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
                 phase:
-                    $ref: "./openapi-plugins.yaml#/components/schemas/ExecutionPhase"
+                    $ref: "./openapi-plugins.yaml#/components/schemas/FlowPhase"
         SharedPolicyGroupLifecycleState:
             type: string
             description: The lifecycle state of a shared policy group
