@@ -301,6 +301,8 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                     newFlow.setResponse(new ArrayList<>());
                     newFlow.setPublish(new ArrayList<>());
                     newFlow.setSubscribe(new ArrayList<>());
+                    newFlow.setInteract(new ArrayList<>());
+                    newFlow.setConnect(new ArrayList<>());
                     newFlow.setMethods(new HashSet<>());
                     newFlow.setTags(new HashSet<>());
                     newFlow.setSelectors(new ArrayList<>());
@@ -345,6 +347,12 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                                 break;
                             case POST:
                                 steps = flow.getPost();
+                                break;
+                            case INTERACT:
+                                steps = flow.getInteract();
+                                break;
+                            case CONNECT:
+                                steps = flow.getConnect();
                                 break;
                             default:
                                 throw new IllegalStateException("Unexpected value: " + phase);
@@ -573,6 +581,10 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         flow.setSubscribe(subscribeSteps);
         List<FlowStep> publishSteps = getPhaseSteps(flow.getId(), FlowStepPhase.PUBLISH);
         flow.setPublish(publishSteps);
+        List<FlowStep> interactSteps = getPhaseSteps(flow.getId(), FlowStepPhase.INTERACT);
+        flow.setInteract(interactSteps);
+        List<FlowStep> connectSteps = getPhaseSteps(flow.getId(), FlowStepPhase.CONNECT);
+        flow.setConnect(connectSteps);
 
         // Deprecated
         List<FlowStep> preSteps = getPhaseSteps(flow.getId(), FlowStepPhase.PRE);
@@ -696,6 +708,8 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         storePhaseSteps(flow, flow.getResponse(), FlowStepPhase.RESPONSE);
         storePhaseSteps(flow, flow.getSubscribe(), FlowStepPhase.SUBSCRIBE);
         storePhaseSteps(flow, flow.getPublish(), FlowStepPhase.PUBLISH);
+        storePhaseSteps(flow, flow.getInteract(), FlowStepPhase.INTERACT);
+        storePhaseSteps(flow, flow.getConnect(), FlowStepPhase.CONNECT);
     }
 
     private void storePhaseSteps(final Flow flow, final List<FlowStep> steps, final FlowStepPhase phase) {
@@ -891,5 +905,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         RESPONSE,
         SUBSCRIBE,
         PUBLISH,
+        INTERACT,
+        CONNECT,
     }
 }
