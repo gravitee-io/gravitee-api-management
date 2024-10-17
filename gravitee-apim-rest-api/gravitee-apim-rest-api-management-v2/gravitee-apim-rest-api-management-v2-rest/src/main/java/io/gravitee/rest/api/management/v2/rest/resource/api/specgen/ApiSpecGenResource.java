@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api.specgen;
 
-import io.gravitee.apim.infra.scoring.SpecGenService;
+import io.gravitee.apim.infra.specgen.SpecGenService;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.specgen.response.SpecGenState;
@@ -25,6 +25,7 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -50,7 +51,7 @@ public class ApiSpecGenResource extends AbstractResource {
             .subscribe(response::resume, response::resume);
     }
 
-    @GET
+    @POST
     @Path("/_start")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.CREATE }) })

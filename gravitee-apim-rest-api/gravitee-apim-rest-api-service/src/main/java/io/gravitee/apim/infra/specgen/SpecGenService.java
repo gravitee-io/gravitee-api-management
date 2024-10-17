@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.scoring;
+package io.gravitee.apim.infra.specgen;
 
 import static io.gravitee.definition.model.v4.ApiType.PROXY;
 import static io.gravitee.exchange.api.command.CommandStatus.ERROR;
@@ -87,8 +87,19 @@ public class SpecGenService {
             .findById(apiId)
             .filter(api -> PROXY.equals(api.getType()))
             .map(api -> new SpecGenRequestCommand(buildPayload(api.getId(), operation)))
-            .map(command -> cockpitConnector.sendCommand(command).cast(SpecGenRequestReply.class))
+            .map(this::sendCommand)
             .orElse(Single.just(new SpecGenRequestReply(null, ERROR, UNAVAILABLE)));
+    }
+
+    @NotNull
+    private Single<SpecGenRequestReply> sendCommand(SpecGenRequestCommand command) {
+        return cockpitConnector
+            .sendCommand(command)
+            .doOnError(t ->
+                log.error("An error had occurred while sending command [{}] with payload [{}]", command.getId(), command.getPayload(), t)
+            )
+            .onErrorResumeWith(Single.just(new SpecGenRequestReply(command.getId(), ERROR, UNAVAILABLE)))
+            .cast(SpecGenRequestReply.class);
     }
 
     @NotNull

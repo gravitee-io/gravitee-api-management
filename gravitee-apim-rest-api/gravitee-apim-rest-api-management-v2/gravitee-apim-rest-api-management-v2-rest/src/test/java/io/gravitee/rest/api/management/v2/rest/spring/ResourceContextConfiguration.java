@@ -84,6 +84,7 @@ import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDom
 import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
+import io.gravitee.apim.infra.specgen.SpecGenService;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -583,5 +584,10 @@ public class ResourceContextConfiguration {
     @Bean
     public PermissionDomainService permissionDomainService(MembershipService membershipService, PermissionService permissionService) {
         return new PermissionDomainServiceLegacyWrapper(membershipService, permissionService);
+    }
+
+    @Bean
+    public SpecGenService specGenService() {
+        return mock(SpecGenService.class);
     }
 }
