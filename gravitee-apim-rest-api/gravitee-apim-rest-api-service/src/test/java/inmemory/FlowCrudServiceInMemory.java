@@ -17,6 +17,7 @@ package inmemory;
 
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+// TODO: Figure out a better in memory alternative object
 public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlternative<Flow> {
 
     final Map<String, List<Flow>> apiFlows = new HashMap<>();
@@ -62,6 +64,11 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
     @Override
     public List<io.gravitee.definition.model.flow.Flow> getPlanV2Flows(String planId) {
         return planFlowsV2.getOrDefault(planId, new ArrayList<>());
+    }
+
+    @Override
+    public List<NativeFlow> saveNativeApiFlows(String apiId, List<NativeFlow> flows) {
+        return List.of();
     }
 
     @Override

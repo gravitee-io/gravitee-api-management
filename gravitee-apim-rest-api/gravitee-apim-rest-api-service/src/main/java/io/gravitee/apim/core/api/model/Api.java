@@ -76,6 +76,7 @@ public class Api {
     private io.gravitee.definition.model.v4.Api apiDefinitionV4;
     private io.gravitee.definition.model.Api apiDefinition;
     private io.gravitee.definition.model.federation.FederatedApi federatedApiDefinition;
+    private io.gravitee.definition.model.v4.nativeapi.NativeApi nativeApiDefinition;
 
     /**
      * The api type.
@@ -208,6 +209,8 @@ public class Api {
         return this;
     }
 
+    // TODO Kafka Gateway: implement setNativeApiDefinition method
+
     public Api setPlans(List<Plan> plans) {
         switch (definitionVersion) {
             case V4 -> {
@@ -304,6 +307,14 @@ public class Api {
             this.federatedApiDefinition = federatedApiDefinition;
             if (federatedApiDefinition != null) {
                 this.definitionVersion = federatedApiDefinition.getDefinitionVersion();
+            }
+            return self();
+        }
+
+        public B nativeApiDefinition(io.gravitee.definition.model.v4.nativeapi.NativeApi nativeApiDefinition) {
+            this.nativeApiDefinition = nativeApiDefinition;
+            if (nativeApiDefinition != null) {
+                this.definitionVersion = nativeApiDefinition.getDefinitionVersion();
             }
             return self();
         }

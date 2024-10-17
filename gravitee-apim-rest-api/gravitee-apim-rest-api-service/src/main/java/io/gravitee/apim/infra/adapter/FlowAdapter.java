@@ -16,10 +16,12 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.management.model.flow.Flow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.management.model.flow.selector.FlowChannelSelector;
@@ -27,23 +29,37 @@ import io.gravitee.repository.management.model.flow.selector.FlowConditionSelect
 import io.gravitee.repository.management.model.flow.selector.FlowHttpSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowSelector;
 import io.gravitee.rest.api.service.common.UuidString;
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Mapper(imports = { UuidString.class, TimeProvider.class })
 public interface FlowAdapter {
     FlowAdapter INSTANCE = Mappers.getMapper(FlowAdapter.class);
+    Logger LOGGER = LoggerFactory.getLogger(FlowAdapter.class);
 
     @Mapping(target = "id", expression = "java(UuidString.generateRandom())")
     @Mapping(target = "createdAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
     @Mapping(target = "updatedAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
     Flow toRepository(io.gravitee.definition.model.v4.flow.Flow source, FlowReferenceType referenceType, String referenceId, int order);
 
+    @Mapping(target = "id", expression = "java(UuidString.generateRandom())")
+    @Mapping(target = "createdAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
+    @Mapping(target = "updatedAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
+    Flow toRepository(NativeFlow source, FlowReferenceType referenceType, String referenceId, int order);
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "updatedAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
     Flow toRepositoryUpdate(@MappingTarget Flow repository, io.gravitee.definition.model.v4.flow.Flow source, int order);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "updatedAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
+    Flow toRepositoryUpdate(@MappingTarget Flow repository, NativeFlow source, int order);
 
     @Mapping(target = "id", expression = "java(UuidString.generateRandom())")
     @Mapping(target = "createdAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
@@ -51,6 +67,10 @@ public interface FlowAdapter {
     Flow toRepository(io.gravitee.definition.model.flow.Flow source, FlowReferenceType referenceType, String referenceId, int order);
 
     io.gravitee.definition.model.v4.flow.Flow toFlowV4(Flow source);
+    List<io.gravitee.definition.model.v4.flow.Flow> toFlowV4(List<Flow> source);
+
+    NativeFlow toNativeFlow(Flow source);
+    List<NativeFlow> toNativeFlow(List<Flow> source);
 
     @Mapping(target = "pathOperator.path", source = "path")
     @Mapping(target = "pathOperator.operator", source = "operator")
@@ -91,4 +111,26 @@ public interface FlowAdapter {
     FlowConditionSelector toRepository(ConditionSelector source);
 
     ConditionSelector toModel(FlowConditionSelector source);
+
+    default Flow toRepositoryFromAbstract(AbstractFlow flow, FlowReferenceType referenceType, String referenceId, int order) {
+        if (flow instanceof io.gravitee.definition.model.v4.flow.Flow) {
+            return this.toRepository((io.gravitee.definition.model.v4.flow.Flow) flow, referenceType, referenceId, order);
+        } else if (flow instanceof NativeFlow) {
+            return this.toRepository((NativeFlow) flow, referenceType, referenceId, order);
+        }
+        throw new IllegalArgumentException("Unknown flow: " + flow.getClass());
+    }
+
+    default Flow toRepositoryUpdateFromAbstract(Flow repository, AbstractFlow source, int order) {
+        if (source instanceof io.gravitee.definition.model.v4.flow.Flow) {
+            return this.toRepositoryUpdate(repository, (io.gravitee.definition.model.v4.flow.Flow) source, order);
+        } else if (source instanceof NativeFlow) {
+            return this.toRepositoryUpdate(repository, (NativeFlow) source, order);
+        }
+        throw new IllegalArgumentException("Unknown flow: " + source.getClass());
+    }
+
+    default AbstractFlow toAbstractFlow(Flow flow) {
+        return null;
+    }
 }

@@ -156,6 +156,7 @@ public class CreateApiDomainService {
 
     private List<Flow> saveApiFlows(Api api) {
         return switch (api.getDefinitionVersion()) {
+            // FIXME Kafka Gateway
             case V4 -> flowCrudService.saveApiFlows(api.getId(), api.getApiDefinitionV4().getFlows());
             case V1, V2, FEDERATED -> null;
         };

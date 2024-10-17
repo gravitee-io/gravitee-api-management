@@ -70,12 +70,15 @@ public class FlowValidationDomainService {
     public List<Flow> validateAndSanitize(final ApiType apiType, List<Flow> flows) {
         if (flows != null) {
             flows.forEach(flow -> {
+                // TODO Kafka Gateway: only non-native v4 apis
                 // Check duplicated selectors
                 checkDuplicatedSelectors(flow);
 
+                // TODO Kafka Gateway: only non-native v4 apis
                 // Check selectors according to api type
                 checkSelectorsForType(apiType, flow);
 
+                // TODO Kafka Gateway: to be used in the policy configuration
                 // Validate policy
                 checkPolicyConfiguration(flow);
             });
