@@ -40,25 +40,30 @@
       <mat-card-content>
         <div class="mat-body-1">API Lifecycle State</div>
         <ng-container *ngIf="apiLifecycleState; else loader">
-          <gio-api-lifecycle-state [data]="apiLifecycleState"></gio-api-lifecycle-state> </ng-container
-      ></mat-card-content>
+          <gio-api-lifecycle-state [data]="apiLifecycleState"></gio-api-lifecycle-state>
+        </ng-container>
+      </mat-card-content>
     </mat-card>
 
     <mat-card class="home-overview__card">
       <mat-card-content>
         <div class="mat-body-1">API State</div>
-        <ng-container *ngIf="apiState; else loader"> <gio-api-state [data]="apiState"></gio-api-state> </ng-container
-      ></mat-card-content>
+        <ng-container *ngIf="apiState; else loader">
+          <gio-api-state [data]="apiState"></gio-api-state>
+        </ng-container>
+      </mat-card-content>
     </mat-card>
   </div>
+
   <div class="home-overview__row">
     <mat-card class="home-overview__card">
       <mat-card-content>
         <div class="mat-body-1">API Response Status</div>
 
         <ng-container *ngIf="apiResponseStatus; else loader">
-          <gio-api-response-status [data]="apiResponseStatus"></gio-api-response-status> </ng-container
-      ></mat-card-content>
+          <gio-api-response-status [data]="apiResponseStatus"></gio-api-response-status>
+        </ng-container>
+      </mat-card-content>
     </mat-card>
 
     <mat-card class="home-overview__card">
@@ -81,6 +86,14 @@
       </mat-card-content>
     </mat-card>
   </div>
+
+  <!-- V4 data overview row -->
+  <div class="home-overview__row">
+    <api-analytics-response-status-ranges
+      title="v4 API Response Status"
+      [responseStatusRanges]="v4ApiAnalyticsResponseStatusRanges"
+    ></api-analytics-response-status-ranges>
+  </div>
 </div>
 <div class="home-api-events" *gioPermission="{ anyOf: ['environment-platform-r'] }">
   <h2>API Events</h2>
@@ -89,6 +102,8 @@
   </ng-container>
 </div>
 
-<ng-template #loader
-  ><div class="loader"><gio-loader></gio-loader></div
-></ng-template>
+<ng-template #loader>
+  <div class="loader">
+    <gio-loader></gio-loader>
+  </div>
+</ng-template>

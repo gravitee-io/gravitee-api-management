@@ -25,6 +25,10 @@ export class AnalyticsGroupByResponse {
   metadata: { [key: string]: AnalyticsMetadata };
 }
 
+export interface ResponseStatusRanges {
+  ranges: { [key: string]: number };
+}
+
 export class AnalyticsStatsResponse {
   count: number;
   min: number;
