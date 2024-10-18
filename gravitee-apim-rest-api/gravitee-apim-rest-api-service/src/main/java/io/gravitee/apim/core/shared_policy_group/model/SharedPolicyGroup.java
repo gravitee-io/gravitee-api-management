@@ -217,8 +217,8 @@ public class SharedPolicyGroup {
             return (
                 this.phase == FlowPhase.REQUEST ||
                 this.phase == FlowPhase.RESPONSE ||
-                this.phase == FlowPhase.MESSAGE_REQUEST ||
-                this.phase == FlowPhase.MESSAGE_RESPONSE
+                this.phase == FlowPhase.PUBLISH ||
+                this.phase == FlowPhase.SUBSCRIBE
             );
         }
         return false;

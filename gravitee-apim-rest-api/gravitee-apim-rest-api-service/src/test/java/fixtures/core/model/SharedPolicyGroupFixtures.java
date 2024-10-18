@@ -77,7 +77,7 @@ public class SharedPolicyGroupFixtures {
             .name("name")
             .description("description")
             .apiType(ApiType.MESSAGE)
-            .phase(FlowPhase.MESSAGE_RESPONSE)
+            .phase(FlowPhase.SUBSCRIBE)
             .policyId("shared-policy-group-policy")
             .build();
     }
