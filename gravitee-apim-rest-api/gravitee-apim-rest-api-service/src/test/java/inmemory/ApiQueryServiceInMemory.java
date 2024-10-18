@@ -87,7 +87,15 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
      */
     @Override
     public Stream<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter) {
-        if (apiCriteria != null && (apiCriteria.getIntegrationId() != null || apiCriteria.getIds() != null)) {
+        if (
+            apiCriteria != null &&
+            (
+                apiCriteria.getIntegrationId() != null ||
+                apiCriteria.getIds() != null ||
+                apiCriteria.getDefinitionVersion() != null ||
+                apiCriteria.getEnvironmentId() != null
+            )
+        ) {
             return this.storage()
                 .stream()
                 .filter(api -> {
@@ -100,7 +108,14 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
                     var matchesApiId = isNull(apiCriteria.getIds()) || apiCriteria.getIds().contains(api.getId());
                     var matchesLifecycleState =
                         isNull(apiCriteria.getLifecycleStates()) || apiCriteria.getLifecycleStates().contains(api.getApiLifecycleState());
-                    return matchesIntegrationId && matchesApiId && matchesLifecycleState;
+                    var matchesApiDefinitionVersion =
+                        isNull(apiCriteria.getDefinitionVersion()) ||
+                        apiCriteria.getDefinitionVersion().contains(api.getDefinitionVersion());
+                    var matchesEnvironmentId =
+                        isNull(apiCriteria.getEnvironmentId()) || apiCriteria.getEnvironmentId().equals(api.getEnvironmentId());
+                    return (
+                        matchesIntegrationId && matchesApiId && matchesLifecycleState && matchesApiDefinitionVersion && matchesEnvironmentId
+                    );
                 });
         }
         return this.storage().stream();

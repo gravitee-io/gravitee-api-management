@@ -23,9 +23,15 @@ import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
-import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesQuery;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -108,7 +114,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         void should_return_response_status_by_entrypoint_for_a_given_api() {
             var result = cut.searchResponseStatusRanges(
                 new QueryContext("org#1", "env#1"),
-                ResponseStatusRangesQuery.builder().apiId(API_ID).build()
+                ResponseStatusQueryCriteria.builder().apiIds(List.of(API_ID)).build()
             );
 
             assertThat(result)
@@ -122,6 +128,48 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertRanges(statusRangesCountByEntrypoint.get("sse"), 1L, 1L);
                     assertRanges(statusRangesCountByEntrypoint.get("http-get"), 0L, 1L);
                 });
+        }
+
+        @Test
+        void should_return_response_status_by_entrypoint_for_a_given_api_and_date_range() {
+            var yesterdayAtStartOfTheDayEpochMilli = LocalDate.now().minusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+            var yesterdayAtEndOfTheDayEpochMilli = LocalDate.now().minusDays(1).atTime(23, 59, 59).toInstant(ZoneOffset.UTC).toEpochMilli();
+
+            var result = cut.searchResponseStatusRanges(
+                new QueryContext("org#1", "env#1"),
+                ResponseStatusQueryCriteria
+                    .builder()
+                    .apiIds(List.of(API_ID))
+                    .from(yesterdayAtStartOfTheDayEpochMilli)
+                    .to(yesterdayAtEndOfTheDayEpochMilli)
+                    .build()
+            );
+
+            assertThat(result)
+                .hasValueSatisfying(responseStatusAggregate -> {
+                    assertRanges(responseStatusAggregate.getRanges(), 2L, 0L);
+                    var statusRangesCountByEntrypoint = responseStatusAggregate.getStatusRangesCountByEntrypoint();
+                    assertThat(statusRangesCountByEntrypoint).containsOnlyKeys("http-post", "sse");
+                    assertRanges(statusRangesCountByEntrypoint.get("http-post"), 1L, 0L);
+                    assertRanges(statusRangesCountByEntrypoint.get("sse"), 1L, 0L);
+                });
+        }
+
+        @Test
+        void should_response_empty_ranges_for_empty_ids_list() {
+            var result = cut.searchResponseStatusRanges(
+                new QueryContext("org#1", "env#1"),
+                ResponseStatusQueryCriteria.builder().apiIds(List.of()).build()
+            );
+
+            assertThat(result).isNotNull().get().extracting(ResponseStatusRangesAggregate::getRanges).isEqualTo(Map.of());
+        }
+
+        @Test
+        void should_response_empty_ranges_for_null__query_criteria() {
+            var result = cut.searchResponseStatusRanges(new QueryContext("org#1", "env#1"), null);
+
+            assertThat(result).isNotNull().get().extracting(ResponseStatusRangesAggregate::getRanges).isEqualTo(Map.of());
         }
 
         private static void assertRanges(Map<String, Long> ranges, long status2xx, long status4xx) {

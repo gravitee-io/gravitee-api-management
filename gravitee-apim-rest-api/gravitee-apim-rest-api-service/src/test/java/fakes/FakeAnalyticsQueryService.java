@@ -15,6 +15,7 @@
  */
 package fakes;
 
+import io.gravitee.apim.core.analytics.model.StatusRangesQueryParameters;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
@@ -57,7 +58,10 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     }
 
     @Override
-    public Optional<ResponseStatusRanges> searchResponseStatusRanges(ExecutionContext executionContext, String apiId) {
+    public Optional<ResponseStatusRanges> searchResponseStatusRanges(
+        ExecutionContext executionContext,
+        StatusRangesQueryParameters queryParameters
+    ) {
         return Optional.ofNullable(responseStatusRanges);
     }
 }

@@ -19,12 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.analytics.model.StatusRangesQueryParameters;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,6 +80,7 @@ class AnalyticsQueryServiceImplTest {
 
         @Test
         void should_return_request_status_ranges() {
+            var queryParameters = StatusRangesQueryParameters.builder().apiIds(List.of("api#1")).build();
             when(analyticsRepository.searchResponseStatusRanges(any(QueryContext.class), any()))
                 .thenReturn(
                     Optional.of(
@@ -95,7 +98,7 @@ class AnalyticsQueryServiceImplTest {
                             .build()
                     )
                 );
-            assertThat(cut.searchResponseStatusRanges(GraviteeContext.getExecutionContext(), "api#1"))
+            assertThat(cut.searchResponseStatusRanges(GraviteeContext.getExecutionContext(), queryParameters))
                 .hasValueSatisfying(responseStatusRanges -> {
                     assertThat(responseStatusRanges.getRanges()).containsAllEntriesOf(Map.of("100.0-200.0", 1L, "200.0-300.0", 2L));
                     assertThat(responseStatusRanges.getStatusRangesCountByEntrypoint().get("http-post"))
