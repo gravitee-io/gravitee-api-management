@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.6.0_migrate_spg_phase
+      author: GraviteeSource Team
+      changes:
+        # Update the phase of shared policy groups and shared policy group histories from MESSAGE_REQUEST to PUBLISH
+        - sql:
+            sql: update ${gravitee_prefix}sharedpolicygroups set phase='PUBLISH' where phase='MESSAGE_REQUEST'
+        - sql:
+            sql: update ${gravitee_prefix}sharedpolicygrouphistories set phase='PUBLISH' where phase='MESSAGE_REQUEST'
+        # Update the phase of shared policy groups and shared policy group histories from MESSAGE_RESPONSE to SUBSCRIBE
+        - sql:
+            sql: update ${gravitee_prefix}sharedpolicygroups set phase='SUBSCRIBE' where phase='MESSAGE_RESPONSE'
+        - sql:
+            sql: update ${gravitee_prefix}sharedpolicygrouphistories set phase='SUBSCRIBE' where phase='MESSAGE_RESPONSE'

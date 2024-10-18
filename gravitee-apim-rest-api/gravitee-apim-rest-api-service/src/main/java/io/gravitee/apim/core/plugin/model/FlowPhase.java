@@ -26,17 +26,7 @@ public enum FlowPhase {
     PUBLISH(ApiProtocolType.NATIVE_KAFKA, ApiProtocolType.HTTP_MESSAGE),
     SUBSCRIBE(ApiProtocolType.NATIVE_KAFKA, ApiProtocolType.HTTP_MESSAGE),
     REQUEST(ApiProtocolType.NATIVE_KAFKA, ApiProtocolType.HTTP_PROXY, ApiProtocolType.HTTP_MESSAGE),
-    RESPONSE(ApiProtocolType.NATIVE_KAFKA, ApiProtocolType.HTTP_PROXY, ApiProtocolType.HTTP_MESSAGE),
-    /**
-     * @deprecated use {@link FlowPhase#PUBLISH} instead
-     */
-    @Deprecated
-    MESSAGE_REQUEST,
-    /**
-     * @deprecated use {@link FlowPhase#SUBSCRIBE} instead
-     */
-    @Deprecated
-    MESSAGE_RESPONSE;
+    RESPONSE(ApiProtocolType.NATIVE_KAFKA, ApiProtocolType.HTTP_PROXY, ApiProtocolType.HTTP_MESSAGE);
 
     private final List<ApiProtocolType> apiProtocolType;
 

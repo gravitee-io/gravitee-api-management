@@ -128,11 +128,11 @@ public class PolicyPluginServiceImplTest {
     }
 
     @Test
-    public void shouldFindAll() {
+    public void should_find_all() {
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
-        when(mockPluginManifest.properties()).thenReturn(Map.of("proxy", "REQUEST", "message", "MESSAGE_REQUEST"));
+        when(mockPluginManifest.properties()).thenReturn(Map.of("proxy", "REQUEST", "message", "PUBLISH"));
         Set<PolicyPluginEntity> result = cut.findAll();
 
         assertNotNull(result);
@@ -140,7 +140,22 @@ public class PolicyPluginServiceImplTest {
         PolicyPluginEntity policyPlugin = result.iterator().next();
         assertEquals(PLUGIN_ID, policyPlugin.getId());
         assertEquals(Set.of(FlowPhase.REQUEST), policyPlugin.getProxy());
-        assertEquals(Set.of(FlowPhase.MESSAGE_REQUEST), policyPlugin.getMessage());
+        assertEquals(Set.of(FlowPhase.PUBLISH), policyPlugin.getMessage());
+    }
+
+    @Test
+    public void should_find_all_with_legacy_phase() {
+        when(mockPlugin.id()).thenReturn(PLUGIN_ID);
+        when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
+        when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
+        when(mockPluginManifest.properties()).thenReturn(Map.of("message", "MESSAGE_REQUEST, MESSAGE_RESPONSE"));
+        Set<PolicyPluginEntity> result = cut.findAll();
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        PolicyPluginEntity policyPlugin = result.iterator().next();
+        assertEquals(PLUGIN_ID, policyPlugin.getId());
+        assertEquals(Set.of(FlowPhase.PUBLISH, FlowPhase.SUBSCRIBE), policyPlugin.getMessage());
     }
 
     @Test

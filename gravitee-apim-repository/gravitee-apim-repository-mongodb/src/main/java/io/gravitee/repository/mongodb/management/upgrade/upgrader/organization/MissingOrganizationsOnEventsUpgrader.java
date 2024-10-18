@@ -23,8 +23,8 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.UpdateManyModel;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.accessPoints.AccessPointsStatusAndUpdatedUpgrader;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
-import io.gravitee.repository.mongodb.management.upgrade.upgrader.themes.ThemeTypeUpgrader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +38,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class MissingOrganizationsOnEventsUpgrader extends MongoUpgrader {
 
-    public static final int MISSING_ENVIRONMENT_UPGRADER_ORDER = ThemeTypeUpgrader.THEME_TYPE_UPGRADER_ORDER + 1;
+    public static final int MISSING_ORGANIZATION_ON_EVENT_UPGRADER_ORDER =
+        AccessPointsStatusAndUpdatedUpgrader.ACCESSPOINTS_STATUS_AND_UPDATED_UPGRADER_ORDER + 1;
 
     @Override
     public boolean upgrade() {
@@ -71,6 +72,6 @@ public class MissingOrganizationsOnEventsUpgrader extends MongoUpgrader {
 
     @Override
     public int getOrder() {
-        return MISSING_ENVIRONMENT_UPGRADER_ORDER;
+        return MISSING_ORGANIZATION_ON_EVENT_UPGRADER_ORDER;
     }
 }
