@@ -101,6 +101,14 @@ public class Flow {
      * Flow publish steps
      */
     private List<FlowStep> publish = new ArrayList<>();
+    /**
+     * Flow interact steps
+     */
+    private List<FlowStep> interact = new ArrayList<>();
+    /**
+     * Flow connect steps
+     */
+    private List<FlowStep> connect = new ArrayList<>();
 
     /**
      * Path operator
