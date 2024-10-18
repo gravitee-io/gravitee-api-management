@@ -121,9 +121,18 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
         return getSpec().hasNonNull(MEMBERS_FIELD);
     }
 
+    public boolean hasPages() {
+        return getSpec().hasNonNull(PAGES_FIELD);
+    }
+
     @JsonIgnore
     public ArrayNode getMembers() {
         return (ArrayNode) getSpec().get(MEMBERS_FIELD);
+    }
+
+    @JsonIgnore
+    public ObjectNode getPages() {
+        return (ObjectNode) getSpec().get(PAGES_FIELD);
     }
 
     public void removeIds() {
@@ -163,11 +172,7 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
 
     private void removeUnsupportedEndpointGroupFields(JsonNode group) {
         if (group.hasNonNull(ENDPOINTS_FIELD)) {
-            group
-                .get(ENDPOINTS_FIELD)
-                .forEach(endpoint -> {
-                    ((ObjectNode) endpoint).remove(UNSUPPORTED_ENDPOINT_FIELDS);
-                });
+            group.get(ENDPOINTS_FIELD).forEach(endpoint -> ((ObjectNode) endpoint).remove(UNSUPPORTED_ENDPOINT_FIELDS));
         }
     }
 
