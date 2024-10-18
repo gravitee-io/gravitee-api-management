@@ -41,7 +41,7 @@ import { AnalyticsAverageMessagesPerRequest } from '../../../../../entities/mana
 import {
   ApiAnalyticsResponseStatusRanges,
   ApiAnalyticsResponseStatusRangesComponent,
-} from '../components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component';
+} from '../../../../../shared/components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component';
 import { AnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
 
 type ApiAnalyticsVM = {

@@ -15,5 +15,5 @@
  */
 export interface AnalyticsResponseStatusRanges {
   ranges: Record<string, number>;
-  rangesByEntrypoint: { [key: string]: Record<string, number> };
+  rangesByEntrypoint?: { [key: string]: Record<string, number> };
 }

@@ -1,7 +1,6 @@
 @use 'sass:map';
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
-@use 'src/scss/gio-layout' as gio-layout;
 
 $typography: map.get(gio.$mat-theme, typography);
 
@@ -16,8 +15,16 @@ $typography: map.get(gio.$mat-theme, typography);
     flex-direction: column;
     align-items: flex-start;
   }
-  &__row {
-    display: flex;
+
+  &__row-title {
+    margin-top: 16px;
+    margin-bottom: 4px;
+  }
+
+  &__row-cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-flow: column;
     gap: 14px;
   }
 
