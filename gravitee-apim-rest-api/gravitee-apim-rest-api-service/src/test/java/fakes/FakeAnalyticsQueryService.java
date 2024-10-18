@@ -22,6 +22,10 @@ import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.reactivex.rxjava3.core.Maybe;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -35,6 +39,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public AverageMessagesPerRequest averageMessagesPerRequest;
     public AverageConnectionDuration averageConnectionDuration;
     public ResponseStatusRanges responseStatusRanges;
+    public LinkedHashMap<String, Double> averageAggregate = new LinkedHashMap<>();
 
     @Override
     public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId) {
@@ -55,6 +60,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
         requestsCount = null;
         averageMessagesPerRequest = null;
         averageConnectionDuration = null;
+        averageAggregate = new LinkedHashMap<>();
     }
 
     @Override
@@ -63,5 +69,16 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
         StatusRangesQueryParameters queryParameters
     ) {
         return Optional.ofNullable(responseStatusRanges);
+    }
+
+    @Override
+    public Maybe<Map<String, Double>> searchAvgResponseTimeOverTime(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant startTime,
+        Instant endTime,
+        Duration interval
+    ) {
+        return averageAggregate != null ? Maybe.just(averageAggregate) : Maybe.empty();
     }
 }

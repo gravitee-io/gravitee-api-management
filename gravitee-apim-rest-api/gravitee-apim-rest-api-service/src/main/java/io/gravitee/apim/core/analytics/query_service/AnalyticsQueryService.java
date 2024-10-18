@@ -21,7 +21,10 @@ import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.List;
+import io.reactivex.rxjava3.core.Maybe;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 
 public interface AnalyticsQueryService {
@@ -34,5 +37,13 @@ public interface AnalyticsQueryService {
     Optional<ResponseStatusRanges> searchResponseStatusRanges(
         ExecutionContext executionContext,
         StatusRangesQueryParameters queryParameters
+    );
+
+    Maybe<Map<String, Double>> searchAvgResponseTimeOverTime(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant startTime,
+        Instant endTime,
+        Duration interval
     );
 }

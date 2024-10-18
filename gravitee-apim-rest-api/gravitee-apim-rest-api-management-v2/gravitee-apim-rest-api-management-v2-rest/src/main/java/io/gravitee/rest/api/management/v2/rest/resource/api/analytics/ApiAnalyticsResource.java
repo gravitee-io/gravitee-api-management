@@ -19,9 +19,12 @@ import io.gravitee.apim.core.analytics.use_case.SearchAverageConnectionDurationU
 import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusRangesUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchResponseTimeUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiAnalyticsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponseTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
@@ -54,6 +57,9 @@ public class ApiAnalyticsResource extends AbstractResource {
 
     @Inject
     private SearchResponseStatusRangesUseCase searchResponseStatusRangesUseCase;
+
+    @Inject
+    private SearchResponseTimeUseCase searchResponseTimeUseCase;
 
     @Path("/requests-count")
     @GET
@@ -109,5 +115,27 @@ public class ApiAnalyticsResource extends AbstractResource {
             .responseStatusRanges()
             .map(ApiAnalyticsMapper.INSTANCE::map)
             .orElseThrow(() -> new NotFoundException("No response status ranges found for api: " + apiId));
+    }
+
+    @Path("/response-time-over-time")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    public ApiAnalyticsOverPeriodResponse getResponseTimeOverTime() {
+        var request = new SearchResponseTimeUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment());
+
+        return searchResponseTimeUseCase
+            .execute(GraviteeContext.getExecutionContext(), request)
+            .map(out ->
+                new ApiAnalyticsOverPeriodResponse()
+                    .timeRange(
+                        new ApiAnalyticsOverPeriodResponseTimeRange()
+                            .from(out.from().toEpochMilli())
+                            .to(out.to().toEpochMilli())
+                            .interval(out.interval().toMillis())
+                    )
+                    .data(out.data())
+            )
+            .blockingGet();
     }
 }
