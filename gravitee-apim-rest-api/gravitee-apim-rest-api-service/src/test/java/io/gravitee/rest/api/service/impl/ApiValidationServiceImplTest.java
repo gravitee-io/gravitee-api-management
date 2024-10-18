@@ -280,12 +280,13 @@ public class ApiValidationServiceImplTest {
                 Api
                     .builder()
                     .id("conflicting-api-id")
-                    .definitionVersion(DefinitionVersion.V2)
+                    .environmentId(executionContext.getEnvironmentId())
                     .apiDefinition(
                         io.gravitee.definition.model.Api
                             .builder()
                             .id("conflicting-api-id")
                             .proxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/echo"))).build())
+                            .definitionVersion(DefinitionVersion.V2)
                             .build()
                     )
                     .build()

@@ -34,8 +34,8 @@ import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQu
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
-import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesQuery;
 import io.reactivex.rxjava3.annotations.NonNull;
 import java.util.Optional;
 
@@ -85,7 +85,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     @Override
     public @NonNull Optional<ResponseStatusRangesAggregate> searchResponseStatusRanges(
         QueryContext queryContext,
-        ResponseStatusRangesQuery query
+        ResponseStatusQueryCriteria query
     ) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         return this.client.getFieldTypes(index, ENTRYPOINT_ID_FIELD)

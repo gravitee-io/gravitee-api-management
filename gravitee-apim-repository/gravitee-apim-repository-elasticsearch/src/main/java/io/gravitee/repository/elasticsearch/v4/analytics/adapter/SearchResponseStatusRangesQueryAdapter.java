@@ -15,14 +15,18 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
-import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesQuery;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.Optional;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SearchResponseStatusRangesQueryAdapter {
 
@@ -30,11 +34,11 @@ public class SearchResponseStatusRangesQueryAdapter {
     public static final String FIELD = "field";
     public static final String STATUS_RANGES = "status_ranges";
 
-    public static String adapt(ResponseStatusRangesQuery query, boolean isEntrypointIdKeyword) {
+    public static String adapt(ResponseStatusQueryCriteria query, boolean isEntrypointIdKeyword) {
         var jsonContent = new HashMap<String, Object>();
-        var esQuery = buildElasticQuery(Optional.ofNullable(query).orElse(ResponseStatusRangesQuery.builder().build()));
+
+        jsonContent.put("query", buildElasticQuery(query));
         jsonContent.put("size", 0);
-        jsonContent.put("query", esQuery);
         jsonContent.put("aggs", buildResponseCountPerStatusCodeRangePerEntrypointAggregation(isEntrypointIdKeyword));
         return new JsonObject(jsonContent).encode();
     }
@@ -68,7 +72,31 @@ public class SearchResponseStatusRangesQueryAdapter {
         );
     }
 
-    private static JsonObject buildElasticQuery(ResponseStatusRangesQuery query) {
-        return JsonObject.of("term", JsonObject.of("api-id", query.getApiId()));
+    private static JsonObject buildElasticQuery(ResponseStatusQueryCriteria queryParams) {
+        var filterQuery = new ArrayList<JsonObject>();
+
+        if (queryParams == null || queryParams.getApiIds() == null) {
+            log.warn("Null query params or queried API IDs. Empty ranges will be returned");
+            filterQuery.add(apiIdsFilterForQuery(List.of()));
+        } else {
+            filterQuery.add(apiIdsFilterForQuery(queryParams.getApiIds()));
+        }
+
+        if (queryParams != null && queryParams.getFrom() != null && queryParams.getTo() != null) {
+            filterQuery.add(dateRangeFilterForQuery(queryParams.getFrom(), queryParams.getTo()));
+        }
+
+        return JsonObject.of("bool", JsonObject.of("filter", filterQuery));
+    }
+
+    private static JsonObject apiIdsFilterForQuery(List<String> apiIds) {
+        return JsonObject.of("terms", JsonObject.of("api-id", apiIds));
+    }
+
+    private static JsonObject dateRangeFilterForQuery(Long from, Long to) {
+        var fromDate = new Date(from);
+        var toDate = new Date(to);
+        log.info("Query filtering date range from {} to {}", fromDate, toDate);
+        return JsonObject.of("range", JsonObject.of("@timestamp", JsonObject.of("gte", fromDate, "lte", toDate)));
     }
 }
