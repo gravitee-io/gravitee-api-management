@@ -20,6 +20,7 @@ import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import {
   ConnectorInfo,
   Flow as PSFlow,
+  FlowPhase,
   Plan as PSPlan,
   Policy as PSPolicy,
   PolicyDocumentationFetcher,
@@ -31,7 +32,7 @@ import { GioLicenseService } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { ApiType, ApiV4, FlowExecution, PlanV4, UpdateApiV4, UpdatePlanV4 } from '../../../../entities/management-api-v2';
+import { ApiType, ApiV4, ExecutionPhase, FlowExecution, PlanV4, UpdateApiV4, UpdatePlanV4 } from '../../../../entities/management-api-v2';
 import { IconService } from '../../../../services-ngx/icon.service';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
@@ -149,7 +150,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
           description: plugin.description,
           prerequisiteMessage: plugin.prerequisiteMessage,
           policyId: plugin.policyId,
-          phase: plugin.phase,
+          phase: toPolicyStudioFlowPhase(plugin.phase),
           apiType: plugin.apiType,
         }));
 
@@ -224,3 +225,16 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
     return forkJoin(plans.map((plan) => updatePlan$(plan)));
   }
 }
+
+export const toPolicyStudioFlowPhase = (executionPhase: ExecutionPhase): FlowPhase => {
+  switch (executionPhase) {
+    case 'REQUEST':
+      return 'REQUEST';
+    case 'RESPONSE':
+      return 'RESPONSE';
+    case 'MESSAGE_REQUEST':
+      return 'PUBLISH';
+    case 'MESSAGE_RESPONSE':
+      return 'SUBSCRIBE';
+  }
+};
