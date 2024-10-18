@@ -114,7 +114,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
             .prerequisiteMessage("new prerequisiteMessage")
             .crossId("new crossId")
             .apiType(ApiType.MESSAGE)
-            .phase(SharedPolicyGroup.FlowPhase.MESSAGE_REQUEST)
+            .phase(SharedPolicyGroup.FlowPhase.PUBLISH)
             .definition("new definition")
             .lifecycleState(SharedPolicyGroupLifecycleState.DEPLOYED)
             .environmentId("new environmentId")

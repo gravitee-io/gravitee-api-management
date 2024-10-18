@@ -35,6 +35,27 @@ import org.springframework.stereotype.Component;
 @Component
 public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<?>, PolicyPluginEntity> implements PolicyPluginService {
 
+    private enum POLICY_FLOW_PHASE {
+        INTERACT,
+        CONNECT,
+        PUBLISH,
+        SUBSCRIBE,
+        REQUEST,
+        RESPONSE,
+        /**
+         * @deprecated since 4.6.0, use {@link #PUBLISH} instead
+         * To be kept as long as policies use these phase in plugin.properties
+         */
+        @Deprecated
+        MESSAGE_REQUEST,
+        /**
+         * @deprecated since 4.6.0, use {@link #PUBLISH} instead
+         * To be kept as long as policies use these phase in plugin.properties
+         */
+        @Deprecated
+        MESSAGE_RESPONSE,
+    }
+
     public static final Set<String> INTERNAL_POLICIES_ID = Set.of("shared-policy-group-policy");
 
     protected PolicyPluginServiceImpl(
@@ -83,7 +104,17 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
             return Arrays
                 .stream(plugin.manifest().properties().get(property).split(","))
                 .map(String::trim)
-                .map(FlowPhase::valueOf)
+                .map(POLICY_FLOW_PHASE::valueOf)
+                .map(p ->
+                    switch (p) {
+                        case INTERACT -> FlowPhase.INTERACT;
+                        case CONNECT -> FlowPhase.CONNECT;
+                        case PUBLISH, MESSAGE_REQUEST -> FlowPhase.PUBLISH;
+                        case SUBSCRIBE, MESSAGE_RESPONSE -> FlowPhase.SUBSCRIBE;
+                        case REQUEST -> FlowPhase.REQUEST;
+                        case RESPONSE -> FlowPhase.RESPONSE;
+                    }
+                )
                 .collect(Collectors.toSet());
         } else {
             return Collections.emptySet();

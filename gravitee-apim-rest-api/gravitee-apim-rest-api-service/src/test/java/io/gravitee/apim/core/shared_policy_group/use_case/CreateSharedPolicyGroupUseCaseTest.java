@@ -296,7 +296,7 @@ public class CreateSharedPolicyGroupUseCaseTest {
         // Given
         var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup();
         toCreate.setApiType(ApiType.PROXY);
-        toCreate.setPhase(FlowPhase.MESSAGE_RESPONSE);
+        toCreate.setPhase(FlowPhase.SUBSCRIBE);
 
         // When
         var throwable = Assertions.catchThrowable(() ->
@@ -307,6 +307,6 @@ public class CreateSharedPolicyGroupUseCaseTest {
         Assertions
             .assertThat(throwable)
             .isInstanceOf(SharedPolicyGroupInvalidPhaseException.class)
-            .hasMessage("Invalid phase MESSAGE_RESPONSE for API type PROXY");
+            .hasMessage("Invalid phase SUBSCRIBE for API type PROXY");
     }
 }

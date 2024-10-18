@@ -605,8 +605,6 @@ components:
             enum:
                 - REQUEST
                 - RESPONSE
-                - MESSAGE_REQUEST
-                - MESSAGE_RESPONSE
                 - INTERACT
                 - CONNECT
                 - PUBLISH
