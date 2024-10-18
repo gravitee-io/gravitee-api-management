@@ -74,9 +74,9 @@ class PlanAdapterTest {
                 soft
                     .assertThat(plan.getPlanSecurity())
                     .isEqualTo(PlanSecurity.builder().type("api-key").configuration("security-definition").build());
-                soft.assertThat(plan.getPlanDefinitionV4().getSelectionRule()).isEqualTo("selection-rule");
-                soft.assertThat(plan.getPlanDefinitionV4().getStatus()).isEqualTo(PlanStatus.PUBLISHED);
-                soft.assertThat(plan.getPlanDefinitionV4().getTags()).isEqualTo(Set.of("tag-1"));
+                soft.assertThat(plan.getAbstractPlanDefinitionV4().getSelectionRule()).isEqualTo("selection-rule");
+                soft.assertThat(plan.getAbstractPlanDefinitionV4().getStatus()).isEqualTo(PlanStatus.PUBLISHED);
+                soft.assertThat(plan.getAbstractPlanDefinitionV4().getTags()).isEqualTo(Set.of("tag-1"));
                 soft.assertThat(plan.getType()).isEqualTo(io.gravitee.apim.core.plan.model.Plan.PlanType.API);
                 soft.assertThat(plan.getValidation()).isEqualTo(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.AUTO);
                 soft.assertThat(plan.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
@@ -427,11 +427,11 @@ class PlanAdapterTest {
             assertThat(planEntity.getPlanStatus().name()).isEqualTo(plan.getPlanStatus().name());
             assertThat(planEntity.getApiId()).isEqualTo(plan.getApiId());
             assertThat(planEntity.getGeneralConditions()).isEqualTo(plan.getGeneralConditions());
-            assertThat(planEntity.getTags()).isEqualTo(plan.getPlanDefinitionV4().getTags());
-            assertThat(planEntity.getSelectionRule()).isEqualTo(plan.getPlanDefinitionV4().getSelectionRule());
+            assertThat(planEntity.getTags()).isEqualTo(plan.getAbstractPlanDefinitionV4().getTags());
+            assertThat(planEntity.getSelectionRule()).isEqualTo(plan.getAbstractPlanDefinitionV4().getSelectionRule());
             assertThat(planEntity.getPlanSecurity().getType()).isEqualTo(PlanSecurityType.API_KEY.getLabel());
             assertThat(planEntity.getPlanSecurity().getConfiguration())
-                .isEqualTo(plan.getPlanDefinitionV4().getSecurity().getConfiguration());
+                .isEqualTo(plan.getAbstractPlanDefinitionV4().getSecurity().getConfiguration());
         }
 
         @Test
@@ -447,8 +447,8 @@ class PlanAdapterTest {
             assertThat(planEntity.getPlanStatus().name()).isEqualTo(plan.getPlanStatus().name());
             assertThat(planEntity.getApiId()).isEqualTo(plan.getApiId());
             assertThat(planEntity.getGeneralConditions()).isEqualTo(plan.getGeneralConditions());
-            assertThat(planEntity.getTags()).isEqualTo(plan.getPlanDefinitionV4().getTags());
-            assertThat(planEntity.getSelectionRule()).isEqualTo(plan.getPlanDefinitionV4().getSelectionRule());
+            assertThat(planEntity.getTags()).isEqualTo(plan.getAbstractPlanDefinitionV4().getTags());
+            assertThat(planEntity.getSelectionRule()).isEqualTo(plan.getAbstractPlanDefinitionV4().getSelectionRule());
             assertThat(planEntity.getPlanMode()).isEqualTo(PlanMode.PUSH);
             assertThat(planEntity.getPlanSecurity()).isNull();
         }
@@ -482,10 +482,10 @@ class PlanAdapterTest {
             assertThat(planEntity.getExcludedGroups()).isEqualTo(plan.getExcludedGroups());
             assertThat(planEntity.getGeneralConditions()).isEqualTo(plan.getGeneralConditions());
             assertThat(planEntity.getOrder()).isEqualTo(plan.getOrder());
-            assertThat(planEntity.getSelectionRule()).isEqualTo(plan.getPlanDefinitionV4().getSelectionRule());
+            assertThat(planEntity.getSelectionRule()).isEqualTo(plan.getAbstractPlanDefinitionV4().getSelectionRule());
             assertThat(planEntity.getStatus()).isEqualTo(plan.getPlanStatus());
             assertThat(planEntity.getValidation()).isEqualTo(plan.getValidation());
-            assertThat(planEntity.getTags()).isEqualTo(plan.getPlanDefinitionV4().getTags());
+            assertThat(planEntity.getTags()).isEqualTo(plan.getAbstractPlanDefinitionV4().getTags());
             assertThat(planEntity.getType()).isEqualTo(plan.getType());
         }
     }

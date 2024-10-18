@@ -13,27 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.v4.plan;
+package io.gravitee.apim.core.plan.model;
 
-import io.gravitee.definition.model.Plugin;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.Flow;
-import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import lombok.*;
-import lombok.experimental.SuperBuilder;
+import io.gravitee.definition.model.v4.nativeapi.NativePlan;
+import io.gravitee.definition.model.v4.plan.AbstractPlan;
+import io.gravitee.definition.model.v4.plan.Plan;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-/**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
- * @author GraviteeSource Team
- */
-@NoArgsConstructor
-@SuperBuilder(toBuilder = true)
 @Getter
-@Setter
-@ToString
-@EqualsAndHashCode(callSuper = true)
-@Schema(name = "PlanV4")
-public class Plan extends AbstractPlan<Flow> {}
+@EqualsAndHashCode
+@Builder(toBuilder = true)
+public class PlanDefinitionV4 {
+
+    private Plan planDefinitionHttp;
+    private NativePlan planDefinitionNative;
+
+    @JsonIgnore
+    public AbstractPlan<? extends AbstractFlow> get() {
+        return planDefinitionNative != null ? planDefinitionNative : planDefinitionHttp;
+    }
+}

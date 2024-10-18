@@ -27,14 +27,9 @@ import io.gravitee.definition.model.federation.FederatedPlan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion;
-import io.gravitee.rest.api.management.v2.rest.model.PlanValidation;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateGenericPlanSecurity;
-import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanFederated;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import java.util.HashSet;
-import java.util.List;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 import org.junit.jupiter.api.Assertions;
@@ -114,10 +109,10 @@ public class PlanMapperTest {
         assertEquals(createPlanV4.getCommentMessage(), plan.getCommentMessage());
         assertEquals(createPlanV4.getCrossId(), plan.getCrossId());
         assertEquals(createPlanV4.getGeneralConditions(), plan.getGeneralConditions());
-        assertEquals(new HashSet<>(createPlanV4.getTags()), plan.getPlanDefinitionV4().getTags());
+        assertEquals(new HashSet<>(createPlanV4.getTags()), plan.getAbstractPlanDefinitionV4().getTags());
         assertEquals(createPlanV4.getExcludedGroups(), plan.getExcludedGroups());
         assertEquals(createPlanV4.getValidation().name(), plan.getValidation().name());
-        assertEquals(createPlanV4.getSelectionRule(), plan.getPlanDefinitionV4().getSelectionRule());
+        assertEquals(createPlanV4.getSelectionRule(), plan.getAbstractPlanDefinitionV4().getSelectionRule());
 
         assertSecurityV4Equals(plan.getPlanSecurity(), createPlanV4.getSecurity());
     }
@@ -251,8 +246,8 @@ public class PlanMapperTest {
         assertNotNull(plan.getSecurity());
         assertSecurityV4Equals(planWithFlows.getPlanSecurity(), plan.getSecurity());
 
-        assertEquals(planWithFlows.getPlanDefinitionV4().getSelectionRule(), plan.getSelectionRule());
-        assertEquals(planWithFlows.getPlanDefinitionV4().getTags(), new HashSet<>(plan.getTags()));
+        assertEquals(planWithFlows.getAbstractPlanDefinitionV4().getSelectionRule(), plan.getSelectionRule());
+        assertEquals(planWithFlows.getAbstractPlanDefinitionV4().getTags(), new HashSet<>(plan.getTags()));
         assertEquals(planWithFlows.getPlanStatus().name(), plan.getStatus().name());
         assertEquals(planWithFlows.getApiId(), plan.getApiId());
         assertEquals(planWithFlows.getOrder(), plan.getOrder());

@@ -18,6 +18,9 @@ package io.gravitee.apim.core.plan.model;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativePlan;
+import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -91,14 +94,12 @@ public class Plan implements GenericPlanEntity {
     private String commentMessage;
     private String generalConditions;
 
-    // FIXME: Kafka Gateway - will not be easy to know if we have to manipulate Plan or NativePlan as it is the ApiType which determines the distinction
-    private io.gravitee.definition.model.v4.plan.Plan planDefinitionV4;
+    private PlanDefinitionV4 basePlanDefinitionV4;
     private io.gravitee.definition.model.Plan planDefinitionV2;
     private io.gravitee.definition.model.federation.FederatedPlan federatedPlanDefinition;
 
     public Plan(String apiId, io.gravitee.definition.model.v4.plan.Plan planDefinitionV4) {
         this.setDefinitionVersion(DefinitionVersion.V4);
-        this.setPlanDefinitionV4(planDefinitionV4);
         this.setId(planDefinitionV4.getId());
         this.setName(planDefinitionV4.getName());
         this.setPlanMode(planDefinitionV4.getMode());
@@ -106,6 +107,16 @@ public class Plan implements GenericPlanEntity {
         this.setPlanTags(planDefinitionV4.getTags());
         this.setType(io.gravitee.apim.core.plan.model.Plan.PlanType.API);
         this.setApiId(apiId);
+
+        this.basePlanDefinitionV4 = PlanDefinitionV4.builder().planDefinitionHttp(planDefinitionV4).build();
+    }
+
+    public AbstractPlan<? extends AbstractFlow> getAbstractPlanDefinitionV4() {
+        return this.basePlanDefinitionV4.get();
+    }
+
+    public io.gravitee.definition.model.v4.plan.Plan getHttpPlanDefinitionV4() {
+        return this.basePlanDefinitionV4.getPlanDefinitionHttp();
     }
 
     @Override
@@ -116,7 +127,7 @@ public class Plan implements GenericPlanEntity {
     @Override
     public PlanSecurity getPlanSecurity() {
         return switch (definitionVersion) {
-            case V4 -> planDefinitionV4.getSecurity();
+            case V4 -> getAbstractPlanDefinitionV4().getSecurity();
             case V1, V2 -> new PlanSecurity(planDefinitionV2.getSecurity(), planDefinitionV2.getSecurityDefinition());
             case FEDERATED -> federatedPlanDefinition.getSecurity();
         };
@@ -125,7 +136,7 @@ public class Plan implements GenericPlanEntity {
     @Override
     public PlanStatus getPlanStatus() {
         return switch (definitionVersion) {
-            case V4 -> planDefinitionV4.getStatus();
+            case V4 -> getAbstractPlanDefinitionV4().getStatus();
             case V1, V2 -> PlanStatus.valueOf(planDefinitionV2.getStatus());
             case FEDERATED -> federatedPlanDefinition.getStatus();
         };
@@ -133,7 +144,7 @@ public class Plan implements GenericPlanEntity {
 
     public Plan setPlanStatus(PlanStatus planStatus) {
         switch (definitionVersion) {
-            case V4 -> planDefinitionV4.setStatus(planStatus);
+            case V4 -> getAbstractPlanDefinitionV4().setStatus(planStatus);
             case V1, V2 -> planDefinitionV2.setStatus(planStatus.name());
             case FEDERATED -> federatedPlanDefinition.setStatus(planStatus);
         }
@@ -143,7 +154,7 @@ public class Plan implements GenericPlanEntity {
     @Override
     public PlanMode getPlanMode() {
         return switch (definitionVersion) {
-            case V4 -> planDefinitionV4.getMode();
+            case V4 -> getAbstractPlanDefinitionV4().getMode();
             case V1, V2 -> PlanMode.STANDARD;
             case FEDERATED -> federatedPlanDefinition.getMode();
         };
@@ -151,7 +162,7 @@ public class Plan implements GenericPlanEntity {
 
     public Plan setPlanMode(PlanMode planMode) {
         if (definitionVersion == DefinitionVersion.V4) {
-            planDefinitionV4.setMode(planMode);
+            getAbstractPlanDefinitionV4().setMode(planMode);
         }
         return this;
     }
@@ -159,7 +170,7 @@ public class Plan implements GenericPlanEntity {
     public Plan setPlanId(String id) {
         this.id = id;
         switch (definitionVersion) {
-            case V4 -> planDefinitionV4.setId(id);
+            case V4 -> getAbstractPlanDefinitionV4().setId(id);
             case V1, V2 -> planDefinitionV2.setId(id);
             case FEDERATED -> federatedPlanDefinition.setId(id);
         }
@@ -173,7 +184,7 @@ public class Plan implements GenericPlanEntity {
 
     public Plan setPlanTags(Set<String> tags) {
         switch (definitionVersion) {
-            case V4 -> planDefinitionV4.setTags(tags);
+            case V4 -> getAbstractPlanDefinitionV4().setTags(tags);
             case V1, V2 -> planDefinitionV2.setTags(tags);
             case FEDERATED -> {
                 // do nothing
@@ -206,7 +217,7 @@ public class Plan implements GenericPlanEntity {
 
     public boolean isApiKey() {
         return switch (definitionVersion) {
-            case V4 -> planDefinitionV4.isApiKey();
+            case V4 -> getAbstractPlanDefinitionV4().isApiKey();
             case FEDERATED -> federatedPlanDefinition.isApiKey();
             default -> planDefinitionV2.isApiKey();
         };
@@ -243,7 +254,7 @@ public class Plan implements GenericPlanEntity {
             .description(updated.description)
             .order(updated.order)
             .updatedAt(TimeProvider.now())
-            .planDefinitionV4(updated.planDefinitionV4)
+            .planDefinitionV4(updated.basePlanDefinitionV4)
             .planDefinitionV2(updated.planDefinitionV2)
             .federatedPlanDefinition(
                 updated.federatedPlanDefinition != null
@@ -269,14 +280,14 @@ public class Plan implements GenericPlanEntity {
      */
     public Plan copy() {
         return switch (definitionVersion) {
-            case V4 -> toBuilder().planDefinitionV4(planDefinitionV4.toBuilder().build()).build();
+            case V4 -> toBuilder().planDefinitionV4(basePlanDefinitionV4.toBuilder().build()).build();
             case V1, V2 -> toBuilder().planDefinitionV2(planDefinitionV2.toBuilder().build()).build();
             case FEDERATED -> toBuilder().federatedPlanDefinition(federatedPlanDefinition.toBuilder().build()).build();
         };
     }
 
     public Plan rollbackTo(io.gravitee.definition.model.v4.plan.Plan planDefinitionV4) {
-        var existingPlanDefinitionV4 = this.getPlanDefinitionV4();
+        var existingPlanDefinitionV4 = this.getHttpPlanDefinitionV4();
 
         // Update plan properties from API definition
         existingPlanDefinitionV4.setName(planDefinitionV4.getName());
@@ -306,8 +317,16 @@ public class Plan implements GenericPlanEntity {
             return self();
         }
 
+        public B planDefinitionV4(PlanDefinitionV4 planDefinitionV4) {
+            this.basePlanDefinitionV4 = planDefinitionV4;
+            if (planDefinitionV4 != null) {
+                this.definitionVersion = DefinitionVersion.V4;
+            }
+            return self();
+        }
+
         public B planDefinitionV4(io.gravitee.definition.model.v4.plan.Plan planDefinitionV4) {
-            this.planDefinitionV4 = planDefinitionV4;
+            this.basePlanDefinitionV4 = PlanDefinitionV4.builder().planDefinitionHttp(planDefinitionV4).build();
             if (planDefinitionV4 != null) {
                 this.definitionVersion = DefinitionVersion.V4;
             }
