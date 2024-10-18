@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.log.v4.model.analytics;
+package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import lombok.Builder;
-import lombok.Data;
+import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusRangesResponse;
+import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
-@Builder
-@Data
-public class ResponseStatusRangesQuery {
+@Mapper
+public interface EnvironmentAnalyticsMapper {
+    EnvironmentAnalyticsMapper INSTANCE = Mappers.getMapper(EnvironmentAnalyticsMapper.class);
 
-    String apiId;
+    EnvironmentAnalyticsResponseStatusRangesResponse map(ResponseStatusRanges responseStatusRanges);
 }

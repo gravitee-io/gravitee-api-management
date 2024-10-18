@@ -2428,25 +2428,25 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/scoring:
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/apiIdParam"
-      post:
-        tags:
-          - API Scoring
-        summary: Get API Scoring
-        description: |-
-          Get API Scoring.
-        operationId: getApiScoring
-        responses:
-          "200":
-            description: API Scoring
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/ApiScoring"
-          default:
-            $ref: "#/components/responses/Error"
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - API Scoring
+            summary: Get API Scoring
+            description: |-
+                Get API Scoring.
+            operationId: getApiScoring
+            responses:
+                "200":
+                    description: API Scoring
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiScoring"
+                default:
+                    $ref: "#/components/responses/Error"
 
     # Categories
 
@@ -2496,36 +2496,57 @@ paths:
 
     # Async Job
     /environments/{envId}/async-jobs:
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
-      get:
         parameters:
-          - $ref: "#/components/parameters/pageParam"
-          - $ref: "#/components/parameters/perPageParam"
-          - name: sourceId
-            in: query
-            required: true
-            description: SourceId to filter
-            schema:
-              type: string
-          - name: status
-            in: query
-            required: true
-            description: Status to filter
-            schema:
-              $ref: "#/components/schemas/AsyncJobStatus"
-        tags:
-          - AsyncJobs
-        summary: List Async Jobs
-        description: |-
-          Get the list of AsyncJobs.
-        operationId: listAsyncJob
-        responses:
-          "200":
-            $ref: "#/components/responses/AsyncJobsResponse"
-          default:
-            $ref: "#/components/responses/Error"
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+                - name: sourceId
+                  in: query
+                  required: true
+                  description: SourceId to filter
+                  schema:
+                      type: string
+                - name: status
+                  in: query
+                  required: true
+                  description: Status to filter
+                  schema:
+                      $ref: "#/components/schemas/AsyncJobStatus"
+            tags:
+                - AsyncJobs
+            summary: List Async Jobs
+            description: |-
+                Get the list of AsyncJobs.
+            operationId: listAsyncJob
+            responses:
+                "200":
+                    $ref: "#/components/responses/AsyncJobsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
 
+    # Environment Analytics
+    /environments/{envId}/analytics/response-statuses:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            parameters:
+                - $ref: "#/components/parameters/from"
+                - $ref: "#/components/parameters/to"
+            tags:
+                - Environment Analytics
+            summary: Get response status counts for all v4 APIs from specified environment
+            description: |-
+                Get v4 API analytics response status counts. Response statuses are grouped by endpoint and status code hundreds.
+
+                User must have the APPLICATION_ANALYTICS[READ] permission.
+            operationId: getDashboardResponseStatusCodes
+            responses:
+                "200":
+                    $ref: "#/components/responses/EnvironmentAnalyticsResponseStatusRangesResponse"
+                default:
+                    $ref: "#/components/responses/Error"
 
 components:
     schemas:
@@ -3279,7 +3300,7 @@ components:
             enum:
                 - MESSAGE
                 - PROXY
-#                FIXME: Kafka Gateway - properly support it, it has just been added for mapstruct
+                #                FIXME: Kafka Gateway - properly support it, it has just been added for mapstruct
                 - NATIVE
         Visibility:
             type: string
@@ -3933,7 +3954,7 @@ components:
                 - HTTP
                 - SUBSCRIPTION
                 - TCP
-#                FIXME: Kafka Gateway: properly support it, it has just been added for mapstruct
+                #                FIXME: Kafka Gateway: properly support it, it has just been added for mapstruct
                 - KAFKA
         LoadBalancer:
             type: object
@@ -6668,7 +6689,7 @@ components:
                     type: object
                     description: Configuration of a page
                     additionalProperties:
-                      type: string
+                        type: string
                 source:
                     $ref: "#/components/schemas/PageSource"
             required:
@@ -6898,32 +6919,32 @@ components:
                     items:
                         $ref: "#/components/schemas/ApiScoringAsset"
         ApiScoringSummary:
-          type: object
-          properties:
-            score:
-              type: number
-              description: The score of the API.
-              example: 0.91
-            all:
-              type: integer
-              description: The total number of violated rules for all assets.
-              example: 100
-            errors:
-              type: integer
-              description: The total number of violated rules with severity ERROR for all assets.
-              example: 10
-            warnings:
-              type: integer
-              description: The total number of violated rules with severity WARN for all assets.
-              example: 20
-            infos:
-              type: integer
-              description: The total number of violated rules with severity INFO for all assets.
-              example: 30
-            hints:
-              type: integer
-              description: The total number of violated rules with severity HINT for all assets.
-              example: 40
+            type: object
+            properties:
+                score:
+                    type: number
+                    description: The score of the API.
+                    example: 0.91
+                all:
+                    type: integer
+                    description: The total number of violated rules for all assets.
+                    example: 100
+                errors:
+                    type: integer
+                    description: The total number of violated rules with severity ERROR for all assets.
+                    example: 10
+                warnings:
+                    type: integer
+                    description: The total number of violated rules with severity WARN for all assets.
+                    example: 20
+                infos:
+                    type: integer
+                    description: The total number of violated rules with severity INFO for all assets.
+                    example: 30
+                hints:
+                    type: integer
+                    description: The total number of violated rules with severity HINT for all assets.
+                    example: 40
         ApiScoringAsset:
             type: object
             properties:
@@ -6992,49 +7013,49 @@ components:
 
         # Async Jobs
         AsyncJob:
-          type: object
-          properties:
-            id:
-              type: string
-              description: Id of the job.
-              example: b21cbef5-02b6-462e-9ee8-694c89c3dee5
-            sourceId:
-              type: string
-              description: Resource id related to this job.
-              example: 660bf428-4f06-451f-8144-10bbb581db65
-            environmentId:
-              type: string
-              description: The environment id
-              example: DEFAULT
-            initiatorId:
-              type: string
-              description: User id who triggered this job.
-              example: 660bf428-4f06-451f-8144-10bbb581db65
-            type:
-              type: string
-              description: Resource id related to this job.
-              example: FEDERATED_APIS_INGESTION
-              enum:
-                - FEDERATED_APIS_INGESTION
-                - SCORING_REQUEST
-            status:
-              $ref: "#/components/schemas/AsyncJobStatus"
-            errorMessage:
-              type: string
-              description: A message detailing why the job failed.
-            createdAt:
-              type: string
-              format: date-time
-              description: The date when the job has been created.
-              example: 2023-05-18T12:40:46.184Z
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Id of the job.
+                    example: b21cbef5-02b6-462e-9ee8-694c89c3dee5
+                sourceId:
+                    type: string
+                    description: Resource id related to this job.
+                    example: 660bf428-4f06-451f-8144-10bbb581db65
+                environmentId:
+                    type: string
+                    description: The environment id
+                    example: DEFAULT
+                initiatorId:
+                    type: string
+                    description: User id who triggered this job.
+                    example: 660bf428-4f06-451f-8144-10bbb581db65
+                type:
+                    type: string
+                    description: Resource id related to this job.
+                    example: FEDERATED_APIS_INGESTION
+                    enum:
+                        - FEDERATED_APIS_INGESTION
+                        - SCORING_REQUEST
+                status:
+                    $ref: "#/components/schemas/AsyncJobStatus"
+                errorMessage:
+                    type: string
+                    description: A message detailing why the job failed.
+                createdAt:
+                    type: string
+                    format: date-time
+                    description: The date when the job has been created.
+                    example: 2023-05-18T12:40:46.184Z
         AsyncJobStatus:
-          type: string
-          description: Status of the job.
-          example: SUCCESS
-          enum:
-            - SUCCESS
-            - PENDING
-            - ERROR
+            type: string
+            description: Status of the job.
+            example: SUCCESS
+            enum:
+                - SUCCESS
+                - PENDING
+                - ERROR
 
     parameters:
         #############
@@ -7643,6 +7664,17 @@ components:
                                 additionalProperties:
                                     description: A map of response status range and counts
                                     type: number
+                                example:
+                                    100.0-200.0:
+                                        value: 5
+                                    200.0-300.0:
+                                        value: 357
+                                    300.0-400.0:
+                                        value: 0
+                                    400.0-500.0:
+                                        value: 0
+                                    500.0-600.0:
+                                        value: 0
                             rangesByEntrypoint:
                                 type: object
                                 description: Status ranges by entrypoint
@@ -7652,7 +7684,44 @@ components:
                                     additionalProperties:
                                         description: Count of status code
                                         type: number
-
+                                example:
+                                    http-proxy:
+                                        value:
+                                            100.0-200.0:
+                                                value: 5
+                                            200.0-300.0:
+                                                value: 357
+                                            300.0-400.0:
+                                                value: 0
+                                            400.0-500.0:
+                                                value: 0
+                                            500.0-600.0:
+                                                value: 0
+        EnvironmentAnalyticsResponseStatusRangesResponse:
+            description: Analytics for status codes by entrypoint at environment level
+            content:
+                application/json:
+                    schema:
+                        title: "EnvironmentAnalyticsResponseStatusRangesResponse"
+                        description: Environment level API Analytics for status codes by entrypoint.
+                        properties:
+                            ranges:
+                                type: object
+                                description: Global status ranges
+                                additionalProperties:
+                                    description: A map of response status range and counts
+                                    type: number
+                                example:
+                                    100.0-200.0:
+                                        value: 5
+                                    200.0-300.0:
+                                        value: 357
+                                    300.0-400.0:
+                                        value: 0
+                                    400.0-500.0:
+                                        value: 0
+                                    500.0-600.0:
+                                        value: 0
         # Analytics - Logs
         ApiLogsResponse:
             description: Page of API Logs
@@ -7820,21 +7889,21 @@ components:
 
         # Async Jobs
         AsyncJobsResponse:
-          description: Page of async jobs
-          content:
-            application/json:
-              schema:
-                title: "AsyncJobsResponse"
-                properties:
-                  data:
-                    description: List of Async Jobs.
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/AsyncJob"
-                  pagination:
-                    $ref: "#/components/schemas/Pagination"
-                  links:
-                    $ref: "#/components/schemas/Links"
+            description: Page of async jobs
+            content:
+                application/json:
+                    schema:
+                        title: "AsyncJobsResponse"
+                        properties:
+                            data:
+                                description: List of Async Jobs.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/AsyncJob"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
+                            links:
+                                $ref: "#/components/schemas/Links"
 
     securitySchemes:
         BasicAuth:

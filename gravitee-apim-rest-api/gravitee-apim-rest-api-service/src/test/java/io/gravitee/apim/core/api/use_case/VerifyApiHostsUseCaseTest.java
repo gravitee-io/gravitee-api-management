@@ -39,7 +39,7 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 class VerifyApiHostsUseCaseTest {
 
     private static final String ENVIRONMENT_ID = "envId";
-    private static final Api TCP_API = aTcpApiV4().toBuilder().build();
+    private static final Api TCP_API = aTcpApiV4().toBuilder().environmentId(ENVIRONMENT_ID).build();
 
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
     private final VerifyApiHostsDomainService verifyApiHostsDomainService = new VerifyApiHostsDomainService(apiQueryService);

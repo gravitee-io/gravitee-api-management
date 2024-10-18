@@ -15,17 +15,20 @@
  */
 package io.gravitee.apim.infra.query_service.analytics;
 
+import io.gravitee.apim.core.analytics.model.StatusRangesQueryParameters;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
+import io.gravitee.apim.infra.adapter.ResponseStatusQueryCriteriaAdapter;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
-import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesQuery;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -71,10 +74,15 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     }
 
     @Override
-    public Optional<ResponseStatusRanges> searchResponseStatusRanges(ExecutionContext executionContext, String apiId) {
+    public Optional<ResponseStatusRanges> searchResponseStatusRanges(
+        ExecutionContext executionContext,
+        StatusRangesQueryParameters queryParameters
+    ) {
+        var responseStatusQueryParameters = ResponseStatusQueryCriteriaAdapter.INSTANCE.map(queryParameters);
+
         final var queryResult = analyticsRepository.searchResponseStatusRanges(
             executionContext.getQueryContext(),
-            ResponseStatusRangesQuery.builder().apiId(apiId).build()
+            responseStatusQueryParameters
         );
         return queryResult.map(analytics ->
             ResponseStatusRanges
