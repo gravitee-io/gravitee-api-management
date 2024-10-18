@@ -19,16 +19,20 @@ import io.gravitee.apim.core.analytics.model.StatusRangesQueryParameters;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.infra.adapter.ResponseStatusQueryCriteriaAdapter;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
+import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
-import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
+import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.List;
+import io.reactivex.rxjava3.core.Maybe;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -107,5 +111,18 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                     .averagesByEntrypoint(averageAggregate.getAverageBy())
                     .build()
             );
+    }
+
+    @Override
+    public Maybe<Map<String, Double>> searchAvgResponseTimeOverTime(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant startTime,
+        Instant endTime,
+        Duration interval
+    ) {
+        return analyticsRepository
+            .searchResponseTimeOverTime(executionContext.getQueryContext(), new ResponseTimeRangeQuery(apiId, startTime, endTime, interval))
+            .map(AverageAggregate::getAverageBy);
     }
 }

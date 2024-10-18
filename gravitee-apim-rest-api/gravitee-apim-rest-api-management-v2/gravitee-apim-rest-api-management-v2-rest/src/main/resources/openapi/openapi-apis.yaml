@@ -2039,10 +2039,10 @@ paths:
                 TCP Proxy APIs are not supported.
 
                 User must have the API_ANALYTICS[READ] permission.
-            operationId: getAverageConnectionDuration
+            operationId: getResponseTimeOverTime
             responses:
                 "200":
-                    $ref: "#/components/responses/ApiAnalyticsAverageConnectionDurationResponse"
+                    $ref: "#/components/responses/ApiAnalyticsOverPeriodResponse"
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/analytics/response-statuses:
@@ -2063,6 +2063,24 @@ paths:
                     $ref: "#/components/responses/ApiAnalyticsResponseStatusRangesResponse"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/analytics/response-time-over-time:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+      get:
+        tags:
+          - API Analytics
+        summary: Get API Analytics average response time over 24h by interval of 30 minutes
+        description: |-
+          Get API Analytics average response time over 24h by interval of 30 minutes
+          
+          User must have the API_ANALYTICS[READ] permission.
+        operationId: getAverageConnectionDuration
+        responses:
+          "200":
+            $ref: "#/components/responses/ApiAnalyticsAverageConnectionDurationResponse"
+          default:
+            $ref: "#/components/responses/Error"
     # API Analytics - Logs
     /environments/{envId}/apis/{apiId}/logs:
         parameters:
@@ -7711,6 +7729,41 @@ components:
                                 additionalProperties:
                                     description: A map of rounded average connection duration by entrypoint
                                     type: number
+        ApiAnalyticsOverPeriodResponse:
+          description: Analytics for number over period
+          content:
+            application/json:
+              schema:
+                title: "ApiAnalyticsOverPeriodResponse"
+                description: API Analytics integer data point on a period.
+                properties:
+                  timeRange:
+                    type: object
+                    description: Time range of the analytics
+                    properties:
+                      from:
+                        type: integer
+                        format: int64
+                        description: The timestamp starting the time range
+                        example: 1621339200000
+                      to:
+                        type: integer
+                        format: int64
+                        description: The timestamp ending the time range
+                        example: 1621425600000
+                      interval:
+                        type: integer
+                        format: int64
+                        description: The interval in milliseconds splitting the data
+                        example: 120000
+                  data:
+                    type: array
+                    description: Response time average (in milliseconds) over time
+                    items:
+                      type: integer
+                      format: int64
+                      minimum: 0
+                      exclusiveMinimum: true
         ApiAnalyticsResponseStatusRangesResponse:
             description: Analytics for status codes by entrypoint
             content:

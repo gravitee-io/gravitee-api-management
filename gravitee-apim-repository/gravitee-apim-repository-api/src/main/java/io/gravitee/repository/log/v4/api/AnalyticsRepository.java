@@ -23,7 +23,9 @@ import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
 import io.reactivex.rxjava3.annotations.NonNull;
+import io.reactivex.rxjava3.core.Maybe;
 import java.util.Optional;
 
 public interface AnalyticsRepository {
@@ -35,4 +37,7 @@ public interface AnalyticsRepository {
 
     @NonNull
     Optional<ResponseStatusRangesAggregate> searchResponseStatusRanges(QueryContext queryContext, ResponseStatusQueryCriteria query);
+
+    @NonNull
+    Maybe<AverageAggregate> searchResponseTimeOverTime(QueryContext queryContext, ResponseTimeRangeQuery query);
 }

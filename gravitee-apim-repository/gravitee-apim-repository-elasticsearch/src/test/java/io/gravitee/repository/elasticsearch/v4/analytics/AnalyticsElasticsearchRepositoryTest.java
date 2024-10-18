@@ -20,19 +20,23 @@ import static org.assertj.core.api.Assertions.offset;
 
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
+import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.function.DoublePredicate;
+import java.util.function.Predicate;
+import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -177,6 +181,48 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 .containsAllEntriesOf(
                     Map.of("100.0-200.0", 0L, "200.0-300.0", status2xx, "300.0-400.0", 0L, "400.0-500.0", status4xx, "500.0-600.0", 0L)
                 );
+        }
+    }
+
+    @Nested
+    class ResponseTimeOverTime {
+
+        private static final Condition<Map.Entry<String, Double>> STRICT_POSITIVE = bucket(key -> true, d -> d > 0, "positive");
+
+        @Test
+        void should_return_response_status_by_entrypoint_for_a_given_api() {
+            // Given
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = from.plus(Duration.ofDays(1));
+            Duration interval = Duration.ofMinutes(10);
+
+            // When
+            AverageAggregate result = cut
+                .searchResponseTimeOverTime(
+                    new QueryContext("org#1", "env#1"),
+                    new ResponseTimeRangeQuery("f1608475-dd77-4603-a084-75dd775603e9", from, to, interval)
+                )
+                .blockingGet();
+
+            // Then
+            long nbBuckets = Duration.between(from, to).dividedBy(interval);
+            assertThat(result.getAverageBy().entrySet())
+                .hasSize((int) nbBuckets + 1)
+                .haveExactly(1, bucketOfTimeHaveValue("14:00:00.000Z", 332.5))
+                .haveExactly(1, STRICT_POSITIVE);
+        }
+
+        private static Condition<Map.Entry<String, Double>> bucketOfTimeHaveValue(String timeSuffix, double value) {
+            return bucket(key -> key.endsWith(timeSuffix), d -> d == value, "entre for '%s' with value %f".formatted(timeSuffix, value));
+        }
+
+        private static Condition<Map.Entry<String, Double>> bucket(
+            Predicate<String> keyPredicate,
+            DoublePredicate value,
+            String description
+        ) {
+            return new Condition<>(entry -> value.test(entry.getValue()) && keyPredicate.test(entry.getKey()), description);
         }
     }
 }

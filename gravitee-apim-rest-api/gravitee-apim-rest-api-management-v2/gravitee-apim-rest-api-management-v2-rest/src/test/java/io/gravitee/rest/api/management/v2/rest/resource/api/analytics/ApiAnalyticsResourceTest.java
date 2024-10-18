@@ -26,6 +26,7 @@ import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
@@ -38,6 +39,7 @@ import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
@@ -59,6 +61,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
     WebTarget statusCodesByEntrypointTarget;
     WebTarget averageMessagesPerRequestTarget;
     WebTarget averageConnectionDurationTarget;
+    WebTarget responseTimeOverTimeTarget;
 
     @Inject
     FakeAnalyticsQueryService fakeAnalyticsQueryService;
@@ -291,6 +294,59 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                 .satisfies(rangesByEntrypoint -> {
                     assertThat(rangesByEntrypoint).hasSize(2);
                     assertThat(rangesByEntrypoint.keySet()).containsExactlyInAnyOrder("http-get", "http-post");
+                });
+        }
+    }
+
+    @Nested
+    class GetResponseTimeOverTime {
+
+        @BeforeEach
+        public void prepareTarget() {
+            responseTimeOverTimeTarget = rootTarget().path("response-time-over-time");
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_ANALYTICS,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = responseTimeOverTimeTarget.request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        void should_return_status_codes_by_entrypoint() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            // the order of keys is important
+            fakeAnalyticsQueryService.averageAggregate = new LinkedHashMap<>();
+            fakeAnalyticsQueryService.averageAggregate.put("1970-01-01T00:00:00", 1.2D);
+            fakeAnalyticsQueryService.averageAggregate.put("1970-01-01T00:30:00", 1.6D);
+
+            final Response response = responseTimeOverTimeTarget.request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiAnalyticsOverPeriodResponse.class)
+                .extracting(ApiAnalyticsOverPeriodResponse::getData)
+                .isNotNull()
+                .satisfies(output -> {
+                    assertThat(output).hasSize(2);
+                    assertThat(output).containsExactly(1L, 2L);
                 });
         }
     }

@@ -20,6 +20,7 @@ import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.ResponseTimeRangeQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageConnectionDurationQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageConnectionDurationResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageMessagesPerRequestQueryAdapter;
@@ -36,7 +37,9 @@ import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
 import io.reactivex.rxjava3.annotations.NonNull;
+import io.reactivex.rxjava3.core.Maybe;
 import java.util.Optional;
 
 public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepository implements AnalyticsRepository {
@@ -95,5 +98,12 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
             )
             .map(SearchResponseStatusRangesResponseAdapter::adapt)
             .blockingGet();
+    }
+
+    @Override
+    public @NonNull Maybe<AverageAggregate> searchResponseTimeOverTime(QueryContext queryContext, ResponseTimeRangeQuery query) {
+        var adapter = new ResponseTimeRangeQueryAdapter();
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        return client.search(index, null, adapter.queryAdapt(info, query)).flatMapMaybe(adapter::responseAdapt);
     }
 }
