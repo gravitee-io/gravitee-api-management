@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ExecutionPhase } from '../plugin';
+import { FlowPhase } from '../plugin';
 import { ApiType, StepV4 } from '../api';
 
 export interface CreateSharedPolicyGroup {
@@ -23,6 +23,6 @@ export interface CreateSharedPolicyGroup {
   description?: string;
   prerequisiteMessage?: string;
   apiType: ApiType;
-  phase: ExecutionPhase;
+  phase: FlowPhase;
   policies?: StepV4[];
 }

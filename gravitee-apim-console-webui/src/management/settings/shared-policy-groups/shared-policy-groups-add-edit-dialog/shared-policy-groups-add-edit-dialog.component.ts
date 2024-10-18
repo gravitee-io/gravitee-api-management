@@ -25,7 +25,7 @@ import { GioFormFocusInvalidModule } from '@gravitee/ui-particles-angular';
 import { map, startWith } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
-import { ApiV4, SharedPolicyGroup, ExecutionPhase, toReadableExecutionPhase } from '../../../../entities/management-api-v2';
+import { ApiV4, SharedPolicyGroup, FlowPhase, toReadableFlowPhase } from '../../../../entities/management-api-v2';
 
 export type SharedPolicyGroupAddEditDialogData =
   | {
@@ -37,9 +37,9 @@ export type SharedPolicyGroupAddEditDialogData =
 
 export type SharedPolicyGroupAddEditDialogResult =
   | undefined
-  | { name: string; description?: string; prerequisiteMessage?: string; phase: ExecutionPhase };
+  | { name: string; description?: string; prerequisiteMessage?: string; phase: FlowPhase };
 
-const PHASE_BY_API_TYPE: Record<ApiV4['type'], ExecutionPhase[]> = {
+const PHASE_BY_API_TYPE: Record<ApiV4['type'], FlowPhase[]> = {
   PROXY: ['REQUEST', 'RESPONSE'],
   MESSAGE: ['REQUEST', 'RESPONSE', 'MESSAGE_REQUEST', 'MESSAGE_RESPONSE'],
 };
@@ -67,11 +67,11 @@ export class SharedPolicyGroupsAddEditDialogComponent {
     name: FormControl<string>;
     description: FormControl<string>;
     prerequisiteMessage: FormControl<string>;
-    phase: FormControl<ExecutionPhase>;
+    phase: FormControl<FlowPhase>;
   }>;
   protected isValid$: Observable<boolean>;
 
-  protected phases: { name: string; value: ExecutionPhase }[];
+  protected phases: { name: string; value: FlowPhase }[];
   protected isEdit: boolean;
 
   constructor(
@@ -83,7 +83,7 @@ export class SharedPolicyGroupsAddEditDialogComponent {
     const apiType = isEdit(data) ? data.sharedPolicyGroup.apiType : data.apiType;
 
     this.apiTypeLabel = apiType === 'MESSAGE' ? 'Message' : 'Proxy';
-    this.phases = PHASE_BY_API_TYPE[apiType].map((phase) => ({ name: toReadableExecutionPhase(phase), value: phase }));
+    this.phases = PHASE_BY_API_TYPE[apiType].map((phase) => ({ name: toReadableFlowPhase(phase), value: phase }));
 
     this.formGroup = new FormGroup({
       name: new FormControl(isEdit(data) ? data.sharedPolicyGroup.name : '', Validators.required),

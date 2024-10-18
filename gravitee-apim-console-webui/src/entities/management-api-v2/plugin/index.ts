@@ -17,7 +17,7 @@ export * from './connectorFeature';
 export * from './connectorMode';
 export * from './connectorPlugin';
 export * from './connectorPlugin.fixture';
-export * from './executionPhase';
+export * from './flowPhase';
 export * from './moreInformation';
 export * from './platformPlugin';
 export * from './policyPlugin';

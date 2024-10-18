@@ -15,7 +15,7 @@
  */
 
 import { ApiType, StepV4 } from '../api';
-import { ExecutionPhase } from '../plugin';
+import { FlowPhase } from '../plugin';
 
 export interface SharedPolicyGroup {
   id: string;
@@ -26,7 +26,7 @@ export interface SharedPolicyGroup {
   lifecycleState?: 'DEPLOYED' | 'UNDEPLOYED' | 'PENDING';
   version?: number;
   apiType: ApiType;
-  phase: ExecutionPhase;
+  phase: FlowPhase;
   steps?: StepV4[];
   deployedAt?: Date;
   createdAt?: Date;

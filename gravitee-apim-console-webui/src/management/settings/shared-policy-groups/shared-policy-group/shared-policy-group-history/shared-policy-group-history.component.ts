@@ -50,11 +50,7 @@ import {
 import { GioTableWrapperFilters, Sort } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { SharedPolicyGroupsStateBadgeComponent } from '../../shared-policy-groups-state-badge/shared-policy-groups-state-badge.component';
 import { SharedPolicyGroupsService } from '../../../../../services-ngx/shared-policy-groups.service';
-import {
-  SharedPolicyGroup,
-  SharedPolicyGroupHistoriesSortByParam,
-  toReadableExecutionPhase,
-} from '../../../../../entities/management-api-v2';
+import { SharedPolicyGroup, SharedPolicyGroupHistoriesSortByParam, toReadableFlowPhase } from '../../../../../entities/management-api-v2';
 import { GioTableWrapperModule } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
@@ -115,7 +111,7 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
     totalItems: 0,
     isLoading: true,
   });
-  protected readonly toReadableExecutionPhase = toReadableExecutionPhase;
+  protected readonly toReadableFlowPhase = toReadableFlowPhase;
   protected compareSPG?: [PageTableVM['items'][number], PageTableVM['items'][number]] = [null, null];
   protected get compareTwoSPGLabel(): string {
     if (this.compareSPG[0] === null) {
