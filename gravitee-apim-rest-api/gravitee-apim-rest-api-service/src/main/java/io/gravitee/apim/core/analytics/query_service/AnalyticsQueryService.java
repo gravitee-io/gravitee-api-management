@@ -15,11 +15,15 @@
  */
 package io.gravitee.apim.core.analytics.query_service;
 
+import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.reactivex.rxjava3.core.Maybe;
+import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 
 public interface AnalyticsQueryService {
@@ -30,4 +34,12 @@ public interface AnalyticsQueryService {
     Optional<AverageConnectionDuration> searchAverageConnectionDuration(ExecutionContext executionContext, String apiId);
 
     Optional<ResponseStatusRanges> searchResponseStatusRanges(ExecutionContext executionContext, String apiId);
+
+    Maybe<AverageAggregate> searchAvgResponseTimeOverTime(
+        ExecutionContext executionContext,
+        String apiId,
+        ZonedDateTime startTime,
+        ZonedDateTime endTime,
+        Duration interval
+    );
 }
