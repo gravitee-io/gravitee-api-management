@@ -213,3 +213,5 @@ databaseChangeLog:
           - file: liquibase/changelogs/v4_5_0/06_add_scoring_table.yml
     - include:
           - file: liquibase/changelogs/v4_5_0/07_add_scoring_ruleset_table.yml
+    - include:
+          - file: liquibase/changelogs/v4_6_0/00_migrate_spg_phase.yml

@@ -15,10 +15,8 @@
  */
 package io.gravitee.repository.mongodb.management.upgrade.upgrader.keys;
 
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Projections;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
-import io.gravitee.repository.mongodb.management.upgrade.upgrader.environment.MissingEnvironmentUpgrader;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.organization.MissingOrganizationsOnEventsUpgrader;
 import org.bson.Document;
 import org.springframework.stereotype.Component;
 
@@ -28,7 +26,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApiKeyFederatedUpgrader extends MongoUpgrader {
 
-    public static final int API_KEY_FEDERATED_UPGRADER_ORDER = MissingEnvironmentUpgrader.MISSING_ENVIRONMENT_UPGRADER_ORDER + 1;
+    public static final int API_KEY_FEDERATED_UPGRADER_ORDER =
+        MissingOrganizationsOnEventsUpgrader.MISSING_ORGANIZATION_ON_EVENT_UPGRADER_ORDER + 1;
 
     @Override
     public String version() {

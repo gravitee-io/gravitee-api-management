@@ -67,7 +67,7 @@ class PolicyValidationDomainServiceTest {
                             .name("Policy 1")
                             .proxy(Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE))
                             .build(),
-                        PolicyPluginEntity.builder().id("policy-2").name("Policy 2").message(Set.of(FlowPhase.MESSAGE_REQUEST)).build()
+                        PolicyPluginEntity.builder().id("policy-2").name("Policy 2").message(Set.of(FlowPhase.PUBLISH)).build()
                     )
                 );
 
@@ -97,9 +97,9 @@ class PolicyValidationDomainServiceTest {
                             .builder()
                             .id("policy-1")
                             .name("Policy 1")
-                            .message(Set.of(FlowPhase.MESSAGE_REQUEST, FlowPhase.MESSAGE_RESPONSE))
+                            .message(Set.of(FlowPhase.PUBLISH, FlowPhase.SUBSCRIBE))
                             .build(),
-                        PolicyPluginEntity.builder().id("policy-2").name("Policy 2").message(Set.of(FlowPhase.MESSAGE_REQUEST)).build(),
+                        PolicyPluginEntity.builder().id("policy-2").name("Policy 2").message(Set.of(FlowPhase.PUBLISH)).build(),
                         PolicyPluginEntity.builder().id("policy-3").name("Policy 3").build()
                     )
                 );
@@ -109,7 +109,7 @@ class PolicyValidationDomainServiceTest {
                 service.validatePoliciesFlowPhase(
                     List.of("policy-1", "policy-2", "policy-3"),
                     ApiType.MESSAGE,
-                    io.gravitee.apim.core.plugin.model.FlowPhase.MESSAGE_RESPONSE
+                    io.gravitee.apim.core.plugin.model.FlowPhase.SUBSCRIBE
                 )
             );
 
@@ -117,7 +117,7 @@ class PolicyValidationDomainServiceTest {
             Assertions
                 .assertThat(throwable)
                 .isInstanceOf(UnexpectedPoliciesException.class)
-                .hasMessage("Unexpected policies [Policy 2, Policy 3] for API type MESSAGE and phase MESSAGE_RESPONSE");
+                .hasMessage("Unexpected policies [Policy 2, Policy 3] for API type MESSAGE and phase SUBSCRIBE");
         }
     }
 }

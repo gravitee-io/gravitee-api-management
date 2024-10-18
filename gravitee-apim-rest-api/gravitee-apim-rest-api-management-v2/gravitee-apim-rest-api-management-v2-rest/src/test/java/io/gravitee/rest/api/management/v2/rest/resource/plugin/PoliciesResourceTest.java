@@ -25,10 +25,10 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
-import io.gravitee.rest.api.management.v2.rest.model.FlowPhase;
 import io.gravitee.rest.api.management.v2.rest.model.PolicyPlugin;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
+import io.gravitee.rest.api.model.v4.policy.FlowPhase;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
@@ -253,7 +253,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         policyPlugin.setProxy(
             Set.of(io.gravitee.rest.api.model.v4.policy.FlowPhase.REQUEST, io.gravitee.rest.api.model.v4.policy.FlowPhase.RESPONSE)
         );
-        policyPlugin.setMessage(Set.of(io.gravitee.rest.api.model.v4.policy.FlowPhase.MESSAGE_REQUEST));
+        policyPlugin.setMessage(Set.of(FlowPhase.PUBLISH));
         return policyPlugin;
     }
 }
