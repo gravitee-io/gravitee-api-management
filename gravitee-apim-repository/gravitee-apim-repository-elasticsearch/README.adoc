@@ -8,4 +8,4 @@ To do so you can use the following commands:
 * ES 7.x: `mvn clean test -Delasticsearch.version=7.17.8`
 * ES 8.x: `mvn clean test -Delasticsearch.version=8.7.0` (Default)
 * OS 1.x: `mvn clean test -Dsearch.type=opensearch -Dopensearch.version=1.3.9`
-* OS 2.x: `mvn clean test -Dsearch.type=opensearch -Dopensearch.version=2.6.0`
+* OS 2.x: `mvn clean test -Dsearch.type=opensearch -Dopensearch.version=2`
