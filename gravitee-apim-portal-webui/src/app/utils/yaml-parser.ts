@@ -15,7 +15,26 @@
  */
 import * as jsYAML from 'js-yaml';
 
-const schema = jsYAML.JSON_SCHEMA.extend([]);
+import { Buffer } from 'buffer';
+
+const binaryType = new jsYAML.Type('tag:yaml.org,2002:binary', {
+  kind: 'scalar',
+  resolve: (data: any) => {
+    // Validate that the data is valid Base64
+    return typeof data === 'string' && /^[A-Za-z0-9+/=]*$/.test(data);
+  },
+  construct: (data: string) => {
+    // Convert Base64 to a Buffer
+    return Buffer.from(data, 'base64').toString('utf-8'); // Convert to UTF-8 string
+  },
+  instanceOf: String,
+  represent: (value: any) => {
+    // Encode the value as Base64 for YAML representation
+    return Buffer.from(String(value), 'utf-8').toString('base64');
+  },
+});
+
+const schema = jsYAML.JSON_SCHEMA.extend([binaryType]);
 
 export function readYaml(content: string): any {
   return jsYAML.load(content, { schema });
