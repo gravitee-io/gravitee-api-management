@@ -30,9 +30,18 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.adapter.FlowAdapter;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.selector.Selector;
+import io.gravitee.definition.model.v4.flow.selector.SelectorType;
+import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.repository.management.model.flow.FlowStep;
+import io.gravitee.repository.management.model.flow.selector.FlowHttpSelector;
+import io.gravitee.repository.management.model.flow.selector.FlowOperator;
+import io.gravitee.repository.management.model.flow.selector.FlowSelector;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
 import java.time.Instant;
@@ -95,7 +104,7 @@ class FlowCrudServiceImplTest {
         @SneakyThrows
         void should_save_flows() {
             // Given
-            var flows = List.of(Flow.builder().name("My flow").enabled(true).build());
+            List<Flow> flows = List.of(Flow.builder().name("My flow").enabled(true).selectors(List.of(new HttpSelector())).build());
 
             // When
             service.saveApiFlows(API_ID, flows);
@@ -117,6 +126,7 @@ class FlowCrudServiceImplTest {
                         .name("My flow")
                         .createdAt(Date.from(INSTANT_NOW))
                         .updatedAt(Date.from(INSTANT_NOW))
+                        .selectors(List.of(FlowHttpSelector.builder().path("/").pathOperator(FlowOperator.STARTS_WITH).build()))
                         .build()
                 );
         }
@@ -126,7 +136,7 @@ class FlowCrudServiceImplTest {
         void should_return_created_flows() {
             // Given
             when(flowRepository.create(any())).thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
-            var flows = List.of(Flow.builder().build());
+            List<Flow> flows = List.of(Flow.builder().build());
 
             // When
             var result = service.saveApiFlows(API_ID, flows);
@@ -144,6 +154,87 @@ class FlowCrudServiceImplTest {
 
             // When
             Throwable throwable = catchThrowable(() -> service.saveApiFlows(API_ID, List.of(Flow.builder().build())));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to save flows for API: api-id");
+        }
+    }
+
+    @Nested
+    class SaveNativeApiFlows {
+
+        @Test
+        @SneakyThrows
+        void should_delete_existing_flows() {
+            // Given
+
+            // When
+            service.saveApiFlows(API_ID, List.of());
+
+            // Then
+            verify(flowRepository).deleteByReferenceIdAndReferenceType(API_ID, FlowReferenceType.API);
+        }
+
+        @Test
+        @SneakyThrows
+        void should_save_flows() {
+            // Given
+            List<NativeFlow> flows = List.of(
+                NativeFlow.builder().name("My flow").enabled(true).publish(List.of(Step.builder().name("step 1").build())).build()
+            );
+
+            var repoFlow = io.gravitee.repository.management.model.flow.Flow
+                .builder()
+                .referenceType(FlowReferenceType.API)
+                .referenceId(API_ID)
+                .order(0)
+                .id("generated-id")
+                .enabled(true)
+                .name("My flow")
+                .createdAt(Date.from(INSTANT_NOW))
+                .updatedAt(Date.from(INSTANT_NOW))
+                .publish(List.of(FlowStep.builder().name("step 1").build()))
+                .build();
+
+            when(flowRepository.create(any())).thenReturn(repoFlow);
+
+            // When
+            var savedFlows = service.saveNativeApiFlows(API_ID, flows);
+
+            // Then
+            var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.flow.Flow.class);
+            verify(flowRepository).create(captor.capture());
+
+            assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(repoFlow);
+
+            assertThat(savedFlows.get(0)).usingRecursiveComparison().isEqualTo(flows.get(0).toBuilder().id("generated-id").build());
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_created_flows() {
+            // Given
+            when(flowRepository.create(any())).thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+            List<NativeFlow> flows = List.of(NativeFlow.builder().build());
+
+            // When
+            var result = service.saveNativeApiFlows(API_ID, flows);
+
+            // Then
+            flows.get(0).setId(result.get(0).getId());
+            assertThat(result).isEqualTo(flows);
+        }
+
+        @Test
+        @SneakyThrows
+        void should_throw_when_technical_exception_occurs() {
+            // Given
+            when(flowRepository.create(any())).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.saveNativeApiFlows(API_ID, List.of(NativeFlow.builder().build())));
 
             // Then
             assertThat(throwable)
@@ -173,7 +264,7 @@ class FlowCrudServiceImplTest {
         @SneakyThrows
         void should_save_flows() {
             // Given
-            var flows = List.of(Flow.builder().name("My flow").enabled(true).build());
+            List<Flow> flows = List.of(Flow.builder().name("My flow").enabled(true).build());
 
             // When
             service.savePlanFlows(PLAN_ID, flows);
@@ -204,7 +295,7 @@ class FlowCrudServiceImplTest {
         void should_return_created_flows() {
             // Given
             when(flowRepository.create(any())).thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
-            var flows = List.of(Flow.builder().build());
+            List<Flow> flows = List.of(Flow.builder().build());
 
             // When
             var result = service.savePlanFlows(PLAN_ID, flows);

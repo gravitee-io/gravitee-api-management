@@ -112,8 +112,8 @@ public class PlanCrudServiceImplTest {
                 soft.assertThat(plan.getPublishedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.isCommentRequired()).isTrue();
-                soft.assertThat(plan.getPlanDefinitionV4().getSelectionRule()).isEqualTo("selection-rule");
-                soft.assertThat(plan.getPlanDefinitionV4().getTags()).isEqualTo(Set.of("tag-1"));
+                soft.assertThat(plan.getAbstractPlanDefinitionV4().getSelectionRule()).isEqualTo("selection-rule");
+                soft.assertThat(plan.getAbstractPlanDefinitionV4().getTags()).isEqualTo(Set.of("tag-1"));
             });
         }
 
@@ -235,8 +235,8 @@ public class PlanCrudServiceImplTest {
                 soft.assertThat(plan.getPublishedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.isCommentRequired()).isTrue();
-                soft.assertThat(plan.getPlanDefinitionV4().getSelectionRule()).isEqualTo("selection-rule");
-                soft.assertThat(plan.getPlanDefinitionV4().getTags()).isEqualTo(Set.of("tag-1"));
+                soft.assertThat(plan.getAbstractPlanDefinitionV4().getSelectionRule()).isEqualTo("selection-rule");
+                soft.assertThat(plan.getAbstractPlanDefinitionV4().getTags()).isEqualTo(Set.of("tag-1"));
             });
         }
 

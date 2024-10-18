@@ -15,7 +15,7 @@
  */
 package fixtures.core.model;
 
-import io.gravitee.apim.core.api.model.NewApi;
+import io.gravitee.apim.core.api.model.NewV4Api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
@@ -31,9 +31,9 @@ public class NewApiFixtures {
     private NewApiFixtures() {}
 
     public static final String MY_API = "my-api";
-    private static final Supplier<NewApi.NewApiBuilder> BASE = () -> NewApi.builder().name("My API").apiVersion("1.0");
+    private static final Supplier<NewV4Api.NewV4ApiBuilder<?, ?>> BASE = () -> NewV4Api.builder().name("My API").apiVersion("1.0");
 
-    public static NewApi aProxyApiV4() {
+    public static NewV4Api aProxyApiV4() {
         return BASE
             .get()
             .definitionVersion(DefinitionVersion.V4)

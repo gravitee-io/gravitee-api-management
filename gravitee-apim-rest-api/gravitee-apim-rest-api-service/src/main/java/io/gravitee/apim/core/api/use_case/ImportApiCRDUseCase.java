@@ -51,6 +51,7 @@ import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.plan.model.PlanDefinitionV4;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
@@ -354,13 +355,18 @@ public class ImportApiCRDUseCase {
             .name(planCRD.getName())
             .description(planCRD.getDescription())
             .planDefinitionV4(
-                io.gravitee.definition.model.v4.plan.Plan
+                PlanDefinitionV4
                     .builder()
-                    .security(planCRD.getSecurity())
-                    .selectionRule(planCRD.getSelectionRule())
-                    .status(planCRD.getStatus())
-                    .tags(planCRD.getTags())
-                    .mode(planCRD.getMode())
+                    .planDefinitionHttp(
+                        io.gravitee.definition.model.v4.plan.Plan
+                            .builder()
+                            .security(planCRD.getSecurity())
+                            .selectionRule(planCRD.getSelectionRule())
+                            .status(planCRD.getStatus())
+                            .tags(planCRD.getTags())
+                            .mode(planCRD.getMode())
+                            .build()
+                    )
                     .build()
             )
             .characteristics(planCRD.getCharacteristics())

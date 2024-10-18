@@ -367,7 +367,7 @@ class RollbackApiUseCaseTest {
                 .id("plan-to-republish")
                 .apiId(existingApi.getId())
                 .name("plan-to-republish-name")
-                .planDefinitionV4(PlanFixtures.aPlanV4().getPlanDefinitionV4().toBuilder().status(PlanStatus.CLOSED).build())
+                .planDefinitionV4(PlanFixtures.aPlanV4().getHttpPlanDefinitionV4().toBuilder().status(PlanStatus.CLOSED).build())
                 .build()
         );
 
@@ -494,7 +494,7 @@ class RollbackApiUseCaseTest {
         // Check updated plan
         var updatedPlan = planCrudService.getById(existingPlanToUpdate.getId());
         assertThat(updatedPlan.getName()).isEqualTo("plan-to-update-name-UPDATED");
-        assertThat(updatedPlan.getPlanDefinitionV4().getFlows().get(0).getName()).isEqualTo("plan-to-update-new-flow");
+        assertThat(updatedPlan.getHttpPlanDefinitionV4().getFlows().get(0).getName()).isEqualTo("plan-to-update-new-flow");
         assertThat(updatedPlan.getDescription()).isEqualTo("Description not updated");
         assertThat(updatedPlan.getCommentMessage()).isEqualTo("Comment message not updated");
 
@@ -502,10 +502,10 @@ class RollbackApiUseCaseTest {
         var createdPlan = planCrudService.getById("plan-to-add");
         assertThat(createdPlan.getId()).isEqualTo("plan-to-add");
         assertThat(createdPlan.getName()).isEqualTo("plan-to-add-name");
-        assertThat(createdPlan.getPlanDefinitionV4().getFlows().get(0).getName()).isEqualTo("flow-name");
-        assertThat(createdPlan.getPlanDefinitionV4().getTags()).containsExactly("tag");
-        assertThat(createdPlan.getPlanDefinitionV4().getSelectionRule()).isEqualTo("selection-rule");
-        assertThat(createdPlan.getPlanDefinitionV4().getSecurity().getType()).isEqualTo("KEY_LESS");
+        assertThat(createdPlan.getHttpPlanDefinitionV4().getFlows().get(0).getName()).isEqualTo("flow-name");
+        assertThat(createdPlan.getHttpPlanDefinitionV4().getTags()).containsExactly("tag");
+        assertThat(createdPlan.getHttpPlanDefinitionV4().getSelectionRule()).isEqualTo("selection-rule");
+        assertThat(createdPlan.getHttpPlanDefinitionV4().getSecurity().getType()).isEqualTo("KEY_LESS");
 
         assertClosePlanAuditHasBeenCreated(existingPlanToClose);
         assertRollbackAuditHasBeenCreated();

@@ -123,7 +123,7 @@ public class RollbackApiUseCase {
         plansToAdd.forEach(planToAdd ->
             createPlanDomainService.create(
                 planToAdd,
-                planToAdd.getPlanDefinitionV4().getFlows() == null ? List.of() : planToAdd.getPlanDefinitionV4().getFlows(),
+                planToAdd.getHttpPlanDefinitionV4().getFlows() == null ? List.of() : planToAdd.getHttpPlanDefinitionV4().getFlows(),
                 api,
                 auditInfo
             )
@@ -135,7 +135,7 @@ public class RollbackApiUseCase {
         plansToUpdate.forEach(planToUpdate ->
             updatePlanDomainService.update(
                 planToUpdate,
-                planToUpdate.getPlanDefinitionV4().getFlows() == null ? List.of() : planToUpdate.getPlanDefinitionV4().getFlows(),
+                planToUpdate.getHttpPlanDefinitionV4().getFlows() == null ? List.of() : planToUpdate.getHttpPlanDefinitionV4().getFlows(),
                 existingPlanStatuses,
                 api,
                 auditInfo

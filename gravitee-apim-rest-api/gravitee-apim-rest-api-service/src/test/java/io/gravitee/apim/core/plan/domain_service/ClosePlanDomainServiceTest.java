@@ -34,6 +34,7 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
 import java.time.Instant;
@@ -112,7 +113,7 @@ class ClosePlanDomainServiceTest {
                     .planDefinitionV4(
                         PlanFixtures
                             .anApiKeyV4()
-                            .getPlanDefinitionV4()
+                            .getHttpPlanDefinitionV4()
                             .toBuilder()
                             .status(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED)
                             .build()
@@ -191,7 +192,7 @@ class ClosePlanDomainServiceTest {
                 .planDefinitionV4(
                     PlanFixtures
                         .anApiKeyV4()
-                        .getPlanDefinitionV4()
+                        .getHttpPlanDefinitionV4()
                         .toBuilder()
                         .status(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED)
                         .build()

@@ -309,7 +309,7 @@ class UpdatePlanDomainServiceTest {
                 .commentMessage("updated comment")
                 .planDefinitionV4(
                     plan
-                        .getPlanDefinitionV4()
+                        .getHttpPlanDefinitionV4()
                         .toBuilder()
                         .status(PlanStatus.PUBLISHED)
                         .tags(Set.of("tag1"))
@@ -347,7 +347,7 @@ class UpdatePlanDomainServiceTest {
         void should_throw_when_flows_are_invalid(Api api, Plan plan) {
             // Given
             givenExistingPlan(plan);
-            var invalidFlows = List.of(
+            List<Flow> invalidFlows = List.of(
                 Flow.builder().name("invalid").selectors(List.of(new HttpSelector(), new ChannelSelector())).build()
             );
 
@@ -417,7 +417,7 @@ class UpdatePlanDomainServiceTest {
             // When
             var toUpdate = plan
                 .toBuilder()
-                .planDefinitionV4(plan.getPlanDefinitionV4().toBuilder().selectionRule("updated rule").build())
+                .planDefinitionV4(plan.getHttpPlanDefinitionV4().toBuilder().selectionRule("updated rule").build())
                 .build();
             var result = service.update(toUpdate, flows, null, api, AUDIT_INFO);
 

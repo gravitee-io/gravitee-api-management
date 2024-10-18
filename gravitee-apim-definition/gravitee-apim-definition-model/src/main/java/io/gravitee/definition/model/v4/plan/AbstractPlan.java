@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.v4.flow.Flow;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -41,7 +42,7 @@ import lombok.experimental.SuperBuilder;
 @Setter
 @ToString
 @EqualsAndHashCode
-public abstract class AbstractPlan implements Serializable {
+public abstract class AbstractPlan<F extends AbstractFlow> implements Serializable {
 
     @JsonProperty(required = true)
     @NotBlank
@@ -66,6 +67,10 @@ public abstract class AbstractPlan implements Serializable {
     @JsonProperty(required = true)
     @NotNull
     private PlanStatus status;
+
+    private List<F> flows;
+
+    public abstract AbstractPlanBuilder<?, ?, ?> toBuilder();
 
     @JsonIgnore
     public final boolean isSubscribable() {
@@ -97,5 +102,12 @@ public abstract class AbstractPlan implements Serializable {
         );
     }
 
-    public abstract List<Plugin> getPlugins();
+    @JsonIgnore
+    public List<Plugin> getPlugins() {
+        return Optional
+                .ofNullable(this.getFlows())
+                .map(f -> f.stream().filter(AbstractFlow::isEnabled).map(AbstractFlow::getPlugins).flatMap(List::stream).toList())
+                .orElse(List.of());
+    }
+
 }

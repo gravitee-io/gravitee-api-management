@@ -106,7 +106,7 @@ public class UpdatePlanDomainService {
         }
 
         planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId());
-        planValidatorDomainService.validatePlanTagsAgainstApiTags(planToUpdate.getPlanDefinitionV4().getTags(), api.getTags());
+        planValidatorDomainService.validatePlanTagsAgainstApiTags(planToUpdate.getAbstractPlanDefinitionV4().getTags(), api.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
 
         var sanitizedFlows = flowValidationDomainService.validateAndSanitize(api.getType(), flows);

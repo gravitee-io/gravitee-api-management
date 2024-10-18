@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.adapter;
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.plan.model.PlanDefinitionV4;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.federation.FederatedPlan;
@@ -95,12 +96,12 @@ public interface PlanAdapter {
     @Mapping(target = "security", qualifiedByName = "serializeV2PlanSecurityType")
     io.gravitee.definition.model.Plan toPlanDefinitionV2(io.gravitee.repository.management.model.Plan source);
 
-    default io.gravitee.definition.model.v4.plan.Plan deserializeDefinitionV4(io.gravitee.repository.management.model.Plan source) {
+    default PlanDefinitionV4 deserializeDefinitionV4(io.gravitee.repository.management.model.Plan source) {
         if (source.getDefinitionVersion() != DefinitionVersion.V4) {
             return null;
         }
 
-        return toPlanDefinitionV4(source);
+        return PlanDefinitionV4.builder().planDefinitionHttp(toPlanDefinitionV4(source)).build();
     }
 
     default io.gravitee.definition.model.Plan deserializeDefinitionV2(io.gravitee.repository.management.model.Plan source) {
@@ -235,7 +236,7 @@ public interface PlanAdapter {
     @Named("serializeSelectionRule")
     default String serializeSelectionRule(Plan source) {
         return switch (source.getDefinitionVersion()) {
-            case V4 -> source.getPlanDefinitionV4().getSelectionRule();
+            case V4 -> source.getAbstractPlanDefinitionV4().getSelectionRule();
             case V1, V2 -> source.getPlanDefinitionV2().getSelectionRule();
             case FEDERATED -> null;
         };
@@ -244,7 +245,7 @@ public interface PlanAdapter {
     @Named("serializeTags")
     default Set<String> serializeTags(Plan source) {
         return switch (source.getDefinitionVersion()) {
-            case V4 -> source.getPlanDefinitionV4().getTags();
+            case V4 -> source.getAbstractPlanDefinitionV4().getTags();
             case V1, V2 -> source.getPlanDefinitionV2().getTags();
             case FEDERATED -> null;
         };
