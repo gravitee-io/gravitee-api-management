@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { PlatformPlugin } from './platformPlugin';
-import { ExecutionPhase } from './executionPhase';
+import { FlowPhase } from './flowPhase';
 
 export interface PolicyPlugin extends PlatformPlugin {
   /**
@@ -25,6 +25,6 @@ export interface PolicyPlugin extends PlatformPlugin {
    * Plugin's name.
    */
   name: string;
-  proxy?: ExecutionPhase[];
-  message?: ExecutionPhase[];
+  proxy?: FlowPhase[];
+  message?: FlowPhase[];
 }

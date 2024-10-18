@@ -15,7 +15,7 @@
  */
 
 import { ApiType } from '../api';
-import { ExecutionPhase } from '../plugin';
+import { FlowPhase } from '../plugin';
 
 export interface SharedPolicyGroupPolicyPlugin {
   id: string;
@@ -25,5 +25,5 @@ export interface SharedPolicyGroupPolicyPlugin {
   prerequisiteMessage?: string;
   version?: string;
   apiType: ApiType;
-  phase: ExecutionPhase;
+  phase: FlowPhase;
 }
