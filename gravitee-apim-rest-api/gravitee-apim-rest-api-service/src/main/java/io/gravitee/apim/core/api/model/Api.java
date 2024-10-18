@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api.model;
 
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.plan.model.PlanDefinitionV4;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
@@ -76,6 +77,7 @@ public class Api {
     private io.gravitee.definition.model.v4.Api apiDefinitionV4;
     private io.gravitee.definition.model.Api apiDefinition;
     private io.gravitee.definition.model.federation.FederatedApi federatedApiDefinition;
+    private io.gravitee.definition.model.v4.nativeapi.NativeApi nativeApiDefinition;
 
     /**
      * The api type.
@@ -215,8 +217,13 @@ public class Api {
                 if (apiDefinitionV4.getType() == ApiType.NATIVE) {
                     throw new IllegalStateException("NATIVE API not supported");
                 }
-                apiDefinitionV4.setPlans(plans.stream().map(Plan::getPlanDefinitionV4).collect(Collectors.toList()));
+                apiDefinitionV4.setPlans(
+                    plans.stream().map(Plan::getBasePlanDefinitionV4).map(PlanDefinitionV4::getPlanDefinitionHttp).toList()
+                );
             }
+            //            case V4 -> switch (type) {
+            //                case PROXY -> ,
+            //            };
             case V1, V2 -> apiDefinition.setPlans(plans.stream().map(Plan::getPlanDefinitionV2).collect(Collectors.toList()));
             case FEDERATED -> {
                 // do nothing
@@ -304,6 +311,14 @@ public class Api {
             this.federatedApiDefinition = federatedApiDefinition;
             if (federatedApiDefinition != null) {
                 this.definitionVersion = federatedApiDefinition.getDefinitionVersion();
+            }
+            return self();
+        }
+
+        public B nativeApiDefinition(io.gravitee.definition.model.v4.nativeapi.NativeApi nativeApiDefinition) {
+            this.nativeApiDefinition = nativeApiDefinition;
+            if (nativeApiDefinition != null) {
+                this.definitionVersion = nativeApiDefinition.getDefinitionVersion();
             }
             return self();
         }

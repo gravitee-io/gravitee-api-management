@@ -344,9 +344,7 @@ class ImportApiDefinitionUseCaseTest {
                 .aPlanWithFlows()
                 .toBuilder()
                 .apiId(API_ID)
-                .planDefinitionV4(
-                    PlanWithFlowsFixtures.aPlanWithFlows().getHttpPlanDefinitionV4().toBuilder().tags(TAGS).build()
-                )
+                .planDefinitionV4(PlanWithFlowsFixtures.aPlanWithFlows().getHttpPlanDefinitionV4().toBuilder().tags(TAGS).build())
                 .build();
             var importDefinition = anImportDefinition().toBuilder().plans(Set.of(plan)).build();
 

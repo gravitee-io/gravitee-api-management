@@ -69,6 +69,7 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         api.getApiDefinitionV4().setAnalytics(newApiEntity.getAnalytics());
         api.getApiDefinitionV4().setFlowExecution(newApiEntity.getFlowExecution());
 
+        // TODO Kafka Gateway: needs to take into account native vs non-native flows
         var sanitizedFlows = flowValidationDomainService.validateAndSanitize(api.getType(), newApiEntity.getFlows());
         api.getApiDefinitionV4().setFlows(sanitizedFlows);
         api.getApiDefinitionV4().setFailover(newApiEntity.getFailover());
