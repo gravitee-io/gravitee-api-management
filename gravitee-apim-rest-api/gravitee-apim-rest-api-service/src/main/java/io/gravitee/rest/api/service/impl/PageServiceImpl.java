@@ -2672,6 +2672,33 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     @Override
+    public boolean isMediaUsedInPages(ExecutionContext executionContext, String mediaHash, String apiId) {
+        try {
+            PageQuery query = new PageQuery.Builder()
+                    .api(apiId)
+                    .build();
+
+            List<Page> pages = pageRepository.search(queryToCriteria(query, executionContext.getEnvironmentId()));
+
+            for (Page page : pages) {
+                List<PageMedia> mediaList = page.getAttachedMedia();
+                if (mediaList != null) {
+                    for (PageMedia media : mediaList) {
+                        if (media.getMediaHash().equals(mediaHash)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        } catch (TechnicalException e) {
+            logger.error("An error occurred while checking if media is used in pages", e);
+            throw new TechnicalManagementException("An error occurred while checking if media is used in pages", e);
+        }
+    }
+
+
+    @Override
     public PageEntity createWithDefinition(final ExecutionContext executionContext, String apiId, String pageDefinition) {
         try {
             final NewPageEntity newPage = convertToEntity(pageDefinition);
