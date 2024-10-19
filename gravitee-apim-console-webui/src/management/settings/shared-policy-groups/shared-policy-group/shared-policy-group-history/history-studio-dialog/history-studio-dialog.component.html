@@ -40,7 +40,7 @@
       [policies]="policies"
       [readOnly]="true"
       [apiType]="sharedPolicyGroup.apiType"
-      [flowPhase]="toPolicyStudioFlowPhase(sharedPolicyGroup.phase)"
+      [flowPhase]="sharedPolicyGroup.phase"
       [policyDocumentationFetcher]="policyDocumentationFetcher"
       [policySchemaFetcher]="policySchemaFetcher"
       [policyGroup]="sharedPolicyGroup.steps ?? []"

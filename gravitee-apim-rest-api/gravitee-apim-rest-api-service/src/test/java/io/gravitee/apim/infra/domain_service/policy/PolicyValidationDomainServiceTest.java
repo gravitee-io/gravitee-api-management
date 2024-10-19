@@ -20,10 +20,12 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.policy.exception.UnexpectedPoliciesException;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import io.gravitee.rest.api.model.v4.policy.FlowPhase;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Nested;
@@ -43,8 +45,16 @@ class PolicyValidationDomainServiceTest {
             when(policyPluginService.findAll())
                 .thenReturn(
                     Set.of(
-                        PolicyPluginEntity.builder().id("policy-1").proxy(Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE)).build(),
-                        PolicyPluginEntity.builder().id("policy-2").proxy(Set.of(FlowPhase.REQUEST)).build()
+                        PolicyPluginEntity
+                            .builder()
+                            .id("policy-1")
+                            .flowPhaseCompatibility(Map.of(ApiProtocolType.HTTP_PROXY, Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE)))
+                            .build(),
+                        PolicyPluginEntity
+                            .builder()
+                            .id("policy-2")
+                            .flowPhaseCompatibility(Map.of(ApiProtocolType.HTTP_PROXY, Set.of(FlowPhase.REQUEST)))
+                            .build()
                     )
                 );
             // When
@@ -65,9 +75,14 @@ class PolicyValidationDomainServiceTest {
                             .builder()
                             .id("policy-1")
                             .name("Policy 1")
-                            .proxy(Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE))
+                            .flowPhaseCompatibility(Map.of(ApiProtocolType.HTTP_PROXY, Set.of(FlowPhase.RESPONSE)))
                             .build(),
-                        PolicyPluginEntity.builder().id("policy-2").name("Policy 2").message(Set.of(FlowPhase.PUBLISH)).build()
+                        PolicyPluginEntity
+                            .builder()
+                            .id("policy-2")
+                            .name("Policy 2")
+                            .flowPhaseCompatibility(Map.of(ApiProtocolType.HTTP_MESSAGE, Set.of(FlowPhase.PUBLISH)))
+                            .build()
                     )
                 );
 
@@ -97,9 +112,21 @@ class PolicyValidationDomainServiceTest {
                             .builder()
                             .id("policy-1")
                             .name("Policy 1")
-                            .message(Set.of(FlowPhase.PUBLISH, FlowPhase.SUBSCRIBE))
+                            .flowPhaseCompatibility(
+                                Map.of(
+                                    ApiProtocolType.HTTP_PROXY,
+                                    Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE),
+                                    ApiProtocolType.HTTP_MESSAGE,
+                                    Set.of(FlowPhase.PUBLISH, FlowPhase.SUBSCRIBE)
+                                )
+                            )
                             .build(),
-                        PolicyPluginEntity.builder().id("policy-2").name("Policy 2").message(Set.of(FlowPhase.PUBLISH)).build(),
+                        PolicyPluginEntity
+                            .builder()
+                            .id("policy-2")
+                            .name("Policy 2")
+                            .flowPhaseCompatibility(Map.of(ApiProtocolType.HTTP_MESSAGE, Set.of(FlowPhase.PUBLISH)))
+                            .build(),
                         PolicyPluginEntity.builder().id("policy-3").name("Policy 3").build()
                     )
                 );

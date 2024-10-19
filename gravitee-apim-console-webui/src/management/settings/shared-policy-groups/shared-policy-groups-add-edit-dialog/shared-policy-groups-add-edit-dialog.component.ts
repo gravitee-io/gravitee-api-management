@@ -41,7 +41,7 @@ export type SharedPolicyGroupAddEditDialogResult =
 
 const PHASE_BY_API_TYPE: Record<ApiV4['type'], FlowPhase[]> = {
   PROXY: ['REQUEST', 'RESPONSE'],
-  MESSAGE: ['REQUEST', 'RESPONSE', 'MESSAGE_REQUEST', 'MESSAGE_RESPONSE'],
+  MESSAGE: ['REQUEST', 'RESPONSE', 'PUBLISH', 'SUBSCRIBE'],
 };
 
 @Component({

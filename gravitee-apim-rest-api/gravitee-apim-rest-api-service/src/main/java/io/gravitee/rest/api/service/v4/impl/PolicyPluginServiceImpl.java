@@ -19,6 +19,7 @@ import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
+import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import io.gravitee.rest.api.model.v4.policy.FlowPhase;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
@@ -89,8 +90,11 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         entity.setCategory(plugin.manifest().category());
         entity.setDeployed(plugin.deployed());
 
-        entity.setProxy(getFlowPhase(plugin, "proxy"));
-        entity.setMessage(getFlowPhase(plugin, "message"));
+        var proxyPhase = getFlowPhase(plugin, "proxy");
+        var messagePhase = getFlowPhase(plugin, "message");
+
+        entity.putFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY, proxyPhase);
+        entity.putFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE, messagePhase);
 
         return entity;
     }

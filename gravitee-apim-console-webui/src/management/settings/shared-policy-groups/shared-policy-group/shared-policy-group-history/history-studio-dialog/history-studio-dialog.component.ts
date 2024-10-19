@@ -26,7 +26,7 @@ import { MatInput } from '@angular/material/input';
 
 import { IconService } from '../../../../../../services-ngx/icon.service';
 import { PolicyV2Service } from '../../../../../../services-ngx/policy-v2.service';
-import { SharedPolicyGroup, toPolicyStudioFlowPhase } from '../../../../../../entities/management-api-v2';
+import { SharedPolicyGroup } from '../../../../../../entities/management-api-v2';
 
 export interface HistoryStudioDialogData {
   sharedPolicyGroup: SharedPolicyGroup;
@@ -60,7 +60,6 @@ export class HistoryStudioDialogComponent {
   private readonly iconService = inject(IconService);
 
   protected sharedPolicyGroup = this.data.sharedPolicyGroup;
-  protected toPolicyStudioFlowPhase = toPolicyStudioFlowPhase;
 
   protected policySchemaFetcher: PolicySchemaFetcher = (policy) => this.policyV2Service.getSchema(policy.id);
   protected policyDocumentationFetcher: PolicyDocumentationFetcher = (policy) => this.policyV2Service.getDocumentation(policy.id);

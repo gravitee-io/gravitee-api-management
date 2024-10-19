@@ -21,8 +21,10 @@ export function fakePolicyPlugin(modifier?: Partial<PolicyPlugin>): PolicyPlugin
     name: 'Test policy',
     description: 'Test policy description',
     category: 'test',
-    message: ['REQUEST', 'RESPONSE', 'MESSAGE_REQUEST', 'MESSAGE_RESPONSE'],
-    proxy: ['REQUEST', 'RESPONSE'],
+    flowPhaseCompatibility: {
+      HTTP_PROXY: ['REQUEST', 'RESPONSE'],
+      HTTP_MESSAGE: ['REQUEST', 'RESPONSE', 'PUBLISH', 'SUBSCRIBE'],
+    },
   };
 
   return {
@@ -40,8 +42,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'transformation',
       version: '2.0.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'traffic-shadowing',
@@ -50,8 +51,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'others',
       version: '2.0.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'rate-limit',
@@ -60,8 +60,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'others',
       version: '2.0.1',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'xml-validation',
@@ -70,8 +69,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'others',
       version: '1.1.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'rbac',
@@ -80,8 +78,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'security',
       version: '1.1.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'policy-data-logging-masking',
@@ -90,8 +87,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'others',
       version: '2.0.3',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'aws-lambda',
@@ -100,8 +96,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'others',
       version: '1.1.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'ip-filtering',
@@ -110,8 +105,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'security',
       version: '1.9.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'policy-assign-content',
@@ -120,8 +114,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'transformation',
       version: '1.7.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'xml-json',
@@ -130,8 +123,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'transformation',
       version: '1.8.3',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'policy-override-request-method',
@@ -140,8 +132,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'transformation',
       version: '2.0.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'key-less',
@@ -150,8 +141,10 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'security',
       version: '2.2.0',
-      proxy: ['REQUEST'],
-      message: ['REQUEST'],
+      flowPhaseCompatibility: {
+        HTTP_PROXY: ['REQUEST'],
+        HTTP_MESSAGE: ['REQUEST'],
+      },
     },
     {
       id: 'policy-geoip-filtering',
@@ -159,8 +152,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       description: 'Description of the GeoIP Filtering Gravitee Policy',
       category: 'security',
       version: '1.1.1',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'http-signature',
@@ -169,8 +161,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'security',
       version: '1.5.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'policy-assign-attributes',
@@ -179,8 +170,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'transformation',
       version: '1.5.1',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'latency',
@@ -189,8 +179,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'others',
       version: '1.4.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'json-threat-protection',
@@ -199,8 +188,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'security',
       version: '1.3.3',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'javascript',
@@ -209,8 +197,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'others',
       version: '1.2.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'xml-threat-protection',
@@ -219,8 +206,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'security',
       version: '1.3.2',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'message-filtering',
@@ -228,8 +214,10 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       description: 'Message Filtering Gravitee Policy',
       category: 'others',
       version: '1.1.1',
-      proxy: [],
-      message: ['MESSAGE_RESPONSE', 'MESSAGE_REQUEST'],
+      flowPhaseCompatibility: {
+        HTTP_PROXY: [],
+        HTTP_MESSAGE: ['PUBLISH', 'SUBSCRIBE'],
+      },
     },
     {
       id: 'policy-basic-authentication',
@@ -237,8 +225,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       description: 'Description of the Basic Authentication Gravitee Policy',
       category: 'security',
       version: '1.4.1',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'policy-generate-jwt',
@@ -247,8 +234,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'security',
       version: '1.5.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'spike-arrest',
@@ -257,8 +243,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'others',
       version: '2.0.1',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'avro-json',
@@ -267,8 +252,10 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'transformation',
       version: '1.2.0-alpha.2',
-      proxy: ['RESPONSE', 'REQUEST'],
-      message: ['MESSAGE_RESPONSE', 'MESSAGE_REQUEST'],
+      flowPhaseCompatibility: {
+        HTTP_PROXY: ['REQUEST', 'RESPONSE'],
+        HTTP_MESSAGE: ['PUBLISH', 'SUBSCRIBE'],
+      },
     },
     {
       id: 'cache',
@@ -277,8 +264,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'performance',
       version: '1.16.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'rest-to-soap',
@@ -287,8 +273,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'transformation',
       version: '1.13.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'dynamic-routing',
@@ -297,8 +282,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'others',
       version: '1.11.1',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'request-content-limit',
@@ -307,8 +291,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'others',
       version: '1.8.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'policy-http-callout',
@@ -317,8 +300,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'others',
       version: '2.0.1',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'policy-circuit-breaker',
@@ -326,8 +308,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       description: 'Description of the Circuit Breaker Gravitee Policy',
       category: 'others',
       version: '1.1.4',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'oauth2',
@@ -336,8 +317,10 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'security',
       version: '2.2.0',
-      proxy: ['REQUEST'],
-      message: ['REQUEST'],
+      flowPhaseCompatibility: {
+        HTTP_PROXY: ['REQUEST'],
+        HTTP_MESSAGE: ['REQUEST'],
+      },
     },
     {
       id: 'html-json',
@@ -346,8 +329,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'transformation',
       version: '1.6.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'json-validation',
@@ -356,8 +338,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'others',
       version: '1.6.1',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'policy-assign-metrics',
@@ -366,8 +347,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'transformation',
       version: '2.0.1',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'json-xml',
@@ -376,8 +356,10 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'transformation',
       version: '2.1.4',
-      proxy: ['RESPONSE', 'REQUEST'],
-      message: ['MESSAGE_RESPONSE', 'MESSAGE_REQUEST'],
+      flowPhaseCompatibility: {
+        HTTP_PROXY: ['REQUEST', 'RESPONSE'],
+        HTTP_MESSAGE: ['PUBLISH', 'SUBSCRIBE'],
+      },
     },
     {
       id: 'resource-filtering',
@@ -386,8 +368,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'others',
       version: '1.8.1',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'generate-http-signature',
@@ -396,16 +377,14 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'security',
       version: '1.1.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'policy-wssecurity-authentication',
       name: 'WS-Security Authentication',
       description: 'Description of the WS-Security Authentication Gravitee Policy',
       version: '1.0.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'mock',
@@ -414,8 +393,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'others',
       version: '1.13.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'metrics-reporter',
@@ -424,8 +402,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'others',
       version: '2.0.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'ssl-enforcement',
@@ -434,8 +411,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'security',
       version: '1.2.3',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'jws',
@@ -444,8 +420,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'security',
       version: '1.3.2',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'jwt',
@@ -454,8 +429,10 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'security',
       version: '3.2.0',
-      proxy: ['REQUEST'],
-      message: ['REQUEST'],
+      flowPhaseCompatibility: {
+        HTTP_PROXY: ['REQUEST'],
+        HTTP_MESSAGE: ['REQUEST'],
+      },
     },
     {
       id: 'url-rewriting',
@@ -464,8 +441,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'transformation',
       version: '1.5.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'retry',
@@ -473,8 +449,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       description: 'Description of the Retry Gravitee Policy',
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       version: '2.1.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'transform-headers',
@@ -483,8 +458,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'transformation',
       version: '1.10.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'policy-interrupt',
@@ -492,8 +466,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       description: 'Description of the Interrupt Policy',
       category: 'others',
       version: '1.1.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'regex-threat-protection',
@@ -502,8 +475,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'security',
       version: '1.3.3',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'json-to-json',
@@ -512,8 +484,10 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'transformation',
       version: '2.1.0',
-      proxy: ['RESPONSE', 'REQUEST'],
-      message: ['MESSAGE_RESPONSE', 'MESSAGE_REQUEST'],
+      flowPhaseCompatibility: {
+        HTTP_PROXY: ['REQUEST', 'RESPONSE'],
+        HTTP_MESSAGE: ['PUBLISH', 'SUBSCRIBE'],
+      },
     },
     {
       id: 'groovy',
@@ -522,8 +496,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'others',
       version: '2.3.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'quota',
@@ -532,8 +505,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'others',
       version: '2.0.1',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'api-key',
@@ -542,8 +514,10 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'security',
       version: '3.2.1',
-      proxy: ['REQUEST'],
-      message: ['REQUEST'],
+      flowPhaseCompatibility: {
+        HTTP_PROXY: ['REQUEST'],
+        HTTP_MESSAGE: ['REQUEST'],
+      },
     },
     {
       id: 'policy-openid-userinfo',
@@ -552,8 +526,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'security',
       version: '1.5.2',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'transform-queryparams',
@@ -562,8 +535,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'transformation',
       version: '1.6.0',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
     {
       id: 'policy-request-validation',
@@ -572,8 +544,7 @@ export function fakePoliciesPlugin(): PolicyPlugin[] {
       icon: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
       category: 'others',
       version: '1.13.2',
-      proxy: [],
-      message: [],
+      flowPhaseCompatibility: {},
     },
   ];
 }

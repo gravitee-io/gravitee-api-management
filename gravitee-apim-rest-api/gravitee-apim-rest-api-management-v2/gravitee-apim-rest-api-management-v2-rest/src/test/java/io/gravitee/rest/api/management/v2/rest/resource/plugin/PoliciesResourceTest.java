@@ -26,8 +26,10 @@ import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.PolicyPlugin;
+import io.gravitee.rest.api.management.v2.rest.model.PolicyPluginAllOfFlowPhaseCompatibility;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
+import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import io.gravitee.rest.api.model.v4.policy.FlowPhase;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -37,7 +39,6 @@ import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -88,6 +89,16 @@ public class PoliciesResourceTest extends AbstractResourceTest {
                     .id("policy-3")
                     .name("policy-3")
                     .feature("feature-3")
+                    .flowPhaseCompatibility(
+                        Map.of(
+                            ApiProtocolType.HTTP_PROXY,
+                            Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE),
+                            ApiProtocolType.HTTP_MESSAGE,
+                            Set.of(FlowPhase.PUBLISH),
+                            ApiProtocolType.NATIVE_KAFKA,
+                            Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE, FlowPhase.PUBLISH)
+                        )
+                    )
                     .deployed(true)
                     .build()
             )
@@ -106,9 +117,33 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         final Set<PolicyPlugin> policyPlugins = response.readEntity(new GenericType<>() {});
 
         assertThat(policyPlugins)
-            .containsExactly(
+            .containsExactlyInAnyOrder(
                 PolicyPlugin.builder().id("policy-2").name("policy-2").deployed(false).build(),
-                PolicyPlugin.builder().id("policy-3").name("policy-3").deployed(true).build(),
+                PolicyPlugin
+                    .builder()
+                    .id("policy-3")
+                    .name("policy-3")
+                    .deployed(true)
+                    .flowPhaseCompatibility(
+                        PolicyPluginAllOfFlowPhaseCompatibility
+                            .builder()
+                            .HTTP_PROXY(
+                                Set.of(
+                                    io.gravitee.rest.api.management.v2.rest.model.FlowPhase.REQUEST,
+                                    io.gravitee.rest.api.management.v2.rest.model.FlowPhase.RESPONSE
+                                )
+                            )
+                            .HTTP_MESSAGE(Set.of(io.gravitee.rest.api.management.v2.rest.model.FlowPhase.PUBLISH))
+                            .NATIVE_KAFKA(
+                                Set.of(
+                                    io.gravitee.rest.api.management.v2.rest.model.FlowPhase.REQUEST,
+                                    io.gravitee.rest.api.management.v2.rest.model.FlowPhase.RESPONSE,
+                                    io.gravitee.rest.api.management.v2.rest.model.FlowPhase.PUBLISH
+                                )
+                            )
+                            .build()
+                    )
+                    .build(),
                 PolicyPlugin.builder().id("policy-1").name("policy-1").deployed(false).build()
             );
     }
@@ -250,10 +285,8 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         policyPlugin.setCategory("my-category");
         policyPlugin.setDescription("my-description");
         policyPlugin.setDeployed(true);
-        policyPlugin.setProxy(
-            Set.of(io.gravitee.rest.api.model.v4.policy.FlowPhase.REQUEST, io.gravitee.rest.api.model.v4.policy.FlowPhase.RESPONSE)
-        );
-        policyPlugin.setMessage(Set.of(FlowPhase.PUBLISH));
+        policyPlugin.putFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY, Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE));
+        policyPlugin.putFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE, Set.of(FlowPhase.PUBLISH));
         return policyPlugin;
     }
 }

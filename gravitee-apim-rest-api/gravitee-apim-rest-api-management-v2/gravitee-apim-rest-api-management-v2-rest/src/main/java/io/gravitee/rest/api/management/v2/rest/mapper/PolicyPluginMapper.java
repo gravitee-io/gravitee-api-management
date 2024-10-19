@@ -15,10 +15,16 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.rest.api.management.v2.rest.model.FlowPhase;
 import io.gravitee.rest.api.management.v2.rest.model.PolicyPlugin;
+import io.gravitee.rest.api.management.v2.rest.model.PolicyPluginAllOfFlowPhaseCompatibility;
+import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
+import java.util.Map;
 import java.util.Set;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -29,7 +35,32 @@ public interface PolicyPluginMapper {
 
     Set<PolicyPlugin> map(Set<PolicyPluginEntity> policyEntitySet);
 
-    PolicyPlugin mapToCore(io.gravitee.apim.core.plugin.model.PolicyPlugin policyEntity);
+    @Mapping(target = "flowPhaseCompatibility", qualifiedByName = "flowPhaseCompatibility")
+    PolicyPlugin mapFromCore(io.gravitee.apim.core.plugin.model.PolicyPlugin policyEntity);
 
-    Set<PolicyPlugin> mapToCore(Set<io.gravitee.apim.core.plugin.model.PolicyPlugin> policyEntitySet);
+    Set<PolicyPlugin> mapFromCore(Set<io.gravitee.apim.core.plugin.model.PolicyPlugin> policyEntitySet);
+
+    FlowPhase map(io.gravitee.rest.api.model.v4.policy.FlowPhase flowPhase);
+
+    Set<FlowPhase> mapToFlowPhase(Set<io.gravitee.rest.api.model.v4.policy.FlowPhase> flowPhases);
+
+    @Named("flowPhaseCompatibility")
+    default PolicyPluginAllOfFlowPhaseCompatibility mapToFlowPhaseCompatibility(
+        Map<io.gravitee.rest.api.model.v4.policy.ApiProtocolType, Set<io.gravitee.rest.api.model.v4.policy.FlowPhase>> flowPhaseCompatibility
+    ) {
+        if (flowPhaseCompatibility == null) {
+            return null;
+        }
+        var policyPluginAllOfFlowPhaseCompatibility = new PolicyPluginAllOfFlowPhaseCompatibility();
+        if (flowPhaseCompatibility.get(ApiProtocolType.HTTP_PROXY) != null) {
+            policyPluginAllOfFlowPhaseCompatibility.HTTP_PROXY(mapToFlowPhase(flowPhaseCompatibility.get(ApiProtocolType.HTTP_PROXY)));
+        }
+        if (flowPhaseCompatibility.get(ApiProtocolType.HTTP_MESSAGE) != null) {
+            policyPluginAllOfFlowPhaseCompatibility.HTTP_MESSAGE(mapToFlowPhase(flowPhaseCompatibility.get(ApiProtocolType.HTTP_MESSAGE)));
+        }
+        if (flowPhaseCompatibility.get(ApiProtocolType.NATIVE_KAFKA) != null) {
+            policyPluginAllOfFlowPhaseCompatibility.NATIVE_KAFKA(mapToFlowPhase(flowPhaseCompatibility.get(ApiProtocolType.NATIVE_KAFKA)));
+        }
+        return policyPluginAllOfFlowPhaseCompatibility;
+    }
 }

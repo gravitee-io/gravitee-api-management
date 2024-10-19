@@ -514,16 +514,24 @@ components:
                 - $ref: "#/components/schemas/PlatformPlugin"
                 - type: object
                   properties:
-                      proxy:
+                    flowPhaseCompatibility:
+                      type: object
+                      properties:
+                        HTTP_PROXY:
                           type: array
                           uniqueItems: true
                           items:
                               $ref: "#/components/schemas/FlowPhase"
-                      message:
+                        HTTP_MESSAGE:
                           type: array
                           uniqueItems: true
                           items:
                               $ref: "#/components/schemas/FlowPhase"
+                        NATIVE_KAFKA:
+                          type: array
+                          uniqueItems: true
+                          items:
+                            $ref: "#/components/schemas/FlowPhase"
         ResourcePlugin:
           type: object
           allOf:
@@ -598,6 +606,7 @@ components:
                 - SUBSCRIBE
                 - PUBLISH
                 - REQUEST_RESPONSE
+
         FlowPhase:
             type: string
             description: The execution phase of a policy.

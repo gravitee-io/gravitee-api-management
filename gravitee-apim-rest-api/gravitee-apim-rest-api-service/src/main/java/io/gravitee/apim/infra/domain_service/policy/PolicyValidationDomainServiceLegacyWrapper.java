@@ -20,6 +20,7 @@ import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.policy.exception.UnexpectedPoliciesException;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import java.util.ArrayList;
@@ -54,12 +55,21 @@ public class PolicyValidationDomainServiceLegacyWrapper implements PolicyValidat
                 PolicyPluginEntity policy = policiesMap.get(policyId);
 
                 if (apiType.equals(ApiType.PROXY)) {
-                    if (policy.getProxy() == null || policy.getProxy().stream().noneMatch(p -> p.name().equals(phase.name()))) {
+                    if (
+                        policy.getFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY) == null ||
+                        policy.getFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY).stream().noneMatch(p -> p.name().equals(phase.name()))
+                    ) {
                         policyNamesUnexpected.add(policy.getName());
                     }
                 }
                 if (apiType.equals(ApiType.MESSAGE)) {
-                    if (policy.getMessage() == null || policy.getMessage().stream().noneMatch(p -> p.name().equals(phase.name()))) {
+                    if (
+                        policy.getFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE) == null ||
+                        policy
+                            .getFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE)
+                            .stream()
+                            .noneMatch(p -> p.name().equals(phase.name()))
+                    ) {
                         policyNamesUnexpected.add(policy.getName());
                     }
                 }

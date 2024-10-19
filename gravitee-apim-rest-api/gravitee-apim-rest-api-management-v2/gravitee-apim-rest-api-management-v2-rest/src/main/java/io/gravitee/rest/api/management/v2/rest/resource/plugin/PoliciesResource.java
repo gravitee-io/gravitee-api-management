@@ -42,7 +42,7 @@ public class PoliciesResource extends AbstractResource {
         String organizationId = GraviteeContext.getCurrentOrganization() != null
             ? GraviteeContext.getCurrentOrganization()
             : GraviteeContext.getDefaultOrganization();
-        return PolicyPluginMapper.INSTANCE.mapToCore(
+        return PolicyPluginMapper.INSTANCE.mapFromCore(
             getPolicyPluginsUseCase.getPoliciesByOrganization(new GetPolicyPluginsUseCase.Input(organizationId)).plugins()
         );
     }
