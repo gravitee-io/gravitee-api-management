@@ -31,15 +31,7 @@ import { GioLicenseService } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import {
-  ApiType,
-  ApiV4,
-  FlowExecution,
-  PlanV4,
-  toPolicyStudioFlowPhase,
-  UpdateApiV4,
-  UpdatePlanV4,
-} from '../../../../entities/management-api-v2';
+import { ApiType, ApiV4, FlowExecution, PlanV4, UpdateApiV4, UpdatePlanV4 } from '../../../../entities/management-api-v2';
 import { IconService } from '../../../../services-ngx/icon.service';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
@@ -157,7 +149,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
           description: plugin.description,
           prerequisiteMessage: plugin.prerequisiteMessage,
           policyId: plugin.policyId,
-          phase: toPolicyStudioFlowPhase(plugin.phase),
+          phase: plugin.phase,
           apiType: plugin.apiType,
         }));
 

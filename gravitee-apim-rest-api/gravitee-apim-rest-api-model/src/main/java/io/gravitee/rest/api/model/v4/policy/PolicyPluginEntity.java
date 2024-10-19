@@ -17,6 +17,8 @@ package io.gravitee.rest.api.model.v4.policy;
 
 import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -29,7 +31,19 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 public class PolicyPluginEntity extends PlatformPluginEntity {
 
-    private Set<FlowPhase> proxy;
+    public Map<ApiProtocolType, Set<FlowPhase>> flowPhaseCompatibility = new HashMap<>();
 
-    private Set<FlowPhase> message;
+    public Set<FlowPhase> getFlowPhaseCompatibility(ApiProtocolType apiProtocolType) {
+        if (flowPhaseCompatibility == null) {
+            return null;
+        }
+        return flowPhaseCompatibility.get(apiProtocolType);
+    }
+
+    public void putFlowPhaseCompatibility(ApiProtocolType apiProtocolType, Set<FlowPhase> flowPhases) {
+        if (flowPhaseCompatibility == null) {
+            flowPhaseCompatibility = new HashMap<>();
+        }
+        flowPhaseCompatibility.put(apiProtocolType, flowPhases);
+    }
 }

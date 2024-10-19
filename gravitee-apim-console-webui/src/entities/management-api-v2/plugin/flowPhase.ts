@@ -13,28 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FlowPhase as PolicyStudioFlowPhase } from '@gravitee/ui-policy-studio-angular';
 
-export type FlowPhase = 'REQUEST' | 'RESPONSE' | 'MESSAGE_REQUEST' | 'MESSAGE_RESPONSE' | 'INTERACT' | 'CONNECT' | 'PUBLISH' | 'SUBSCRIBE';
-
-export const toPolicyStudioFlowPhase = (flowPhase: FlowPhase): PolicyStudioFlowPhase => {
-  switch (flowPhase) {
-    case 'REQUEST':
-      return 'REQUEST';
-    case 'RESPONSE':
-      return 'RESPONSE';
-    case 'PUBLISH':
-    case 'MESSAGE_REQUEST':
-      return 'PUBLISH';
-    case 'SUBSCRIBE':
-    case 'MESSAGE_RESPONSE':
-      return 'SUBSCRIBE';
-    case 'INTERACT':
-      return 'INTERACT';
-    case 'CONNECT':
-      return 'CONNECT';
-  }
-};
+export type FlowPhase = 'REQUEST' | 'RESPONSE' | 'INTERACT' | 'CONNECT' | 'PUBLISH' | 'SUBSCRIBE';
 
 export const toReadableFlowPhase = (flowPhase: FlowPhase): string => {
   switch (flowPhase) {
@@ -43,10 +23,8 @@ export const toReadableFlowPhase = (flowPhase: FlowPhase): string => {
     case 'RESPONSE':
       return 'Response';
     case 'PUBLISH':
-    case 'MESSAGE_REQUEST':
       return 'Publish';
     case 'SUBSCRIBE':
-    case 'MESSAGE_RESPONSE':
       return 'Subscribe';
   }
 };

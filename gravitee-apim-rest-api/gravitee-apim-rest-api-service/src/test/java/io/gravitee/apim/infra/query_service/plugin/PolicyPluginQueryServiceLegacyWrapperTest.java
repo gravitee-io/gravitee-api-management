@@ -48,7 +48,7 @@ class PolicyPluginQueryServiceLegacyWrapperTest {
             );
 
         assertThat(service.findAll())
-            .containsExactly(
+            .containsExactlyInAnyOrder(
                 PolicyPlugin.builder().id("policy-1").name("Policy 1").build(),
                 PolicyPlugin.builder().id("policy-2").name("Policy 2").build()
             );

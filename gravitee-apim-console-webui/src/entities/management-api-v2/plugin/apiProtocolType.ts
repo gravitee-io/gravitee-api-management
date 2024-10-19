@@ -13,21 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PlatformPlugin } from './platformPlugin';
-import { FlowPhase } from './flowPhase';
-import { ApiProtocolType } from './apiProtocolType';
-
-export interface PolicyPlugin extends PlatformPlugin {
-  /**
-   * Plugin's uuid.
-   */
-  id: string;
-  /**
-   * Plugin's name.
-   */
-  name: string;
-  /**
-   * Plugin's flow phases compatibility.
-   */
-  flowPhaseCompatibility?: Partial<Record<ApiProtocolType, FlowPhase[]>>;
-}
+export type ApiProtocolType = 'HTTP_PROXY' | 'HTTP_MESSAGE' | 'NATIVE_KAFKA';

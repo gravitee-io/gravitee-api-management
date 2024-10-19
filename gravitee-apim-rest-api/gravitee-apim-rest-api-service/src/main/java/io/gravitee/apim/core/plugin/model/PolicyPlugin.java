@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.plugin.model;
 
+import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
+import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,7 +31,5 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 public class PolicyPlugin extends PlatformPlugin {
 
-    private Set<FlowPhase> proxy;
-
-    private Set<FlowPhase> message;
+    public Map<ApiProtocolType, Set<io.gravitee.rest.api.model.v4.policy.FlowPhase>> flowPhaseCompatibility;
 }

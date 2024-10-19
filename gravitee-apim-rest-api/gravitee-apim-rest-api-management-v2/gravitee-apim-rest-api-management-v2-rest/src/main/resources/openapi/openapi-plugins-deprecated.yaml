@@ -319,7 +319,7 @@ paths:
                             schema:
                                 type: array
                                 items:
-                                    $ref: "#/components/schemas/PolicyPlugin"
+                                   $ref: "./openapi-plugins.yaml#/components/schemas/PolicyPlugin"
                 default:
                     $ref: "#/components/responses/Error"
     /plugins/policies/{policyId}:
@@ -341,7 +341,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/PolicyPlugin"
+                               $ref: "./openapi-plugins.yaml#/components/schemas/PolicyPlugin"
                 default:
                     $ref: "#/components/responses/Error"
     /plugins/policies/{policyId}/documentation:
@@ -429,22 +429,6 @@ components:
                       subscriptionSchema:
                           type: string
                           description: The subscription schema of the plugin.
-        PolicyPlugin:
-            type: object
-            allOf:
-                - $ref: "#/components/schemas/PlatformPlugin"
-                - type: object
-                  properties:
-                      proxy:
-                          type: array
-                          uniqueItems: true
-                          items:
-                              $ref: "./openapi-plugins.yaml#/components/schemas/FlowPhase"
-                      message:
-                          type: array
-                          uniqueItems: true
-                          items:
-                              $ref: "./openapi-plugins.yaml#/components/schemas/FlowPhase"
         PlatformPlugin:
             type: object
             properties:
