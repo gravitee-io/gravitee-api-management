@@ -130,13 +130,6 @@ export class FullReleaseWorkflow {
         requires: ['Commit and prepare next version'],
       }),
 
-      // Release Helm chart
-      new workflow.WorkflowJob(releaseHelmJob, {
-        context: config.jobContext,
-        name: 'Release Helm Chart',
-        requires: ['Package bundle'],
-      }),
-
       // Publish Docker images
       new workflow.WorkflowJob(publishProdDockerImagesJob, {
         context: config.jobContext,
@@ -165,17 +158,24 @@ export class FullReleaseWorkflow {
         requires: ['Package bundle'],
       }),
 
+      // Release Helm chart
+      new workflow.WorkflowJob(releaseHelmJob, {
+        context: config.jobContext,
+        name: 'Release Helm Chart',
+        requires: [
+          'Nexus staging',
+          'Create release note pull request',
+          `Build and push RPM packages for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+          `Build and push docker images for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+        ],
+      }),
+
       // Notify APIM team
       new workflow.WorkflowJob(slackAnnouncementJob, {
         context: config.jobContext,
         name: 'Announce release is completed',
         message: `🎆 APIM - ${environment.graviteeioVersion} released!`,
-        requires: [
-          'Nexus staging',
-          'Release Helm Chart',
-          `Build and push RPM packages for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
-          `Build and push docker images for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
-        ],
+        requires: ['Release Helm Chart'],
       }),
     ]);
   }
