@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api.exception;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.definition.model.v4.ApiType;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,7 +26,23 @@ import java.util.Map;
  */
 public class ApiInvalidTypeException extends ValidationDomainException {
 
+    public static final String ONLY_V_4 = "Only V4 ";
+    public static final String API_DEFINITION_IS_SUPPORTED = " API definition is supported";
+    public static final String API_ID = "apiId";
+
     public ApiInvalidTypeException(String apiId, ApiType expectedType) {
-        super("Only V4 " + expectedType.name() + " API definition is supported", Map.of("apiId", apiId));
+        super(ONLY_V_4 + expectedType.name() + API_DEFINITION_IS_SUPPORTED, Map.of(API_ID, apiId));
+    }
+
+    public ApiInvalidTypeException(String apiId, List<ApiType> expectedTypes) {
+        super(ONLY_V_4 + expectedTypes + API_DEFINITION_IS_SUPPORTED, Map.of(API_ID, apiId));
+    }
+
+    public ApiInvalidTypeException(ApiType expectedType) {
+        super(ONLY_V_4 + expectedType.name() + API_DEFINITION_IS_SUPPORTED);
+    }
+
+    public ApiInvalidTypeException(List<ApiType> expectedTypes) {
+        super(ONLY_V_4 + expectedTypes + API_DEFINITION_IS_SUPPORTED);
     }
 }
