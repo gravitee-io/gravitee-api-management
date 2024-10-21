@@ -18,10 +18,13 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.exceptions.EndpointConfigurationValidationException;
@@ -65,7 +68,19 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
     }
 
     @Override
-    public List<EndpointGroup> validateAndSanitize(ApiType apiType, List<EndpointGroup> endpointGroups) {
+    public List<EndpointGroup> validateAndSanitizeHttpV4(ApiType apiType, List<EndpointGroup> endpointGroups) {
+        return validateAndSanitize(apiType, endpointGroups);
+    }
+
+    @Override
+    public List<NativeEndpointGroup> validateAndSanitizeNativeV4(List<NativeEndpointGroup> endpointGroups) {
+        return validateAndSanitize(ApiType.NATIVE, endpointGroups);
+    }
+
+    public <G extends AbstractEndpointGroup<? extends AbstractEndpoint>> List<G> validateAndSanitize(
+        ApiType apiType,
+        List<G> endpointGroups
+    ) {
         if (endpointGroups == null || endpointGroups.isEmpty()) {
             throw new EndpointMissingException();
         }
@@ -77,9 +92,9 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
 
             final ConnectorPluginEntity endpointConnector = endpointService.findById(endpointGroup.getType());
             validateEndpointGroupType(apiType, endpointGroup.getType(), endpointConnector);
-
-            validateServices(endpointGroup.getServices());
             validateEndpointsExistence(endpointGroup);
+            validateServices(apiType, endpointGroup);
+
             if (endpointGroup.getSharedConfiguration() != null) {
                 endpointGroup.setSharedConfiguration(
                     endpointService.validateSharedConfiguration(endpointConnector, endpointGroup.getSharedConfiguration())
@@ -91,11 +106,11 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
                     .forEach(endpoint -> {
                         validateUniqueEndpointName(endpoint.getName(), names);
                         validateEndpointType(endpoint.getType());
-                        validateServices(endpointGroup.getServices(), endpoint.getServices());
                         validateEndpointMatchType(endpointGroup, endpoint);
                         validateEndpointConfiguration(endpointConnector, endpoint);
                         validateSharedConfigurationInheritance(endpointGroup, endpoint);
                         validateSharedConfigurationOverride(endpointConnector, endpoint);
+                        validateServices(apiType, endpointGroup, endpoint);
                     });
             }
         });
@@ -103,11 +118,11 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         return endpointGroups;
     }
 
-    private void validateEndpointConfiguration(ConnectorPluginEntity endpointConnector, Endpoint endpoint) {
+    private void validateEndpointConfiguration(ConnectorPluginEntity endpointConnector, AbstractEndpoint endpoint) {
         endpoint.setConfiguration(endpointService.validateConnectorConfiguration(endpointConnector, endpoint.getConfiguration()));
     }
 
-    private void validateSharedConfigurationOverride(ConnectorPluginEntity endpointConnector, Endpoint endpoint) {
+    private void validateSharedConfigurationOverride(ConnectorPluginEntity endpointConnector, AbstractEndpoint endpoint) {
         if (!endpoint.isInheritConfiguration()) {
             if (endpoint.getSharedConfigurationOverride() == null) {
                 // If no endpoint group provided, validate with an empty object to verify required fields
@@ -120,7 +135,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         }
     }
 
-    private void validateSharedConfigurationInheritance(EndpointGroup endpointGroup, Endpoint endpoint) {
+    private void validateSharedConfigurationInheritance(AbstractEndpointGroup endpointGroup, AbstractEndpoint endpoint) {
         if (endpoint.isInheritConfiguration() && endpointGroup.getSharedConfiguration() == null) {
             // If we try to inherit shared configuration that is null
             // Shared configuration has already been validated so no need to do it again
@@ -130,13 +145,27 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         }
     }
 
-    private void validateEndpointsExistence(EndpointGroup endpointGroup) {
+    private void validateEndpointsExistence(AbstractEndpointGroup endpointGroup) {
+        if (endpointGroup instanceof EndpointGroup asHttpEndpointGroup) {
+            validateHttpEndpointsExistence(asHttpEndpointGroup);
+        } else if (endpointGroup instanceof NativeEndpointGroup asNativeEndpointGroup) {
+            validateNativeEndpointsExistence(asNativeEndpointGroup);
+        }
+    }
+
+    private void validateHttpEndpointsExistence(EndpointGroup endpointGroup) {
         //Is service discovery enabled ?
         Service endpointDiscoveryService = endpointGroup.getServices() == null ? null : endpointGroup.getServices().getDiscovery();
         if (
             (endpointDiscoveryService == null || !endpointDiscoveryService.isEnabled()) &&
             (endpointGroup.getEndpoints() == null || endpointGroup.getEndpoints().isEmpty())
         ) {
+            throw new EndpointMissingException();
+        }
+    }
+
+    private void validateNativeEndpointsExistence(NativeEndpointGroup endpointGroup) {
+        if (endpointGroup.getEndpoints() == null || endpointGroup.getEndpoints().isEmpty()) {
             throw new EndpointMissingException();
         }
     }
@@ -157,7 +186,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         }
     }
 
-    private void validateEndpointMatchType(final EndpointGroup endpointGroup, final Endpoint endpoint) {
+    private void validateEndpointMatchType(final AbstractEndpointGroup endpointGroup, final AbstractEndpoint endpoint) {
         if (!endpointGroup.getType().equals(endpoint.getType())) {
             throw new EndpointGroupTypeMismatchInvalidException(endpointGroup.getType());
         }
@@ -200,7 +229,19 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         names.add(name);
     }
 
-    private void validateServices(EndpointGroupServices services) {
+    private void validateServices(ApiType apiType, AbstractEndpointGroup endpointGroup) {
+        if (!ApiType.NATIVE.equals(apiType)) {
+            validateHttpServices(((EndpointGroup) endpointGroup).getServices());
+        }
+    }
+
+    private void validateServices(ApiType apiType, AbstractEndpointGroup endpointGroup, AbstractEndpoint endpoint) {
+        if (!ApiType.NATIVE.equals(apiType)) {
+            validateHttpServices(((EndpointGroup) endpointGroup).getServices(), ((Endpoint) endpoint).getServices());
+        }
+    }
+
+    private void validateHttpServices(EndpointGroupServices services) {
         if (services != null) {
             if (services.getDiscovery() != null) {
                 validateDiscovery(services.getDiscovery());
@@ -211,7 +252,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         }
     }
 
-    private void validateServices(EndpointGroupServices groupServices, EndpointServices services) {
+    private void validateHttpServices(EndpointGroupServices groupServices, EndpointServices services) {
         if (services != null) {
             if (services.getHealthCheck() != null) {
                 final var serviceHealthCheck = services.getHealthCheck();
