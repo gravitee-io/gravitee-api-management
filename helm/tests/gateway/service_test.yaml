@@ -150,3 +150,15 @@ tests:
           of: Service
       - isAPIVersion:
           of: v1
+
+  - it: Check service annotations
+    template: gateway/gateway-service.yaml
+    set:
+      gateway:
+        service:
+          annotations:
+            loadbalancer.openstack.org/proxy-protocol: true
+    asserts:
+      - equal:
+          path: metadata.annotations["loadbalancer.openstack.org/proxy-protocol"]
+          value: "true"

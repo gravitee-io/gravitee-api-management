@@ -76,6 +76,9 @@ data:
       {{- end }}
       websocket:
         enabled: {{ .Values.gateway.websocket }}
+      {{- if .Values.gateway.haproxy }}
+      haproxy: {{ toYaml .Values.gateway.haproxy | nindent 8 }}
+      {{- end }}
     management:
     {{- if .Values.gateway.dbLess }}
       type: {{ "none" }}

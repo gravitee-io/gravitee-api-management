@@ -1,0 +1,25 @@
+suite: Test Gateway configmap - haproxy
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Default configmap doesn't have any haproxy config
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s haproxy:\s*
+
+  - it: Sets configmap haproxy config globally
+    set:
+      gateway:
+        haproxy: # Support for https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt
+          proxyProtocol: false
+          proxyProtocolTimeout: 10000
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s haproxy:\s*
+            \s   proxyProtocol: false
+            \s   proxyProtocolTimeout: 10000
+          multiline: true
