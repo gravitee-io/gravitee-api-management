@@ -38,6 +38,8 @@
 .markdown-content {
   background-color: var(--gv-page-markdown--bgc, var(--gv-theme-neutral-color-lightest));
   padding: var(--gv-page-markdown--p, 2rem 4rem);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .markdown.with-toc {
