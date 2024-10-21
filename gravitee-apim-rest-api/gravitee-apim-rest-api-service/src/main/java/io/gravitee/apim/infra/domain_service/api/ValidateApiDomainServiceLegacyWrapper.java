@@ -16,35 +16,56 @@
 package io.gravitee.apim.infra.domain_service.api;
 
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
+import io.gravitee.apim.core.api.domain_service.GroupValidationService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
+import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationService;
+import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
+import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
+import java.util.Set;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+@AllArgsConstructor
 @Service
 public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainService {
 
     private final ApiValidationService apiValidationService;
     private final CategoryDomainService categoryDomainService;
     private final FlowValidationDomainService flowValidationDomainService;
-
-    public ValidateApiDomainServiceLegacyWrapper(
-        ApiValidationService apiValidationService,
-        CategoryDomainService categoryDomainService,
-        FlowValidationDomainService flowValidationDomainService
-    ) {
-        this.apiValidationService = apiValidationService;
-        this.categoryDomainService = categoryDomainService;
-        this.flowValidationDomainService = flowValidationDomainService;
-    }
+    private final TagsValidationService tagsValidationService;
+    private final GroupValidationService groupValidationService;
+    private final ListenerValidationService listenerValidationService;
+    private final EndpointGroupsValidationService endpointGroupsValidationService;
 
     @Override
     public Api validateAndSanitizeForCreation(Api api, PrimaryOwnerEntity primaryOwner, String environmentId, String organizationId) {
+        if (api.getDefinitionVersion() != DefinitionVersion.V4) {
+            throw new ValidationDomainException("Definition not supported, should be V4");
+        }
+
+        if (api.getType() == ApiType.NATIVE) {
+            this.validateAndSanitizeNativeV4(api, primaryOwner, environmentId, organizationId);
+        } else {
+            this.validateAndSanitizeHttpV4(api, primaryOwner, environmentId, organizationId);
+        }
+
+        api.setCategories(categoryDomainService.toCategoryId(api, environmentId));
+
+        return api;
+    }
+
+    private void validateAndSanitizeHttpV4(final Api api, PrimaryOwnerEntity primaryOwner, String environmentId, String organizationId) {
         var newApiEntity = ApiAdapter.INSTANCE.toNewApiEntity(api);
 
         apiValidationService.validateAndSanitizeNewApi(
@@ -53,27 +74,72 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
             PrimaryOwnerAdapter.INSTANCE.toRestEntity(primaryOwner)
         );
 
-        apiValidationService.validateDynamicProperties(
-            api.getApiDefinitionV4().getServices() != null ? api.getApiDefinitionV4().getServices().getDynamicProperty() : null
-        );
-
         api.setName(newApiEntity.getName());
         api.setVersion(newApiEntity.getApiVersion());
         api.setType(newApiEntity.getType());
         api.setDescription(newApiEntity.getDescription());
         api.setGroups(newApiEntity.getGroups());
-        api.setTag(newApiEntity.getTags());
-        api.setCategories(categoryDomainService.toCategoryId(api, environmentId));
+        api.setTags(newApiEntity.getTags());
+
         api.getApiDefinitionV4().setListeners(newApiEntity.getListeners());
         api.getApiDefinitionV4().setEndpointGroups(newApiEntity.getEndpointGroups());
         api.getApiDefinitionV4().setAnalytics(newApiEntity.getAnalytics());
         api.getApiDefinitionV4().setFlowExecution(newApiEntity.getFlowExecution());
-
-        var sanitizedFlows = flowValidationDomainService.validateAndSanitize(api.getType(), newApiEntity.getFlows());
-        api.getApiDefinitionV4().setFlows(sanitizedFlows);
         api.getApiDefinitionV4().setFailover(newApiEntity.getFailover());
+
         api.getApiDefinitionV4().setResources(apiValidationService.validateAndSanitize(api.getApiDefinitionV4().getResources()));
 
-        return api;
+        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), newApiEntity.getFlows());
+        api.getApiDefinitionV4().setFlows(sanitizedFlows);
+
+        apiValidationService.validateDynamicProperties(
+            api.getApiDefinitionV4().getServices() != null ? api.getApiDefinitionV4().getServices().getDynamicProperty() : null
+        );
+    }
+
+    private void validateAndSanitizeNativeV4(
+        final Api newApi,
+        PrimaryOwnerEntity primaryOwner,
+        String environmentId,
+        String organizationId
+    ) {
+        if (newApi.getType() != ApiType.NATIVE) {
+            throw new ValidationDomainException("Api type not supported, should be NATIVE");
+        }
+
+        var executionContext = new ExecutionContext(organizationId, environmentId);
+
+        // Clean description
+        newApi.setDescription(HtmlSanitizer.sanitize(newApi.getDescription()));
+
+        // Validate tags
+        newApi.setTags(tagsValidationService.validateAndSanitize(executionContext, null, newApi.getTags()));
+
+        // Validate groups
+        newApi.setGroups(groupValidationService.validateAndSanitize(Set.of(), newApi.getEnvironmentId(), primaryOwner));
+
+        // Validate and clean listeners
+        var apiDefinition = newApi.getNativeApiDefinition();
+
+        apiDefinition.setListeners(
+            listenerValidationService.validateAndSanitizeNativeV4(
+                executionContext,
+                null,
+                apiDefinition.getListeners(),
+                apiDefinition.getEndpointGroups()
+            )
+        );
+
+        // Validate and clean endpoints
+        apiDefinition.setEndpointGroups(endpointGroupsValidationService.validateAndSanitizeNativeV4(apiDefinition.getEndpointGroups()));
+
+        // Validate and clean flows
+        apiDefinition.setFlows(flowValidationDomainService.validateAndSanitizeNativeV4(apiDefinition.getFlows()));
+
+        apiValidationService.validateDynamicProperties(
+            newApi.getNativeApiDefinition().getServices() != null
+                ? newApi.getNativeApiDefinition().getServices().getDynamicProperty()
+                : null
+        );
     }
 }

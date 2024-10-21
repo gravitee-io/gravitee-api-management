@@ -24,8 +24,8 @@ import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -34,7 +34,8 @@ public class FlowFixtures {
 
     private FlowFixtures() {}
 
-    private static final Supplier<Flow.FlowBuilder<?, ?>> BASE_V4 = () -> Flow.builder().name("my-flow");
+    private static final Supplier<Flow.FlowBuilder<?, ?>> BASE_HTTP_V4 = () -> Flow.builder().name("my-flow");
+    private static final Supplier<NativeFlow.NativeFlowBuilder<?, ?>> BASE_NATIVE_V4 = () -> NativeFlow.builder().name("my-flow");
     private static final Supplier<io.gravitee.definition.model.flow.Flow.FlowBuilder> BASE_V2 = () ->
         io.gravitee.definition.model.flow.Flow
             .builder()
@@ -75,7 +76,7 @@ public class FlowFixtures {
     }
 
     public static Flow aProxyFlowV4() {
-        return BASE_V4
+        return BASE_HTTP_V4
             .get()
             .selectors(List.of(HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).build()))
             .request(
@@ -106,7 +107,7 @@ public class FlowFixtures {
     }
 
     public static Flow aMessageFlowV4() {
-        return BASE_V4
+        return BASE_HTTP_V4
             .get()
             .selectors(List.of(ChannelSelector.builder().channel("/").channelOperator(Operator.STARTS_WITH).build()))
             .subscribe(
@@ -122,6 +123,36 @@ public class FlowFixtures {
                 )
             )
             .publish(
+                List.of(
+                    Step
+                        .builder()
+                        .name("my-step-name-2")
+                        .policy("my-policy")
+                        .description("my-step-description")
+                        .messageCondition("my-step-condition")
+                        .configuration("{}")
+                        .build()
+                )
+            )
+            .build();
+    }
+
+    public static NativeFlow aNativeFlowV4() {
+        return BASE_NATIVE_V4
+            .get()
+            .interact(
+                List.of(
+                    Step
+                        .builder()
+                        .name("my-step-name-1")
+                        .policy("my-policy")
+                        .description("my-step-description")
+                        .messageCondition("my-step-condition")
+                        .configuration("{}")
+                        .build()
+                )
+            )
+            .connect(
                 List.of(
                     Step
                         .builder()
