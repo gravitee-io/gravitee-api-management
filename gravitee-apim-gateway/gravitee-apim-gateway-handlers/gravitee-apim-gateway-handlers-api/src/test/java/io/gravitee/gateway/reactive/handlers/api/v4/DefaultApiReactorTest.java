@@ -23,7 +23,6 @@ import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_VALIDATE_SUBSCRIPTION;
 import static io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactor.PENDING_REQUESTS_TIMEOUT_PROPERTY;
 import static io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactor.REQUEST_TIMEOUT_KEY;
-import static io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactor.SERVICES_TRACING_ENABLED_PROPERTY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -51,6 +50,7 @@ import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
+import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.ApiType;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
@@ -284,6 +284,7 @@ class DefaultApiReactorTest {
     private TestScheduler testScheduler;
 
     private DefaultApiReactor cut;
+    private TracingContext tracingContext = TracingContext.noop();
 
     @BeforeEach
     public void init() throws Exception {
@@ -310,21 +311,21 @@ class DefaultApiReactorTest {
         lenient().when(api.getEnvironmentId()).thenReturn(ENVIRONMENT_ID);
         lenient().when(apiDefinition.getType()).thenReturn(io.gravitee.definition.model.v4.ApiType.PROXY);
         lenient().when(apiDefinition.getAnalytics()).thenReturn(new Analytics());
-        lenient().when(apiProcessorChainFactory.beforeHandle(api)).thenReturn(beforeHandleProcessors);
-        lenient().when(apiProcessorChainFactory.afterHandle(api)).thenReturn(afterHandleProcessors);
-        lenient().when(apiProcessorChainFactory.beforeSecurityChain(api)).thenReturn(beforeSecurityChainProcessors);
-        lenient().when(apiProcessorChainFactory.beforeApiExecution(api)).thenReturn(beforeApiExecutionProcessors);
-        lenient().when(apiProcessorChainFactory.afterApiExecution(api)).thenReturn(afterApiExecutionProcessors);
-        lenient().when(apiProcessorChainFactory.onError(api)).thenReturn(onErrorProcessors);
+        lenient().when(apiProcessorChainFactory.beforeHandle(api, tracingContext)).thenReturn(beforeHandleProcessors);
+        lenient().when(apiProcessorChainFactory.afterHandle(api, tracingContext)).thenReturn(afterHandleProcessors);
+        lenient().when(apiProcessorChainFactory.beforeSecurityChain(api, tracingContext)).thenReturn(beforeSecurityChainProcessors);
+        lenient().when(apiProcessorChainFactory.beforeApiExecution(api, tracingContext)).thenReturn(beforeApiExecutionProcessors);
+        lenient().when(apiProcessorChainFactory.afterApiExecution(api, tracingContext)).thenReturn(afterApiExecutionProcessors);
+        lenient().when(apiProcessorChainFactory.onError(api, tracingContext)).thenReturn(onErrorProcessors);
 
-        lenient().when(flowChainFactory.createOrganizationFlow(api)).thenReturn(platformFlowChain);
+        lenient().when(flowChainFactory.createOrganizationFlow(api, tracingContext)).thenReturn(platformFlowChain);
         lenient().when(platformFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
         lenient().when(platformFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
         lenient().when(securityChain.execute(any())).thenReturn(spySecurityChain);
-        lenient().when(v4FlowChainFactory.createPlanFlow(api)).thenReturn(apiPlanFlowChain);
+        lenient().when(v4FlowChainFactory.createPlanFlow(api, tracingContext)).thenReturn(apiPlanFlowChain);
         lenient().when(apiPlanFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlanFlowChain);
         lenient().when(apiPlanFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlanFlowChain);
-        lenient().when(v4FlowChainFactory.createApiFlow(api)).thenReturn(apiFlowChain);
+        lenient().when(v4FlowChainFactory.createApiFlow(api, tracingContext)).thenReturn(apiFlowChain);
         lenient().when(apiFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiFlowChain);
         lenient().when(apiFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiFlowChain);
 
@@ -353,7 +354,6 @@ class DefaultApiReactorTest {
             .thenReturn(entrypointConnector);
         lenient().when(entrypointConnector.supportedApi()).thenReturn(ApiType.PROXY);
 
-        when(configuration.getProperty(SERVICES_TRACING_ENABLED_PROPERTY, Boolean.class, false)).thenReturn(false);
         when(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L)).thenReturn(10_000L);
         when(configuration.getProperty(ATTR_INTERNAL_VALIDATE_SUBSCRIPTION, Boolean.class, true)).thenReturn(true);
 
@@ -399,7 +399,8 @@ class DefaultApiReactorTest {
                     requestTimeoutConfiguration,
                     reporterService,
                     accessPointManager,
-                    eventManager
+                    eventManager,
+                    tracingContext
                 );
             ReflectionTestUtils.setField(defaultApiReactor, "entrypointConnectorResolver", entrypointConnectorResolver);
             ReflectionTestUtils.setField(defaultApiReactor, "defaultInvoker", defaultInvoker);

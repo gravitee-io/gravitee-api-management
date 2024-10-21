@@ -17,21 +17,15 @@ package io.gravitee.gateway.reactive.handlers.api.v4;
 
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY;
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_MAX_SIZE_PROPERTY;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.*;
-import static io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactor.*;
-import static io.reactivex.rxjava3.core.Completable.defer;
-import static io.reactivex.rxjava3.core.Observable.interval;
 
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
+import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
-import io.gravitee.gateway.reactive.api.hook.InvokerHook;
-import io.gravitee.gateway.reactive.api.invoker.Invoker;
+import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
-import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
@@ -40,14 +34,11 @@ import io.gravitee.gateway.reactive.core.v4.invoker.EndpointInvoker;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LoggingHook;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.DefaultTcpAcceptor;
-import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.reactivex.rxjava3.core.Completable;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
@@ -64,8 +55,7 @@ public class TcpApiReactor extends AbstractApiReactor {
     private final String loggingExcludedResponseType;
     private final String loggingMaxSize;
     private Lifecycle.State lifecycleState;
-    private final List<InvokerHook> invokerHooks = new ArrayList<>();
-    private boolean tracingEnabled;
+    private AnalyticsContext analyticsContext;
 
     public TcpApiReactor(
         Api api,
@@ -74,18 +64,19 @@ public class TcpApiReactor extends AbstractApiReactor {
         DeploymentContext deploymentContext,
         EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         EndpointManager endpointManager,
-        RequestTimeoutConfiguration requestTimeoutConfiguration
+        RequestTimeoutConfiguration requestTimeoutConfiguration,
+        TracingContext tracingContext
     ) {
         super(
             configuration,
             api,
             new DefaultEntrypointConnectorResolver(api.getDefinition(), deploymentContext, entrypointConnectorPluginManager),
-            requestTimeoutConfiguration
+            requestTimeoutConfiguration,
+            tracingContext
         );
         this.node = node;
         this.endpointManager = endpointManager;
         this.defaultInvoker = new EndpointInvoker(endpointManager);
-        this.tracingEnabled = configuration.getProperty(SERVICES_TRACING_ENABLED_PROPERTY, Boolean.class, false);
         this.lifecycleState = Lifecycle.State.INITIALIZED;
         this.loggingExcludedResponseType =
             configuration.getProperty(REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY, String.class, null);
@@ -105,6 +96,7 @@ public class TcpApiReactor extends AbstractApiReactor {
     @Override
     public Completable handle(MutableExecutionContext ctx) {
         prepareCommonAttributes(ctx);
+        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ENABLED, analyticsContext.isTracingEnabled());
 
         // TODO specific Tcp API Request processor chain factory that contains SubscriptionProcessor in beforeApi chain
         return new CompletableReactorChain(handleEntrypointRequest(ctx))
@@ -125,21 +117,6 @@ public class TcpApiReactor extends AbstractApiReactor {
         return ctx.interruptWith(new ExecutionFailure().key(REQUEST_TIMEOUT_KEY).message("Request timeout"));
     }
 
-    protected Completable invokeBackend(final MutableExecutionContext ctx) {
-        return defer(() ->
-            getInvoker(ctx)
-                .map(invoker -> HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null))
-                .orElse(Completable.complete())
-        );
-    }
-
-    private Optional<Invoker> getInvoker(final MutableExecutionContext ctx) {
-        if (ctx.getInternalAttribute(ATTR_INTERNAL_INVOKER) instanceof Invoker invoker) {
-            return Optional.of(invoker);
-        }
-        return Optional.empty();
-    }
-
     @Override
     public Lifecycle.State lifecycleState() {
         return lifecycleState;
@@ -149,13 +126,18 @@ public class TcpApiReactor extends AbstractApiReactor {
     protected void doStart() throws Exception {
         long startTime = System.currentTimeMillis();
         endpointManager.start();
-        if (tracingEnabled) {
-            invokerHooks.add(new TracingHook("invoker"));
-        }
 
-        var analyticsContext = analyticsContext();
-        if (analyticsContext.isEnabled() && (analyticsContext.isLoggingEnabled())) {
-            invokerHooks.add(new LoggingHook());
+        analyticsContext = analyticsContext();
+
+        tracingContext.start();
+        analyticsContext = analyticsContext();
+        if (analyticsContext.isEnabled()) {
+            if (analyticsContext.isLoggingEnabled()) {
+                invokerHooks.add(new LoggingHook());
+            }
+            if (analyticsContext.isTracingEnabled()) {
+                invokerHooks.add(new TracingHook("invoker"));
+            }
         }
 
         lifecycleState = Lifecycle.State.STARTED;
@@ -189,15 +171,11 @@ public class TcpApiReactor extends AbstractApiReactor {
 
         entrypointConnectorResolver.stop();
         endpointManager.stop();
+        tracingContext.stop();
 
         lifecycleState = Lifecycle.State.STOPPED;
 
         log.debug("TCP API reactor is now stopped: {}", this);
-    }
-
-    @Override
-    public ReactorHandler stop() throws Exception {
-        return this;
     }
 
     @Override
@@ -214,7 +192,7 @@ public class TcpApiReactor extends AbstractApiReactor {
     }
 
     protected AnalyticsContext analyticsContext() {
-        return new AnalyticsContext(api.getDefinition().getAnalytics(), loggingMaxSize, loggingExcludedResponseType);
+        return new AnalyticsContext(api.getDefinition().getAnalytics(), loggingMaxSize, loggingExcludedResponseType, tracingContext);
     }
 
     @Override

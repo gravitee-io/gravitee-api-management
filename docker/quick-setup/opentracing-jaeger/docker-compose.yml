@@ -83,8 +83,11 @@ services:
       - "5778:5778"
       - "16686:16686"
       - "14268:14268"
+      - "14269:14269"
       - "14250:14250"
       - "9411:9411"
+      - "4317:4317"
+      - "4318:4318"
     networks:
       - jaeger
 
@@ -110,10 +113,9 @@ services:
     environment:
       - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_services_tracing_enabled=true
-      - gravitee_services_tracing_type=jaeger
-      - gravitee_services_tracing_jaeger_host=jaeger
-      - gravitee_services_tracing_jaeger_port=14250
+      - gravitee_services_opentelemetry_enabled=true
+      - gravitee_services_opentelemetry_exporter_endpoint=http://jeager:4317
+      - gravitee_services_opentelemetry_exporter_protocol=grpc
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
       - gravitee_plugins_path_0=$${gravitee.home}/plugins
       - gravitee_plugins_path_1=$${gravitee.home}/plugins-ext

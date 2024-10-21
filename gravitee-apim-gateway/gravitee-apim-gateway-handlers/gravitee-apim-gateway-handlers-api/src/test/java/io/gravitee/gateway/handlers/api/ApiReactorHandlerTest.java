@@ -28,12 +28,14 @@ import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.processor.OnErrorProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
+import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.policy.DirectPolicyChain;
 import io.gravitee.gateway.policy.NoOpPolicyChain;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.policy.api.PolicyResult;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.rxjava3.core.Observable;
@@ -158,7 +160,13 @@ public class ApiReactorHandlerTest {
     }
 
     private ApiReactorHandler createHandler(long pendingRequestsTimeout) {
-        ApiReactorHandler apiReactorHandler = new ApiReactorHandler(configuration, api, accessPointManager, eventManager);
+        ApiReactorHandler apiReactorHandler = new ApiReactorHandler(
+            configuration,
+            api,
+            accessPointManager,
+            eventManager,
+            TracingContext.noop()
+        );
         apiReactorHandler.setNode(node);
         apiReactorHandler.setPendingRequestsTimeout(pendingRequestsTimeout);
         apiReactorHandler.setGroupLifecycleManager(groupLifecycleManager);

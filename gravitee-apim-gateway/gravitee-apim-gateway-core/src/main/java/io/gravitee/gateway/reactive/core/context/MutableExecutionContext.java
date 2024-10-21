@@ -16,6 +16,9 @@
 package io.gravitee.gateway.reactive.core.context;
 
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
+import io.gravitee.reporter.api.v4.metric.Metrics;
+import java.util.Collection;
 
 @Deprecated(forRemoval = true)
 public interface MutableExecutionContext extends ExecutionContext, HttpExecutionContextInternal {

@@ -15,11 +15,13 @@
  */
 package io.gravitee.gateway.policy.impl.tracing;
 
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
+import io.gravitee.node.api.opentelemetry.Span;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
-import io.gravitee.tracing.api.Span;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,28 +30,30 @@ import io.gravitee.tracing.api.Span;
 public class TracingPolicyChain implements PolicyChain {
 
     private final PolicyChain chain;
+    private final Tracer tracer;
     private final Span span;
 
-    TracingPolicyChain(final PolicyChain chain, final Span span) {
+    TracingPolicyChain(final PolicyChain chain, final ExecutionContext context, final Span span) {
         this.chain = chain;
+        this.tracer = context.getTracer();
         this.span = span;
     }
 
     @Override
     public void doNext(Request request, Response response) {
-        span.end();
+        tracer.end(span);
         chain.doNext(request, response);
     }
 
     @Override
     public void failWith(PolicyResult policyResult) {
-        span.reportError(policyResult.message()).end();
+        tracer.endOnError(span, policyResult.message());
         chain.failWith(policyResult);
     }
 
     @Override
     public void streamFailWith(PolicyResult policyResult) {
-        span.reportError(policyResult.message()).end();
+        tracer.endOnError(span, policyResult.message());
         chain.failWith(policyResult);
     }
 }

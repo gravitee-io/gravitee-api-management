@@ -34,6 +34,7 @@ import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.processor.OnErrorProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.ResponseProcessorChainFactory;
+import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
 import io.gravitee.gateway.reactor.handler.Acceptor;
@@ -42,6 +43,7 @@ import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.api.opentelemetry.Tracer;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -88,9 +90,10 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
         Configuration configuration,
         final Api api,
         final AccessPointManager accessPointManager,
-        final EventManager eventManager
+        final EventManager eventManager,
+        final TracingContext tracingContext
     ) {
-        super(api);
+        super(api, tracingContext);
         this.configuration = configuration;
         this.accessPointManager = accessPointManager;
         this.eventManager = eventManager;
@@ -333,6 +336,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
 
     @Override
     protected void doStop() throws Exception {
+        super.doStop();
         if (!node.lifecycleState().equals(Lifecycle.State.STARTED)) {
             logger.debug("Current node is not started, API handler will be stopped immediately");
             stopNow();

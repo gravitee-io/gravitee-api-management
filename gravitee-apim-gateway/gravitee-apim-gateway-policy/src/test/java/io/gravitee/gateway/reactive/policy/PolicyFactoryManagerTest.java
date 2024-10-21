@@ -43,7 +43,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class PolicyFactoryManagerTest {
 
-    private static final HttpPolicyFactory DEFAULT_POLICY_FACTORY = new HttpPolicyFactory(null, null);
+    private static final HttpPolicyFactory DEFAULT_POLICY_FACTORY = new HttpPolicyFactory(null, null, null);
     private PolicyFactoryManager cut;
 
     @Test

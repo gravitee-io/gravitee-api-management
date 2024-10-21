@@ -20,6 +20,7 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.context.TlsSession;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import java.util.Collection;
 
@@ -48,6 +49,11 @@ public class DefaultExecutionContext extends AbstractExecutionContext<MutableReq
     @Override
     public DefaultExecutionContext metrics(final Metrics metrics) {
         this.metrics = metrics;
+        return this;
+    }
+
+    public DefaultExecutionContext tracer(final Tracer tracer) {
+        this.tracer = tracer;
         return this;
     }
 

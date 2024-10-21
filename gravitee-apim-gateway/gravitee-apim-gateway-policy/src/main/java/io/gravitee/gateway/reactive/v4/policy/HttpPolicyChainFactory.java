@@ -55,7 +55,7 @@ public class HttpPolicyChainFactory implements PolicyChainFactory<HttpPolicyChai
     protected final PolicyManager policyManager;
     protected final Cache<String, HttpPolicyChain> policyChains;
 
-    public HttpPolicyChainFactory(final String id, final PolicyManager policyManager, final Configuration configuration) {
+    public HttpPolicyChainFactory(final String id, final PolicyManager policyManager, final boolean tracing) {
         this.policyManager = policyManager;
 
         final CacheConfiguration cacheConfiguration = CacheConfiguration
@@ -65,11 +65,10 @@ public class HttpPolicyChainFactory implements PolicyChainFactory<HttpPolicyChai
             .build();
 
         this.policyChains = new InMemoryCache<>(id + "-policyChainFactory", cacheConfiguration);
-        initPolicyHooks(configuration);
+        initPolicyHooks(tracing);
     }
 
-    protected void initPolicyHooks(final Configuration configuration) {
-        boolean tracing = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
+    protected void initPolicyHooks(final boolean tracing) {
         if (tracing) {
             policyHooks.add(new TracingPolicyHook());
         }

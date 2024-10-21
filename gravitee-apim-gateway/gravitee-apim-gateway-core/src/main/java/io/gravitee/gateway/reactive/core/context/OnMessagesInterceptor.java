@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.core.context;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.reactivex.rxjava3.core.FlowableTransformer;
 import java.util.function.Function;
+import lombok.Builder;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -25,7 +26,7 @@ import java.util.function.Function;
  */
 public interface OnMessagesInterceptor<T extends Message> {
     /**
-     * Set an interceptor allowing to capture any call to {@link io.gravitee.gateway.reactive.api.context.base.BaseMessageRequest#onMessages(FlowableTransformer)} or {@link io.gravitee.gateway.reactive.api.context.base.BaseMessageResponse#onMessages(FlowableTransformer)}.
+     * Register an interceptor allowing to capture any call to {@link io.gravitee.gateway.reactive.api.context.base.BaseMessageRequest#onMessages(FlowableTransformer)} or {@link io.gravitee.gateway.reactive.api.context.base.BaseMessageResponse#onMessages(FlowableTransformer)}.
      * The captured {@link FlowableTransformer} will then be provided to the specified function which will be able to provide its own {@link FlowableTransformer}.
      * <p/>
      * This can be particularly useful to avoid, replace or compose the transformation set by a policy on the incoming messages.
@@ -33,7 +34,7 @@ public interface OnMessagesInterceptor<T extends Message> {
      * Ex: calculate the message content size before and after a policy is applied on a message.
      * <p/>
      * <pre>
-     *      request.setOnMessagesInterceptor(onMessages ->
+     *      request.registerMessagesInterceptor("countMessages", onMessages ->
      *             messages -> {
      *                 final AtomicLong initialTotalSize = new AtomicLong(0);
      *                 final AtomicLong finalTotalSize = new AtomicLong(0);
@@ -45,15 +46,35 @@ public interface OnMessagesInterceptor<T extends Message> {
      *         );
      * </pre>
      *
-     * @param interceptor the function taking the {@link FlowableTransformer} provided by the call to {@link io.gravitee.gateway.reactive.api.context.base.BaseMessageRequest#onMessages(FlowableTransformer)} or {@link io.gravitee.gateway.reactive.api.context.base.BaseMessageResponse#onMessages(FlowableTransformer)} and returns another {@link FlowableTransformer} as a replacement.
+     * @param messagesInterceptor the interceptor to register. See {@link MessagesInterceptor}
      */
-    void setMessagesInterceptor(Function<FlowableTransformer<T, T>, FlowableTransformer<T, T>> interceptor);
+    void registerMessagesInterceptor(final MessagesInterceptor<T> messagesInterceptor);
 
     /**
-     * Unset the <code>onMessages</code> interceptor.
-     * Removing the interceptor has only effect on future calls to {@link io.gravitee.gateway.reactive.api.context.base.BaseMessageRequest#onMessages(FlowableTransformer)} or {@link io.gravitee.gateway.reactive.api.context.base.BaseMessageResponse#onMessages(FlowableTransformer)}.
+     * Unregister the <code>onMessages</code> interceptor.
+     * Removing the interceptor has only effect on future calls to {@link MutableRequest#onMessages(FlowableTransformer)} or {@link MutableResponse#onMessages(FlowableTransformer)}.
      *
-     * <b>WARN: </b> it is the responsibility of the caller to make sure the interceptor is set and unset at the right time to avoid any undesired side effects.
+     * <b>WARN: </b> it is the responsibility of the caller to make sure the interceptor is registered and unregistered at the right time to avoid any undesired side effects.
+     *
+     * @param id the id of the interceptor; useful for unregistering
      */
-    void unsetMessagesInterceptor();
+    void unregisterMessagesInterceptor(final String id);
+
+    /**
+     *
+     * @param id the id of the interceptor; useful for unregistering
+     * @param priority priority to the interceptor; -1 means no priority
+     * @param transformersFunction the function taking the {@link FlowableTransformer} provided by the call to {@link MutableRequest#onMessages(FlowableTransformer)} or {@link MutableResponse#onMessages(FlowableTransformer)} and returns another {@link FlowableTransformer} as a replacement.
+
+     */
+    @Builder
+    record MessagesInterceptor<T>(
+        String id,
+        Integer priority,
+        Function<FlowableTransformer<T, T>, FlowableTransformer<T, T>> transformersFunction
+    ) {
+        public MessagesInterceptor {
+            if (priority == null || priority < 0) priority = Integer.MAX_VALUE;
+        }
+    }
 }

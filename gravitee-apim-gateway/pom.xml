@@ -43,6 +43,7 @@
         <module>gravitee-apim-gateway-flow</module>
         <module>gravitee-apim-gateway-handlers</module>
         <module>gravitee-apim-gateway-http</module>
+        <module>gravitee-apim-gateway-opentelemetry</module>
         <module>gravitee-apim-gateway-platform</module>
         <module>gravitee-apim-gateway-policy</module>
         <module>gravitee-apim-gateway-reactor</module>

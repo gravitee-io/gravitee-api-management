@@ -20,8 +20,10 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyException;
+import io.gravitee.node.api.opentelemetry.Span;
+import io.gravitee.node.api.opentelemetry.internal.InternalRequest;
 import io.gravitee.policy.api.PolicyChain;
-import io.gravitee.tracing.api.Span;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -44,14 +46,13 @@ public class TracingPolicy implements Policy {
 
     @Override
     public void execute(PolicyChain chain, ExecutionContext context) throws PolicyException {
-        Span span = context.getTracer().span(this.policy.id()).withAttribute(SPAN_ATTRIBUTE, this.policy.id());
+        Span span = context.getTracer().startSpanFrom(new InternalRequest(this.policy.id(), Map.of(SPAN_ATTRIBUTE, this.policy.id())));
 
         try {
             // The policy is ending once doNext or failWith are called from the chain
-            this.policy.execute(new TracingPolicyChain(chain, span), context);
+            this.policy.execute(new TracingPolicyChain(chain, context, span), context);
         } catch (Exception ex) {
-            span.reportError(ex).end();
-
+            context.getTracer().endOnError(span, ex);
             // Propagate the exception
             throw ex;
         }

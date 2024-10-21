@@ -47,6 +47,11 @@
             <artifactId>gravitee-apim-gateway-reporting</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.gateway</groupId>
+            <artifactId>gravitee-apim-gateway-opentelemetry</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>io.gravitee.el</groupId>
@@ -68,6 +73,11 @@
         <dependency>
             <groupId>io.gravitee.reporter</groupId>
             <artifactId>gravitee-reporter-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-opentelemetry</artifactId>
         </dependency>
 
         <dependency>

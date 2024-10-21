@@ -16,15 +16,15 @@
 package io.gravitee.gateway.reactive.handlers.api.flow;
 
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.api.hook.ChainHook;
+import io.gravitee.gateway.reactive.api.hook.HttpHook;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.gravitee.gateway.reactor.ReactableApi;
-import io.gravitee.node.api.configuration.Configuration;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,49 +33,52 @@ import java.util.List;
  */
 public class FlowChainFactory {
 
-    protected final List<ChainHook> flowHooks = new ArrayList<>();
     private final OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager;
     private final PolicyChainFactory policyChainFactory;
     private final OrganizationManager organizationManager;
     private final FlowResolverFactory flowResolverFactory;
+    private final TracingHook tracingHook;
 
     public FlowChainFactory(
         final OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
         final PolicyChainFactory policyChainFactory,
         final OrganizationManager organizationManager,
-        final Configuration configuration,
         final FlowResolverFactory flowResolverFactory
     ) {
         this.organizationPolicyChainFactoryManager = organizationPolicyChainFactoryManager;
         this.policyChainFactory = policyChainFactory;
         this.organizationManager = organizationManager;
         this.flowResolverFactory = flowResolverFactory;
-        boolean tracing = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
-        if (tracing) {
-            flowHooks.add(new TracingHook("flow"));
-        }
+        this.tracingHook = new TracingHook("flow");
     }
 
-    public FlowChain createOrganizationFlow(final ReactableApi<?> api) {
+    public FlowChain createOrganizationFlow(final ReactableApi<?> api, final TracingContext tracingContext) {
         String organizationId = api.getOrganizationId();
         FlowChain flowOrganizationChain = new FlowChain(
             "organization",
             flowResolverFactory.forOrganization(organizationId, organizationManager),
             organizationPolicyChainFactoryManager.get(organizationId)
         );
-        flowOrganizationChain.addHooks(flowHooks);
+        flowOrganizationChain.addHooks(flowHooks(tracingContext));
         return flowOrganizationChain;
     }
 
-    public FlowChain createPlanFlow(final Api api) {
+    public FlowChain createPlanFlow(final Api api, final TracingContext tracingContext) {
         FlowChain flowPlanChain = new FlowChain("plan", flowResolverFactory.forApiPlan(api), policyChainFactory);
-        flowPlanChain.addHooks(flowHooks);
+        flowPlanChain.addHooks(flowHooks(tracingContext));
         return flowPlanChain;
     }
 
-    public FlowChain createApiFlow(final Api api) {
+    public FlowChain createApiFlow(final Api api, final TracingContext tracingContext) {
         FlowChain flowApiChain = new FlowChain("api", flowResolverFactory.forApi(api), policyChainFactory);
-        flowApiChain.addHooks(flowHooks);
+        flowApiChain.addHooks(flowHooks(tracingContext));
         return flowApiChain;
+    }
+
+    private List<ChainHook> flowHooks(final TracingContext tracingContext) {
+        if (tracingContext.isEnabled()) {
+            return List.of(tracingHook);
+        }
+        return List.of();
     }
 }

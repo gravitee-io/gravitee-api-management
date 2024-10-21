@@ -38,6 +38,7 @@ import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.api.ws.WebSocket;
 import io.gravitee.gateway.reactive.core.MessageFlow;
+import io.gravitee.gateway.reactive.core.context.OnMessagesInterceptor;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.FlowableTransformer;
@@ -347,10 +348,10 @@ class VertxHttpServerRequestTest {
         void should_set_onMessagesInterceptor() {
             final MessageFlow<Message> messageFlow = mock(MessageFlow.class);
             ReflectionTestUtils.setField(cut, "messageFlow", messageFlow);
-            final Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor = mock(Function.class);
-            cut.setMessagesInterceptor(interceptor);
+            final OnMessagesInterceptor.MessagesInterceptor interceptor = mock(OnMessagesInterceptor.MessagesInterceptor.class);
+            cut.registerMessagesInterceptor(interceptor);
 
-            verify(messageFlow).setOnMessagesInterceptor(interceptor);
+            verify(messageFlow).registerMessagesInterceptor(interceptor);
         }
 
         @Test
@@ -358,9 +359,9 @@ class VertxHttpServerRequestTest {
             final MessageFlow<Message> messageFlow = mock(MessageFlow.class);
             ReflectionTestUtils.setField(cut, "messageFlow", messageFlow);
 
-            cut.unsetMessagesInterceptor();
+            cut.unregisterMessagesInterceptor("id");
 
-            verify(messageFlow).unsetOnMessagesInterceptor();
+            verify(messageFlow).unregisterMessagesInterceptor("id");
         }
     }
 

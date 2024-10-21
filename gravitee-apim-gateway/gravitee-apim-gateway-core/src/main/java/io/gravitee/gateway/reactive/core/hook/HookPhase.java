@@ -21,4 +21,5 @@ public enum HookPhase {
     INTERRUPT,
     INTERRUPT_WITH,
     ERROR,
+    CANCEL,
 }

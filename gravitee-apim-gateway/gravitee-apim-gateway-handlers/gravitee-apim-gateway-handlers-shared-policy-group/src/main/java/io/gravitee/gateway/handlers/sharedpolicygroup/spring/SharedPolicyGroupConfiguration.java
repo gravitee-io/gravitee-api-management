@@ -32,6 +32,7 @@ import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFi
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -81,7 +82,7 @@ public class SharedPolicyGroupConfiguration {
         PolicyFactoryManager policyFactoryManager,
         PolicyClassLoaderFactory policyClassLoaderFactory,
         ComponentProvider componentProvider,
-        io.gravitee.node.api.configuration.Configuration configuration
+        OpenTelemetryConfiguration openTelemetryConfiguration
     ) {
         return new DefaultSharedPolicyGroupReactorFactory(
             classLoader,
@@ -89,7 +90,7 @@ public class SharedPolicyGroupConfiguration {
             policyFactoryManager,
             policyClassLoaderFactory,
             componentProvider,
-            configuration
+            openTelemetryConfiguration
         );
     }
 
@@ -106,8 +107,11 @@ public class SharedPolicyGroupConfiguration {
     }
 
     @Bean
-    public PolicyFactory sharedPolicyGroupPolicyFactory(final PolicyPluginFactory policyPluginFactory) {
-        return new SharedPolicyGroupPolicyFactory(policyPluginFactory, new ExpressionLanguageConditionFilter<>());
+    public PolicyFactory sharedPolicyGroupPolicyFactory(
+        final io.gravitee.node.api.configuration.Configuration configuration,
+        final PolicyPluginFactory policyPluginFactory
+    ) {
+        return new SharedPolicyGroupPolicyFactory(configuration, policyPluginFactory, new ExpressionLanguageConditionFilter<>());
     }
 
     @Bean

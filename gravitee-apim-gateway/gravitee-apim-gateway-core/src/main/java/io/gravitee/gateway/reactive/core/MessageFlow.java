@@ -16,47 +16,66 @@
 package io.gravitee.gateway.reactive.core;
 
 import io.gravitee.gateway.reactive.api.message.Message;
+import io.gravitee.gateway.reactive.core.context.OnMessagesInterceptor;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.FlowableTransformer;
-import java.util.function.Function;
-import lombok.NoArgsConstructor;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@NoArgsConstructor
-public class MessageFlow<T extends Message> {
+public class MessageFlow<T extends Message> implements OnMessagesInterceptor<T> {
 
-    private Function<FlowableTransformer<T, T>, FlowableTransformer<T, T>> onMessagesInterceptor;
+    private Map<String, MessagesInterceptor<T>> onMessagesInterceptorsMapping;
+    private List<MessagesInterceptor<T>> messagesInterceptorsPrioritized;
 
-    protected Flowable<T> messages = Flowable.empty();
-
-    public MessageFlow(Flowable<T> messages) {
-        this.messages = messages;
-    }
-
-    public Flowable<T> messages() {
-        return messages;
-    }
-
-    public void messages(final Flowable<T> messages) {
-        this.messages = messages;
-    }
+    @Getter
+    @Setter
+    @Accessors(fluent = true)
+    private Flowable<T> messages = Flowable.empty();
 
     public void onMessages(final FlowableTransformer<T, T> onMessages) {
-        if (onMessagesInterceptor != null) {
-            this.messages = this.messages.compose(onMessagesInterceptor.apply(onMessages));
+        if (messagesInterceptorsPrioritized != null) {
+            FlowableTransformer<T, T> composedTransformers = onMessages;
+            for (MessagesInterceptor<T> messagesInterceptor : messagesInterceptorsPrioritized) {
+                composedTransformers = messagesInterceptor.transformersFunction().apply(composedTransformers);
+            }
+            this.messages = this.messages.compose(composedTransformers);
         } else {
             this.messages = this.messages.compose(onMessages);
         }
     }
 
-    public void setOnMessagesInterceptor(Function<FlowableTransformer<T, T>, FlowableTransformer<T, T>> interceptor) {
-        this.onMessagesInterceptor = interceptor;
+    @Override
+    public void registerMessagesInterceptor(final MessagesInterceptor<T> messagesInterceptor) {
+        if (this.messagesInterceptorsPrioritized == null) {
+            this.messagesInterceptorsPrioritized = new ArrayList<>();
+        }
+        if (this.onMessagesInterceptorsMapping == null) {
+            this.onMessagesInterceptorsMapping = new TreeMap<>();
+        }
+        this.onMessagesInterceptorsMapping.put(messagesInterceptor.id(), messagesInterceptor);
+
+        this.messagesInterceptorsPrioritized.add(messagesInterceptor);
+        this.messagesInterceptorsPrioritized.sort(Collections.reverseOrder(Comparator.comparingInt(MessagesInterceptor::priority)));
     }
 
-    public void unsetOnMessagesInterceptor() {
-        this.onMessagesInterceptor = null;
+    @Override
+    public void unregisterMessagesInterceptor(final String id) {
+        if (this.onMessagesInterceptorsMapping != null) {
+            var removed = this.onMessagesInterceptorsMapping.remove(id);
+            if (removed != null) {
+                this.messagesInterceptorsPrioritized.remove(removed);
+            }
+        }
     }
 }

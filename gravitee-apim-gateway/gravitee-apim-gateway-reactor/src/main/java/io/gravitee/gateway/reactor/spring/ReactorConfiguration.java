@@ -26,6 +26,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestClientAuthConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
+import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.reactor.DefaultHttpRequestDispatcher;
 import io.gravitee.gateway.reactive.reactor.DefaultTcpSocketDispatcher;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
@@ -53,6 +54,9 @@ import io.gravitee.gateway.reactor.processor.transaction.TraceContextProcessorFa
 import io.gravitee.gateway.reactor.processor.transaction.TransactionRequestProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.opentelemetry.Tracer;
+import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
+import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import io.vertx.core.Vertx;
 import java.util.List;
@@ -127,7 +131,7 @@ public class ReactorConfiguration {
         AlertEventProducer eventProducer,
         Node node,
         @Value("${http.port:8082}") String httpPort,
-        @Value("${services.tracing.enabled:false}") boolean tracing,
+        OpenTelemetryConfiguration openTelemetryConfiguration,
         GatewayConfiguration gatewayConfiguration
     ) {
         return new DefaultPlatformProcessorChainFactory(
@@ -138,7 +142,7 @@ public class ReactorConfiguration {
             eventProducer,
             node,
             httpPort,
-            tracing,
+            openTelemetryConfiguration.isTracesEnabled(),
             gatewayConfiguration
         );
     }
@@ -153,10 +157,10 @@ public class ReactorConfiguration {
         ResponseProcessorChainFactory v3ResponseProcessorChainFactory,
         DefaultPlatformProcessorChainFactory platformProcessorChainFactory,
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
-        @Value("${services.tracing.enabled:false}") boolean tracingEnabled,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         RequestClientAuthConfiguration requestClientAuthConfiguration,
-        Vertx vertx
+        Vertx vertx,
+        TracingContext tracingContext
     ) {
         return new DefaultHttpRequestDispatcher(
             gatewayConfiguration,
@@ -167,7 +171,7 @@ public class ReactorConfiguration {
             v3ResponseProcessorChainFactory,
             platformProcessorChainFactory,
             notFoundProcessorChainFactory,
-            tracingEnabled,
+            tracingContext,
             requestTimeoutConfiguration,
             requestClientAuthConfiguration,
             vertx
@@ -241,7 +245,7 @@ public class ReactorConfiguration {
         ReporterService reporterService,
         @Value("${handlers.notfound.analytics.enabled:false}") boolean notFoundAnalyticsEnabled,
         @Deprecated @Value("${handlers.notfound.log.enabled:false}") boolean notFoundLogEnabled,
-        @Value("${services.tracing.enabled:false}") boolean tracingEnabled,
+        OpenTelemetryConfiguration openTelemetryConfiguration,
         GatewayConfiguration gatewayConfiguration
     ) {
         return new NotFoundProcessorChainFactory(
@@ -249,7 +253,7 @@ public class ReactorConfiguration {
             environment,
             reporterService,
             notFoundAnalyticsEnabled || notFoundLogEnabled,
-            tracingEnabled,
+            openTelemetryConfiguration.isTracesEnabled(),
             gatewayConfiguration
         );
     }

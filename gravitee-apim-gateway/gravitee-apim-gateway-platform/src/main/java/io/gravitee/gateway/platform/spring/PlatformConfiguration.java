@@ -33,6 +33,7 @@ import io.gravitee.gateway.reactive.platform.organization.reactor.DefaultOrganiz
 import io.gravitee.gateway.reactive.platform.organization.reactor.OrganizationReactorFactory;
 import io.gravitee.gateway.reactive.platform.organization.reactor.OrganizationReactorRegistry;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
+import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,7 +135,7 @@ public class PlatformConfiguration {
         PolicyFactoryManager policyFactoryManager,
         PolicyClassLoaderFactory policyClassLoaderFactory,
         ComponentProvider componentProvider,
-        io.gravitee.node.api.configuration.Configuration configuration
+        OpenTelemetryConfiguration configuration
     ) {
         return new DefaultOrganizationReactorFactory(
             classLoader,

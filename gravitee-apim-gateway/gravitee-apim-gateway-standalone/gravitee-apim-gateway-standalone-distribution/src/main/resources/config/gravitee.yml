@@ -631,14 +631,12 @@ services:
 #    unit: MILLISECONDS
 #    storeSystemProperties: true
 
-  tracing:
-    enabled: false
-    type: jaeger
-    jaeger:
-      host: localhost
-      port: 14250
-#      ssl:
-#        enabled: false
+#  opentelemetry:
+#    enabled: false
+#    verbose: false
+#    exporter:
+#      endpoint: http://localhost:4317
+#      protocol: grpc
 
 #handlers:
 #  request:

@@ -22,6 +22,7 @@ import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersExtractor;
+import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.hook.ProcessorHook;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
@@ -58,7 +59,7 @@ public class ApiProcessorChainFactory {
     private final String clientIdentifierHeader;
     private final Node node;
     private final Configuration configuration;
-    private final List<ProcessorHook> processorHooks = new ArrayList<>();
+    private TracingHook tracingHook;
 
     public ApiProcessorChainFactory(final Configuration configuration, Node node) {
         this.configuration = configuration;
@@ -69,13 +70,10 @@ public class ApiProcessorChainFactory {
 
         this.node = node;
 
-        boolean tracing = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
-        if (tracing) {
-            processorHooks.add(new TracingHook("processor"));
-        }
+        tracingHook = new TracingHook("processor");
     }
 
-    public ProcessorChain beforeHandle(final Api api) {
+    public ProcessorChain beforeHandle(final Api api, final TracingContext tracingContext) {
         final List<Processor> processors = new ArrayList<>();
 
         if (LoggingUtils.getLoggingContext(api.getDefinition()) != null) {
@@ -83,7 +81,7 @@ public class ApiProcessorChainFactory {
             processors.add(LogRequestProcessor.instance());
         }
 
-        return new ProcessorChain("processor-chain-before-api-handle", processors, processorHooks);
+        return new ProcessorChain("before-api-handle", processors, processorHooks(tracingContext));
     }
 
     /**
@@ -93,7 +91,7 @@ public class ApiProcessorChainFactory {
      *
      * @return the chain of processors.
      */
-    public ProcessorChain beforeSecurityChain(final Api api) {
+    public ProcessorChain beforeSecurityChain(final Api api, final TracingContext tracingContext) {
         List<Processor> preProcessorList = new ArrayList<>();
 
         Cors cors = api.getDefinition().getProxy().getCors();
@@ -101,12 +99,12 @@ public class ApiProcessorChainFactory {
             preProcessorList.add(CorsPreflightRequestProcessor.instance());
         }
 
-        ProcessorChain processorChain = new ProcessorChain("processor-chain-before-security-chain", preProcessorList);
-        processorChain.addHooks(processorHooks);
+        ProcessorChain processorChain = new ProcessorChain("before-security-chain", preProcessorList);
+        processorChain.addHooks(processorHooks(tracingContext));
         return processorChain;
     }
 
-    public ProcessorChain beforeApiExecution(final Api api) {
+    public ProcessorChain beforeApiExecution(final Api api, final TracingContext tracingContext) {
         List<Processor> preProcessorList = new ArrayList<>();
 
         if (overrideXForwardedPrefix) {
@@ -125,16 +123,16 @@ public class ApiProcessorChainFactory {
             preProcessorList.add(PathMappingProcessor.instance());
         }
 
-        ProcessorChain processorChain = new ProcessorChain("processor-chain-before-api-execution", preProcessorList);
-        processorChain.addHooks(processorHooks);
+        ProcessorChain processorChain = new ProcessorChain("before-api-execution", preProcessorList);
+        processorChain.addHooks(processorHooks(tracingContext));
         return processorChain;
     }
 
-    public ProcessorChain afterApiExecution(final Api api) {
+    public ProcessorChain afterApiExecution(final Api api, final TracingContext tracingContext) {
         List<Processor> postProcessorList = getAfterApiExecutionProcessors(api);
 
-        ProcessorChain processorChain = new ProcessorChain("processor-chain-after-api-execution", postProcessorList);
-        processorChain.addHooks(processorHooks);
+        ProcessorChain processorChain = new ProcessorChain("after-api-execution", postProcessorList);
+        processorChain.addHooks(processorHooks(tracingContext));
         return processorChain;
     }
 
@@ -151,7 +149,7 @@ public class ApiProcessorChainFactory {
         return postProcessorList;
     }
 
-    public ProcessorChain onError(final Api api) {
+    public ProcessorChain onError(final Api api, final TracingContext tracingContext) {
         List<Processor> errorProcessorList = new ArrayList<>(getAfterApiExecutionProcessors(api));
 
         if (api.getDefinition().getResponseTemplates() != null && !api.getDefinition().getResponseTemplates().isEmpty()) {
@@ -160,18 +158,23 @@ public class ApiProcessorChainFactory {
             errorProcessorList.add(SimpleFailureProcessor.instance());
         }
 
-        ProcessorChain processorChain = new ProcessorChain("processor-chain-api-error", errorProcessorList);
-        processorChain.addHooks(processorHooks);
-        return processorChain;
+        return new ProcessorChain("api-error", errorProcessorList, processorHooks(tracingContext));
     }
 
-    public ProcessorChain afterHandle(final Api api) {
+    public ProcessorChain afterHandle(final Api api, final TracingContext tracingContext) {
         final List<Processor> processors = new ArrayList<>();
 
         if (LoggingUtils.getLoggingContext(api.getDefinition()) != null) {
             processors.add(LogResponseProcessor.instance());
         }
 
-        return new ProcessorChain("processor-chain-after-api-handle", processors, processorHooks);
+        return new ProcessorChain("after-api-handle", processors, processorHooks(tracingContext));
+    }
+
+    protected List<ProcessorHook> processorHooks(final TracingContext tracingContext) {
+        if (tracingContext.isVerbose()) {
+            return List.of(tracingHook);
+        }
+        return List.of();
     }
 }

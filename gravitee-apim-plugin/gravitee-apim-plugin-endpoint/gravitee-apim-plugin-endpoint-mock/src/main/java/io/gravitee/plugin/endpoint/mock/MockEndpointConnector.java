@@ -25,6 +25,9 @@ import io.gravitee.gateway.reactive.api.message.DefaultMessage;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.gateway.reactive.api.qos.QosCapability;
+import io.gravitee.gateway.reactive.api.tracing.message.TracingMessage;
+import io.gravitee.gateway.reactive.api.tracing.message.TracingMessageAttribute;
+import io.gravitee.gateway.reactive.api.tracing.message.TracingMessageOperationType;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
@@ -101,7 +104,7 @@ public class MockEndpointConnector extends EndpointAsyncConnector {
                 .request()
                 .onMessage(message -> {
                     log.info("Received message: {}", message.content() != null ? message.content().toString() : null);
-                    return Maybe.empty();
+                    return Maybe.just(message);
                 })
         );
     }
@@ -136,6 +139,18 @@ public class MockEndpointConnector extends EndpointAsyncConnector {
                                 configuration.getMetadata().stream().collect(Collectors.toMap(HttpHeader::getName, HttpHeader::getValue))
                             );
                         }
+                        message.tracingAttributes(
+                            Map.of(
+                                TracingMessageAttribute.MESSAGING_OPERATION_NAME.key(),
+                                "receive",
+                                TracingMessageAttribute.MESSAGING_OPERATION_TYPE.key(),
+                                TracingMessageOperationType.RECEIVE.value(),
+                                TracingMessageAttribute.MESSAGING_SYSTEM.key(),
+                                "mock",
+                                TracingMessageAttribute.MESSAGING_MESSAGE_BODY_SIZE.key(),
+                                message.content() != null ? String.valueOf(message.content().length()) : "0"
+                            )
+                        );
                         emitter.onNext(message);
                     } else {
                         emitter.onComplete();

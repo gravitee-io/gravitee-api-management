@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.hook.MessageHook;
+import io.gravitee.gateway.reactive.api.hook.PolicyMessageHook;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.reactivex.rxjava3.core.Completable;
@@ -42,10 +42,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class HookHelperTest {
 
     @Mock
-    private MessageHook mockHook;
+    private PolicyMessageHook mockHook;
 
     @Mock
-    private MessageHook mockHook2;
+    private PolicyMessageHook mockHook2;
 
     @Mock
     private ExecutionContext mockCtx;

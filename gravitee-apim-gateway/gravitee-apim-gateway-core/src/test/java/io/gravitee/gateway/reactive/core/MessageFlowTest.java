@@ -19,6 +19,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.reactive.api.message.DefaultMessage;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.core.MessageFlow;
+import io.gravitee.gateway.reactive.core.context.OnMessagesInterceptor;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.FlowableTransformer;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
@@ -38,7 +39,12 @@ class MessageFlowTest {
             upstream -> upstream.doOnNext(message -> message.attribute("intercepted", true)).compose(onMessages);
 
         cut.messages(Flowable.just(new DefaultMessage("test")));
-        cut.setOnMessagesInterceptor(interceptor);
+        OnMessagesInterceptor.MessagesInterceptor<Message> messagesInterceptor = OnMessagesInterceptor.MessagesInterceptor
+            .<Message>builder()
+            .id("id")
+            .transformersFunction(interceptor)
+            .build();
+        cut.registerMessagesInterceptor(messagesInterceptor);
 
         cut.onMessages(upstream -> upstream.map(message -> message.content(Buffer.buffer("Transformed test"))));
 
@@ -68,8 +74,13 @@ class MessageFlowTest {
             upstream -> upstream.doOnNext(message -> message.attribute("intercepted", true)).compose(onMessages);
 
         cut.messages(Flowable.just(new DefaultMessage("test")));
-        cut.setOnMessagesInterceptor(interceptor);
-        cut.unsetOnMessagesInterceptor();
+        OnMessagesInterceptor.MessagesInterceptor<Message> messagesInterceptor = OnMessagesInterceptor.MessagesInterceptor
+            .<Message>builder()
+            .id("id")
+            .transformersFunction(interceptor)
+            .build();
+        cut.registerMessagesInterceptor(messagesInterceptor);
+        cut.unregisterMessagesInterceptor("id");
         cut.onMessages(upstream -> upstream.map(message -> message.content(Buffer.buffer("Transformed test"))));
 
         final TestSubscriber<Message> obs = cut.messages().test();

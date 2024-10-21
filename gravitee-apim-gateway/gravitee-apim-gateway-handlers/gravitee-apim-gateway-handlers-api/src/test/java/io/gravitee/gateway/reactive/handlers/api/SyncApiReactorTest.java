@@ -44,6 +44,7 @@ import io.gravitee.gateway.core.invoker.EndpointInvoker;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
@@ -66,6 +67,7 @@ import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableObserver;
@@ -237,20 +239,22 @@ class SyncApiReactorTest {
     @Mock
     private EventManager eventManager;
 
+    private TracingContext tracingContext = TracingContext.noop();
+
     @BeforeEach
     void init() {
         lenient().when(apiDefinition.getProxy()).thenReturn(mock(Proxy.class));
         lenient().when(api.getDefinition()).thenReturn(apiDefinition);
-        when(flowChainFactory.createOrganizationFlow(api)).thenReturn(platformFlowChain);
-        when(flowChainFactory.createPlanFlow(api)).thenReturn(apiPlanFlowChain);
-        when(flowChainFactory.createApiFlow(api)).thenReturn(apiFlowChain);
+        when(flowChainFactory.createOrganizationFlow(api, tracingContext)).thenReturn(platformFlowChain);
+        when(flowChainFactory.createPlanFlow(api, tracingContext)).thenReturn(apiPlanFlowChain);
+        when(flowChainFactory.createApiFlow(api, tracingContext)).thenReturn(apiFlowChain);
 
-        lenient().when(apiProcessorChainFactory.beforeHandle(api)).thenReturn(beforeHandleProcessors);
-        lenient().when(apiProcessorChainFactory.afterHandle(api)).thenReturn(afterHandleProcessors);
-        lenient().when(apiProcessorChainFactory.beforeSecurityChain(api)).thenReturn(beforeSecurityChainProcessors);
-        lenient().when(apiProcessorChainFactory.beforeApiExecution(api)).thenReturn(beforeApiFlowsProcessors);
-        lenient().when(apiProcessorChainFactory.afterApiExecution(api)).thenReturn(afterApiFlowsProcessors);
-        lenient().when(apiProcessorChainFactory.onError(api)).thenReturn(onErrorProcessors);
+        lenient().when(apiProcessorChainFactory.beforeHandle(api, tracingContext)).thenReturn(beforeHandleProcessors);
+        lenient().when(apiProcessorChainFactory.afterHandle(api, tracingContext)).thenReturn(afterHandleProcessors);
+        lenient().when(apiProcessorChainFactory.beforeSecurityChain(api, tracingContext)).thenReturn(beforeSecurityChainProcessors);
+        lenient().when(apiProcessorChainFactory.beforeApiExecution(api, tracingContext)).thenReturn(beforeApiFlowsProcessors);
+        lenient().when(apiProcessorChainFactory.afterApiExecution(api, tracingContext)).thenReturn(afterApiFlowsProcessors);
+        lenient().when(apiProcessorChainFactory.onError(api, tracingContext)).thenReturn(onErrorProcessors);
 
         lenient().when(beforeHandleProcessors.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyBeforeHandleProcessors);
         lenient().when(afterHandleProcessors.execute(ctx, RESPONSE)).thenReturn(spyAfterHandleProcessors);
@@ -266,7 +270,6 @@ class SyncApiReactorTest {
         lenient().when(afterApiFlowsProcessors.getId()).thenReturn("mockAfterApiFlowsProcessors");
         lenient().when(onErrorProcessors.getId()).thenReturn("mockOnErrorProcessors");
 
-        when(configuration.getProperty("services.tracing.enabled", Boolean.class, false)).thenReturn(false);
         when(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L)).thenReturn(10_000L);
 
         lenient().when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(REQUEST_TIMEOUT);
@@ -288,7 +291,8 @@ class SyncApiReactorTest {
                 node,
                 requestTimeoutConfiguration,
                 accessPointManager,
-                eventManager
+                eventManager,
+                tracingContext
             );
 
         lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_INVOKER)).thenReturn(invokerAdapter);
@@ -329,7 +333,7 @@ class SyncApiReactorTest {
 
     @Test
     void shouldStartWithTracing() throws Exception {
-        ReflectionTestUtils.setField(cut, "tracingEnabled", true);
+        ReflectionTestUtils.setField(cut, "tracingContext", new TracingContext(new NoOpTracer(), true, true));
 
         cut.doStart();
 

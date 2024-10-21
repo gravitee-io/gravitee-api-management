@@ -19,15 +19,23 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
+import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
+import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsUtils;
 import io.gravitee.gateway.reactive.core.v4.endpoint.DefaultEndpointManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.api.opentelemetry.InstrumenterTracerFactory;
+import io.gravitee.node.api.opentelemetry.Tracer;
+import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
+import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
+import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -38,6 +46,9 @@ public class TcpApiReactorFactory implements ReactorFactory<Api> {
     private final EntrypointConnectorPluginManager entrypointConnectorPluginManager;
     private final EndpointConnectorPluginManager endpointConnectorPluginManager;
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
+    private final OpenTelemetryConfiguration openTelemetryConfiguration;
+    private final OpenTelemetryFactory openTelemetryFactory;
+    private final List<InstrumenterTracerFactory> instrumenterTracerFactories;
 
     @Override
     public boolean support(final Class<? extends Reactable> clazz) {
@@ -70,7 +81,37 @@ public class TcpApiReactorFactory implements ReactorFactory<Api> {
             deploymentContext,
             entrypointConnectorPluginManager,
             endpointManager,
-            requestTimeoutConfiguration
+            requestTimeoutConfiguration,
+            createTracingContext(api)
+        );
+    }
+
+    protected TracingContext createTracingContext(final Api api) {
+        if (isApiTracingEnabled(api)) {
+            Tracer tracer = openTelemetryFactory.createTracer(
+                api.getId(),
+                api.getName(),
+                "API_V4_TCP",
+                api.getApiVersion(),
+                instrumenterTracerFactories
+            );
+            return new TracingContext(tracer, isApiTracingEnabled(api), isApiTracingVerboseEnabled(api));
+        } else {
+            return TracingContext.noop();
+        }
+    }
+
+    protected boolean isApiTracingEnabled(final Api api) {
+        return AnalyticsUtils.isTracingEnabled(
+            openTelemetryConfiguration,
+            api.getDefinition() != null ? api.getDefinition().getAnalytics() : null
+        );
+    }
+
+    protected boolean isApiTracingVerboseEnabled(final Api api) {
+        return AnalyticsUtils.isTracingVerbose(
+            openTelemetryConfiguration,
+            api.getDefinition() != null ? api.getDefinition().getAnalytics() : null
         );
     }
 }

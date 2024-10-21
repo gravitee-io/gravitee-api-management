@@ -24,6 +24,7 @@ import io.gravitee.gateway.debug.reactor.handler.context.PathTransformer;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.debug.invoker.DebugInvokerHook;
@@ -37,6 +38,8 @@ import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.api.opentelemetry.Tracer;
+import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Collections;
 import java.util.List;
@@ -62,7 +65,8 @@ public class DebugSyncApiReactor extends SyncApiReactor {
         final Node node,
         final RequestTimeoutConfiguration requestTimeoutConfiguration,
         final AccessPointManager accessPointManager,
-        final EventManager eventManager
+        final EventManager eventManager,
+        final TracingContext tracingContext
     ) {
         super(
             api,
@@ -78,7 +82,8 @@ public class DebugSyncApiReactor extends SyncApiReactor {
             node,
             requestTimeoutConfiguration,
             accessPointManager,
-            eventManager
+            eventManager,
+            tracingContext
         );
         invokerHooks.add(new DebugInvokerHook());
     }

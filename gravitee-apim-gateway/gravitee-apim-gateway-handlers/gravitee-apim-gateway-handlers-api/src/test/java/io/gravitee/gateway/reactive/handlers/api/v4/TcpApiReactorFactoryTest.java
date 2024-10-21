@@ -27,10 +27,11 @@ import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
-import io.gravitee.gateway.reactor.handler.DefaultTcpAcceptor;
 import io.gravitee.gateway.reactor.handler.TcpAcceptor;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
+import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import java.util.List;
@@ -71,9 +72,25 @@ class TcpApiReactorFactoryTest {
     @Mock
     RequestTimeoutConfiguration timeoutConfig;
 
+    @Mock
+    OpenTelemetryConfiguration openTelemetryConfiguration;
+
+    @Mock
+    OpenTelemetryFactory openTelemetryFactory;
+
     @BeforeEach
     void before() {
-        cut = new TcpApiReactorFactory(configuration, node, entrypoints, endpoints, timeoutConfig);
+        cut =
+            new TcpApiReactorFactory(
+                configuration,
+                node,
+                entrypoints,
+                endpoints,
+                timeoutConfig,
+                openTelemetryConfiguration,
+                openTelemetryFactory,
+                List.of()
+            );
     }
 
     static Stream<Arguments> apis() {
@@ -122,7 +139,6 @@ class TcpApiReactorFactoryTest {
         apiDef.setType(ApiType.PROXY);
 
         // avoid TcpApiReactor to complain
-        when(configuration.getProperty(any(), eq(Boolean.class), any())).thenReturn(false);
         when(configuration.getProperty(any(), eq(Long.class), any())).thenReturn(0L);
 
         assertThat(cut.create(new Api(apiDef)).acceptors()).hasSize(1);

@@ -61,7 +61,7 @@ public abstract class AbstractPlatformProcessorChainFactory {
         this.port = port;
 
         if (tracing) {
-            processorHooks.add(new TracingHook("processor"));
+            processorHooks.add(new TracingHook("Processor"));
         }
     }
 
@@ -74,7 +74,7 @@ public abstract class AbstractPlatformProcessorChainFactory {
 
     private void initPreProcessorChain() {
         List<Processor> preProcessorList = buildPreProcessorList();
-        preProcessorChain = new ProcessorChain("processor-chain-pre-platform", preProcessorList);
+        preProcessorChain = new ProcessorChain("pre-platform", preProcessorList);
         preProcessorChain.addHooks(processorHooks);
     }
 
@@ -88,7 +88,7 @@ public abstract class AbstractPlatformProcessorChainFactory {
     private void initPostProcessorChain() {
         List<Processor> postProcessorList = buildPostProcessorList();
 
-        postProcessorChain = new ProcessorChain("processor-chain-post-platform", postProcessorList);
+        postProcessorChain = new ProcessorChain("post-platform", postProcessorList);
         postProcessorChain.addHooks(processorHooks);
     }
 

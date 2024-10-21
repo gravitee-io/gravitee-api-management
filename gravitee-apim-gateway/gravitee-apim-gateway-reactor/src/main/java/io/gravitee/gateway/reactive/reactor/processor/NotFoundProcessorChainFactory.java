@@ -71,7 +71,7 @@ public class NotFoundProcessorChainFactory {
 
     void initProcessorChain() {
         List<Processor> processorList = buildProcessorChain();
-        processorChain = new ProcessorChain("processor-chain-not-found", processorList);
+        processorChain = new ProcessorChain("not-found", processorList);
         processorChain.addHooks(processorHooks);
     }
 

@@ -53,6 +53,8 @@ import io.gravitee.gateway.resource.internal.v4.DefaultResourceManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.container.spring.SpringEnvironmentConfiguration;
+import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
+import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
@@ -138,6 +140,12 @@ public class DefaultApiReactorFactoryTest {
     @Mock
     private ApiServicePluginManager apiServicePluginManager;
 
+    @Mock
+    OpenTelemetryConfiguration openTelemetryConfiguration;
+
+    @Mock
+    private OpenTelemetryFactory openTelemetryFactory;
+
     @BeforeEach
     public void init() {
         lenient().when(applicationContext.getBeanFactory()).thenReturn(applicationContextListable);
@@ -157,7 +165,10 @@ public class DefaultApiReactorFactoryTest {
                 requestTimeoutConfiguration,
                 reporterService,
                 accessPointManager,
-                eventManager
+                eventManager,
+                openTelemetryConfiguration,
+                openTelemetryFactory,
+                List.of()
             );
     }
 
@@ -236,7 +247,7 @@ public class DefaultApiReactorFactoryTest {
             var reactor = cut.create(api);
 
             assertThat(reactor).extracting("node").isSameAs(node);
-            assertThat(reactor).extracting("tracingEnabled").isEqualTo(false);
+            assertThat(reactor).extracting("tracingContext").extracting("enabled", "verbose").containsOnly(false, false);
             assertThat(reactor).extracting("pendingRequestsTimeout").isEqualTo(10_000L);
             assertThat(reactor).extracting("loggingExcludedResponseType").isNull();
             assertThat(reactor).extracting("loggingMaxSize").isNull();

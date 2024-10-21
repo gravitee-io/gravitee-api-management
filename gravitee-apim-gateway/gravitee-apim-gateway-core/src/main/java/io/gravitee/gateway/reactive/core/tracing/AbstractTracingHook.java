@@ -19,9 +19,13 @@ import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.HttpHook;
-import io.gravitee.tracing.api.Span;
-import io.gravitee.tracing.api.Tracer;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
+import io.gravitee.node.api.opentelemetry.Span;
+import io.gravitee.node.api.opentelemetry.internal.InternalRequest;
+import io.reactivex.rxjava3.annotations.Nullable;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -29,8 +33,8 @@ import io.reactivex.rxjava3.core.Completable;
  */
 public abstract class AbstractTracingHook implements HttpHook {
 
-    private static final String SPAN_PHASE_ATTR = "execution.phase";
-    private static final String ATTR_INTERNAL_TRACING_SPAN = "tracing-span-%s";
+    public static final String SPAN_PHASE_ATTR = "gravitee.execution.phase";
+    public static final String ATTR_INTERNAL_TRACING_SPAN = "tracing-span-%s";
 
     @Override
     public Completable pre(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
@@ -67,65 +71,81 @@ public abstract class AbstractTracingHook implements HttpHook {
         return Completable.fromRunnable(() -> endSpanWithFailure(id, ctx, failure));
     }
 
+    @Override
+    public void cancel(final String id, final HttpExecutionContext ctx, final @Nullable ExecutionPhase executionPhase) {
+        endSpan(id, ctx);
+    }
+
     protected void createSpan(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
-        Tracer tracer = ctx.getComponent(Tracer.class);
+        Tracer tracer = ctx.getTracer();
         if (tracer != null) {
-            Span span = tracer.span(getSpanName(id, executionPhase));
-            withAttributes(id, ctx, executionPhase, span);
+            Span span = tracer.startSpanFrom(
+                InternalRequest.builder().name(spanName(id, executionPhase)).attributes(spanAttributes(id, ctx, executionPhase)).build()
+            );
             putSpan(id, ctx, span);
         }
     }
 
-    protected abstract String getSpanName(final String id, final ExecutionPhase executionPhase);
+    protected abstract String spanName(final String id, final ExecutionPhase executionPhase);
 
-    protected void withAttributes(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase, final Span span) {
+    protected Map<String, String> spanAttributes(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
+        Map<String, String> attributes = new HashMap<>();
         if (executionPhase != null) {
-            span.withAttribute(SPAN_PHASE_ATTR, executionPhase.getLabel());
+            attributes.put(SPAN_PHASE_ATTR, executionPhase.getLabel());
         }
+        return attributes;
     }
 
     protected void endSpan(final String id, final HttpExecutionContext ctx) {
         Span span = getSpan(ctx, id);
         if (span != null) {
-            span.end();
+            Tracer tracer = ctx.getTracer();
+            if (tracer != null) {
+                tracer.end(span);
+            }
             removeSpan(ctx, id);
         }
     }
 
-    protected void endSpanOnError(final String is, final HttpExecutionContext ctx, final Throwable throwable) {
-        Span span = getSpan(ctx, is);
+    protected void endSpanOnError(final String id, final HttpExecutionContext ctx, final Throwable throwable) {
+        Span span = getSpan(ctx, id);
         if (span != null) {
-            span.reportError(throwable).end();
-            removeSpan(ctx, is);
+            Tracer tracer = ctx.getTracer();
+            if (tracer != null) {
+                tracer.endOnError(span, throwable);
+            }
+            removeSpan(ctx, id);
         }
     }
 
     protected void endSpanWithFailure(final String id, final HttpExecutionContext ctx, final ExecutionFailure failure) {
         Span span = getSpan(ctx, id);
         if (span != null) {
-            span
-                .withAttribute("failure.key", failure.key())
-                .withAttribute("failure.status-code", failure.statusCode())
-                .withAttribute("failure.content-type", failure.contentType())
-                .reportError(failure.message())
-                .end();
+            Tracer tracer = ctx.getTracer();
+            if (tracer != null) {
+                span
+                    .withAttribute("gravitee.execution-failure.key", failure.key())
+                    .withAttribute("gravitee.execution-failure.status-code", failure.statusCode())
+                    .withAttribute("gravitee.execution-failure.content-type", failure.contentType());
+                tracer.endOnError(span, failure.message());
+            }
             removeSpan(ctx, id);
         }
     }
 
-    private void putSpan(String id, HttpExecutionContext ctx, Span span) {
+    protected void putSpan(String id, HttpExecutionContext ctx, Span span) {
         ctx.putInternalAttribute(getCtxAttributeKey(id), span);
     }
 
-    private Span getSpan(HttpExecutionContext ctx, String is) {
-        return ctx.getInternalAttribute(getCtxAttributeKey(is));
+    protected Span getSpan(HttpExecutionContext ctx, String id) {
+        return ctx.getInternalAttribute(getCtxAttributeKey(id));
     }
 
-    private void removeSpan(HttpExecutionContext ctx, String id) {
+    protected void removeSpan(HttpExecutionContext ctx, String id) {
         ctx.removeInternalAttribute(getCtxAttributeKey(id));
     }
 
-    private String getCtxAttributeKey(final String id) {
+    protected String getCtxAttributeKey(final String id) {
         return String.format(ATTR_INTERNAL_TRACING_SPAN, id);
     }
 }

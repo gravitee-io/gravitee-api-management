@@ -19,25 +19,24 @@ import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.HttpHook;
-import io.gravitee.gateway.reactive.api.hook.MessageHook;
+import io.gravitee.gateway.reactive.api.hook.PolicyMessageHook;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.List;
 import java.util.function.Supplier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class HookHelper {
-
-    private static final Logger log = LoggerFactory.getLogger(HookHelper.class);
-
-    private HookHelper() {}
 
     public static <T extends HttpHook> Completable hook(
         final Supplier<Completable> completableSupplier,
@@ -48,10 +47,22 @@ public class HookHelper {
     ) {
         if (hooks != null && !hooks.isEmpty()) {
             return executeHooks(componentId, hooks, HookPhase.PRE, ctx, executionPhase, null, null)
-                .andThen(Completable.defer(completableSupplier::get))
+                .andThen(
+                    Completable.defer(() -> {
+                        if (executionPhase == ExecutionPhase.MESSAGE_REQUEST || executionPhase == ExecutionPhase.MESSAGE_RESPONSE) {
+                            return MessageHookHelper.hook(completableSupplier, componentId, hooks, ctx, executionPhase);
+                        }
+                        return completableSupplier.get();
+                    })
+                )
                 .andThen(executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null))
                 .onErrorResumeNext(throwable ->
                     executeHookOnError(componentId, hooks, ctx, executionPhase, throwable).andThen(Completable.error(throwable))
+                )
+                .doOnDispose(() ->
+                    executeHooks(componentId, hooks, HookPhase.CANCEL, ctx, executionPhase, null, null)
+                        // In case of cancel phase, there is nothing to subscribe to.
+                        .subscribe()
                 );
         } else {
             return completableSupplier.get();
@@ -61,7 +72,7 @@ public class HookHelper {
     public static <T> Maybe<T> hookMaybe(
         final Supplier<Maybe<T>> maybeSupplier,
         final String componentId,
-        final List<MessageHook> hooks,
+        final List<PolicyMessageHook> hooks,
         final HttpExecutionContext ctx,
         final ExecutionPhase executionPhase
     ) {
@@ -69,10 +80,11 @@ public class HookHelper {
             return executeHooks(componentId, hooks, HookPhase.PRE, ctx, executionPhase, null, null)
                 .andThen(Maybe.defer(maybeSupplier::get))
                 .switchIfEmpty(executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null).toMaybe())
-                .flatMap(t -> executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null).andThen(Maybe.just(t)))
-                .onErrorResumeNext(throwable -> {
-                    return executeHookOnError(componentId, hooks, ctx, executionPhase, throwable).andThen(Maybe.error(throwable));
-                });
+                .concatMap(t -> executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null).andThen(Maybe.just(t)))
+                .onErrorResumeNext(throwable ->
+                    executeHookOnError(componentId, hooks, ctx, executionPhase, throwable).andThen(Maybe.error(throwable))
+                )
+                .doOnDispose(() -> executeHooks(componentId, hooks, HookPhase.CANCEL, ctx, executionPhase, null, null).subscribe());
         } else {
             return maybeSupplier.get();
         }
@@ -113,23 +125,20 @@ public class HookHelper {
     ) {
         return Flowable
             .fromIterable(hooks)
-            .concatMapCompletable(hook -> {
+            .concatMapCompletable(hook ->
                 switch (phase) {
-                    case PRE:
-                        return hook.pre(componentId, ctx, executionPhase);
-                    case POST:
-                        return hook.post(componentId, ctx, executionPhase);
-                    case INTERRUPT:
-                        return hook.interrupt(componentId, ctx, executionPhase);
-                    case INTERRUPT_WITH:
-                        return hook.interruptWith(componentId, ctx, executionPhase, executionFailure);
-                    case ERROR:
-                        return hook.error(componentId, ctx, executionPhase, throwable);
-                    default:
-                        return Completable.error(new RuntimeException(String.format("Unknown hook phase %s while executing hook", phase)));
+                    case PRE -> hook.pre(componentId, ctx, executionPhase);
+                    case POST -> hook.post(componentId, ctx, executionPhase);
+                    case INTERRUPT -> hook.interrupt(componentId, ctx, executionPhase);
+                    case INTERRUPT_WITH -> hook.interruptWith(componentId, ctx, executionPhase, executionFailure);
+                    case ERROR -> hook.error(componentId, ctx, executionPhase, throwable);
+                    case CANCEL -> {
+                        hook.cancel(componentId, ctx, executionPhase);
+                        yield Completable.complete();
+                    }
                 }
-            })
-            .doOnError(error -> log.warn("Unable to execute '{}' hook on flow '{}'", phase.name(), componentId, error))
+            )
+            .doOnError(error -> log.warn("Unable to execute '{}' hook on '{}'", phase.name(), componentId, error))
             .onErrorComplete();
     }
 }

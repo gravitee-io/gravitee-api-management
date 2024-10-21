@@ -84,7 +84,8 @@ public class InvokerAdapter implements Invoker, io.gravitee.gateway.api.Invoker 
                     nextEmitter.tryOnError(new Exception("An error occurred while trying to execute invoker " + id, t));
                 }
             })
-            .doFinally(adaptedCtx::restore)
+            .doOnTerminate(adaptedCtx::restore)
+            .doOnDispose(adaptedCtx::restore)
             .onErrorResumeNext(throwable -> {
                 // In case of any error, make sure to reset the response content.
                 ctx.response().chunks(Flowable.empty());
