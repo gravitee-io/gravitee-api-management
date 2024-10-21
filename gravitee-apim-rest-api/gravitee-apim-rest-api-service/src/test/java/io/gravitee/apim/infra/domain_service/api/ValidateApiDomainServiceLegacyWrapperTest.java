@@ -33,7 +33,6 @@ import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
@@ -130,7 +129,9 @@ class ValidateApiDomainServiceLegacyWrapperTest {
             .when(apiValidationService)
             .validateDynamicProperties(any());
 
-        doAnswer(invocation -> invocation.<List<Flow>>getArgument(1)).when(flowValidationDomainService).validateAndSanitize(any(), any());
+        doAnswer(invocation -> invocation.<List<Flow>>getArgument(1))
+            .when(flowValidationDomainService)
+            .validateAndSanitizeHttpV4(any(), any());
 
         var result = service.validateAndSanitizeForCreation(api, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
 

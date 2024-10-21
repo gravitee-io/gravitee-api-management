@@ -38,6 +38,7 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.io.IOException;
 import java.util.List;
@@ -72,13 +73,13 @@ public class FlowValidationDomainServiceTest {
     }
 
     @Nested
-    class ValidateAndSanitize {
+    class ValidateAndSanitizeHttpV4 {
 
         @Test
         void should_accept_empty_flows() {
             Flow flow = new Flow();
 
-            var result = service.validateAndSanitize(ApiType.PROXY, List.of(flow));
+            var result = service.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(flow));
 
             assertThat(result).hasSize(1).containsExactly(flow);
         }
@@ -90,7 +91,7 @@ public class FlowValidationDomainServiceTest {
                 .selectors(List.of(HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).build()))
                 .build();
 
-            var result = service.validateAndSanitize(ApiType.PROXY, List.of(flow));
+            var result = service.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(flow));
 
             assertThat(result).hasSize(1).containsExactly(flow);
         }
@@ -99,7 +100,7 @@ public class FlowValidationDomainServiceTest {
         public void should_accept_flow_with_only_steps() {
             var flow = Flow.builder().request(List.of(Step.builder().policy("policy").configuration("configuration").build())).build();
 
-            var result = service.validateAndSanitize(ApiType.PROXY, List.of(flow));
+            var result = service.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(flow));
 
             assertThat(result).hasSize(1).containsExactly(flow);
         }
@@ -112,7 +113,7 @@ public class FlowValidationDomainServiceTest {
                 .request(List.of(Step.builder().policy("policy").configuration("configuration").build()))
                 .build();
 
-            var flows = service.validateAndSanitize(ApiType.PROXY, List.of(flow));
+            var flows = service.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(flow));
 
             assertThat(flows).hasSize(1).containsExactly(flow);
         }
@@ -121,7 +122,7 @@ public class FlowValidationDomainServiceTest {
         public void should_throw_exception_with_duplicated_selectors() {
             var flow = Flow.builder().name("bad_flow").selectors(List.of(new HttpSelector(), new HttpSelector())).build();
 
-            var throwable = catchThrowable(() -> service.validateAndSanitize(ApiType.PROXY, List.of(flow)));
+            var throwable = catchThrowable(() -> service.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(flow)));
 
             assertThat(throwable)
                 .isInstanceOf(InvalidFlowException.class)
@@ -142,7 +143,7 @@ public class FlowValidationDomainServiceTest {
                 .request(List.of(Step.builder().policy("my-policy").configuration("incorrect-configuration").build()))
                 .build();
 
-            var throwable = catchThrowable(() -> service.validateAndSanitize(ApiType.PROXY, List.of(flow)));
+            var throwable = catchThrowable(() -> service.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(flow)));
 
             assertThat(throwable).isInstanceOf(InvalidDataException.class);
         }
@@ -151,7 +152,7 @@ public class FlowValidationDomainServiceTest {
         public void should_throw_exception_with_invalid_selector_for_proxy_api() {
             var flow = Flow.builder().name("bad_flow").selectors(List.of(new ChannelSelector())).build();
 
-            var throwable = catchThrowable(() -> service.validateAndSanitize(ApiType.PROXY, List.of(flow)));
+            var throwable = catchThrowable(() -> service.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(flow)));
 
             assertThat(throwable)
                 .isInstanceOf(InvalidFlowException.class)
@@ -165,7 +166,7 @@ public class FlowValidationDomainServiceTest {
         public void should_throw_exception_with_invalid_selector_for_message_api() {
             var flow = Flow.builder().name("bad_flow").selectors(List.of(new HttpSelector())).build();
 
-            var throwable = catchThrowable(() -> service.validateAndSanitize(ApiType.MESSAGE, List.of(flow)));
+            var throwable = catchThrowable(() -> service.validateAndSanitizeHttpV4(ApiType.MESSAGE, List.of(flow)));
 
             assertThat(throwable)
                 .isInstanceOf(InvalidFlowException.class)
@@ -183,7 +184,7 @@ public class FlowValidationDomainServiceTest {
                 .selectors(List.of(ChannelSelector.builder().entrypoints(Set.of(SSE_CONNECTOR_ID, "unknown", "unknown2")).build()))
                 .build();
 
-            var throwable = catchThrowable(() -> service.validateAndSanitize(ApiType.MESSAGE, List.of(flow)));
+            var throwable = catchThrowable(() -> service.validateAndSanitizeHttpV4(ApiType.MESSAGE, List.of(flow)));
 
             assertThat(throwable)
                 .isInstanceOf(InvalidFlowException.class)
@@ -191,6 +192,47 @@ public class FlowValidationDomainServiceTest {
                 .extracting(th -> ((InvalidFlowException) th).getParameters())
                 .asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
                 .contains(entry("flowName", "bad_flow"), entry("invalidEntrypoints", "unknown2,unknown"));
+        }
+    }
+
+    @Nested
+    class ValidateAndSanitizeNativeV4 {
+
+        @Test
+        void should_accept_empty_flows() {
+            NativeFlow flow = new NativeFlow();
+
+            var result = service.validateAndSanitizeNativeV4(List.of(flow));
+
+            assertThat(result).hasSize(1).containsExactly(flow);
+        }
+
+        @Test
+        public void should_accept_flow_with_steps() {
+            var flow = NativeFlow
+                .builder()
+                .interact(List.of(Step.builder().policy("policy").configuration("configuration").build()))
+                .build();
+
+            var result = service.validateAndSanitizeNativeV4(List.of(flow));
+
+            assertThat(result).hasSize(1).containsExactly(flow);
+        }
+
+        @Test
+        public void should_throw_exception_with_incorrect_policy_configuration() {
+            when(policyValidationDomainService.validateAndSanitizeConfiguration(eq("my-policy"), eq("incorrect-configuration")))
+                .thenThrow(InvalidDataException.class);
+
+            var flow = NativeFlow
+                .builder()
+                .name("bad_flow")
+                .interact(List.of(Step.builder().policy("my-policy").configuration("incorrect-configuration").build()))
+                .build();
+
+            var throwable = catchThrowable(() -> service.validateAndSanitizeNativeV4(List.of(flow)));
+
+            assertThat(throwable).isInstanceOf(InvalidDataException.class);
         }
     }
 

@@ -34,6 +34,7 @@ import io.gravitee.apim.core.notification.model.config.NotificationConfig;
 import io.gravitee.apim.core.parameters.model.ParameterContext;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.workflow.crud_service.WorkflowCrudService;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -154,9 +155,12 @@ public class CreateApiDomainService {
         }
     }
 
-    private List<Flow> saveApiFlows(Api api) {
+    private List<? extends AbstractFlow> saveApiFlows(Api api) {
         return switch (api.getDefinitionVersion()) {
-            case V4 -> flowCrudService.saveApiFlows(api.getId(), api.getApiDefinitionV4().getFlows());
+            case V4 -> switch (api.getType()) {
+                case PROXY, MESSAGE -> flowCrudService.saveApiFlows(api.getId(), api.getApiDefinitionV4().getFlows());
+                case NATIVE -> flowCrudService.saveNativeApiFlows(api.getId(), api.getNativeApiDefinition().getFlows());
+            };
             case V1, V2, FEDERATED -> null;
         };
     }

@@ -109,7 +109,7 @@ public class UpdatePlanDomainService {
         planValidatorDomainService.validatePlanTagsAgainstApiTags(planToUpdate.getPlanDefinitionV4().getTags(), api.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
 
-        var sanitizedFlows = flowValidationDomainService.validateAndSanitize(api.getType(), flows);
+        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows);
         flowValidationDomainService.validatePathParameters(
             api.getType(),
             api.getApiDefinitionV4().getFlows().stream(),

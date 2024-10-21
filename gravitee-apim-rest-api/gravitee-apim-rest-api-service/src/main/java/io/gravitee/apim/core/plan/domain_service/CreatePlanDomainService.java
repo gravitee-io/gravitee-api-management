@@ -85,7 +85,7 @@ public class CreatePlanDomainService {
         planValidatorDomainService.validatePlanTagsAgainstApiTags(plan.getPlanDefinitionHttpV4().getTags(), api.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(plan);
 
-        var sanitizedFlows = flowValidationDomainService.validateAndSanitize(api.getType(), flows);
+        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows);
         flowValidationDomainService.validatePathParameters(
             api.getType(),
             api.getApiDefinitionV4().getFlows() != null ? api.getApiDefinitionV4().getFlows().stream() : Stream.empty(),
