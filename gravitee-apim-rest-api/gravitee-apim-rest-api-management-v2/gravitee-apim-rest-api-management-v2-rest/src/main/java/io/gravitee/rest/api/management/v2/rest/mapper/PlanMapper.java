@@ -108,7 +108,7 @@ public interface PlanMapper {
 
     @Mapping(target = "validation", defaultValue = "MANUAL")
     @Mapping(target = "definitionVersion", constant = "V4")
-    @Mapping(target = "planDefinitionV4", source = "source", qualifiedByName = "mapToPlanDefinitionV4")
+    @Mapping(target = "planDefinitionHttpV4", source = "source", qualifiedByName = "mapToPlanDefinitionV4")
     io.gravitee.apim.core.plan.model.Plan map(CreatePlanV4 source);
 
     @Mapping(target = "security", source = "security.type", qualifiedByName = "toV2PlanSecurityType")
@@ -122,7 +122,7 @@ public interface PlanMapper {
 
     @Mapping(target = "definitionVersion", constant = "V4")
     @Mapping(target = "type", constant = "API")
-    @Mapping(target = "planDefinitionV4", source = "plan", qualifiedByName = "mapPlanV4ToPlanDefinitionV4")
+    @Mapping(target = "planDefinitionHttpV4", source = "plan", qualifiedByName = "mapPlanV4ToPlanDefinitionV4")
     PlanWithFlows toPlanWithFlows(PlanV4 plan);
 
     @Named("toPlansWithFlows")

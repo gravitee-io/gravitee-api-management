@@ -160,7 +160,12 @@ public class Api {
 
     public Set<String> getTags() {
         return switch (definitionVersion) {
-            case V4 -> apiDefinitionV4.getTags();
+            case V4 -> {
+                if (type == ApiType.NATIVE) {
+                    yield nativeApiDefinition.getTags();
+                }
+                yield apiDefinitionV4.getTags();
+            }
             case V1, V2 -> apiDefinition.getTags();
             case FEDERATED -> Collections.emptySet();
         };
@@ -172,6 +177,9 @@ public class Api {
         }
         if (apiDefinition != null) {
             apiDefinition.setTags(tags);
+        }
+        if (nativeApiDefinition != null) {
+            nativeApiDefinition.setTags(tags);
         }
         return this;
     }
@@ -211,11 +219,11 @@ public class Api {
     public Api setPlans(List<Plan> plans) {
         switch (definitionVersion) {
             case V4 -> {
-                // FIXME: Kafka Gateway - Support Native APIs
                 if (apiDefinitionV4.getType() == ApiType.NATIVE) {
-                    throw new IllegalStateException("NATIVE API not supported");
+                    nativeApiDefinition.setPlans(plans.stream().map(Plan::getPlanDefinitionNativeV4).toList());
                 }
-                apiDefinitionV4.setPlans(plans.stream().map(Plan::getPlanDefinitionV4).collect(Collectors.toList()));
+
+                apiDefinitionV4.setPlans(plans.stream().map(Plan::getPlanDefinitionHttpV4).toList());
             }
             case V1, V2 -> apiDefinition.setPlans(plans.stream().map(Plan::getPlanDefinitionV2).collect(Collectors.toList()));
             case FEDERATED -> {
@@ -291,7 +299,6 @@ public class Api {
             return self();
         }
 
-        // FIXME: Kafka Gateway - handle Native API definition in ApiAdapter
         public B apiDefinitionV4(io.gravitee.definition.model.v4.Api apiDefinitionV4) {
             this.apiDefinitionV4 = apiDefinitionV4;
             if (apiDefinitionV4 != null) {

@@ -171,7 +171,7 @@ class PlanAdapterTest {
                 .characteristics(List.of("characteristic1", "characteristic2"))
                 .commentMessage("Comment message")
                 .generalConditions("General conditions")
-                .planDefinitionV4(
+                .planDefinitionHttpV4(
                     io.gravitee.definition.model.v4.plan.Plan
                         .builder()
                         .security(PlanSecurity.builder().type("key-less").configuration("{\"nice\": \"config\"}").build())
@@ -409,7 +409,7 @@ class PlanAdapterTest {
             var plan = PlanFixtures
                 .anApiKeyV4()
                 .toBuilder()
-                .planDefinitionV4(
+                .planDefinitionHttpV4(
                     fixtures.definition.PlanFixtures
                         .anApiKeyV4()
                         .toBuilder()
@@ -427,7 +427,7 @@ class PlanAdapterTest {
             assertThat(planEntity.getPlanStatus().name()).isEqualTo(plan.getPlanStatus().name());
             assertThat(planEntity.getApiId()).isEqualTo(plan.getApiId());
             assertThat(planEntity.getGeneralConditions()).isEqualTo(plan.getGeneralConditions());
-            assertThat(planEntity.getTags()).isEqualTo(plan.getPlanDefinitionV4().getTags());
+            assertThat(planEntity.getTags()).isEqualTo(plan.getPlanDefinitionHttpV4().getTags());
             assertThat(planEntity.getSelectionRule()).isEqualTo(plan.getPlanDefinitionV4().getSelectionRule());
             assertThat(planEntity.getPlanSecurity().getType()).isEqualTo(PlanSecurityType.API_KEY.getLabel());
             assertThat(planEntity.getPlanSecurity().getConfiguration())
@@ -462,7 +462,7 @@ class PlanAdapterTest {
             var plan = PlanFixtures
                 .anApiKeyV4()
                 .toBuilder()
-                .planDefinitionV4(
+                .planDefinitionHttpV4(
                     fixtures.definition.PlanFixtures
                         .anApiKeyV4()
                         .toBuilder()

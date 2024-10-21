@@ -109,10 +109,10 @@ class ClosePlanDomainServiceTest {
                 PlanFixtures
                     .anApiKeyV4()
                     .toBuilder()
-                    .planDefinitionV4(
+                    .planDefinitionHttpV4(
                         PlanFixtures
                             .anApiKeyV4()
-                            .getPlanDefinitionV4()
+                            .getPlanDefinitionHttpV4()
                             .toBuilder()
                             .status(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED)
                             .build()
@@ -188,10 +188,10 @@ class ClosePlanDomainServiceTest {
             PlanFixtures
                 .anApiKeyV4()
                 .toBuilder()
-                .planDefinitionV4(
+                .planDefinitionHttpV4(
                     PlanFixtures
                         .anApiKeyV4()
-                        .getPlanDefinitionV4()
+                        .getPlanDefinitionHttpV4()
                         .toBuilder()
                         .status(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED)
                         .build()

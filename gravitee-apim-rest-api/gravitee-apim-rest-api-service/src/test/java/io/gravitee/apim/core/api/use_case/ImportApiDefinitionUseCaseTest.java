@@ -41,9 +41,6 @@ import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.documentation.exception.InvalidPageContentException;
-import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
-import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -70,7 +67,6 @@ import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
-import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -348,7 +344,7 @@ class ImportApiDefinitionUseCaseTest {
                 .aPlanWithFlows()
                 .toBuilder()
                 .apiId(API_ID)
-                .planDefinitionV4(PlanWithFlowsFixtures.aPlanWithFlows().getPlanDefinitionV4().toBuilder().tags(TAGS).build())
+                .planDefinitionHttpV4(PlanWithFlowsFixtures.aPlanWithFlows().getPlanDefinitionHttpV4().toBuilder().tags(TAGS).build())
                 .build();
             var importDefinition = anImportDefinition().toBuilder().plans(Set.of(plan)).build();
 

@@ -191,7 +191,7 @@ class CreatePlanDomainServiceTest {
             // Given
             var plan = aPushPlan()
                 .toBuilder()
-                .planDefinitionV4(PlanFixtures.aPushPlan().toBuilder().security(PlanSecurity.builder().build()).build())
+                .planDefinitionHttpV4(PlanFixtures.aPushPlan().toBuilder().security(PlanSecurity.builder().build()).build())
                 .build();
 
             // When
@@ -206,7 +206,7 @@ class CreatePlanDomainServiceTest {
         @Test
         void should_throw_when_security_configuration_is_missing() {
             // Given
-            var plan = aPlanV4().toBuilder().planDefinitionV4(PlanFixtures.anApiKeyV4().toBuilder().security(null).build()).build();
+            var plan = aPlanV4().toBuilder().planDefinitionHttpV4(PlanFixtures.anApiKeyV4().toBuilder().security(null).build()).build();
 
             // When
             var throwable = Assertions.catchThrowable(() -> service.create(plan, List.of(), HTTP_PROXY_API_V4, AUDIT_INFO));
@@ -253,7 +253,7 @@ class CreatePlanDomainServiceTest {
         @MethodSource("plans")
         void should_throw_when_flows_are_invalid(Api api, Plan plan) {
             // Given
-            var invalidFlows = List.of(
+            List<Flow> invalidFlows = List.of(
                 Flow.builder().name("invalid").selectors(List.of(new HttpSelector(), new ChannelSelector())).build()
             );
 
@@ -428,7 +428,7 @@ class CreatePlanDomainServiceTest {
         void should_allow_keyless_plan_creation_to_tcp_api() {
             // Given
             var plan = aKeylessV4().toBuilder().apiId(API_ID).build().setPlanStatus(PlanStatus.PUBLISHED).setPlanTags(Set.of(TAG));
-            var flows = List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build());
+            List<Flow> flows = List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build());
 
             // When
             var result = service.create(plan, flows, TCP_PROXY_API_V4, AUDIT_INFO);

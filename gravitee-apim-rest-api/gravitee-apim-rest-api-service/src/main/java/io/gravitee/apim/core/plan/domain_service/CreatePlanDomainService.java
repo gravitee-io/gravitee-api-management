@@ -82,7 +82,7 @@ public class CreatePlanDomainService {
         }
 
         planValidatorDomainService.validatePlanSecurity(plan, auditInfo.organizationId(), auditInfo.environmentId());
-        planValidatorDomainService.validatePlanTagsAgainstApiTags(plan.getPlanDefinitionV4().getTags(), api.getTags());
+        planValidatorDomainService.validatePlanTagsAgainstApiTags(plan.getPlanDefinitionHttpV4().getTags(), api.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(plan);
 
         var sanitizedFlows = flowValidationDomainService.validateAndSanitize(api.getType(), flows);
@@ -148,7 +148,8 @@ public class CreatePlanDomainService {
             .needRedeployAt(plan.getNeedRedeployAt())
             .validation(plan.getValidation())
             .type(plan.getType())
-            .planDefinitionV4(plan.getPlanDefinitionV4())
+            .planDefinitionHttpV4(plan.getPlanDefinitionHttpV4())
+            .planDefinitionNativeV4(plan.getPlanDefinitionNativeV4())
             .planDefinitionV2(plan.getPlanDefinitionV2())
             .apiId(plan.getApiId())
             .order(plan.getOrder())

@@ -307,9 +307,9 @@ class UpdatePlanDomainServiceTest {
                 .description("updated description")
                 .commentRequired(true)
                 .commentMessage("updated comment")
-                .planDefinitionV4(
+                .planDefinitionHttpV4(
                     plan
-                        .getPlanDefinitionV4()
+                        .getPlanDefinitionHttpV4()
                         .toBuilder()
                         .status(PlanStatus.PUBLISHED)
                         .tags(Set.of("tag1"))
@@ -347,7 +347,7 @@ class UpdatePlanDomainServiceTest {
         void should_throw_when_flows_are_invalid(Api api, Plan plan) {
             // Given
             givenExistingPlan(plan);
-            var invalidFlows = List.of(
+            List<Flow> invalidFlows = List.of(
                 Flow.builder().name("invalid").selectors(List.of(new HttpSelector(), new ChannelSelector())).build()
             );
 
@@ -417,7 +417,7 @@ class UpdatePlanDomainServiceTest {
             // When
             var toUpdate = plan
                 .toBuilder()
-                .planDefinitionV4(plan.getPlanDefinitionV4().toBuilder().selectionRule("updated rule").build())
+                .planDefinitionHttpV4(plan.getPlanDefinitionHttpV4().toBuilder().selectionRule("updated rule").build())
                 .build();
             var result = service.update(toUpdate, flows, null, api, AUDIT_INFO);
 
@@ -511,7 +511,7 @@ class UpdatePlanDomainServiceTest {
                 anApiKeyV4()
                     .toBuilder()
                     .apiId(API_ID)
-                    .planDefinitionV4(
+                    .planDefinitionHttpV4(
                         fixtures.definition.PlanFixtures.anApiKeyV4().toBuilder().tags(Set.of(TAG)).status(PlanStatus.STAGING).build()
                     )
                     .build(),
@@ -522,7 +522,7 @@ class UpdatePlanDomainServiceTest {
                 aPushPlan()
                     .toBuilder()
                     .apiId(API_ID)
-                    .planDefinitionV4(
+                    .planDefinitionHttpV4(
                         fixtures.definition.PlanFixtures.anApiKeyV4().toBuilder().tags(Set.of(TAG)).status(PlanStatus.STAGING).build()
                     )
                     .build(),
