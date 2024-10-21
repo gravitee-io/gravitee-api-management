@@ -15,12 +15,9 @@
  */
 package io.gravitee.rest.api.service.v4.validation;
 
-import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
-import io.gravitee.rest.api.model.api.UpdateApiEntity;
-import io.gravitee.rest.api.service.ConnectorService;
-import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import java.util.List;
 
 /**
@@ -28,5 +25,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface EndpointGroupsValidationService {
-    List<EndpointGroup> validateAndSanitize(ApiType apiType, List<EndpointGroup> endpointGroups);
+    List<EndpointGroup> validateAndSanitizeHttpV4(ApiType apiType, List<EndpointGroup> endpointGroups);
+    List<NativeEndpointGroup> validateAndSanitizeNativeV4(List<NativeEndpointGroup> endpointGroups);
 }
