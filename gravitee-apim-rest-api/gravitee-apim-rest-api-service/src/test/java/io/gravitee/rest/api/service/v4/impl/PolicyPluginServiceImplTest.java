@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Nested;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -133,30 +134,55 @@ public class PolicyPluginServiceImplTest {
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
-        when(mockPluginManifest.properties()).thenReturn(Map.of("proxy", "REQUEST", "message", "PUBLISH"));
+        when(mockPluginManifest.properties())
+            .thenReturn(Map.of("http_proxy", "REQUEST,RESPONSE", "http_message", "PUBLISH", "native_kafka", "PUBLISH, SUBSCRIBE"));
         Set<PolicyPluginEntity> result = cut.findAll();
 
         assertNotNull(result);
         assertEquals(1, result.size());
         PolicyPluginEntity policyPlugin = result.iterator().next();
         assertEquals(PLUGIN_ID, policyPlugin.getId());
-        assertEquals(Set.of(FlowPhase.REQUEST), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY));
+        assertEquals(Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY));
         assertEquals(Set.of(FlowPhase.PUBLISH), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE));
+        assertEquals(Set.of(FlowPhase.PUBLISH, FlowPhase.SUBSCRIBE), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.NATIVE_KAFKA));
     }
 
-    @Test
-    public void should_find_all_with_legacy_phase() {
-        when(mockPlugin.id()).thenReturn(PLUGIN_ID);
-        when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
-        when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
-        when(mockPluginManifest.properties()).thenReturn(Map.of("message", "MESSAGE_REQUEST, MESSAGE_RESPONSE"));
-        Set<PolicyPluginEntity> result = cut.findAll();
+    @Nested
+    public class DeprecatedFlowPhaseProperty {
 
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        PolicyPluginEntity policyPlugin = result.iterator().next();
-        assertEquals(PLUGIN_ID, policyPlugin.getId());
-        assertEquals(Set.of(FlowPhase.PUBLISH, FlowPhase.SUBSCRIBE), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE));
+        @Test
+        public void should_find_all() {
+            when(mockPlugin.id()).thenReturn(PLUGIN_ID);
+            when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
+            when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
+            when(mockPluginManifest.properties()).thenReturn(Map.of("proxy", "REQUEST", "message", "PUBLISH"));
+            Set<PolicyPluginEntity> result = cut.findAll();
+
+            assertNotNull(result);
+            assertEquals(1, result.size());
+            PolicyPluginEntity policyPlugin = result.iterator().next();
+            assertEquals(PLUGIN_ID, policyPlugin.getId());
+            assertEquals(Set.of(FlowPhase.REQUEST), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY));
+            assertEquals(Set.of(FlowPhase.PUBLISH), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE));
+        }
+
+        @Test
+        public void should_find_all_with_legacy_phase() {
+            when(mockPlugin.id()).thenReturn(PLUGIN_ID);
+            when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
+            when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
+            when(mockPluginManifest.properties()).thenReturn(Map.of("message", "MESSAGE_REQUEST, MESSAGE_RESPONSE"));
+            Set<PolicyPluginEntity> result = cut.findAll();
+
+            assertNotNull(result);
+            assertEquals(1, result.size());
+            PolicyPluginEntity policyPlugin = result.iterator().next();
+            assertEquals(PLUGIN_ID, policyPlugin.getId());
+            assertEquals(
+                Set.of(FlowPhase.PUBLISH, FlowPhase.SUBSCRIBE),
+                policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE)
+            );
+        }
     }
 
     @Test
