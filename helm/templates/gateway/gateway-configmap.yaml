@@ -103,6 +103,9 @@ data:
         {{- if $server.websocket }}
         websocket: {{ toYaml $server.websocket | nindent 10 }}
         {{- end }}
+        {{- if $server.haproxy }}
+        haproxy: {{ toYaml $server.haproxy | nindent 10 }}
+        {{- end }}
     {{- end }}
     {{- else }}
     http:
@@ -156,6 +159,9 @@ data:
       {{- end }}
       websocket:
         enabled: {{ .Values.gateway.websocket }}
+      {{- if .Values.gateway.haproxy }}
+      haproxy: {{ toYaml .Values.gateway.haproxy | nindent 8 }}
+      {{- end }}
     {{- end }}
     management:
     {{- if .Values.gateway.dbLess }}
