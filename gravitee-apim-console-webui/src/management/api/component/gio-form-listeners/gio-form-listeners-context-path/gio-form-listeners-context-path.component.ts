@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ElementRef, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, forwardRef, Inject, Input, OnDestroy, OnInit } from "@angular/core";
 import {
   AbstractControl,
   AsyncValidator,
@@ -32,11 +32,11 @@ import { filter, map, observeOn, startWith, take, takeUntil, tap } from 'rxjs/op
 import { FocusMonitor } from '@angular/cdk/a11y';
 import { asyncScheduler, Observable, of, Subject, zip } from 'rxjs';
 
-import { PortalSettingsService } from '../../../../../services-ngx/portal-settings.service';
 import { ApiService } from '../../../../../services-ngx/api.service';
 import { PathV4 } from '../../../../../entities/management-api-v2';
 
 const PATH_PATTERN_REGEX = new RegExp(/^\/[/.a-zA-Z0-9-_]*$/);
+import { Constants } from '../../../../../entities/Constants';
 
 const DEFAULT_LISTENER: PathV4 = {
   path: '/',
@@ -94,7 +94,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
     private readonly fm: FocusMonitor,
     private readonly elRef: ElementRef,
     protected readonly apiService: ApiService,
-    private readonly portalSettingsService: PortalSettingsService,
+    @Inject(Constants) public readonly constants: Constants,
   ) {
     this.mainForm = new FormGroup({
       listeners: this.listenerFormArray,
@@ -102,14 +102,10 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
   }
 
   ngOnInit(): void {
-    this.portalSettingsService
-      .get()
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((settings) => {
-        this.contextPathPrefix = settings.portal.entrypoint.endsWith('/')
-          ? settings.portal.entrypoint.slice(0, -1)
-          : settings.portal.entrypoint;
-      });
+    this.contextPathPrefix = this.constants.env.settings.portal.entrypoint;
+    if (this.contextPathPrefix.endsWith('/')) {
+      this.contextPathPrefix = this.contextPathPrefix.slice(0, -1);
+    }
 
     this.listenerFormArray?.valueChanges
       .pipe(

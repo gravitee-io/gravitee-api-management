@@ -48,17 +48,13 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   let httpTestingController: HttpTestingController;
   let rootLoader: HarnessLoader;
 
-  const createComponent = async (environment: Environment, api: ApiV4, getPortalSettings = true, permissions?: string[]) => {
+  const createComponent = async (environment: Environment, api: ApiV4, permissions?: string[]) => {
     await init(permissions);
     fixture.detectChanges();
 
     expectGetCurrentEnvironment(environment);
     expectGetEntrypoints();
     expectGetApi(api);
-
-    if (getPortalSettings) {
-      expectGetPortalSettings();
-    }
   };
 
   const init = async (permissions: string[] = ['api-definition-u', 'api-definition-r']) => {
@@ -123,7 +119,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     const API = fakeApiV4({ listeners: [{ type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] }] });
 
     beforeEach(async () => {
-      await createComponent(ENV, API, false);
+      await createComponent(ENV, API);
     });
 
     it('should not show context paths', async () => {
@@ -209,7 +205,6 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       const harness = await loader.getHarness(GioFormListenersVirtualHostHarness);
       expect(harness).toBeDefined();
       expect(await harness.getLastListenerRow().then((row) => row.pathInput.getValue())).toEqual('/context-path');
-      expectGetPortalSettings();
     });
   });
 
@@ -275,7 +270,6 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       const harness = await loader.getHarness(GioFormListenersContextPathHarness);
       expect(harness).toBeDefined();
       expect(await harness.getLastListenerRow().then((row) => row.pathInput.getValue())).toEqual('/context-path');
-      expectGetPortalSettings();
     });
   });
 
@@ -554,7 +548,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     beforeEach(async () => {
-      await createComponent(ENV, API, false);
+      await createComponent(ENV, API);
     });
 
     it('should ask for the context path', async () => {
@@ -607,7 +601,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     beforeEach(async () => {
-      await createComponent(ENV, API, undefined, ['api-definition-r']);
+      await createComponent(ENV, API, ['api-definition-r']);
     });
     it('should not show buttons that require permissions', async () => {
       // switch to virtual host mode/context path mode
@@ -647,11 +641,6 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   }
   function expectGetApi(api: Api): void {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(api);
-  }
-
-  function expectGetPortalSettings(): void {
-    const settings: PortalSettings = { portal: { entrypoint: 'localhost' } };
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/settings`, method: 'GET' }).flush(settings);
   }
 
   function expectApiVerify(): void {
