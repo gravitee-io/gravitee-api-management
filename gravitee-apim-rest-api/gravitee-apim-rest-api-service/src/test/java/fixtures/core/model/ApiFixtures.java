@@ -32,6 +32,11 @@ import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
+import io.gravitee.definition.model.v4.nativeapi.NativeEntrypoint;
+import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -280,6 +285,53 @@ public class ApiFixtures {
             .apiDefinition(null)
             .originContext(new OriginContext.Integration("integration-id"))
             .federatedApiDefinition(FederatedApi.builder().id(MY_API).providerId("provider-id").name("My Api").apiVersion("1.0.0").build())
+            .build();
+    }
+
+    public static Api aNativeApi() {
+        return BASE
+            .get()
+            .type(ApiType.NATIVE)
+            .definitionVersion(DefinitionVersion.V4)
+            .nativeApiDefinition(
+                NativeApi
+                    .builder()
+                    .id("my-api")
+                    .name("My message Api")
+                    .type(ApiType.NATIVE)
+                    .tags(Set.of("tag1"))
+                    .listeners(
+                        List.of(
+                            KafkaListener
+                                .builder()
+                                .entrypoints(List.of(NativeEntrypoint.builder().type("native-type").configuration("{}").build()))
+                                .build()
+                        )
+                    )
+                    .endpointGroups(
+                        List.of(
+                            NativeEndpointGroup
+                                .builder()
+                                .name("default-group")
+                                .type("mock")
+                                .sharedConfiguration("{}")
+                                .endpoints(
+                                    List.of(
+                                        NativeEndpoint
+                                            .builder()
+                                            .name("default-endpoint")
+                                            .type("mock")
+                                            .inheritConfiguration(true)
+                                            .configuration("{}")
+                                            .build()
+                                    )
+                                )
+                                .build()
+                        )
+                    )
+                    .flows(List.of())
+                    .build()
+            )
             .build();
     }
 }
