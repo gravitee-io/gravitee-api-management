@@ -1,8 +1,8 @@
 package io.gravitee.gateway.standalone.secrets;
 
-import io.gravitee.definition.model.services.secrets.ApiV4DefinitionBrowser;
+import com.graviteesource.services.runtimesecrets.api.discovery.DefinitionBrowser;
+import com.graviteesource.services.runtimesecrets.discovery.browsers.ApiV4DefinitionBrowser;
 import io.gravitee.definition.model.v4.Api;
-import io.gravitee.node.api.secrets.runtime.discovery.DefinitionBrowser;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
