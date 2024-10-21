@@ -106,8 +106,11 @@ public class SharedPolicyGroupConfiguration {
     }
 
     @Bean
-    public PolicyFactory sharedPolicyGroupPolicyFactory(final PolicyPluginFactory policyPluginFactory) {
-        return new SharedPolicyGroupPolicyFactory(policyPluginFactory, new ExpressionLanguageConditionFilter<>());
+    public PolicyFactory sharedPolicyGroupPolicyFactory(
+        final io.gravitee.node.api.configuration.Configuration configuration,
+        final PolicyPluginFactory policyPluginFactory
+    ) {
+        return new SharedPolicyGroupPolicyFactory(configuration, policyPluginFactory, new ExpressionLanguageConditionFilter<>());
     }
 
     @Bean

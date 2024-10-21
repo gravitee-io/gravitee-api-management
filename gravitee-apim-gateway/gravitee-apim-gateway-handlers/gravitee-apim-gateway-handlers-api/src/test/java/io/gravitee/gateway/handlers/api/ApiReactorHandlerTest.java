@@ -34,6 +34,7 @@ import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.policy.api.PolicyResult;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.rxjava3.core.Observable;
@@ -158,7 +159,7 @@ public class ApiReactorHandlerTest {
     }
 
     private ApiReactorHandler createHandler(long pendingRequestsTimeout) {
-        ApiReactorHandler apiReactorHandler = new ApiReactorHandler(configuration, api, accessPointManager, eventManager);
+        ApiReactorHandler apiReactorHandler = new ApiReactorHandler(configuration, api, accessPointManager, eventManager, new NoOpTracer());
         apiReactorHandler.setNode(node);
         apiReactorHandler.setPendingRequestsTimeout(pendingRequestsTimeout);
         apiReactorHandler.setGroupLifecycleManager(groupLifecycleManager);

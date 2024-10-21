@@ -17,6 +17,8 @@ package io.gravitee.gateway.reactive.core.v4.analytics;
 
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
+import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
+import io.gravitee.node.api.configuration.Configuration;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,11 +32,18 @@ public class AnalyticsContext {
 
     protected Analytics analytics;
     protected LoggingContext loggingContext;
+    protected TracingContext tracingContext;
 
-    public AnalyticsContext(final Analytics analytics, final String loggingMaxsize, final String loggingExcludedResponseType) {
+    public AnalyticsContext(
+        final Configuration configuration,
+        final Analytics analytics,
+        final String loggingMaxsize,
+        final String loggingExcludedResponseType
+    ) {
         this.analytics = analytics;
         if (isEnabled()) {
             initLoggingContext(loggingMaxsize, loggingExcludedResponseType);
+            initTracingContext(configuration);
         }
     }
 
@@ -46,8 +55,18 @@ public class AnalyticsContext {
         }
     }
 
+    private void initTracingContext(final Configuration configuration) {
+        if (AnalyticsUtils.isTracingEnabled(configuration, analytics)) {
+            this.tracingContext = tracingContext(analytics.getTracing());
+        }
+    }
+
     protected LoggingContext loggingContext(Logging logging) {
         return new LoggingContext(logging);
+    }
+
+    protected TracingContext tracingContext(Tracing tracing) {
+        return new TracingContext(tracing);
     }
 
     public boolean isEnabled() {
@@ -56,5 +75,9 @@ public class AnalyticsContext {
 
     public boolean isLoggingEnabled() {
         return this.loggingContext != null;
+    }
+
+    public boolean isTracingEnabled() {
+        return this.tracingContext != null;
     }
 }

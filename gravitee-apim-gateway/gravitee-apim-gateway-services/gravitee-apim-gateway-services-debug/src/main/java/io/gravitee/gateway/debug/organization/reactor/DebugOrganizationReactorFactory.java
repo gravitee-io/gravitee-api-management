@@ -18,6 +18,7 @@ package io.gravitee.gateway.debug.organization.reactor;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
+import io.gravitee.gateway.reactive.core.tracing.TracingUtils;
 import io.gravitee.gateway.reactive.debug.policy.DebugPolicyChainFactory;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyManager;
 import io.gravitee.gateway.reactive.platform.organization.reactor.DefaultOrganizationReactorFactory;
@@ -50,6 +51,10 @@ public class DebugOrganizationReactorFactory extends DefaultOrganizationReactorF
         final ReactableOrganization reactableOrganization,
         final OrganizationPolicyManager organizationPolicyManager
     ) {
-        return new DebugPolicyChainFactory("platform-" + reactableOrganization.getId(), organizationPolicyManager, configuration);
+        return new DebugPolicyChainFactory(
+            "platform-" + reactableOrganization.getId(),
+            organizationPolicyManager,
+            TracingUtils.isTracingEnabled(configuration)
+        );
     }
 }

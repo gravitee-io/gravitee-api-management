@@ -22,8 +22,10 @@ import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.api.stream.WriteStream;
 import io.gravitee.gateway.policy.Policy;
-import io.gravitee.tracing.api.Span;
-import io.gravitee.tracing.api.Tracer;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
+import io.gravitee.node.api.opentelemetry.Span;
+import io.gravitee.node.api.opentelemetry.internal.InternalRequest;
+import java.util.Map;
 
 /**
  * A traced {@link ReadWriteStream} used to trace beginning and ending of the policy execution.
@@ -46,7 +48,7 @@ public class TracingReadWriteStream implements ReadWriteStream<Buffer> {
 
     @Override
     public ReadStream<Buffer> bodyHandler(Handler<Buffer> bodyHandler) {
-        span = tracer.span(this.policy.id()).withAttribute(TracingPolicy.SPAN_ATTRIBUTE, this.policy.id());
+        span = tracer.startSpanFrom(new InternalRequest(this.policy.id(), Map.of(TracingPolicy.SPAN_ATTRIBUTE, this.policy.id())));
         stream.bodyHandler(bodyHandler);
 
         return this;
@@ -80,13 +82,13 @@ public class TracingReadWriteStream implements ReadWriteStream<Buffer> {
     @Override
     public void end() {
         stream.end();
-        span.end();
+        tracer.end(span);
     }
 
     @Override
     public void end(Buffer chunk) {
         stream.end(chunk);
-        span.end();
+        tracer.end(span);
     }
 
     @Override

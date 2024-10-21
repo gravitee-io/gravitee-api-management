@@ -19,7 +19,7 @@ import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.core.tracing.AbstractTracingHook;
-import io.gravitee.tracing.api.Span;
+import java.util.Map;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -27,10 +27,10 @@ import io.gravitee.tracing.api.Span;
  */
 public abstract class AbstractTracingPolicyHook extends AbstractTracingHook {
 
-    private static final String SPAN_POLICY_ATTR = "policy";
+    public static final String SPAN_POLICY_ATTR = "policy";
 
     @Override
-    protected String getSpanName(final String id, final ExecutionPhase executionPhase) {
+    protected String spanName(final String id, final ExecutionPhase executionPhase) {
         StringBuilder spanNameBuilder = new StringBuilder();
         if (executionPhase != null) {
             spanNameBuilder.append(executionPhase.name()).append(" ");
@@ -43,7 +43,9 @@ public abstract class AbstractTracingPolicyHook extends AbstractTracingHook {
     }
 
     @Override
-    protected void withAttributes(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase, final Span span) {
-        span.withAttribute(SPAN_POLICY_ATTR, id);
+    protected Map<String, String> spanAttributes(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
+        Map<String, String> spanAttributes = super.spanAttributes(id, ctx, executionPhase);
+        spanAttributes.put(SPAN_POLICY_ATTR, id);
+        return spanAttributes;
     }
 }

@@ -25,7 +25,7 @@ import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.el.EvaluableRequest;
 import io.gravitee.gateway.api.el.EvaluableResponse;
 import io.gravitee.gateway.core.component.ComponentProvider;
-import io.gravitee.tracing.api.Tracer;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Map;

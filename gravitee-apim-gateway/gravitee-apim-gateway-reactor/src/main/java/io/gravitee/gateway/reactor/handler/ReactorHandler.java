@@ -18,6 +18,8 @@ package io.gravitee.gateway.reactor.handler;
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.node.api.opentelemetry.Tracer;
+import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import java.util.List;
 
 /**
@@ -31,6 +33,10 @@ public interface ReactorHandler extends LifecycleComponent<ReactorHandler> {
      * @return
      */
     List<Acceptor<?>> acceptors();
+
+    default Tracer tracer() {
+        return new NoOpTracer();
+    }
 
     void handle(ExecutionContext context, Handler<ExecutionContext> endHandler);
 }

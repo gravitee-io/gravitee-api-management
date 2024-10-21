@@ -60,7 +60,7 @@ public class ApiProcessorChainFactory {
     private final boolean overrideXForwardedPrefix;
     private final String clientIdentifierHeader;
     private final Node node;
-    private final Configuration configuration;
+    protected final Configuration configuration;
     protected final ReporterService reporterService;
     private final List<ProcessorHook> processorHooks = new ArrayList<>();
 

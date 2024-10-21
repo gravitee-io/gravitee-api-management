@@ -26,6 +26,7 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.context.V3ExecutionContextFactory;
 import io.gravitee.gateway.reactor.handler.http.ContextualizedHttpServerRequest;
+import io.gravitee.node.api.opentelemetry.Tracer;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,10 +42,12 @@ public abstract class AbstractReactorHandler<T extends Reactable>
     public static final String ATTR_ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
     protected final T reactable;
+    private final Tracer tracer;
     private V3ExecutionContextFactory executionContextFactory;
 
-    protected AbstractReactorHandler(T reactable) {
+    protected AbstractReactorHandler(T reactable, final Tracer tracer) {
         this.reactable = reactable;
+        this.tracer = tracer;
     }
 
     @Override
@@ -55,6 +58,11 @@ public abstract class AbstractReactorHandler<T extends Reactable>
     @Override
     protected void doStop() throws Exception {
         // Nothing to do there
+    }
+
+    @Override
+    public Tracer tracer() {
+        return tracer;
     }
 
     @Override

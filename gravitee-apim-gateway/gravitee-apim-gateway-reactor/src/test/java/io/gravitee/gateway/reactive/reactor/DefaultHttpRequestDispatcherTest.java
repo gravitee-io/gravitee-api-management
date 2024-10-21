@@ -37,6 +37,9 @@ import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.node.api.Node;
+import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
+import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.disposables.Disposable;
@@ -74,6 +77,9 @@ class DefaultHttpRequestDispatcherTest {
 
     @Spy
     private final Vertx vertx = Vertx.vertx();
+
+    @Mock
+    private Node node;
 
     @Mock
     private GatewayConfiguration gatewayConfiguration;
@@ -122,6 +128,9 @@ class DefaultHttpRequestDispatcherTest {
 
     @Mock
     private RequestTimeoutConfiguration requestTimeoutConfiguration;
+
+    @Mock
+    private OpenTelemetryFactory openTelemetryFactory;
 
     @Mock
     private RequestClientAuthConfiguration requestClientAuthConfiguration;
@@ -173,6 +182,7 @@ class DefaultHttpRequestDispatcherTest {
                 platformProcessorChainFactory,
                 notFoundProcessorChainFactory,
                 false,
+                new NoOpTracer(),
                 requestTimeoutConfiguration,
                 requestClientAuthConfiguration,
                 vertx

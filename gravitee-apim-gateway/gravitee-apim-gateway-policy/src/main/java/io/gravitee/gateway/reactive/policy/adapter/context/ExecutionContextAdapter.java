@@ -29,7 +29,7 @@ import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
-import io.gravitee.tracing.api.Tracer;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Map;
@@ -189,7 +189,7 @@ public class ExecutionContextAdapter implements io.gravitee.gateway.api.Executio
 
     @Override
     public Tracer getTracer() {
-        return ctx.getComponent(Tracer.class);
+        return ctx.getTracer();
     }
 
     /**

@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>22.2.0</version>
+        <version>22.2.1</version>
     </parent>
 
     <groupId>io.gravitee.apim</groupId>
@@ -38,7 +38,7 @@
         <!-- Version properties -->
         <revision>4.6.0</revision>
         <sha1/>
-        <changelist>-SNAPSHOT</changelist>
+        <changelist>-archi-401-opentelemetry-SNAPSHOT</changelist>
 
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin2
              in gravitee-apim-gateway-tests-sdk and gravitee-apim-integration-tests
@@ -48,7 +48,7 @@
         <grpc-java.version>1.50.2</grpc-java.version>
 
         <!-- Gravitee dependencies version -->
-        <gravitee-bom.version>8.1.0</gravitee-bom.version>
+        <gravitee-bom.version>8.1.16</gravitee-bom.version>
         <gravitee-alert-api.version>2.0.0</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>3.3.0</gravitee-cockpit-api.version>
         <gravitee-cloud-initializer.version>2.0.2</gravitee-cloud-initializer.version>
@@ -58,11 +58,11 @@
         <gravitee-exchange.version>1.8.2</gravitee-exchange.version>
         <gravitee-expression-language.version>3.2.1</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>2.1.0</gravitee-fetcher-api.version>
-        <gravitee-gateway-api.version>3.9.0-alpha.5</gravitee-gateway-api.version>
+        <gravitee-gateway-api.version>3.9.0-archi-401-opentelemetry-SNAPSHOT</gravitee-gateway-api.version>
         <gravitee-integration-api.version>4.1.0</gravitee-integration-api.version>
         <gravitee-json-validation.version>2.0.1</gravitee-json-validation.version>
         <gravitee-kubernetes.version>3.4.1</gravitee-kubernetes.version>
-        <gravitee-node.version>6.5.0</gravitee-node.version>
+        <gravitee-node.version>6.5.0-archi-401-opentelemetry-SNAPSHOT</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
         <gravitee-platform-repository-api.version>1.4.0</gravitee-platform-repository-api.version>
         <gravitee-plugin.version>4.2.1</gravitee-plugin.version>
@@ -281,7 +281,7 @@
         <gravitee-endpoint-azure-service-bus.version>0.1.0</gravitee-endpoint-azure-service-bus.version>
         <gravitee-policy-graphql-rate-limit.version>1.0.1</gravitee-policy-graphql-rate-limit.version>
         <gravitee-resource-schema-registry-confluent.version>3.1.0</gravitee-resource-schema-registry-confluent.version>
-        <gravitee-reactor-message.version>5.0.0-alpha.1</gravitee-reactor-message.version>
+        <gravitee-reactor-message.version>5.0.0-archi-401-opentelemetry-SNAPSHOT</gravitee-reactor-message.version>
         <gravitee-reactor-native-kafka.version>1.0.0-alpha.1</gravitee-reactor-native-kafka.version>
         <gravitee-apim-repository-bridge.version>5.1.2</gravitee-apim-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>1.0.0</gravitee-secretprovider-hc-vault.version>

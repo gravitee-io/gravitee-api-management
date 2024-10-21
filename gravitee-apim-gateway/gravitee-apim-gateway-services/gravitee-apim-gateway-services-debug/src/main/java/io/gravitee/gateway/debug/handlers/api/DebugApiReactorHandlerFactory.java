@@ -37,6 +37,7 @@ import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.PolicyManager;
+import io.gravitee.gateway.reactive.core.tracing.TracingUtils;
 import io.gravitee.gateway.reactive.debug.handlers.api.DebugSyncApiReactor;
 import io.gravitee.gateway.reactive.debug.policy.DebugPolicyChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.SyncApiReactor;
@@ -53,6 +54,8 @@ import io.gravitee.gateway.security.core.AuthenticationHandlerSelector;
 import io.gravitee.gateway.security.core.SecurityPolicyResolver;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
+import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import java.util.List;
 import org.springframework.context.ApplicationContext;
 
@@ -90,7 +93,9 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
             flowResolverFactory,
             requestTimeoutConfiguration,
             accessPointManager,
-            eventManager
+            eventManager,
+            null,
+            null
         );
     }
 
@@ -101,7 +106,7 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
         AccessPointManager accessPointManager,
         EventManager eventManager
     ) {
-        return new DebugApiReactorHandler(configuration, api, accessPointManager, eventManager);
+        return new DebugApiReactorHandler(configuration, api, accessPointManager, eventManager, new NoOpTracer());
     }
 
     @Override
@@ -144,7 +149,7 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
         io.gravitee.gateway.reactive.policy.PolicyManager policyManager,
         Configuration configuration
     ) {
-        return new DebugPolicyChainFactory(api.getId(), policyManager, configuration);
+        return new DebugPolicyChainFactory(api.getId(), policyManager, TracingUtils.isTracingEnabled(configuration));
     }
 
     @Override
@@ -178,7 +183,8 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
             node,
             requestTimeoutConfiguration,
             accessPointManager,
-            eventManager
+            eventManager,
+            new NoOpTracer()
         );
     }
 }

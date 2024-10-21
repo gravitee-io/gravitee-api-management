@@ -42,6 +42,7 @@ import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.api.opentelemetry.Tracer;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -88,9 +89,10 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
         Configuration configuration,
         final Api api,
         final AccessPointManager accessPointManager,
-        final EventManager eventManager
+        final EventManager eventManager,
+        final Tracer tracer
     ) {
-        super(api);
+        super(api, tracer);
         this.configuration = configuration;
         this.accessPointManager = accessPointManager;
         this.eventManager = eventManager;

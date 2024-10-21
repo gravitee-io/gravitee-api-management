@@ -25,8 +25,8 @@ import io.gravitee.node.api.configuration.Configuration;
  */
 public class DebugPolicyChainFactory extends HttpPolicyChainFactory {
 
-    public DebugPolicyChainFactory(final String id, final PolicyManager policyManager, final Configuration configuration) {
-        super(id, policyManager, configuration);
+    public DebugPolicyChainFactory(final String id, final PolicyManager policyManager, final boolean tracing) {
+        super(id, policyManager, tracing);
         policyHooks.add(new DebugPolicyHook());
     }
 }

@@ -30,6 +30,9 @@ import io.gravitee.gateway.reactive.reactor.handler.HttpAcceptorResolver;
 import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
+import io.gravitee.node.api.Node;
+import io.gravitee.node.api.opentelemetry.Tracer;
+import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.vertx.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 
@@ -49,6 +52,7 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
         DebugPlatformProcessorChainFactory platformProcessorChainFactory,
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
         boolean tracingEnabled,
+        Tracer tracer,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         RequestClientAuthConfiguration requestClientAuthConfiguration,
         Vertx vertx
@@ -63,6 +67,7 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
             platformProcessorChainFactory,
             notFoundProcessorChainFactory,
             tracingEnabled,
+            tracer,
             requestTimeoutConfiguration,
             requestClientAuthConfiguration,
             vertx

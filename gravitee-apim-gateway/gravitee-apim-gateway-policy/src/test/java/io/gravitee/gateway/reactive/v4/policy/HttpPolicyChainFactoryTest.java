@@ -60,7 +60,7 @@ class HttpPolicyChainFactoryTest {
 
     @BeforeEach
     public void init() {
-        cut = new HttpPolicyChainFactory("unit-test", policyManager, new SpringEnvironmentConfiguration(new StandardEnvironment()));
+        cut = new HttpPolicyChainFactory("unit-test", policyManager, false);
     }
 
     @Test

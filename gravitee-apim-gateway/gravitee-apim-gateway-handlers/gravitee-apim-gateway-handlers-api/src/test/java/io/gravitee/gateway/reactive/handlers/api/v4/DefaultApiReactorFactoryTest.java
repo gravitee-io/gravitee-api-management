@@ -53,6 +53,7 @@ import io.gravitee.gateway.resource.internal.v4.DefaultResourceManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.container.spring.SpringEnvironmentConfiguration;
+import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
@@ -138,6 +139,9 @@ public class DefaultApiReactorFactoryTest {
     @Mock
     private ApiServicePluginManager apiServicePluginManager;
 
+    @Mock
+    private OpenTelemetryFactory openTelemetryFactory;
+
     @BeforeEach
     public void init() {
         lenient().when(applicationContext.getBeanFactory()).thenReturn(applicationContextListable);
@@ -157,7 +161,9 @@ public class DefaultApiReactorFactoryTest {
                 requestTimeoutConfiguration,
                 reporterService,
                 accessPointManager,
-                eventManager
+                eventManager,
+                openTelemetryFactory,
+                List.of()
             );
     }
 

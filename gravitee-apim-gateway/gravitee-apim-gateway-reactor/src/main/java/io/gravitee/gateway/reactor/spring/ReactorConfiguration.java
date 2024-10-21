@@ -53,6 +53,8 @@ import io.gravitee.gateway.reactor.processor.transaction.TraceContextProcessorFa
 import io.gravitee.gateway.reactor.processor.transaction.TransactionRequestProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.opentelemetry.Tracer;
+import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import io.vertx.core.Vertx;
 import java.util.List;
@@ -156,7 +158,8 @@ public class ReactorConfiguration {
         @Value("${services.tracing.enabled:false}") boolean tracingEnabled,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         RequestClientAuthConfiguration requestClientAuthConfiguration,
-        Vertx vertx
+        Vertx vertx,
+        Tracer tracer
     ) {
         return new DefaultHttpRequestDispatcher(
             gatewayConfiguration,
@@ -168,6 +171,7 @@ public class ReactorConfiguration {
             platformProcessorChainFactory,
             notFoundProcessorChainFactory,
             tracingEnabled,
+            tracer,
             requestTimeoutConfiguration,
             requestClientAuthConfiguration,
             vertx
