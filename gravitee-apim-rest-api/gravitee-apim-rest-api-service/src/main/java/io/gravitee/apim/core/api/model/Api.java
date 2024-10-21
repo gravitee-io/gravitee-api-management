@@ -173,7 +173,7 @@ public class Api {
         };
     }
 
-    public Api setTag(Set<String> tags) {
+    public Api setTags(Set<String> tags) {
         if (apiDefinitionV4 != null) {
             apiDefinitionV4.setTags(tags);
         }
@@ -288,7 +288,7 @@ public class Api {
                     .build()
             )
             .build()
-            .setTag(source.getTags());
+            .setTags(source.getTags());
     }
 
     public abstract static class ApiBuilder<C extends Api, B extends ApiBuilder<C, B>> {
@@ -313,6 +313,14 @@ public class Api {
             this.federatedApiDefinition = federatedApiDefinition;
             if (federatedApiDefinition != null) {
                 this.definitionVersion = federatedApiDefinition.getDefinitionVersion();
+            }
+            return self();
+        }
+
+        public B nativeApiDefinition(io.gravitee.definition.model.v4.nativeapi.NativeApi nativeApiDefinition) {
+            this.nativeApiDefinition = nativeApiDefinition;
+            if (nativeApiDefinition != null) {
+                this.definitionVersion = nativeApiDefinition.getDefinitionVersion();
             }
             return self();
         }
