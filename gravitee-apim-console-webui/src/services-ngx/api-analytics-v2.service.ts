@@ -22,15 +22,13 @@ import { AnalyticsRequestsCount } from '../entities/management-api-v2/analytics/
 import { AnalyticsAverageConnectionDuration } from '../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
 import { AnalyticsAverageMessagesPerRequest } from '../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest';
 import { AnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
+import { AnalyticsResponseStatusOvertime } from '../entities/management-api-v2/analytics/analyticsResponseStatusOvertime';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiAnalyticsV2Service {
-  constructor(
-    private readonly http: HttpClient,
-    @Inject(Constants) private readonly constants: Constants,
-  ) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   getRequestsCount(apiId: string): Observable<AnalyticsRequestsCount> {
     return this.http.get<AnalyticsRequestsCount>(`${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/requests-count`);
@@ -50,5 +48,10 @@ export class ApiAnalyticsV2Service {
 
   getResponseStatusRanges(apiId: string): Observable<AnalyticsResponseStatusRanges> {
     return this.http.get<AnalyticsResponseStatusRanges>(`${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-status-ranges`);
+  }
+  getResponseStatusOvertime(apiId: string): Observable<AnalyticsResponseStatusOvertime> {
+    return this.http.get<AnalyticsResponseStatusOvertime>(
+      `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-status-overtime`,
+    );
   }
 }
