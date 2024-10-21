@@ -47,6 +47,7 @@ public class ApiWithFlows extends Api {
             api.getApiDefinitionV4(),
             api.getApiDefinition(),
             api.getFederatedApiDefinition(),
+            api.getNativeApiDefinition(),
             api.getType(),
             api.getDeployedAt(),
             api.getCreatedAt(),

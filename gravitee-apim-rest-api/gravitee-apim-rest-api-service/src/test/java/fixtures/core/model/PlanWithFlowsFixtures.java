@@ -36,7 +36,7 @@ public class PlanWithFlowsFixtures {
             .description("Description")
             .validation(Plan.PlanValidationType.AUTO)
             .type(Plan.PlanType.API)
-            .planDefinitionV4(
+            .planDefinitionHttpV4(
                 fixtures.definition.PlanFixtures
                     .anApiKeyV4()
                     .toBuilder()

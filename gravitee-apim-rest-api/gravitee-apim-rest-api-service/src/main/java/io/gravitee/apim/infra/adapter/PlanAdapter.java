@@ -50,7 +50,7 @@ public interface PlanAdapter {
 
     @Mapping(source = "api", target = "apiId")
     @Mapping(target = "definitionVersion", defaultValue = "V2")
-    @Mapping(target = "planDefinitionV4", expression = "java(deserializeDefinitionV4(plan))")
+    @Mapping(target = "planDefinitionHttpV4", expression = "java(deserializeDefinitionHttpV4(plan))")
     @Mapping(target = "planDefinitionV2", expression = "java(deserializeDefinitionV2(plan))")
     @Mapping(target = "federatedPlanDefinition", expression = "java(deserializeDefinitionFederated(plan))")
     Plan fromRepository(io.gravitee.repository.management.model.Plan plan);
@@ -95,7 +95,7 @@ public interface PlanAdapter {
     @Mapping(target = "security", qualifiedByName = "serializeV2PlanSecurityType")
     io.gravitee.definition.model.Plan toPlanDefinitionV2(io.gravitee.repository.management.model.Plan source);
 
-    default io.gravitee.definition.model.v4.plan.Plan deserializeDefinitionV4(io.gravitee.repository.management.model.Plan source) {
+    default io.gravitee.definition.model.v4.plan.Plan deserializeDefinitionHttpV4(io.gravitee.repository.management.model.Plan source) {
         if (source.getDefinitionVersion() != DefinitionVersion.V4) {
             return null;
         }

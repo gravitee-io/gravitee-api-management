@@ -57,7 +57,7 @@ public class GetApiDefinitionUseCase {
             .peek(plan -> {
                 switch (plan.getDefinitionVersion()) {
                     case V1, V2 -> plan.getPlanDefinitionV2().setFlows(flowCrudService.getPlanV2Flows(plan.getId()));
-                    case V4 -> plan.getPlanDefinitionV4().setFlows(flowCrudService.getPlanV4Flows(plan.getId()));
+                    case V4 -> plan.getPlanDefinitionHttpV4().setFlows(flowCrudService.getPlanV4Flows(plan.getId()));
                 }
             })
             .toList();

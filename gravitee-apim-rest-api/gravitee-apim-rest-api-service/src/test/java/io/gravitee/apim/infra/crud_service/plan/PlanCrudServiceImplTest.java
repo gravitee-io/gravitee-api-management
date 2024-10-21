@@ -324,7 +324,7 @@ public class PlanCrudServiceImplTest {
                 .commentMessage("Comment message")
                 .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
                 .generalConditions("General conditions")
-                .planDefinitionV4(
+                .planDefinitionHttpV4(
                     fixtures.definition.PlanFixtures
                         .aKeylessV4()
                         .toBuilder()

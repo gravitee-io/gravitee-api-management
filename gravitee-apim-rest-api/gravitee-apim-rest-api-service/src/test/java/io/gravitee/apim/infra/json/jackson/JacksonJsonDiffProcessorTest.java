@@ -46,7 +46,7 @@ class JacksonJsonDiffProcessorTest {
         var oldPlan = PlanFixtures
             .aPlanV4()
             .toBuilder()
-            .planDefinitionV4(
+            .planDefinitionHttpV4(
                 Plan
                     .builder()
                     .security(

@@ -353,7 +353,7 @@ public class ImportApiCRDUseCase {
             .id(planCRD.getId())
             .name(planCRD.getName())
             .description(planCRD.getDescription())
-            .planDefinitionV4(
+            .planDefinitionHttpV4(
                 io.gravitee.definition.model.v4.plan.Plan
                     .builder()
                     .security(planCRD.getSecurity())
