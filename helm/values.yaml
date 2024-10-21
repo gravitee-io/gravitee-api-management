@@ -913,6 +913,9 @@ gateway:
   # sharding_tags:
   # tenant:
   websocket: false
+#  haproxy: # Support for https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt
+#    proxyProtocol: false
+#    proxyProtocolTimeout: 10000
   ratelimit:
     # redis:
     #   host: redis
@@ -1135,6 +1138,8 @@ gateway:
     # nodePort: 30082
     internalPort: 8082
     internalPortName: http
+#    annotations:
+#      loadbalancer.openstack.org/proxy-protocol: true
 #    appProtocol: http
   # annotations:
   autoscaling:
