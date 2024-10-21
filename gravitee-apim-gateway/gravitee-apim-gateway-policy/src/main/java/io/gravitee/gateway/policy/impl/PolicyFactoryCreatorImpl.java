@@ -20,7 +20,7 @@ import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.tracing.TracingPolicyPluginFactory;
-import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,29 +32,27 @@ public class PolicyFactoryCreatorImpl implements PolicyFactoryCreator {
 
     private final Logger logger = LoggerFactory.getLogger(PolicyFactoryCreatorImpl.class);
 
-    private final Configuration configuration;
     private final PolicyPluginFactory policyPluginFactory;
     private final ConditionEvaluator<String> conditionEvaluator;
+    private final boolean tracingEnabled;
 
     public PolicyFactoryCreatorImpl(
-        final Configuration configuration,
         final PolicyPluginFactory policyPluginFactory,
-        ConditionEvaluator<String> conditionEvaluator
+        final ConditionEvaluator<String> conditionEvaluator,
+        final boolean tracingEnabled
     ) {
-        this.configuration = configuration;
+        this.tracingEnabled = tracingEnabled;
         this.policyPluginFactory = policyPluginFactory;
         this.conditionEvaluator = conditionEvaluator;
     }
 
     @Override
     public PolicyFactory create() {
-        boolean tracing = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
-
-        if (tracing) {
+        if (tracingEnabled) {
             logger.debug("Tracing is enabled, looking to decorate all policies...");
         }
 
-        final PolicyFactory policyFactory = tracing
+        final PolicyFactory policyFactory = tracingEnabled
             ? new TracingPolicyPluginFactory(policyPluginFactory, conditionEvaluator)
             : new PolicyFactoryImpl(policyPluginFactory, conditionEvaluator);
         return new CachedPolicyFactory(policyFactory);

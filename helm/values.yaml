@@ -1277,27 +1277,29 @@ gateway:
       enabled: false
       prometheus:
         enabled: true
-    tracing:
-      enabled: false
-      type: jaeger
-      # see https://github.com/gravitee-io/gravitee-tracer-jaeger for docs
-      jaeger:
-        host: localhost
-        port: 14250
-        # ssl:
-        #   enabled: false
-        #   trustall: false
-        #   verifyHostname: true
-        #   keystore:
-        #     # Supports jks, pem, pkcs12
-        #     type: ""
-        #     path: ""
-        #     password: ""
-        #   truststore:
-        #     # Supports jks, pem, pkcs12
-        #     type: ""
-        #     path: ""
-        #     password: ""
+#   opentelemetry:
+#      enabled: false
+#      verbose: false
+#      extraAttributes:
+#        - deployment.environment.name: production
+#      exporter:
+#        endpoint: http://localhost:4317
+#        protocol: grpc
+#        compression: none
+#        headers:
+#          - X-Custom-Header: value
+#        timeout: 10000
+#        ssl:
+#          trustall: false
+#          verifyHostname: true
+#          keystore:
+#            type: pkcs12
+#            path: /path/to/keystore
+#            password: password
+#          truststore:
+#            type: pkcs12
+#            path: /path/to/truststore
+#            password: password
 
     sync:
       enabled: true

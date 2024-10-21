@@ -19,10 +19,6 @@ import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTER
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_MAX_SIZE_PROPERTY;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP;
-import static io.reactivex.rxjava3.core.Completable.defer;
-import static java.lang.Boolean.TRUE;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.event.EventManager;
@@ -34,6 +30,7 @@ import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
+import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.apiservice.ApiService;
@@ -50,12 +47,12 @@ import io.gravitee.gateway.reactive.core.context.interruption.InterruptionHelper
 import io.gravitee.gateway.reactive.core.failover.FailoverInvoker;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
+import io.gravitee.gateway.reactive.core.tracing.InvokerTracingHook;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.reactive.core.v4.invoker.EndpointInvoker;
-import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LoggingHook;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory;
@@ -70,11 +67,14 @@ import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.api.opentelemetry.Span;
+import io.gravitee.node.api.opentelemetry.internal.InternalRequest;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.CompletableSource;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -91,12 +91,12 @@ import org.slf4j.LoggerFactory;
  */
 public class DefaultApiReactor extends AbstractApiReactor {
 
-    public static final String SERVICES_TRACING_ENABLED_PROPERTY = "services.tracing.enabled";
     public static final String API_VALIDATE_SUBSCRIPTION_PROPERTY = "api.validateSubscription";
+    private static final String ATTR_INTERNAL_TRACING_REQUEST_SPAN = "analytics.tracing.request.span";
+    private static final String ATTR_INTERNAL_TRACING_RESPONSE_SPAN = "analytics.tracing.response.span";
 
     private static final Logger log = LoggerFactory.getLogger(DefaultApiReactor.class);
     protected final List<ChainHook> processorChainHooks;
-    protected final List<InvokerHook> invokerHooks;
 
     @Getter
     private final ComponentProvider componentProvider;
@@ -121,7 +121,6 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected final FlowChain apiPlanFlowChain;
     protected final FlowChain apiFlowChain;
     private final Node node;
-    private final boolean tracingEnabled;
     protected final String loggingExcludedResponseType;
     protected final String loggingMaxSize;
     private final DeploymentContext deploymentContext;
@@ -150,13 +149,15 @@ public class DefaultApiReactor extends AbstractApiReactor {
         final RequestTimeoutConfiguration requestTimeoutConfiguration,
         final ReporterService reporterService,
         final AccessPointManager accessPointManager,
-        final EventManager eventManager
+        final EventManager eventManager,
+        final TracingContext tracingContext
     ) {
         super(
             configuration,
             api,
             new DefaultEntrypointConnectorResolver(api.getDefinition(), deploymentContext, entrypointConnectorPluginManager),
-            requestTimeoutConfiguration
+            requestTimeoutConfiguration,
+            tracingContext
         );
         this.deploymentContext = deploymentContext;
         this.componentProvider = componentProvider;
@@ -171,28 +172,25 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
         this.resourceLifecycleManager = resourceLifecycleManager;
 
-        this.beforeHandleProcessors = apiProcessorChainFactory.beforeHandle(api);
-        this.afterHandleProcessors = apiProcessorChainFactory.afterHandle(api);
-        this.beforeSecurityChainProcessors = apiProcessorChainFactory.beforeSecurityChain(api);
-        this.beforeApiExecutionProcessors = apiProcessorChainFactory.beforeApiExecution(api);
-        this.afterApiExecutionProcessors = apiProcessorChainFactory.afterApiExecution(api);
+        this.beforeHandleProcessors = apiProcessorChainFactory.beforeHandle(api, tracingContext);
+        this.afterHandleProcessors = apiProcessorChainFactory.afterHandle(api, tracingContext);
+        this.beforeSecurityChainProcessors = apiProcessorChainFactory.beforeSecurityChain(api, tracingContext);
+        this.beforeApiExecutionProcessors = apiProcessorChainFactory.beforeApiExecution(api, tracingContext);
+        this.afterApiExecutionProcessors = apiProcessorChainFactory.afterApiExecution(api, tracingContext);
+        this.onErrorProcessors = apiProcessorChainFactory.onError(api, tracingContext);
 
-        this.onErrorProcessors = apiProcessorChainFactory.onError(api);
-
-        this.organizationFlowChain = flowChainFactory.createOrganizationFlow(api);
-        this.apiPlanFlowChain = v4FlowChainFactory.createPlanFlow(api);
-        this.apiFlowChain = v4FlowChainFactory.createApiFlow(api);
+        this.organizationFlowChain = flowChainFactory.createOrganizationFlow(api, tracingContext);
+        this.apiPlanFlowChain = v4FlowChainFactory.createPlanFlow(api, tracingContext);
+        this.apiFlowChain = v4FlowChainFactory.createApiFlow(api, tracingContext);
 
         this.node = node;
         this.lifecycleState = Lifecycle.State.INITIALIZED;
-        this.tracingEnabled = configuration.getProperty(SERVICES_TRACING_ENABLED_PROPERTY, Boolean.class, false);
         this.validateSubscriptionEnabled = configuration.getProperty(API_VALIDATE_SUBSCRIPTION_PROPERTY, Boolean.class, true);
         this.loggingExcludedResponseType =
             configuration.getProperty(REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY, String.class, null);
         this.loggingMaxSize = configuration.getProperty(REPORTERS_LOGGING_MAX_SIZE_PROPERTY, String.class, null);
 
         this.processorChainHooks = new ArrayList<>();
-        this.invokerHooks = new ArrayList<>();
     }
 
     protected Invoker endpointInvoker(EndpointManager endpointManager) {
@@ -216,16 +214,17 @@ public class DefaultApiReactor extends AbstractApiReactor {
         }
 
         // Prepare attributes and metrics before handling the request.
-        prepareContextAttributes(ctx);
+        prepareExecutionContext(ctx);
         prepareMetrics(ctx);
 
         return handleRequest(ctx);
     }
 
-    private void prepareContextAttributes(MutableExecutionContext ctx) {
+    protected void prepareExecutionContext(MutableExecutionContext ctx) {
         prepareCommonAttributes(ctx);
         ctx.setAttribute(ContextAttributes.ATTR_CONTEXT_PATH, ctx.request().contextPath());
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
+        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ENABLED, analyticsContext.isTracingEnabled());
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_VALIDATE_SUBSCRIPTION, validateSubscriptionEnabled);
     }
 
@@ -244,7 +243,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
     protected Completable handleRequest(final MutableExecutionContext ctx) {
         // Setup all processors before handling the request (ex: logging).
-        return new CompletableReactorChain(executeProcessorChain(ctx, beforeHandleProcessors, REQUEST))
+        return new CompletableReactorChain(startPhaseTracing(ctx, REQUEST))
+            .chainWith(executeProcessorChain(ctx, beforeHandleProcessors, REQUEST))
             // Execute organization flow chain.
             .chainWith(organizationFlowChain.execute(ctx, REQUEST))
             // Before Security Chain.
@@ -258,8 +258,11 @@ public class DefaultApiReactor extends AbstractApiReactor {
             // Execute all flows for request phases.
             .chainWith(apiPlanFlowChain.execute(ctx, REQUEST))
             .chainWith(apiFlowChain.execute(ctx, REQUEST))
+            .chainWith(upstream -> endRequestPhaseTracing(upstream, ctx))
             // Invoke the backend.
             .chainWith(invokeBackend(ctx))
+            // Start RESPONSE traces
+            .chainWith(startPhaseTracing(ctx, RESPONSE))
             // Execute all flows for response phases.
             .chainWith(apiPlanFlowChain.execute(ctx, RESPONSE))
             .chainWith(apiFlowChain.execute(ctx, RESPONSE))
@@ -282,7 +285,73 @@ public class DefaultApiReactor extends AbstractApiReactor {
             // Finally, end the response.
             .chainWith(ctx.response().end(ctx))
             .doOnSubscribe(disposable -> pendingRequests.incrementAndGet())
+            .doOnEvent(throwable -> endPhaseTracing(ctx, RESPONSE, throwable))
+            .doOnDispose(() -> {
+                endPhaseTracing(ctx, REQUEST, null);
+                endPhaseTracing(ctx, RESPONSE, null);
+            })
             .doFinally(pendingRequests::decrementAndGet);
+    }
+
+    protected Completable startPhaseTracing(final MutableExecutionContext ctx, final ExecutionPhase executionPhase) {
+        if (!tracingContext.isEnabled()) {
+            return Completable.complete();
+        }
+        return Completable
+            .fromRunnable(() -> {
+                String phaseSpanAttribute = getExecutionPhaseSpanAttribute(executionPhase);
+                if (phaseSpanAttribute != null) {
+                    Span executionPhaseSpan = ctx
+                        .getTracer()
+                        .startSpanFrom(
+                            InternalRequest.builder().name(executionPhase == REQUEST ? "Request phase" : "Response phase").build()
+                        );
+                    ctx.putInternalAttribute(phaseSpanAttribute, executionPhaseSpan);
+                }
+            })
+            .onErrorComplete();
+    }
+
+    protected CompletableSource endRequestPhaseTracing(final Completable upstream, final MutableExecutionContext ctx) {
+        if (!tracingContext.isEnabled()) {
+            return upstream;
+        }
+        return upstream.doOnEvent(throwable -> endPhaseTracing(ctx, REQUEST, throwable));
+    }
+
+    protected void endPhaseTracing(final MutableExecutionContext ctx, final ExecutionPhase executionPhase, final Throwable throwable) {
+        try {
+            if (tracingContext.isEnabled()) {
+                String phaseSpanAttribute = getExecutionPhaseSpanAttribute(executionPhase);
+                if (phaseSpanAttribute != null) {
+                    Span executionPhaseSpan = ctx.getInternalAttribute(phaseSpanAttribute);
+                    if (executionPhaseSpan != null) {
+                        if (throwable == null) {
+                            ctx.getTracer().end(executionPhaseSpan);
+                        } else {
+                            ctx.getTracer().endOnError(executionPhaseSpan, throwable);
+                        }
+                        ctx.removeInternalAttribute(phaseSpanAttribute);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Unable to end {} tracing phase", executionPhase, e);
+        }
+    }
+
+    private static String getExecutionPhaseSpanAttribute(final ExecutionPhase executionPhase) {
+        switch (executionPhase) {
+            case REQUEST -> {
+                return ATTR_INTERNAL_TRACING_REQUEST_SPAN;
+            }
+            case RESPONSE -> {
+                return ATTR_INTERNAL_TRACING_RESPONSE_SPAN;
+            }
+            default -> {
+                return null;
+            }
+        }
     }
 
     protected Completable executeProcessorChain(
@@ -294,34 +363,10 @@ public class DefaultApiReactor extends AbstractApiReactor {
     }
 
     protected Completable invokeBackend(final MutableExecutionContext ctx) {
-        return defer(() -> {
-                if (!TRUE.equals(ctx.<Boolean>getInternalAttribute(ATTR_INTERNAL_INVOKER_SKIP))) {
-                    Invoker invoker = getInvoker(ctx);
-
-                    if (invoker != null) {
-                        return HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null);
-                    }
-                }
-                return Completable.complete();
-            })
+        return super
+            .invokeBackend(ctx)
             .doOnSubscribe(disposable -> initEndpointResponseTimeMetric(ctx))
             .doFinally(() -> computeEndpointResponseTimeMetric(ctx));
-    }
-
-    private Invoker getInvoker(final MutableExecutionContext ctx) {
-        final Object invoker = ctx.getInternalAttribute(ATTR_INTERNAL_INVOKER);
-
-        if (invoker == null) {
-            return null;
-        }
-
-        if (invoker instanceof Invoker) {
-            return (Invoker) invoker;
-        } else if (invoker instanceof io.gravitee.gateway.api.Invoker) {
-            return new InvokerAdapter((io.gravitee.gateway.api.Invoker) invoker);
-        }
-
-        return null;
     }
 
     @Override
@@ -428,21 +473,23 @@ public class DefaultApiReactor extends AbstractApiReactor {
         policyManager.start();
 
         // Create securityChain once policy manager has been started.
-        this.securityChain = new SecurityChain(api.getDefinition(), policyManager, ExecutionPhase.REQUEST);
+        securityChain = new SecurityChain(api.getDefinition(), policyManager, ExecutionPhase.REQUEST);
 
-        if (tracingEnabled) {
-            processorChainHooks.add(new TracingHook("processor-chain"));
-            invokerHooks.add(new TracingHook("invoker"));
-            securityChain.addHooks(new TracingHook("security-plan"));
-        }
-
+        tracingContext.start();
         analyticsContext = analyticsContext();
         if (analyticsContext.isEnabled()) {
             if (analyticsContext.isLoggingEnabled()) {
                 invokerHooks.add(new LoggingHook());
             }
-        }
 
+            if (analyticsContext.isTracingEnabled()) {
+                if (analyticsContext.getTracingContext().isVerbose()) {
+                    processorChainHooks.add(new TracingHook("Processor chain"));
+                }
+                invokerHooks.add(new InvokerTracingHook("Invoker"));
+                securityChain.addHooks(new TracingHook("Security"));
+            }
+        }
         addInvokerHooks(invokerHooks);
 
         endpointManager.start();
@@ -457,7 +504,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
         Completable.concat(services.stream().map(ApiService::start).collect(Collectors.toList())).blockingAwait();
 
-        this.lifecycleState = Lifecycle.State.STARTED;
+        lifecycleState = Lifecycle.State.STARTED;
 
         long endTime = System.currentTimeMillis(); // Get the end Time
         log.debug("API reactor started in {} ms", (endTime - startTime));
@@ -468,7 +515,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected void addInvokerHooks(List<InvokerHook> invokerHooks) {}
 
     protected AnalyticsContext analyticsContext() {
-        return new AnalyticsContext(api.getDefinition().getAnalytics(), loggingMaxSize, loggingExcludedResponseType);
+        return new AnalyticsContext(api.getDefinition().getAnalytics(), loggingMaxSize, loggingExcludedResponseType, tracingContext);
     }
 
     @Override
@@ -501,6 +548,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
         endpointManager.stop();
         policyManager.stop();
         resourceLifecycleManager.stop();
+        tracingContext.stop();
 
         lifecycleState = Lifecycle.State.STOPPED;
 

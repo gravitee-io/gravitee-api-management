@@ -18,10 +18,10 @@ package io.gravitee.apim.gateway.tests.sdk.container;
 import io.gravitee.apim.gateway.tests.sdk.connector.fakes.MessageStorage;
 import io.gravitee.apim.gateway.tests.sdk.license.PermissiveLicenseManager;
 import io.gravitee.apim.gateway.tests.sdk.reporter.FakeReporter;
-import io.gravitee.apim.gateway.tests.sdk.tracer.NoOpTracer;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.standalone.GatewayContainer;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cache.CacheManager;
@@ -29,11 +29,18 @@ import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.node.container.NodeFactory;
 import io.gravitee.node.monitoring.spring.NodeMonitoringConfiguration;
+import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.node.plugin.cache.standalone.StandaloneCacheManager;
 import io.gravitee.node.plugin.cluster.standalone.StandaloneClusterManager;
 import io.gravitee.reporter.api.Reporter;
-import io.gravitee.repository.management.api.*;
-import io.gravitee.tracing.api.Tracer;
+import io.gravitee.repository.management.api.AccessPointRepository;
+import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.InstallationRepository;
+import io.gravitee.repository.management.api.LicenseRepository;
+import io.gravitee.repository.management.api.OrganizationRepository;
+import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.vertx.core.Vertx;
 import java.util.List;
 import java.util.function.Consumer;
@@ -118,7 +125,7 @@ public class GatewayTestContainer extends GatewayContainer {
 
         @Bean
         public Tracer tracer() {
-            return new NoOpTracer();
+            return new Tracer(Vertx.vertx().getOrCreateContext(), new NoOpTracer());
         }
 
         @Bean

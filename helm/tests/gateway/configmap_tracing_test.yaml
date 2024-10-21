@@ -2,138 +2,49 @@ suite: Test Management API configmap with tracining enabled
 templates:
   - "gateway/gateway-configmap.yaml"
 tests:
-  - it: Enable jaeger tracing
-    template: gateway/gateway-configmap.yaml
-    set:
-      gateway:
-        services:
-          tracing:
-            enabled: true
-            type: jaeger
-    asserts:
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: |
-            \s tracing:
-            \s   enabled: true
-  - it: Enable jaeger tracing and set common values
-    template: gateway/gateway-configmap.yaml
-    set:
-      gateway:
-        services:
-          tracing:
-            enabled: true
-            type: jaeger
-            jaeger:
-              host: localhost
-              port: 14250
-    asserts:
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: |
-            \s tracing:
-            \s   enabled: true
-            \s   type: "jaeger"
-            \s   jaeger:
-            \s     host: localhost
-            \s     port: 14250
-  - it: Enable jaeger tracing and set ssl values
-    template: gateway/gateway-configmap.yaml
-    set:
-      gateway:
-        services:
-          tracing:
-            enabled: true
-            type: jaeger
-            jaeger:
-              host: some-remote.host.com
-              port: 14222
-              ssl:
-                enabled: true
-                trustall: false
-                verifyHostname: true
-                keystore:
-                  password: "password-key"
-                  path: "/keystore"
-                  type: "jks"
-                truststore:
-                  password: "password-trust"
-                  path: "/truststore"
-                  type: "pem"
-    asserts:
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: |
-            \s tracing:
-            \s   enabled: true
-            \s   type: "jaeger"
-            \s   jaeger:
-            \s     host: some-remote.host.com
-            \s     port: 14222
-            \s     ssl:
-            \s       enabled: true
-            \s       keystore:
-            \s         password: password-key
-            \s         path: /keystore
-            \s         type: jks
-            \s       trustall: false
-            \s       truststore:
-            \s         password: password-trust
-            \s         path: /truststore
-            \s         type: pem
-            \s       verifyHostname: true
-
   - it: Enable opentelemetry tracing
     template: gateway/gateway-configmap.yaml
     set:
       gateway:
         services:
-          tracing:
+          opentelemetry:
             enabled: true
-            type: otel
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
           pattern: |
-            \s tracing:
+            \s opentelemetry:
             \s   enabled: true
   - it: Enable opentelemetry tracing and set common values
     template: gateway/gateway-configmap.yaml
     set:
       gateway:
         services:
-          tracing:
+          opentelemetry:
             enabled: true
-            type: otel
-            otel:
-              host: localhost
-              port: 14250
+            exporter:
+              endpoint: http://localhost:4317
+              type: grpc
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
           pattern: |
-            \s tracing:
+            \s opentelemetry:
             \s   enabled: true
-            \s   type: "otel"
-            \s   otel:
-            \s     host: localhost
-            \s     port: 14250
+            \s   exporter:
+            \s     endpoint: http://localhost:4317
+            \s     type: grpc
   - it: Enable opentelemetry tracing and set ssl values
     template: gateway/gateway-configmap.yaml
     set:
       gateway:
         services:
-          tracing:
+          opentelemetry:
             enabled: true
-            type: otel
-            otel:
-              url: grpc://localhost:4317
+            exporter:
+              endpoint: http://localhost:4317
               type: grpc
               compression: none
-              traces:
-                enabled: true
-              metrics:
-                enabled: false
               headers:
                 authorization: my_auth_header
               ssl:
@@ -153,15 +64,13 @@ tests:
       - matchRegex:
           path: data["gravitee.yml"]
           pattern: |
-            \s tracing:
+            \s opentelemetry:
             \s   enabled: true
-            \s   type: "otel"
-            \s   otel:
+            \s   exporter:
             \s     compression: none
+            \s     endpoint: http://localhost:4317
             \s     headers:
             \s       authorization: my_auth_header
-            \s     metrics:
-            \s       enabled: false
             \s     ssl:
             \s       enabled: true
             \s       keystore:
@@ -174,7 +83,4 @@ tests:
             \s         path: /truststore
             \s         type: pem
             \s       verifyHostname: true
-            \s     traces:
-            \s       enabled: true
             \s     type: grpc
-            \s     url: grpc://localhost:4317

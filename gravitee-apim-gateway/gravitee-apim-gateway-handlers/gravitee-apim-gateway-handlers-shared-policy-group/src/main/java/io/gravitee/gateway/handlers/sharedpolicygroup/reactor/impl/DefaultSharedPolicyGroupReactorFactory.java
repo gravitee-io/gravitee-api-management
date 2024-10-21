@@ -25,6 +25,7 @@ import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupR
 import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupReactorFactory;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
+import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -46,7 +47,7 @@ public class DefaultSharedPolicyGroupReactorFactory implements SharedPolicyGroup
     private final PolicyFactoryManager policyFactoryManager;
     private final PolicyClassLoaderFactory policyClassLoaderFactory;
     private final ComponentProvider componentProvider;
-    private final io.gravitee.node.api.configuration.Configuration configuration;
+    private final OpenTelemetryConfiguration openTelemetryConfiguration;
 
     @Override
     public boolean canCreate(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
@@ -61,19 +62,21 @@ public class DefaultSharedPolicyGroupReactorFactory implements SharedPolicyGroup
         SharedPolicyGroupPolicyManager sharedPolicyGroupPolicyManager = policyManager(reactableSharedPolicyGroup);
         DefaultSharedPolicyGroupPolicyChainFactory policyChainFactory = policyChainFactory(
             reactableSharedPolicyGroup,
-            sharedPolicyGroupPolicyManager
+            sharedPolicyGroupPolicyManager,
+            openTelemetryConfiguration
         );
         return new DefaultSharedPolicyGroupReactor(reactableSharedPolicyGroup, policyChainFactory, sharedPolicyGroupPolicyManager);
     }
 
     protected DefaultSharedPolicyGroupPolicyChainFactory policyChainFactory(
         final ReactableSharedPolicyGroup reactableSharedPolicyGroup,
-        final SharedPolicyGroupPolicyManager sharedPolicyGroupPolicyManager
+        final SharedPolicyGroupPolicyManager sharedPolicyGroupPolicyManager,
+        final OpenTelemetryConfiguration openTelemetryConfiguration
     ) {
         return new DefaultSharedPolicyGroupPolicyChainFactory(
             "shared-policy-group-" + reactableSharedPolicyGroup.getId() + "-" + reactableSharedPolicyGroup.getEnvironmentId(),
             sharedPolicyGroupPolicyManager,
-            configuration
+            openTelemetryConfiguration.isTracesEnabled()
         );
     }
 

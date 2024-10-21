@@ -525,18 +525,8 @@ data:
       metrics: {{- toYaml .Values.gateway.services.metrics | nindent 8 }}
       {{- end }}
 
-      {{- if .Values.gateway.services.tracing.enabled }}
-      tracing:
-        enabled: {{ .Values.gateway.services.tracing.enabled }}
-        type: {{ .Values.gateway.services.tracing.type | quote }}
-        {{- if (and (eq .Values.gateway.services.tracing.type "jaeger") .Values.gateway.services.tracing.jaeger) }}
-        jaeger:
-{{ toYaml .Values.gateway.services.tracing.jaeger | indent 10 }}
-        {{- end }}
-        {{- if (and (eq .Values.gateway.services.tracing.type "otel") .Values.gateway.services.tracing.otel) }}
-        otel:
-{{ toYaml .Values.gateway.services.tracing.otel | indent 10 }}
-        {{- end }}
+      {{- if .Values.gateway.services.opentelemetry }}
+      opentelemetry: {{- toYaml .Values.gateway.services.opentelemetry | nindent 8 }}
       {{- end }}
 
     {{- if or .Values.gateway.handlers }}

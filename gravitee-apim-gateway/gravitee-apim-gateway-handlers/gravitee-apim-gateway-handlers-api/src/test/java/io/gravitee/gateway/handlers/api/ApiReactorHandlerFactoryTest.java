@@ -38,7 +38,10 @@ import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPol
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
+import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import java.util.Date;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -90,13 +93,19 @@ public class ApiReactorHandlerFactoryTest {
     @Mock
     private EventManager eventManager;
 
+    @Mock
+    private OpenTelemetryConfiguration openTelemetryConfiguration;
+
+    @Mock
+    private OpenTelemetryFactory openTelemetryFactory;
+
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         when(configuration.getProperty(HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY, Boolean.class, false)).thenReturn(false);
-        when(configuration.getProperty("services.tracing.enabled", Boolean.class, false)).thenReturn(false);
         when(configuration.getProperty(CLASSLOADER_LEGACY_ENABLED_PROPERTY, Boolean.class, false)).thenReturn(false);
         when(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L)).thenReturn(10_000L);
+        when(openTelemetryConfiguration.isTracesEnabled()).thenReturn(false);
         when(applicationContext.getBean(GatewayConfiguration.class)).thenReturn(gatewayConfiguration);
         when(applicationContext.getBean(ApiTemplateVariableProviderFactory.class)).thenReturn(apiTemplateVariableProviderFactory);
         when(applicationContext.getBeanNamesForType(any(ResolvableType.class)))
@@ -116,7 +125,10 @@ public class ApiReactorHandlerFactoryTest {
                 flowResolverFactory,
                 new RequestTimeoutConfiguration(2000L, 10L),
                 accessPointManager,
-                eventManager
+                eventManager,
+                openTelemetryConfiguration,
+                openTelemetryFactory,
+                List.of()
             );
     }
 

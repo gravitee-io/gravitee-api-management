@@ -27,7 +27,7 @@ import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugRequestStep;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugResponseStep;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStep;
 import io.gravitee.gateway.policy.StreamType;
-import io.gravitee.tracing.api.Tracer;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import java.io.Serializable;
 import java.util.*;
 
@@ -163,6 +163,12 @@ public class DebugExecutionContext implements MutableExecutionContext {
     @Override
     public MutableExecutionContext response(Response response) {
         context.response(response);
+        return this;
+    }
+
+    @Override
+    public MutableExecutionContext tracer(final Tracer tracer) {
+        context.tracer(tracer);
         return this;
     }
 }

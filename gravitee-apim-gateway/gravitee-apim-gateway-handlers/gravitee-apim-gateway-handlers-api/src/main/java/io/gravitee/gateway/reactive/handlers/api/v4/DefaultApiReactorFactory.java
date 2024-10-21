@@ -26,12 +26,14 @@ import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
+import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.core.condition.CompositeConditionFilter;
 import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
+import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsUtils;
 import io.gravitee.gateway.reactive.core.v4.endpoint.DefaultEndpointManager;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.handlers.api.ApiPolicyManager;
@@ -61,6 +63,10 @@ import io.gravitee.gateway.resource.internal.ResourceConfigurationFactoryImpl;
 import io.gravitee.gateway.resource.internal.v4.DefaultResourceManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.api.opentelemetry.InstrumenterTracerFactory;
+import io.gravitee.node.api.opentelemetry.Tracer;
+import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
+import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
@@ -98,6 +104,9 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
     protected final OrganizationManager organizationManager;
     protected final AccessPointManager accessPointManager;
     protected final EventManager eventManager;
+    private final OpenTelemetryConfiguration openTelemetryConfiguration;
+    protected final OpenTelemetryFactory openTelemetryFactory;
+    protected final List<InstrumenterTracerFactory> instrumenterTracerFactories;
     protected final ApiProcessorChainFactory apiProcessorChainFactory;
     protected final io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory;
     protected final FlowResolverFactory v4FlowResolverFactory;
@@ -119,7 +128,10 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         final RequestTimeoutConfiguration requestTimeoutConfiguration,
         final ReporterService reporterService,
         final AccessPointManager accessPointManager,
-        final EventManager eventManager
+        final EventManager eventManager,
+        final OpenTelemetryConfiguration openTelemetryConfiguration,
+        final OpenTelemetryFactory openTelemetryFactory,
+        final List<InstrumenterTracerFactory> instrumenterTracerFactories
     ) {
         this.applicationContext = applicationContext;
         this.configuration = configuration;
@@ -132,11 +144,14 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         this.organizationManager = organizationManager;
         this.accessPointManager = accessPointManager;
         this.eventManager = eventManager;
+        this.openTelemetryConfiguration = openTelemetryConfiguration;
         this.apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, reporterService);
         this.flowResolverFactory = flowResolverFactory;
         this.v4FlowResolverFactory = flowResolverFactory();
         this.requestTimeoutConfiguration = requestTimeoutConfiguration;
         this.reporterService = reporterService;
+        this.openTelemetryFactory = openTelemetryFactory;
+        this.instrumenterTracerFactories = instrumenterTracerFactories;
     }
 
     // FIXME: this constructor is here to keep compatibility with Message Reactor plugin. it will be deleted when Message Reactor has been updated
@@ -154,7 +169,10 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         final RequestTimeoutConfiguration requestTimeoutConfiguration,
         final ReporterService reporterService,
         final AccessPointManager accessPointManager,
-        final EventManager eventManager
+        final EventManager eventManager,
+        final OpenTelemetryConfiguration openTelemetryConfiguration,
+        final OpenTelemetryFactory openTelemetryFactory,
+        final List<InstrumenterTracerFactory> instrumenterTracerFactories
     ) {
         this.applicationContext = applicationContext;
         this.configuration = configuration;
@@ -167,11 +185,14 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         this.organizationManager = organizationManager;
         this.accessPointManager = accessPointManager;
         this.eventManager = eventManager;
+        this.openTelemetryConfiguration = openTelemetryConfiguration;
         this.apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, reporterService);
         this.flowResolverFactory = flowResolverFactory;
         this.v4FlowResolverFactory = flowResolverFactory();
         this.requestTimeoutConfiguration = requestTimeoutConfiguration;
         this.reporterService = reporterService;
+        this.openTelemetryFactory = openTelemetryFactory;
+        this.instrumenterTracerFactories = instrumenterTracerFactories;
     }
 
     @SuppressWarnings("java:S1845")
@@ -233,7 +254,11 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
                     componentProvider
                 );
 
-                final PolicyChainFactory policyChainFactory = new HttpPolicyChainFactory(api.getId(), policyManager, configuration);
+                final PolicyChainFactory policyChainFactory = new HttpPolicyChainFactory(
+                    api.getId(),
+                    policyManager,
+                    isApiTracingEnabled(api)
+                );
 
                 final io.gravitee.gateway.reactive.v4.policy.PolicyChainFactory v4PolicyChainFactory = policyChainFactory(
                     api,
@@ -244,7 +269,6 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
                     organizationPolicyChainFactoryManager,
                     policyChainFactory,
                     organizationManager,
-                    configuration,
                     flowResolverFactory
                 );
 
@@ -257,11 +281,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
                 customComponentProvider.add(EndpointManager.class, endpointManager);
 
                 final io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory v4FlowChainFactory =
-                    new io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory(
-                        v4PolicyChainFactory,
-                        configuration,
-                        v4FlowResolverFactory
-                    );
+                    new io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory(v4PolicyChainFactory, v4FlowResolverFactory);
 
                 customComponents(api, customComponentProvider);
 
@@ -315,14 +335,44 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
             requestTimeoutConfiguration,
             reporterService,
             accessPointManager,
-            eventManager
+            eventManager,
+            createTracingContext(api, "API_V4")
+        );
+    }
+
+    protected TracingContext createTracingContext(final Api api, final String serviceNameSpace) {
+        if (isApiTracingEnabled(api)) {
+            Tracer tracer = openTelemetryFactory.createTracer(
+                api.getId(),
+                api.getName(),
+                serviceNameSpace,
+                api.getApiVersion(),
+                instrumenterTracerFactories
+            );
+            return new TracingContext(tracer, isApiTracingEnabled(api), isApiTracingVerboseEnabled(api));
+        } else {
+            return TracingContext.noop();
+        }
+    }
+
+    protected boolean isApiTracingEnabled(final Api api) {
+        return AnalyticsUtils.isTracingEnabled(
+            openTelemetryConfiguration,
+            api.getDefinition() != null ? api.getDefinition().getAnalytics() : null
+        );
+    }
+
+    protected boolean isApiTracingVerboseEnabled(final Api api) {
+        return AnalyticsUtils.isTracingVerbose(
+            openTelemetryConfiguration,
+            api.getDefinition() != null ? api.getDefinition().getAnalytics() : null
         );
     }
 
     protected void customComponents(Api api, CustomComponentProvider customComponentProvider) {}
 
     protected io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory policyChainFactory(Api api, PolicyManager policyManager) {
-        return new io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory(api.getId(), policyManager, configuration);
+        return new io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory(api.getId(), policyManager, isApiTracingEnabled(api));
     }
 
     /**

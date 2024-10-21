@@ -33,6 +33,7 @@ import io.gravitee.gateway.handlers.api.ApiReactorHandler;
 import io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
+import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyFactoryCreator;
@@ -53,6 +54,8 @@ import io.gravitee.gateway.security.core.AuthenticationHandlerSelector;
 import io.gravitee.gateway.security.core.SecurityPolicyResolver;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
+import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import java.util.List;
 import org.springframework.context.ApplicationContext;
 
@@ -90,7 +93,10 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
             flowResolverFactory,
             requestTimeoutConfiguration,
             accessPointManager,
-            eventManager
+            eventManager,
+            null,
+            null,
+            null
         );
     }
 
@@ -101,7 +107,7 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
         AccessPointManager accessPointManager,
         EventManager eventManager
     ) {
-        return new DebugApiReactorHandler(configuration, api, accessPointManager, eventManager);
+        return new DebugApiReactorHandler(configuration, api, accessPointManager, eventManager, TracingContext.noop());
     }
 
     @Override
@@ -142,9 +148,9 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
     protected HttpPolicyChainFactory createPolicyChainFactory(
         Api api,
         io.gravitee.gateway.reactive.policy.PolicyManager policyManager,
-        Configuration configuration
+        OpenTelemetryConfiguration openTelemetryConfiguration
     ) {
-        return new DebugPolicyChainFactory(api.getId(), policyManager, configuration);
+        return new DebugPolicyChainFactory(api.getId(), policyManager, false);
     }
 
     @Override
@@ -178,7 +184,8 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
             node,
             requestTimeoutConfiguration,
             accessPointManager,
-            eventManager
+            eventManager,
+            TracingContext.noop()
         );
     }
 }

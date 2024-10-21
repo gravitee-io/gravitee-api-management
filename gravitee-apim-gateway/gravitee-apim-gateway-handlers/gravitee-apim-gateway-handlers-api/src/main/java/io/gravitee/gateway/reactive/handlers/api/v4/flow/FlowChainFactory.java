@@ -16,13 +16,12 @@
 package io.gravitee.gateway.reactive.handlers.api.v4.flow;
 
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.hook.ChainHook;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.v4.policy.PolicyChainFactory;
-import io.gravitee.node.api.configuration.Configuration;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,30 +31,23 @@ import java.util.List;
 @SuppressWarnings("common-java:DuplicatedBlocks") // Needed for v4 definition. Will replace the other one at the end.
 public class FlowChainFactory {
 
-    protected final List<ChainHook> flowHooks = new ArrayList<>();
     private final PolicyChainFactory policyChainFactory;
     private final FlowResolverFactory flowResolverFactory;
+    private TracingHook tracingHook;
 
-    public FlowChainFactory(
-        final PolicyChainFactory policyChainFactory,
-        final Configuration configuration,
-        final FlowResolverFactory flowResolverFactory
-    ) {
+    public FlowChainFactory(final PolicyChainFactory policyChainFactory, final FlowResolverFactory flowResolverFactory) {
         this.policyChainFactory = policyChainFactory;
         this.flowResolverFactory = flowResolverFactory;
-        boolean tracing = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
-        if (tracing) {
-            flowHooks.add(new TracingHook("flow"));
-        }
+        this.tracingHook = new TracingHook("flow");
     }
 
-    public FlowChain createPlanFlow(final Api api) {
+    public FlowChain createPlanFlow(final Api api, final TracingContext tracingContext) {
         FlowChain flowPlanChain = new FlowChain("plan", flowResolverFactory.forApiPlan(api), policyChainFactory, true, false);
-        flowPlanChain.addHooks(flowHooks);
+        flowPlanChain.addHooks(flowHooks(tracingContext));
         return flowPlanChain;
     }
 
-    public FlowChain createApiFlow(final Api api) {
+    public FlowChain createApiFlow(final Api api, final TracingContext tracingContext) {
         FlowExecution flowExecution = api.getDefinition().getFlowExecution();
         FlowChain flowApiChain = new FlowChain(
             "api",
@@ -64,7 +56,14 @@ public class FlowChainFactory {
             true,
             flowExecution != null && flowExecution.isMatchRequired()
         );
-        flowApiChain.addHooks(flowHooks);
+        flowApiChain.addHooks(flowHooks(tracingContext));
         return flowApiChain;
+    }
+
+    private List<ChainHook> flowHooks(final TracingContext tracingContext) {
+        if (tracingContext.isEnabled()) {
+            return List.of(tracingHook);
+        }
+        return List.of();
     }
 }

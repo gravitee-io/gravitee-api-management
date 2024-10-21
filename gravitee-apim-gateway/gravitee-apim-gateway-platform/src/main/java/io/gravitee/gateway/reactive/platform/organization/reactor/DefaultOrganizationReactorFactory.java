@@ -22,6 +22,7 @@ import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyManager;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
+import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -43,7 +44,7 @@ public class DefaultOrganizationReactorFactory implements OrganizationReactorFac
     protected final PolicyFactoryManager policyFactoryManager;
     protected final PolicyClassLoaderFactory policyClassLoaderFactory;
     protected final ComponentProvider componentProvider;
-    protected final io.gravitee.node.api.configuration.Configuration configuration;
+    protected final OpenTelemetryConfiguration configuration;
 
     @Override
     public OrganizationReactor create(final ReactableOrganization reactableOrganization) {
@@ -56,7 +57,11 @@ public class DefaultOrganizationReactorFactory implements OrganizationReactorFac
         final ReactableOrganization reactableOrganization,
         final OrganizationPolicyManager organizationPolicyManager
     ) {
-        return new HttpPolicyChainFactory("organization-" + reactableOrganization.getId(), organizationPolicyManager, configuration);
+        return new HttpPolicyChainFactory(
+            "organization-" + reactableOrganization.getId(),
+            organizationPolicyManager,
+            configuration.isTracesEnabled()
+        );
     }
 
     protected OrganizationPolicyManager platformPolicyManager(ReactableOrganization reactableOrganization) {

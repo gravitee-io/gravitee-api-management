@@ -18,8 +18,10 @@ package io.gravitee.gateway.reactive.core.v4.analytics;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
+import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
+import io.gravitee.gateway.opentelemetry.TracingContext;
+import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -33,7 +35,8 @@ public class AnalyticsUtils {
     public static AnalyticsContext createAnalyticsContext(
         @Nonnull final io.gravitee.definition.model.Api apiV2,
         final String loggingMaxsize,
-        final String loggingExcludedResponseType
+        final String loggingExcludedResponseType,
+        final TracingContext tracingContext
     ) {
         io.gravitee.definition.model.Logging loggingV2 = apiV2.getProxy().getLogging();
 
@@ -63,7 +66,11 @@ public class AnalyticsUtils {
             loggingContext.setMaxSizeLogMessage(loggingMaxsize);
             loggingContext.setExcludedResponseTypes(loggingExcludedResponseType);
         }
-        return new AnalyticsContext(analytics, loggingMaxsize, loggingExcludedResponseType);
+        return new AnalyticsContext(analytics, loggingMaxsize, loggingExcludedResponseType, tracingContext);
+    }
+
+    public static boolean isEnabled(final Analytics analytics) {
+        return analytics != null && analytics.isEnabled();
     }
 
     public static boolean isLoggingEnabled(final Analytics analytics) {
@@ -73,6 +80,22 @@ public class AnalyticsUtils {
                 final LoggingMode loggingMode = logging.getMode();
                 return loggingMode != null && loggingMode.isEnabled();
             }
+        }
+        return false;
+    }
+
+    public static boolean isTracingEnabled(final OpenTelemetryConfiguration openTelemetryConfiguration, final Analytics analytics) {
+        if (openTelemetryConfiguration.isTracesEnabled() && isEnabled(analytics)) {
+            Tracing tracing = analytics.getTracing();
+            return tracing != null && tracing.isEnabled();
+        }
+        return false;
+    }
+
+    public static boolean isTracingVerbose(final OpenTelemetryConfiguration openTelemetryConfiguration, final Analytics analytics) {
+        if (isTracingEnabled(openTelemetryConfiguration, analytics)) {
+            Tracing tracing = analytics.getTracing();
+            return openTelemetryConfiguration.isVerboseEnabled() && tracing != null && tracing.isEnabled() && tracing.isVerbose();
         }
         return false;
     }

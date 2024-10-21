@@ -49,7 +49,9 @@ import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
@@ -137,6 +139,7 @@ class HttpConnectorTest {
         lenient().when(ctx.request()).thenReturn(request);
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(ctx.metrics()).thenReturn(metrics);
+        lenient().when(ctx.getTracer()).thenReturn(new Tracer(null, new NoOpTracer()));
 
         requestHeaders = HttpHeaders.create();
         lenient().when(request.pathInfo()).thenReturn("");

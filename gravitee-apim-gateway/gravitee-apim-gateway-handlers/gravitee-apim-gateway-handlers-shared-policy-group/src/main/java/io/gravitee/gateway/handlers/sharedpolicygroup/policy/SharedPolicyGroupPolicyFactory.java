@@ -23,15 +23,17 @@ import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
 import io.gravitee.gateway.reactive.policy.HttpConditionalPolicy;
 import io.gravitee.gateway.reactive.policy.HttpPolicyFactory;
+import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.policy.api.PolicyConfiguration;
 
 public class SharedPolicyGroupPolicyFactory extends HttpPolicyFactory {
 
     public SharedPolicyGroupPolicyFactory(
+        Configuration configuration,
         PolicyPluginFactory policyPluginFactory,
         ExpressionLanguageConditionFilter<HttpConditionalPolicy> filter
     ) {
-        super(policyPluginFactory, filter);
+        super(configuration, policyPluginFactory, filter);
     }
 
     @Override
@@ -50,7 +52,7 @@ public class SharedPolicyGroupPolicyFactory extends HttpPolicyFactory {
             policyMetadata.getName(),
             (SharedPolicyGroupPolicyConfiguration) policyConfiguration
         );
-        policy = createConditionalPolicy(policyMetadata, policy);
+        policy = decoratePolicy(policyMetadata, policy);
         return policy;
     }
 }

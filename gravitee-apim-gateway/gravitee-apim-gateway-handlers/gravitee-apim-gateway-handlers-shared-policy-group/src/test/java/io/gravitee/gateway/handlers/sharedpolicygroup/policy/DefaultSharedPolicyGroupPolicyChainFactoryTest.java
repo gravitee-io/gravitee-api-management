@@ -80,15 +80,12 @@ class DefaultSharedPolicyGroupPolicyChainFactoryTest {
 
     @BeforeEach
     void setUp() {
-        when(configuration.getProperty("services.tracing.enabled", Boolean.class, false)).thenReturn(false);
-        cut = new DefaultSharedPolicyGroupPolicyChainFactory("id", policyManager, configuration);
+        cut = new DefaultSharedPolicyGroupPolicyChainFactory("id", policyManager, false);
     }
 
     @Test
     void should_add_tracing_hook() {
-        when(configuration.getProperty("services.tracing.enabled", Boolean.class, false)).thenReturn(true);
-
-        cut = new DefaultSharedPolicyGroupPolicyChainFactory("id", policyManager, configuration);
+        cut = new DefaultSharedPolicyGroupPolicyChainFactory("id", policyManager, true);
         assertThat(cut.policyHooks).hasSize(1).first().isInstanceOf(TracingPolicyHook.class);
     }
 

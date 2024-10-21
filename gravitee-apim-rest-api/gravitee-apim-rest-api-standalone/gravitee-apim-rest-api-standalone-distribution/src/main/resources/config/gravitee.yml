@@ -59,8 +59,8 @@ http:
     # Configure the listening path for the API. Default to /
 #    entrypoint: /
     # Configure Management API and Portal API.
-#    management:
-#      enabled: true
+    management:
+      enabled: true
 #      entrypoint: ${http.api.entrypoint}management
 #      cors:
 # Allows to configure the header Access-Control-Allow-Origin (default value: *)

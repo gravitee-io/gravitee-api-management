@@ -15,26 +15,14 @@
  */
 package io.gravitee.gateway.reactive.core.context;
 
-import static io.gravitee.common.http.MediaType.APPLICATION_GRPC;
-import static io.gravitee.common.http.MediaType.APPLICATION_OCTET_STREAM;
-import static io.gravitee.common.http.MediaType.TEXT_EVENT_STREAM;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.core.BufferFlow;
-import io.reactivex.rxjava3.core.Flowable;
-import io.vertx.core.http.HttpVersion;
-import io.vertx.rxjava3.core.http.HttpHeaders;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;

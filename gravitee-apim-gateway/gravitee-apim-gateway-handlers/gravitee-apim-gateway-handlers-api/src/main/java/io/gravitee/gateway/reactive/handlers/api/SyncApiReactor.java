@@ -34,6 +34,7 @@ import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
@@ -47,6 +48,7 @@ import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionHelper;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
+import io.gravitee.gateway.reactive.core.tracing.InvokerTracingHook;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsUtils;
@@ -105,11 +107,12 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     protected final ProcessorChain beforeApiFlowsProcessors;
     protected final ProcessorChain afterApiFlowsProcessors;
     protected final ProcessorChain onErrorProcessors;
+    private final Configuration configuration;
     protected final Node node;
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
     private final AccessPointManager accessPointManager;
     private final EventManager eventManager;
-    private final boolean tracingEnabled;
+    private final TracingContext tracingContext;
     private final String loggingExcludedResponseType;
     private final String loggingMaxSize;
     private final AtomicInteger pendingRequests = new AtomicInteger(0);
@@ -131,7 +134,8 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         final Node node,
         final RequestTimeoutConfiguration requestTimeoutConfiguration,
         final AccessPointManager accessPointManager,
-        final EventManager eventManager
+        final EventManager eventManager,
+        final TracingContext tracingContext
     ) {
         this.api = api;
         this.componentProvider = componentProvider;
@@ -143,21 +147,22 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         this.requestTimeoutConfiguration = requestTimeoutConfiguration;
         this.accessPointManager = accessPointManager;
         this.eventManager = eventManager;
+        this.tracingContext = tracingContext;
 
-        this.beforeHandleProcessors = apiProcessorChainFactory.beforeHandle(api);
-        this.afterHandleProcessors = apiProcessorChainFactory.afterHandle(api);
-        this.beforeSecurityChainProcessors = apiProcessorChainFactory.beforeSecurityChain(api);
-        this.beforeApiFlowsProcessors = apiProcessorChainFactory.beforeApiExecution(api);
-        this.afterApiFlowsProcessors = apiProcessorChainFactory.afterApiExecution(api);
-        this.onErrorProcessors = apiProcessorChainFactory.onError(api);
+        this.beforeHandleProcessors = apiProcessorChainFactory.beforeHandle(api, tracingContext);
+        this.afterHandleProcessors = apiProcessorChainFactory.afterHandle(api, tracingContext);
+        this.beforeSecurityChainProcessors = apiProcessorChainFactory.beforeSecurityChain(api, tracingContext);
+        this.beforeApiFlowsProcessors = apiProcessorChainFactory.beforeApiExecution(api, tracingContext);
+        this.afterApiFlowsProcessors = apiProcessorChainFactory.afterApiExecution(api, tracingContext);
+        this.onErrorProcessors = apiProcessorChainFactory.onError(api, tracingContext);
 
-        this.organizationFlowChain = flowChainFactory.createOrganizationFlow(api);
-        this.apiPlanFlowChain = flowChainFactory.createPlanFlow(api);
-        this.apiFlowChain = flowChainFactory.createApiFlow(api);
+        this.organizationFlowChain = flowChainFactory.createOrganizationFlow(api, tracingContext);
+        this.apiPlanFlowChain = flowChainFactory.createPlanFlow(api, tracingContext);
+        this.apiFlowChain = flowChainFactory.createApiFlow(api, tracingContext);
 
         this.node = node;
 
-        this.tracingEnabled = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
+        this.configuration = configuration;
         this.pendingRequestsTimeout = configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L);
         this.loggingExcludedResponseType =
             configuration.getProperty(REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY, String.class, null);
@@ -170,6 +175,11 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     @Override
     public Api api() {
         return api;
+    }
+
+    @Override
+    public TracingContext tracingContext() {
+        return tracingContext;
     }
 
     @Override
@@ -421,15 +431,19 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
         // Create securityChain once policy manager has been started.
         this.securityChain = new SecurityChain(api.getDefinition(), policyManager, REQUEST);
-        if (tracingEnabled) {
-            processorChainHooks.add(new TracingHook("processor-chain"));
-            invokerHooks.add(new TracingHook("invoker"));
-            securityChain.addHooks(new TracingHook("security-plan"));
-        }
 
-        this.analyticsContext = AnalyticsUtils.createAnalyticsContext(api.getDefinition(), loggingMaxSize, loggingExcludedResponseType);
+        tracingContext.start();
+        this.analyticsContext =
+            AnalyticsUtils.createAnalyticsContext(api.getDefinition(), loggingMaxSize, loggingExcludedResponseType, tracingContext);
         if (analyticsContext.isLoggingEnabled()) {
             invokerHooks.add(new LoggingHook());
+        }
+        if (analyticsContext.isTracingEnabled()) {
+            if (analyticsContext.getTracingContext().isVerbose()) {
+                processorChainHooks.add(new TracingHook("Processor chain"));
+            }
+            invokerHooks.add(new InvokerTracingHook("Invoker"));
+            securityChain.addHooks(new TracingHook("Security plan"));
         }
 
         long endTime = System.currentTimeMillis(); // Get the end Time

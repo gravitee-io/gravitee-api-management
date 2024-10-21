@@ -16,15 +16,15 @@
 package io.gravitee.gateway.reactive.core.processor;
 
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.Hookable;
 import io.gravitee.gateway.reactive.api.hook.ProcessorHook;
-import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,9 +32,9 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class ProcessorChain implements Hookable<ProcessorHook> {
 
-    private final Logger log = LoggerFactory.getLogger(ProcessorChain.class);
     private final String id;
     private final Flowable<Processor> processors;
     private List<ProcessorHook> processorHooks;
@@ -58,11 +58,11 @@ public class ProcessorChain implements Hookable<ProcessorHook> {
         processorHooks.addAll(hooks);
     }
 
-    public Completable execute(final MutableExecutionContext ctx, final ExecutionPhase phase) {
+    public Completable execute(final HttpExecutionContextInternal ctx, final ExecutionPhase phase) {
         return processors.concatMapCompletable(processor -> executeNext(ctx, processor, phase));
     }
 
-    private Completable executeNext(final MutableExecutionContext ctx, final Processor processor, final ExecutionPhase phase) {
+    private Completable executeNext(final HttpExecutionContextInternal ctx, final Processor processor, final ExecutionPhase phase) {
         log.debug("Executing processor {} in processor chain {}", processor.getId(), id);
         return HookHelper.hook(() -> processor.execute(ctx), processor.getId(), processorHooks, ctx, phase);
     }

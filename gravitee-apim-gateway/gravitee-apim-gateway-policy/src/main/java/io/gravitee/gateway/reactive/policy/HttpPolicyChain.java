@@ -19,8 +19,8 @@ import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.Hookable;
 import io.gravitee.gateway.reactive.api.hook.HttpHook;
-import io.gravitee.gateway.reactive.api.hook.MessageHook;
 import io.gravitee.gateway.reactive.api.hook.PolicyHook;
+import io.gravitee.gateway.reactive.api.hook.PolicyMessageHook;
 import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.reactivex.rxjava3.core.Completable;
@@ -47,7 +47,7 @@ public class HttpPolicyChain implements Hookable<HttpHook>, PolicyChain<HttpExec
     private final Flowable<HttpPolicy> policies;
     private final ExecutionPhase phase;
     private List<PolicyHook> policyHooks;
-    private List<MessageHook> messageHooks;
+    private List<PolicyMessageHook> policyMessageHooks;
 
     /**
      * Creates a policy chain with the given list of policies.
@@ -72,14 +72,14 @@ public class HttpPolicyChain implements Hookable<HttpHook>, PolicyChain<HttpExec
         if (this.policyHooks == null) {
             this.policyHooks = new ArrayList<>();
         }
-        if (this.messageHooks == null) {
-            this.messageHooks = new ArrayList<>();
+        if (this.policyMessageHooks == null) {
+            this.policyMessageHooks = new ArrayList<>();
         }
         hooks.forEach(hook -> {
             if (hook instanceof PolicyHook) {
                 this.policyHooks.add((PolicyHook) hook);
-            } else if (hook instanceof MessageHook) {
-                this.messageHooks.add((MessageHook) hook);
+            } else if (hook instanceof PolicyMessageHook) {
+                this.policyMessageHooks.add((PolicyMessageHook) hook);
             }
         });
     }
@@ -106,9 +106,9 @@ public class HttpPolicyChain implements Hookable<HttpHook>, PolicyChain<HttpExec
             case RESPONSE:
                 return HookHelper.hook(() -> policy.onResponse(ctx), policy.id(), policyHooks, ctx, phase);
             case MESSAGE_REQUEST:
-                return HookHelper.hook(() -> policy.onMessageRequest(ctx), policy.id(), messageHooks, ctx, phase);
+                return HookHelper.hook(() -> policy.onMessageRequest(ctx), policy.id(), policyMessageHooks, ctx, phase);
             case MESSAGE_RESPONSE:
-                return HookHelper.hook(() -> policy.onMessageResponse(ctx), policy.id(), messageHooks, ctx, phase);
+                return HookHelper.hook(() -> policy.onMessageResponse(ctx), policy.id(), policyMessageHooks, ctx, phase);
             default:
                 return Completable.error(new IllegalArgumentException("Execution phase unknown"));
         }

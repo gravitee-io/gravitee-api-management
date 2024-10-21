@@ -21,6 +21,7 @@ import io.gravitee.gateway.debug.vertx.VertxHttpServerRequestDebugDecorator;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestClientAuthConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
+import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.debug.reactor.context.DebugExecutionContext;
 import io.gravitee.gateway.reactive.debug.reactor.processor.DebugPlatformProcessorChainFactory;
@@ -30,6 +31,9 @@ import io.gravitee.gateway.reactive.reactor.handler.HttpAcceptorResolver;
 import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
+import io.gravitee.node.api.Node;
+import io.gravitee.node.api.opentelemetry.Tracer;
+import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.vertx.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 
@@ -48,7 +52,6 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
         ResponseProcessorChainFactory responseProcessorChainFactory,
         DebugPlatformProcessorChainFactory platformProcessorChainFactory,
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
-        boolean tracingEnabled,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         RequestClientAuthConfiguration requestClientAuthConfiguration,
         Vertx vertx
@@ -62,7 +65,7 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
             responseProcessorChainFactory,
             platformProcessorChainFactory,
             notFoundProcessorChainFactory,
-            tracingEnabled,
+            TracingContext.noop(),
             requestTimeoutConfiguration,
             requestClientAuthConfiguration,
             vertx

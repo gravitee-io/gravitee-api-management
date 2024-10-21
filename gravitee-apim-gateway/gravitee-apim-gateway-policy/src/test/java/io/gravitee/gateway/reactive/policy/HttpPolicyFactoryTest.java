@@ -78,7 +78,7 @@ class HttpPolicyFactoryTest {
 
     @BeforeEach
     void init() {
-        cut = new HttpPolicyFactory(policyPluginFactory, new ExpressionLanguageConditionFilter<>());
+        cut = new HttpPolicyFactory(null, policyPluginFactory, new ExpressionLanguageConditionFilter<>());
         policyConfiguration = new DummyPolicyConfiguration();
         ((DummyPolicyConfiguration) policyConfiguration).setValue(1);
         policyMetadata = new PolicyMetadata("dummy-reactive", "{\"value\": 1}");

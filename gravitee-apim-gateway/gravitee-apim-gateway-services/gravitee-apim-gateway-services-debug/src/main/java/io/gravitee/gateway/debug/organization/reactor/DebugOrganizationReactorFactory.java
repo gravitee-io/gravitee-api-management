@@ -23,7 +23,7 @@ import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPol
 import io.gravitee.gateway.reactive.platform.organization.reactor.DefaultOrganizationReactorFactory;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
-import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -41,7 +41,7 @@ public class DebugOrganizationReactorFactory extends DefaultOrganizationReactorF
         final PolicyFactoryManager policyFactoryManager,
         final PolicyClassLoaderFactory policyClassLoaderFactory,
         final ComponentProvider componentProvider,
-        final Configuration configuration
+        final OpenTelemetryConfiguration configuration
     ) {
         super(defaultClassLoader, applicationContext, policyFactoryManager, policyClassLoaderFactory, componentProvider, configuration);
     }
@@ -50,6 +50,6 @@ public class DebugOrganizationReactorFactory extends DefaultOrganizationReactorF
         final ReactableOrganization reactableOrganization,
         final OrganizationPolicyManager organizationPolicyManager
     ) {
-        return new DebugPolicyChainFactory("platform-" + reactableOrganization.getId(), organizationPolicyManager, configuration);
+        return new DebugPolicyChainFactory("platform-" + reactableOrganization.getId(), organizationPolicyManager, false);
     }
 }

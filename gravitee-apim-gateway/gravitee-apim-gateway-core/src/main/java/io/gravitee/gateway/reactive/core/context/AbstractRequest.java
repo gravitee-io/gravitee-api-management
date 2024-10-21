@@ -234,13 +234,13 @@ public abstract class AbstractRequest implements MutableRequest, HttpRequestInte
     }
 
     @Override
-    public void setMessagesInterceptor(Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor) {
-        lazyMessageFlow().setOnMessagesInterceptor(interceptor);
+    public void registerMessagesInterceptor(final MessagesInterceptor messagesInterceptor) {
+        lazyMessageFlow().registerMessagesInterceptor(messagesInterceptor);
     }
 
     @Override
-    public void unsetMessagesInterceptor() {
-        lazyMessageFlow().unsetOnMessagesInterceptor();
+    public void unregisterMessagesInterceptor(final String id) {
+        lazyMessageFlow().unregisterMessagesInterceptor(id);
     }
 
     @Override
