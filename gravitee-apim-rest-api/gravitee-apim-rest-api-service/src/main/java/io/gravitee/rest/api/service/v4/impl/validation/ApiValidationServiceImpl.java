@@ -124,7 +124,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         );
         // Validate and clean listeners
         newApiEntity.setListeners(
-            listenerValidationService.validateAndSanitize(
+            listenerValidationService.validateAndSanitizeHttpV4(
                 executionContext,
                 null,
                 newApiEntity.getListeners(),
@@ -133,7 +133,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         );
         // Validate and clean endpoints
         newApiEntity.setEndpointGroups(
-            endpointGroupsValidationService.validateAndSanitize(newApiEntity.getType(), newApiEntity.getEndpointGroups())
+            endpointGroupsValidationService.validateAndSanitizeHttpV4(newApiEntity.getType(), newApiEntity.getEndpointGroups())
         );
         // Validate and clean logging
         newApiEntity.setAnalytics(
@@ -179,7 +179,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         );
         // Validate and clean listeners
         updateApiEntity.setListeners(
-            listenerValidationService.validateAndSanitize(
+            listenerValidationService.validateAndSanitizeHttpV4(
                 executionContext,
                 updateApiEntity.getId(),
                 updateApiEntity.getListeners(),
@@ -188,7 +188,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         );
         // Validate and clean endpoints
         updateApiEntity.setEndpointGroups(
-            endpointGroupsValidationService.validateAndSanitize(updateApiEntity.getType(), updateApiEntity.getEndpointGroups())
+            endpointGroupsValidationService.validateAndSanitizeHttpV4(updateApiEntity.getType(), updateApiEntity.getEndpointGroups())
         );
         // Validate and clean logging
         updateApiEntity.setAnalytics(
@@ -231,11 +231,16 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         apiEntity.setGroups(groupValidationService.validateAndSanitize(executionContext, null, apiEntity.getGroups(), primaryOwnerEntity));
         // Validate and clean listeners
         apiEntity.setListeners(
-            listenerValidationService.validateAndSanitize(executionContext, null, apiEntity.getListeners(), apiEntity.getEndpointGroups())
+            listenerValidationService.validateAndSanitizeHttpV4(
+                executionContext,
+                null,
+                apiEntity.getListeners(),
+                apiEntity.getEndpointGroups()
+            )
         );
         // Validate and clean endpoints
         apiEntity.setEndpointGroups(
-            endpointGroupsValidationService.validateAndSanitize(apiEntity.getType(), apiEntity.getEndpointGroups())
+            endpointGroupsValidationService.validateAndSanitizeHttpV4(apiEntity.getType(), apiEntity.getEndpointGroups())
         );
         // Validate and clean logging
         apiEntity.setAnalytics(

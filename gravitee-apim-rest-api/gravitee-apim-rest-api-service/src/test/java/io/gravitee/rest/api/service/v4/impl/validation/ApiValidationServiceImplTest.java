@@ -138,8 +138,8 @@ public class ApiValidationServiceImplTest {
 
         verify(tagsValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), null, null);
         verify(groupValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), null, null, primaryOwnerEntity);
-        verify(listenerValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), null, null, null);
-        verify(endpointGroupsValidationService, times(1)).validateAndSanitize(newApiEntity.getType(), null);
+        verify(listenerValidationService, times(1)).validateAndSanitizeHttpV4(GraviteeContext.getExecutionContext(), null, null, null);
+        verify(endpointGroupsValidationService, times(1)).validateAndSanitizeHttpV4(newApiEntity.getType(), null);
         verify(loggingValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), newApiEntity.getType(), null);
         verify(flowValidationService, times(1)).validateAndSanitize(newApiEntity.getType(), null);
         verify(resourcesValidationService, never()).validateAndSanitize(any());
@@ -160,8 +160,8 @@ public class ApiValidationServiceImplTest {
 
         verify(tagsValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), null, Set.of());
         verify(groupValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), null, null, primaryOwnerEntity);
-        verify(listenerValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), null, null, null);
         verify(endpointGroupsValidationService, times(1)).validateAndSanitize(apiEntity.getType(), null);
+        verify(listenerValidationService, times(1)).validateAndSanitizeHttpV4(GraviteeContext.getExecutionContext(), null, null, null);
         verify(loggingValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), apiEntity.getType(), null);
         verify(flowValidationService, times(1)).validateAndSanitize(apiEntity.getType(), null);
         verify(resourcesValidationService, times(1)).validateAndSanitize(List.of());
