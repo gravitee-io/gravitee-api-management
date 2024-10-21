@@ -90,16 +90,24 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         entity.setCategory(plugin.manifest().category());
         entity.setDeployed(plugin.deployed());
 
-        var proxyPhase = getFlowPhase(plugin, "proxy");
-        var messagePhase = getFlowPhase(plugin, "message");
+        var httpProxyFlowPhase = getFlowPhase(plugin, ApiProtocolType.HTTP_PROXY);
+        var httpMessageFlowPhase = getFlowPhase(plugin, ApiProtocolType.HTTP_MESSAGE);
+        var nativeKafkaFlowPhase = getFlowPhase(plugin, ApiProtocolType.NATIVE_KAFKA);
+        if (httpProxyFlowPhase.isEmpty()) {
+            httpProxyFlowPhase = getDeprecatedFlowPhase(plugin, "proxy");
+        }
+        if (httpMessageFlowPhase.isEmpty()) {
+            httpMessageFlowPhase = getDeprecatedFlowPhase(plugin, "message");
+        }
 
-        entity.putFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY, proxyPhase);
-        entity.putFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE, messagePhase);
+        entity.putFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY, httpProxyFlowPhase);
+        entity.putFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE, httpMessageFlowPhase);
+        entity.putFlowPhaseCompatibility(ApiProtocolType.NATIVE_KAFKA, nativeKafkaFlowPhase);
 
         return entity;
     }
 
-    private static Set<FlowPhase> getFlowPhase(Plugin plugin, String property) {
+    private static Set<FlowPhase> getDeprecatedFlowPhase(Plugin plugin, String property) {
         if (
             plugin.manifest().properties() != null &&
             plugin.manifest().properties().get(property) != null &&
@@ -119,6 +127,23 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
                         case RESPONSE -> FlowPhase.RESPONSE;
                     }
                 )
+                .collect(Collectors.toSet());
+        } else {
+            return Collections.emptySet();
+        }
+    }
+
+    private static Set<FlowPhase> getFlowPhase(Plugin plugin, ApiProtocolType apiProtocolType) {
+        String apiProtocolTypeProperty = apiProtocolType.name().toLowerCase();
+        if (
+            plugin.manifest().properties() != null &&
+            plugin.manifest().properties().get(apiProtocolTypeProperty) != null &&
+            !plugin.manifest().properties().get(apiProtocolTypeProperty).isEmpty()
+        ) {
+            return Arrays
+                .stream(plugin.manifest().properties().get(apiProtocolTypeProperty).split(","))
+                .map(String::trim)
+                .map(FlowPhase::valueOf)
                 .collect(Collectors.toSet());
         } else {
             return Collections.emptySet();
