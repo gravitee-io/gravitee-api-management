@@ -66,6 +66,7 @@ import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableObserver;
@@ -288,7 +289,8 @@ class SyncApiReactorTest {
                 node,
                 requestTimeoutConfiguration,
                 accessPointManager,
-                eventManager
+                eventManager,
+                new NoOpTracer()
             );
 
         lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_INVOKER)).thenReturn(invokerAdapter);

@@ -125,7 +125,7 @@ public class SecurityChain implements Hookable<SecurityPlanHook> {
                         log.debug("Executing security chain");
                         ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, "security");
                     })
-                    .doFinally(() -> {
+                    .doOnTerminate(() -> {
                         ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE);
                         ctx.removeInternalAttribute(ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE);
                         ctx.removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);

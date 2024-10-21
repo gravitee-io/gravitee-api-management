@@ -23,7 +23,6 @@ import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_VALIDATE_SUBSCRIPTION;
 import static io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactor.PENDING_REQUESTS_TIMEOUT_PROPERTY;
 import static io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactor.REQUEST_TIMEOUT_KEY;
-import static io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactor.SERVICES_TRACING_ENABLED_PROPERTY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -83,6 +82,7 @@ import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.reporter.api.v4.metric.Metrics;
@@ -353,7 +353,6 @@ class DefaultApiReactorTest {
             .thenReturn(entrypointConnector);
         lenient().when(entrypointConnector.supportedApi()).thenReturn(ApiType.PROXY);
 
-        when(configuration.getProperty(SERVICES_TRACING_ENABLED_PROPERTY, Boolean.class, false)).thenReturn(false);
         when(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L)).thenReturn(10_000L);
         when(configuration.getProperty(ATTR_INTERNAL_VALIDATE_SUBSCRIPTION, Boolean.class, true)).thenReturn(true);
 
@@ -399,7 +398,8 @@ class DefaultApiReactorTest {
                     requestTimeoutConfiguration,
                     reporterService,
                     accessPointManager,
-                    eventManager
+                    eventManager,
+                    new NoOpTracer()
                 );
             ReflectionTestUtils.setField(defaultApiReactor, "entrypointConnectorResolver", entrypointConnectorResolver);
             ReflectionTestUtils.setField(defaultApiReactor, "defaultInvoker", defaultInvoker);

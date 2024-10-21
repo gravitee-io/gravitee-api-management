@@ -56,10 +56,13 @@ import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.gateway.security.core.SubscriptionTrustStoreLoaderManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.node.api.opentelemetry.InstrumenterTracerFactory;
 import io.gravitee.node.api.server.ServerManager;
+import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
+import java.util.List;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -125,7 +128,7 @@ public class ApiHandlerConfiguration {
 
     @Bean
     public PolicyFactory policyFactory(final PolicyPluginFactory policyPluginFactory) {
-        return new HttpPolicyFactory(policyPluginFactory, new ExpressionLanguageConditionFilter<>());
+        return new HttpPolicyFactory(configuration, policyPluginFactory, new ExpressionLanguageConditionFilter<>());
     }
 
     @Bean
@@ -171,7 +174,9 @@ public class ApiHandlerConfiguration {
         io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         AccessPointManager accessPointManager,
-        EventManager eventManager
+        EventManager eventManager,
+        OpenTelemetryFactory openTelemetryFactory,
+        @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories
     ) {
         return new ApiReactorHandlerFactory(
             applicationContext,
@@ -186,7 +191,9 @@ public class ApiHandlerConfiguration {
             flowResolverFactory,
             requestTimeoutConfiguration,
             accessPointManager,
-            eventManager
+            eventManager,
+            openTelemetryFactory,
+            instrumenterTracerFactories
         );
     }
 
@@ -222,7 +229,7 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public ReactorFactory<io.gravitee.gateway.reactive.handlers.api.v4.Api> asyncApiReactorFactory(
+    public ReactorFactory<io.gravitee.gateway.reactive.handlers.api.v4.Api> defaultApiReactorFactory(
         PolicyFactoryManager policyFactoryManager,
         EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         EndpointConnectorPluginManager endpointConnectorPluginManager,
@@ -233,7 +240,9 @@ public class ApiHandlerConfiguration {
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         ReporterService reporterService,
         AccessPointManager accessPointManager,
-        EventManager eventManager
+        EventManager eventManager,
+        OpenTelemetryFactory openTelemetryFactory,
+        @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories
     ) {
         return new DefaultApiReactorFactory(
             applicationContext,
@@ -249,7 +258,9 @@ public class ApiHandlerConfiguration {
             requestTimeoutConfiguration,
             reporterService,
             accessPointManager,
-            eventManager
+            eventManager,
+            openTelemetryFactory,
+            instrumenterTracerFactories
         );
     }
 
@@ -257,14 +268,18 @@ public class ApiHandlerConfiguration {
     ReactorFactory<io.gravitee.gateway.reactive.handlers.api.v4.Api> tcpApiReactorFactory(
         EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         EndpointConnectorPluginManager endpointConnectorPluginManager,
-        RequestTimeoutConfiguration requestTimeoutConfiguration
+        RequestTimeoutConfiguration requestTimeoutConfiguration,
+        OpenTelemetryFactory openTelemetryFactory,
+        @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories
     ) {
         return new TcpApiReactorFactory(
             configuration,
             node,
             entrypointConnectorPluginManager,
             endpointConnectorPluginManager,
-            requestTimeoutConfiguration
+            requestTimeoutConfiguration,
+            openTelemetryFactory,
+            instrumenterTracerFactories
         );
     }
 }

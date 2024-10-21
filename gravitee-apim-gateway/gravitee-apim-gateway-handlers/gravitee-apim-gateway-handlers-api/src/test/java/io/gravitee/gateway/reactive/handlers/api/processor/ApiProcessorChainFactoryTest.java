@@ -85,7 +85,7 @@ class ApiProcessorChainFactoryTest {
         apiModel.setProxy(proxy);
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.beforeHandle(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-before-api-handle");
+        assertThat(processorChain.getId()).isEqualTo("before-api-handle");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors.test().assertNoValues();
     }
@@ -100,7 +100,7 @@ class ApiProcessorChainFactoryTest {
         apiModel.setProxy(proxy);
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.beforeHandle(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-before-api-handle");
+        assertThat(processorChain.getId()).isEqualTo("before-api-handle");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors.test().assertNoValues();
     }
@@ -115,7 +115,7 @@ class ApiProcessorChainFactoryTest {
         apiModel.setProxy(proxy);
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.beforeHandle(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-before-api-handle");
+        assertThat(processorChain.getId()).isEqualTo("before-api-handle");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
             .test()
@@ -132,7 +132,7 @@ class ApiProcessorChainFactoryTest {
         apiModel.setProxy(proxy);
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-before-api-execution");
+        assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors.test().assertComplete().assertValueCount(1).assertValueAt(0, processor -> processor instanceof SubscriptionProcessor);
     }
@@ -147,7 +147,7 @@ class ApiProcessorChainFactoryTest {
         apiModel.setProxy(proxy);
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.beforeSecurityChain(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-before-security-chain");
+        assertThat(processorChain.getId()).isEqualTo("before-security-chain");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
             .test()
@@ -167,7 +167,7 @@ class ApiProcessorChainFactoryTest {
 
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-before-api-execution");
+        assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
             .test()
@@ -190,7 +190,7 @@ class ApiProcessorChainFactoryTest {
 
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-before-api-execution");
+        assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
             .test()
@@ -210,7 +210,7 @@ class ApiProcessorChainFactoryTest {
         apiModel.setProxy(proxy);
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-before-api-execution");
+        assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors.test().assertComplete().assertValueCount(1).assertValueAt(0, processor -> processor instanceof SubscriptionProcessor);
     }
@@ -223,7 +223,7 @@ class ApiProcessorChainFactoryTest {
         apiModel.setProxy(proxy);
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-before-api-execution");
+        assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
             .test()
@@ -243,7 +243,7 @@ class ApiProcessorChainFactoryTest {
         apiModel.setProxy(proxy);
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.afterApiExecution(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-after-api-execution");
+        assertThat(processorChain.getId()).isEqualTo("after-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
             .test()
@@ -264,7 +264,7 @@ class ApiProcessorChainFactoryTest {
         apiModel.setProxy(proxy);
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.afterApiExecution(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-after-api-execution");
+        assertThat(processorChain.getId()).isEqualTo("after-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
             .test()
@@ -282,7 +282,7 @@ class ApiProcessorChainFactoryTest {
         apiModel.setProxy(proxy);
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.onError(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-api-error");
+        assertThat(processorChain.getId()).isEqualTo("api-error");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
             .test()
@@ -300,7 +300,7 @@ class ApiProcessorChainFactoryTest {
         apiModel.setProxy(proxy);
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.afterHandle(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-after-api-handle");
+        assertThat(processorChain.getId()).isEqualTo("after-api-handle");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors.test().assertNoValues();
     }
@@ -315,7 +315,7 @@ class ApiProcessorChainFactoryTest {
         apiModel.setProxy(proxy);
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.afterHandle(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-after-api-handle");
+        assertThat(processorChain.getId()).isEqualTo("after-api-handle");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors.test().assertNoValues();
     }
@@ -330,7 +330,7 @@ class ApiProcessorChainFactoryTest {
         apiModel.setProxy(proxy);
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.afterHandle(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-after-api-handle");
+        assertThat(processorChain.getId()).isEqualTo("after-api-handle");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors.test().assertComplete().assertValueCount(1).assertValueAt(0, processor -> processor instanceof LogResponseProcessor);
     }

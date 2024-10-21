@@ -38,6 +38,9 @@ import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerResponse;
+import io.gravitee.node.api.opentelemetry.Span;
+import io.gravitee.node.api.opentelemetry.http.ObservableHttpClientRequest;
+import io.gravitee.node.api.opentelemetry.http.ObservableHttpClientResponse;
 import io.gravitee.node.vertx.client.http.VertxHttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.UriHelper;
@@ -112,18 +115,21 @@ public class HttpConnector implements ProxyConnector {
             final Response response = ctx.response();
 
             final RequestOptions options = buildRequestOptions(ctx);
-
-            ctx.metrics().setEndpoint(VertxHttpClientFactory.toAbsoluteUri(options, defaultHost, defaultPort));
-
+            String absoluteUri = VertxHttpClientFactory.toAbsoluteUri(options, defaultHost, defaultPort);
+            options.setAbsoluteURI(absoluteUri);
+            ctx.metrics().setEndpoint(absoluteUri);
+            ObservableHttpClientRequest observableHttpClientRequest = new ObservableHttpClientRequest(options);
+            Span httpRequestSpan = ctx.getTracer().startSpanFrom(observableHttpClientRequest);
             return httpClientFactory
                 .getOrBuildHttpClient(ctx, configuration, sharedConfiguration)
                 .rxRequest(options)
                 .map(this::customizeHttpClientRequest)
-                .flatMap(httpClientRequest ->
-                    httpClientRequest.rxSend(
+                .flatMap(httpClientRequest -> {
+                    observableHttpClientRequest.httpClientRequest(httpClientRequest.getDelegate());
+                    return httpClientRequest.rxSend(
                         request.chunks().map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
-                    )
-                )
+                    );
+                })
                 .doOnSuccess(endpointResponse -> {
                     response.status(endpointResponse.statusCode());
 
@@ -143,7 +149,12 @@ public class HttpConnector implements ProxyConnector {
                                 copyHeaders(endpointResponse.trailers(), response.trailers())
                             )
                     );
+                    ObservableHttpClientResponse observableHttpClientResponse = new ObservableHttpClientResponse(
+                        endpointResponse.getDelegate()
+                    );
+                    ctx.getTracer().endWithResponse(httpRequestSpan, observableHttpClientResponse);
                 })
+                .doOnError(throwable -> ctx.getTracer().endOnError(httpRequestSpan, throwable))
                 .ignoreElement();
         } catch (Exception e) {
             return Completable.error(e);

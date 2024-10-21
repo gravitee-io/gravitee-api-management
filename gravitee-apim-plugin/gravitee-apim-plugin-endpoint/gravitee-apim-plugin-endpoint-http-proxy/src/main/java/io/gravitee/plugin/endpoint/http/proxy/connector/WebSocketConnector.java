@@ -27,6 +27,8 @@ import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.http.vertx.ws.VertxWebSocket;
+import io.gravitee.node.api.opentelemetry.Span;
+import io.gravitee.node.api.opentelemetry.http.ObservableHttpClientRequest;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
@@ -62,6 +64,9 @@ public class WebSocketConnector extends HttpConnector {
         try {
             final Request request = ctx.request();
             final RequestOptions options = buildRequestOptions(ctx);
+            ObservableHttpClientRequest observableHttpClientRequest = new ObservableHttpClientRequest(options);
+            Span httpRequestSpan = ctx.getTracer().startSpanFrom(observableHttpClientRequest);
+
             ctx.metrics().setEndpoint(options.getURI());
             WebSocketConnectOptions webSocketConnectOptions = new WebSocketConnectOptions(options.toJson());
             return httpClientFactory
@@ -116,7 +121,8 @@ public class WebSocketConnector extends HttpConnector {
                                     .message("Endpoint Websocket connection in error")
                             )
                         );
-                });
+                })
+                .doFinally(() -> ctx.getTracer().end(httpRequestSpan));
         } catch (Exception e) {
             return Completable.error(e);
         }

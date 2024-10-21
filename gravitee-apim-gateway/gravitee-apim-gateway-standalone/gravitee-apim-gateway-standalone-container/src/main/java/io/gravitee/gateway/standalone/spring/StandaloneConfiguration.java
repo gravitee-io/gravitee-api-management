@@ -28,6 +28,7 @@ import io.gravitee.gateway.env.RequestConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.spring.AccessPointConfiguration;
 import io.gravitee.gateway.handlers.api.spring.ApiHandlerConfiguration;
 import io.gravitee.gateway.handlers.sharedpolicygroup.spring.SharedPolicyGroupConfiguration;
+import io.gravitee.gateway.opentelemetry.spring.OpenTelemetryConfiguration;
 import io.gravitee.gateway.platform.spring.PlatformConfiguration;
 import io.gravitee.gateway.policy.spring.PolicyConfiguration;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
@@ -51,6 +52,7 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import(
     {
+        OpenTelemetryConfiguration.class,
         ReactorConfiguration.class,
         VertxReactorConfiguration.class,
         ReporterConfiguration.class,

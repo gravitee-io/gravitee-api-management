@@ -38,7 +38,9 @@ import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPol
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import java.util.Date;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -90,6 +92,9 @@ public class ApiReactorHandlerFactoryTest {
     @Mock
     private EventManager eventManager;
 
+    @Mock
+    private OpenTelemetryFactory openTelemetryFactory;
+
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -116,7 +121,9 @@ public class ApiReactorHandlerFactoryTest {
                 flowResolverFactory,
                 new RequestTimeoutConfiguration(2000L, 10L),
                 accessPointManager,
-                eventManager
+                eventManager,
+                openTelemetryFactory,
+                List.of()
             );
     }
 

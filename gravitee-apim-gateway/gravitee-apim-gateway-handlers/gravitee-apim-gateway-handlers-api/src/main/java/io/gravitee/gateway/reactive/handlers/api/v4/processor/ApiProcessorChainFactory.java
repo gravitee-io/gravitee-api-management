@@ -60,7 +60,7 @@ public class ApiProcessorChainFactory {
     private final boolean overrideXForwardedPrefix;
     private final String clientIdentifierHeader;
     private final Node node;
-    private final Configuration configuration;
+    protected final Configuration configuration;
     protected final ReporterService reporterService;
     private final List<ProcessorHook> processorHooks = new ArrayList<>();
 
@@ -95,7 +95,7 @@ public class ApiProcessorChainFactory {
             processors.add(LogRequestProcessor.instance());
         }
 
-        return new ProcessorChain("processor-chain-before-api-handle", processors, processorHooks);
+        return new ProcessorChain("before-api-handle", processors, processorHooks);
     }
 
     /**
@@ -117,7 +117,7 @@ public class ApiProcessorChainFactory {
                 }
             });
 
-        return new ProcessorChain("processor-chain-before-security-chain", processors, processorHooks);
+        return new ProcessorChain("before-security-chain", processors, processorHooks);
     }
 
     /**
@@ -150,7 +150,7 @@ public class ApiProcessorChainFactory {
                 });
         }
 
-        return new ProcessorChain("processor-chain-before-api-execution", processors, processorHooks);
+        return new ProcessorChain("before-api-execution", processors, processorHooks);
     }
 
     /**
@@ -162,7 +162,7 @@ public class ApiProcessorChainFactory {
      */
     public ProcessorChain afterApiExecution(final Api api) {
         final List<Processor> processors = getAfterApiExecutionProcessors(api);
-        return new ProcessorChain("processor-chain-after-api-execution", processors, processorHooks);
+        return new ProcessorChain("after-api-execution", processors, processorHooks);
     }
 
     private List<Processor> getAfterApiExecutionProcessors(Api api) {
@@ -199,7 +199,7 @@ public class ApiProcessorChainFactory {
             processors.add(SimpleFailureProcessor.instance());
         }
 
-        return new ProcessorChain("processor-chain-api-error", processors, processorHooks);
+        return new ProcessorChain("api-error", processors, processorHooks);
     }
 
     /**
@@ -210,7 +210,7 @@ public class ApiProcessorChainFactory {
      * @return the chain of processors.
      */
     public ProcessorChain afterHandle(final Api api) {
-        return new ProcessorChain("processor-chain-after-api-handle", afterHandleProcessors(api), processorHooks);
+        return new ProcessorChain("after-api-handle", afterHandleProcessors(api), processorHooks);
     }
 
     protected List<Processor> afterHandleProcessors(Api api) {

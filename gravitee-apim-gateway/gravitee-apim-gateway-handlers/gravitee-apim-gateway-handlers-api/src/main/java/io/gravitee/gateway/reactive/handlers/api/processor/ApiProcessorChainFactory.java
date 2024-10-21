@@ -83,7 +83,7 @@ public class ApiProcessorChainFactory {
             processors.add(LogRequestProcessor.instance());
         }
 
-        return new ProcessorChain("processor-chain-before-api-handle", processors, processorHooks);
+        return new ProcessorChain("before-api-handle", processors, processorHooks);
     }
 
     /**
@@ -101,7 +101,7 @@ public class ApiProcessorChainFactory {
             preProcessorList.add(CorsPreflightRequestProcessor.instance());
         }
 
-        ProcessorChain processorChain = new ProcessorChain("processor-chain-before-security-chain", preProcessorList);
+        ProcessorChain processorChain = new ProcessorChain("before-security-chain", preProcessorList);
         processorChain.addHooks(processorHooks);
         return processorChain;
     }
@@ -125,7 +125,7 @@ public class ApiProcessorChainFactory {
             preProcessorList.add(PathMappingProcessor.instance());
         }
 
-        ProcessorChain processorChain = new ProcessorChain("processor-chain-before-api-execution", preProcessorList);
+        ProcessorChain processorChain = new ProcessorChain("before-api-execution", preProcessorList);
         processorChain.addHooks(processorHooks);
         return processorChain;
     }
@@ -133,7 +133,7 @@ public class ApiProcessorChainFactory {
     public ProcessorChain afterApiExecution(final Api api) {
         List<Processor> postProcessorList = getAfterApiExecutionProcessors(api);
 
-        ProcessorChain processorChain = new ProcessorChain("processor-chain-after-api-execution", postProcessorList);
+        ProcessorChain processorChain = new ProcessorChain("after-api-execution", postProcessorList);
         processorChain.addHooks(processorHooks);
         return processorChain;
     }
@@ -160,7 +160,7 @@ public class ApiProcessorChainFactory {
             errorProcessorList.add(SimpleFailureProcessor.instance());
         }
 
-        ProcessorChain processorChain = new ProcessorChain("processor-chain-api-error", errorProcessorList);
+        ProcessorChain processorChain = new ProcessorChain("api-error", errorProcessorList);
         processorChain.addHooks(processorHooks);
         return processorChain;
     }
@@ -172,6 +172,6 @@ public class ApiProcessorChainFactory {
             processors.add(LogResponseProcessor.instance());
         }
 
-        return new ProcessorChain("processor-chain-after-api-handle", processors, processorHooks);
+        return new ProcessorChain("after-api-handle", processors, processorHooks);
     }
 }

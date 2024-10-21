@@ -25,7 +25,7 @@ import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.el.EvaluableRequest;
 import io.gravitee.gateway.api.el.EvaluableResponse;
 import io.gravitee.gateway.core.component.ComponentProvider;
-import io.gravitee.tracing.api.Tracer;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Map;
@@ -65,6 +65,11 @@ public class ReactableExecutionContext implements MutableExecutionContext {
     public ReactableExecutionContext response(Response response) {
         context.response(response);
         return this;
+    }
+
+    @Override
+    public MutableExecutionContext tracer(final Tracer tracer) {
+        return context.tracer(tracer);
     }
 
     @Override
@@ -127,7 +132,7 @@ public class ReactableExecutionContext implements MutableExecutionContext {
 
     @Override
     public Tracer getTracer() {
-        return getComponent(Tracer.class);
+        return context.getTracer();
     }
 
     void setProviders(Collection<TemplateVariableProvider> providers) {

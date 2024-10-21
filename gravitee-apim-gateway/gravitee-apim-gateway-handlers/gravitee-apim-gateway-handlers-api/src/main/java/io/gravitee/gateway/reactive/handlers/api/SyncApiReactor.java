@@ -47,6 +47,7 @@ import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionHelper;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
+import io.gravitee.gateway.reactive.core.tracing.InvokerTracingHook;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsUtils;
@@ -65,10 +66,13 @@ import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.api.opentelemetry.Tracer;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -77,8 +81,6 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -105,11 +107,12 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     protected final ProcessorChain beforeApiFlowsProcessors;
     protected final ProcessorChain afterApiFlowsProcessors;
     protected final ProcessorChain onErrorProcessors;
+    private final Configuration configuration;
     protected final Node node;
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
     private final AccessPointManager accessPointManager;
     private final EventManager eventManager;
-    private final boolean tracingEnabled;
+    private final Tracer tracer;
     private final String loggingExcludedResponseType;
     private final String loggingMaxSize;
     private final AtomicInteger pendingRequests = new AtomicInteger(0);
@@ -131,7 +134,8 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         final Node node,
         final RequestTimeoutConfiguration requestTimeoutConfiguration,
         final AccessPointManager accessPointManager,
-        final EventManager eventManager
+        final EventManager eventManager,
+        final Tracer tracer
     ) {
         this.api = api;
         this.componentProvider = componentProvider;
@@ -143,6 +147,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         this.requestTimeoutConfiguration = requestTimeoutConfiguration;
         this.accessPointManager = accessPointManager;
         this.eventManager = eventManager;
+        this.tracer = tracer;
 
         this.beforeHandleProcessors = apiProcessorChainFactory.beforeHandle(api);
         this.afterHandleProcessors = apiProcessorChainFactory.afterHandle(api);
@@ -157,7 +162,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
         this.node = node;
 
-        this.tracingEnabled = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
+        this.configuration = configuration;
         this.pendingRequestsTimeout = configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L);
         this.loggingExcludedResponseType =
             configuration.getProperty(REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY, String.class, null);
@@ -170,6 +175,11 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     @Override
     public Api api() {
         return api;
+    }
+
+    @Override
+    public Tracer tracer() {
+        return tracer;
     }
 
     @Override
@@ -421,15 +431,19 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
         // Create securityChain once policy manager has been started.
         this.securityChain = new SecurityChain(api.getDefinition(), policyManager, REQUEST);
-        if (tracingEnabled) {
-            processorChainHooks.add(new TracingHook("processor-chain"));
-            invokerHooks.add(new TracingHook("invoker"));
-            securityChain.addHooks(new TracingHook("security-plan"));
-        }
 
-        this.analyticsContext = AnalyticsUtils.createAnalyticsContext(api.getDefinition(), loggingMaxSize, loggingExcludedResponseType);
+        tracer.start();
+        this.analyticsContext =
+            AnalyticsUtils.createAnalyticsContext(configuration, api.getDefinition(), loggingMaxSize, loggingExcludedResponseType);
         if (analyticsContext.isLoggingEnabled()) {
             invokerHooks.add(new LoggingHook());
+        }
+        if (analyticsContext.isTracingEnabled()) {
+            if (analyticsContext.getTracingContext().verbose()) {
+                processorChainHooks.add(new TracingHook("Processor chain"));
+            }
+            invokerHooks.add(new InvokerTracingHook("Invoker"));
+            securityChain.addHooks(new TracingHook("Security plan"));
         }
 
         long endTime = System.currentTimeMillis(); // Get the end Time

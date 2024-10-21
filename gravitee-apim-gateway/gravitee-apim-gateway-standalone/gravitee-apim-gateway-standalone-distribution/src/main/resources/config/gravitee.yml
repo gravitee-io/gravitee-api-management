@@ -633,7 +633,9 @@ services:
 
   tracing:
     enabled: false
-    type: jaeger
+    type: otel
+    otel:
+      url: http://localhost:4317
     jaeger:
       host: localhost
       port: 14250

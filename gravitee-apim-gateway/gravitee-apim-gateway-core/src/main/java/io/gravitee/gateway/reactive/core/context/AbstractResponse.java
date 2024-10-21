@@ -21,6 +21,7 @@ import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.api.context.GenericResponse;
 import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
+import io.gravitee.gateway.reactive.api.hook.PolicyMessageHook;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.core.BufferFlow;
 import io.gravitee.gateway.reactive.core.MessageFlow;
@@ -30,6 +31,7 @@ import io.reactivex.rxjava3.core.FlowableTransformer;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.MaybeTransformer;
 import io.reactivex.rxjava3.core.Single;
+import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -161,13 +163,13 @@ public abstract class AbstractResponse implements MutableResponse, HttpResponseI
     }
 
     @Override
-    public void setMessagesInterceptor(Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor) {
-        lazyMessageFlow().setOnMessagesInterceptor(interceptor);
+    public void registerMessagesInterceptor(final MessagesInterceptor messagesInterceptor) {
+        lazyMessageFlow().registerMessagesInterceptor(messagesInterceptor);
     }
 
     @Override
-    public void unsetMessagesInterceptor() {
-        lazyMessageFlow().unsetOnMessagesInterceptor();
+    public void unregisterMessagesInterceptor(final String id) {
+        lazyMessageFlow().unregisterMessagesInterceptor(id);
     }
 
     @Override
