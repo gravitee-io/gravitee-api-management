@@ -22,15 +22,21 @@ import io.gravitee.apim.infra.adapter.PathAdapter;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorFeature;
 import io.gravitee.definition.model.v4.ConnectorMode;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.listener.entrypoint.Dlq;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
+import io.gravitee.definition.model.v4.nativeapi.NativeListener;
+import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -40,8 +46,11 @@ import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.*;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -77,7 +86,7 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     }
 
     @Override
-    public List<Listener> validateAndSanitize(
+    public List<Listener> validateAndSanitizeHttpV4(
         final ExecutionContext executionContext,
         final String apiId,
         final List<Listener> listeners,
@@ -104,7 +113,40 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         return listeners;
     }
 
-    private void checkDuplicatedListeners(final List<Listener> listeners) {
+    @Override
+    public List<NativeListener> validateAndSanitizeNativeV4(
+        ExecutionContext executionContext,
+        String apiId,
+        List<NativeListener> listeners,
+        List<NativeEndpointGroup> endpointGroups
+    ) {
+        if (listeners != null && !listeners.isEmpty()) {
+            checkDuplicatedListeners(listeners);
+            listeners.forEach(listener -> {
+                if (listener.getType() == ListenerType.KAFKA) {
+                    validateAndSanitizeKafkaListener(executionContext, apiId, (KafkaListener) listener, endpointGroups);
+                }
+            });
+        }
+        return listeners;
+    }
+
+    private void validateAndSanitizeKafkaListener(
+        ExecutionContext executionContext,
+        String apiId,
+        KafkaListener listener,
+        List<NativeEndpointGroup> endpointGroups
+    ) {
+        verifyApiHostsDomainService.checkApiHosts(
+            executionContext.getEnvironmentId(),
+            apiId,
+            Collections.singletonList(listener.getHost())
+        );
+
+        validateEntrypoints(listener.getType(), listener.getEntrypoints(), endpointGroups);
+    }
+
+    private void checkDuplicatedListeners(final List<? extends AbstractListener> listeners) {
         Set<ListenerType> seenListeners = new HashSet<>();
         Set<String> duplicatedListeners = listeners
             .stream()
@@ -168,8 +210,8 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
 
     private void validateEntrypoints(
         final ListenerType type,
-        final List<Entrypoint> entrypoints,
-        final List<EndpointGroup> endpointGroups
+        final List<? extends AbstractEntrypoint> entrypoints,
+        final List<? extends AbstractEndpointGroup> endpointGroups
     ) {
         if (entrypoints == null || entrypoints.isEmpty()) {
             throw new ListenerEntrypointMissingException(type);
@@ -182,8 +224,13 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
             final ConnectorPluginEntity connectorPlugin = entrypointService.findById(entrypoint.getType());
 
             checkEntrypointListenerType(type, connectorPlugin);
-            checkEntrypointQos(entrypoint, endpointGroups, connectorPlugin);
-            checkEntrypointDlq(entrypoint, endpointGroups, connectorPlugin);
+            // Only for message apis
+            if (entrypoint instanceof Entrypoint asHttpEntrypoint) {
+                var asHttpEndpointGroups = (List<EndpointGroup>) endpointGroups;
+                checkEntrypointQos(asHttpEntrypoint, asHttpEndpointGroups, connectorPlugin);
+                checkEntrypointDlq(asHttpEntrypoint, asHttpEndpointGroups, connectorPlugin);
+            }
+
             checkEntrypointConfiguration(entrypoint);
         });
     }
@@ -257,7 +304,7 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
             });
     }
 
-    private void checkEntrypointConfiguration(final Entrypoint entrypoint) {
+    private void checkEntrypointConfiguration(final AbstractEntrypoint entrypoint) {
         String entrypointConfiguration = null;
         if (entrypoint.getConfiguration() != null) {
             entrypointConfiguration = entrypoint.getConfiguration();
@@ -271,13 +318,13 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         }
     }
 
-    private void checkDuplicatedEntrypoints(final ListenerType type, final List<Entrypoint> entrypoints) {
+    private void checkDuplicatedEntrypoints(final ListenerType type, final List<? extends AbstractEntrypoint> entrypoints) {
         if (entrypoints != null) {
-            Set<Entrypoint> seenEntrypoints = new HashSet<>();
+            var seenEntrypoints = new HashSet<>();
             Set<String> duplicatedEntrypoints = entrypoints
                 .stream()
                 .filter(e -> !seenEntrypoints.add(e))
-                .map(Entrypoint::getType)
+                .map(AbstractEntrypoint::getType)
                 .collect(Collectors.toSet());
             if (!duplicatedEntrypoints.isEmpty()) {
                 throw new ListenerEntrypointDuplicatedException(type, duplicatedEntrypoints);

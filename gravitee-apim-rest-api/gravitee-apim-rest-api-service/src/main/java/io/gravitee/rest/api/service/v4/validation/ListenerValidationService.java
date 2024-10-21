@@ -17,6 +17,8 @@ package io.gravitee.rest.api.service.v4.validation;
 
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
+import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
@@ -25,10 +27,17 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface ListenerValidationService {
-    List<Listener> validateAndSanitize(
+    List<Listener> validateAndSanitizeHttpV4(
         ExecutionContext executionContext,
         String apiId,
         List<Listener> listeners,
         List<EndpointGroup> endpointGroups
+    );
+
+    List<NativeListener> validateAndSanitizeNativeV4(
+        ExecutionContext executionContext,
+        String apiId,
+        List<NativeListener> listeners,
+        List<NativeEndpointGroup> endpointGroups
     );
 }
