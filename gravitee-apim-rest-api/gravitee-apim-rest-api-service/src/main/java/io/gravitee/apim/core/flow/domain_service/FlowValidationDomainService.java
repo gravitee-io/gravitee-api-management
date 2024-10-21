@@ -27,6 +27,8 @@ import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
+import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -67,7 +69,7 @@ public class FlowValidationDomainService {
         flow -> flow.selectorByType(SelectorType.CHANNEL).stream().map(selector -> ((ChannelSelector) selector).getChannel()).findFirst()
     );
 
-    public List<Flow> validateAndSanitize(final ApiType apiType, List<Flow> flows) {
+    public List<Flow> validateAndSanitizeHttpV4(final ApiType apiType, List<Flow> flows) {
         if (flows != null) {
             flows.forEach(flow -> {
                 // Check duplicated selectors
@@ -77,7 +79,29 @@ public class FlowValidationDomainService {
                 checkSelectorsForType(apiType, flow);
 
                 // Validate policy
-                checkPolicyConfiguration(flow);
+                var steps = Stream
+                    .of(flow.getRequest(), flow.getResponse(), flow.getPublish(), flow.getSubscribe())
+                    .filter(Objects::nonNull)
+                    .flatMap(Collection::stream)
+                    .toList();
+
+                checkPolicyConfiguration(steps);
+            });
+        }
+        return flows;
+    }
+
+    public List<NativeFlow> validateAndSanitizeNativeV4(List<NativeFlow> flows) {
+        if (flows != null) {
+            flows.forEach(flow -> {
+                // Validate policy
+                var steps = Stream
+                    .of(flow.getInteract(), flow.getConnect(), flow.getPublish(), flow.getSubscribe())
+                    .filter(Objects::nonNull)
+                    .flatMap(Collection::stream)
+                    .toList();
+
+                checkPolicyConfiguration(steps);
             });
         }
         return flows;
@@ -140,11 +164,9 @@ public class FlowValidationDomainService {
         }
     }
 
-    private void checkPolicyConfiguration(final Flow flow) {
-        Stream
-            .of(flow.getRequest(), flow.getResponse(), flow.getSubscribe(), flow.getPublish())
-            .filter(Objects::nonNull)
-            .flatMap(Collection::stream)
+    private void checkPolicyConfiguration(final List<Step> steps) {
+        steps
+            .stream()
             .filter(step -> step != null && step.getPolicy() != null && step.getConfiguration() != null)
             .forEach(step ->
                 step.setConfiguration(
