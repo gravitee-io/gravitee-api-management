@@ -19,6 +19,7 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.time.ZonedDateTime;
@@ -74,6 +75,7 @@ public class Api {
     private DefinitionVersion definitionVersion;
 
     private io.gravitee.definition.model.v4.Api apiDefinitionV4;
+    private io.gravitee.definition.model.v4.nativeapi.NativeApi nativeApiDefinition;
     private io.gravitee.definition.model.Api apiDefinition;
     private io.gravitee.definition.model.federation.FederatedApi federatedApiDefinition;
 

@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api.model.factory;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewHttpApi;
+import io.gravitee.apim.core.api.model.NewNativeApi;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.async_job.model.AsyncJob;
@@ -41,6 +42,20 @@ public class ApiModelFactory {
             .createdAt(now)
             .updatedAt(now)
             .apiDefinitionV4(newHttpApi.toApiDefinitionBuilder().id(id).build())
+            .lifecycleState(Api.LifecycleState.STOPPED)
+            .build();
+    }
+
+    public static Api fromNewNativeApi(NewNativeApi newNativeApi, String environmentId) {
+        var id = UuidString.generateRandom();
+        var now = TimeProvider.now();
+        return newNativeApi
+            .toApiBuilder()
+            .id(id)
+            .environmentId(environmentId)
+            .createdAt(now)
+            .updatedAt(now)
+            .nativeApiDefinition(newNativeApi.toNativeApiDefinitionBuilder().id(id).build())
             .lifecycleState(Api.LifecycleState.STOPPED)
             .build();
     }
