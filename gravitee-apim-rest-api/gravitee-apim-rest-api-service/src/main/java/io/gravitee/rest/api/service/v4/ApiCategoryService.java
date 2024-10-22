@@ -20,6 +20,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.ToLongFunction;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -30,7 +31,7 @@ public interface ApiCategoryService {
 
     void deleteCategoryFromAPIs(ExecutionContext executionContext, String categoryId);
 
-    Map<String, Long> countApisPublishedGroupedByCategoriesForUser(String userId);
+    ToLongFunction<String> countApisPublishedGroupedByCategoriesForUser(String userId);
 
     void addApiToCategories(String apiId, Set<String> categoryId);
     void changeApiOrderInCategory(String apiId, String categoryId, int nextOrder);

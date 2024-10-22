@@ -17,14 +17,10 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.CategoryEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.CategoriesResponse;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
@@ -69,13 +65,12 @@ public class CategoriesResourceNotAuthenticatedTest extends AbstractResourceTest
         category3.setOrder(1);
 
         List<CategoryEntity> mockCategories = Arrays.asList(category1, category2, category3);
-        doReturn(mockCategories).when(categoryService).findAll(GraviteeContext.getCurrentEnvironment());
+        when(categoryService.findAll(GraviteeContext.getCurrentEnvironment())).thenReturn(mockCategories);
 
-        doReturn(Map.of(category1.getId(), 1L, category2.getId(), 1L, category3.getId(), 1L))
-            .when(apiCategoryService)
-            .countApisPublishedGroupedByCategoriesForUser(any());
+        Map<String, Long> countByCat = Map.of(category1.getId(), 1L, category2.getId(), 1L, category3.getId(), 1L);
+        when(apiCategoryService.countApisPublishedGroupedByCategoriesForUser(any())).thenReturn(cat -> countByCat.getOrDefault(cat, 0L));
 
-        doReturn(false).when(ratingService).isEnabled(GraviteeContext.getExecutionContext());
+        when(ratingService.isEnabled(GraviteeContext.getExecutionContext())).thenReturn(false);
 
         Mockito.when(categoryMapper.convert(any(), any())).thenCallRealMethod();
     }

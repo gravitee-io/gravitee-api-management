@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -141,7 +142,7 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
     }
 
     @Override
-    public Map<String, Long> countApisPublishedGroupedByCategoriesForUser(final String userId) {
+    public ToLongFunction<String> countApisPublishedGroupedByCategoriesForUser(final String userId) {
         List<ApiCriteria> criteriaList = new ArrayList<>();
         // Find all Public and published APIs
         criteriaList.add(new ApiCriteria.Builder().visibility(PUBLIC).lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).build());
@@ -168,14 +169,15 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
         Page<String> foundApiIds = apiRepository.searchIds(criteriaList, new PageableBuilder().pageSize(Integer.MAX_VALUE).build(), null);
 
         if (foundApiIds.getContent() == null || foundApiIds.getContent().isEmpty()) {
-            return Collections.emptyMap();
+            return categoryId -> 0L;
         }
 
-        return apiRepository
+        var apiByCatgeory = apiRepository
             .search(new ApiCriteria.Builder().ids(foundApiIds.getContent()).build(), null, ApiFieldFilter.defaultFields())
             .filter(api -> api.getCategories() != null && !api.getCategories().isEmpty())
             .flatMap(api -> api.getCategories().stream().map(cat -> Pair.of(cat, api)))
             .collect(groupingBy(Pair::getKey, HashMap::new, counting()));
+        return categoryId -> apiByCatgeory.getOrDefault(categoryId, 0L);
     }
 
     @Override
