@@ -1304,6 +1304,11 @@ gateway:
       #delay: 5000
       #unit: MILLISECONDS
 
+    heartbeat:
+      enabled: true
+      delay: 5000
+      unit: MILLISECONDS
+
   # handlers:
   #   request:
   #     transaction:
