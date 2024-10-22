@@ -25,6 +25,7 @@ import io.gravitee.apim.core.specgen.model.ApiSpecGenOperation;
 import io.gravitee.apim.core.specgen.model.ApiSpecGenState;
 import io.gravitee.apim.core.specgen.query_service.ApiSpecGenQueryService;
 import io.gravitee.apim.core.specgen.service_provider.SpecGenProvider;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import lombok.RequiredArgsConstructor;
 
@@ -39,18 +40,20 @@ public class SpecGenRequestUseCase {
     private final ApiSpecGenQueryService apiSpecGenQueryService;
     private final SpecGenProvider specGenProvider;
 
-    public Single<ApiSpecGenState> getState(String apiId) {
-        return performRequest(apiId, GET_STATE);
+    public Single<ApiSpecGenState> getState(String apiId, String userId) {
+        return performRequest(apiId, GET_STATE, userId);
     }
 
-    public Single<ApiSpecGenState> postJob(String apiId) {
-        return performRequest(apiId, ApiSpecGenOperation.POST_JOB);
+    public Single<ApiSpecGenState> postJob(String apiId, String userId) {
+        return performRequest(apiId, ApiSpecGenOperation.POST_JOB, userId);
     }
 
-    private Single<ApiSpecGenState> performRequest(String apiId, ApiSpecGenOperation operation) {
+    private Single<ApiSpecGenState> performRequest(String apiId, ApiSpecGenOperation operation, String userId) {
         return apiSpecGenQueryService
-            .findByIdAndType(getExecutionContext(), apiId, PROXY)
-            .map(api -> specGenProvider.performRequest(apiId, operation).map(reply -> new ApiSpecGenState(reply.requestState())))
-            .orElse(Single.just(new ApiSpecGenState(UNAVAILABLE)));
+            .rxFindByIdAndType(getExecutionContext(), apiId, PROXY)
+            .flatMapSingle(api ->
+                specGenProvider.performRequest(apiId, operation, userId).map(reply -> new ApiSpecGenState(reply.requestState()))
+            )
+            .switchIfEmpty(Single.just(new ApiSpecGenState(UNAVAILABLE)));
     }
 }
