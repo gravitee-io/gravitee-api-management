@@ -13,27 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.common.query;
+package io.gravitee.apim.core.analytics.model;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-/**
- * @author Aurelien PACAUD (aurelien.pacaud at graviteesource.com)
- * @author GraviteeSource Team
- */
-@AllArgsConstructor
 @Data
-public class QueryContext {
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
+public class ResponseStatusOvertime {
 
-    private static final String ORG_ID_PLACEHOLDER_KEY = "orgId";
-    private static final String ENV_ID_PLACEHOLDER_KEY = "envId";
+    TimeRange timeRange;
+    Map<String, List<Long>> data;
 
-    private final String orgId;
-    private final String envId;
-
-    public Map<String, String> placeholder() {
-        return Map.of(ORG_ID_PLACEHOLDER_KEY, orgId, ENV_ID_PLACEHOLDER_KEY, envId);
-    }
+    public record TimeRange(Instant from, Instant to, Duration interval) {}
 }

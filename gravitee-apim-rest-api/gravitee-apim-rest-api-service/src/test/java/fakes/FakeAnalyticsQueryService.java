@@ -15,6 +15,7 @@
  */
 package fakes;
 
+import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.model.StatusRangesQueryParameters;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
@@ -40,6 +41,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public AverageConnectionDuration averageConnectionDuration;
     public ResponseStatusRanges responseStatusRanges;
     public LinkedHashMap<String, Double> averageAggregate = new LinkedHashMap<>();
+    public ResponseStatusOvertime responseStatusOvertime;
 
     @Override
     public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId) {
@@ -61,6 +63,8 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
         averageMessagesPerRequest = null;
         averageConnectionDuration = null;
         averageAggregate = new LinkedHashMap<>();
+        responseStatusRanges = null;
+        responseStatusOvertime = null;
     }
 
     @Override
@@ -80,5 +84,10 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
         Duration interval
     ) {
         return averageAggregate != null ? Maybe.just(averageAggregate) : Maybe.empty();
+    }
+
+    @Override
+    public ResponseStatusOvertime searchResponseStatusOvertime(ExecutionContext executionContext, ResponseStatusOverTimeQuery query) {
+        return responseStatusOvertime;
     }
 }

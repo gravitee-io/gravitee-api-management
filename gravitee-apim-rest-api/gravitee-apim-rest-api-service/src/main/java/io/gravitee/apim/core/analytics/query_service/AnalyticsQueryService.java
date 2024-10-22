@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.analytics.query_service;
 
+import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.model.StatusRangesQueryParameters;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
@@ -46,4 +47,8 @@ public interface AnalyticsQueryService {
         Instant endTime,
         Duration interval
     );
+
+    ResponseStatusOvertime searchResponseStatusOvertime(ExecutionContext executionContext, ResponseStatusOverTimeQuery query);
+
+    record ResponseStatusOverTimeQuery(String apiId, Instant from, Instant to, Duration interval) {}
 }

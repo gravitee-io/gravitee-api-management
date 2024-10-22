@@ -13,27 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.common.query;
+package io.gravitee.repository.log.v4.model.analytics;
 
+import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
-/**
- * @author Aurelien PACAUD (aurelien.pacaud at graviteesource.com)
- * @author GraviteeSource Team
- */
-@AllArgsConstructor
 @Data
-public class QueryContext {
+@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder(toBuilder = true)
+public class ResponseStatusOverTimeAggregate {
 
-    private static final String ORG_ID_PLACEHOLDER_KEY = "orgId";
-    private static final String ENV_ID_PLACEHOLDER_KEY = "envId";
-
-    private final String orgId;
-    private final String envId;
-
-    public Map<String, String> placeholder() {
-        return Map.of(ORG_ID_PLACEHOLDER_KEY, orgId, ENV_ID_PLACEHOLDER_KEY, envId);
-    }
+    Map<String, List<Long>> statusCount;
 }
