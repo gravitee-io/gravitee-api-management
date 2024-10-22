@@ -186,14 +186,6 @@ public class PolicyPluginServiceImplTest {
     }
 
     @Test
-    public void shouldGetGvSchemaForm() throws IOException {
-        when(pluginManager.getSchema("my-policy", "display-gv-schema-form", true)).thenReturn("gv-schema-form-config");
-
-        String schema = cut.getSchema("my-policy", SchemaDisplayFormat.GV_SCHEMA_FORM);
-        assertEquals("gv-schema-form-config", schema);
-    }
-
-    @Test
     public void should_get_schema_with_ApiProtocolType() throws IOException {
         when(pluginManager.getSchema("my-policy", "http_proxy.schema", false, true)).thenReturn("http_proxy");
 
@@ -211,20 +203,11 @@ public class PolicyPluginServiceImplTest {
     }
 
     @Test
-    public void shouldGetDefaultSchemaFormWhenIOException() throws IOException {
+    public void should_get_default_schema_when_IOException() throws IOException {
         when(pluginManager.getSchema("my-policy", "http_proxy.schema", false, true)).thenThrow(new IOException());
         when(pluginManager.getSchema("my-policy", true)).thenReturn("default-configuration");
 
-        String schema = cut.getSchema("my-policy", SchemaDisplayFormat.GV_SCHEMA_FORM);
-        assertEquals("default-configuration", schema);
-    }
-
-    @Test
-    public void shouldGetDefaultSchemaFormWhenNull() throws IOException {
-        when(pluginManager.getSchema("my-policy", "display-gv-schema-form", true)).thenReturn(null);
-        when(pluginManager.getSchema("my-policy", true)).thenReturn("default-configuration");
-
-        String schema = cut.getSchema("my-policy", SchemaDisplayFormat.GV_SCHEMA_FORM);
+        String schema = cut.getSchema("my-policy", ApiProtocolType.HTTP_PROXY, null);
         assertEquals("default-configuration", schema);
     }
 

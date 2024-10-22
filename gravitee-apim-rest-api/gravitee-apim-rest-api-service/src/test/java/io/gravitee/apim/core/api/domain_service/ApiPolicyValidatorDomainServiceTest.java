@@ -306,11 +306,6 @@ class ApiPolicyValidatorDomainServiceTest {
         }
 
         @Override
-        public String getSchema(String plugin, SchemaDisplayFormat schemaDisplayFormat) {
-            throw new IllegalStateException("should not be called");
-        }
-
-        @Override
         public String getSchema(String policyPluginId, ApiProtocolType apiProtocolType, SchemaDisplayFormat schemaDisplayFormat) {
             throw new IllegalStateException("should not be called");
         }

@@ -128,25 +128,6 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         return validateConfiguration(policyPluginEntity.getId(), configuration);
     }
 
-    @Override
-    public String getSchema(String policyPluginId, SchemaDisplayFormat schemaDisplayFormat) {
-        if (schemaDisplayFormat == SchemaDisplayFormat.GV_SCHEMA_FORM) {
-            try {
-                logger.debug("Find plugin schema for format {} by ID: {}", schemaDisplayFormat, policyPluginId);
-                String schema = pluginManager.getSchema(policyPluginId, "display-gv-schema-form", true);
-                if (schema != null) {
-                    return schema;
-                }
-                logger.debug("No specific schema-form exists for this display format. Fall back on default schema-form.");
-            } catch (IOException ioex) {
-                logger.debug(
-                    "Error while getting specific specific schema-form for this display format. Fall back on default schema-form."
-                );
-            }
-        }
-        return getSchema(policyPluginId);
-    }
-
     public String getSchema(String policyPluginId, ApiProtocolType apiProtocolType, SchemaDisplayFormat schemaDisplayFormat) {
         List<String> schemaKeys = new ArrayList<>();
         if (apiProtocolType != null && schemaDisplayFormat != null) {
