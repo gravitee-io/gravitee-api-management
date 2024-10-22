@@ -21,3 +21,30 @@ tests:
                      *   type: PKCS12\n
                      *   path: /p12/keystore\n
                      *   password: password\n"
+
+  - it: add service heartbeat default values
+    template: gateway/gateway-configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: " * heartbeat: \n
+                     *  delay: 5000\n
+                     *  enabled: true\n
+                     *  unit: MILLISECONDS\n"
+
+  - it: add service heartbeat default values
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        services:
+          heartbeat:
+            delay: 30
+            enabled: true
+            unit: SECONDS
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: " * heartbeat: \n
+                     *  delay: 30\n
+                     *  enabled: true\n
+                     *  unit: SECONDS\n"
