@@ -45,3 +45,5 @@ annotations:
       links:
         - name: Github Issue
           url: https://github.com/gravitee-io/issues/issues/10057
+    - kind: added
+      description: 'Add support of heartbeat delay for the gateway'
