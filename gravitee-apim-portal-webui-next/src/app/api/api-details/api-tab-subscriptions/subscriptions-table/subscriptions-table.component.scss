@@ -25,11 +25,8 @@
 
 .api-tab-subscriptions__table {
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, theme.$secondary-main-color 35%, transparent);
-  border-radius: 16px;
 
   &-row {
-    background: var(--mdc-outlined-card-container-color);
     cursor: pointer;
   }
 }
