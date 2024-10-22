@@ -17,13 +17,9 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.portal.rest.model.CategoriesResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
@@ -67,15 +63,15 @@ public class CategoriesResourceTest extends AbstractResourceTest {
         category3.setHidden(true);
         category3.setOrder(1);
 
-        doReturn(Map.of(category1.getId(), 1L, category2.getId(), 0L, category3.getId(), 2L))
-            .when(apiCategoryService)
-            .countApisPublishedGroupedByCategoriesForUser(any());
+        Map<String, Long> countByCategory = Map.of(category1.getId(), 1L, category2.getId(), 0L, category3.getId(), 2L);
+        when(apiCategoryService.countApisPublishedGroupedByCategoriesForUser(any()))
+            .thenReturn(cat -> countByCategory.getOrDefault(cat, 0L));
 
-        existingCategories = Arrays.asList(category1, category2, category3);
+        existingCategories = List.of(category1, category2, category3);
 
-        doReturn(existingCategories).when(categoryService).findAll(GraviteeContext.getCurrentEnvironment());
+        when(categoryService.findAll(GraviteeContext.getCurrentEnvironment())).thenReturn(existingCategories);
 
-        Mockito.when(categoryMapper.convert(any(), any())).thenCallRealMethod();
+        when(categoryMapper.convert(any(), any())).thenCallRealMethod();
     }
 
     @Test
@@ -105,7 +101,7 @@ public class CategoriesResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoPublishedApiAndNoLink() {
-        doReturn(new ArrayList<>()).when(categoryService).findAll(GraviteeContext.getCurrentEnvironment());
+        when(categoryService.findAll(GraviteeContext.getCurrentEnvironment())).thenReturn(new ArrayList<>());
 
         //Test with default limit
         final Response response = target().request().get();
@@ -131,7 +127,7 @@ public class CategoriesResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetNothingIfAllCategoriesEmpty() {
         // 0 APIs returned for user in any categories
-        doReturn(Map.of()).when(apiCategoryService).countApisPublishedGroupedByCategoriesForUser(any());
+        when(apiCategoryService.countApisPublishedGroupedByCategoriesForUser(any())).thenReturn(cat -> 0);
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
