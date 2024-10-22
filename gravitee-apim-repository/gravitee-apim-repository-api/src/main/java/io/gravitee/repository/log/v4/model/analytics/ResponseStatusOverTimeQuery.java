@@ -13,27 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.common.query;
+package io.gravitee.repository.log.v4.model.analytics;
 
-import java.util.Map;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import java.time.Duration;
+import java.time.Instant;
+import lombok.Builder;
 
-/**
- * @author Aurelien PACAUD (aurelien.pacaud at graviteesource.com)
- * @author GraviteeSource Team
- */
-@AllArgsConstructor
-@Data
-public class QueryContext {
-
-    private static final String ORG_ID_PLACEHOLDER_KEY = "orgId";
-    private static final String ENV_ID_PLACEHOLDER_KEY = "envId";
-
-    private final String orgId;
-    private final String envId;
-
-    public Map<String, String> placeholder() {
-        return Map.of(ORG_ID_PLACEHOLDER_KEY, orgId, ENV_ID_PLACEHOLDER_KEY, envId);
-    }
-}
+@Builder(toBuilder = true)
+public record ResponseStatusOverTimeQuery(String apiId, Instant from, Instant to, Duration interval) {}

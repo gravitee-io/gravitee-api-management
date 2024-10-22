@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.analytics;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.atIndex;
 import static org.assertj.core.api.Assertions.offset;
 
 import io.gravitee.repository.common.query.QueryContext;
@@ -24,9 +25,11 @@ import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import java.time.Duration;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -37,6 +40,7 @@ import java.util.Map;
 import java.util.function.DoublePredicate;
 import java.util.function.Predicate;
 import org.assertj.core.api.Condition;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -223,6 +227,35 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             String description
         ) {
             return new Condition<>(entry -> value.test(entry.getValue()) && keyPredicate.test(entry.getKey()), description);
+        }
+    }
+
+    @Nested
+    class ResponseStatusOverTime {
+
+        @Test
+        void should_return_response_status_over_time_for_a_given_api() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var interval = Duration.ofMinutes(30);
+
+            var result = cut.searchResponseStatusOvertime(
+                new QueryContext("org#1", "env#1"),
+                ResponseStatusOverTimeQuery.builder().apiId(API_ID).from(from).to(to).interval(interval).build()
+            );
+
+            var nbBuckets = Duration.between(from, to).dividedBy(interval) + 1;
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(result.getStatusCount()).containsOnlyKeys("200", "202", "404");
+                softly.assertThat(result.getStatusCount().get("200")).hasSize((int) nbBuckets).contains(1L, atIndex(28));
+                softly
+                    .assertThat(result.getStatusCount().get("202"))
+                    .hasSize((int) nbBuckets)
+                    .contains(1L, atIndex(28))
+                    .contains(1L, atIndex(61));
+                softly.assertThat(result.getStatusCount().get("404")).hasSize((int) nbBuckets).contains(7L, atIndex(61));
+            });
         }
     }
 }

@@ -27,6 +27,7 @@ import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageMe
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageMessagesPerRequestResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsCountQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsCountResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusOverTimeAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesResponseAdapter;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
@@ -35,18 +36,25 @@ import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQu
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepository implements AnalyticsRepository {
 
     public static final String ENTRYPOINT_ID_FIELD = "entrypoint-id";
     private final String[] clusters;
     private static final String KEYWORD = "keyword";
+
+    private static final SearchResponseStatusOverTimeAdapter searchResponseStatusOverTimeAdapter =
+        new SearchResponseStatusOverTimeAdapter();
 
     public AnalyticsElasticsearchRepository(RepositoryConfiguration configuration) {
         clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
@@ -105,5 +113,14 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var adapter = new ResponseTimeRangeQueryAdapter();
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         return client.search(index, null, adapter.queryAdapt(info, query)).flatMapMaybe(adapter::responseAdapt);
+    }
+
+    @Override
+    public ResponseStatusOverTimeAggregate searchResponseStatusOvertime(QueryContext queryContext, ResponseStatusOverTimeQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var esQuery = searchResponseStatusOverTimeAdapter.adaptQuery(query, info);
+
+        log.debug("Search response status over time: {}", esQuery);
+        return this.client.search(index, null, esQuery).map(searchResponseStatusOverTimeAdapter::adaptResponse).blockingGet();
     }
 }

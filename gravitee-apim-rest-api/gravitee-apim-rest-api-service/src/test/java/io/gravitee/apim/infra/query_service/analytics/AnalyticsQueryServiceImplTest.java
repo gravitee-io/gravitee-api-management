@@ -17,24 +17,35 @@ package io.gravitee.apim.infra.query_service.analytics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.model.StatusRangesQueryParameters;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -46,14 +57,28 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class AnalyticsQueryServiceImplTest {
 
+    private static final String ORGANIZATION_ID = "org#1";
+    private static final String ENVIRONMENT_ID = "env#1";
+
     @Mock
     AnalyticsRepository analyticsRepository;
 
     AnalyticsQueryService cut;
 
+    @Captor
+    ArgumentCaptor<QueryContext> queryContextCaptor;
+
     @BeforeEach
     void setUp() {
         cut = new AnalyticsQueryServiceImpl(analyticsRepository);
+
+        GraviteeContext.setCurrentOrganization(ORGANIZATION_ID);
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
+    }
+
+    @AfterEach
+    void tearDown() {
+        GraviteeContext.cleanContext();
     }
 
     @Nested
@@ -106,6 +131,43 @@ class AnalyticsQueryServiceImplTest {
                     assertThat(responseStatusRanges.getStatusRangesCountByEntrypoint().get("http-get"))
                         .containsAllEntriesOf(Map.of("100.0-200.0", 0L, "200.0-300.0", 1L));
                 });
+        }
+    }
+
+    @Nested
+    class SearchResponseStatusOvertime {
+
+        private static final String API_ID = "api#1";
+        private static final Instant INSTANT = Instant.parse("2023-10-22T10:15:30Z");
+        private static final ResponseStatusOvertime.TimeRange TIME_RANGE = new ResponseStatusOvertime.TimeRange(
+            INSTANT.minus(1, ChronoUnit.DAYS),
+            INSTANT,
+            Duration.ofMinutes(10)
+        );
+
+        @Test
+        void should_call_analytics_repository() {
+            var queryCaptor = ArgumentCaptor.forClass(ResponseStatusOverTimeQuery.class);
+            var expectedMap = Map.of("200", List.of(0L, 0L));
+
+            when(analyticsRepository.searchResponseStatusOvertime(any(), any()))
+                .thenReturn(new ResponseStatusOverTimeAggregate(expectedMap));
+
+            var result = cut.searchResponseStatusOvertime(
+                GraviteeContext.getExecutionContext(),
+                new AnalyticsQueryService.ResponseStatusOverTimeQuery(API_ID, TIME_RANGE.from(), TIME_RANGE.to(), TIME_RANGE.interval())
+            );
+
+            verify(analyticsRepository).searchResponseStatusOvertime(queryContextCaptor.capture(), queryCaptor.capture());
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(result.getData()).isSameAs(expectedMap);
+                softly.assertThat(result.getTimeRange()).isEqualTo(TIME_RANGE);
+                softly.assertThat(queryContextCaptor.getValue()).isEqualTo(new QueryContext(ORGANIZATION_ID, ENVIRONMENT_ID));
+                softly.assertThat(queryCaptor.getValue().apiId()).isEqualTo(API_ID);
+                softly.assertThat(queryCaptor.getValue().from()).isEqualTo(TIME_RANGE.from());
+                softly.assertThat(queryCaptor.getValue().to()).isEqualTo(TIME_RANGE.to());
+                softly.assertThat(queryCaptor.getValue().interval()).isEqualTo(TIME_RANGE.interval());
+            });
         }
     }
 }

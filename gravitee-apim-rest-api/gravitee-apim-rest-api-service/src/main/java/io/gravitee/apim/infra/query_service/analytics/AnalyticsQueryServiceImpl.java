@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.query_service.analytics;
 
+import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.model.StatusRangesQueryParameters;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.infra.adapter.ResponseStatusQueryCriteriaAdapter;
@@ -124,5 +125,23 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return analyticsRepository
             .searchResponseTimeOverTime(executionContext.getQueryContext(), new ResponseTimeRangeQuery(apiId, startTime, endTime, interval))
             .map(AverageAggregate::getAverageBy);
+    }
+
+    @Override
+    public ResponseStatusOvertime searchResponseStatusOvertime(ExecutionContext executionContext, ResponseStatusOverTimeQuery query) {
+        var result = analyticsRepository.searchResponseStatusOvertime(
+            executionContext.getQueryContext(),
+            new io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery(
+                query.apiId(),
+                query.from(),
+                query.to(),
+                query.interval()
+            )
+        );
+        return ResponseStatusOvertime
+            .builder()
+            .data(result.getStatusCount())
+            .timeRange(new ResponseStatusOvertime.TimeRange(query.from(), query.to(), query.interval()))
+            .build();
     }
 }
