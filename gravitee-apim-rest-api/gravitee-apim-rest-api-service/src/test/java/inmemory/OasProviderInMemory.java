@@ -16,32 +16,30 @@
 package inmemory;
 
 import io.gravitee.apim.core.specgen.model.ApiSpecGen;
-import io.gravitee.apim.core.specgen.query_service.ApiSpecGenQueryService;
-import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.apim.core.specgen.service_provider.OasProvider;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author Rémi SULTAN (remi.sultan at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiSpecGenQueryServiceInMemory implements ApiSpecGenQueryService, InMemoryAlternative<ApiSpecGen> {
+public class OasProviderInMemory implements OasProvider, InMemoryAlternative<String> {
 
-    private List<ApiSpecGen> storage;
+    private List<String> storage;
 
     @Override
-    public Optional<ApiSpecGen> findByIdAndType(ExecutionContext context, String id, ApiType type) {
+    public String decorateSpecification(ApiSpecGen apiSpecGen, String spec) {
         return storage
             .stream()
-            .filter(api -> id.equals(api.id()))
-            .filter(api -> context.getEnvironmentId().equals(api.environmentId()))
-            .filter(api -> type.equals(api.type()))
-            .findFirst();
+            .filter(str -> str.contains("description: " + apiSpecGen.description()))
+            .filter(str -> str.contains("title: " + apiSpecGen.name()))
+            .filter(str -> str.contains("version: " + apiSpecGen.version()))
+            .findFirst()
+            .orElse(null);
     }
 
     @Override
-    public void initWith(List<ApiSpecGen> items) {
+    public void initWith(List<String> items) {
         reset();
         storage = items;
     }
@@ -52,7 +50,7 @@ public class ApiSpecGenQueryServiceInMemory implements ApiSpecGenQueryService, I
     }
 
     @Override
-    public List<ApiSpecGen> storage() {
+    public List<String> storage() {
         return storage;
     }
 }

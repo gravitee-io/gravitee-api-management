@@ -54,8 +54,8 @@ public class SpecGenProviderImpl implements SpecGenProvider {
         this.installationService = installationService;
     }
 
-    public Single<ApiSpecGenRequestReply> performRequest(String apiId, ApiSpecGenOperation operation) {
-        var command = new SpecGenRequestCommand(buildPayload(apiId, Operation.valueOf(operation.name())));
+    public Single<ApiSpecGenRequestReply> performRequest(String apiId, ApiSpecGenOperation operation, String userId) {
+        var command = new SpecGenRequestCommand(buildPayload(apiId, Operation.valueOf(operation.name()), userId));
         return cockpitConnector
             .sendCommand(command)
             .cast(SpecGenRequestReply.class)
@@ -67,7 +67,7 @@ public class SpecGenProviderImpl implements SpecGenProvider {
     }
 
     @NotNull
-    private SpecGenCommandPayload<SpecGenRequest> buildPayload(String apiId, Operation operation) {
+    private SpecGenCommandPayload<SpecGenRequest> buildPayload(String apiId, Operation operation, String userId) {
         var context = getExecutionContext();
 
         return new SpecGenCommandPayload<>(
@@ -75,7 +75,7 @@ public class SpecGenProviderImpl implements SpecGenProvider {
             context.getOrganizationId(),
             context.getEnvironmentId(),
             installationService.get().getAdditionalInformation().get(COCKPIT_INSTALLATION_ID),
-            new SpecGenRequest(apiId, OPEN_API, operation)
+            new SpecGenRequest(apiId, OPEN_API, operation, userId)
         );
     }
 }

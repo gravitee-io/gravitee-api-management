@@ -58,6 +58,7 @@ import inmemory.MessageLogCrudServiceInMemory;
 import inmemory.MetadataCrudServiceInMemory;
 import inmemory.NoopSwaggerOpenApiResolver;
 import inmemory.NoopTemplateResolverDomainService;
+import inmemory.OasProviderInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PageRevisionCrudServiceInMemory;
@@ -91,6 +92,7 @@ import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.ValidateResourceDomainServiceInMemory;
 import io.gravitee.apim.core.specgen.query_service.ApiSpecGenQueryService;
+import io.gravitee.apim.core.specgen.service_provider.OasProvider;
 import io.gravitee.apim.core.specgen.service_provider.SpecGenProvider;
 import io.gravitee.apim.infra.query_service.audit.AuditEventQueryServiceImpl;
 import org.mockito.Mockito;
@@ -483,7 +485,12 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public SpecGenProvider SpecGenProviderInMemory() {
+    public SpecGenProvider specGenProviderInMemory() {
         return new SpecGenProviderInMemory();
+    }
+
+    @Bean
+    public OasProvider oasProviderInMemory() {
+        return new OasProviderInMemory();
     }
 }

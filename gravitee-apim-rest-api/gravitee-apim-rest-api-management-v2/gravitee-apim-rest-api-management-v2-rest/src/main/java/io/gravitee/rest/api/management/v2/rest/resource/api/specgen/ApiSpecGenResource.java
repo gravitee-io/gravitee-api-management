@@ -45,7 +45,11 @@ public class ApiSpecGenResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
     public void getState(@Suspended final AsyncResponse response) {
-        useCase.getState(apiId).map(SpecGenStateMapper.INSTANCE::map).subscribe(response::resume, response::resume);
+        var authenticatedUser = getAuthenticatedUserDetails();
+        useCase
+            .getState(apiId, authenticatedUser.getId())
+            .map(SpecGenStateMapper.INSTANCE::map)
+            .subscribe(response::resume, response::resume);
     }
 
     @POST
@@ -53,6 +57,10 @@ public class ApiSpecGenResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.CREATE }) })
     public void postJob(@Suspended final AsyncResponse response) {
-        useCase.postJob(apiId).map(SpecGenStateMapper.INSTANCE::map).subscribe(response::resume, response::resume);
+        var authenticatedUser = getAuthenticatedUserDetails();
+        useCase
+            .postJob(apiId, authenticatedUser.getId())
+            .map(SpecGenStateMapper.INSTANCE::map)
+            .subscribe(response::resume, response::resume);
     }
 }

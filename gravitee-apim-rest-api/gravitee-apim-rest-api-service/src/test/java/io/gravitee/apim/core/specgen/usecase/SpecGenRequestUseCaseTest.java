@@ -15,60 +15,63 @@
  */
 package io.gravitee.apim.core.specgen.usecase;
 
-import static io.gravitee.apim.core.specgen.model.ApiSpecGenOperation.GET_STATE;
-import static io.gravitee.apim.core.specgen.model.ApiSpecGenOperation.POST_JOB;
 import static io.gravitee.apim.core.specgen.model.ApiSpecGenRequestState.UNAVAILABLE;
 import static io.gravitee.rest.api.service.common.UuidString.generateRandom;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 import inmemory.ApiSpecGenQueryServiceInMemory;
 import inmemory.SpecGenProviderInMemory;
 import io.gravitee.apim.core.specgen.model.ApiSpecGen;
 import io.gravitee.apim.core.specgen.model.ApiSpecGenRequestReply;
 import io.gravitee.apim.core.specgen.model.ApiSpecGenRequestState;
-import io.gravitee.apim.core.specgen.service_provider.SpecGenProvider;
 import io.gravitee.apim.core.specgen.use_case.SpecGenRequestUseCase;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.reactivex.rxjava3.core.Single;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Rémi SULTAN (remi.sultan at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ExtendWith(MockitoExtension.class)
 public class SpecGenRequestUseCaseTest {
 
-    final ApiSpecGenQueryServiceInMemory queryService = new ApiSpecGenQueryServiceInMemory();
-    final SpecGenProviderInMemory specGenProvider = new SpecGenProviderInMemory();
+    static final ApiSpecGenQueryServiceInMemory queryService = new ApiSpecGenQueryServiceInMemory();
+    static final SpecGenProviderInMemory specGenProvider = new SpecGenProviderInMemory();
 
     private SpecGenRequestUseCase useCase;
+    private static final String CURRENT_ENV = "envId";
+    private static final String API_ID = generateRandom();
 
     @BeforeEach
     void setUp() {
         useCase = new SpecGenRequestUseCase(queryService, specGenProvider);
+
+        GraviteeContext.setCurrentEnvironment(CURRENT_ENV);
+
+        queryService.initWith(
+            List.of(
+                new ApiSpecGen(generateRandom(), "api-1", "some description", "some-version", ApiType.MESSAGE, CURRENT_ENV),
+                new ApiSpecGen(generateRandom(), "api-2", "some description", "some-version", ApiType.NATIVE, CURRENT_ENV),
+                new ApiSpecGen(API_ID, "api-3", "some description", "some-version", ApiType.PROXY, "otherEnvId"),
+                new ApiSpecGen(API_ID, "api-4", "some description", "some-version", ApiType.PROXY, CURRENT_ENV)
+            )
+        );
     }
 
     @Test
     void must_return_unavailable_get_state_with_absent_api() {
-        final String expectedId = generateRandom();
         queryService.initWith(List.of());
 
         useCase
-            .getState(expectedId)
+            .getState(API_ID, generateRandom())
             .test()
             .awaitDone(2, SECONDS)
             .assertComplete()
@@ -78,10 +81,9 @@ public class SpecGenRequestUseCaseTest {
 
     @Test
     void must_return_unavailable_post_job_with_absent_api() {
-        final String apiId = generateRandom();
         queryService.initWith(List.of());
         useCase
-            .postJob(apiId)
+            .postJob(API_ID, generateRandom())
             .test()
             .awaitDone(2, SECONDS)
             .assertComplete()
@@ -96,22 +98,10 @@ public class SpecGenRequestUseCaseTest {
     @ParameterizedTest
     @MethodSource("params_that_must_return_request_state")
     void must_return_post_job_request_state(ApiSpecGenRequestState state) {
-        final String apiId = generateRandom();
-        final String currentEnv = "envId";
-        queryService.initWith(
-            List.of(
-                new ApiSpecGen(generateRandom(), ApiType.MESSAGE, currentEnv),
-                new ApiSpecGen(generateRandom(), ApiType.NATIVE, currentEnv),
-                new ApiSpecGen(apiId, ApiType.PROXY, "otherEnvId"),
-                new ApiSpecGen(apiId, ApiType.PROXY, currentEnv)
-            )
-        );
-        GraviteeContext.setCurrentEnvironment(currentEnv);
-
         specGenProvider.initWith(List.of(Single.just(new ApiSpecGenRequestReply(state))));
 
         useCase
-            .postJob(apiId)
+            .postJob(API_ID, generateRandom())
             .test()
             .awaitDone(2, SECONDS)
             .assertComplete()
@@ -122,21 +112,10 @@ public class SpecGenRequestUseCaseTest {
     @ParameterizedTest
     @MethodSource("params_that_must_return_request_state")
     void must_return_get_state_request_state(ApiSpecGenRequestState state) {
-        final String apiId = generateRandom();
-        final String currentEnv = "envId";
-        queryService.initWith(
-            List.of(
-                new ApiSpecGen(generateRandom(), ApiType.MESSAGE, currentEnv),
-                new ApiSpecGen(generateRandom(), ApiType.NATIVE, currentEnv),
-                new ApiSpecGen(generateRandom(), ApiType.PROXY, "otherEnvId"),
-                new ApiSpecGen(apiId, ApiType.PROXY, currentEnv)
-            )
-        );
-
         specGenProvider.initWith(List.of(Single.just(new ApiSpecGenRequestReply(state))));
 
         useCase
-            .getState(apiId)
+            .getState(API_ID, generateRandom())
             .test()
             .awaitDone(2, SECONDS)
             .assertComplete()
