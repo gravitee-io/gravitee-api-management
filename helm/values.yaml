@@ -1090,6 +1090,11 @@ gateway:
     sync:
       cron: "*/5 * * * * *"
 
+    heartbeat:
+      enabled: true
+      delay: 5000
+      unit: MILLISECONDS
+
   # handlers:
   #   request:
   #     transaction:
