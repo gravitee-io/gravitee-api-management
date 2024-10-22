@@ -15,9 +15,12 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponseTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
@@ -49,6 +52,13 @@ public interface ApiAnalyticsMapper {
     @Mapping(target = "ranges", source = "ranges")
     @Mapping(target = "rangesByEntrypoint", source = "statusRangesCountByEntrypoint")
     ApiAnalyticsResponseStatusRangesResponse map(ResponseStatusRanges responseStatusRanges);
+
+    ApiAnalyticsResponseStatusOvertimeResponse map(ResponseStatusOvertime source);
+
+    @Mapping(target = "from", expression = "java(source.from().toEpochMilli())")
+    @Mapping(target = "to", expression = "java(source.to().toEpochMilli())")
+    @Mapping(target = "interval", expression = "java(source.interval().toMillis())")
+    ApiAnalyticsOverPeriodResponseTimeRange map(ResponseStatusOvertime.TimeRange source);
 
     Map<String, Number> map(Map<String, Long> value);
 }
