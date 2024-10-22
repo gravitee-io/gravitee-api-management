@@ -36,3 +36,7 @@ Component variables
 $banner-background-color: var(--mdc-list-list-item-leading-avatar-color);
 $banner-text-color: var(--mdc-outlined-text-field-focus-label-text-color);
 $chip-background: color-mix(in srgb, $primary-main-color 20%, transparent);
+$table-border-color: color-mix(in srgb, $secondary-main-color 35%, transparent);
+$table-header-background-color: color-mix(in srgb, $banner-background-color 8%, transparent);
+$select-panel-background-color: color-mix(in srgb, $banner-background-color 12%, $card-background-color);
+$calendar-background-color: color-mix(in srgb, $banner-background-color 50%, $card-background-color);

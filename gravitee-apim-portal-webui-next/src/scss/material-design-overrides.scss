@@ -41,3 +41,23 @@ mat-form-field {
 mat-expansion-panel {
   --mat-expansion-container-background-color: #{theme.$card-background-color};
 }
+
+table.mat-mdc-table {
+  --mat-table-row-item-outline-color: #{theme.$table-border-color};
+  --mat-table-background-color: #{theme.$table-header-background-color};
+
+  border: 1px solid theme.$table-border-color;
+  border-radius: 16px;
+
+  tbody {
+    background: theme.$card-background-color;
+  }
+}
+
+.mat-mdc-select-panel {
+  --mat-select-panel-background-color: #{theme.$select-panel-background-color};
+}
+
+mat-datepicker-content.mat-datepicker-content.mat-primary {
+  --mat-datepicker-calendar-container-background-color: #{theme.$calendar-background-color};
+}
