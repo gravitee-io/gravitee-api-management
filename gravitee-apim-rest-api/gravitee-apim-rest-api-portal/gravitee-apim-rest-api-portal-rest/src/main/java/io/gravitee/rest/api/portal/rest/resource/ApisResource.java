@@ -89,11 +89,11 @@ public class ApisResource extends AbstractResource<Api, String> {
             convert(apisParam.getExcludedFilter())
         );
 
-        Map<String, Long> countByCategory = apiCategoryService.countApisPublishedGroupedByCategoriesForUser(getAuthenticatedUserOrNull());
+        var countByCategory = apiCategoryService.countApisPublishedGroupedByCategoriesForUser(getAuthenticatedUserOrNull());
 
         List<Category> categoryList = categories
             .stream()
-            .peek(categoryEntity -> categoryEntity.setTotalApis(countByCategory.get(categoryEntity.getId())))
+            .peek(categoryEntity -> categoryEntity.setTotalApis(countByCategory.applyAsLong(categoryEntity.getId())))
             .map(categoryEntity -> categoryMapper.convert(categoryEntity, uriInfo.getBaseUriBuilder()))
             .collect(Collectors.toList());
 

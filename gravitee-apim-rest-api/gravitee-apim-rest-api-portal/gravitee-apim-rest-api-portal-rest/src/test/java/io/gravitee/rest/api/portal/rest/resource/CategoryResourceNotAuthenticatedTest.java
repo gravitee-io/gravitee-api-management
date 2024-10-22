@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -61,11 +62,13 @@ public class CategoryResourceNotAuthenticatedTest extends AbstractResourceTest {
         CategoryEntity categoryEntity = new CategoryEntity();
         categoryEntity.setId(CATEGORY_ID);
         categoryEntity.setHidden(false);
-        doReturn(categoryEntity).when(categoryService).findNotHiddenById(CATEGORY_ID, GraviteeContext.getCurrentEnvironment());
+        when(categoryService.findNotHiddenById(CATEGORY_ID, GraviteeContext.getCurrentEnvironment())).thenReturn(categoryEntity);
 
-        doReturn(Map.of(CATEGORY_ID, 5L)).when(apiCategoryService).countApisPublishedGroupedByCategoriesForUser(null);
+        Map<String, Long> countByCategory = Map.of(CATEGORY_ID, 5L);
+        when(apiCategoryService.countApisPublishedGroupedByCategoriesForUser(null))
+            .thenReturn(cat -> countByCategory.getOrDefault(cat, 0L));
 
-        Mockito.when(categoryMapper.convert(any(), any())).thenCallRealMethod();
+        when(categoryMapper.convert(any(), any())).thenCallRealMethod();
     }
 
     @Test

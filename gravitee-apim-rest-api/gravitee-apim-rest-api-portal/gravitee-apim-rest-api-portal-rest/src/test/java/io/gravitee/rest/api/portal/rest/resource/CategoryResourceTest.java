@@ -16,15 +16,13 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.InlinePictureEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Category;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
@@ -66,17 +64,18 @@ public class CategoryResourceTest extends AbstractResourceTest {
         CategoryEntity categoryEntity = new CategoryEntity();
         categoryEntity.setId(CATEGORY_ID);
         categoryEntity.setHidden(false);
-        doReturn(categoryEntity).when(categoryService).findNotHiddenById(CATEGORY_ID, GraviteeContext.getCurrentEnvironment());
+        when(categoryService.findNotHiddenById(CATEGORY_ID, GraviteeContext.getCurrentEnvironment())).thenReturn(categoryEntity);
 
-        doReturn(Map.of(CATEGORY_ID, 1L)).when(apiCategoryService).countApisPublishedGroupedByCategoriesForUser(USER_NAME);
+        when(apiCategoryService.countApisPublishedGroupedByCategoriesForUser(USER_NAME))
+            .thenReturn(cat -> CATEGORY_ID.equals(cat) ? 1L : 0L);
 
-        Mockito.when(categoryMapper.convert(any(), any())).thenCallRealMethod();
+        when(categoryMapper.convert(any(), any())).thenCallRealMethod();
 
         mockImage = new InlinePictureEntity();
         apiLogoContent = Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
         mockImage.setContent(apiLogoContent);
         mockImage.setType("image/svg");
-        doReturn(mockImage).when(categoryService).getPicture(GraviteeContext.getCurrentEnvironment(), CATEGORY_ID);
+        when(categoryService.getPicture(GraviteeContext.getCurrentEnvironment(), CATEGORY_ID)).thenReturn(mockImage);
     }
 
     @Test
@@ -90,14 +89,13 @@ public class CategoryResourceTest extends AbstractResourceTest {
 
         final Category responseCategory = response.readEntity(Category.class);
         assertNotNull(responseCategory);
-        assertEquals(Long.valueOf(1), responseCategory.getTotalApis());
+        assertThat(responseCategory.getTotalApis()).isOne();
     }
 
     @Test
     public void shouldNotGetCategory() {
-        doThrow(new CategoryNotFoundException(UNKNOWN_CATEGORY))
-            .when(categoryService)
-            .findNotHiddenById(UNKNOWN_CATEGORY, GraviteeContext.getCurrentEnvironment());
+        when(categoryService.findNotHiddenById(UNKNOWN_CATEGORY, GraviteeContext.getCurrentEnvironment()))
+            .thenThrow(new CategoryNotFoundException(UNKNOWN_CATEGORY));
 
         final Response response = target(UNKNOWN_CATEGORY).request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());

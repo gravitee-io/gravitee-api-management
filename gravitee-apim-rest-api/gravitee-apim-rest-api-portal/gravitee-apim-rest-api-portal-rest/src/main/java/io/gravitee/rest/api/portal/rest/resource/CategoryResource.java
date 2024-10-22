@@ -31,7 +31,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
-import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -55,8 +54,8 @@ public class CategoryResource extends AbstractResource {
     public Response get(@PathParam("categoryId") String categoryId) {
         CategoryEntity category = categoryService.findNotHiddenById(categoryId, GraviteeContext.getCurrentEnvironment());
 
-        Map<String, Long> countByCategory = apiCategoryService.countApisPublishedGroupedByCategoriesForUser(getAuthenticatedUserOrNull());
-        category.setTotalApis(countByCategory.getOrDefault(category.getId(), 0L));
+        var countByCategory = apiCategoryService.countApisPublishedGroupedByCategoriesForUser(getAuthenticatedUserOrNull());
+        category.setTotalApis(countByCategory.applyAsLong(category.getId()));
 
         return Response.ok(categoryMapper.convert(category, uriInfo.getBaseUriBuilder())).build();
     }
