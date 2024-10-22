@@ -20,20 +20,23 @@ import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.o
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
+import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.model.NewHttpApi;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
+import io.gravitee.definition.model.v4.ApiType;
+import java.util.List;
 
 @UseCase
-public class CreateV4ApiUseCase {
+public class CreateHttpApiUseCase {
 
     private final ValidateApiDomainService validateApiDomainService;
     private final ApiPrimaryOwnerFactory apiPrimaryOwnerFactory;
     private final CreateApiDomainService createApiDomainService;
 
-    public CreateV4ApiUseCase(
+    public CreateHttpApiUseCase(
         ValidateApiDomainService validateApiDomainService,
         ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
         CreateApiDomainService createApiDomainService
@@ -48,6 +51,9 @@ public class CreateV4ApiUseCase {
     public record Output(ApiWithFlows api) {}
 
     public Output execute(Input input) {
+        if (input.newHttpApi == null || (input.newHttpApi.getType() != ApiType.PROXY && input.newHttpApi.getType() != ApiType.MESSAGE)) {
+            throw new ApiInvalidTypeException(List.of(ApiType.PROXY, ApiType.MESSAGE));
+        }
         var auditInfo = input.auditInfo;
 
         var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(

@@ -22,7 +22,7 @@ import com.google.common.base.Strings;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
-import io.gravitee.apim.core.api.use_case.CreateV4ApiUseCase;
+import io.gravitee.apim.core.api.use_case.CreateHttpApiUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.OAIToImportApiUseCase;
@@ -118,7 +118,7 @@ public class ApisResource extends AbstractResource {
     private ApiStateDomainService apiStateDomainService;
 
     @Inject
-    private CreateV4ApiUseCase createV4ApiUseCase;
+    private CreateHttpApiUseCase createHttpApiUseCase;
 
     @Inject
     private ImportApiCRDUseCase importCRDUseCase;
@@ -154,7 +154,7 @@ public class ApisResource extends AbstractResource {
                     .build()
             )
             .build();
-        var output = createV4ApiUseCase.execute(new CreateV4ApiUseCase.Input(ApiMapper.INSTANCE.map(api), audit));
+        var output = createHttpApiUseCase.execute(new CreateHttpApiUseCase.Input(ApiMapper.INSTANCE.map(api), audit));
 
         boolean isSynchronized = apiStateDomainService.isSynchronized(output.api(), audit);
         return Response
