@@ -194,8 +194,25 @@ public class PolicyPluginServiceImplTest {
     }
 
     @Test
+    public void should_get_schema_with_ApiProtocolType() throws IOException {
+        when(pluginManager.getSchema("my-policy", "http_proxy.schema", false, true)).thenReturn("http_proxy");
+
+        String schema = cut.getSchema("my-policy", ApiProtocolType.HTTP_PROXY, null);
+        assertEquals("http_proxy", schema);
+    }
+
+    @Test
+    public void should_get_schema_with_fallback() throws IOException {
+        when(pluginManager.getSchema("my-policy", "http_proxy.schema", false, true)).thenReturn(null);
+        when(pluginManager.getSchema("my-policy", "schema", false, true)).thenReturn("schema");
+
+        String schema = cut.getSchema("my-policy", ApiProtocolType.HTTP_PROXY, null);
+        assertEquals("schema", schema);
+    }
+
+    @Test
     public void shouldGetDefaultSchemaFormWhenIOException() throws IOException {
-        when(pluginManager.getSchema("my-policy", "display-gv-schema-form", true)).thenThrow(new IOException());
+        when(pluginManager.getSchema("my-policy", "http_proxy.schema", false, true)).thenThrow(new IOException());
         when(pluginManager.getSchema("my-policy", true)).thenReturn("default-configuration");
 
         String schema = cut.getSchema("my-policy", SchemaDisplayFormat.GV_SCHEMA_FORM);
@@ -209,5 +226,13 @@ public class PolicyPluginServiceImplTest {
 
         String schema = cut.getSchema("my-policy", SchemaDisplayFormat.GV_SCHEMA_FORM);
         assertEquals("default-configuration", schema);
+    }
+
+    @Test
+    public void should_get_documentation_with_ApiProtocolType() throws IOException {
+        when(pluginManager.getDocumentation("my-policy", "native_kafka.documentation", true, true)).thenReturn("documentation");
+
+        String documentation = cut.getDocumentation("my-policy", ApiProtocolType.NATIVE_KAFKA);
+        assertEquals("documentation", documentation);
     }
 }

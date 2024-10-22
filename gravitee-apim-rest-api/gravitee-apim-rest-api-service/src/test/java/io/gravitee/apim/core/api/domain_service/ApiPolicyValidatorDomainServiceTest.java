@@ -30,6 +30,7 @@ import io.gravitee.definition.model.flow.Step;
 import io.gravitee.plugin.core.api.PluginMoreInformation;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
+import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
 import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
@@ -306,6 +307,16 @@ class ApiPolicyValidatorDomainServiceTest {
 
         @Override
         public String getSchema(String plugin, SchemaDisplayFormat schemaDisplayFormat) {
+            throw new IllegalStateException("should not be called");
+        }
+
+        @Override
+        public String getSchema(String policyPluginId, ApiProtocolType apiProtocolType, SchemaDisplayFormat schemaDisplayFormat) {
+            throw new IllegalStateException("should not be called");
+        }
+
+        @Override
+        public String getDocumentation(String policyPluginId, ApiProtocolType apiProtocolType) {
             throw new IllegalStateException("should not be called");
         }
 
