@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.v4;
 
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
+import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
 import io.gravitee.rest.api.service.PluginService;
 import java.util.Set;
@@ -44,4 +45,20 @@ public interface PolicyPluginService extends PluginService<PolicyPluginEntity> {
      * @return the configuration schema form
      */
     String getSchema(final String policyPluginId, SchemaDisplayFormat schemaDisplayFormat);
+
+    /**
+     * Get the schema form for the given policy plugin
+     * @param policyPluginId is the id of the policy
+     * @param apiProtocolType the protocol type to get the schema for
+     * @return the configuration schema form
+     */
+    String getSchema(String policyPluginId, ApiProtocolType apiProtocolType, SchemaDisplayFormat schemaDisplayFormat);
+
+    /**
+     * Get the documentation for the given policy plugin
+     * @param policyPluginId is the id of the policy
+     * @param apiProtocolType the protocol type to get the documentation for
+     * @return the documentation
+     */
+    String getDocumentation(String policyPluginId, ApiProtocolType apiProtocolType);
 }

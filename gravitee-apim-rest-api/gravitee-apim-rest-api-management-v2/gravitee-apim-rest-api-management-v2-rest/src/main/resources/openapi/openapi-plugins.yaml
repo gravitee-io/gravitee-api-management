@@ -385,10 +385,19 @@ paths:
                   required: false
                   schema:
                       type: string
-                      default: gio-form-json-schema
                       enum:
-                          - gv-schema-form
-                          - gio-form-json-schema
+                          - GV_SCHEMA_FORM
+                          - GIO_FORM_JSON_SCHEMA
+                - name: apiProtocolType
+                  in: query
+                  description: The protocol type of the api.
+                  required: false
+                  schema:
+                    type: string
+                    enum:
+                      - HTTP_PROXY
+                      - HTTP_MESSAGE
+                      - NATIVE_KAFKA
             tags:
                 - Plugins - Policies
             summary: Get a policy schema

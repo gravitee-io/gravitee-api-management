@@ -158,7 +158,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         policyPlugin.setCategory("my-category");
         policyPlugin.setDescription("my-description");
         when(policyPluginService.findById(FAKE_POLICY_ID)).thenReturn(policyPlugin);
-        when(policyPluginService.getSchema(FAKE_POLICY_ID)).thenReturn("schemaResponse");
+        when(policyPluginService.getSchema(FAKE_POLICY_ID, null, null)).thenReturn("schemaResponse");
 
         final Response response = rootTarget(FAKE_POLICY_ID).path("schema").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -176,9 +176,25 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         policyPlugin.setCategory("my-category");
         policyPlugin.setDescription("my-description");
         when(policyPluginService.findById(FAKE_POLICY_ID)).thenReturn(policyPlugin);
-        when(policyPluginService.getSchema(FAKE_POLICY_ID, SchemaDisplayFormat.GV_SCHEMA_FORM)).thenReturn("schemaResponse");
+        when(policyPluginService.getSchema(FAKE_POLICY_ID, null, SchemaDisplayFormat.GV_SCHEMA_FORM)).thenReturn("schemaResponse");
 
-        final Response response = rootTarget(FAKE_POLICY_ID).path("schema").queryParam("display", "gv-schema-form").request().get();
+        final Response response = rootTarget(FAKE_POLICY_ID).path("schema").queryParam("display", "GV_SCHEMA_FORM").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        final String result = response.readEntity(String.class);
+        assertThat(result).isEqualTo("schemaResponse");
+    }
+
+    @Test
+    public void should_get_policy_schema_with_api_protocol_type() {
+        PolicyPluginEntity policyPlugin = getPolicyPluginEntity();
+        when(policyPluginService.findById(FAKE_POLICY_ID)).thenReturn(policyPlugin);
+        when(policyPluginService.getSchema(FAKE_POLICY_ID, ApiProtocolType.HTTP_PROXY, null)).thenReturn("schemaResponse");
+
+        final Response response = rootTarget(FAKE_POLICY_ID)
+            .path("schema")
+            .queryParam("apiProtocolType", ApiProtocolType.HTTP_PROXY)
+            .request()
+            .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final String result = response.readEntity(String.class);
         assertThat(result).isEqualTo("schemaResponse");
@@ -218,9 +234,25 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         policyPlugin.setCategory("my-category");
         policyPlugin.setDescription("my-description");
         when(policyPluginService.findById(FAKE_POLICY_ID)).thenReturn(policyPlugin);
-        when(policyPluginService.getDocumentation(FAKE_POLICY_ID)).thenReturn("documentationResponse");
+        when(policyPluginService.getDocumentation(FAKE_POLICY_ID, null)).thenReturn("documentationResponse");
 
         final Response response = rootTarget(FAKE_POLICY_ID).path("documentation").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        final String result = response.readEntity(String.class);
+        assertThat(result).isEqualTo("documentationResponse");
+    }
+
+    @Test
+    public void should_get_policy_documentation_with_api_protocol_type() {
+        PolicyPluginEntity policyPlugin = getPolicyPluginEntity();
+        when(policyPluginService.findById(FAKE_POLICY_ID)).thenReturn(policyPlugin);
+        when(policyPluginService.getDocumentation(FAKE_POLICY_ID, ApiProtocolType.HTTP_PROXY)).thenReturn("documentationResponse");
+
+        final Response response = rootTarget(FAKE_POLICY_ID)
+            .path("documentation")
+            .queryParam("apiProtocolType", ApiProtocolType.HTTP_PROXY)
+            .request()
+            .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final String result = response.readEntity(String.class);
         assertThat(result).isEqualTo("documentationResponse");
