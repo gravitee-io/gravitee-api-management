@@ -14,7 +14,23 @@
  * limitations under the License.
  */
 
+import * as jsYAML from 'js-yaml';
+
 import { readYaml } from './yaml-parser';
+
+const binaryType = new jsYAML.Type('tag:yaml.org,2002:binary', {
+  kind: 'scalar',
+  resolve: (data: any) => {
+    return typeof data === 'string' && /^[A-Za-z0-9+/=]*$/.test(data);
+  },
+  construct: (data: string) => {
+    return Buffer.from(data, 'base64').toString('utf-8');
+  },
+  instanceOf: String,
+  represent: (value: any) => {
+    return Buffer.from(String(value), 'utf-8').toString('base64');
+  },
+});
 
 describe('yamlToJson', () => {
   it('should not transform date format', () => {
@@ -65,5 +81,37 @@ describe('yamlToJson', () => {
     const having = JSON.stringify(readYaml(given));
 
     expect(having).toBe(expected);
+  });
+
+  it('should decode Base64 binary data correctly', () => {
+    const given = `
+      file:
+        !!binary "U3dhZ2dlciByb2Nrcw=="
+    `;
+
+    const expected = JSON.stringify({
+      file: 'Swagger rocks', // Decoded value from Base64
+    });
+
+    const having = JSON.stringify(readYaml(given));
+
+    expect(having).toBe(expected);
+  });
+
+  // Test case for resolve method
+  it('should correctly resolve Base64 validity', () => {
+    expect(binaryType.resolve('U3dhZ2dlciByb2Nrcw==')).toBe(true); // Valid Base64
+    expect(binaryType.resolve('InvalidBase64%')).toBe(false); // Invalid Base64
+    expect(binaryType.resolve(null)).toBe(false); // Non-string
+    expect(binaryType.resolve(123)).toBe(false); // Non-string
+  });
+
+  // Test case for construct method
+  it('should construct a valid UTF-8 string from Base64', () => {
+    const base64String = 'U3dhZ2dlciByb2Nrcw=='; // Base64 for "Swagger rocks"
+    const expectedString = 'Swagger rocks';
+
+    const constructedValue = binaryType.construct(base64String);
+    expect(constructedValue).toBe(expectedString);
   });
 });
