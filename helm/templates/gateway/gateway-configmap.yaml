@@ -492,6 +492,8 @@ data:
       healthcheck:
         threads: 3 # Threads core size used to check endpoint availability
 
+      heartbeat: {{ toYaml .Values.gateway.services.heartbeat | nindent 8 }}
+
       {{- if .Values.gateway.services.bridge.enabled }}
       bridge:
         http:
