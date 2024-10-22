@@ -249,9 +249,10 @@ public class ApiCategoryServiceImplTest {
                 .thenReturn(Stream.of(api1, api2, api3, api4));
 
             Map<String, Long> expectedCounts = Map.of(category1.getId(), 3L, category2.getId(), 2L, category3.getId(), 1L);
-            Map<String, Long> counts = apiCategoryService.countApisPublishedGroupedByCategoriesForUser("user-1");
+            var counts = apiCategoryService.countApisPublishedGroupedByCategoriesForUser("user-1");
 
-            assertThat(counts).isEqualTo(expectedCounts);
+            expectedCounts.forEach((catId, expectedCount) -> assertThat(counts.applyAsLong(catId)).isEqualTo(expectedCount));
+            assertThat(counts.applyAsLong("unexistingCategory")).isZero();
         }
     }
 

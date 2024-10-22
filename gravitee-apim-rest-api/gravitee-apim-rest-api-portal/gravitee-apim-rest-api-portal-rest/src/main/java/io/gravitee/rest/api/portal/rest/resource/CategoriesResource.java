@@ -34,6 +34,8 @@ import jakarta.ws.rs.core.Response;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.LongFunction;
+import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -59,14 +61,14 @@ public class CategoriesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getCategories(@BeanParam PaginationParam paginationParam) {
-        Map<String, Long> countByCategory = apiCategoryService.countApisPublishedGroupedByCategoriesForUser(getAuthenticatedUserOrNull());
+        var countByCategory = apiCategoryService.countApisPublishedGroupedByCategoriesForUser(getAuthenticatedUserOrNull());
 
         List<Category> categoriesList = categoryService
             .findAll(GraviteeContext.getCurrentEnvironment())
             .stream()
             .filter(c -> !c.isHidden())
             .sorted(Comparator.comparingInt(CategoryEntity::getOrder))
-            .peek(c -> c.setTotalApis(countByCategory.getOrDefault(c.getId(), 0L)))
+            .peek(c -> c.setTotalApis(countByCategory.applyAsLong(c.getId())))
             .filter(c -> c.getTotalApis() > 0)
             .map(c -> categoryMapper.convert(c, uriInfo.getBaseUriBuilder()))
             .collect(Collectors.toList());
