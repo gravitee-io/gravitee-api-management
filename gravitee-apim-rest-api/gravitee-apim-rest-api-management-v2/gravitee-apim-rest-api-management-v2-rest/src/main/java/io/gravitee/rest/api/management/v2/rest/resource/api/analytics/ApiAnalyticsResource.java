@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageConnectionDurationUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusOverTimeUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusRangesUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseTimeUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiAnalyticsMapper;
@@ -26,6 +27,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessages
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponseTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -60,6 +62,9 @@ public class ApiAnalyticsResource extends AbstractResource {
 
     @Inject
     private SearchResponseTimeUseCase searchResponseTimeUseCase;
+
+    @Inject
+    private SearchResponseStatusOverTimeUseCase searchResponseStatusOverTimeUseCase;
 
     @Path("/requests-count")
     @GET
@@ -137,5 +142,21 @@ public class ApiAnalyticsResource extends AbstractResource {
                     .data(out.data())
             )
             .blockingGet();
+    }
+
+    @Path("/response-status-overtime")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    public ApiAnalyticsResponseStatusOvertimeResponse getResponseStatusOvertime() {
+        var request = new SearchResponseStatusOverTimeUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment());
+
+        var result = searchResponseStatusOverTimeUseCase.execute(GraviteeContext.getExecutionContext(), request).responseStatusOvertime();
+
+        if (result == null) {
+            return new ApiAnalyticsResponseStatusOvertimeResponse();
+        }
+
+        return ApiAnalyticsMapper.INSTANCE.map(result);
     }
 }

@@ -24,10 +24,13 @@ import assertions.MAPIAssertions;
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponseTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -39,10 +42,13 @@ import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -59,6 +65,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
 
     WebTarget requestsCountTarget;
     WebTarget statusCodesByEntrypointTarget;
+    WebTarget statusCodesOvertimeTarget;
     WebTarget averageMessagesPerRequestTarget;
     WebTarget averageConnectionDurationTarget;
     WebTarget responseTimeOverTimeTarget;
@@ -347,6 +354,75 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                 .satisfies(output -> {
                     assertThat(output).hasSize(2);
                     assertThat(output).containsExactly(1L, 2L);
+                });
+        }
+    }
+
+    @Nested
+    class ResponseStatusOvertimeAnalytics {
+
+        @BeforeEach
+        public void prepareTarget() {
+            statusCodesOvertimeTarget = rootTarget().path("response-status-overtime");
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_ANALYTICS,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = statusCodesOvertimeTarget.request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        void should_return_status_codes_overtime() {
+            var expectedTimeRange = new ResponseStatusOvertime.TimeRange(
+                Instant.now().minusSeconds(60),
+                Instant.now(),
+                Duration.ofMinutes(10)
+            );
+            var expectedData = Map.of("200", List.of(0L, 0L, 0L, 2L, 2L, 0L, 1L, 0L, 0L));
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            fakeAnalyticsQueryService.responseStatusOvertime =
+                ResponseStatusOvertime.builder().timeRange(expectedTimeRange).data(expectedData).build();
+
+            final Response response = statusCodesOvertimeTarget.request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiAnalyticsResponseStatusOvertimeResponse.class)
+                .isNotNull()
+                .satisfies(result -> {
+                    SoftAssertions.assertSoftly(softly -> {
+                        softly.assertThat(result.getData()).isEqualTo(expectedData);
+                        softly
+                            .assertThat(result.getTimeRange())
+                            .extracting(
+                                ApiAnalyticsOverPeriodResponseTimeRange::getFrom,
+                                ApiAnalyticsOverPeriodResponseTimeRange::getTo,
+                                ApiAnalyticsOverPeriodResponseTimeRange::getInterval
+                            )
+                            .contains(
+                                expectedTimeRange.from().toEpochMilli(),
+                                expectedTimeRange.to().toEpochMilli(),
+                                expectedTimeRange.interval().toMillis()
+                            );
+                    });
                 });
         }
     }

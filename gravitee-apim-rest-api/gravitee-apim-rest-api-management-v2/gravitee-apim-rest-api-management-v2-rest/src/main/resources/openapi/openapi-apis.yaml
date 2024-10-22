@@ -2081,6 +2081,25 @@ paths:
             $ref: "#/components/responses/ApiAnalyticsAverageConnectionDurationResponse"
           default:
             $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/analytics/response-statuses-over-time:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - API Analytics
+            summary: Get API Analytics response status counts over time
+            description: |-
+                Get API analytics response status counts over time.
+
+                User must have the API_ANALYTICS[READ] permission.
+            operationId: getResponseStatusOvertime
+            responses:
+                "200":
+                    $ref: "#/components/responses/ApiAnalyticsResponseStatusOvertimeResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
     # API Analytics - Logs
     /environments/{envId}/apis/{apiId}/logs:
         parameters:
@@ -7811,6 +7830,42 @@ components:
                                                 value: 0
                                             500.0-600.0:
                                                 value: 0
+        ApiAnalyticsResponseStatusOvertimeResponse:
+          description: Analytics for status codes over time
+          content:
+            application/json:
+              schema:
+                title: "ApiAnalyticsResponseStatusOvertimeResponse"
+                description: API Analytics for status codes over time.
+                properties:
+                  timeRange:
+                    type: object
+                    description: Time range of the analytics
+                    properties:
+                      from:
+                        type: integer
+                        format: int64
+                        description: The timestamp starting the time range
+                        example: 1621339200000
+                      to:
+                        type: integer
+                        format: int64
+                        description: The timestamp ending the time range
+                        example: 1621425600000
+                      interval:
+                        type: integer
+                        format: int64
+                        description: The interval in milliseconds splitting the data
+                        example: 120000
+                  data:
+                    type: object
+                    description: Status count overt time
+                    additionalProperties:
+                      description: A map of response status and counts
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
         EnvironmentAnalyticsResponseStatusRangesResponse:
             description: Analytics for status codes by entrypoint at environment level
             content:
