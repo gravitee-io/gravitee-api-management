@@ -41,15 +41,8 @@ public interface PolicyPluginService extends PluginService<PolicyPluginEntity> {
     /**
      * Get the schema form for the given policy plugin
      * @param policyPluginId is the id of the policy
-     * @param schemaDisplayFormat the format of the schema to return
-     * @return the configuration schema form
-     */
-    String getSchema(final String policyPluginId, SchemaDisplayFormat schemaDisplayFormat);
-
-    /**
-     * Get the schema form for the given policy plugin
-     * @param policyPluginId is the id of the policy
      * @param apiProtocolType the protocol type to get the schema for
+     * @param schemaDisplayFormat the format of the schema to return
      * @return the configuration schema form
      */
     String getSchema(String policyPluginId, ApiProtocolType apiProtocolType, SchemaDisplayFormat schemaDisplayFormat);
