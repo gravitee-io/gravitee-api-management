@@ -65,7 +65,7 @@
         <gravitee-node.version>6.5.0</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
         <gravitee-platform-repository-api.version>1.4.0</gravitee-platform-repository-api.version>
-        <gravitee-plugin.version>4.3.0-APIM-7242-SNAPSHOT</gravitee-plugin.version>
+        <gravitee-plugin.version>4.3.0</gravitee-plugin.version>
         <gravitee-policy-api.version>1.11.0</gravitee-policy-api.version>
         <gravitee-reporter-api.version>1.31.1</gravitee-reporter-api.version>
         <gravitee-resource-api.version>1.1.0</gravitee-resource-api.version>
