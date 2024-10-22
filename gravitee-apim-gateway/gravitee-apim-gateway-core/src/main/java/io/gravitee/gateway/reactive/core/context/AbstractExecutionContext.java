@@ -29,6 +29,7 @@ import io.gravitee.gateway.reactive.api.el.EvaluableMessage;
 import io.gravitee.gateway.reactive.api.el.EvaluableRequest;
 import io.gravitee.gateway.reactive.api.el.EvaluableResponse;
 import io.gravitee.gateway.reactive.api.message.Message;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.reporter.api.v4.metric.Metrics;
@@ -53,6 +54,7 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
     protected ComponentProvider componentProvider;
     protected TemplateEngine templateEngine;
     protected Collection<TemplateVariableProvider> templateVariableProviders;
+    protected Tracer tracer;
 
     private EvaluableRequest evaluableRequest;
     private EvaluableResponse evaluableResponse;
@@ -196,6 +198,11 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
     @Override
     public <T> Map<String, T> getInternalAttributes() {
         return (Map<String, T>) internalAttributes;
+    }
+
+    @Override
+    public Tracer getTracer() {
+        return tracer;
     }
 
     @Override

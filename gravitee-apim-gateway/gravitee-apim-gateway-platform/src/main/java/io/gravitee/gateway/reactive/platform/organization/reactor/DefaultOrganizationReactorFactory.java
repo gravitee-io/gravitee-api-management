@@ -19,6 +19,7 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
+import io.gravitee.gateway.reactive.core.tracing.TracingUtils;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyManager;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
@@ -56,7 +57,11 @@ public class DefaultOrganizationReactorFactory implements OrganizationReactorFac
         final ReactableOrganization reactableOrganization,
         final OrganizationPolicyManager organizationPolicyManager
     ) {
-        return new HttpPolicyChainFactory("organization-" + reactableOrganization.getId(), organizationPolicyManager, configuration);
+        return new HttpPolicyChainFactory(
+            "organization-" + reactableOrganization.getId(),
+            organizationPolicyManager,
+            TracingUtils.isTracingEnabled(configuration)
+        );
     }
 
     protected OrganizationPolicyManager platformPolicyManager(ReactableOrganization reactableOrganization) {

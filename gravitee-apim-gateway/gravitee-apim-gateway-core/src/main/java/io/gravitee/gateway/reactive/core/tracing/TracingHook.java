@@ -21,7 +21,7 @@ import io.gravitee.gateway.reactive.api.hook.ChainHook;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
 import io.gravitee.gateway.reactive.api.hook.ProcessorHook;
 import io.gravitee.gateway.reactive.api.hook.SecurityPlanHook;
-import io.gravitee.tracing.api.Span;
+import java.util.Map;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -40,12 +40,12 @@ public class TracingHook extends AbstractTracingHook implements ProcessorHook, C
         return "hook-tracing";
     }
 
-    protected String getSpanName(final String id, final ExecutionPhase executionPhase) {
+    protected String spanName(final String id, final ExecutionPhase executionPhase) {
         StringBuilder spanNameBuilder = new StringBuilder();
         if (executionPhase != null) {
             spanNameBuilder.append(executionPhase.name()).append(" ");
         }
-        if (!id.startsWith(key)) {
+        if (!id.contains(key)) {
             spanNameBuilder.append(key).append("-");
         }
         spanNameBuilder.append(id);
@@ -53,8 +53,9 @@ public class TracingHook extends AbstractTracingHook implements ProcessorHook, C
     }
 
     @Override
-    protected void withAttributes(String id, HttpExecutionContext ctx, ExecutionPhase executionPhase, Span span) {
-        super.withAttributes(id, ctx, executionPhase, span);
-        span.withAttribute(key, id);
+    protected Map<String, String> spanAttributes(String id, HttpExecutionContext ctx, ExecutionPhase executionPhase) {
+        Map<String, String> spanAttributes = super.spanAttributes(id, ctx, executionPhase);
+        spanAttributes.put(key, id);
+        return spanAttributes;
     }
 }

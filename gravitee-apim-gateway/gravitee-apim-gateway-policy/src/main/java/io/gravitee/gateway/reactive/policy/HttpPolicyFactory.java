@@ -23,6 +23,7 @@ import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
 import io.gravitee.gateway.reactive.policy.adapter.policy.PolicyAdapter;
+import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.policy.api.PolicyConfiguration;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,15 +35,18 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class HttpPolicyFactory implements PolicyFactory {
 
-    private final ConcurrentMap<String, HttpPolicy> policies = new ConcurrentHashMap<>();
-    private final PolicyPluginFactory policyPluginFactory;
-    private final io.gravitee.gateway.policy.PolicyFactory v3PolicyFactory;
+    protected final ConcurrentMap<String, HttpPolicy> policies = new ConcurrentHashMap<>();
+    protected final Configuration configuration;
+    protected final PolicyPluginFactory policyPluginFactory;
+    protected final io.gravitee.gateway.policy.PolicyFactory v3PolicyFactory;
     protected final ExpressionLanguageConditionFilter<HttpConditionalPolicy> filter;
 
     public HttpPolicyFactory(
+        final Configuration configuration,
         final PolicyPluginFactory policyPluginFactory,
         final ExpressionLanguageConditionFilter<HttpConditionalPolicy> filter
     ) {
+        this.configuration = configuration;
         this.policyPluginFactory = policyPluginFactory;
         this.filter = filter;
         // V3 policy factory doesn't need condition evaluator anymore as condition is directly handled by v4 engine.
@@ -101,12 +105,12 @@ public class HttpPolicyFactory implements PolicyFactory {
             );
         }
 
-        policy = createConditionalPolicy(policyMetadata, policy);
+        policy = decoratePolicy(policyMetadata, policy);
 
         return policy;
     }
 
-    protected HttpPolicy createConditionalPolicy(PolicyMetadata policyMetadata, HttpPolicy policy) {
+    protected HttpPolicy decoratePolicy(PolicyMetadata policyMetadata, HttpPolicy policy) {
         if (policy != null) {
             final String condition = policyMetadata.getCondition();
 

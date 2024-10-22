@@ -501,19 +501,6 @@
             <version>${gravitee-resource-oauth2-provider-generic.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- Tracers -->
-        <dependency>
-            <groupId>io.gravitee.tracer</groupId>
-            <artifactId>gravitee-tracer-jaeger</artifactId>
-            <version>${gravitee-tracer-jaeger.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.gravitee.tracer</groupId>
-            <artifactId>gravitee-tracer-opentelemetry</artifactId>
-            <version>${gravitee-tracer-opentelemetry.version}</version>
-            <scope>test</scope>
-        </dependency>
         <!-- secret providers -->
         <dependency>
             <groupId>io.gravitee.secretprovider</groupId>

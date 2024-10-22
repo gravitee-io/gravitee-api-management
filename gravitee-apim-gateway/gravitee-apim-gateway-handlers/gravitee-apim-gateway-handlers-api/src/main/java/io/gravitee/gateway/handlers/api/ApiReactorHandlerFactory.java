@@ -59,6 +59,7 @@ import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
+import io.gravitee.gateway.reactive.core.tracing.TracingUtils;
 import io.gravitee.gateway.reactive.handlers.api.SyncApiReactor;
 import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariableProvider;
@@ -86,6 +87,8 @@ import io.gravitee.gateway.security.core.SecurityPolicyResolver;
 import io.gravitee.gateway.security.core.SecurityProviderLoader;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.api.opentelemetry.InstrumenterTracerFactory;
+import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -127,6 +130,8 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
     private final AccessPointManager accessPointManager;
     private final EventManager eventManager;
+    private final OpenTelemetryFactory openTelemetryFactory;
+    private final List<InstrumenterTracerFactory> instrumenterTracerFactories;
     private ApplicationContext applicationContext;
 
     public ApiReactorHandlerFactory(
@@ -142,7 +147,9 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         FlowResolverFactory flowResolverFactory,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         AccessPointManager accessPointManager,
-        EventManager eventManager
+        EventManager eventManager,
+        OpenTelemetryFactory openTelemetryFactory,
+        List<InstrumenterTracerFactory> instrumenterTracerFactories
     ) {
         this.applicationContext = applicationContext;
         this.configuration = configuration;
@@ -157,6 +164,8 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         this.requestTimeoutConfiguration = requestTimeoutConfiguration;
         this.accessPointManager = accessPointManager;
         this.eventManager = eventManager;
+        this.openTelemetryFactory = openTelemetryFactory;
+        this.instrumenterTracerFactories = instrumenterTracerFactories;
         this.contentTemplateVariableProvider = new ContentTemplateVariableProvider();
     }
 
@@ -350,7 +359,14 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
             node,
             requestTimeoutConfiguration,
             accessPointManager,
-            eventManager
+            eventManager,
+            openTelemetryFactory.createTracer(
+                api.getId(),
+                api.getName(),
+                "API_V2_EMULATED",
+                api.getApiVersion(),
+                instrumenterTracerFactories
+            )
         );
     }
 
@@ -359,7 +375,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         io.gravitee.gateway.reactive.policy.PolicyManager policyManager,
         Configuration configuration
     ) {
-        return new HttpPolicyChainFactory(api.getId(), policyManager, configuration);
+        return new HttpPolicyChainFactory(api.getId(), policyManager, TracingUtils.isTracingEnabled(configuration));
     }
 
     protected FlowChainFactory createFlowChainFactory(
@@ -415,7 +431,13 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         AccessPointManager accessPointManager,
         EventManager eventManager
     ) {
-        return new ApiReactorHandler(configuration, api, accessPointManager, eventManager);
+        return new ApiReactorHandler(
+            configuration,
+            api,
+            accessPointManager,
+            eventManager,
+            openTelemetryFactory.createTracer(api.getId(), api.getName(), "API_V2", api.getApiVersion(), instrumenterTracerFactories)
+        );
     }
 
     public PolicyChainFactory policyChainFactory(PolicyManager policyManager) {

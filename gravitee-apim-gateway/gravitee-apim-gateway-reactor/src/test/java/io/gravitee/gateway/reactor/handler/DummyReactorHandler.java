@@ -24,6 +24,7 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import java.util.List;
 import java.util.Set;
 
@@ -45,7 +46,8 @@ public class DummyReactorHandler extends AbstractReactorHandler<Reactable> {
                 public Set dependencies(Class type) {
                     return null;
                 }
-            }
+            },
+            new NoOpTracer()
         );
     }
 

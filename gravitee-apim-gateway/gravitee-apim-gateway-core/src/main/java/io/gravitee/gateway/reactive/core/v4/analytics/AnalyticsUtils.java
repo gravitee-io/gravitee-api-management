@@ -18,8 +18,9 @@ package io.gravitee.gateway.reactive.core.v4.analytics;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
+import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
+import io.gravitee.node.api.configuration.Configuration;
 import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -31,6 +32,7 @@ import lombok.NoArgsConstructor;
 public class AnalyticsUtils {
 
     public static AnalyticsContext createAnalyticsContext(
+        final Configuration configuration,
         @Nonnull final io.gravitee.definition.model.Api apiV2,
         final String loggingMaxsize,
         final String loggingExcludedResponseType
@@ -63,7 +65,13 @@ public class AnalyticsUtils {
             loggingContext.setMaxSizeLogMessage(loggingMaxsize);
             loggingContext.setExcludedResponseTypes(loggingExcludedResponseType);
         }
-        return new AnalyticsContext(analytics, loggingMaxsize, loggingExcludedResponseType);
+        return new AnalyticsContext(configuration, analytics, loggingMaxsize, loggingExcludedResponseType);
+    }
+
+    public static boolean isEnabled(final Analytics analytics) {
+        // TODO OTEL: Uncomment
+        //        return analytics != null && analytics.isEnabled();
+        return true;
     }
 
     public static boolean isLoggingEnabled(final Analytics analytics) {
@@ -75,5 +83,14 @@ public class AnalyticsUtils {
             }
         }
         return false;
+    }
+
+    public static boolean isTracingEnabled(final Configuration configuration, final Analytics analytics) {
+        // TODO OTEL: uncomment
+        //        if (TracingUtils.isTracingEnabled(configuration) && analytics != null && analytics.isEnabled()) {
+        //            Tracing tracing = analytics.getTracing();
+        //            return tracing != null && tracing.isEnabled();
+        //        }
+        return true;
     }
 }

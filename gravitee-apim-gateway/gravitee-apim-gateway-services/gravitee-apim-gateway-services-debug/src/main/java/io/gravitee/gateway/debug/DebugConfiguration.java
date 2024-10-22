@@ -76,6 +76,8 @@ import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.opentelemetry.Tracer;
+import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
@@ -295,7 +297,7 @@ public class DebugConfiguration {
 
     @Bean
     public PolicyFactory debugPolicyFactory(final PolicyPluginFactory policyPluginFactory) {
-        return new HttpPolicyFactory(policyPluginFactory, new DebugExpressionLanguageConditionFilter());
+        return new HttpPolicyFactory(configuration, policyPluginFactory, new DebugExpressionLanguageConditionFilter());
     }
 
     @Bean
@@ -309,6 +311,7 @@ public class DebugConfiguration {
         @Qualifier("debugPlatformProcessorChainFactory") DebugPlatformProcessorChainFactory debugPlatformProcessorChainFactory,
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
         @Value("${services.tracing.enabled:false}") boolean tracingEnabled,
+        Tracer tracer,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         RequestClientAuthConfiguration requestClientAuthConfiguration,
         Vertx vertx
@@ -323,6 +326,7 @@ public class DebugConfiguration {
             debugPlatformProcessorChainFactory,
             notFoundProcessorChainFactory,
             tracingEnabled,
+            tracer,
             requestTimeoutConfiguration,
             requestClientAuthConfiguration,
             vertx

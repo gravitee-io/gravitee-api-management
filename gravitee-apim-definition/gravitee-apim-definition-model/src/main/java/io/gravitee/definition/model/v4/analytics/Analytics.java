@@ -17,6 +17,7 @@ package io.gravitee.definition.model.v4.analytics;
 
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.analytics.sampling.Sampling;
+import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
@@ -44,4 +45,5 @@ public class Analytics implements Serializable {
     private boolean enabled = true;
     private Sampling messageSampling;
     private Logging logging;
+    private Tracing tracing;
 }

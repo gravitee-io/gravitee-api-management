@@ -16,6 +16,8 @@
 package io.gravitee.gateway.reactive.reactor;
 
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_LISTENER_TYPE;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_TRACING_ERROR;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_TRACING_ROOT_SPAN;
 
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.http.MediaType;
@@ -48,18 +50,22 @@ import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
+import io.gravitee.node.api.opentelemetry.Span;
+import io.gravitee.node.api.opentelemetry.Tracer;
+import io.gravitee.node.api.opentelemetry.http.ObservableHttpRequest;
+import io.gravitee.node.api.opentelemetry.http.ObservableHttpResponse;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableEmitter;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.rxjava3.core.http.HttpHeaders;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Request dispatcher responsible to dispatch any HTTP request to the appropriate {@link io.gravitee.gateway.reactor.handler.ReactorHandler}.
@@ -72,12 +78,11 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
 
     private static final String ATTR_INTERNAL_VERTX_TIMER_ID = ContextAttributes.ATTR_PREFIX + "vertx-timer-id";
     public static final String ATTR_ENTRYPOINT = ContextAttributes.ATTR_PREFIX + "entrypoint";
-
-    private final Logger log = LoggerFactory.getLogger(DefaultHttpRequestDispatcher.class);
     private final GatewayConfiguration gatewayConfiguration;
     private final HttpAcceptorResolver httpAcceptorResolver;
     private final IdGenerator idGenerator;
@@ -85,6 +90,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     private final ResponseProcessorChainFactory responseProcessorChainFactory;
     private final DefaultPlatformProcessorChainFactory platformProcessorChainFactory;
     private final NotFoundProcessorChainFactory notFoundProcessorChainFactory;
+    private final Tracer gatewayTracer;
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
     private final RequestClientAuthConfiguration requestClientAuthConfiguration;
     private final Vertx vertx;
@@ -101,6 +107,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         DefaultPlatformProcessorChainFactory platformProcessorChainFactory,
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
         boolean tracingEnabled,
+        Tracer gatewayTracer,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         RequestClientAuthConfiguration requestClientAuthConfiguration,
         Vertx vertx
@@ -113,6 +120,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         this.responseProcessorChainFactory = responseProcessorChainFactory;
         this.platformProcessorChainFactory = platformProcessorChainFactory;
         this.notFoundProcessorChainFactory = notFoundProcessorChainFactory;
+        this.gatewayTracer = gatewayTracer;
         this.requestTimeoutConfiguration = requestTimeoutConfiguration;
         this.requestClientAuthConfiguration = requestClientAuthConfiguration;
         this.vertx = vertx;
@@ -138,9 +146,10 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         log.debug("Dispatching request on host {} and path {}", httpServerRequest.host(), httpServerRequest.path());
 
         final HttpAcceptor httpAcceptor = httpAcceptorResolver.resolve(httpServerRequest.host(), httpServerRequest.path(), serverId);
+        Context vertxContext = vertx.getOrCreateContext();
         if (httpAcceptor == null || httpAcceptor.reactor() == null) {
             MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest);
-
+            mutableCtx.tracer(new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, gatewayTracer));
             ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
             return HookHelper
                 .hook(
@@ -150,12 +159,37 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                     mutableCtx,
                     ExecutionPhase.REQUEST
                 )
-                .andThen(handleNotFound(mutableCtx));
-        } else if (httpAcceptor.reactor() instanceof ApiReactor) {
+                .andThen(handleNotFound(mutableCtx))
+                .doOnSubscribe(disposable -> {
+                    Span rootSpan = mutableCtx
+                        .getTracer()
+                        .startRootSpanFrom(ObservableHttpRequest.fromHttpServerRequest(httpServerRequest.getDelegate()));
+                    mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN, rootSpan);
+                })
+                .doOnComplete(() -> {
+                    Span rootSpan = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
+                    mutableCtx
+                        .getTracer()
+                        .endWithResponse(
+                            rootSpan,
+                            ObservableHttpResponse.fromHttpServerResponse(httpServerRequest.getDelegate().response())
+                        );
+                })
+                .doOnError(throwable -> {
+                    Span rootSpan = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
+                    mutableCtx
+                        .getTracer()
+                        .endWithResponseAndError(
+                            rootSpan,
+                            ObservableHttpResponse.fromHttpServerResponse(httpServerRequest.getDelegate().response()),
+                            throwable
+                        );
+                });
+        } else if (httpAcceptor.reactor() instanceof ApiReactor<?> apiReactor) {
             MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest);
             mutableCtx.request().contextPath(httpAcceptor.path());
-
-            final ApiReactor apiReactor = (ApiReactor) httpAcceptor.reactor();
+            Tracer openTelemetryTracer = apiReactor.tracer();
+            mutableCtx.tracer(new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, openTelemetryTracer));
             mutableCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, apiReactor.api());
             ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
             return HookHelper
@@ -167,6 +201,13 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                     ExecutionPhase.REQUEST
                 )
                 .andThen(Completable.defer(() -> apiReactor.handle(mutableCtx)))
+                .doOnSubscribe(disposable -> {
+                    Span rootSpan = mutableCtx
+                        .getTracer()
+                        .startRootSpanFrom(ObservableHttpRequest.fromHttpServerRequest(httpServerRequest.getDelegate()));
+                    mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN, rootSpan);
+                })
+                .doOnError(throwable -> mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ERROR, throwable))
                 .doFinally(() -> {
                     // Post action are dissociated from the main execution once the request has been handled and cover all the cases (error, success, cancel).
                     ProcessorChain postProcessorChain = platformProcessorChainFactory.postProcessorChain();
@@ -179,6 +220,18 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                             ExecutionPhase.RESPONSE
                         )
                         .subscribeOn(Schedulers.computation())
+                        .doOnError(throwable -> mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ERROR, throwable))
+                        .doFinally(() -> {
+                            Span rootSpan = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
+                            Throwable throwable = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ERROR);
+                            mutableCtx
+                                .getTracer()
+                                .endWithResponseAndError(
+                                    rootSpan,
+                                    ObservableHttpResponse.fromHttpServerResponse(httpServerRequest.getDelegate().response()),
+                                    throwable
+                                );
+                        })
                         .onErrorComplete()
                         .subscribe();
                 });
@@ -232,21 +285,44 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         prepareV3Metrics(request.metrics());
 
         // Prepare handler chain and catch the end of the v3 request handling to complete the reactive chain.
-        return Completable.create(emitter -> {
-            Handler<io.gravitee.gateway.api.ExecutionContext> endHandler = endRequestHandler(emitter, httpServerRequest);
-            requestProcessorChainFactory
-                .create()
-                .handler(ctx -> {
-                    reactorHandler.handle(
-                        ctx,
-                        executionContext ->
-                            executionContext.response().endHandler(aVoid -> processResponse(executionContext, endHandler)).end()
+        return Completable
+            .create(emitter -> {
+                Handler<io.gravitee.gateway.api.ExecutionContext> endHandler = endRequestHandler(emitter, httpServerRequest);
+                requestProcessorChainFactory
+                    .create()
+                    .handler(ctx -> {
+                        reactorHandler.handle(
+                            ctx,
+                            executionContext ->
+                                executionContext.response().endHandler(aVoid -> processResponse(executionContext, endHandler)).end()
+                        );
+                    })
+                    .errorHandler(result -> processResponse(simpleExecutionContext, endHandler))
+                    .exitHandler(result -> processResponse(simpleExecutionContext, endHandler))
+                    .handle(simpleExecutionContext);
+            })
+            .doOnSubscribe(disposable -> {
+                Span rootSpan = simpleExecutionContext
+                    .getTracer()
+                    .startRootSpanFrom(ObservableHttpRequest.fromHttpServerRequest(httpServerRequest.getDelegate()));
+                simpleExecutionContext.getAttributes().put(ATTR_INTERNAL_TRACING_ROOT_SPAN, rootSpan);
+            })
+            .doOnComplete(() -> {
+                Span rootSpan = (Span) simpleExecutionContext.getAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
+                simpleExecutionContext
+                    .getTracer()
+                    .endWithResponse(rootSpan, ObservableHttpResponse.fromHttpServerResponse(httpServerRequest.getDelegate().response()));
+            })
+            .doOnError(throwable -> {
+                Span rootSpan = (Span) simpleExecutionContext.getAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
+                simpleExecutionContext
+                    .getTracer()
+                    .endWithResponseAndError(
+                        rootSpan,
+                        ObservableHttpResponse.fromHttpServerResponse(httpServerRequest.getDelegate().response()),
+                        throwable
                     );
-                })
-                .errorHandler(result -> processResponse(simpleExecutionContext, endHandler))
-                .exitHandler(result -> processResponse(simpleExecutionContext, endHandler))
-                .handle(simpleExecutionContext);
-        });
+            });
     }
 
     private Handler<io.gravitee.gateway.api.ExecutionContext> endRequestHandler(

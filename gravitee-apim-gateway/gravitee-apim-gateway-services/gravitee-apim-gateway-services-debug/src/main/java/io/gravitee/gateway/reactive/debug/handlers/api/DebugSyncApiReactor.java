@@ -37,6 +37,8 @@ import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.api.opentelemetry.Tracer;
+import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Collections;
 import java.util.List;
@@ -62,7 +64,8 @@ public class DebugSyncApiReactor extends SyncApiReactor {
         final Node node,
         final RequestTimeoutConfiguration requestTimeoutConfiguration,
         final AccessPointManager accessPointManager,
-        final EventManager eventManager
+        final EventManager eventManager,
+        final Tracer tracer
     ) {
         super(
             api,
@@ -78,7 +81,8 @@ public class DebugSyncApiReactor extends SyncApiReactor {
             node,
             requestTimeoutConfiguration,
             accessPointManager,
-            eventManager
+            eventManager,
+            tracer
         );
         invokerHooks.add(new DebugInvokerHook());
     }
