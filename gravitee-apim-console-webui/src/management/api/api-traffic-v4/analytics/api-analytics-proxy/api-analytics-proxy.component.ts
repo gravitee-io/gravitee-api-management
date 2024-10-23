@@ -42,6 +42,10 @@ import {
   ApiAnalyticsResponseStatusOvertime,
   ApiAnalyticsResponseStatusOvertimeComponent,
 } from '../components/api-analytics-response-status-overtime/api-analytics-response-status-overtime.component';
+import {
+  ApiAnalyticsResponseTimeOverTimeComponent,
+  ApiAnalyticsResponseTimeOverTimeComponentInput, ResponseTimeIsLoading
+} from '../components/api-analytics-response-time-over-time/api-analytics-response-time-over-time.component';
 
 type ApiAnalyticsVM = {
   isLoading: boolean;
@@ -49,7 +53,16 @@ type ApiAnalyticsVM = {
   requestStats?: AnalyticsRequestStats;
   responseStatusRanges?: ApiAnalyticsResponseStatusRanges;
   responseStatusOvertime?: ApiAnalyticsResponseStatusOvertime;
+  responseTimeOverTime?: ApiAnalyticsResponseTimeOverTimeComponentInput;
 };
+
+type LoadingData = [
+  Partial<AnalyticsRequestsCount> & { isLoading: boolean },
+  Partial<AnalyticsAverageConnectionDuration> & { isLoading: boolean },
+  Partial<AnalyticsResponseStatusRanges> & { isLoading: boolean },
+  Partial<ApiAnalyticsResponseStatusOvertime>,
+  ApiAnalyticsResponseTimeOverTimeComponentInput
+];
 
 @Component({
   selector: 'api-analytics-proxy',
@@ -64,6 +77,7 @@ type ApiAnalyticsVM = {
     ApiAnalyticsFiltersBarComponent,
     ApiAnalyticsResponseStatusRangesComponent,
     ApiAnalyticsResponseStatusOvertimeComponent,
+    ApiAnalyticsResponseTimeOverTimeComponent
   ],
   templateUrl: './api-analytics-proxy.component.html',
   styleUrl: './api-analytics-proxy.component.scss',
@@ -99,13 +113,20 @@ export class ApiAnalyticsProxyComponent {
       startWith({ isLoading: true }),
     );
 
+  private getResponseTimeOverTime$: Observable<ApiAnalyticsResponseTimeOverTimeComponentInput> =
+    this.apiAnalyticsService.getResponseTimeOverTime(this.activatedRoute.snapshot.params.apiId).pipe(
+      map((responseTimeOverTime) => ({ isLoading: false, ...responseTimeOverTime })),
+      startWith(ResponseTimeIsLoading),
+    );
+
   private analyticsData$: Observable<Omit<ApiAnalyticsVM, 'isLoading' | 'isAnalyticsEnabled'>> = combineLatest([
     this.getRequestsCount$.pipe(catchError(() => of({ isLoading: false, total: undefined }))),
     this.getAverageConnectionDuration$.pipe(catchError(() => of({ isLoading: false, average: undefined }))),
     this.getResponseStatusRanges$.pipe(catchError(() => of({ isLoading: false, ranges: undefined }))),
     this.getResponseStatusOvertime$.pipe(catchError(() => of({ isLoading: false, timeRange: undefined, data: undefined }))),
+    this.getResponseTimeOverTime$.pipe(catchError(() => of(ResponseTimeIsLoading))),
   ]).pipe(
-    map(([requestsCount, averageConnectionDuration, responseStatuesRanges, responseStatusOvertime]) => ({
+    map(([requestsCount, averageConnectionDuration, responseStatuesRanges, responseStatusOvertime, responseTimeOverTime]: LoadingData) => ({
       requestStats: [
         {
           label: 'Total Requests',
@@ -128,6 +149,7 @@ export class ApiAnalyticsProxyComponent {
         timeRange: responseStatusOvertime.timeRange,
         data: responseStatusOvertime.data,
       },
+      responseTimeOverTime
     })),
   );
 

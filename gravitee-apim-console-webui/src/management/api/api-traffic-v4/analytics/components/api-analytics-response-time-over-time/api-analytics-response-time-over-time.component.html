@@ -15,17 +15,20 @@
     limitations under the License.
 
 -->
-<div class="gio-chart-line">
-  @if (data?.length > 0) {
-    <highcharts-chart
-      [Highcharts]="Highcharts"
-      [options]="chartOptions"
-      [callbackFunction]="callbackFunction"
-      class="gio-chart-line__chart"
-    />
+<mat-card class="card">
+  <div class="title">{{ title }}</div>
+
+  @if (!input) {
+    <div class="card__loader">
+      <gio-loader/>
+    </div>
   } @else {
-    <div class="gio-chart-line__no-data">
-      <div class="mat-body">No data to display</div>
+    <div class="card__chart">
+      <gio-chart-line
+        [data]="input"
+        [options]="options"
+        [title]="title"
+      />
     </div>
   }
-</div>
+</mat-card>
