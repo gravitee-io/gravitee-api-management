@@ -1386,10 +1386,10 @@ paths:
                                 $ref: "#/components/schemas/Member"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{integrationId}/members/{memberId}:
+    /environments/{envId}/integrations/{integrationId}/members/{memberId}:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
-            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/integrationIdParam"
             - $ref: "#/components/parameters/memberIdParam"
         put:
             tags:
