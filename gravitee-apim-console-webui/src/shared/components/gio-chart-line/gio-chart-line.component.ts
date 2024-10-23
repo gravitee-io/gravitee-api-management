@@ -78,7 +78,7 @@ export class GioChartLineComponent implements OnInit {
       plotOptions: {
         series: {
           marker: { enabled: false },
-          pointStart: this.options.pointStart,
+          pointStart: Math.floor(this.options.pointStart / this.options.pointInterval) * this.options.pointInterval,
           pointInterval: this.options.pointInterval,
         },
         line: {},
