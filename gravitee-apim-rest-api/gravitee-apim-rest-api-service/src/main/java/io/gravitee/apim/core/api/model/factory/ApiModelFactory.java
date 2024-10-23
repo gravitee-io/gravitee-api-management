@@ -41,7 +41,7 @@ public class ApiModelFactory {
             .environmentId(environmentId)
             .createdAt(now)
             .updatedAt(now)
-            .apiDefinitionV4(newHttpApi.toApiDefinitionBuilder().id(id).build())
+            .apiDefinitionHttpV4(newHttpApi.toApiDefinitionBuilder().id(id).build())
             .lifecycleState(Api.LifecycleState.STOPPED)
             .build();
     }
@@ -55,7 +55,7 @@ public class ApiModelFactory {
             .environmentId(environmentId)
             .createdAt(now)
             .updatedAt(now)
-            .nativeApiDefinition(newNativeApi.toNativeApiDefinitionBuilder().id(id).build())
+            .apiDefinitionNativeV4(newNativeApi.toNativeApiDefinitionBuilder().id(id).build())
             .lifecycleState(Api.LifecycleState.STOPPED)
             .build();
     }
@@ -70,7 +70,7 @@ public class ApiModelFactory {
             .createdAt(now)
             .updatedAt(now)
             .visibility(Api.Visibility.valueOf(crd.getVisibility()))
-            .apiDefinitionV4(crd.toApiDefinitionBuilder().id(id).build())
+            .apiDefinitionHttpV4(crd.toApiDefinitionBuilder().id(id).build())
             .disableMembershipNotifications(!crd.isNotifyMembers())
             .build();
     }
@@ -87,7 +87,7 @@ public class ApiModelFactory {
             .lifecycleState(Api.LifecycleState.STOPPED)
             .apiLifecycleState(Api.ApiLifecycleState.CREATED)
             .visibility(api.getVisibility() == null ? Api.Visibility.PRIVATE : Api.Visibility.valueOf(api.getVisibility().name()))
-            .apiDefinitionV4(api.toApiDefinitionBuilder().id(id).build())
+            .apiDefinitionHttpV4(api.toApiDefinitionBuilder().id(id).build())
             .build();
     }
 

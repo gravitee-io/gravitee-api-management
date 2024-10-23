@@ -112,7 +112,7 @@ public class UpdatePlanDomainService {
         var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows);
         flowValidationDomainService.validatePathParameters(
             api.getType(),
-            api.getApiDefinitionV4().getFlows().stream(),
+            api.getApiDefinitionHttpV4().getFlows().stream(),
             sanitizedFlows.stream()
         );
 

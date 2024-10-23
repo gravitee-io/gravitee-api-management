@@ -233,7 +233,7 @@ class CreateNativeApiUseCaseTest {
             .apiLifecycleState(Api.ApiLifecycleState.CREATED)
             .lifecycleState(Api.LifecycleState.STOPPED)
             .visibility(Api.Visibility.PRIVATE)
-            .nativeApiDefinition(newApi.toNativeApiDefinitionBuilder().id("generated-id").build())
+            .apiDefinitionNativeV4(newApi.toNativeApiDefinitionBuilder().id("generated-id").build())
             .build();
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(output.api()).isEqualTo(new ApiWithFlows(expectedApi, newApi.getFlows()));

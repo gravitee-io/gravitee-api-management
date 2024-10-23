@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.api.model;
 
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.Flow;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -45,10 +44,10 @@ public class ApiWithFlows extends Api {
             api.getVersion(),
             api.getOriginContext(),
             api.getDefinitionVersion(),
-            api.getApiDefinitionV4(),
+            api.getApiDefinitionHttpV4(),
+            api.getApiDefinitionNativeV4(),
             api.getApiDefinition(),
             api.getFederatedApiDefinition(),
-            api.getNativeApiDefinition(),
             api.getType(),
             api.getDeployedAt(),
             api.getCreatedAt(),

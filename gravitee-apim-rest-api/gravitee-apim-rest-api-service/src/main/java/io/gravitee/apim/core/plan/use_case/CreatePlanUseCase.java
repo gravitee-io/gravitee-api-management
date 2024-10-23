@@ -44,7 +44,7 @@ public class CreatePlanUseCase {
             throw new PlanInvalidException("Can't manually create Federated Plan");
         }
 
-        if (isMtls(api, input) && api.getApiDefinitionV4().isTcpProxy()) {
+        if (isMtls(api, input) && api.getApiDefinitionHttpV4().isTcpProxy()) {
             throw new PlanInvalidException("Cannot create mTLS plan for TCP API");
         }
 

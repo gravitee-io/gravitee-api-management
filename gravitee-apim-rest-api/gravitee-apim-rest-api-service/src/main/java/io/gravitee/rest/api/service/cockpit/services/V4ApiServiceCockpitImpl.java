@@ -149,12 +149,12 @@ public class V4ApiServiceCockpitImpl implements V4ApiServiceCockpit {
         entity.setDefinitionVersion(api.getDefinitionVersion());
         entity.setType(api.getType());
         entity.setDescription(api.getDescription());
-        entity.setEndpointGroups(api.getApiDefinitionV4().getEndpointGroups());
-        entity.setAnalytics(api.getApiDefinitionV4().getAnalytics());
-        entity.setFlows(api.getApiDefinitionV4().getFlows());
-        entity.setFlowExecution(api.getApiDefinitionV4().getFlowExecution());
-        entity.setResponseTemplates(api.getApiDefinitionV4().getResponseTemplates());
-        entity.setServices(api.getApiDefinitionV4().getServices());
+        entity.setEndpointGroups(api.getApiDefinitionHttpV4().getEndpointGroups());
+        entity.setAnalytics(api.getApiDefinitionHttpV4().getAnalytics());
+        entity.setFlows(api.getApiDefinitionHttpV4().getFlows());
+        entity.setFlowExecution(api.getApiDefinitionHttpV4().getFlowExecution());
+        entity.setResponseTemplates(api.getApiDefinitionHttpV4().getResponseTemplates());
+        entity.setServices(api.getApiDefinitionHttpV4().getServices());
         entity.setGroups(api.getGroups());
         entity.setVisibility(Visibility.PUBLIC);
         entity.setPicture(api.getPicture());

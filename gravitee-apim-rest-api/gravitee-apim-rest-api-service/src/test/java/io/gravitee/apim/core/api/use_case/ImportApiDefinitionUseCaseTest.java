@@ -572,7 +572,7 @@ class ImportApiDefinitionUseCaseTest {
     private Api expectedApi() {
         return aProxyApiV4()
             .toBuilder()
-            .apiDefinitionV4(
+            .apiDefinitionHttpV4(
                 ApiDefinitionFixtures
                     .anApiV4()
                     .toBuilder()

@@ -19,15 +19,12 @@ import static fixtures.core.model.ApiFixtures.aMessageApiV4;
 import static fixtures.core.model.ApiFixtures.aProxyApiV2;
 import static fixtures.core.model.PlanFixtures.aPlanV2;
 import static fixtures.core.model.PlanFixtures.aPlanV4;
-import static fixtures.core.model.PlanFixtures.aPushPlan;
 import static org.junit.jupiter.api.Assertions.*;
 
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.plan.model.Plan;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -70,7 +67,7 @@ class GetApiDefinitionUseCaseTest {
 
             // Then
             assertNotNull(output);
-            assertEquals(API.getApiDefinitionV4(), output.apiDefinitionV4());
+            assertEquals(API.getApiDefinitionHttpV4(), output.apiDefinitionV4());
         }
 
         @Test
@@ -103,7 +100,7 @@ class GetApiDefinitionUseCaseTest {
 
             // Then
             assertNotNull(output);
-            assertEquals(API.getApiDefinitionV4(), output.apiDefinitionV4());
+            assertEquals(API.getApiDefinitionHttpV4(), output.apiDefinitionV4());
             assertEquals(flows, output.apiDefinitionV4().getFlows());
             assertEquals(2, output.apiDefinitionV4().getPlans().size());
             assertEquals(planFlows, output.apiDefinitionV4().getPlans().get(0).getFlows());

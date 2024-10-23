@@ -238,7 +238,7 @@ class CreatePlanDomainServiceTest {
         @MethodSource("plans")
         void should_throw_when_plan_tags_mismatch_with_tags_defined_in_api(Api api, Plan plan, List<Flow> flows) {
             // Given
-            api.getApiDefinitionV4().setTags(Set.of());
+            api.getApiDefinitionHttpV4().setTags(Set.of());
 
             // When
             var throwable = Assertions.catchThrowable(() -> service.create(plan, flows, api, AUDIT_INFO));

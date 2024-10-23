@@ -17,12 +17,10 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.category.model.ApiCategoryOrder;
-import io.gravitee.apim.core.category.use_case.GetCategoryApisUseCase;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.rest.api.management.v2.rest.model.CategoryApi;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -53,9 +51,9 @@ public interface CategoryApiMapper {
 
         switch (api.getDefinitionVersion()) {
             case V4 -> {
-                if (Objects.nonNull(api.getApiDefinitionV4()) && Objects.nonNull(api.getApiDefinitionV4().getListeners())) {
+                if (Objects.nonNull(api.getApiDefinitionHttpV4()) && Objects.nonNull(api.getApiDefinitionHttpV4().getListeners())) {
                     Stream<String> tcpListenerHostsStream = api
-                        .getApiDefinitionV4()
+                        .getApiDefinitionHttpV4()
                         .getListeners()
                         .stream()
                         .filter(listener -> ListenerType.TCP.equals(listener.getType()))
@@ -63,7 +61,7 @@ public interface CategoryApiMapper {
                         .flatMap(listener -> listener.getHosts().stream());
 
                     Stream<String> httpListenerHostsStream = api
-                        .getApiDefinitionV4()
+                        .getApiDefinitionHttpV4()
                         .getListeners()
                         .stream()
                         .filter(listener -> ListenerType.HTTP.equals(listener.getType()))

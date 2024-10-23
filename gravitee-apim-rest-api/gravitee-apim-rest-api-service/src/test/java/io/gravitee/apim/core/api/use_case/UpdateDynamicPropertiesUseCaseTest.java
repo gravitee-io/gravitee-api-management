@@ -170,7 +170,7 @@ class UpdateDynamicPropertiesUseCaseTest {
                 )
             );
 
-            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionV4().getProperties())
+            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties())
                 .containsExactlyInAnyOrder(
                     Property.builder().key("user-prop").value("value").dynamic(false).build(),
                     Property.builder().key("key").value("value").dynamic(true).build()
@@ -194,7 +194,7 @@ class UpdateDynamicPropertiesUseCaseTest {
                 )
             );
 
-            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionV4().getProperties())
+            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties())
                 .containsExactlyInAnyOrder(
                     Property.builder().key("user-prop").value("value").dynamic(false).build(),
                     Property.builder().key("key").value("value").dynamic(true).build()
@@ -245,7 +245,7 @@ class UpdateDynamicPropertiesUseCaseTest {
                 )
             );
 
-            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionV4().getProperties())
+            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties())
                 .containsExactlyInAnyOrder(
                     Property.builder().key("user-prop").value("value").dynamic(false).build(),
                     Property.builder().key("key").value("value").dynamic(true).build()
@@ -272,7 +272,7 @@ class UpdateDynamicPropertiesUseCaseTest {
             verify(apiStateDomainService).deploy(apiCaptor.capture(), any(String.class), auditInfoCaptor.capture());
             assertSoftly(softly -> {
                 softly
-                    .assertThat(apiCaptor.getValue().getApiDefinitionV4().getProperties())
+                    .assertThat(apiCaptor.getValue().getApiDefinitionHttpV4().getProperties())
                     .containsExactlyInAnyOrder(
                         Property.builder().key("user-prop").value("value").dynamic(false).build(),
                         Property.builder().key("key").value("value").dynamic(true).build()
@@ -294,11 +294,11 @@ class UpdateDynamicPropertiesUseCaseTest {
         void should_redeploy_using_the_last_deployed_api_definition() {
             // Case were a user disable and save the API, but without deploying it
             var api = givenApi(buildApiWithProperties(List.of(Property.builder().key("user-prop").value("value").dynamic(false).build())));
-            api.getApiDefinitionV4().getServices().getDynamicProperty().setEnabled(false);
+            api.getApiDefinitionHttpV4().getServices().getDynamicProperty().setEnabled(false);
 
             // Last event of the deployed api is with the service enabled
             final Api lastDeployedApi = api.toBuilder().build();
-            lastDeployedApi.getApiDefinitionV4().getServices().getDynamicProperty().setEnabled(true);
+            lastDeployedApi.getApiDefinitionHttpV4().getServices().getDynamicProperty().setEnabled(true);
             apiEventQueryServiceInMemory.initWith(List.of(lastDeployedApi));
 
             cut.execute(
@@ -315,7 +315,7 @@ class UpdateDynamicPropertiesUseCaseTest {
 
             verify(apiStateDomainService).deploy(apiCaptor.capture(), any(String.class), auditInfoCaptor.capture());
             assertSoftly(softly -> {
-                var definition = api.getApiDefinitionV4();
+                var definition = api.getApiDefinitionHttpV4();
                 softly.assertThat(definition.getServices().getDynamicProperty().isEnabled()).isTrue();
                 softly
                     .assertThat(definition.getProperties())
@@ -345,7 +345,7 @@ class UpdateDynamicPropertiesUseCaseTest {
 
     @NotNull
     private static Api buildApiWithProperties(List<Property> properties) {
-        return ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).apiDefinitionV4(anApiDefinitionWithProperties(properties)).build();
+        return ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).apiDefinitionHttpV4(anApiDefinitionWithProperties(properties)).build();
     }
 
     private static io.gravitee.definition.model.v4.Api anApiDefinitionWithProperties(List<Property> properties) {

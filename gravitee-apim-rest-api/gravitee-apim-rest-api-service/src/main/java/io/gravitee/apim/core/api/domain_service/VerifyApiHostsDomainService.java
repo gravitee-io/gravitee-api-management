@@ -119,9 +119,9 @@ public class VerifyApiHostsDomainService {
                 !api.getId().equals(apiId) &&
                 ApiType.PROXY.equals(api.getType()) &&
                 DefinitionVersion.V4.equals(api.getDefinitionVersion()) &&
-                null != api.getApiDefinitionV4()
+                null != api.getApiDefinitionHttpV4()
             )
-            .flatMap(api -> api.getApiDefinitionV4().getListeners().stream())
+            .flatMap(api -> api.getApiDefinitionHttpV4().getListeners().stream())
             .filter(TcpListener.class::isInstance)
             .map(TcpListener.class::cast)
             .map(TcpListener::getHosts)

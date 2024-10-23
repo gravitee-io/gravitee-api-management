@@ -176,7 +176,7 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
     }
 
     private void transformV4Api(Document doc, IndexableApi api) {
-        var apiDefinitionV4 = api.getApi().getApiDefinitionV4();
+        var apiDefinitionV4 = api.getApi().getApiDefinitionHttpV4();
         if (apiDefinitionV4 != null && apiDefinitionV4.getListeners() != null) {
             final int[] pathIndex = { 0 };
             apiDefinitionV4

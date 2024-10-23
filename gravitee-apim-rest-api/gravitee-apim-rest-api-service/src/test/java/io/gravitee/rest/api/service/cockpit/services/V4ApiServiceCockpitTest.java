@@ -231,7 +231,7 @@ public class V4ApiServiceCockpitTest {
             soft.assertThat(created.getDescription()).isEqualTo("Original from Cockpit - HTTP");
             // Resources and Properties are currently not handle by NewApi
             soft
-                .assertThat(created.getApiDefinitionV4())
+                .assertThat(created.getApiDefinitionHttpV4())
                 .isEqualTo(
                     Api
                         .builder()

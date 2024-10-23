@@ -155,14 +155,14 @@ public interface ApiMapper {
 
     @Mapping(target = "definitionContext", source = "source.originContext")
     @Mapping(target = "apiVersion", source = "source.version")
-    @Mapping(target = "analytics", source = "source.apiDefinitionV4.analytics")
+    @Mapping(target = "analytics", source = "source.apiDefinitionHttpV4.analytics")
     @Mapping(target = "deploymentState", source = "deploymentState")
-    @Mapping(target = "endpointGroups", source = "source.apiDefinitionV4.endpointGroups")
-    @Mapping(target = "flowExecution", source = "source.apiDefinitionV4.flowExecution")
-    @Mapping(target = "flows", source = "source.apiDefinitionV4.flows")
+    @Mapping(target = "endpointGroups", source = "source.apiDefinitionHttpV4.endpointGroups")
+    @Mapping(target = "flowExecution", source = "source.apiDefinitionHttpV4.flowExecution")
+    @Mapping(target = "flows", source = "source.apiDefinitionHttpV4.flows")
     @Mapping(target = "lifecycleState", source = "source.apiLifecycleState")
     @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
-    @Mapping(target = "listeners", source = "source.apiDefinitionV4.listeners", qualifiedByName = "fromListeners")
+    @Mapping(target = "listeners", source = "source.apiDefinitionHttpV4.listeners", qualifiedByName = "fromListeners")
     @Mapping(target = "state", source = "source.lifecycleState")
     ApiV4 mapToV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 

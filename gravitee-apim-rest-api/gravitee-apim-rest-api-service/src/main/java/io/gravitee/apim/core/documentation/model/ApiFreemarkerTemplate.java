@@ -69,8 +69,8 @@ public class ApiFreemarkerTemplate {
             return;
         }
         if (DefinitionVersion.V4.equals(api.getDefinitionVersion())) {
-            if (api.getApiDefinitionV4() != null) {
-                this.tags = api.getApiDefinitionV4().getTags();
+            if (api.getApiDefinitionHttpV4() != null) {
+                this.tags = api.getApiDefinitionHttpV4().getTags();
             }
         } else if (api.getApiDefinition() != null) {
             this.tags = api.getApiDefinition().getTags();

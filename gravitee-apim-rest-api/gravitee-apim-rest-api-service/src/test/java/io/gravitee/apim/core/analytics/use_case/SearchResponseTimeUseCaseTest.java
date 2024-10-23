@@ -67,7 +67,7 @@ class SearchResponseTimeUseCaseTest {
             .type(ApiType.MESSAGE)
             .definitionVersion(DefinitionVersion.V4)
             .build();
-        apiCrudServiceInMemory.initWith(List.of(Api.builder().id("MyApiID").apiDefinitionV4(definition).environmentId(ENV_ID).build()));
+        apiCrudServiceInMemory.initWith(List.of(Api.builder().id("MyApiID").apiDefinitionHttpV4(definition).environmentId(ENV_ID).build()));
         // the order of keys is important
         analyticsQueryService.averageAggregate = new LinkedHashMap<>();
         analyticsQueryService.averageAggregate.put("1970-01-01T00:00:00", 1.2D);
@@ -92,7 +92,7 @@ class SearchResponseTimeUseCaseTest {
             .type(ApiType.MESSAGE)
             .definitionVersion(DefinitionVersion.V4)
             .build();
-        apiCrudServiceInMemory.initWith(List.of(Api.builder().id("MyApiID").apiDefinitionV4(definition).environmentId(ENV_ID).build()));
+        apiCrudServiceInMemory.initWith(List.of(Api.builder().id("MyApiID").apiDefinitionHttpV4(definition).environmentId(ENV_ID).build()));
 
         // When
         SearchResponseTimeUseCase.Output output = cut.execute(new ExecutionContext(), input).blockingGet();

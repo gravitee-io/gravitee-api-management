@@ -491,6 +491,6 @@ class VerifyApiPathDomainServiceTest {
                 )
             )
             .build();
-        return Api.builder().id(apiId).environmentId(environmentId).apiDefinitionV4(apiDefV4).build();
+        return Api.builder().id(apiId).environmentId(environmentId).apiDefinitionHttpV4(apiDefV4).build();
     }
 }

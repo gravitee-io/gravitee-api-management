@@ -52,7 +52,7 @@ public class UpdateApiDomainServiceImpl implements UpdateApiDomainService {
     public Api updateV4(Api api, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
 
-        var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(api, api.getApiDefinitionV4());
+        var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(api, api.getApiDefinitionHttpV4());
 
         delegate.update(executionContext, api.getId(), updateApiEntity, false, auditInfo.actor().userId());
 

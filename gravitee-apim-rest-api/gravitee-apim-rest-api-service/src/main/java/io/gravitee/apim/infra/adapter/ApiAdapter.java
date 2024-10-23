@@ -20,10 +20,8 @@ import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.federation.FederatedApi;
-import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
-import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -46,10 +44,10 @@ public interface ApiAdapter {
     Logger LOGGER = LoggerFactory.getLogger(ApiAdapter.class);
     ApiAdapter INSTANCE = Mappers.getMapper(ApiAdapter.class);
 
-    @Mapping(target = "apiDefinitionV4", expression = "java(deserializeApiDefinitionV4(source))")
+    @Mapping(target = "apiDefinitionHttpV4", expression = "java(deserializeApiDefinitionV4(source))")
     @Mapping(target = "apiDefinition", expression = "java(deserializeApiDefinitionV2(source))")
     @Mapping(target = "federatedApiDefinition", expression = "java(deserializeFederatedApiDefinition(source))")
-    @Mapping(target = "nativeApiDefinition", expression = "java(deserializeNativeApiDefinition(source))")
+    @Mapping(target = "apiDefinitionNativeV4", expression = "java(deserializeNativeApiDefinition(source))")
     Api toCoreModel(io.gravitee.repository.management.model.Api source);
 
     Stream<Api> toCoreModelStream(Stream<io.gravitee.repository.management.model.Api> source);
@@ -60,12 +58,12 @@ public interface ApiAdapter {
     Stream<io.gravitee.repository.management.model.Api> toRepositoryStream(Stream<Api> source);
 
     @Mapping(target = "apiVersion", source = "version")
-    @Mapping(target = "tags", source = "apiDefinitionV4.tags")
-    @Mapping(target = "listeners", source = "apiDefinitionV4.listeners")
-    @Mapping(target = "endpointGroups", source = "apiDefinitionV4.endpointGroups")
-    @Mapping(target = "analytics", source = "apiDefinitionV4.analytics")
-    @Mapping(target = "flowExecution", source = "apiDefinitionV4.flowExecution")
-    @Mapping(target = "flows", source = "apiDefinitionV4.flows")
+    @Mapping(target = "tags", source = "apiDefinitionHttpV4.tags")
+    @Mapping(target = "listeners", source = "apiDefinitionHttpV4.listeners")
+    @Mapping(target = "endpointGroups", source = "apiDefinitionHttpV4.endpointGroups")
+    @Mapping(target = "analytics", source = "apiDefinitionHttpV4.analytics")
+    @Mapping(target = "flowExecution", source = "apiDefinitionHttpV4.flowExecution")
+    @Mapping(target = "flows", source = "apiDefinitionHttpV4.flows")
     NewApiEntity toNewApiEntity(Api source);
 
     @Mapping(target = "apiVersion", source = "version")
@@ -152,8 +150,8 @@ public interface ApiAdapter {
         return switch (api.getDefinitionVersion()) {
             case V1, V2 -> serialize(api.getApiDefinition(), "V2 API");
             case V4 -> switch (api.getType()) {
-                case NATIVE -> serialize(api.getNativeApiDefinition(), "V4 Native API");
-                case PROXY, MESSAGE -> serialize(api.getApiDefinitionV4(), "V4 API");
+                case NATIVE -> serialize(api.getApiDefinitionNativeV4(), "V4 Native API");
+                case PROXY, MESSAGE -> serialize(api.getApiDefinitionHttpV4(), "V4 API");
             };
             case FEDERATED -> serialize(api.getFederatedApiDefinition(), "Federated API");
         };

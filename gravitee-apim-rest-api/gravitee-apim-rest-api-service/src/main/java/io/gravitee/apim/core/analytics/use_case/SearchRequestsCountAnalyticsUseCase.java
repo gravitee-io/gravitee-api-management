@@ -46,7 +46,7 @@ public class SearchRequestsCountAnalyticsUseCase {
     private void validateApiRequirements(Input input) {
         final Api api = apiCrudService.get(input.apiId);
         validateApiDefinitionVersion(api.getDefinitionVersion(), input.apiId);
-        validateApiIsNotTcp(api.getApiDefinitionV4());
+        validateApiIsNotTcp(api.getApiDefinitionHttpV4());
         validateApiMultiTenancyAccess(api, input.environmentId);
     }
 
