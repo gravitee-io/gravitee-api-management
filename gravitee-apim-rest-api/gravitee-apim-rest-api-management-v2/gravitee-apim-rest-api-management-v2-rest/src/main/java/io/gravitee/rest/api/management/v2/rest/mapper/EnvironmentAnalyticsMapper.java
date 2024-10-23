@@ -16,7 +16,9 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusRangesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopHitsApisResponse;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
+import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -25,4 +27,6 @@ public interface EnvironmentAnalyticsMapper {
     EnvironmentAnalyticsMapper INSTANCE = Mappers.getMapper(EnvironmentAnalyticsMapper.class);
 
     EnvironmentAnalyticsResponseStatusRangesResponse map(ResponseStatusRanges responseStatusRanges);
+
+    EnvironmentAnalyticsTopHitsApisResponse map(TopHitsApis topHitsApis);
 }

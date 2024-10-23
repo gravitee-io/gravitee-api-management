@@ -22,16 +22,7 @@ public class TimeRangeParamValidator implements ConstraintValidator<TimeRangePar
 
     @Override
     public boolean isValid(TimeRange timeRange, ConstraintValidatorContext context) {
-        Long from = timeRange.getFrom();
-        Long to = timeRange.getTo();
-
-        if ((timeRange.getFrom() == null && timeRange.getTo() != null) || (timeRange.getFrom() != null && timeRange.getTo() == null)) {
-            context.disableDefaultConstraintViolation();
-            context.buildConstraintViolationWithTemplate("Both time range values must be present").addConstraintViolation();
-            return false;
-        }
-
-        if (from != null && to != null && from > to) {
+        if (timeRange.getFrom() != null && timeRange.getTo() != null && timeRange.getFrom() > timeRange.getTo()) {
             context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate("Invalid date order, 'from' must be before 'to'").addConstraintViolation();
             return false;

@@ -20,8 +20,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.analytics.model.EnvironmentAnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
-import io.gravitee.apim.core.analytics.model.StatusRangesQueryParameters;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
@@ -29,6 +29,8 @@ import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
+import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
+import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Duration;
 import java.time.Instant;
@@ -105,7 +107,7 @@ class AnalyticsQueryServiceImplTest {
 
         @Test
         void should_return_request_status_ranges() {
-            var queryParameters = StatusRangesQueryParameters.builder().apiIds(List.of("api#1")).build();
+            var queryParameters = EnvironmentAnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
             when(analyticsRepository.searchResponseStatusRanges(any(QueryContext.class), any()))
                 .thenReturn(
                     Optional.of(
@@ -131,6 +133,29 @@ class AnalyticsQueryServiceImplTest {
                     assertThat(responseStatusRanges.getStatusRangesCountByEntrypoint().get("http-get"))
                         .containsAllEntriesOf(Map.of("100.0-200.0", 0L, "200.0-300.0", 1L));
                 });
+        }
+
+        @Test
+        void should_return_top_hits() {
+            var queryParameters = EnvironmentAnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
+            when(analyticsRepository.searchTopHitsApi(any(QueryContext.class), any()))
+                .thenReturn(
+                    Optional.of(TopHitsAggregate.builder().topHitsCounts(Map.of("api-id-1", 15L, "api-id-2", 2L, "api-id-3", 17L)).build())
+                );
+
+            var result = cut.searchTopHitsApis(GraviteeContext.getExecutionContext(), queryParameters);
+
+            assertThat(result)
+                .isNotNull()
+                .isPresent()
+                .hasValueSatisfying(topHits ->
+                    assertThat(topHits.getData())
+                        .containsExactlyInAnyOrder(
+                            TopHitsApis.TopHitApi.builder().id("api-id-1").count(15L).build(),
+                            TopHitsApis.TopHitApi.builder().id("api-id-2").count(2L).build(),
+                            TopHitsApis.TopHitApi.builder().id("api-id-3").count(17L).build()
+                        )
+                );
         }
     }
 

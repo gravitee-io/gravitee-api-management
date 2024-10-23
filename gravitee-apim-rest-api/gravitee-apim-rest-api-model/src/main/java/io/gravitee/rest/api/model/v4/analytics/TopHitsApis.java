@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.analytics.model;
+package io.gravitee.rest.api.model.v4.analytics;
 
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;
-import lombok.With;
 
 @Data
 @Builder
-public class StatusRangesQueryParameters {
+public class TopHitsApis {
 
-    @With
-    List<String> apiIds;
+    List<TopHitApi> data;
 
-    Long from;
-
-    Long to;
+    @Builder
+    public record TopHitApi(String id, String name, long count) {}
 }
