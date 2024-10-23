@@ -40,6 +40,8 @@ export class ApiRuntimeLogsMessageSettingsHarness extends ComponentHarness {
   private getSamplingTypeToggle = this.locatorFor(MatButtonToggleGroupHarness.with({ selector: '[formControlName="samplingType"]' }));
   public getSamplingValueInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="samplingValue"]' }));
   private getSamplingValueFormField = this.locatorFor(MatFormFieldHarness.with({ selector: '[data-testid=sampling_value]' }));
+  private getTracingEnabledToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="tracingEnabled"]' }));
+  private getTracingVerboseToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="tracingVerbose"]' }));
 
   public isEnabledChecked = async () => (await this.getEnabledToggle()).isChecked();
   public toggleEnabled = async () => (await this.getEnabledToggle()).toggle();
@@ -203,4 +205,9 @@ export class ApiRuntimeLogsMessageSettingsHarness extends ComponentHarness {
       return formField.hasErrors();
     });
   };
+
+  public isTracingEnabledChecked = async () => (await this.getTracingEnabledToggle()).isChecked();
+  public toggleTracingEnabled = async () => (await this.getTracingEnabledToggle()).toggle();
+  public isTracingVerboseChecked = async () => (await this.getTracingVerboseToggle()).isChecked();
+  public toggleTracingVerbose = async () => (await this.getTracingVerboseToggle()).toggle();
 }

@@ -28,6 +28,8 @@ export class ApiRuntimeLogsProxySettingsHarness extends ComponentHarness {
   private getResponsePhaseToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="response"]' }));
   private getHeadersToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="headers"]' }));
   private getPayloadToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="payload"]' }));
+  private getTracingEnabledToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="tracingEnabled"]' }));
+  private getTracingVerboseToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="tracingVerbose"]' }));
   private getConditionInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="condition"]' }));
   private getSaveBar = this.locatorFor(GioSaveBarHarness);
 
@@ -56,4 +58,9 @@ export class ApiRuntimeLogsProxySettingsHarness extends ComponentHarness {
   public setCondition = async (condition: string) => (await this.getConditionInput()).setValue(condition);
   public clickOnSaveButton = async () => (await this.getSaveBar()).clickSubmit();
   public clickOnResetButton = async () => (await this.getSaveBar()).clickReset();
+
+  public isTracingEnabledChecked = async () => (await this.getTracingEnabledToggle()).isChecked();
+  public toggleTracingEnabled = async () => (await this.getTracingEnabledToggle()).toggle();
+  public isTracingVerboseChecked = async () => (await this.getTracingVerboseToggle()).isChecked();
+  public toggleTracingVerbose = async () => (await this.getTracingVerboseToggle()).toggle();
 }

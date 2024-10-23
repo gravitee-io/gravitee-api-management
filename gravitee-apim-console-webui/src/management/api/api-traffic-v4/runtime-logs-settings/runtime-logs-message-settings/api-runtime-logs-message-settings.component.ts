@@ -92,6 +92,10 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
               condition: formValues.requestCondition,
               messageCondition: formValues.messageCondition,
             },
+            tracing: {
+              enabled: formValues.tracingEnabled,
+              verbose: formValues.tracingVerbose,
+            },
             sampling: sampling,
           };
           return this.apiService.update(api.id, { ...api, analytics });
@@ -129,6 +133,14 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
       }),
       endpoint: new UntypedFormControl({
         value: this.api?.analytics?.logging?.mode?.endpoint ?? false,
+        disabled: !analyticsEnabled || isReadOnly,
+      }),
+      tracingEnabled: new UntypedFormControl({
+        value: this.api.analytics?.tracing?.enabled ?? false,
+        disabled: !analyticsEnabled || isReadOnly,
+      }),
+      tracingVerbose: new UntypedFormControl({
+        value: this.api.analytics?.tracing?.verbose ?? false,
         disabled: !analyticsEnabled || isReadOnly,
       }),
       request: new UntypedFormControl({

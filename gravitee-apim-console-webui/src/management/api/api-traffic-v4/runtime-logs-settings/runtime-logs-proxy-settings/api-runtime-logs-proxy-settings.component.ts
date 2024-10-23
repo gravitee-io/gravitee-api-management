@@ -31,6 +31,8 @@ type DefaultConfiguration = {
   headers: boolean;
   payload: boolean;
   condition: string;
+  tracingEnabled: boolean;
+  tracingVerbose: boolean;
 };
 
 @Component({
@@ -92,6 +94,10 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
                   payload: configurationValues.payload,
                 },
               },
+              tracing: {
+                enabled: configurationValues.tracingEnabled,
+                verbose: configurationValues.tracingVerbose,
+              },
             },
           };
 
@@ -121,6 +127,14 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
     this.form = new UntypedFormGroup({
       enabled: new UntypedFormControl({ value: analyticsEnabled, disabled: isReadOnly }),
       entrypoint: new UntypedFormControl({ value: api.analytics?.logging?.mode?.entrypoint, disabled: !analyticsEnabled || isReadOnly }),
+      tracingEnabled: new UntypedFormControl({
+        value: api.analytics?.tracing?.enabled ?? false,
+        disabled: !analyticsEnabled || isReadOnly,
+      }),
+      tracingVerbose: new UntypedFormControl({
+        value: api.analytics?.tracing?.verbose ?? false,
+        disabled: !analyticsEnabled || isReadOnly,
+      }),
       endpoint: new UntypedFormControl({ value: api.analytics?.logging?.mode?.endpoint, disabled: !analyticsEnabled || isReadOnly }),
       request: new UntypedFormControl({
         value: api.analytics?.logging?.phase?.request,
@@ -153,6 +167,8 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
           if (enabled) {
             this.form.get('entrypoint').enable();
             this.form.get('endpoint').enable();
+            this.form.get('tracingEnabled').enable();
+            this.form.get('tracingVerbose').enable();
           } else {
             this.form.get('entrypoint').disable();
             this.form.get('endpoint').disable();
@@ -161,6 +177,8 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
             this.form.get('headers').disable();
             this.form.get('payload').disable();
             this.form.get('condition').disable();
+            this.form.get('tracingEnabled').disable();
+            this.form.get('tracingVerbose').disable();
           }
         }),
         takeUntil(this.unsubscribe$),
