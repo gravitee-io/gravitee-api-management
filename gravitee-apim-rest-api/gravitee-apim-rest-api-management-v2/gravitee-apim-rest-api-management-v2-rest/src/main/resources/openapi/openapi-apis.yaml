@@ -2610,7 +2610,7 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # Environment Analytics
-    /environments/{envId}/analytics/response-statuses:
+    /environments/{envId}/analytics/response-status-ranges:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
         get:
@@ -2623,11 +2623,29 @@ paths:
             description: |-
                 Get v4 API analytics response status counts. Response statuses are grouped by endpoint and status code hundreds.
 
-                User must have the APPLICATION_ANALYTICS[READ] permission.
             operationId: getDashboardResponseStatusCodes
             responses:
                 "200":
                     $ref: "#/components/responses/EnvironmentAnalyticsResponseStatusRangesResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/analytics/top-hits:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            parameters:
+                - $ref: "#/components/parameters/from"
+                - $ref: "#/components/parameters/to"
+            tags:
+                - Environment Analytics
+            summary: Get all v4 APIs with hits count per API sorted by mostly requested
+            description: |-
+                Get v4 API analytics top hits counts. All APIs are sorted starting from the most requested ones.
+
+            operationId: getDashboardTopHits
+            responses:
+                "200":
+                    $ref: "#/components/responses/EnvironmentAnalyticsTopHitsApisResponse"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -6073,6 +6091,24 @@ components:
                     description: Override the entrypoint or not
                     default: false
 
+        # Analytics - Environment
+        TopHitApi:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: The API ID
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                name:
+                    type: string
+                    description: The API Name
+                    example: Sample API Name
+                count:
+                    type: integer
+                    format: int64
+                    description: The API Hit count
+                    example: 675234
+
         # Analytics - Logs
         ApiLog:
             type: object
@@ -7892,6 +7928,19 @@ components:
                                         value: 0
                                     500.0-600.0:
                                         value: 0
+        EnvironmentAnalyticsTopHitsApisResponse:
+            description: Analytics for top hits APIs at environment level
+            content:
+                application/json:
+                    schema:
+                        title: "EnvironmentAnalyticsTopHitsApisResponse"
+                        description: Analytics for top hits APIs at environment level
+                        properties:
+                            data:
+                                type: array
+                                description: List of top hit results
+                                items:
+                                    $ref: "#/components/schemas/TopHitApi"
         # Analytics - Logs
         ApiLogsResponse:
             description: Page of API Logs

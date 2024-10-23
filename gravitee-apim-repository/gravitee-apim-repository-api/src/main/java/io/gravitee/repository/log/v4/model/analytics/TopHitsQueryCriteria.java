@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.adapter;
+package io.gravitee.repository.log.v4.model.analytics;
 
-import io.gravitee.apim.core.analytics.model.EnvironmentAnalyticsQueryParameters;
-import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Value;
 
-@Mapper
-public interface ResponseStatusQueryCriteriaAdapter {
-    ResponseStatusQueryCriteriaAdapter INSTANCE = Mappers.getMapper(ResponseStatusQueryCriteriaAdapter.class);
+@Value
+@AllArgsConstructor
+public class TopHitsQueryCriteria {
 
-    ResponseStatusQueryCriteria map(EnvironmentAnalyticsQueryParameters environmentAnalyticsQueryParameters);
+    List<String> apiIds;
+    long from;
+    long to;
 }

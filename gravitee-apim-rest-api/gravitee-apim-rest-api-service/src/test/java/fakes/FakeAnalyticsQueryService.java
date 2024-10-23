@@ -15,13 +15,14 @@
  */
 package fakes;
 
+import io.gravitee.apim.core.analytics.model.EnvironmentAnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
-import io.gravitee.apim.core.analytics.model.StatusRangesQueryParameters;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
+import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
 import java.time.Duration;
@@ -40,6 +41,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public AverageMessagesPerRequest averageMessagesPerRequest;
     public AverageConnectionDuration averageConnectionDuration;
     public ResponseStatusRanges responseStatusRanges;
+    public TopHitsApis topHitsApis;
     public LinkedHashMap<String, Double> averageAggregate = new LinkedHashMap<>();
     public ResponseStatusOvertime responseStatusOvertime;
 
@@ -70,9 +72,14 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     @Override
     public Optional<ResponseStatusRanges> searchResponseStatusRanges(
         ExecutionContext executionContext,
-        StatusRangesQueryParameters queryParameters
+        EnvironmentAnalyticsQueryParameters queryParameters
     ) {
         return Optional.ofNullable(responseStatusRanges);
+    }
+
+    @Override
+    public Optional<TopHitsApis> searchTopHitsApis(ExecutionContext executionContext, EnvironmentAnalyticsQueryParameters parameters) {
+        return Optional.ofNullable(topHitsApis);
     }
 
     @Override

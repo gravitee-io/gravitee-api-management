@@ -24,9 +24,12 @@ import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiQueryServiceInMemory;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusRangesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopHitsApisResponse;
+import io.gravitee.rest.api.management.v2.rest.model.TopHitApi;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
+import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
@@ -37,10 +40,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
-    private static final String ENVIRONMENT = "my-env";
+    private static final String ENVIRONMENT = "environment-id";
     private static final long FROM = 1728981738L;
     private static final long TO = 1729068138L;
 
@@ -110,16 +115,73 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                         .build()
                 );
         }
+    }
+
+    @Nested
+    class TopHits {
+
+        @BeforeEach
+        void setup() {
+            statusRangeTarget = rootTarget().path("top-hits");
+        }
 
         @Test
-        public void should_return_400_if_only_one_of_to_time_ranges_parameters_exist() {
+        void should_return_200_with_valid_top_hits() {
+            //Given
+            var topHitApi1Id = "top-hit-api-1";
+            var topHitApi2Id = "top-hit-api-2";
+            var proxyApiV4 = ApiFixtures.aProxyApiV4().toBuilder().id(topHitApi1Id).name("Top Hit API 1").build();
+            var messageApiV4 = ApiFixtures.aMessageApiV4().toBuilder().id(topHitApi2Id).name("Top Hit API 2").build();
+
+            apiQueryService.initWith(List.of(proxyApiV4, messageApiV4));
+            analyticsQueryService.topHitsApis =
+                TopHitsApis
+                    .builder()
+                    .data(
+                        List.of(
+                            TopHitsApis.TopHitApi.builder().id(topHitApi1Id).count(7L).build(),
+                            TopHitsApis.TopHitApi.builder().id(topHitApi2Id).count(13L).build()
+                        )
+                    )
+                    .build();
+
+            //When
+
+            Response response = statusRangeTarget.queryParam("from", FROM).queryParam("to", TO).request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(EnvironmentAnalyticsTopHitsApisResponse.class)
+                .isEqualTo(
+                    EnvironmentAnalyticsTopHitsApisResponse
+                        .builder()
+                        .data(
+                            List.of(
+                                TopHitApi.builder().id(topHitApi2Id).name("Top Hit API 2").count(13L).build(),
+                                TopHitApi.builder().id(topHitApi1Id).name("Top Hit API 1").count(7L).build()
+                            )
+                        )
+                        .build()
+                );
+        }
+    }
+
+    @Nested
+    class RangeParamValidation {
+
+        @ParameterizedTest
+        @ValueSource(strings = { "top-hits", "response-status-ranges" })
+        public void should_return_400_if_time_ranges_parameters_are_not_present(String path) {
+            statusRangeTarget = rootTarget().path(path);
             Response response = statusRangeTarget.queryParam("from", FROM).request().get();
 
             assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
         }
 
-        @Test
-        public void should_return_400_if_time_range_parameter_is_less_than_zero() {
+        @ParameterizedTest
+        @ValueSource(strings = { "top-hits", "response-status-ranges" })
+        public void should_return_400_if_time_range_parameter_is_less_than_zero(String path) {
+            statusRangeTarget = rootTarget().path(path);
             var lessThanZeroFromValue = -12L;
             Response response = statusRangeTarget.queryParam("from", lessThanZeroFromValue).queryParam("to", TO).request().get();
 

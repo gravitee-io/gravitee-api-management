@@ -15,8 +15,8 @@
  */
 package io.gravitee.apim.infra.query_service.analytics;
 
+import io.gravitee.apim.core.analytics.model.EnvironmentAnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
-import io.gravitee.apim.core.analytics.model.StatusRangesQueryParameters;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.infra.adapter.ResponseStatusQueryCriteriaAdapter;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
@@ -25,10 +25,13 @@ import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQu
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
+import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
+import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
 import java.time.Duration;
@@ -81,7 +84,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     @Override
     public Optional<ResponseStatusRanges> searchResponseStatusRanges(
         ExecutionContext executionContext,
-        StatusRangesQueryParameters queryParameters
+        EnvironmentAnalyticsQueryParameters queryParameters
     ) {
         var responseStatusQueryParameters = ResponseStatusQueryCriteriaAdapter.INSTANCE.map(queryParameters);
 
@@ -96,6 +99,24 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                 .statusRangesCountByEntrypoint(analytics.getStatusRangesCountByEntrypoint())
                 .build()
         );
+    }
+
+    @Override
+    public Optional<TopHitsApis> searchTopHitsApis(ExecutionContext executionContext, EnvironmentAnalyticsQueryParameters parameters) {
+        return analyticsRepository
+            .searchTopHitsApi(
+                executionContext.getQueryContext(),
+                new TopHitsQueryCriteria(parameters.getApiIds(), parameters.getFrom(), parameters.getTo())
+            )
+            .map(TopHitsAggregate::getTopHitsCounts)
+            .map(topHitCounts ->
+                topHitCounts
+                    .entrySet()
+                    .stream()
+                    .map(entry -> TopHitsApis.TopHitApi.builder().id(entry.getKey()).count(entry.getValue()).build())
+                    .toList()
+            )
+            .map(topHitApis -> TopHitsApis.builder().data(topHitApis).build());
     }
 
     @Override

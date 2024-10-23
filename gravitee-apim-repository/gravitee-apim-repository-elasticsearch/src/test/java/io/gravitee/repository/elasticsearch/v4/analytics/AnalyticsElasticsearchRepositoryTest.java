@@ -29,7 +29,8 @@ import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
-import java.time.Duration;
+import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
+import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -174,7 +175,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         }
 
         @Test
-        void should_response_empty_ranges_for_null__query_criteria() {
+        void should_response_empty_ranges_for_null_query_criteria() {
             var result = cut.searchResponseStatusRanges(new QueryContext("org#1", "env#1"), null);
 
             assertThat(result).isNotNull().get().extracting(ResponseStatusRangesAggregate::getRanges).isEqualTo(Map.of());
@@ -256,6 +257,45 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     .contains(1L, atIndex(61));
                 softly.assertThat(result.getStatusCount().get("404")).hasSize((int) nbBuckets).contains(7L, atIndex(61));
             });
+        }
+    }
+
+    @Nested
+    class TopHitsCount {
+
+        private static final long FROM = 1728992401566L;
+        private static final long TO = 1729078801566L;
+
+        @Test
+        void should_return_top_hits_count_for_a_given_api_and_date_range() {
+            var yesterdayAtStartOfTheDayEpochMilli = LocalDate.now().minusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+            var yesterdayAtEndOfTheDayEpochMilli = LocalDate.now().minusDays(1).atTime(23, 59, 59).toInstant(ZoneOffset.UTC).toEpochMilli();
+
+            var result = cut.searchTopHitsApi(
+                new QueryContext("org#1", "env#1"),
+                new TopHitsQueryCriteria(List.of(API_ID), yesterdayAtStartOfTheDayEpochMilli, yesterdayAtEndOfTheDayEpochMilli)
+            );
+
+            assertThat(result)
+                .isNotNull()
+                .isPresent()
+                .get()
+                .extracting(TopHitsAggregate::getTopHitsCounts)
+                .hasFieldOrPropertyWithValue(API_ID, 2L);
+        }
+
+        @Test
+        void should_return_empty_top_hits_count_for_empty_ids_list() {
+            var result = cut.searchTopHitsApi(new QueryContext("org#1", "env#1"), new TopHitsQueryCriteria(List.of(API_ID), FROM, TO));
+
+            assertThat(result).isNotNull().get().extracting(TopHitsAggregate::getTopHitsCounts).isEqualTo(Map.of());
+        }
+
+        @Test
+        void should_return_empty_top_hits_count_for_null_query_criteria() {
+            var result = cut.searchTopHitsApi(new QueryContext("org#1", "env#1"), null);
+
+            assertThat(result).isNotNull().get().extracting(TopHitsAggregate::getTopHitsCounts).isEqualTo(Map.of());
         }
     }
 }
