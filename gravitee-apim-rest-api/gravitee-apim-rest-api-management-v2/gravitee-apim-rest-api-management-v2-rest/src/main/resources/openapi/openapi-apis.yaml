@@ -4724,6 +4724,7 @@ components:
                     items:
                         type: string
                     description: The list of ids of APIs to ingest. If null or empty, ingest all.
+            required: ['apiIds']
 
         CreateSubscription:
             type: object
