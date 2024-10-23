@@ -16,7 +16,7 @@
 package io.gravitee.apim.core.analytics.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.analytics.model.StatusRangesQueryParameters;
+import io.gravitee.apim.core.analytics.model.EnvironmentAnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
@@ -41,7 +41,7 @@ public class SearchResponseStatusRangesUseCase {
 
     public Output execute(ExecutionContext executionContext, Input input) {
         validateApiRequirements(input);
-        var queryParameters = StatusRangesQueryParameters.builder().apiIds(List.of(input.apiId())).build();
+        var queryParameters = EnvironmentAnalyticsQueryParameters.builder().apiIds(List.of(input.apiId())).build();
 
         return analyticsQueryService.searchResponseStatusRanges(executionContext, queryParameters).map(Output::new).orElse(new Output());
     }
