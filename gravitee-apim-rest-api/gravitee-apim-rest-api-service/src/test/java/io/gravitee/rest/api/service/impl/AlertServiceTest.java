@@ -16,9 +16,9 @@
 package io.gravitee.rest.api.service.impl;
 
 import static java.util.stream.Collectors.toList;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -213,6 +213,11 @@ public class AlertServiceTest {
 
     @NotNull
     protected AlertTrigger getAlertTriggerFromNew(NewAlertTriggerEntity alertEntity) throws JsonProcessingException {
+        return getAlertTriggerFromNew(alertEntity, executionContext.getEnvironmentId());
+    }
+
+    @NotNull
+    protected AlertTrigger getAlertTriggerFromNew(NewAlertTriggerEntity alertEntity, String environmentId) throws JsonProcessingException {
         var alert = new AlertTrigger();
         alert.setId(alertEntity.getId());
         alert.setName(alertEntity.getName());
@@ -234,6 +239,7 @@ public class AlertServiceTest {
         }
         alert.setEnabled(false);
         alert.setDefinition(objectMapper.writeValueAsString(alertEntity));
+        alert.setEnvironmentId(environmentId);
         return alert;
     }
 
