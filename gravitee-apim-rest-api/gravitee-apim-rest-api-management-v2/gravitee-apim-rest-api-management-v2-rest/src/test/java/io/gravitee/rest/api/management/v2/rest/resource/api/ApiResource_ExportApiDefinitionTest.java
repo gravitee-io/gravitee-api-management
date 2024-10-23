@@ -55,8 +55,8 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
-import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
-import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.ApiHttpV4;
+import io.gravitee.rest.api.management.v2.rest.model.ExportApiHttpV4;
 import io.gravitee.rest.api.management.v2.rest.model.Media;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.Metadata;
@@ -139,14 +139,14 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         Response response = rootTarget().request().get();
         assertEquals(OK_200, response.getStatus());
 
-        final ExportApiV4 export = response.readEntity(ExportApiV4.class);
+        final ExportApiHttpV4 export = response.readEntity(ExportApiHttpV4.class);
         assertNotNull(export.getMembers());
         assertNotNull(export.getMetadata());
         assertNotNull(export.getPlans());
         assertNotNull(export.getPages());
         assertNotNull(export.getApi());
 
-        final ApiV4 api = export.getApi();
+        final ApiHttpV4 api = export.getApi();
         testReturnedApi(api);
 
         final Set<Member> members = export.getMembers();
@@ -438,7 +438,7 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
     }
 
     // Tests
-    private void testReturnedApi(ApiV4 responseApi) throws JsonProcessingException {
+    private void testReturnedApi(ApiHttpV4 responseApi) throws JsonProcessingException {
         assertNotNull(responseApi);
         assertEquals(API, responseApi.getName());
         assertEquals(API, responseApi.getId());

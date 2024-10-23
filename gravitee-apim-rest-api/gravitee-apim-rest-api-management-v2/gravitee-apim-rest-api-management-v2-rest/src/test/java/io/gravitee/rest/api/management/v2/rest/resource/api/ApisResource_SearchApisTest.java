@@ -29,7 +29,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLinks;
 import io.gravitee.rest.api.management.v2.rest.model.ApiSearchQuery;
-import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.ApiHttpV4;
 import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.BaseOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
@@ -114,7 +114,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
             .extracting(ApisResponse::getData)
             .satisfies(list -> {
                 assertThat(list).hasSize(1);
-                assertThat(list.get(0).getApiV4().getId()).isEqualTo("api-id");
+                assertThat(list.get(0).getApiHttpV4().getId()).isEqualTo("api-id");
             });
 
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
@@ -158,7 +158,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
             .satisfies(list -> {
                 assertThat(list).hasSize(1);
                 // Check no expands fields are set
-                assertThat(list.get(0).getApiV4().getDeploymentState()).isNull();
+                assertThat(list.get(0).getApiHttpV4().getDeploymentState()).isNull();
             });
 
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
@@ -243,7 +243,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
             .extracting(ApisResponse::getData)
             .satisfies(list -> {
                 assertThat(list).hasSize(1);
-                assertThat(list.get(0).getApiV4().getId()).isEqualTo("id-1");
+                assertThat(list.get(0).getApiHttpV4().getId()).isEqualTo("id-1");
             });
 
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
@@ -471,8 +471,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
             .extracting(ApisResponse::getData)
             .satisfies(list -> {
                 assertThat(list).hasSize(1);
-                assertThat(list.get(0).getApiV4())
-                    .extracting(ApiV4::getId, ApiV4::getDeploymentState)
+                assertThat(list.get(0).getApiHttpV4())
+                    .extracting(ApiHttpV4::getId, ApiHttpV4::getDeploymentState)
                     .containsExactly("api-id", GenericApi.DeploymentStateEnum.DEPLOYED);
             });
     }
@@ -584,7 +584,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
             .extracting(ApisResponse::getData)
             .satisfies(list -> {
                 assertThat(list).hasSize(1);
-                assertThat(list.get(0).getApiV4().getId()).isEqualTo("api-id");
+                assertThat(list.get(0).getApiHttpV4().getId()).isEqualTo("api-id");
             });
     }
 }

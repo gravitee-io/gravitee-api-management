@@ -33,7 +33,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV1;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
-import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.ApiHttpV4;
 import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
@@ -153,7 +153,7 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         // Check apis
         List<Api> apis = apisResponse.getData();
         Assertions.assertEquals(1, apis.size());
-        ApiV4 api = apis.get(0).getApiV4();
+        ApiHttpV4 api = apis.get(0).getApiHttpV4();
         Assertions.assertEquals("api-1", api.getId());
         Assertions.assertEquals("api-name", api.getName());
         Assertions.assertEquals("v1", api.getApiVersion());
@@ -388,7 +388,7 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         // Check apis
         List<Api> apis = apisResponse.getData();
         Assertions.assertEquals(2, apis.size());
-        ApiV4 api = apis.get(0).getApiV4();
+        ApiHttpV4 api = apis.get(0).getApiHttpV4();
         Assertions.assertEquals("api-1", api.getId());
         // Check no expands fields are set
         Assertions.assertNull(api.getDeploymentState());
@@ -458,7 +458,7 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         // Check apis
         List<Api> apis = apisResponse.getData();
         Assertions.assertEquals(2, apis.size());
-        ApiV4 api1 = apis.get(0).getApiV4();
+        ApiHttpV4 api1 = apis.get(0).getApiHttpV4();
         Assertions.assertEquals("api-1", api1.getId());
         Assertions.assertEquals(GenericApi.DeploymentStateEnum.DEPLOYED, api1.getDeploymentState());
 

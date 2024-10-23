@@ -62,7 +62,7 @@ import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
-import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.ApiHttpV4;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.ServiceV4;
@@ -103,7 +103,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
         assertEquals(OK_200, response.getStatus());
 
-        final ApiV4 responseApi = response.readEntity(ApiV4.class);
+        final ApiHttpV4 responseApi = response.readEntity(ApiHttpV4.class);
 
         assertNotNull(responseApi);
         assertEquals(API, responseApi.getName());
@@ -243,7 +243,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
         assertEquals(OK_200, response.getStatus());
 
-        final ApiV4 responseApi = response.readEntity(ApiV4.class);
+        final ApiHttpV4 responseApi = response.readEntity(ApiHttpV4.class);
         assertNotNull(responseApi);
         assertEquals(API, responseApi.getName());
         assertNotNull(responseApi.getLinks());

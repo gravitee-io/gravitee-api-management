@@ -52,7 +52,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.SubscribersResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiHttpV4;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateGenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiDeploymentResponse;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
@@ -276,7 +276,7 @@ public class ApiResource extends AbstractResource {
             if (!(currentEntity instanceof ApiEntity)) {
                 return Response.status(Response.Status.BAD_REQUEST).entity(apiInvalid(apiId)).build();
             }
-            updatedApi = updateApiV4(currentEntity, (UpdateApiV4) updateApi);
+            updatedApi = updateApiHttpV4(currentEntity, (UpdateApiHttpV4) updateApi);
         } else if (definitionVersion == io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V2) {
             final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false);
             evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
@@ -319,8 +319,8 @@ public class ApiResource extends AbstractResource {
         return apiResponse(updatedApi);
     }
 
-    private GenericApiEntity updateApiV4(GenericApiEntity currentEntity, UpdateApiV4 updateApiV4) {
-        UpdateApiEntity apiToUpdate = ApiMapper.INSTANCE.map(updateApiV4, currentEntity.getId());
+    private GenericApiEntity updateApiHttpV4(GenericApiEntity currentEntity, UpdateApiHttpV4 updateApiHttpV4) {
+        UpdateApiEntity apiToUpdate = ApiMapper.INSTANCE.map(updateApiHttpV4, currentEntity.getId());
         // Force listeners if user is not the primary_owner or an administrator
         if (
             !hasPermission(

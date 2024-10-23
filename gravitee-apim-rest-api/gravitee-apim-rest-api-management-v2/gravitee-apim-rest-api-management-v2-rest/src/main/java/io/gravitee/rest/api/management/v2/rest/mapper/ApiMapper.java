@@ -26,10 +26,10 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLinks;
 import io.gravitee.rest.api.management.v2.rest.model.ApiReview;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
-import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.ApiHttpV4;
 import io.gravitee.rest.api.management.v2.rest.model.BaseApi;
 import io.gravitee.rest.api.management.v2.rest.model.BaseOriginContext;
-import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.CreateApiHttpV4;
 import io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApi;
@@ -40,7 +40,7 @@ import io.gravitee.rest.api.management.v2.rest.model.PageCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiHttpV4;
 import io.gravitee.rest.api.management.v2.rest.utils.ManagementApiLinkHelper;
 import io.gravitee.rest.api.model.ReviewEntity;
 import io.gravitee.rest.api.model.context.OriginContext;
@@ -151,7 +151,7 @@ public interface ApiMapper {
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "listeners", qualifiedByName = "fromListeners")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
-    ApiV4 mapToV4(ApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+    ApiHttpV4 mapToV4(ApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "definitionContext", source = "source.originContext")
     @Mapping(target = "apiVersion", source = "source.version")
@@ -164,7 +164,7 @@ public interface ApiMapper {
     @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
     @Mapping(target = "listeners", source = "source.apiDefinitionHttpV4.listeners", qualifiedByName = "fromListeners")
     @Mapping(target = "state", source = "source.lifecycleState")
-    ApiV4 mapToV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+    ApiHttpV4 mapToV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
@@ -179,16 +179,16 @@ public interface ApiMapper {
 
     @Mapping(target = "listeners", qualifiedByName = "fromListeners")
     @Mapping(target = "links", ignore = true)
-    ApiV4 map(ApiEntity apiEntity);
+    ApiHttpV4 map(ApiEntity apiEntity);
 
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
-    ApiEntity map(ApiV4 api);
+    ApiEntity map(ApiHttpV4 api);
 
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
-    ApiExport toApiExport(ApiV4 api);
+    ApiExport toApiExport(ApiHttpV4 api);
 
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
-    NewHttpApi map(CreateApiV4 api);
+    NewHttpApi map(CreateApiHttpV4 api);
 
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
     @Mapping(target = "plans", qualifiedByName = "mapPlanCRD")
@@ -205,7 +205,7 @@ public interface ApiMapper {
     // UpdateApi
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
     @Mapping(target = "id", expression = "java(apiId)")
-    UpdateApiEntity map(UpdateApiV4 updateApi, String apiId);
+    UpdateApiEntity map(UpdateApiHttpV4 updateApi, String apiId);
 
     @Mapping(target = "id", expression = "java(apiId)")
     UpdateApiEntity map(UpdateApiFederated updateApi, String apiId);

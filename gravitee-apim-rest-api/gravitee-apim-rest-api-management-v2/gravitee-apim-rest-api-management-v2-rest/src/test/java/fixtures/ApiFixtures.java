@@ -20,7 +20,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiLifecycleState;
 import io.gravitee.rest.api.management.v2.rest.model.ApiServices;
 import io.gravitee.rest.api.management.v2.rest.model.ApiServicesV2;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
-import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.ApiHttpV4;
 import io.gravitee.rest.api.management.v2.rest.model.ApiWorkflowState;
 import io.gravitee.rest.api.management.v2.rest.model.BaseApi;
 import io.gravitee.rest.api.management.v2.rest.model.DefinitionContext;
@@ -33,7 +33,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Proxy;
 import io.gravitee.rest.api.management.v2.rest.model.ResponseTemplate;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiHttpV4;
 import io.gravitee.rest.api.management.v2.rest.model.Visibility;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import java.time.OffsetDateTime;
@@ -50,7 +50,7 @@ public class ApiFixtures {
         .origin(DefinitionContext.OriginEnum.MANAGEMENT)
         .mode(DefinitionContext.ModeEnum.FULLY_MANAGED);
 
-    private static final ApiV4.ApiV4Builder BASE_API_V4 = ApiV4
+    private static final ApiHttpV4.ApiHttpV4Builder BASE_API_V4 = ApiHttpV4
         .builder()
         // BaseApi fields
         .id("my-api")
@@ -76,7 +76,7 @@ public class ApiFixtures {
         .responseTemplates(Map.of("key", new HashMap<>()))
         .resources(List.of(ResourceFixtures.aResource()))
         .properties(List.of(PropertyFixtures.aProperty()))
-        // ApiV4 specific
+        // ApiHttpV4 specific
         .type(ApiType.PROXY)
         .listeners(
             List.of(
@@ -112,7 +112,7 @@ public class ApiFixtures {
         .disableMembershipNotifications(true)
         .executionMode(ExecutionMode.V4_EMULATION_ENGINE);
 
-    private static final UpdateApiV4.UpdateApiV4Builder BASE_UPDATE_API_V4 = UpdateApiV4
+    private static final UpdateApiHttpV4.UpdateApiHttpV4Builder BASE_UPDATE_API_V4 = UpdateApiHttpV4
         .builder()
         .apiVersion("v1")
         .definitionVersion(DefinitionVersion.V4)
@@ -150,16 +150,16 @@ public class ApiFixtures {
         .properties(List.of(PropertyFixtures.aProperty()))
         .lifecycleState(ApiLifecycleState.CREATED);
 
-    public static ApiV4 anApiV4() {
+    public static ApiHttpV4 anApiHttpV4() {
         return BASE_API_V4.build();
     }
 
     public static BaseApi aBaseApi() {
-        final ApiV4 apiV4 = anApiV4();
+        final ApiHttpV4 apiV4 = anApiHttpV4();
         return BaseApi.builder().id(apiV4.getId()).description(apiV4.getDescription()).name(apiV4.getName()).build();
     }
 
-    public static UpdateApiV4 anUpdateApiV4() {
+    public static UpdateApiHttpV4 anUpdateApiHttpV4() {
         return BASE_UPDATE_API_V4.build();
     }
 
