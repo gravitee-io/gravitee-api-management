@@ -62,12 +62,12 @@ tags:
       description: Everything about API audits
     - name: Groups
       description: Everything about groups
-    - name: Integration
+    - name: Integrations
       description: Everything about integration
-    - name: Categories
-      description: Everything about categories
     - name: Integration Members
       description: Everything about Integration members
+    - name: Categories
+      description: Everything about categories
 
 paths:
     # APIs
