@@ -33,11 +33,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class MissingEnvironmentUpgrader extends MongoUpgrader {
 
+    private static final int UPGRADER_BATCH_SIZE = 1000;
     public static final int MISSING_ENVIRONMENT_UPGRADER_ORDER = ThemeTypeUpgrader.THEME_TYPE_UPGRADER_ORDER + 1;
 
     @Override
     public String version() {
-        return "v1";
+        return "v2";
     }
 
     @Override
@@ -64,10 +65,15 @@ public class MissingEnvironmentUpgrader extends MongoUpgrader {
             );
 
         if (!bulkActions.isEmpty()) {
-            // This upgrade is only done on data created before 3.17.0 as ApiKey#api as been deprecated
-            upgradeStatus.add(this.getCollection("keys").bulkWrite(bulkActions).wasAcknowledged());
-            upgradeStatus.add(this.getCollection("plans").bulkWrite(bulkActions).wasAcknowledged());
-            upgradeStatus.add(this.getCollection("subscriptions").bulkWrite(bulkActions).wasAcknowledged());
+            for (int i = 0; i < bulkActions.size(); i += UPGRADER_BATCH_SIZE) {
+                // Get the end index for the sublist, ensuring it doesn't go out of bounds
+                int end = Math.min(i + UPGRADER_BATCH_SIZE, bulkActions.size());
+                var batchActions = bulkActions.subList(i, end);
+                // This upgrade is only done on data created before 3.17.0 as ApiKey#api as been deprecated
+                upgradeStatus.add(this.getCollection("keys").bulkWrite(batchActions).wasAcknowledged());
+                upgradeStatus.add(this.getCollection("plans").bulkWrite(batchActions).wasAcknowledged());
+                upgradeStatus.add(this.getCollection("subscriptions").bulkWrite(batchActions).wasAcknowledged());
+            }
         }
     }
 
@@ -87,7 +93,12 @@ public class MissingEnvironmentUpgrader extends MongoUpgrader {
             );
 
         if (!bulkActions.isEmpty()) {
-            upgradeStatus.add(this.getCollection("keys").bulkWrite(bulkActions).wasAcknowledged());
+            for (int i = 0; i < bulkActions.size(); i += UPGRADER_BATCH_SIZE) {
+                // Get the end index for the sublist, ensuring it doesn't go out of bounds
+                int end = Math.min(i + UPGRADER_BATCH_SIZE, bulkActions.size());
+                var batchActions = bulkActions.subList(i, end);
+                upgradeStatus.add(this.getCollection("keys").bulkWrite(batchActions).wasAcknowledged());
+            }
         }
     }
 
