@@ -139,7 +139,7 @@ public class CategoryApiMapperTest {
             .description(API_DESCRIPTION)
             .version(API_VERSION)
             .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionV4(definition)
+            .apiDefinitionHttpV4(definition)
             .build();
 
         var apiCategoryOrder = ApiCategoryOrder.builder().apiId(API_ID).categoryId(CAT_ID).order(11).build();
@@ -181,7 +181,7 @@ public class CategoryApiMapperTest {
             .description(API_DESCRIPTION)
             .version(API_VERSION)
             .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionV4(definition)
+            .apiDefinitionHttpV4(definition)
             .build();
 
         var apiCategoryOrder = ApiCategoryOrder.builder().apiId(API_ID).categoryId(CAT_ID).order(11).build();
@@ -225,7 +225,7 @@ public class CategoryApiMapperTest {
             .description(API_DESCRIPTION)
             .version(API_VERSION)
             .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionV4(definition)
+            .apiDefinitionHttpV4(definition)
             .build();
 
         var apiCategoryOrder = ApiCategoryOrder.builder().apiId(API_ID).categoryId(CAT_ID).order(11).build();
@@ -262,7 +262,7 @@ public class CategoryApiMapperTest {
             .description(API_DESCRIPTION)
             .version(API_VERSION)
             .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionV4(definition)
+            .apiDefinitionHttpV4(definition)
             .build();
 
         var apiCategoryOrder = ApiCategoryOrder.builder().apiId(API_ID).categoryId(CAT_ID).order(11).build();

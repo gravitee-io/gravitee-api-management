@@ -72,7 +72,7 @@ public class ManagementApiServicesManager extends AbstractService {
             .map(managementApiServiceFactory ->
                 managementApiServiceFactory.createService(
                     // FIXME: Kafka Gateway - Manage properly NativeApi definition
-                    new DefaultManagementDeploymentContext(api.getApiDefinitionV4(), applicationContext)
+                    new DefaultManagementDeploymentContext(api.getApiDefinitionHttpV4(), applicationContext)
                 )
             )
             .filter(Objects::nonNull)
@@ -106,7 +106,7 @@ public class ManagementApiServicesManager extends AbstractService {
                 .concat(
                     managedApi
                         .stream()
-                        .map(managementApiService -> managementApiService.update(api.getApiDefinitionV4()))
+                        .map(managementApiService -> managementApiService.update(api.getApiDefinitionHttpV4()))
                         .collect(Collectors.toList())
                 )
                 .blockingAwait();

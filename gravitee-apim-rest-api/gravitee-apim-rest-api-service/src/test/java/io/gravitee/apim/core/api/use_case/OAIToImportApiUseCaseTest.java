@@ -27,31 +27,18 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import fixtures.core.model.AuditInfoFixtures;
 import initializers.ImportDefinitionCreateDomainServiceTestInitializer;
-import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
-import inmemory.MembershipCrudServiceInMemory;
-import inmemory.MembershipQueryServiceInMemory;
-import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PolicyPluginCrudServiceInMemory;
-import inmemory.RoleQueryServiceInMemory;
 import inmemory.TagQueryServiceInMemory;
-import inmemory.UserCrudServiceInMemory;
-import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
-import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
-import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
-import io.gravitee.apim.core.api.domain_service.ImportDefinitionCreateDomainService;
 import io.gravitee.apim.core.api.exception.InvalidImportWithOASValidationPolicyException;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.model.Group;
-import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.tag.model.Tag;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
-import io.gravitee.apim.infra.domain_service.api.ApiImportDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.domain_service.api.OAIDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.plugin.EndpointConnectorPluginLegacyWrapper;
-import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
@@ -191,7 +178,7 @@ class OAIToImportApiUseCaseTest {
 
         var importDefinition = output.apiWithFlows();
         assertThat(importDefinition).isNotNull();
-        assertThat(importDefinition.getApiDefinitionV4().getEndpointGroups())
+        assertThat(importDefinition.getApiDefinitionHttpV4().getEndpointGroups())
             .hasSize(1)
             .extracting(EndpointGroup::getSharedConfiguration)
             .containsExactly(SHARED_CONFIGURATION);
@@ -279,7 +266,7 @@ class OAIToImportApiUseCaseTest {
             var importDefinition = output.apiWithFlows();
             assertThat(importDefinition).isNotNull();
             // Check that the OAS validation policy is added
-            assertThat(importDefinition.getApiDefinitionV4().getFlows())
+            assertThat(importDefinition.getApiDefinitionHttpV4().getFlows())
                 .first()
                 .satisfies(flow -> {
                     assertThat(flow.getName()).isEqualTo("OpenAPI Specification Validation");
@@ -292,7 +279,7 @@ class OAIToImportApiUseCaseTest {
                 });
 
             // Check that the Resource is added
-            assertThat(importDefinition.getApiDefinitionV4().getResources())
+            assertThat(importDefinition.getApiDefinitionHttpV4().getResources())
                 .hasSize(1)
                 .first()
                 .satisfies(resource1 -> {
@@ -354,10 +341,10 @@ class OAIToImportApiUseCaseTest {
             var importDefinition = output.apiWithFlows();
             assertThat(importDefinition).isNotNull();
             // Check that the OAS validation policy is not added
-            assertThat(importDefinition.getApiDefinitionV4().getFlows())
+            assertThat(importDefinition.getApiDefinitionHttpV4().getFlows())
                 .noneMatch(flow -> flow.getName().equals("OpenAPI Specification Validation"));
             // Check that the Resource is not added
-            assertThat(importDefinition.getApiDefinitionV4().getResources()).isEmpty();
+            assertThat(importDefinition.getApiDefinitionHttpV4().getResources()).isEmpty();
         }
     }
 }

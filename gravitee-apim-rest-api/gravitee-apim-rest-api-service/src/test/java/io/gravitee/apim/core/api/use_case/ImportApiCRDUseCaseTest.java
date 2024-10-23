@@ -1273,7 +1273,7 @@ class ImportApiCRDUseCaseTest {
             .background(null)
             .groups(null)
             .apiLifecycleState(Api.ApiLifecycleState.CREATED)
-            .apiDefinitionV4(
+            .apiDefinitionHttpV4(
                 ApiDefinitionFixtures
                     .aHttpProxyApiV4(API_ID)
                     .toBuilder()

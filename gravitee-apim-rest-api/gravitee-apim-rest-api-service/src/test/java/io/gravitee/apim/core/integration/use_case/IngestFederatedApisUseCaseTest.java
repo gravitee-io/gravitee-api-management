@@ -1754,7 +1754,7 @@ class IngestFederatedApisUseCaseTest {
             .version("input")
             .originContext(new OriginContext.Integration("input"))
             .definitionVersion(DefinitionVersion.V1)
-            .apiDefinitionV4(io.gravitee.definition.model.v4.Api.builder().build())
+            .apiDefinitionHttpV4(io.gravitee.definition.model.v4.Api.builder().build())
             .apiDefinition(io.gravitee.definition.model.Api.builder().build())
             .federatedApiDefinition(FederatedApi.builder().id("input").build())
             .type(ApiType.MESSAGE)
@@ -1783,7 +1783,7 @@ class IngestFederatedApisUseCaseTest {
             .version("old")
             .originContext(new OriginContext.Integration("old"))
             .definitionVersion(DefinitionVersion.FEDERATED)
-            .apiDefinitionV4(null)
+            .apiDefinitionHttpV4(null)
             .apiDefinition(null)
             .federatedApiDefinition(FederatedApi.builder().id("old").build())
             .type(ApiType.PROXY)
@@ -1809,7 +1809,7 @@ class IngestFederatedApisUseCaseTest {
         assertThat(result.getCrossId()).isEqualTo("old");
         assertThat(result.getOriginContext()).isEqualTo(new OriginContext.Integration("old"));
         assertThat(result.getDefinitionVersion()).isEqualTo(DefinitionVersion.FEDERATED);
-        assertThat(result.getApiDefinitionV4()).isEqualTo(null);
+        assertThat(result.getApiDefinitionHttpV4()).isEqualTo(null);
         assertThat(result.getApiDefinition()).isEqualTo(null);
         assertThat(result.getType()).isEqualTo(ApiType.PROXY);
         assertThat(result.getDeployedAt()).isEqualTo(oldDate);

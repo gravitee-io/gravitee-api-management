@@ -108,22 +108,25 @@ public class UpdateDynamicPropertiesUseCase {
         // Deploy only if
         // - API is not synchronized: no manual changes
         // - properties have changed
-        if (!isApiSynchronized && needRedployment(api.getApiDefinitionV4().getProperties(), previousProperties)) {
+        if (!isApiSynchronized && needRedployment(api.getApiDefinitionHttpV4().getProperties(), previousProperties)) {
             // Get the api from latest deployment event of the api to deploy the api with the same dynamic properties configuration
             // It avoids to deploy changes on the configuration that has not been explicitly deployed by the user
             apiEventQueryService
                 .findLastPublishedApi(auditInfo.organizationId(), auditInfo.environmentId(), api.getId())
                 .ifPresent(deployedApi -> {
                     if (
-                        deployedApi.getApiDefinitionV4().getServices() == null ||
-                        deployedApi.getApiDefinitionV4().getServices().getDynamicProperty() == null
+                        deployedApi.getApiDefinitionHttpV4().getServices() == null ||
+                        deployedApi.getApiDefinitionHttpV4().getServices().getDynamicProperty() == null
                     ) {
                         return;
                     }
-                    final Service deployedDynamicPropertiesService = deployedApi.getApiDefinitionV4().getServices().getDynamicProperty();
+                    final Service deployedDynamicPropertiesService = deployedApi
+                        .getApiDefinitionHttpV4()
+                        .getServices()
+                        .getDynamicProperty();
                     // If the deployed api has the service enabled, then redeploy with the service enabled.
                     if (deployedDynamicPropertiesService.isEnabled()) {
-                        updated.getApiDefinitionV4().getServices().setDynamicProperty(deployedDynamicPropertiesService);
+                        updated.getApiDefinitionHttpV4().getServices().setDynamicProperty(deployedDynamicPropertiesService);
                     }
                 });
             apiStateDomainService.deploy(updated, String.format("%s sync", input.pluginId()), auditInfo);
@@ -148,7 +151,7 @@ public class UpdateDynamicPropertiesUseCase {
      * @return the copy of the list of properties
      */
     private static List<Property> getCurrentProperties(Api api) {
-        return Optional.ofNullable(api.getApiDefinitionV4().getProperties()).orElse(Collections.emptyList()).stream().toList();
+        return Optional.ofNullable(api.getApiDefinitionHttpV4().getProperties()).orElse(Collections.emptyList()).stream().toList();
     }
 
     private AuditInfo buildAuditInfo(Input input, Api apiForUpdate) {

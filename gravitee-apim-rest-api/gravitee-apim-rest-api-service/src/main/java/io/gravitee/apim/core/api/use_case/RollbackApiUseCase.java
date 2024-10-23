@@ -62,7 +62,7 @@ public class RollbackApiUseCase {
             .orElseThrow(() -> new IllegalStateException("Cannot rollback an event that is not a publish event!"));
         ensureApiDefinitionVersionForRollback(api, input.eventId());
 
-        var apiDefinition = api.getApiDefinitionV4();
+        var apiDefinition = api.getApiDefinitionHttpV4();
 
         var toRollback = apiCrudService.get(apiDefinition.getId());
 

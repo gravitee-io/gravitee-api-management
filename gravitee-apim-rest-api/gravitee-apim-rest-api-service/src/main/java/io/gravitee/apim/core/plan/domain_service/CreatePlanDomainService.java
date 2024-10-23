@@ -74,10 +74,10 @@ public class CreatePlanDomainService {
             throw new ApiDeprecatedException(plan.getApiId());
         }
 
-        if (api.getApiDefinitionV4().getListeners() != null) {
+        if (api.getApiDefinitionHttpV4().getListeners() != null) {
             planValidatorDomainService.validatePlanSecurityAgainstEntrypoints(
                 plan.getPlanSecurity(),
-                api.getApiDefinitionV4().getListeners().stream().map(Listener::getType).toList()
+                api.getApiDefinitionHttpV4().getListeners().stream().map(Listener::getType).toList()
             );
         }
 
@@ -88,7 +88,7 @@ public class CreatePlanDomainService {
         var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows);
         flowValidationDomainService.validatePathParameters(
             api.getType(),
-            api.getApiDefinitionV4().getFlows() != null ? api.getApiDefinitionV4().getFlows().stream() : Stream.empty(),
+            api.getApiDefinitionHttpV4().getFlows() != null ? api.getApiDefinitionHttpV4().getFlows().stream() : Stream.empty(),
             sanitizedFlows.stream()
         );
 

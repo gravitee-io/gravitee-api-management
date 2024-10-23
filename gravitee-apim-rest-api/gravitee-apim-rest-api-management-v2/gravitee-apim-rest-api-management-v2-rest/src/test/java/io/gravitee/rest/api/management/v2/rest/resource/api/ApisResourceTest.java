@@ -362,7 +362,7 @@ class ApisResourceTest extends AbstractResourceTest {
             when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any()))
                 .thenAnswer(invocation -> {
                     Api api = invocation.getArgument(0);
-                    return new ApiWithFlows(api.toBuilder().id("api-id").build(), api.getApiDefinitionV4().getFlows());
+                    return new ApiWithFlows(api.toBuilder().id("api-id").build(), api.getApiDefinitionHttpV4().getFlows());
                 });
 
             var newApi = aValidV4Api();

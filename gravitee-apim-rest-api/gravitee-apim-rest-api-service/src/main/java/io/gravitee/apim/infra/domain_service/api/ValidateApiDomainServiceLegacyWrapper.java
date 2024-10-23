@@ -81,19 +81,19 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         api.setGroups(newApiEntity.getGroups());
         api.setTags(newApiEntity.getTags());
 
-        api.getApiDefinitionV4().setListeners(newApiEntity.getListeners());
-        api.getApiDefinitionV4().setEndpointGroups(newApiEntity.getEndpointGroups());
-        api.getApiDefinitionV4().setAnalytics(newApiEntity.getAnalytics());
-        api.getApiDefinitionV4().setFlowExecution(newApiEntity.getFlowExecution());
-        api.getApiDefinitionV4().setFailover(newApiEntity.getFailover());
+        api.getApiDefinitionHttpV4().setListeners(newApiEntity.getListeners());
+        api.getApiDefinitionHttpV4().setEndpointGroups(newApiEntity.getEndpointGroups());
+        api.getApiDefinitionHttpV4().setAnalytics(newApiEntity.getAnalytics());
+        api.getApiDefinitionHttpV4().setFlowExecution(newApiEntity.getFlowExecution());
+        api.getApiDefinitionHttpV4().setFailover(newApiEntity.getFailover());
 
-        api.getApiDefinitionV4().setResources(apiValidationService.validateAndSanitize(api.getApiDefinitionV4().getResources()));
+        api.getApiDefinitionHttpV4().setResources(apiValidationService.validateAndSanitize(api.getApiDefinitionHttpV4().getResources()));
 
         var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), newApiEntity.getFlows());
-        api.getApiDefinitionV4().setFlows(sanitizedFlows);
+        api.getApiDefinitionHttpV4().setFlows(sanitizedFlows);
 
         apiValidationService.validateDynamicProperties(
-            api.getApiDefinitionV4().getServices() != null ? api.getApiDefinitionV4().getServices().getDynamicProperty() : null
+            api.getApiDefinitionHttpV4().getServices() != null ? api.getApiDefinitionHttpV4().getServices().getDynamicProperty() : null
         );
     }
 
@@ -119,7 +119,7 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         newApi.setGroups(groupValidationService.validateAndSanitize(Set.of(), newApi.getEnvironmentId(), primaryOwner));
 
         // Validate and clean listeners
-        var apiDefinition = newApi.getNativeApiDefinition();
+        var apiDefinition = newApi.getApiDefinitionNativeV4();
 
         apiDefinition.setListeners(
             listenerValidationService.validateAndSanitizeNativeV4(
@@ -137,8 +137,8 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         apiDefinition.setFlows(flowValidationDomainService.validateAndSanitizeNativeV4(apiDefinition.getFlows()));
 
         apiValidationService.validateDynamicProperties(
-            newApi.getNativeApiDefinition().getServices() != null
-                ? newApi.getNativeApiDefinition().getServices().getDynamicProperty()
+            newApi.getApiDefinitionNativeV4().getServices() != null
+                ? newApi.getApiDefinitionNativeV4().getServices().getDynamicProperty()
                 : null
         );
     }

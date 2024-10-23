@@ -19,7 +19,6 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.time.ZonedDateTime;
@@ -74,8 +73,8 @@ public class Api {
      */
     private DefinitionVersion definitionVersion;
 
-    private io.gravitee.definition.model.v4.Api apiDefinitionV4;
-    private io.gravitee.definition.model.v4.nativeapi.NativeApi nativeApiDefinition;
+    private io.gravitee.definition.model.v4.Api apiDefinitionHttpV4;
+    private io.gravitee.definition.model.v4.nativeapi.NativeApi apiDefinitionNativeV4;
     private io.gravitee.definition.model.Api apiDefinition;
     private io.gravitee.definition.model.federation.FederatedApi federatedApiDefinition;
 
@@ -164,9 +163,9 @@ public class Api {
         return switch (definitionVersion) {
             case V4 -> {
                 if (type == ApiType.NATIVE) {
-                    yield nativeApiDefinition.getTags();
+                    yield apiDefinitionNativeV4.getTags();
                 }
-                yield apiDefinitionV4.getTags();
+                yield apiDefinitionHttpV4.getTags();
             }
             case V1, V2 -> apiDefinition.getTags();
             case FEDERATED -> Collections.emptySet();
@@ -174,22 +173,22 @@ public class Api {
     }
 
     public Api setTags(Set<String> tags) {
-        if (apiDefinitionV4 != null) {
-            apiDefinitionV4.setTags(tags);
+        if (apiDefinitionHttpV4 != null) {
+            apiDefinitionHttpV4.setTags(tags);
         }
         if (apiDefinition != null) {
             apiDefinition.setTags(tags);
         }
-        if (nativeApiDefinition != null) {
-            nativeApiDefinition.setTags(tags);
+        if (apiDefinitionNativeV4 != null) {
+            apiDefinitionNativeV4.setTags(tags);
         }
         return this;
     }
 
     public Api setId(String id) {
         this.id = id;
-        if (apiDefinitionV4 != null) {
-            apiDefinitionV4.setId(id);
+        if (apiDefinitionHttpV4 != null) {
+            apiDefinitionHttpV4.setId(id);
         }
         if (apiDefinition != null) {
             apiDefinition.setId(id);
@@ -200,9 +199,9 @@ public class Api {
         return this;
     }
 
-    public Api setApiDefinitionV4(io.gravitee.definition.model.v4.Api apiDefinitionV4) {
-        this.apiDefinitionV4 = apiDefinitionV4;
-        this.definitionVersion = apiDefinitionV4.getDefinitionVersion();
+    public Api setApiDefinitionHttpV4(io.gravitee.definition.model.v4.Api apiDefinitionHttpV4) {
+        this.apiDefinitionHttpV4 = apiDefinitionHttpV4;
+        this.definitionVersion = apiDefinitionHttpV4.getDefinitionVersion();
         return this;
     }
 
@@ -221,11 +220,11 @@ public class Api {
     public Api setPlans(List<Plan> plans) {
         switch (definitionVersion) {
             case V4 -> {
-                if (apiDefinitionV4.getType() == ApiType.NATIVE) {
-                    nativeApiDefinition.setPlans(plans.stream().map(Plan::getPlanDefinitionNativeV4).toList());
+                if (apiDefinitionHttpV4.getType() == ApiType.NATIVE) {
+                    apiDefinitionNativeV4.setPlans(plans.stream().map(Plan::getPlanDefinitionNativeV4).toList());
                 }
 
-                apiDefinitionV4.setPlans(plans.stream().map(Plan::getPlanDefinitionHttpV4).toList());
+                apiDefinitionHttpV4.setPlans(plans.stream().map(Plan::getPlanDefinitionHttpV4).toList());
             }
             case V1, V2 -> apiDefinition.setPlans(plans.stream().map(Plan::getPlanDefinitionV2).collect(Collectors.toList()));
             case FEDERATED -> {
@@ -245,10 +244,10 @@ public class Api {
         if (definitionVersion != DefinitionVersion.V4) {
             return false;
         }
-        final ApiProperties apiProperties = new ApiProperties(this.apiDefinitionV4.getProperties());
+        final ApiProperties apiProperties = new ApiProperties(this.apiDefinitionHttpV4.getProperties());
         final ApiProperties.DynamicPropertiesResult properties = apiProperties.updateDynamicProperties(dynamicProperties);
 
-        this.getApiDefinitionV4().setProperties(properties.orderedProperties());
+        this.getApiDefinitionHttpV4().setProperties(properties.orderedProperties());
 
         setUpdatedAt(TimeProvider.now());
 
@@ -265,11 +264,11 @@ public class Api {
     }
 
     public Api rollbackTo(io.gravitee.definition.model.v4.Api source) {
-        final io.gravitee.definition.model.v4.Api currentDefinition = getApiDefinitionV4();
+        final io.gravitee.definition.model.v4.Api currentDefinition = getApiDefinitionHttpV4();
         return toBuilder()
             .name(source.getName())
             .version(source.getApiVersion())
-            .apiDefinitionV4(
+            .apiDefinitionHttpV4(
                 currentDefinition
                     .toBuilder()
                     .tags(source.getTags())
@@ -301,8 +300,8 @@ public class Api {
             return self();
         }
 
-        public B apiDefinitionV4(io.gravitee.definition.model.v4.Api apiDefinitionV4) {
-            this.apiDefinitionV4 = apiDefinitionV4;
+        public B apiDefinitionHttpV4(io.gravitee.definition.model.v4.Api apiDefinitionV4) {
+            this.apiDefinitionHttpV4 = apiDefinitionV4;
             if (apiDefinitionV4 != null) {
                 this.definitionVersion = apiDefinitionV4.getDefinitionVersion();
             }
@@ -317,8 +316,8 @@ public class Api {
             return self();
         }
 
-        public B nativeApiDefinition(io.gravitee.definition.model.v4.nativeapi.NativeApi nativeApiDefinition) {
-            this.nativeApiDefinition = nativeApiDefinition;
+        public B apiDefinitionNativeV4(io.gravitee.definition.model.v4.nativeapi.NativeApi nativeApiDefinition) {
+            this.apiDefinitionNativeV4 = nativeApiDefinition;
             if (nativeApiDefinition != null) {
                 this.definitionVersion = nativeApiDefinition.getDefinitionVersion();
             }

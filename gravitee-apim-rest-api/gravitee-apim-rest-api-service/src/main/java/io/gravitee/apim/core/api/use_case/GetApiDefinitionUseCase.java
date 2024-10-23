@@ -47,7 +47,7 @@ public class GetApiDefinitionUseCase {
 
         switch (api.getDefinitionVersion()) {
             case V1, V2 -> api.getApiDefinition().setFlows(flowCrudService.getApiV2Flows(api.getId()));
-            case V4 -> api.getApiDefinitionV4().setFlows(flowCrudService.getApiV4Flows(api.getId()));
+            case V4 -> api.getApiDefinitionHttpV4().setFlows(flowCrudService.getApiV4Flows(api.getId()));
         }
 
         List<Plan> plans = planQueryService
@@ -63,6 +63,6 @@ public class GetApiDefinitionUseCase {
             .toList();
         api.setPlans(plans);
 
-        return new Output(api.getDefinitionVersion(), api.getApiDefinitionV4(), api.getApiDefinition());
+        return new Output(api.getDefinitionVersion(), api.getApiDefinitionHttpV4(), api.getApiDefinition());
     }
 }

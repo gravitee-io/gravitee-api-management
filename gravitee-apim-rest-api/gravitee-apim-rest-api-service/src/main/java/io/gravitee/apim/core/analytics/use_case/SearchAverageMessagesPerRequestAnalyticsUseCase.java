@@ -48,7 +48,7 @@ public class SearchAverageMessagesPerRequestAnalyticsUseCase {
     private void validateApiRequirements(Input input) {
         final Api api = apiCrudService.get(input.apiId);
         validateApiDefinitionVersion(api.getDefinitionVersion(), input.apiId);
-        validateApiIsNotTcp(api.getApiDefinitionV4());
+        validateApiIsNotTcp(api.getApiDefinitionHttpV4());
         validateApiType(api.getType(), input.apiId);
         validateApiMultiTenancyAccess(api, input.environmentId);
     }

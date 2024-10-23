@@ -95,7 +95,7 @@ class ApiEventQueryServiceImplTest {
         final Optional<Api> lastPublishedApi = cut.findLastPublishedApi("org-id", "env-id", "api-id");
         assertThat(lastPublishedApi)
             .hasValueSatisfying(result -> {
-                assertThat(result.getApiDefinitionV4()).isEqualTo(api.getApiDefinitionV4());
+                assertThat(result.getApiDefinitionHttpV4()).isEqualTo(api.getApiDefinitionHttpV4());
             });
         verifyEventCriteria();
     }

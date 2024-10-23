@@ -30,7 +30,6 @@ import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -211,7 +210,7 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
 
     private static List<Path> getV4Paths(Api api) {
         return api
-            .getApiDefinitionV4()
+            .getApiDefinitionHttpV4()
             .getListeners()
             .stream()
             .filter(HttpListener.class::isInstance)

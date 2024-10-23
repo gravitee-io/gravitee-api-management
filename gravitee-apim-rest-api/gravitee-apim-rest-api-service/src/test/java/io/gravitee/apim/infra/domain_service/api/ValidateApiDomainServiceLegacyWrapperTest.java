@@ -39,8 +39,6 @@ import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeEntrypoint;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
-import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
@@ -119,10 +117,10 @@ class ValidateApiDomainServiceLegacyWrapperTest {
             var api = ApiFixtures
                 .aProxyApiV4()
                 .toBuilder()
-                .apiDefinitionV4(
+                .apiDefinitionHttpV4(
                     ApiFixtures
                         .aProxyApiV4()
-                        .getApiDefinitionV4()
+                        .getApiDefinitionHttpV4()
                         .toBuilder()
                         .services(
                             ApiServices
@@ -176,12 +174,14 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 .hasOnlyTags(Set.of("sanitized"));
 
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(result.getApiDefinitionV4().getListeners()).isEmpty();
-                soft.assertThat(result.getApiDefinitionV4().getEndpointGroups()).isEmpty();
-                soft.assertThat(result.getApiDefinitionV4().getAnalytics()).isEqualTo(Analytics.builder().enabled(true).build());
-                soft.assertThat(result.getApiDefinitionV4().getFlows()).containsExactly(FlowFixtures.aSimpleFlowV4());
-                soft.assertThat(result.getApiDefinitionV4().getFlowExecution()).isNull();
-                soft.assertThat(result.getApiDefinitionV4().getServices().getDynamicProperty().getConfiguration()).isEqualTo("sanitized");
+                soft.assertThat(result.getApiDefinitionHttpV4().getListeners()).isEmpty();
+                soft.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).isEmpty();
+                soft.assertThat(result.getApiDefinitionHttpV4().getAnalytics()).isEqualTo(Analytics.builder().enabled(true).build());
+                soft.assertThat(result.getApiDefinitionHttpV4().getFlows()).containsExactly(FlowFixtures.aSimpleFlowV4());
+                soft.assertThat(result.getApiDefinitionHttpV4().getFlowExecution()).isNull();
+                soft
+                    .assertThat(result.getApiDefinitionHttpV4().getServices().getDynamicProperty().getConfiguration())
+                    .isEqualTo("sanitized");
             });
         }
 
@@ -214,10 +214,10 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 .aNativeApi()
                 .toBuilder()
                 .description("sani<img src=\"../../../image.png\">tized")
-                .nativeApiDefinition(
+                .apiDefinitionNativeV4(
                     ApiFixtures
                         .aNativeApi()
-                        .getNativeApiDefinition()
+                        .getApiDefinitionNativeV4()
                         .toBuilder()
                         .services(
                             NativeApiServices
@@ -276,7 +276,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
 
             SoftAssertions.assertSoftly(soft -> {
                 soft
-                    .assertThat(result.getNativeApiDefinition().getListeners())
+                    .assertThat(result.getApiDefinitionNativeV4().getListeners())
                     .hasSize(1)
                     .first()
                     .isInstanceOf(KafkaListener.class)
@@ -284,7 +284,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                     .extracting(l -> l.getEntrypoints().get(0))
                     .hasFieldOrPropertyWithValue("type", "sanitized");
                 soft
-                    .assertThat(result.getNativeApiDefinition().getEndpointGroups())
+                    .assertThat(result.getApiDefinitionNativeV4().getEndpointGroups())
                     .hasSize(1)
                     .first()
                     .isInstanceOf(NativeEndpointGroup.class)
@@ -293,9 +293,9 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                     .isInstanceOf(NativeEndpoint.class)
                     .hasFieldOrPropertyWithValue("name", "sanitized")
                     .hasFieldOrPropertyWithValue("type", "sanitized");
-                soft.assertThat(result.getNativeApiDefinition().getFlows()).containsExactly(FlowFixtures.aNativeFlowV4());
+                soft.assertThat(result.getApiDefinitionNativeV4().getFlows()).containsExactly(FlowFixtures.aNativeFlowV4());
                 soft
-                    .assertThat(result.getNativeApiDefinition().getServices().getDynamicProperty().getConfiguration())
+                    .assertThat(result.getApiDefinitionNativeV4().getServices().getDynamicProperty().getConfiguration())
                     .isEqualTo("sanitized");
             });
         }

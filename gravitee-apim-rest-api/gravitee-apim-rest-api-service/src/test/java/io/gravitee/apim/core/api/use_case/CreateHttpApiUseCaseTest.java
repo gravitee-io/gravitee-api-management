@@ -246,7 +246,7 @@ class CreateHttpApiUseCaseTest {
             .apiLifecycleState(Api.ApiLifecycleState.CREATED)
             .lifecycleState(Api.LifecycleState.STOPPED)
             .visibility(Api.Visibility.PRIVATE)
-            .apiDefinitionV4(newApi.toApiDefinitionBuilder().id("generated-id").build())
+            .apiDefinitionHttpV4(newApi.toApiDefinitionBuilder().id("generated-id").build())
             .build();
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(output.api()).isEqualTo(new ApiWithFlows(expectedApi, newApi.getFlows()));

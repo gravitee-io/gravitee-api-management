@@ -333,7 +333,7 @@ class UpdatePlanDomainServiceTest {
         void should_throw_when_a_plan_have_no_tag_matching_api_tags(Api api, Plan plan, List<Flow> flows) {
             // Given
             givenExistingPlan(plan);
-            api.getApiDefinitionV4().setTags(Set.of("tag1", "tag2"));
+            api.getApiDefinitionHttpV4().setTags(Set.of("tag1", "tag2"));
 
             // When
             var throwable = Assertions.catchThrowable(() -> service.update(plan.setPlanTags(Set.of("tag3")), flows, null, api, AUDIT_INFO));

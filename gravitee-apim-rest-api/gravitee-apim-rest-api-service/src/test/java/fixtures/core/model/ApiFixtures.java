@@ -78,7 +78,7 @@ public class ApiFixtures {
             .get()
             .type(ApiType.PROXY)
             .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionV4(
+            .apiDefinitionHttpV4(
                 io.gravitee.definition.model.v4.Api
                     .builder()
                     .id(MY_API)
@@ -175,7 +175,7 @@ public class ApiFixtures {
             .get()
             .type(ApiType.MESSAGE)
             .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionV4(
+            .apiDefinitionHttpV4(
                 io.gravitee.definition.model.v4.Api
                     .builder()
                     .id("my-api")
@@ -228,7 +228,7 @@ public class ApiFixtures {
             .get()
             .type(ApiType.PROXY)
             .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionV4(
+            .apiDefinitionHttpV4(
                 io.gravitee.definition.model.v4.Api
                     .builder()
                     .id(MY_API)
@@ -281,7 +281,7 @@ public class ApiFixtures {
             .get()
             .crossId(null)
             .lifecycleState(null)
-            .apiDefinitionV4(null)
+            .apiDefinitionHttpV4(null)
             .apiDefinition(null)
             .originContext(new OriginContext.Integration("integration-id"))
             .federatedApiDefinition(FederatedApi.builder().id(MY_API).providerId("provider-id").name("My Api").apiVersion("1.0.0").build())
@@ -293,7 +293,7 @@ public class ApiFixtures {
             .get()
             .type(ApiType.NATIVE)
             .definitionVersion(DefinitionVersion.V4)
-            .nativeApiDefinition(
+            .apiDefinitionNativeV4(
                 NativeApi
                     .builder()
                     .id("my-api")
