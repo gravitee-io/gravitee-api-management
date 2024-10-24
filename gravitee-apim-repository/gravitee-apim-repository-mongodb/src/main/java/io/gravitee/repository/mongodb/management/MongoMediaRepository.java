@@ -224,6 +224,14 @@ public class MongoMediaRepository implements MediaRepository {
         }
     }
 
+    public void deleteByHashAndEnvironment(String hash, String environment) throws TechnicalException {
+        if (hash == null || environment == null) {
+            LOGGER.warn("Skipping media deletion because the [{}/{}] given as an argument is null", hash, environment);
+        } else {
+            deleteWithQuery(and(eq("metadata.environment", environment), eq("metadata.hash", hash)));
+        }
+    }
+
     @Override
     public List<String> deleteByEnvironment(String environment) throws TechnicalException {
         return deleteWithMetadata("metadata.environment", environment);

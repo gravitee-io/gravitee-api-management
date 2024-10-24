@@ -44,6 +44,8 @@ public interface MediaRepository {
 
     void deleteByHashAndApi(String hash, String api) throws TechnicalException;
 
+    void deleteByHashAndEnvironment(String hash, String environment) throws TechnicalException;
+
     /**
      * Delete by environment
      * @param environment

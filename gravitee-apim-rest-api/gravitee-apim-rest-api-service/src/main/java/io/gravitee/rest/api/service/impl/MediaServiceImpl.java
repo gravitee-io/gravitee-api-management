@@ -26,7 +26,9 @@ import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.PageMediaEntity;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.MediaService;
+import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiMediaNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -258,6 +260,24 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
             mediaRepository.deleteByHashAndApi(media.getHash(), apiId);
         } catch (TechnicalException e) {
             LOGGER.error("An error has occurred trying to delete media for API " + apiId + " with hash " + hash, e);
+            throw new TechnicalManagementException("An error has occurred trying to delete media");
+        }
+    }
+
+    @Override
+    public void deletePortalMediaByHash(ExecutionContext executionContext, String hash) {
+        try {
+            final MediaCriteria mediaCriteria = MediaCriteria
+                .builder()
+                .organization(executionContext.getOrganizationId())
+                .environment(executionContext.getEnvironmentId())
+                .build();
+
+            Media media = mediaRepository.findByHash(hash, mediaCriteria).orElseThrow(() -> new TechnicalManagementException(hash));
+
+            mediaRepository.deleteByHashAndEnvironment(media.getHash(), executionContext.getEnvironmentId());
+        } catch (TechnicalException e) {
+            LOGGER.error("An error has occurred trying to delete media with hash " + hash, e);
             throw new TechnicalManagementException("An error has occurred trying to delete media");
         }
     }

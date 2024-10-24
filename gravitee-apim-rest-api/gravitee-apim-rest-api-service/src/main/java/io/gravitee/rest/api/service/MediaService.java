@@ -46,4 +46,6 @@ public interface MediaService {
     void deleteAllByApi(String apiId);
 
     void deleteByHashAndApi(String hash, String apiId);
+
+    void deletePortalMediaByHash(ExecutionContext executionContext, String hash);
 }

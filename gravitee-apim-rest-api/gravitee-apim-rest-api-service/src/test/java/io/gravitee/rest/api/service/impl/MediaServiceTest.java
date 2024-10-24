@@ -458,6 +458,62 @@ public class MediaServiceTest extends TestCase {
         mediaService.deleteByHashAndApi(MEDIA_HASH, API_ID);
     }
 
+    @Test
+    public void shouldDeletePortalMediaByHashSuccessfully() throws Exception {
+        Media media = newMedia();
+        media.setId("media-id");
+        when(
+            mediaRepository.findByHash(
+                MEDIA_HASH,
+                MediaCriteria
+                    .builder()
+                    .organization(GraviteeContext.getExecutionContext().getOrganizationId())
+                    .environment(GraviteeContext.getExecutionContext().getEnvironmentId())
+                    .build()
+            )
+        )
+            .thenReturn(Optional.of(media));
+
+        mediaService.deletePortalMediaByHash(GraviteeContext.getExecutionContext(), MEDIA_HASH);
+
+        verify(mediaRepository, times(1))
+            .deleteByHashAndEnvironment(media.getHash(), GraviteeContext.getExecutionContext().getEnvironmentId());
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldThrowMediaNotFoundExceptionWhenDeletingNonExistingMedia() throws Exception {
+        when(
+            mediaRepository.findByHash(
+                MEDIA_HASH,
+                MediaCriteria
+                    .builder()
+                    .organization(GraviteeContext.getExecutionContext().getOrganizationId())
+                    .environment(GraviteeContext.getExecutionContext().getEnvironmentId())
+                    .build()
+            )
+        )
+            .thenReturn(Optional.empty());
+
+        mediaService.deletePortalMediaByHash(GraviteeContext.getExecutionContext(), MEDIA_HASH);
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldThrowTechnicalManagementExceptionWhenDeletingMedia() throws Exception {
+        when(
+            mediaRepository.findByHash(
+                MEDIA_HASH,
+                MediaCriteria
+                    .builder()
+                    .organization(GraviteeContext.getExecutionContext().getOrganizationId())
+                    .environment(GraviteeContext.getExecutionContext().getEnvironmentId())
+                    .build()
+            )
+        )
+            .thenThrow(TechnicalException.class);
+
+        mediaService.deletePortalMediaByHash(GraviteeContext.getExecutionContext(), MEDIA_HASH);
+    }
+
     private static MediaEntity newMediaEntity() throws Exception {
         return newMediaEntity(true);
     }

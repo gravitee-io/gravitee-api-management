@@ -20,7 +20,6 @@ import static org.junit.Assert.*;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.MediaCriteria;
 import io.gravitee.repository.media.model.Media;
-import io.vertx.core.spi.launcher.ExecutionContext;
 import jakarta.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -306,6 +305,83 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(2, nbBeforeDeletion);
         assertEquals(1, deleted.size());
         assertEquals(1, nbAfterDeletion);
+    }
+
+    @Test
+    public void should_delete_by_hash_and_environment() throws Exception {
+        String hash = "sampleHash123";
+        String environment = ENV_ID;
+        String fileName = "stars.png";
+        byte[] fileBytes = getFileBytes(fileName);
+        long size = fileBytes.length;
+
+        createMedia(ORG_ID, environment, fileName, fileBytes, size, hash, "media1", null);
+
+        Optional<Media> mediaBeforeDelete = mediaRepository.findByHash(
+            hash,
+            MediaCriteria.builder().organization(ORG_ID).environment(environment).build()
+        );
+        assertTrue("Media should exist before deletion", mediaBeforeDelete.isPresent());
+
+        mediaRepository.deleteByHashAndEnvironment(hash, environment);
+
+        Optional<Media> mediaAfterDelete = mediaRepository.findByHash(
+            hash,
+            MediaCriteria.builder().organization(ORG_ID).environment(environment).build()
+        );
+        assertFalse("Media should not exist after deletion", mediaAfterDelete.isPresent());
+    }
+
+    @Test
+    public void should_not_delete_with_null_hash_or_environment() throws Exception {
+        String fileName = "stars.png";
+        byte[] fileBytes = getFileBytes(fileName);
+        long size = fileBytes.length;
+
+        createMedia(ORG_ID, ENV_ID, fileName, fileBytes, size, "validHash", "media1", null);
+
+        mediaRepository.deleteByHashAndEnvironment(null, ENV_ID);
+
+        Optional<Media> mediaAfterDeleteAttempt1 = mediaRepository.findByHash(
+            "validHash",
+            MediaCriteria.builder().organization(ORG_ID).environment(ENV_ID).build()
+        );
+        assertTrue("Media should still exist when hash is null", mediaAfterDeleteAttempt1.isPresent());
+
+        mediaRepository.deleteByHashAndEnvironment("validHash", null);
+
+        Optional<Media> mediaAfterDeleteAttempt2 = mediaRepository.findByHash(
+            "validHash",
+            MediaCriteria.builder().organization(ORG_ID).environment(ENV_ID).build()
+        );
+        assertTrue("Media should still exist when environment is null", mediaAfterDeleteAttempt2.isPresent());
+    }
+
+    @Test
+    public void should_delete_one_of_multiple_media_with_same_hash() throws Exception {
+        String hash = "duplicateHash";
+        String environment1 = "env1";
+        String environment2 = "env2";
+        String fileName = "stars.png";
+        byte[] fileBytes = getFileBytes(fileName);
+        long size = fileBytes.length;
+
+        createMedia(ORG_ID, environment1, fileName, fileBytes, size, hash, "media1", null);
+        createMedia(ORG_ID, environment2, fileName, fileBytes, size, hash, "media2", null);
+
+        mediaRepository.deleteByHashAndEnvironment(hash, environment1);
+
+        Optional<Media> mediaAfterDeleteEnv1 = mediaRepository.findByHash(
+            hash,
+            MediaCriteria.builder().organization(ORG_ID).environment(environment1).build()
+        );
+        assertFalse("Media with environment1 should be deleted", mediaAfterDeleteEnv1.isPresent());
+
+        Optional<Media> mediaAfterDeleteEnv2 = mediaRepository.findByHash(
+            hash,
+            MediaCriteria.builder().organization(ORG_ID).environment(environment2).build()
+        );
+        assertTrue("Media with environment2 should still exist", mediaAfterDeleteEnv2.isPresent());
     }
 
     private Media createMedia(
