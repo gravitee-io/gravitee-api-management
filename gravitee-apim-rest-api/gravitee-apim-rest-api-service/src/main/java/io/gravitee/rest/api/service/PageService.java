@@ -119,4 +119,6 @@ public interface PageService {
     Optional<PageEntity> attachMedia(String pageId, String mediaId, String mediaName);
 
     boolean folderHasPublishedChildren(String folderId);
+
+    boolean isMediaUsedInPages(ExecutionContext executionContext, String mediaHash);
 }

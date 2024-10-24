@@ -48,6 +48,7 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorPageEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
@@ -2669,6 +2670,40 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             logger.error("An error occurs while trying to count Pages with parentId {}", folderId, e);
             throw new TechnicalManagementException("An error occurred while evaluating if folder has children");
         }
+    }
+
+    @Override
+    public boolean isMediaUsedInPages(ExecutionContext executionContext, String mediaHash) {
+        try {
+            final int pageSize = 100;
+            int pageNumber = 0;
+            io.gravitee.common.data.domain.Page<Page> pages;
+            do {
+                var pageable = new PageableImpl(pageNumber, pageSize);
+                pages = pageRepository.findAll(convert(pageable));
+                var pageList = pages.getContent();
+
+                boolean mediaUsed = pageList.stream().anyMatch(page -> isMediaUsedInPage(page, mediaHash));
+                if (mediaUsed) {
+                    return true;
+                }
+                ++pageNumber;
+            } while (!pages.getContent().isEmpty());
+            return false;
+        } catch (TechnicalException e) {
+            logger.error("An error occurred while checking if media is used in pages", e);
+            throw new TechnicalManagementException("An error occurred while checking if media is used in pages", e);
+        }
+    }
+
+    private boolean isMediaUsedInPage(Page page, String mediaHash) {
+        var mediaList = page.getAttachedMedia();
+        if (mediaList != null && mediaList.stream().anyMatch(media -> media.getMediaHash().equals(mediaHash))) {
+            return true;
+        }
+
+        String pageContent = page.getContent();
+        return pageContent != null && pageContent.contains(mediaHash);
     }
 
     @Override

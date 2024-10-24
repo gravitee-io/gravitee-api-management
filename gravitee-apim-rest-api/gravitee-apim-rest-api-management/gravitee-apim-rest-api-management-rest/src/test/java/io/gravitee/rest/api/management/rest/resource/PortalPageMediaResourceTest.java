@@ -188,4 +188,50 @@ public class PortalPageMediaResourceTest extends AbstractResourceTest {
 
         assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
     }
+
+    @Test
+    public void shouldDeletePortalMedia() {
+        String mediaHash = "media-hash";
+        MediaEntity mediaEntity = new MediaEntity();
+        mediaEntity.setHash(mediaHash);
+
+        doReturn(mediaEntity).when(mediaService).findByHash(GraviteeContext.getExecutionContext(), mediaHash);
+
+        doReturn(false).when(pageService).isMediaUsedInPages(GraviteeContext.getExecutionContext(), mediaHash);
+
+        final Response response = envTarget().path("media").path(mediaHash).request().delete();
+
+        assertThat(response.getStatus()).isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
+
+        Mockito.verify(mediaService).deletePortalMediaByHash(GraviteeContext.getExecutionContext(), mediaHash);
+    }
+
+    @Test
+    public void shouldNotDeletePortalMediaIfNotFound() {
+        String mediaHash = "media-hash";
+
+        doReturn(null).when(mediaService).findByHash(GraviteeContext.getExecutionContext(), mediaHash);
+
+        final Response response = envTarget().path("media").path(mediaHash).request().delete();
+
+        assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void shouldNotDeletePortalMediaIfAttachedToPages() {
+        String mediaHash = "media-hash";
+        MediaEntity mediaEntity = new MediaEntity();
+        mediaEntity.setHash(mediaHash);
+
+        doReturn(mediaEntity).when(mediaService).findByHash(GraviteeContext.getExecutionContext(), mediaHash);
+
+        doReturn(true).when(pageService).isMediaUsedInPages(GraviteeContext.getExecutionContext(), mediaHash);
+
+        final Response response = envTarget().path("media").path(mediaHash).request().delete();
+
+        assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+
+        assertThat(response.readEntity(String.class))
+            .isEqualTo("Media is attached to pages and cannot be deleted. Please detach it from all pages first.");
+    }
 }

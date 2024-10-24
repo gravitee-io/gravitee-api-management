@@ -24,6 +24,7 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.MediaService;
+import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,6 +47,9 @@ public class PortalMediaResource extends AbstractResource {
 
     @Inject
     private MediaService mediaService;
+
+    @Inject
+    private PageService pageService;
 
     @POST
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE) })
@@ -122,5 +126,37 @@ public class PortalMediaResource extends AbstractResource {
         }
 
         return Response.ok(mediaEntity.getData()).type(mediaEntity.getMimeType()).cacheControl(cc).tag(etag).build();
+    }
+
+    @DELETE
+    @Path("/{hash}")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.DELETE) })
+    @Operation(
+        summary = "Delete a portal media",
+        description = "User must have the PORTAL_DOCUMENTATION[DELETE] permission to use this service"
+    )
+    @ApiResponse(responseCode = "204", description = "Media successfully deleted")
+    @ApiResponse(responseCode = "400", description = "Media is attached to pages and cannot be deleted")
+    @ApiResponse(responseCode = "404", description = "Media not found")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    public Response deletePortalMedia(@PathParam("hash") String hash) {
+        MediaEntity mediaEntity = mediaService.findByHash(GraviteeContext.getExecutionContext(), hash);
+
+        if (mediaEntity == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        boolean isAttached = pageService.isMediaUsedInPages(GraviteeContext.getExecutionContext(), hash);
+
+        if (isAttached) {
+            return Response
+                .status(Response.Status.BAD_REQUEST)
+                .entity("Media is attached to pages and cannot be deleted. Please detach it from all pages first.")
+                .build();
+        }
+
+        mediaService.deletePortalMediaByHash(GraviteeContext.getExecutionContext(), hash);
+
+        return Response.noContent().build();
     }
 }

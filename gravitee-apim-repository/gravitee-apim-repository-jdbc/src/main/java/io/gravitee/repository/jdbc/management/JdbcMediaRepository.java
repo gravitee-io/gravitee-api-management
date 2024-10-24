@@ -93,19 +93,11 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
     @Override
     public Media create(Media media) throws TechnicalException {
         LOGGER.debug("JdbcMediaRepository.create({})", media);
-
         media.setCreatedAt(new Date());
-
         try {
-            Connection conn = DataSourceUtils.getConnection(jdbcTemplate.getDataSource());
-            conn.setAutoCommit(false);
-            PreparedStatement ps = getOrm().buildInsertPreparedStatementCreator(media).createPreparedStatement(conn);
-
-            ps.execute();
-            conn.commit();
-
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(media));
             return media;
-        } catch (final Exception ex) {
+        } catch (Exception ex) {
             LOGGER.error("Failed to create media", ex);
             throw new TechnicalException("Failed to create media", ex);
         }
@@ -124,6 +116,16 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
 
         try {
             jdbcTemplate.update("delete from " + this.tableName + " where hash = ? and api = ?", hash, api);
+        } catch (Exception e) {
+            throw new TechnicalException(e);
+        }
+    }
+
+    public void deleteByHashAndEnvironment(String hash, String environment) throws TechnicalException {
+        LOGGER.debug("JdbcMediaRepository.deleteByHashAndEnvironment({}, {})", hash, environment);
+
+        try {
+            jdbcTemplate.update("delete from " + this.tableName + " where hash = ? and environment = ?", hash, environment);
         } catch (Exception e) {
             throw new TechnicalException(e);
         }
