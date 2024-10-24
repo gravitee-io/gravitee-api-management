@@ -17,18 +17,23 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
+import io.gravitee.plugin.core.internal.PluginManifestProperties;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import io.gravitee.rest.api.model.v4.policy.FlowPhase;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractPluginService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
@@ -90,16 +95,94 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         entity.setCategory(plugin.manifest().category());
         entity.setDeployed(plugin.deployed());
 
-        var proxyPhase = getFlowPhase(plugin, "proxy");
-        var messagePhase = getFlowPhase(plugin, "message");
+        var httpProxyFlowPhase = getFlowPhase(plugin, ApiProtocolType.HTTP_PROXY);
+        var httpMessageFlowPhase = getFlowPhase(plugin, ApiProtocolType.HTTP_MESSAGE);
+        var nativeKafkaFlowPhase = getFlowPhase(plugin, ApiProtocolType.NATIVE_KAFKA);
+        if (httpProxyFlowPhase.isEmpty()) {
+            httpProxyFlowPhase = getDeprecatedFlowPhase(plugin, "proxy");
+        }
+        if (httpMessageFlowPhase.isEmpty()) {
+            httpMessageFlowPhase = getDeprecatedFlowPhase(plugin, "message");
+        }
 
-        entity.putFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY, proxyPhase);
-        entity.putFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE, messagePhase);
+        entity.putFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY, httpProxyFlowPhase);
+        entity.putFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE, httpMessageFlowPhase);
+        entity.putFlowPhaseCompatibility(ApiProtocolType.NATIVE_KAFKA, nativeKafkaFlowPhase);
 
         return entity;
     }
 
-    private static Set<FlowPhase> getFlowPhase(Plugin plugin, String property) {
+    @Override
+    public String validatePolicyConfiguration(final String policyPluginId, final String configuration) {
+        // Ignore validation for internal policies
+        if (INTERNAL_POLICIES_ID.contains(policyPluginId)) {
+            return configuration;
+        }
+
+        PolicyPluginEntity policyPluginEntity = this.findById(policyPluginId);
+        return validateConfiguration(policyPluginEntity.getId(), configuration);
+    }
+
+    @Override
+    public String validatePolicyConfiguration(final PolicyPluginEntity policyPluginEntity, final String configuration) {
+        return validateConfiguration(policyPluginEntity.getId(), configuration);
+    }
+
+    public String getSchema(String policyPluginId, ApiProtocolType apiProtocolType, SchemaDisplayFormat schemaDisplayFormat) {
+        List<String> schemaKeys = new ArrayList<>();
+        if (apiProtocolType != null && schemaDisplayFormat != null) {
+            schemaKeys.add(
+                apiProtocolType.name().toLowerCase() +
+                "." +
+                PluginManifestProperties.SCHEMA_PROPERTY +
+                "." +
+                schemaDisplayFormat.name().toLowerCase()
+            );
+        }
+        if (apiProtocolType != null) {
+            schemaKeys.add(apiProtocolType.name().toLowerCase() + "." + PluginManifestProperties.SCHEMA_PROPERTY);
+        }
+        if (schemaDisplayFormat != null) {
+            schemaKeys.add(PluginManifestProperties.SCHEMA_PROPERTY + "." + schemaDisplayFormat.name().toLowerCase());
+        }
+        schemaKeys.add(PluginManifestProperties.SCHEMA_PROPERTY);
+
+        for (String schemaKey : schemaKeys) {
+            try {
+                logger.debug("Find plugin schema for format {} by ID: {}", schemaDisplayFormat, policyPluginId);
+                String schema = pluginManager.getSchema(policyPluginId, schemaKey, false, true);
+                if (schema != null) {
+                    return schema;
+                }
+            } catch (IOException ioex) {
+                logger.debug("Error while getting specific schema for this display format. Fall back on default schema.");
+            }
+        }
+
+        logger.debug("No specific schema exists for this display format. Fall back on default schema.");
+        return this.getSchema(policyPluginId);
+    }
+
+    public String getDocumentation(String policyPluginId, ApiProtocolType apiProtocolType) {
+        try {
+            if (apiProtocolType != null) {
+                return this.pluginManager.getDocumentation(
+                        policyPluginId,
+                        apiProtocolType.name().toLowerCase() + "." + PluginManifestProperties.DOCUMENTATION_PROPERTY,
+                        true,
+                        true
+                    );
+            }
+            return this.getDocumentation(policyPluginId);
+        } catch (IOException ioex) {
+            throw new TechnicalManagementException(
+                "An error occurs while trying to get plugin documentation for plugin " + policyPluginId,
+                ioex
+            );
+        }
+    }
+
+    private static Set<FlowPhase> getDeprecatedFlowPhase(Plugin plugin, String property) {
         if (
             plugin.manifest().properties() != null &&
             plugin.manifest().properties().get(property) != null &&
@@ -125,38 +208,16 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         }
     }
 
-    @Override
-    public String validatePolicyConfiguration(final String policyPluginId, final String configuration) {
-        // Ignore validation for internal policies
-        if (INTERNAL_POLICIES_ID.contains(policyPluginId)) {
-            return configuration;
+    private static Set<FlowPhase> getFlowPhase(Plugin plugin, ApiProtocolType apiProtocolType) {
+        if (plugin.manifest().properties() == null) {
+            return null;
         }
 
-        PolicyPluginEntity policyPluginEntity = this.findById(policyPluginId);
-        return validateConfiguration(policyPluginEntity.getId(), configuration);
-    }
-
-    @Override
-    public String validatePolicyConfiguration(final PolicyPluginEntity policyPluginEntity, final String configuration) {
-        return validateConfiguration(policyPluginEntity.getId(), configuration);
-    }
-
-    @Override
-    public String getSchema(String policyPluginId, SchemaDisplayFormat schemaDisplayFormat) {
-        if (schemaDisplayFormat == SchemaDisplayFormat.GV_SCHEMA_FORM) {
-            try {
-                logger.debug("Find plugin schema for format {} by ID: {}", schemaDisplayFormat, policyPluginId);
-                String schema = pluginManager.getSchema(policyPluginId, "display-gv-schema-form", true);
-                if (schema != null) {
-                    return schema;
-                }
-                logger.debug("No specific schema-form exists for this display format. Fall back on default schema-form.");
-            } catch (IOException ioex) {
-                logger.debug(
-                    "Error while getting specific specific schema-form for this display format. Fall back on default schema-form."
-                );
-            }
+        var apiProtocolTypeProperty = plugin.manifest().properties().get(apiProtocolType.name().toLowerCase());
+        if (apiProtocolTypeProperty != null) {
+            return Arrays.stream(apiProtocolTypeProperty.split(",")).map(String::trim).map(FlowPhase::valueOf).collect(Collectors.toSet());
+        } else {
+            return Collections.emptySet();
         }
-        return getSchema(policyPluginId);
     }
 }

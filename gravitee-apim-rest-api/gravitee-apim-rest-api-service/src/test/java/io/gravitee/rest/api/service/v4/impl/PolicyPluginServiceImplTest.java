@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Nested;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -133,55 +134,88 @@ public class PolicyPluginServiceImplTest {
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
-        when(mockPluginManifest.properties()).thenReturn(Map.of("proxy", "REQUEST", "message", "PUBLISH"));
+        when(mockPluginManifest.properties())
+            .thenReturn(Map.of("http_proxy", "REQUEST,RESPONSE", "http_message", "PUBLISH", "native_kafka", "PUBLISH, SUBSCRIBE"));
         Set<PolicyPluginEntity> result = cut.findAll();
 
         assertNotNull(result);
         assertEquals(1, result.size());
         PolicyPluginEntity policyPlugin = result.iterator().next();
         assertEquals(PLUGIN_ID, policyPlugin.getId());
-        assertEquals(Set.of(FlowPhase.REQUEST), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY));
+        assertEquals(Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY));
         assertEquals(Set.of(FlowPhase.PUBLISH), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE));
+        assertEquals(Set.of(FlowPhase.PUBLISH, FlowPhase.SUBSCRIBE), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.NATIVE_KAFKA));
+    }
+
+    @Nested
+    public class DeprecatedFlowPhaseProperty {
+
+        @Test
+        public void should_find_all() {
+            when(mockPlugin.id()).thenReturn(PLUGIN_ID);
+            when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
+            when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
+            when(mockPluginManifest.properties()).thenReturn(Map.of("proxy", "REQUEST", "message", "PUBLISH"));
+            Set<PolicyPluginEntity> result = cut.findAll();
+
+            assertNotNull(result);
+            assertEquals(1, result.size());
+            PolicyPluginEntity policyPlugin = result.iterator().next();
+            assertEquals(PLUGIN_ID, policyPlugin.getId());
+            assertEquals(Set.of(FlowPhase.REQUEST), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY));
+            assertEquals(Set.of(FlowPhase.PUBLISH), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE));
+        }
+
+        @Test
+        public void should_find_all_with_legacy_phase() {
+            when(mockPlugin.id()).thenReturn(PLUGIN_ID);
+            when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
+            when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
+            when(mockPluginManifest.properties()).thenReturn(Map.of("message", "MESSAGE_REQUEST, MESSAGE_RESPONSE"));
+            Set<PolicyPluginEntity> result = cut.findAll();
+
+            assertNotNull(result);
+            assertEquals(1, result.size());
+            PolicyPluginEntity policyPlugin = result.iterator().next();
+            assertEquals(PLUGIN_ID, policyPlugin.getId());
+            assertEquals(
+                Set.of(FlowPhase.PUBLISH, FlowPhase.SUBSCRIBE),
+                policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE)
+            );
+        }
     }
 
     @Test
-    public void should_find_all_with_legacy_phase() {
-        when(mockPlugin.id()).thenReturn(PLUGIN_ID);
-        when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
-        when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
-        when(mockPluginManifest.properties()).thenReturn(Map.of("message", "MESSAGE_REQUEST, MESSAGE_RESPONSE"));
-        Set<PolicyPluginEntity> result = cut.findAll();
+    public void should_get_schema_with_ApiProtocolType() throws IOException {
+        when(pluginManager.getSchema("my-policy", "http_proxy.schema", false, true)).thenReturn("http_proxy");
 
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        PolicyPluginEntity policyPlugin = result.iterator().next();
-        assertEquals(PLUGIN_ID, policyPlugin.getId());
-        assertEquals(Set.of(FlowPhase.PUBLISH, FlowPhase.SUBSCRIBE), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE));
+        String schema = cut.getSchema("my-policy", ApiProtocolType.HTTP_PROXY, null);
+        assertEquals("http_proxy", schema);
     }
 
     @Test
-    public void shouldGetGvSchemaForm() throws IOException {
-        when(pluginManager.getSchema("my-policy", "display-gv-schema-form", true)).thenReturn("gv-schema-form-config");
+    public void should_get_schema_with_fallback() throws IOException {
+        when(pluginManager.getSchema("my-policy", "http_proxy.schema", false, true)).thenReturn(null);
+        when(pluginManager.getSchema("my-policy", "schema", false, true)).thenReturn("schema");
 
-        String schema = cut.getSchema("my-policy", SchemaDisplayFormat.GV_SCHEMA_FORM);
-        assertEquals("gv-schema-form-config", schema);
+        String schema = cut.getSchema("my-policy", ApiProtocolType.HTTP_PROXY, null);
+        assertEquals("schema", schema);
     }
 
     @Test
-    public void shouldGetDefaultSchemaFormWhenIOException() throws IOException {
-        when(pluginManager.getSchema("my-policy", "display-gv-schema-form", true)).thenThrow(new IOException());
+    public void should_get_default_schema_when_IOException() throws IOException {
+        when(pluginManager.getSchema("my-policy", "http_proxy.schema", false, true)).thenThrow(new IOException());
         when(pluginManager.getSchema("my-policy", true)).thenReturn("default-configuration");
 
-        String schema = cut.getSchema("my-policy", SchemaDisplayFormat.GV_SCHEMA_FORM);
+        String schema = cut.getSchema("my-policy", ApiProtocolType.HTTP_PROXY, null);
         assertEquals("default-configuration", schema);
     }
 
     @Test
-    public void shouldGetDefaultSchemaFormWhenNull() throws IOException {
-        when(pluginManager.getSchema("my-policy", "display-gv-schema-form", true)).thenReturn(null);
-        when(pluginManager.getSchema("my-policy", true)).thenReturn("default-configuration");
+    public void should_get_documentation_with_ApiProtocolType() throws IOException {
+        when(pluginManager.getDocumentation("my-policy", "native_kafka.documentation", true, true)).thenReturn("documentation");
 
-        String schema = cut.getSchema("my-policy", SchemaDisplayFormat.GV_SCHEMA_FORM);
-        assertEquals("default-configuration", schema);
+        String documentation = cut.getDocumentation("my-policy", ApiProtocolType.NATIVE_KAFKA);
+        assertEquals("documentation", documentation);
     }
 }

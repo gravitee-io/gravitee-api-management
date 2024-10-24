@@ -21,6 +21,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.PolicyPluginMapper;
 import io.gravitee.rest.api.management.v2.rest.model.PolicyPlugin;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
+import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import jakarta.inject.Inject;
@@ -57,22 +58,26 @@ public class PoliciesResource extends AbstractResource {
     @GET
     @Path("/{policyId}/schema")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getPolicySchema(@PathParam("policyId") String policyId, @QueryParam("display") String display) {
+    public String getPolicySchema(
+        @PathParam("policyId") String policyId,
+        @QueryParam("apiProtocolType") ApiProtocolType apiProtocolType,
+        @QueryParam("display") SchemaDisplayFormat display
+    ) {
         // Check that the endpoint exists
         policyPluginService.findById(policyId);
-        if (display != null) {
-            return policyPluginService.getSchema(policyId, SchemaDisplayFormat.fromLabel(display));
-        }
-        return policyPluginService.getSchema(policyId);
+        return policyPluginService.getSchema(policyId, apiProtocolType, display);
     }
 
     @GET
     @Path("/{policyId}/documentation")
     @Produces(MediaType.TEXT_PLAIN)
-    public String getPolicyDocumentation(@PathParam("policyId") String policyId) {
+    public String getPolicyDocumentation(
+        @PathParam("policyId") String policyId,
+        @QueryParam("apiProtocolType") ApiProtocolType apiProtocolType
+    ) {
         // Check that the endpoint exists
         policyPluginService.findById(policyId);
 
-        return policyPluginService.getDocumentation(policyId);
+        return policyPluginService.getDocumentation(policyId, apiProtocolType);
     }
 }

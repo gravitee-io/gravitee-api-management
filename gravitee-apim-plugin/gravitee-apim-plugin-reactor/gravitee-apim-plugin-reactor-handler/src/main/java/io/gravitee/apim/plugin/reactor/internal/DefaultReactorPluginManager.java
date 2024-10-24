@@ -103,6 +103,11 @@ public class DefaultReactorPluginManager extends AbstractPluginManager<ReactorPl
     }
 
     @Override
+    public String getDocumentation(String s, String s1, boolean b, boolean b1) throws IOException {
+        return "";
+    }
+
+    @Override
     public String getCategory(String s) throws IOException {
         return "reactor";
     }
