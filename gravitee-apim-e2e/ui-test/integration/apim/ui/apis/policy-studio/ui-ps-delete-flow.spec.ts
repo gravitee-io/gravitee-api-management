@@ -108,18 +108,18 @@ describe('Deleting a flow', () => {
     });
 
     it('should delete a common flow using trash icon', () => {
-      cy.contains('.list__flowsGroup__flow__name', commonFlow.name, { timeout: 60000 }).should('be.visible').click();
+      cy.contains('.list__flowsGroup__flows__flow__left__name', commonFlow.name, { timeout: 60000 }).should('be.visible').click();
       cy.get('.header__configBtn__delete').click();
-      cy.contains('.list__flowsGroup__flow__name', commonFlow.name).should('not.exist');
+      cy.contains('.list__flowsGroup__flows__flow__left__name', commonFlow.name).should('not.exist');
       cy.contains('button', 'Save').click();
       cy.contains('Policy Studio configuration saved').should('be.visible');
       cy.contains('.banner__wrapper__title', 'This API is out of sync').scrollIntoView().should('be.visible');
     });
 
     it('should delete a plan-flow using trash icon', () => {
-      cy.contains('.list__flowsGroup__flow__name', planFlow.name, { timeout: 60000 }).should('be.visible').click();
+      cy.contains('.list__flowsGroup__flows__flow__left__name', planFlow.name, { timeout: 60000 }).should('be.visible').click();
       cy.get('.header__configBtn__delete').click();
-      cy.contains('.list__flowsGroup__flow__name', planFlow.name).should('not.exist');
+      cy.contains('.list__flowsGroup__flows__flow__left__name', planFlow.name).should('not.exist');
       cy.contains('button', 'Save').click();
       cy.contains('Policy Studio configuration saved').should('be.visible');
       cy.contains('.banner__wrapper__title', 'This API is out of sync').scrollIntoView().should('be.visible');

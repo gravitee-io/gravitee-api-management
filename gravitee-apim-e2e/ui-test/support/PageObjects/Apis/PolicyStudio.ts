@@ -80,7 +80,7 @@ export default class PolicyStudio {
   }
 
   editFlowDetails(flowName: string) {
-    cy.contains('.list__flowsGroup__flow__name', flowName, { timeout: 60000 }).should('be.visible').click();
+    cy.contains('.list__flowsGroup__flows__flow__left__name', flowName, { timeout: 60000 }).should('be.visible').click();
     cy.get('.header__configBtn__edit').click();
     return this;
   }
