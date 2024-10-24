@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.5.1
-appVersion: 4.5.1
+version: 4.5.2
+appVersion: 4.5.2
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -23,6 +23,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: |
-    - kind: added
-      description: 'Add support of heartbeat delay for the gateway'
+  artifacthub.io/changes: 
