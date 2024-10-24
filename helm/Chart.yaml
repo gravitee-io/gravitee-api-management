@@ -23,4 +23,10 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: 
+  artifacthub.io/changes: |
+    - kind: fixed
+      description: 'add missing haproxy mapping attribute'
+      links:
+        - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/10027
+
