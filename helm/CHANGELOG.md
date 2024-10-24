@@ -3,6 +3,75 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+<<<<<<< HEAD
+=======
+### 4.6.0
+
+- Add support of heartbeat delay for the gateway
+- add missing haproxy mapping attribute
+
+### 4.5.0
+
+- Fix cloud configuration: avoid empty secret generation and fix example in value.yaml
+- Fix cloud configuration: avoid empty volume mount
+- Split hazelcast config for cluster and cache
+- Add support of SSL keystore secret
+- Handle annotations for nginx ingress
+- Add service account to UI and portal components
+
+### 4.4.4
+
+- 'Fix cloud configuration: avoid empty volume mount'
+- Split hazelcast config for cluster and cache
+
+### 4.4.3
+
+- Fix cloud configuration: avoid empty secret generation and fix example in value.yaml
+
+### 4.4.1
+
+- Add support for Federation:
+    - To enable the feature, change property `api.federation.enabled` to true 
+
+### 4.4.0
+
+- Add support for multi-server installation
+- Improve redis ratelimit configuration [issues/9726](https://github.com/gravitee-io/issues/issues/9726). Thanks [@gh0stsrc](https://github.com/gh0stsrc)
+- Add support for JWT authentication in HTTP repository and Bridge Server (hybrid gateways)
+- BREAKING CHANGE: In gateway ingress controller, change ssl-redirect option from "false" to default. More info [here](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#server-side-https-enforcement-through-redirect)
+- BREAKING CHANGE: `gateway.management.http.trustall` is now `false` by default (and renamed `trustAll`). Using a public CA or a well-configured truststore will therefor continue to work.
+- Deprecations:
+    - `gateway.management.http.username` (and `password`) have been deprecated to allow JWT auth to be configured. For basic auth the following should be set:
+        - `gateway.management.http.authentication.type` with value `basic`
+        - `gateway.management.http.authentication.basic.username`
+        - `gateway.management.http.authentication.basic.password`
+    - `gateway|api.services.bridge.ssl.clientAuth` no longer use a boolean value. Possible values are now `none` (default previously `false`), `required`, `request`. Backward compatibility is maintained, `true` means `required`.
+    - `gateway|api.services.bridge.username` (and `password`) have been deprecated to allow JWT auth to be configured. For basic auth the following should be set:
+        - `gateway|api.services.bridge.authentication.type` with value `basic`
+        - `gateway|api.services.bridge.authentication.users` containing key/value pairs of users \(e.g. `[...].users.admin = s3cr3t`)
+
+### 4.3.5
+
+- BREAKING CHANGE: In gateway ingress controller, change ssl-redirect option from "false" to default. More info [here](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#server-side-https-enforcement-through-redirect)
+
+### 4.3.4
+
+- Improve redis ratelimit configuration [issues/9726](https://github.com/gravitee-io/issues/issues/9726). Thanks [@gh0stsrc](https://github.com/gh0stsrc)
+
+### 4.3.0
+
+- Added "gateway.services.core.http.ssl.keystore.password"
+- fix helm backward compatibility during helm upgrade without `common` field
+- Added default preStop command on ui and portal
+- Add networkPolicy
+- Update regex for portal and console base_href
+- 'fix AE system mail notification without keystore'
+- Add support for Secret Manager's configuration
+- Add networkPolicy
+- fix helm backward compatibility during helm upgrade without `common` field
+- BREAKING CHANGE: deprecated api|gateway|ui|portal.securityContext has been removed
+
+>>>>>>> 9d9d458c3d (fix: fill chart and changelog about missing haproxy mapping)
 ### 4.2.10
 
 - BREAKING CHANGE: In gateway ingress controller, change ssl-redirect option from "false" to default. More info [here](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#server-side-https-enforcement-through-redirect)
