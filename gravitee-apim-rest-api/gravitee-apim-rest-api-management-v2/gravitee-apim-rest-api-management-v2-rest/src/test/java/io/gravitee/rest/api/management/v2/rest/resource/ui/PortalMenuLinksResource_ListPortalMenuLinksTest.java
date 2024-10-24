@@ -18,7 +18,6 @@ package io.gravitee.rest.api.management.v2.rest.resource.ui;
 import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
@@ -59,8 +58,8 @@ public class PortalMenuLinksResource_ListPortalMenuLinksTest extends AbstractRes
         EnvironmentEntity environmentEntity = new EnvironmentEntity();
         environmentEntity.setId(ENV_ID);
         environmentEntity.setOrganizationId(ORGANIZATION);
-        doReturn(environmentEntity).when(environmentService).findById(ENV_ID);
-        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENV_ID);
+        when(environmentService.findById(ENV_ID)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENV_ID)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENV_ID);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);

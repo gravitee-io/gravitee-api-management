@@ -21,8 +21,8 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -58,9 +58,8 @@ public class ApiResource_DeleteTest extends ApiResourceTest {
 
     @Test
     public void shouldNotDeleteApiWithInsufficientRights() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any());
+        when(permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any()))
+            .thenReturn(false);
         final Response response = rootTarget(API).request().delete();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }

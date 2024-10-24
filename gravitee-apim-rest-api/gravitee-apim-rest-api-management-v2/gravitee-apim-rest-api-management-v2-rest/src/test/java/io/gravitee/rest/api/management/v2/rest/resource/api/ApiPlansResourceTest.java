@@ -25,7 +25,6 @@ import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -38,7 +37,6 @@ import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
-import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -119,11 +117,11 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         target = rootTarget();
 
         Api api = Api.builder().id(API).environmentId(ENVIRONMENT).build();
-        doReturn(Optional.of(api)).when(apiRepository).findById(API);
+        when(apiRepository.findById(API)).thenReturn(Optional.of(api));
 
         EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
-        doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT);
-        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
+        when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);

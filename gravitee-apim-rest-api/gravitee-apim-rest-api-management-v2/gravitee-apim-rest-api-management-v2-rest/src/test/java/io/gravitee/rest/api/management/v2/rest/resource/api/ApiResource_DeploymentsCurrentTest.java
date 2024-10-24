@@ -19,7 +19,6 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import fixtures.definition.ApiDefinitionFixtures;
@@ -64,9 +63,8 @@ public class ApiResource_DeploymentsCurrentTest extends ApiResourceTest {
 
     @Test
     public void should_throw_with_insufficient_rights() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any());
+        when(permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any()))
+            .thenReturn(false);
         final Response response = rootTarget(API + "/deployments/current").request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }

@@ -21,7 +21,6 @@ import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import inmemory.ApplicationCrudServiceInMemory;
@@ -71,8 +70,8 @@ public class ApiSubscriptionsResource_CloseTest extends AbstractResourceTest {
         super.setUp();
 
         EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
-        doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT);
-        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
+        when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);

@@ -23,7 +23,6 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -74,8 +73,8 @@ public class SharedPolicyGroupResource_UpdateTest extends AbstractResourceTest {
         EnvironmentEntity environmentEntity = new EnvironmentEntity();
         environmentEntity.setId(ENV_ID);
         environmentEntity.setOrganizationId(ORGANIZATION);
-        doReturn(environmentEntity).when(environmentService).findById(ENV_ID);
-        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENV_ID);
+        when(environmentService.findById(ENV_ID)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENV_ID)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENV_ID);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);

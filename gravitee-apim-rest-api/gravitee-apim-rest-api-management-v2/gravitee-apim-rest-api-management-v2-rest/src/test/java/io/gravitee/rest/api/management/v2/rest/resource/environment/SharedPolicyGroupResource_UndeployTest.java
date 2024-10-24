@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static assertions.MAPIAssertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -25,7 +24,6 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.SharedPolicyGroupFixtures;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupNotFoundException;
-import io.gravitee.apim.core.shared_policy_group.use_case.DeploySharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UndeploySharedPolicyGroupUseCase;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -58,8 +56,8 @@ public class SharedPolicyGroupResource_UndeployTest extends AbstractResourceTest
         EnvironmentEntity environmentEntity = new EnvironmentEntity();
         environmentEntity.setId(ENV_ID);
         environmentEntity.setOrganizationId(ORGANIZATION);
-        doReturn(environmentEntity).when(environmentService).findById(ENV_ID);
-        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENV_ID);
+        when(environmentService.findById(ENV_ID)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENV_ID)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENV_ID);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);

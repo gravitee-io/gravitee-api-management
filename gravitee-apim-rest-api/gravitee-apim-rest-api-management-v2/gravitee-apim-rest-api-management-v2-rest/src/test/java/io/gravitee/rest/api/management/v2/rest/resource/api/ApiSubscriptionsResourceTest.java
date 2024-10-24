@@ -19,11 +19,7 @@ import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
-import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -41,13 +37,10 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiKeyMode;
 import io.gravitee.rest.api.management.v2.rest.model.BaseApplication;
 import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
 import io.gravitee.rest.api.management.v2.rest.model.CreateSubscription;
-import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.Subscription;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
-import io.gravitee.rest.api.model.ProcessSubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -58,7 +51,6 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
@@ -109,11 +101,11 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
     public void init() throws TechnicalException {
         target = rootTarget();
 
-        doReturn(Optional.of(Api.builder().id(API).environmentId(ENVIRONMENT).build())).when(apiRepository).findById(API);
+        when(apiRepository.findById(API)).thenReturn(Optional.of(Api.builder().id(API).environmentId(ENVIRONMENT).build()));
 
         EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
-        doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT);
-        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
+        when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
@@ -272,31 +264,31 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 .customApiKey(null)
                 .build();
 
-            when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), any()))
-                .thenReturn(
-                    SubscriptionFixtures
-                        .aSubscriptionEntity()
-                        .toBuilder()
-                        .id(SUBSCRIPTION)
-                        .application(APPLICATION)
-                        .plan(PLAN)
-                        .status(SubscriptionStatus.PENDING)
-                        .build()
-                );
             doReturn(
-                new AcceptSubscriptionUseCase.Output(
-                    fixtures.core.model.SubscriptionFixtures
-                        .aSubscription()
-                        .toBuilder()
-                        .id(SUBSCRIPTION)
-                        .planId(PLAN)
-                        .applicationId(APPLICATION)
-                        .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED)
-                        .build()
-                )
+                SubscriptionFixtures
+                    .aSubscriptionEntity()
+                    .toBuilder()
+                    .id(SUBSCRIPTION)
+                    .application(APPLICATION)
+                    .plan(PLAN)
+                    .status(SubscriptionStatus.PENDING)
+                    .build()
             )
-                .when(acceptSubscriptionUseCase)
-                .execute(any());
+                .when(subscriptionService)
+                .create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), any());
+            when(acceptSubscriptionUseCase.execute(any()))
+                .thenReturn(
+                    new AcceptSubscriptionUseCase.Output(
+                        fixtures.core.model.SubscriptionFixtures
+                            .aSubscription()
+                            .toBuilder()
+                            .id(SUBSCRIPTION)
+                            .planId(PLAN)
+                            .applicationId(APPLICATION)
+                            .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED)
+                            .build()
+                    )
+                );
 
             final Response response = target.request().post(Entity.json(createSubscription));
             assertThat(response)
@@ -322,14 +314,6 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_accept_subscription() {
-            final SubscriptionEntity subscriptionEntity = SubscriptionFixtures
-                .aSubscriptionEntity()
-                .toBuilder()
-                .id(SUBSCRIPTION)
-                .api(API)
-                .plan(PLAN)
-                .status(SubscriptionStatus.PENDING)
-                .build();
             final var acceptSubscription = SubscriptionFixtures.anAcceptSubscription();
 
             doReturn(
@@ -402,14 +386,6 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_reject_subscription() {
-            final SubscriptionEntity subscriptionEntity = SubscriptionFixtures
-                .aSubscriptionEntity()
-                .toBuilder()
-                .id(SUBSCRIPTION)
-                .api(API)
-                .plan(PLAN)
-                .status(SubscriptionStatus.PENDING)
-                .build();
             final var rejectPayload = SubscriptionFixtures.aRejectSubscription();
 
             doReturn(

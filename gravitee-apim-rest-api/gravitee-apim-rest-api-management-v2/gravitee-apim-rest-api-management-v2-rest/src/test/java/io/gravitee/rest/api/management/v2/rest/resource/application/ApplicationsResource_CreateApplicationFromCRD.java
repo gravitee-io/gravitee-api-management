@@ -19,7 +19,6 @@ import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.apim.core.member.model.SystemRole.PRIMARY_OWNER;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
@@ -72,8 +71,8 @@ public class ApplicationsResource_CreateApplicationFromCRD extends AbstractResou
         EnvironmentEntity environmentEntity = new EnvironmentEntity();
         environmentEntity.setId(ENVIRONMENT_ID);
         environmentEntity.setOrganizationId(ORGANIZATION);
-        doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT_ID);
-        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID);
+        when(environmentService.findById(ENVIRONMENT_ID)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID)).thenReturn(environmentEntity);
 
         userCrudService.initWith(List.of(BaseUserEntity.builder().id(USER_NAME).build()));
         roleQueryService.initWith(

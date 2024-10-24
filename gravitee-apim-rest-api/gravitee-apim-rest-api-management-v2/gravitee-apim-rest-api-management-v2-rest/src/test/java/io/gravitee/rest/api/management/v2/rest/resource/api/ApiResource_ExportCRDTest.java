@@ -18,7 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
@@ -45,9 +45,15 @@ public class ApiResource_ExportCRDTest extends ApiResourceTest {
 
     @Test
     public void should_not_export_when_no_definition_permission() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DEFINITION, API, RolePermissionAction.READ);
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_DEFINITION,
+                API,
+                RolePermissionAction.READ
+            )
+        )
+            .thenReturn(false);
         Response response = rootTarget().request().get();
         assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
     }
