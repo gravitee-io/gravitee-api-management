@@ -17,12 +17,13 @@ package io.gravitee.gateway.reactive.core.context;
 
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
+import io.gravitee.gateway.reactive.api.message.Message;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface HttpRequestInternal extends HttpRequest, OnMessagesInterceptor {
+public interface HttpRequestInternal extends HttpRequest, OnMessagesInterceptor<Message> {
     /**
      * Allow setting context path.
      *

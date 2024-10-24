@@ -16,10 +16,11 @@
 package io.gravitee.gateway.reactive.core.context;
 
 import io.gravitee.gateway.reactive.api.context.Response;
+import io.gravitee.gateway.reactive.api.message.Message;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Deprecated(forRemoval = true)
-public interface MutableResponse extends Response, OnMessagesInterceptor, HttpResponseInternal {}
+public interface MutableResponse extends Response, OnMessagesInterceptor<Message>, HttpResponseInternal {}
