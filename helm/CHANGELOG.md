@@ -3,6 +3,21 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.4.12
+
+- add missing haproxy mapping attribute
+- Add support of heartbeat delay for the gateway
+
+### 4.4.11
+
+- fix: add redis rate limit operation timeout, tcp connectTimeout and idleTimeout in helm charts
+- Add service account to UI and portal components [issues/10057](https://github.com/gravitee-io/issues/issues/10057)
+
+### 4.4.10
+
+- Add support of SSL keystore secret [issues/9854](https://github.com/gravitee-io/issues/issues/9854)
+
+
 ### 4.4.4
 
 - 'Fix cloud configuration: avoid empty volume mount'
