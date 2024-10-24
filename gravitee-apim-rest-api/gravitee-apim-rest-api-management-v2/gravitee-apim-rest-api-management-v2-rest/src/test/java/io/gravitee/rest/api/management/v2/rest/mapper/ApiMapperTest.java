@@ -45,7 +45,7 @@ public class ApiMapperTest {
 
     @Test
     void shouldMapToUpdateApiEntityV4() {
-        var updateApi = ApiFixtures.anUpdateApiHttpV4();
+        var updateApi = ApiFixtures.anUpdateApiV4();
         updateApi.failover(
             FailoverV4
                 .builder()

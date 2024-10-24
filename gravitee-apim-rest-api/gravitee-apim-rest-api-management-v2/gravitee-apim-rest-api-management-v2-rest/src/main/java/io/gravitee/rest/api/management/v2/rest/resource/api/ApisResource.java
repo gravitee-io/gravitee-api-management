@@ -39,8 +39,8 @@ import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.model.ApiSearchQuery;
 import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
-import io.gravitee.rest.api.management.v2.rest.model.CreateApiHttpV4;
-import io.gravitee.rest.api.management.v2.rest.model.ExportApiHttpV4;
+import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.ImportSwaggerDescriptor;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiHosts;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiHostsResponse;
@@ -136,7 +136,7 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.CREATE }) })
-    public Response createApi(@Valid @NotNull final CreateApiHttpV4 api) {
+    public Response createApi(@Valid @NotNull final CreateApiV4 api) {
         // NOTE: Only for V4 API. V2 API is planned to be supported in the future.
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -277,7 +277,7 @@ public class ApisResource extends AbstractResource {
     @Path("/_import/definition")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
-    public Response createApiWithDefinition(@Valid ExportApiHttpV4 apiToImport) {
+    public Response createApiWithDefinition(@Valid ExportApiV4 apiToImport) {
         verifyImage(apiToImport.getApiPicture(), "picture");
         verifyImage(apiToImport.getApiBackground(), "background");
 

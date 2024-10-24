@@ -107,7 +107,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/CreateApiHttpV4"
+                            $ref: "#/components/schemas/CreateApiV4"
                 required: true
             responses:
                 "201":
@@ -115,7 +115,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/ApiHttpV4"
+                                $ref: "#/components/schemas/ApiV4"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -145,7 +145,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/ApiHttpV4"
+                                $ref: "#/components/schemas/ApiV4"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -167,7 +167,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/ExportApiHttpV4"
+                            $ref: "#/components/schemas/ExportApiV4"
                 required: true
             responses:
                 "201":
@@ -175,7 +175,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/ApiHttpV4"
+                                $ref: "#/components/schemas/ApiV4"
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/_search:
@@ -574,7 +574,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/ExportApiHttpV4"
+                                $ref: "#/components/schemas/ExportApiV4"
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/_start:
@@ -2648,14 +2648,14 @@ components:
             oneOf:
                 - $ref: "#/components/schemas/ApiV1"
                 - $ref: "#/components/schemas/ApiV2"
-                - $ref: "#/components/schemas/ApiHttpV4"
+                - $ref: "#/components/schemas/ApiV4"
                 - $ref: "#/components/schemas/ApiFederated"
             discriminator:
                 propertyName: definitionVersion
                 mapping:
                     V1: "#/components/schemas/ApiV1"
                     V2: "#/components/schemas/ApiV2"
-                    V4: "#/components/schemas/ApiHttpV4"
+                    V4: "#/components/schemas/ApiV4"
                     FEDERATED: "#/components/schemas/ApiFederated"
 
         BaseApi:
@@ -2794,7 +2794,7 @@ components:
                 mapping:
                     V1: "#/components/schemas/ApiV1"
                     V2: "#/components/schemas/ApiV2"
-                    V4: "#/components/schemas/ApiHttpV4"
+                    V4: "#/components/schemas/ApiV4"
                     FEDERATED: "#/components/schemas/ApiFederated"
         ApiV1:
             type: object
@@ -2871,9 +2871,9 @@ components:
                           description: The list of entrypoints associated with this API.
                           items:
                               $ref: "#/components/schemas/ApiEntrypoint"
-        ApiHttpV4:
+        ApiV4:
             type: object
-            title: "ApiHttpV4"
+            title: "ApiV4"
             allOf:
                 - $ref: "#/components/schemas/GenericApi"
                 - properties:
@@ -2942,12 +2942,12 @@ components:
         CreateApi:
             oneOf:
                 - $ref: "#/components/schemas/CreateApiV2"
-                - $ref: "#/components/schemas/CreateApiHttpV4"
+                - $ref: "#/components/schemas/CreateApiV4"
             discriminator:
                 propertyName: definitionVersion
                 mapping:
                     V2: "#/components/schemas/CreateApiV2"
-                    V4: "#/components/schemas/CreateApiHttpV4"
+                    V4: "#/components/schemas/CreateApiV4"
 
         CreateGenericApi:
             type: object
@@ -2981,7 +2981,7 @@ components:
                 propertyName: definitionVersion
                 mapping:
                     V2: "#/components/schemas/CreateApiV2"
-                    V4: "#/components/schemas/CreateApiHttpV4"
+                    V4: "#/components/schemas/CreateApiV4"
         CreateApiV2:
             type: object
             title: "CreateApiV2"
@@ -3005,9 +3005,9 @@ components:
                       flowMode:
                           $ref: "#/components/schemas/FlowMode"
                   required: [contextPath, endpoint]
-        CreateApiHttpV4:
+        CreateApiV4:
             type: object
-            title: "CreateApiHttpV4"
+            title: "CreateApiV4"
             allOf:
                 - $ref: "#/components/schemas/CreateGenericApi"
                 - properties:
@@ -3071,11 +3071,11 @@ components:
             required:
                 - filteredFields
 
-        ExportApiHttpV4:
+        ExportApiV4:
             type: object
             properties:
                 api:
-                    $ref: "#/components/schemas/ApiHttpV4"
+                    $ref: "#/components/schemas/ApiV4"
                 members:
                     type: array
                     description: The list of members associated with this API.
@@ -3130,13 +3130,13 @@ components:
         UpdateApi:
             oneOf:
                 - $ref: "#/components/schemas/UpdateApiV2"
-                - $ref: "#/components/schemas/UpdateApiHttpV4"
+                - $ref: "#/components/schemas/UpdateApiV4"
                 - $ref: "#/components/schemas/UpdateApiFederated"
             discriminator:
                 propertyName: definitionVersion
                 mapping:
                     V2: "#/components/schemas/UpdateApiV2"
-                    V4: "#/components/schemas/UpdateApiHttpV4"
+                    V4: "#/components/schemas/UpdateApiV4"
                     FEDERATED: "#/components/schemas/UpdateApiFederated"
         UpdateGenericApi:
             type: object
@@ -3219,7 +3219,7 @@ components:
                 propertyName: definitionVersion
                 mapping:
                     V2: "#/components/schemas/UpdateApiV2"
-                    V4: "#/components/schemas/UpdateApiHttpV4"
+                    V4: "#/components/schemas/UpdateApiV4"
                     FEDERATED: "#/components/schemas/UpdateApiFederated"
         UpdateApiV2:
             type: object
@@ -3247,9 +3247,9 @@ components:
                           $ref: "#/components/schemas/ExecutionMode"
 
                   required: [contextPath, endpoint]
-        UpdateApiHttpV4:
+        UpdateApiV4:
             type: object
-            title: "UpdateApiHttpV4"
+            title: "UpdateApiV4"
             allOf:
                 - $ref: "#/components/schemas/UpdateGenericApi"
                 - properties:

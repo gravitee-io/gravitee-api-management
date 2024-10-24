@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 import fixtures.ApiFixtures;
 import io.gravitee.rest.api.management.v2.rest.mapper.DuplicateApiMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
-import io.gravitee.rest.api.management.v2.rest.model.ApiHttpV4;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -154,7 +154,7 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
         final Response response = rootTarget().request().post(Entity.json(duplicateOptions));
         assertThat(response.getStatus()).isEqualTo(OK_200);
 
-        final ApiHttpV4 duplicated = response.readEntity(ApiHttpV4.class);
+        final ApiV4 duplicated = response.readEntity(ApiV4.class);
         assertThat(duplicated.getId()).isEqualTo("duplicate");
 
         verifyNoInteractions(apiDuplicatorService);

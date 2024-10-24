@@ -47,9 +47,9 @@ import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.management.v2.rest.model.Analytics;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
-import io.gravitee.rest.api.management.v2.rest.model.ApiHttpV4;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.BaseSelector;
-import io.gravitee.rest.api.management.v2.rest.model.CreateApiHttpV4;
+import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointV4;
@@ -269,7 +269,7 @@ class ApisResourceTest extends AbstractResourceTest {
             )
                 .thenReturn(false);
 
-            final Response response = target.request().post(Entity.json(CreateApiHttpV4.builder().build()));
+            final Response response = target.request().post(Entity.json(CreateApiV4.builder().build()));
 
             assertThat(response)
                 .hasStatus(FORBIDDEN_403)
@@ -291,7 +291,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 .request()
                 .post(
                     Entity.json(
-                        CreateApiHttpV4
+                        CreateApiV4
                             .builder()
                             .name("")
                             .apiVersion("v1")
@@ -318,7 +318,7 @@ class ApisResourceTest extends AbstractResourceTest {
         public void should_return_400_when_an_api_without_listeners() {
             final Response response = target
                 .request()
-                .post(Entity.json(CreateApiHttpV4.builder().name("no-listeners").apiVersion("v1").type(ApiType.PROXY).build()));
+                .post(Entity.json(CreateApiV4.builder().name("no-listeners").apiVersion("v1").type(ApiType.PROXY).build()));
 
             assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
         }
@@ -329,7 +329,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 .request()
                 .post(
                     Entity.json(
-                        CreateApiHttpV4
+                        CreateApiV4
                             .builder()
                             .name("no-endpoints")
                             .apiVersion("v1")
@@ -371,7 +371,7 @@ class ApisResourceTest extends AbstractResourceTest {
 
             assertThat(response)
                 .hasStatus(CREATED_201)
-                .asEntity(ApiHttpV4.class)
+                .asEntity(ApiV4.class)
                 .satisfies(api -> {
                     SoftAssertions.assertSoftly(soft -> {
                         soft.assertThat(api.getId()).isEqualTo("api-id");
@@ -391,8 +391,8 @@ class ApisResourceTest extends AbstractResourceTest {
                 });
         }
 
-        private static CreateApiHttpV4 aValidV4Api() {
-            return CreateApiHttpV4
+        private static CreateApiV4 aValidV4Api() {
+            return CreateApiV4
                 .builder()
                 .name("my api")
                 .description("api description")

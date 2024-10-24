@@ -39,11 +39,11 @@ import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLifecycleState;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
-import io.gravitee.rest.api.management.v2.rest.model.ApiHttpV4;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateApiHttpV4;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -77,7 +77,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
 
     @Test
     public void should_return_404_if_not_found() {
-        UpdateApiHttpV4 updateApiV4 = ApiFixtures.anUpdateApiHttpV4();
+        UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenThrow(new ApiNotFoundException(API));
 
         final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
@@ -90,7 +90,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
-        UpdateApiHttpV4 updateApiV4 = ApiFixtures.anUpdateApiHttpV4();
+        UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
@@ -120,7 +120,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
     @Test
     public void should_update_v4_api() {
         ApiEntity apiEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).build();
-        UpdateApiHttpV4 updateApiV4 = ApiFixtures.anUpdateApiHttpV4();
+        UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
 
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
         when(apiServiceV4.update(eq(GraviteeContext.getExecutionContext()), eq(API), any(UpdateApiEntity.class), eq(false), eq(USER_NAME)))
@@ -130,7 +130,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
         final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
         assertEquals(OK_200, response.getStatus());
 
-        final ApiHttpV4 apiV4 = response.readEntity(ApiHttpV4.class);
+        final ApiV4 apiV4 = response.readEntity(ApiV4.class);
         assertEquals(API, apiV4.getId());
         assertEquals(GenericApi.DeploymentStateEnum.DEPLOYED, apiV4.getDeploymentState());
 
@@ -151,7 +151,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
     @Test
     public void should_return_bad_request_when_updating_v2_api_with_v4_defition() {
         final io.gravitee.rest.api.model.api.ApiEntity apiEntity = ApiFixtures.aModelApiV2().toBuilder().id(API).build();
-        final UpdateApiHttpV4 updateApiV4 = ApiFixtures.anUpdateApiHttpV4();
+        final UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
 
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
 

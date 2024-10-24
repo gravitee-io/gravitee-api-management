@@ -17,7 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
-import io.gravitee.rest.api.management.v2.rest.model.ExportApiHttpV4;
+import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.Metadata;
 import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
@@ -39,20 +39,20 @@ public interface ImportExportApiMapper {
     @Mapping(target = "apiBackground", source = "apiEntity.background")
     @Mapping(target = "api", source = "apiEntity")
     @Mapping(target = "plans", source = "plans", qualifiedByName = "toPlanV4Nullable")
-    ExportApiHttpV4 map(ExportApiEntity exportApiEntityV4);
+    ExportApiV4 map(ExportApiEntity exportApiEntityV4);
 
-    @Mapping(target = "apiExport", expression = "java(buildApiExport(exportApiHttpV4))")
-    ImportDefinition toImportDefinition(ExportApiHttpV4 exportApiHttpV4);
+    @Mapping(target = "apiExport", expression = "java(buildApiExport(exportApiV4))")
+    ImportDefinition toImportDefinition(ExportApiV4 exportApiV4);
 
     @Mapping(target = "type", constant = "USER")
     @Mapping(target = "referenceType", constant = "API")
     @Mapping(target = "referenceId", expression = "java(apiId)")
     MemberEntity map(Member member, String apiId);
 
-    default ApiExport buildApiExport(ExportApiHttpV4 exportApiHttpV4) {
-        final ApiExport apiExport = ApiMapper.INSTANCE.toApiExport(exportApiHttpV4.getApi());
-        apiExport.setPicture(exportApiHttpV4.getApiPicture());
-        apiExport.setBackground(exportApiHttpV4.getApiBackground());
+    default ApiExport buildApiExport(ExportApiV4 exportApiV4) {
+        final ApiExport apiExport = ApiMapper.INSTANCE.toApiExport(exportApiV4.getApi());
+        apiExport.setPicture(exportApiV4.getApiPicture());
+        apiExport.setBackground(exportApiV4.getApiBackground());
         return apiExport;
     }
 
