@@ -81,7 +81,7 @@ public class BuildSpecGenPageResponseUseCaseTest {
             .assertComplete()
             .assertNoErrors()
             .assertValue(Objects::nonNull)
-            .assertValue(page -> page.getName().equals("api-4"))
+            .assertValue(page -> page.getName().contains("api-4"))
             .assertValue(page -> page.getReferenceId().equals(API_ID));
     }
 }

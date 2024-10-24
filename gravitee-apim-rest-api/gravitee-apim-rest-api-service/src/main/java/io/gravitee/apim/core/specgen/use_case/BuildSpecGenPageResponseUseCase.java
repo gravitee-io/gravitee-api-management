@@ -18,6 +18,9 @@ package io.gravitee.apim.core.specgen.use_case;
 import static io.gravitee.apim.core.documentation.model.Page.ReferenceType.API;
 import static io.gravitee.apim.core.documentation.model.Page.Visibility.*;
 import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionContext;
+import static java.time.LocalDateTime.now;
+import static java.time.format.DateTimeFormatter.ofPattern;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -44,6 +47,7 @@ public class BuildSpecGenPageResponseUseCase {
     public static final String POWERED_BY = "poweredBy";
     public static final String NEWT_AI = "NewtAI";
     public static final Map<String, String> METADATA = Map.of(POWERED_BY, NEWT_AI);
+    public static final String DATE_FORMAT_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
     private final ApiSpecGenQueryService queryService;
     private final OasProvider oasProvider;
@@ -57,11 +61,12 @@ public class BuildSpecGenPageResponseUseCase {
     }
 
     private static Page buildPage(ApiSpecGen api, String rawSpec) {
+        String now = now().format(ofPattern(DATE_FORMAT_PATTERN));
         return Page
             .builder()
             .referenceId(api.id())
             .referenceType(API)
-            .name(api.name())
+            .name(api.name() + " by NewtAI - " + now)
             .content(rawSpec)
             .type(Type.SWAGGER)
             .visibility(PRIVATE)

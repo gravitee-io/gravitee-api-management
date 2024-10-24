@@ -45,6 +45,7 @@ import io.reactivex.rxjava3.core.Maybe;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -160,5 +161,10 @@ class SpecGenResponseCommandHandlerTest {
             .published(false)
             .metadata(METADATA)
             .build();
+    }
+
+    @AfterEach
+    void after() {
+        GraviteeContext.cleanContext();
     }
 }
