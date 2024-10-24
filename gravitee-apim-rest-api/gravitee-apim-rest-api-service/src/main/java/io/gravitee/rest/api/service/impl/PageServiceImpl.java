@@ -2115,6 +2115,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
             pageRepository.delete(pageId);
 
+            // delete page revisions
+            pageRevisionService.deleteAllByPageId(pageId);
+
             // delete links and translations related to the page
             if (!PageType.LINK.name().equalsIgnoreCase(page.getType()) && !PageType.TRANSLATION.name().equalsIgnoreCase(page.getType())) {
                 this.deleteRelatedPages(page.getId());
