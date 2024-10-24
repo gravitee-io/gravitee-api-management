@@ -19,7 +19,6 @@ import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -47,7 +46,6 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.core.Response;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -79,8 +77,8 @@ public class ApisResource_CreateApiFromSwagger extends AbstractResourceTest {
         EnvironmentEntity environmentEntity = new EnvironmentEntity();
         environmentEntity.setId(ENVIRONMENT_ID);
         environmentEntity.setOrganizationId(ORGANIZATION);
-        doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT_ID);
-        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID);
+        when(environmentService.findById(ENVIRONMENT_ID)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID)).thenReturn(environmentEntity);
 
         parametersQueryService.initWith(
             List.of(
@@ -98,14 +96,15 @@ public class ApisResource_CreateApiFromSwagger extends AbstractResourceTest {
     @Test
     public void should_not_import_when_no_definition_permission() {
         // Given
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(
+        when(
+            permissionService.hasPermission(
                 GraviteeContext.getExecutionContext(),
                 RolePermission.ENVIRONMENT_API,
                 ENVIRONMENT_ID,
                 RolePermissionAction.CREATE
-            );
+            )
+        )
+            .thenReturn(false);
 
         // When
         var response = rootTarget().request().post(null);

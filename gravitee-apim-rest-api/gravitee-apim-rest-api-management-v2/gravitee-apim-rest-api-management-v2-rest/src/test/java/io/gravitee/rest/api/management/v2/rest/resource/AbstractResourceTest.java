@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource;
 
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import inmemory.ApiCrudServiceInMemory;
@@ -219,6 +220,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @AfterEach
     public void tearDown() {
         Stream.of(userCrudService, roleQueryService, parametersQueryService).forEach(InMemoryAlternative::reset);
+        reset(environmentService);
     }
 
     protected void givenExistingUsers(List<BaseUserEntity> users) {

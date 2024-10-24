@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
@@ -65,13 +65,13 @@ public abstract class AbstractApiSubscriptionsResourceTest extends AbstractResou
         Api api = new Api();
         api.setId(API);
         api.setEnvironmentId(ENVIRONMENT);
-        doReturn(Optional.of(api)).when(apiRepository).findById(API);
+        when(apiRepository.findById(API)).thenReturn(Optional.of(api));
 
         EnvironmentEntity environmentEntity = new EnvironmentEntity();
         environmentEntity.setId(ENVIRONMENT);
         environmentEntity.setOrganizationId(ORGANIZATION);
-        doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT);
-        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
+        when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);

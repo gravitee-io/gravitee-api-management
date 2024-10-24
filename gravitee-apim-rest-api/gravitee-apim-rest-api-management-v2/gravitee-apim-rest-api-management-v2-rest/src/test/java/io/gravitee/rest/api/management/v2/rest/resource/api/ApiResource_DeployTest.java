@@ -23,11 +23,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import fixtures.ApiFixtures;
 import io.gravitee.common.component.Lifecycle;
@@ -57,7 +57,7 @@ public class ApiResource_DeployTest extends ApiResourceTest {
         deployEntity.setDeploymentLabel("label");
 
         ApiEntity apiEntity = ApiFixtures.aModelApiV4().toBuilder().state(Lifecycle.State.STARTED).updatedAt(new Date()).build();
-        doReturn(apiEntity).when(apiStateServiceV4).deploy(eq(GraviteeContext.getExecutionContext()), any(String.class), any(), any());
+        when(apiStateServiceV4.deploy(eq(GraviteeContext.getExecutionContext()), any(String.class), any(), any())).thenReturn(apiEntity);
 
         final Response response = rootTarget(API + "/deployments").request().post(Entity.json(deployEntity));
 
@@ -101,9 +101,8 @@ public class ApiResource_DeployTest extends ApiResourceTest {
         ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
         deployEntity.setDeploymentLabel("a nice label");
 
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any());
+        when(permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any()))
+            .thenReturn(false);
 
         final Response response = rootTarget(API + "/deployments").request().post(Entity.json(deployEntity));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());

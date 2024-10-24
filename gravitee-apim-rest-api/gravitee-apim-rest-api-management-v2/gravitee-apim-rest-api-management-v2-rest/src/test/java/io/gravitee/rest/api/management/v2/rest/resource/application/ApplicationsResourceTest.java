@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.v2.rest.resource.application;
 
 import static io.gravitee.apim.core.member.model.SystemRole.PRIMARY_OWNER;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -76,8 +75,8 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         environment.setId(ENVIRONMENT);
         environment.setOrganizationId(ORGANIZATION);
 
-        doReturn(environment).when(environmentService).findById(ENVIRONMENT);
-        doReturn(environment).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
+        when(environmentService.findById(ENVIRONMENT)).thenReturn(environment);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environment);
     }
 
     @Nested

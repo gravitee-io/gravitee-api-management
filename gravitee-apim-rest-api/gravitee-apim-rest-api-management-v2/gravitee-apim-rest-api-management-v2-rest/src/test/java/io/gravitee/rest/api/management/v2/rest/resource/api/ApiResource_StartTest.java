@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
@@ -68,9 +67,8 @@ public class ApiResource_StartTest extends ApiResourceTest {
 
     @Test
     public void should_not_start_api_with_insufficient_rights() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any());
+        when(permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any()))
+            .thenReturn(false);
         final Response response = rootTarget().request().post(Entity.json(""));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }

@@ -21,7 +21,6 @@ import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
@@ -35,8 +34,6 @@ import io.gravitee.rest.api.management.v2.rest.model.PortalDefinition;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNextDefinition;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNextDefinitionColor;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNextDefinitionFont;
-import io.gravitee.rest.api.management.v2.rest.model.ThemesResponse;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateTheme;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateThemePortal;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateThemePortalNext;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -78,8 +75,8 @@ public class ThemeResourceTest extends AbstractResourceTest {
         EnvironmentEntity environmentEntity = new EnvironmentEntity();
         environmentEntity.setId(ENVIRONMENT);
         environmentEntity.setOrganizationId(ORGANIZATION);
-        doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT);
-        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
+        when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
