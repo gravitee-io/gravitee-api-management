@@ -78,9 +78,9 @@ class OasProviderTest {
 
         assertThat(actualInfo).isNotNull();
         assertThat(expectedInfo).isNotNull();
-        assertThat(actualInfo.get("title").asText()).isEqualTo(expectedInfo.get("title").asText());
-        assertThat(actualInfo.get("description").asText()).isEqualTo(expectedInfo.get("description").asText());
-        assertThat(actualInfo.get("version").asText()).isEqualTo(expectedInfo.get("version").asText());
+        assertThat(actualInfo.get("title")).isEqualTo(expectedInfo.get("title"));
+        assertThat(actualInfo.get("description")).isEqualTo(expectedInfo.get("description"));
+        assertThat(actualInfo.get("version")).isEqualTo(expectedInfo.get("version"));
     }
 
     @Test
