@@ -15,12 +15,13 @@
  */
 package io.gravitee.apim.core.analytics.query_service;
 
+import io.gravitee.apim.core.analytics.model.EnvironmentAnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
-import io.gravitee.apim.core.analytics.model.StatusRangesQueryParameters;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
+import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
 import java.time.Duration;
@@ -37,8 +38,10 @@ public interface AnalyticsQueryService {
 
     Optional<ResponseStatusRanges> searchResponseStatusRanges(
         ExecutionContext executionContext,
-        StatusRangesQueryParameters queryParameters
+        EnvironmentAnalyticsQueryParameters queryParameters
     );
+
+    Optional<TopHitsApis> searchTopHitsApis(ExecutionContext executionContext, EnvironmentAnalyticsQueryParameters parameters);
 
     Maybe<Map<String, Double>> searchAvgResponseTimeOverTime(
         ExecutionContext executionContext,
