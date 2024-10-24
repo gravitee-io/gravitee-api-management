@@ -33,7 +33,7 @@ class MessageFlowTest {
 
     @Test
     void shouldApplyMessageInterceptor() {
-        final MessageFlow cut = new MessageFlow();
+        final MessageFlow<Message> cut = new MessageFlow<>();
         final Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor = onMessages ->
             upstream -> upstream.doOnNext(message -> message.attribute("intercepted", true)).compose(onMessages);
 
@@ -50,7 +50,7 @@ class MessageFlowTest {
 
     @Test
     void shouldApplyOnMessagesWhenNoInterceptor() {
-        final MessageFlow cut = new MessageFlow();
+        final MessageFlow<Message> cut = new MessageFlow<>();
 
         cut.messages(Flowable.just(new DefaultMessage("test")));
         cut.onMessages(upstream -> upstream.map(message -> message.content(Buffer.buffer("Transformed test"))));
@@ -63,7 +63,7 @@ class MessageFlowTest {
 
     @Test
     void shouldUnsetOnMessagesInterceptor() {
-        final MessageFlow cut = new MessageFlow();
+        final MessageFlow<Message> cut = new MessageFlow<>();
         final Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor = onMessages ->
             upstream -> upstream.doOnNext(message -> message.attribute("intercepted", true)).compose(onMessages);
 

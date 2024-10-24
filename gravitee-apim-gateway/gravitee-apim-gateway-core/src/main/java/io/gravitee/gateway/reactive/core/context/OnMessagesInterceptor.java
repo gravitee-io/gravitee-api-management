@@ -23,7 +23,7 @@ import java.util.function.Function;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface OnMessagesInterceptor {
+public interface OnMessagesInterceptor<T extends Message> {
     /**
      * Set an interceptor allowing to capture any call to {@link io.gravitee.gateway.reactive.api.context.base.BaseMessageRequest#onMessages(FlowableTransformer)} or {@link io.gravitee.gateway.reactive.api.context.base.BaseMessageResponse#onMessages(FlowableTransformer)}.
      * The captured {@link FlowableTransformer} will then be provided to the specified function which will be able to provide its own {@link FlowableTransformer}.
@@ -47,7 +47,7 @@ public interface OnMessagesInterceptor {
      *
      * @param interceptor the function taking the {@link FlowableTransformer} provided by the call to {@link io.gravitee.gateway.reactive.api.context.base.BaseMessageRequest#onMessages(FlowableTransformer)} or {@link io.gravitee.gateway.reactive.api.context.base.BaseMessageResponse#onMessages(FlowableTransformer)} and returns another {@link FlowableTransformer} as a replacement.
      */
-    void setMessagesInterceptor(Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor);
+    void setMessagesInterceptor(Function<FlowableTransformer<T, T>, FlowableTransformer<T, T>> interceptor);
 
     /**
      * Unset the <code>onMessages</code> interceptor.
