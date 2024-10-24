@@ -149,7 +149,7 @@
     "prettier:list": "prettier --list-different \"**/*.{js,ts,html,css,scss,json}\"",
     "storybook": "ng run apim-console:start-storybook",
     "build-storybook": "ng run apim-console:build-storybook",
-    "serve": "NODE_OPTIONS=--max_old_space_size=7168 ng serve",
+    "serve": "NODE_OPTIONS=--max_old_space_size=7168 ng serve --disable-host-check --host 0.0.0.0",
     "serve:apim-master": "BACKEND_ENV=apim-master-api.team-apim.gravitee.dev npm run serve",
     "test-old": "jest --config old-jest.config.js --detectOpenHandles",
     "test": "jest",
