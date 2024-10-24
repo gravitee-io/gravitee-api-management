@@ -18,7 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 import static assertions.MAPIAssertions.assertThat;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ScoringRulesetFixture;
 import inmemory.InMemoryAlternative;
@@ -63,8 +63,8 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
         target = rootTarget();
 
         EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
-        doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT);
-        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
+        when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);

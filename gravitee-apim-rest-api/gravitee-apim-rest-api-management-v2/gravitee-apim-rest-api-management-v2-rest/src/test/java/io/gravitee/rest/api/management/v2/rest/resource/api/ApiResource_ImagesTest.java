@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -46,28 +45,30 @@ public class ApiResource_ImagesTest extends ApiResourceTest {
 
     @Test
     public void should_not_get_picture_with_insufficient_rights() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(
+        when(
+            permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(RolePermission.API_DEFINITION),
                 eq(API),
                 eq(RolePermissionAction.READ)
-            );
+            )
+        )
+            .thenReturn(false);
         final Response response = rootTarget("picture").request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
     @Test
     public void should_not_update_picture_with_insufficient_rights() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(
+        when(
+            permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(RolePermission.API_DEFINITION),
                 eq(API),
                 eq(RolePermissionAction.UPDATE)
-            );
+            )
+        )
+            .thenReturn(false);
         final Response response = rootTarget("picture").request().put(Entity.text(""));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
@@ -122,28 +123,30 @@ public class ApiResource_ImagesTest extends ApiResourceTest {
 
     @Test
     public void should_not_get_background_with_insufficient_rights() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(
+        when(
+            permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(RolePermission.API_DEFINITION),
                 eq(API),
                 eq(RolePermissionAction.READ)
-            );
+            )
+        )
+            .thenReturn(false);
         final Response response = rootTarget("background").request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
     @Test
     public void should_not_update_background_with_insufficient_rights() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(
+        when(
+            permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(RolePermission.API_DEFINITION),
                 eq(API),
                 eq(RolePermissionAction.UPDATE)
-            );
+            )
+        )
+            .thenReturn(false);
         final Response response = rootTarget("background").request().put(Entity.text(""));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
