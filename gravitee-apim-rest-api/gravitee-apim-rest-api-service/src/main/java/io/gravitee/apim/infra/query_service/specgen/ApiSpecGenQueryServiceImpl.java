@@ -20,10 +20,8 @@ import io.gravitee.apim.core.specgen.query_service.ApiSpecGenQueryService;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.ScoringRulesetRepository;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.reactivex.rxjava3.core.Maybe;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -46,12 +44,24 @@ public class ApiSpecGenQueryServiceImpl implements ApiSpecGenQueryService {
 
     @Override
     public Optional<ApiSpecGen> findByIdAndType(ExecutionContext context, String id, ApiType type) {
+        return findById(context, id).filter(api -> type.equals(api.type()));
+    }
+
+    private Optional<ApiSpecGen> findById(ExecutionContext context, String id) {
         try {
             return apiRepository
                 .findById(id)
                 .filter(api -> api.getEnvironmentId().equals(context.getEnvironmentId()))
-                .filter(api -> type.equals(api.getType()))
-                .map(api -> new ApiSpecGen(api.getId(), api.getType(), api.getEnvironmentId()));
+                .map(api ->
+                    new ApiSpecGen(
+                        api.getId(),
+                        api.getName(),
+                        api.getDescription(),
+                        api.getVersion(),
+                        api.getType(),
+                        api.getEnvironmentId()
+                    )
+                );
         } catch (TechnicalException e) {
             log.error("An unexpected error has occurred", e);
             return Optional.empty();

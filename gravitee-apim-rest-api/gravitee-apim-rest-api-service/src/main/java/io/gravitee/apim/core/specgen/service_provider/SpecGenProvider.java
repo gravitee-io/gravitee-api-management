@@ -25,5 +25,5 @@ import io.reactivex.rxjava3.core.Single;
  */
 
 public interface SpecGenProvider {
-    Single<ApiSpecGenRequestReply> performRequest(String apiId, ApiSpecGenOperation operation);
+    Single<ApiSpecGenRequestReply> performRequest(String apiId, ApiSpecGenOperation operation, String userId);
 }

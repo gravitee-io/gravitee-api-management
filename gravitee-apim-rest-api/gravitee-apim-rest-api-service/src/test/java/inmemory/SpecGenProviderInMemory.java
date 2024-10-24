@@ -30,7 +30,7 @@ public class SpecGenProviderInMemory implements SpecGenProvider, InMemoryAlterna
     private List<Single<ApiSpecGenRequestReply>> storage;
 
     @Override
-    public Single<ApiSpecGenRequestReply> performRequest(String apiId, ApiSpecGenOperation operation) {
+    public Single<ApiSpecGenRequestReply> performRequest(String apiId, ApiSpecGenOperation operation, String userId) {
         return storage.get(0);
     }
 

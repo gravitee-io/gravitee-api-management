@@ -86,7 +86,7 @@ class SpecGenProviderTest {
             .thenReturn(Single.error(new IllegalArgumentException("An unexpected error has occurred")));
 
         specGenProvider
-            .performRequest(generateRandom(), operation)
+            .performRequest(generateRandom(), operation, generateRandom())
             .test()
             .awaitDone(2, SECONDS)
             .assertComplete()
@@ -122,7 +122,7 @@ class SpecGenProviderTest {
             );
 
         specGenProvider
-            .performRequest(generateRandom(), operation)
+            .performRequest(generateRandom(), operation, generateRandom())
             .test()
             .awaitDone(2, SECONDS)
             .assertComplete()

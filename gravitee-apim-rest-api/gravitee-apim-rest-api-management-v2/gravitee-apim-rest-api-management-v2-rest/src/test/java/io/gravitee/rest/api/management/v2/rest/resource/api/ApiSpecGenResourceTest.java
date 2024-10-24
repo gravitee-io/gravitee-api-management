@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.rest.api.service.common.UuidString.generateRandom;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.specgen.model.ApiSpecGenRequestState;
@@ -78,7 +79,7 @@ public class ApiSpecGenResourceTest extends AbstractResourceTest {
     @ParameterizedTest
     @MethodSource("params_that_must_return_state")
     public void must_test_get_state(ApiSpecGenRequestState state) {
-        when(specGenRequestUseCase.getState(API_ID)).thenReturn(Single.just(new ApiSpecGenState(state)));
+        when(specGenRequestUseCase.getState(eq(API_ID), any())).thenReturn(Single.just(new ApiSpecGenState(state)));
 
         var response = getState.request().get();
 
@@ -92,7 +93,7 @@ public class ApiSpecGenResourceTest extends AbstractResourceTest {
     @ParameterizedTest
     @MethodSource("params_that_must_return_state")
     public void must_test_post_job(ApiSpecGenRequestState state) {
-        when(specGenRequestUseCase.postJob(API_ID)).thenReturn(Single.just(new ApiSpecGenState(state)));
+        when(specGenRequestUseCase.postJob(eq(API_ID), any())).thenReturn(Single.just(new ApiSpecGenState(state)));
 
         var response = postJob.request().post(null);
 
