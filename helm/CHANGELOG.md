@@ -3,6 +3,34 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.3.16
+
+- add missing haproxy mapping attribute
+- fix: add heartbeat values and entries in helm charts
+
+### 4.3.15
+
+- fix: handle annotations for non nginx ingress
+- fix: add missing service account for portal and ui
+
+### 4.3.14
+
+- fix: add missing keystore secret configuration in helm chart
+
+### 4.3.13
+
+- fix(helm): add missing common.labels in gateway-technical-ingress.yaml
+- feat(helm): improve the probes definition for the gateway
+
+### 4.3.11
+
+- fix: add redis rate limit operation timeout, tcp connectTimeout and idleTimeout in helm charts
+
+### 4.3.9
+
+- fix: allow users to define multiple DNS for the Management API
+- fix: avoid condition nil exception on helm api console and portal url values
+
 ### 4.3.5
 
 - BREAKING CHANGE: In gateway ingress controller, change ssl-redirect option from "false" to default. More info [here](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#server-side-https-enforcement-through-redirect)
