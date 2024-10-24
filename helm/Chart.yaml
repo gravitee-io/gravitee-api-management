@@ -26,3 +26,8 @@ annotations:
   artifacthub.io/changes: |
     - kind: added
       description: 'Add support of heartbeat delay for the gateway'
+    - kind: fixed
+      description: 'add missing haproxy mapping attribute'
+      links:
+        - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/10027
