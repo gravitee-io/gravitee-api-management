@@ -2650,6 +2650,7 @@ components:
                 - $ref: "#/components/schemas/ApiV2"
                 - $ref: "#/components/schemas/ApiV4"
                 - $ref: "#/components/schemas/ApiFederated"
+                - $ref: "#/components/schemas/ApiNative"
             discriminator:
                 propertyName: definitionVersion
                 mapping:
@@ -2657,6 +2658,7 @@ components:
                     V2: "#/components/schemas/ApiV2"
                     V4: "#/components/schemas/ApiV4"
                     FEDERATED: "#/components/schemas/ApiFederated"
+                    NATIVE: "#/components/schemas/ApiNative"
 
         BaseApi:
             type: object
@@ -2871,14 +2873,22 @@ components:
                           description: The list of entrypoints associated with this API.
                           items:
                               $ref: "#/components/schemas/ApiEntrypoint"
+
+        GenericApiV4:
+          type: object
+          title: "GenericApiV4"
+          allOf:
+            - $ref: "#/components/schemas/GenericApi"
+            - properties:
+                type:
+                  $ref: "#/components/schemas/ApiType"
+
         ApiV4:
             type: object
             title: "ApiV4"
             allOf:
-                - $ref: "#/components/schemas/GenericApi"
+                - $ref: "#/components/schemas/GenericApiV4"
                 - properties:
-                      type:
-                          $ref: "#/components/schemas/ApiType"
                       listeners:
                           type: array
                           description: The list of listeners associated with this API.
@@ -2900,6 +2910,12 @@ components:
                               $ref: "#/components/schemas/FlowV4"
                       services:
                           $ref: "#/components/schemas/ApiServices"
+
+        ApiNative:
+          type: object
+          title: "ApiNative"
+          allOf:
+            - $ref: "#/components/schemas/GenericApiV4"
 
         ApiFederated:
             type: object
@@ -3618,6 +3634,7 @@ components:
                 - V2
                 - V4
                 - FEDERATED
+                - NATIVE
         EndpointV4:
             type: object
             properties:

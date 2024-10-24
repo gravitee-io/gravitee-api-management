@@ -21,9 +21,11 @@ import io.gravitee.apim.core.api.model.NewHttpApi;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLinks;
+import io.gravitee.rest.api.management.v2.rest.model.ApiNative;
 import io.gravitee.rest.api.management.v2.rest.model.ApiReview;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
@@ -81,6 +83,7 @@ import org.slf4j.LoggerFactory;
         ServiceMapper.class,
         CorsMapper.class,
         ConfigurationSerializationMapper.class,
+        DefinitionVersionMapper.class,
     }
 )
 public interface ApiMapper {
@@ -96,6 +99,9 @@ public interface ApiMapper {
         }
 
         if (api != null && api.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4) {
+            if (ApiType.NATIVE.equals(api.getType())) {
+                return new io.gravitee.rest.api.management.v2.rest.model.Api(new io.gravitee.rest.api.management.v2.rest.model.ApiNative());
+            }
             return new io.gravitee.rest.api.management.v2.rest.model.Api(this.mapToV4(api, uriInfo, state));
         }
         return null;
@@ -115,7 +121,11 @@ public interface ApiMapper {
             return new io.gravitee.rest.api.management.v2.rest.model.Api(this.mapToFederated((FederatedApiEntity) apiEntity, uriInfo));
         }
         if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4) {
-            return new io.gravitee.rest.api.management.v2.rest.model.Api(this.mapToV4((ApiEntity) apiEntity, uriInfo, state));
+            var asApiEntityV4 = (ApiEntity) apiEntity;
+            if (ApiType.NATIVE.equals(asApiEntityV4.getType())) {
+                return new io.gravitee.rest.api.management.v2.rest.model.Api(new io.gravitee.rest.api.management.v2.rest.model.ApiNative());
+            }
+            return new io.gravitee.rest.api.management.v2.rest.model.Api(this.mapToV4(asApiEntityV4, uriInfo, state));
         }
         if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V2) {
             return new io.gravitee.rest.api.management.v2.rest.model.Api(
@@ -165,6 +175,18 @@ public interface ApiMapper {
     @Mapping(target = "listeners", source = "source.apiDefinitionHttpV4.listeners", qualifiedByName = "fromListeners")
     @Mapping(target = "state", source = "source.lifecycleState")
     ApiV4 mapToV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+
+    @Mapping(target = "definitionContext", source = "source.originContext")
+    @Mapping(target = "apiVersion", source = "source.version")
+    @Mapping(target = "deploymentState", source = "deploymentState")
+    //    @Mapping(target = "endpointGroups", source = "source.apiDefinitionHttpV4.endpointGroups")
+    //    @Mapping(target = "flowExecution", source = "source.apiDefinitionHttpV4.flowExecution")
+    //    @Mapping(target = "flows", source = "source.apiDefinitionHttpV4.flows")
+    @Mapping(target = "lifecycleState", source = "source.apiLifecycleState")
+    @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
+    //    @Mapping(target = "listeners", source = "source.apiDefinitionHttpV4.listeners", qualifiedByName = "fromListeners")
+    @Mapping(target = "state", source = "source.lifecycleState")
+    ApiNative mapToNative(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
@@ -217,19 +239,8 @@ public interface ApiMapper {
     io.gravitee.apim.core.api.model.Api mapToApiCore(UpdateApiFederated updateApiFederated, String apiId);
 
     @Mapping(target = "version", source = "apiVersion")
-    @Mapping(target = "graviteeDefinitionVersion", source = "definitionVersion", qualifiedByName = "mapFromDefinitionVersion")
+    @Mapping(target = "graviteeDefinitionVersion", source = "definitionVersion", qualifiedByName = "mapDefinitionVersionFromOasToString")
     io.gravitee.rest.api.model.api.UpdateApiEntity map(UpdateApiV2 updateApi);
-
-    // DefinitionVersion
-    io.gravitee.definition.model.DefinitionVersion mapDefinitionVersion(DefinitionVersion definitionVersion);
-
-    @Named("mapFromDefinitionVersion")
-    default String mapFromDefinitionVersion(DefinitionVersion definitionVersion) {
-        if (Objects.isNull(definitionVersion)) {
-            return null;
-        }
-        return io.gravitee.definition.model.DefinitionVersion.valueOf(definitionVersion.name()).getLabel();
-    }
 
     @Named("computeApiLinks")
     default ApiLinks computeApiLinks(GenericApiEntity api, UriInfo uriInfo) {

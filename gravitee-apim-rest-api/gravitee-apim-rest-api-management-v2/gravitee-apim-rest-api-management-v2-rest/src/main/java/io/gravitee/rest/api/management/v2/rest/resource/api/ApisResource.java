@@ -35,6 +35,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.DefinitionVersionMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.model.ApiSearchQuery;
@@ -350,7 +351,7 @@ public class ApisResource extends AbstractResource {
         if (Objects.nonNull(apiSearchQuery.getDefinitionVersion())) {
             apiQueryBuilder.addFilter(
                 FIELD_DEFINITION_VERSION,
-                ApiMapper.INSTANCE.mapDefinitionVersion(apiSearchQuery.getDefinitionVersion()).getLabel()
+                DefinitionVersionMapper.INSTANCE.mapToDefinitionVersion(apiSearchQuery.getDefinitionVersion()).getLabel()
             );
         }
 
