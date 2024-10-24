@@ -3,6 +3,20 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.5.1
+
+- Add support of heartbeat delay for the gateway
+- add missing haproxy mapping attribute
+
+### 4.5.0
+
+- Fix cloud configuration: avoid empty secret generation and fix example in value.yaml
+- Fix cloud configuration: avoid empty volume mount
+- Split hazelcast config for cluster and cache
+- Add support of SSL keystore secret
+- Handle annotations for nginx ingress
+- Add service account to UI and portal components
+
 ### 4.4.4
 
 - 'Fix cloud configuration: avoid empty volume mount'
