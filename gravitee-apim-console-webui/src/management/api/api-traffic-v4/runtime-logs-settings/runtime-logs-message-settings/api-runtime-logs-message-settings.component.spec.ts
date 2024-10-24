@@ -47,6 +47,10 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
         condition: null,
         messageCondition: null,
       },
+      tracing: {
+        enabled: true,
+        verbose: false,
+      },
       sampling: { type: 'COUNT', value: '50' },
     },
     originContext: {
@@ -160,6 +164,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
         analytics: {
           ...testApi.analytics,
           logging: { ...testApi.analytics.logging, mode: { entrypoint: true, endpoint: true } },
+          tracing: { enabled: true, verbose: false },
         },
       });
     });
@@ -484,4 +489,150 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
     req.flush(consoleSettingsResponse);
     expect(req.request.method).toEqual('GET');
   }
+
+  describe('ApiRuntimeLogsMessageSettingsComponent - OpenTelemetry settings', () => {
+    const apiWithTracingDisabled = fakeApiV4({
+      id: API_ID,
+      analytics: {
+        enabled: true,
+        logging: {
+          mode: { entrypoint: true, endpoint: true },
+          phase: { request: true, response: true },
+          content: { messagePayload: true, messageHeaders: true, messageMetadata: true, headers: true },
+          condition: 'request condition',
+          messageCondition: 'message condition',
+        },
+        tracing: {
+          enabled: true,
+          verbose: false,
+        },
+        sampling: { type: 'COUNT', value: '50' },
+      },
+    });
+
+    const apiWithTracingEnabled = fakeApiV4({
+      id: API_ID,
+      analytics: {
+        enabled: true,
+        tracing: {
+          enabled: true,
+          verbose: true,
+        },
+      },
+    });
+
+    let fixture: ComponentFixture<ApiRuntimeLogsMessageSettingsComponent>;
+    let httpTestingController: HttpTestingController;
+    let componentHarness: ApiRuntimeLogsMessageSettingsHarness;
+
+    const initComponent = async (api: ApiV4 = apiWithTracingDisabled, settings: ConsoleSettings = testSettings) => {
+      await TestBed.configureTestingModule({
+        imports: [NoopAnimationsModule, GioTestingModule, ApiRuntimeLogsMessageSettingsModule, MatIconTestingModule],
+        providers: [
+          { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
+          { provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] },
+          {
+            provide: Constants,
+            useValue: CONSTANTS_TESTING,
+          },
+        ],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(ApiRuntimeLogsMessageSettingsComponent);
+      httpTestingController = TestBed.inject(HttpTestingController);
+      componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsMessageSettingsHarness);
+
+      fixture.componentInstance.api = api;
+      expectConsoleSettingsGetRequest(settings);
+      fixture.detectChanges();
+    };
+
+    afterEach(() => {
+      httpTestingController.verify();
+    });
+
+    it('should reflect the initial state of OpenTelemetry controls', async () => {
+      await initComponent(apiWithTracingDisabled);
+
+      expect(await componentHarness.isEnabledChecked()).toStrictEqual(true);
+      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(true);
+      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(false);
+    });
+
+    it('should enable and disable OpenTelemetry controls correctly', async () => {
+      await initComponent(apiWithTracingEnabled);
+
+      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(true);
+      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(true);
+
+      await componentHarness.toggleTracingEnabled();
+      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(false);
+
+      await componentHarness.toggleTracingVerbose();
+      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(false);
+
+      await componentHarness.toggleTracingEnabled();
+      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(true);
+
+      await componentHarness.toggleTracingVerbose();
+      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(true);
+    });
+
+    it('should save API proxy OpenTelemetry settings', async () => {
+      await initComponent(apiWithTracingDisabled);
+
+      await componentHarness.toggleTracingEnabled();
+      await componentHarness.toggleTracingVerbose();
+
+      await componentHarness.saveSettings();
+
+      expectApiGetRequest(apiWithTracingDisabled);
+      expectApiPutRequest({
+        ...apiWithTracingDisabled,
+        analytics: {
+          ...apiWithTracingDisabled.analytics,
+          tracing: {
+            enabled: false,
+            verbose: true,
+          },
+        },
+      });
+    });
+
+    it('should discard changes in OpenTelemetry controls', async () => {
+      await initComponent(apiWithTracingEnabled);
+
+      await componentHarness.toggleTracingEnabled();
+      await componentHarness.toggleTracingVerbose();
+
+      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(false);
+      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(false);
+
+      await componentHarness.resetSettings();
+
+      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(true);
+      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(true);
+    });
+
+    function expectApiGetRequest(api: ApiV4) {
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
+          method: 'GET',
+        })
+        .flush(api);
+    }
+
+    function expectApiPutRequest(api: ApiV4) {
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
+      expect(req.request.body).toStrictEqual(api);
+      req.flush(api);
+    }
+
+    function expectConsoleSettingsGetRequest(consoleSettingsResponse: ConsoleSettings) {
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings`);
+      req.flush(consoleSettingsResponse);
+      expect(req.request.method).toEqual('GET');
+    }
+  });
 });

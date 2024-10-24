@@ -31,6 +31,8 @@ type DefaultConfiguration = {
   headers: boolean;
   payload: boolean;
   condition: string;
+  tracingEnabled: boolean;
+  tracingVerbose: boolean;
 };
 
 @Component({
@@ -92,6 +94,10 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
                   payload: configurationValues.payload,
                 },
               },
+              tracing: {
+                enabled: configurationValues.tracingEnabled,
+                verbose: configurationValues.tracingVerbose,
+              },
             },
           };
 
@@ -121,6 +127,8 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
     this.form = new UntypedFormGroup({
       enabled: new UntypedFormControl({ value: analyticsEnabled, disabled: isReadOnly }),
       entrypoint: new UntypedFormControl({ value: api.analytics?.logging?.mode?.entrypoint, disabled: !analyticsEnabled || isReadOnly }),
+      tracingEnabled: new UntypedFormControl({ value: api.analytics?.tracing?.enabled ?? true, disabled: isReadOnly }),
+      tracingVerbose: new UntypedFormControl({ value: api.analytics?.tracing?.verbose ?? false, disabled: isReadOnly }),
       endpoint: new UntypedFormControl({ value: api.analytics?.logging?.mode?.endpoint, disabled: !analyticsEnabled || isReadOnly }),
       request: new UntypedFormControl({
         value: api.analytics?.logging?.phase?.request,

@@ -14,16 +14,7 @@
  * limitations under the License.
  */
 
-import { LoggingV4 } from './loggingV4';
-import { Sampling } from './sampling';
-import { TracingV4 } from './tracingV4';
-
-export interface Analytics {
-  /**
-   * Whether analytics is enabled.
-   */
-  enabled?: boolean;
-  sampling?: Sampling;
-  logging?: LoggingV4;
-  tracing?: TracingV4;
+export interface TracingV4 {
+  enabled: boolean;
+  verbose: boolean;
 }

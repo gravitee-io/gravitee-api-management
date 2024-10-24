@@ -88,6 +88,19 @@
           <mat-hint> Support EL (e.g: &#123; #request.headers['Content-Type'][0] === 'application/json' &#125;)</mat-hint>
         </mat-form-field>
       </div>
+
+      <div class="settings__form-control">
+        <div class="settings__form-control__title">OpenTelemetry</div>
+        <div class="settings__form-control__subtitle">Enable OpenTelemetry tracing.</div>
+        <gio-form-slide-toggle>
+          <gio-form-label>Enabled</gio-form-label>
+          <mat-slide-toggle gioFormSlideToggle formControlName="tracingEnabled"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+        <gio-form-slide-toggle>
+          <gio-form-label>Verbose</gio-form-label>
+          <mat-slide-toggle gioFormSlideToggle formControlName="tracingVerbose"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+      </div>
     </mat-card-content>
   </mat-card>
   <gio-save-bar [form]="form" [formInitialValues]="defaultConfiguration" (submitted)="submit()"></gio-save-bar>
