@@ -2655,7 +2655,7 @@ components:
                 mapping:
                     V1: "#/components/schemas/ApiV1"
                     V2: "#/components/schemas/ApiV2"
-                    V4: "#/components/schemas/ApiV4"
+                    V4: "#/components/schemas/ApiHttpV4"
                     FEDERATED: "#/components/schemas/ApiFederated"
 
         BaseApi:
@@ -2794,7 +2794,7 @@ components:
                 mapping:
                     V1: "#/components/schemas/ApiV1"
                     V2: "#/components/schemas/ApiV2"
-                    V4: "#/components/schemas/ApiV4"
+                    V4: "#/components/schemas/ApiHttpV4"
                     FEDERATED: "#/components/schemas/ApiFederated"
         ApiV1:
             type: object
@@ -2871,37 +2871,14 @@ components:
                           description: The list of entrypoints associated with this API.
                           items:
                               $ref: "#/components/schemas/ApiEntrypoint"
-        ApiV4:
-          oneOf:
-            - $ref: "#/components/schemas/ApiHttpV4"
-          discriminator:
-            propertyName: type
-            mapping:
-              PROXY: "#/components/schemas/ApiHttpV4"
-              MESSAGE: "#/components/schemas/ApiHttpV4"
-              NATIVE: "#/components/schemas/ApiNativeV4"
-
-        GenericApiV4:
-          type: object
-          title: "GenericApiV4"
-          allOf:
-            - $ref: "#/components/schemas/GenericApi"
-            - properties:
-                type:
-                  $ref: "#/components/schemas/ApiType"
-          discriminator:
-            propertyName: type
-            mapping:
-              PROXY: "#/components/schemas/ApiHttpV4"
-              MESSAGE: "#/components/schemas/ApiHttpV4"
-              NATIVE: "#/components/schemas/ApiNativeV4"
-
         ApiHttpV4:
             type: object
             title: "ApiHttpV4"
             allOf:
-                - $ref: "#/components/schemas/GenericApiV4"
+                - $ref: "#/components/schemas/GenericApi"
                 - properties:
+                      type:
+                          $ref: "#/components/schemas/ApiType"
                       listeners:
                           type: array
                           description: The list of listeners associated with this API.
@@ -2923,11 +2900,6 @@ components:
                               $ref: "#/components/schemas/FlowV4"
                       services:
                           $ref: "#/components/schemas/ApiServices"
-        ApiNativeV4:
-          type: object
-          title: "ApiNativeV4"
-          allOf:
-            - $ref: "#/components/schemas/GenericApiV4"
 
         ApiFederated:
             type: object
