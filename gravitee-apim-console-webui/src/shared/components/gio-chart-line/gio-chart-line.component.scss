@@ -1,0 +1,9 @@
+.gio-chart-line {
+  &__chart {
+    display: block;
+  }
+  &__no-data {
+    display: flex;
+    justify-content: center;
+  }
+}
