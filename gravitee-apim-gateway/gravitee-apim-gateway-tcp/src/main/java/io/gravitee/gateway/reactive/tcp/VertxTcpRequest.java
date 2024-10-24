@@ -58,7 +58,7 @@ public class VertxTcpRequest extends AbstractRequest {
         this.timestamp = Instant.now().toEpochMilli();
         this.host = proxySocket.indicatedServerName();
         this.chunks(proxySocket.toFlowable().map(Buffer::buffer));
-        this.messageFlow = new MessageFlow();
+        this.messageFlow = new MessageFlow<>();
         this.contextPath = "";
         this.path = "";
         this.pathInfo = "";

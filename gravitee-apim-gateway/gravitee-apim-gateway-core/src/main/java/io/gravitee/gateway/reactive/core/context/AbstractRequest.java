@@ -44,7 +44,7 @@ import javax.net.ssl.SSLSession;
 public abstract class AbstractRequest implements MutableRequest, HttpRequestInternal {
 
     protected BufferFlow bufferFlow;
-    protected MessageFlow messageFlow;
+    protected MessageFlow<Message> messageFlow;
     protected String id;
     protected String transactionId;
     protected String clientIdentifier;
@@ -312,9 +312,9 @@ public abstract class AbstractRequest implements MutableRequest, HttpRequestInte
         return this.bufferFlow;
     }
 
-    protected final MessageFlow lazyMessageFlow() {
+    protected final MessageFlow<Message> lazyMessageFlow() {
         if (messageFlow == null) {
-            messageFlow = new MessageFlow();
+            messageFlow = new MessageFlow<>();
         }
 
         return this.messageFlow;

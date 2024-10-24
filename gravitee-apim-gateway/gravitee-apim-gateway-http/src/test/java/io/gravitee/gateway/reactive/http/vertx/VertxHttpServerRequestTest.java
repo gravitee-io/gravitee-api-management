@@ -345,7 +345,7 @@ class VertxHttpServerRequestTest {
 
         @Test
         void should_set_onMessagesInterceptor() {
-            final MessageFlow messageFlow = mock(MessageFlow.class);
+            final MessageFlow<Message> messageFlow = mock(MessageFlow.class);
             ReflectionTestUtils.setField(cut, "messageFlow", messageFlow);
             final Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor = mock(Function.class);
             cut.setMessagesInterceptor(interceptor);
@@ -355,7 +355,7 @@ class VertxHttpServerRequestTest {
 
         @Test
         void should_unset_onMessagesInterceptor() {
-            final MessageFlow messageFlow = mock(MessageFlow.class);
+            final MessageFlow<Message> messageFlow = mock(MessageFlow.class);
             ReflectionTestUtils.setField(cut, "messageFlow", messageFlow);
 
             cut.unsetMessagesInterceptor();

@@ -24,21 +24,21 @@ import java.util.function.Function;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class MessageFlow {
+public class MessageFlow<T extends Message> {
 
-    private Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> onMessagesInterceptor;
+    private Function<FlowableTransformer<T, T>, FlowableTransformer<T, T>> onMessagesInterceptor;
 
-    protected Flowable<Message> messages = Flowable.empty();
+    protected Flowable<T> messages = Flowable.empty();
 
-    public Flowable<Message> messages() {
+    public Flowable<T> messages() {
         return messages;
     }
 
-    public void messages(final Flowable<Message> messages) {
+    public void messages(final Flowable<T> messages) {
         this.messages = messages;
     }
 
-    public void onMessages(final FlowableTransformer<Message, Message> onMessages) {
+    public void onMessages(final FlowableTransformer<T, T> onMessages) {
         if (onMessagesInterceptor != null) {
             this.messages = this.messages.compose(onMessagesInterceptor.apply(onMessages));
         } else {
@@ -46,9 +46,7 @@ public class MessageFlow {
         }
     }
 
-    public void setOnMessagesInterceptor(
-        Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor
-    ) {
+    public void setOnMessagesInterceptor(Function<FlowableTransformer<T, T>, FlowableTransformer<T, T>> interceptor) {
         this.onMessagesInterceptor = interceptor;
     }
 

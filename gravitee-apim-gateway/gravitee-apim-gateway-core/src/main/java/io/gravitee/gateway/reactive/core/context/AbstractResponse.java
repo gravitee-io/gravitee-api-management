@@ -17,7 +17,6 @@ package io.gravitee.gateway.reactive.core.context;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.api.context.GenericResponse;
 import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
@@ -41,7 +40,7 @@ import java.util.function.Function;
 public abstract class AbstractResponse implements MutableResponse, HttpResponseInternal {
 
     protected BufferFlow bufferFlow;
-    protected MessageFlow messageFlow;
+    protected MessageFlow<Message> messageFlow;
     protected int statusCode;
     protected String reason;
     protected HttpHeaders headers;
@@ -185,9 +184,9 @@ public abstract class AbstractResponse implements MutableResponse, HttpResponseI
         return false;
     }
 
-    protected final MessageFlow lazyMessageFlow() {
+    protected final MessageFlow<Message> lazyMessageFlow() {
         if (messageFlow == null) {
-            messageFlow = new MessageFlow();
+            messageFlow = new MessageFlow<Message>();
         }
 
         return this.messageFlow;
