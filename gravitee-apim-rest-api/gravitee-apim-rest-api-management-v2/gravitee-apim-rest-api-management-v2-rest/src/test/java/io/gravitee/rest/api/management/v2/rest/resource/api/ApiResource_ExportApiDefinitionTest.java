@@ -22,8 +22,8 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -114,9 +114,15 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
     @Test
     public void should_not_export_when_no_definition_permission() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DEFINITION, API, RolePermissionAction.READ);
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_DEFINITION,
+                API,
+                RolePermissionAction.READ
+            )
+        )
+            .thenReturn(false);
         Response response = rootTarget().request().get();
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
@@ -132,9 +138,8 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
     @Test
     public void should_export() throws JsonProcessingException {
-        doReturn(this.fakeExportApiEntity())
-            .when(apiImportExportService)
-            .exportApi(GraviteeContext.getExecutionContext(), API, USER_NAME, EXCLUDE_ADDITIONAL_DATA);
+        when(apiImportExportService.exportApi(GraviteeContext.getExecutionContext(), API, USER_NAME, EXCLUDE_ADDITIONAL_DATA))
+            .thenReturn(this.fakeExportApiEntity());
 
         Response response = rootTarget().request().get();
         assertEquals(OK_200, response.getStatus());

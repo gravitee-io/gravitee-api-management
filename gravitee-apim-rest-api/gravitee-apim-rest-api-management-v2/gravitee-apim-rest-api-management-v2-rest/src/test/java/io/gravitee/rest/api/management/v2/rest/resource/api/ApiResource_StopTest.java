@@ -19,7 +19,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -47,9 +46,8 @@ public class ApiResource_StopTest extends ApiResourceTest {
 
     @Test
     public void should_not_stop_api_with_insufficient_rights() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any());
+        when(permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any()))
+            .thenReturn(false);
         final Response response = rootTarget().request().post(Entity.json(""));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
@@ -117,7 +115,7 @@ public class ApiResource_StopTest extends ApiResourceTest {
     @Test
     public void should_stop_api() {
         var updatedEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).build();
-        doReturn(updatedEntity).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(updatedEntity);
 
         when(apiStateServiceV4.stop(eq(GraviteeContext.getExecutionContext()), eq(API), eq(USER_NAME))).thenReturn(updatedEntity);
 

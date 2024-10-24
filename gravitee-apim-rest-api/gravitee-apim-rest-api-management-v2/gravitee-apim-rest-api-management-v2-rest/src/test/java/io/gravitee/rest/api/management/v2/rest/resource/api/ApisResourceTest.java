@@ -24,7 +24,6 @@ import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -136,8 +135,8 @@ class ApisResourceTest extends AbstractResourceTest {
         environment.setId(ENVIRONMENT);
         environment.setOrganizationId(ORGANIZATION);
 
-        doReturn(environment).when(environmentService).findById(ENVIRONMENT);
-        doReturn(environment).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
+        when(environmentService.findById(ENVIRONMENT)).thenReturn(environment);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environment);
     }
 
     @AfterEach

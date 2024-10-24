@@ -17,8 +17,8 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -49,20 +49,21 @@ public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTe
         EnvironmentEntity environmentEntity = new EnvironmentEntity();
         environmentEntity.setId(ENVIRONMENT_ID);
         environmentEntity.setOrganizationId(ORGANIZATION);
-        doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT_ID);
-        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID);
+        when(environmentService.findById(ENVIRONMENT_ID)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID)).thenReturn(environmentEntity);
     }
 
     @Test
     public void should_not_import_when_no_definition_permission() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(
+        when(
+            permissionService.hasPermission(
                 GraviteeContext.getExecutionContext(),
                 RolePermission.ENVIRONMENT_API,
                 ENVIRONMENT_ID,
                 RolePermissionAction.CREATE
-            );
+            )
+        )
+            .thenReturn(false);
         Response response = rootTarget().request().post(null);
         assertEquals(FORBIDDEN_403, response.getStatus());
     }

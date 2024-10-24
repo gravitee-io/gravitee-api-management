@@ -22,7 +22,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
@@ -95,7 +94,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
     @Test
     public void should_get_api_V4() throws JsonProcessingException {
-        doReturn(this.fakeApiEntityV4()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(this.fakeApiEntityV4());
 
         when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(false);
 
@@ -234,10 +233,16 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
     @Test
     public void should_get_filtered_api_V4() {
-        doReturn(this.fakeApiEntityV4()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API);
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DEFINITION, API, RolePermissionAction.READ);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(this.fakeApiEntityV4());
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_DEFINITION,
+                API,
+                RolePermissionAction.READ
+            )
+        )
+            .thenReturn(false);
 
         final Response response = rootTarget(API).request().get();
 
@@ -262,8 +267,8 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
     }
 
     @Test
-    public void should_get_api_V2() throws JsonProcessingException {
-        doReturn(this.fakeApiEntityV2()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API);
+    public void should_get_api_V2() {
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(this.fakeApiEntityV2());
 
         final Response response = rootTarget(API).request().get();
 
@@ -312,11 +317,17 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
     @Test
     public void should_get_filtered_api_V2() {
-        doReturn(this.fakeApiEntityV2()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(this.fakeApiEntityV2());
 
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DEFINITION, API, RolePermissionAction.READ);
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_DEFINITION,
+                API,
+                RolePermissionAction.READ
+            )
+        )
+            .thenReturn(false);
 
         final Response response = rootTarget(API).request().get();
 

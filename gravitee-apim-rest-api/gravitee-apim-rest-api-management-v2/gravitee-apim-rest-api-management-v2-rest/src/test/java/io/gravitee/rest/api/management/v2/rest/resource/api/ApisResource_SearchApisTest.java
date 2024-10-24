@@ -19,7 +19,6 @@ import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.component.Lifecycle;
@@ -72,8 +71,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         environment.setId(ENVIRONMENT);
         environment.setOrganizationId(ORGANIZATION);
 
-        doReturn(environment).when(environmentService).findById(ENVIRONMENT);
-        doReturn(environment).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
+        when(environmentService.findById(ENVIRONMENT)).thenReturn(environment);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environment);
     }
 
     @Test

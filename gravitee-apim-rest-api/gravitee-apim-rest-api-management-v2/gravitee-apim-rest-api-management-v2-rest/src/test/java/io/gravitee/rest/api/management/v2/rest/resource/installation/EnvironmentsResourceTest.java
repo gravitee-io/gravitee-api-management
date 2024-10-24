@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.v2.rest.resource.installation;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.management.v2.rest.model.Environment;
@@ -67,7 +66,7 @@ public class EnvironmentsResourceTest extends AbstractResourceTest {
         env.setCockpitId("cockpit-id");
         env.setDomainRestrictions(List.of("restriction-1"));
 
-        doReturn(env).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, "hrid-1");
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, "hrid-1")).thenReturn(env);
 
         final Response response = rootTarget("hrid-1").request().get();
         assertEquals(200, response.getStatus());

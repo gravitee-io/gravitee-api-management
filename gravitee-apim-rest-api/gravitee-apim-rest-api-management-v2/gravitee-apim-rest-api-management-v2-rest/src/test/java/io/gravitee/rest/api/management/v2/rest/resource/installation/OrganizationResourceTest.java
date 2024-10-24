@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.v2.rest.resource.installation;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -133,6 +132,6 @@ public class OrganizationResourceTest extends AbstractResourceTest {
         organizationEntity.setFlowMode(FlowMode.BEST_MATCH);
         organizationEntity.setHrids(List.of("one-hrid"));
 
-        doReturn(organizationEntity).when(organizationService).findById(eq(orgId));
+        when(organizationService.findById(eq(orgId))).thenReturn(organizationEntity);
     }
 }
