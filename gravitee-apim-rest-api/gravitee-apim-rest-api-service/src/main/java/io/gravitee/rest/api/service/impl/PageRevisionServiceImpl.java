@@ -115,6 +115,11 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
         }
     }
 
+    @Override
+    public void deleteAllByPageId(String pageId) throws TechnicalException {
+        pageRevisionRepository.deleteAllByPageId(pageId);
+    }
+
     private PageRevisionEntity convert(PageRevision revision) {
         PageRevisionEntity entity = new PageRevisionEntity();
         entity.setPageId(revision.getPageId());

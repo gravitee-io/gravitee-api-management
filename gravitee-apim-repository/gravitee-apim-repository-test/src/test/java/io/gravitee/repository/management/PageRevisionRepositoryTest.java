@@ -158,4 +158,26 @@ public class PageRevisionRepositoryTest extends AbstractManagementRepositoryTest
         assertThat(deleted.size()).isEqualTo(2);
         assertThat(nbAfterDeletion).isEqualTo(0);
     }
+
+    @Test
+    public void shouldDeleteAllByPageId() throws TechnicalException {
+        List<PageRevision> revisionsBefore = pageRevisionRepository.findAllByPageId("findByPageId");
+        assertNotNull(revisionsBefore);
+        assertEquals(3, revisionsBefore.size());
+
+        pageRevisionRepository.deleteAllByPageId("findByPageId");
+
+        List<PageRevision> revisionsAfter = pageRevisionRepository.findAllByPageId("findByPageId");
+        assertNotNull(revisionsAfter);
+        assertEquals(0, revisionsAfter.size());
+    }
+
+    @Test
+    public void shouldDoNothingWhenNoRevisionsFoundWhileDeleting() throws TechnicalException {
+        pageRevisionRepository.deleteAllByPageId("nonExistingPageId");
+
+        List<PageRevision> revisionsAfter = pageRevisionRepository.findAllByPageId("nonExistingPageId");
+        assertNotNull(revisionsAfter);
+        assertEquals(0, revisionsAfter.size());
+    }
 }
