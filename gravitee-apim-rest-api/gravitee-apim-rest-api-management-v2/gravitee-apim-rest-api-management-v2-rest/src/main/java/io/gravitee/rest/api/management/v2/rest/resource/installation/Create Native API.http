@@ -69,4 +69,102 @@ Content-Type: application/json
   ]
 }
 
-###
+### POST a native API with OAuth2 plan
+POST http://localhost:8083/management/v2/environments/DEFAULT/nativeevents
+Authorization: Basic admin admin
+Content-Type: application/json
+
+{
+  "name": "Native API - with oAuth2",
+  "type": "native",
+  "definitionVersion": "4.0.0",
+  "resources": [
+    {
+      "name": "oauth2-resource",
+      "type": "oauth2",
+      "configuration": {
+        "authorizationServerUrl": "https://am.gateway.master.gravitee.dev/test-jh",
+        "introspectionEndpoint": "/oauth/introspect",
+        "useSystemProxy": false,
+        "introspectionEndpointMethod": "POST",
+        "scopeSeparator": " ",
+        "userInfoEndpoint": "/oidc/userinfo",
+        "userInfoEndpointMethod": "GET",
+        "clientId": "kafka-client",
+        "clientSecret": "kafka-secret",
+        "useClientAuthorizationHeader": true,
+        "clientAuthorizationHeaderName": "Authorization",
+        "clientAuthorizationHeaderScheme": "Basic",
+        "tokenIsSuppliedByQueryParam": false,
+        "tokenQueryParamName": "token",
+        "tokenIsSuppliedByHttpHeader": false,
+        "tokenIsSuppliedByFormUrlEncoded": true,
+        "tokenFormUrlEncodedName": "token",
+        "userClaim": "sub"
+      },
+      "enabled": true
+    }
+  ],
+  "listeners": [
+    {
+      "type": "kafka",
+      "entrypoints": [ ],
+      "host": "kafka.local",
+      "port": 9092
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-native",
+      "type": "native-kafka",
+      "loadBalancer": {
+        "type": "round-robin"
+      },
+      "endpoints": [
+        {
+          "name": "default-native",
+          "type": "native-kafka",
+          "secondary": false,
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {}
+        }
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "id": "4aff2d63-93fd-40e6-bf2d-6393fde0e6b9",
+      "name": "oAuth2",
+      "security": {
+        "type": "oauth2",
+        "configuration": {
+          "oauthResource": "oauth2-resource"
+        }
+      },
+      "mode": "standard",
+      "tags": [ ],
+      "status": "published",
+      "flows": [ ]
+    }
+  ],
+  "flows": [
+    {
+      "id": "10a07215-5369-4826-a072-1553695826bh",
+      "name": "default",
+      "enabled": true,
+      "connect": [ ],
+      "all": [
+        {
+          "name": "Debug Log policy",
+          "enabled": true,
+          "policy": "debug-log",
+          "configuration": {}
+        }
+      ],
+      "subscribe": [ ],
+      "publish": [ ]
+    }
+  ]
+}
+

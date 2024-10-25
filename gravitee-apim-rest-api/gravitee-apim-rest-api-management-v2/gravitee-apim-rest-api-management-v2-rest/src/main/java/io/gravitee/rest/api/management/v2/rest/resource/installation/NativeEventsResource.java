@@ -90,10 +90,10 @@ public class NativeEventsResource extends AbstractResource {
             apiEvent =
                 eventService.createApiEvent(
                     executionContext,
-                    Set.of(),
+                    Set.of(executionContext.getEnvironmentId()),
                     executionContext.getOrganizationId(),
                     EventType.PUBLISH_API,
-                    aApi(nativeApiDefinition),
+                    aApi(nativeApiDefinition, executionContext.getEnvironmentId()),
                     Map.of()
                 );
         } catch (JsonProcessingException e) {
@@ -102,7 +102,7 @@ public class NativeEventsResource extends AbstractResource {
         return Response.created(this.getLocationHeader(apiEvent.getId())).entity(apiEvent).build();
     }
 
-    private Api aApi(NativeApi definition) throws JsonProcessingException {
+    private Api aApi(NativeApi definition, String environmentId) throws JsonProcessingException {
         final String apiId = UUID.randomUUID().toString();
         final String crossId = UUID.randomUUID().toString();
         return Api
@@ -114,6 +114,7 @@ public class NativeEventsResource extends AbstractResource {
             .definitionVersion(DefinitionVersion.V4)
             .type(ApiType.NATIVE)
             .deployedAt(new Date())
+            .environmentId(environmentId)
             .definition(
                 GraviteeJacksonMapper
                     .getInstance()
