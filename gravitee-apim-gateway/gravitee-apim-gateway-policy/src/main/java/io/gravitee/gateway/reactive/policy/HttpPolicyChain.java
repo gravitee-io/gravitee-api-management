@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.policy;
 
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.Hookable;
 import io.gravitee.gateway.reactive.api.hook.HttpHook;
@@ -24,12 +25,10 @@ import io.gravitee.gateway.reactive.api.hook.PolicyMessageHook;
 import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Flowable;
 import jakarta.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * PolicyChain is responsible for executing a given list of policies respecting the original order.
@@ -39,13 +38,9 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpPolicyChain implements Hookable<HttpHook>, PolicyChain<HttpExecutionContext> {
+@Slf4j
+public class HttpPolicyChain extends AbstractPolicyChain<HttpPolicy> implements Hookable<HttpHook> {
 
-    private final Logger log = LoggerFactory.getLogger(HttpPolicyChain.class);
-
-    private final String id;
-    private final Flowable<HttpPolicy> policies;
-    private final ExecutionPhase phase;
     private List<PolicyHook> policyHooks;
     private List<PolicyMessageHook> policyMessageHooks;
 
@@ -57,14 +52,7 @@ public class HttpPolicyChain implements Hookable<HttpHook>, PolicyChain<HttpExec
      * @param phase the execution phase that will be used to determine the method of the policies to execute.
      */
     public HttpPolicyChain(@Nonnull String id, @Nonnull List<HttpPolicy> policies, @Nonnull ExecutionPhase phase) {
-        this.id = id;
-        this.phase = phase;
-        this.policies = Flowable.fromIterable(policies);
-    }
-
-    @Override
-    public String getId() {
-        return id;
+        super(id, policies, phase);
     }
 
     @Override
@@ -84,33 +72,17 @@ public class HttpPolicyChain implements Hookable<HttpHook>, PolicyChain<HttpExec
         });
     }
 
-    /**
-     * Executes all the policies composing the chain.
-     *
-     * @param ctx the current context that will be passed to each policy to be executed.
-     *
-     * @return a {@link Completable} that completes when all the policies of the chain have been executed or the chain has been interrupted.
-     * The {@link Completable} may complete in error in case of any error occurred while executing the policies.
-     */
     @Override
-    public Completable execute(HttpExecutionContext ctx) {
-        return policies.concatMapCompletable(policy -> executePolicy(ctx, policy));
-    }
-
-    private Completable executePolicy(final HttpExecutionContext ctx, final HttpPolicy policy) {
+    protected Completable executePolicy(final BaseExecutionContext baseCtx, final HttpPolicy policy) {
         log.debug("Executing policy {} on phase {} in policy chain {}", policy.id(), phase, id);
 
-        switch (phase) {
-            case REQUEST:
-                return HookHelper.hook(() -> policy.onRequest(ctx), policy.id(), policyHooks, ctx, phase);
-            case RESPONSE:
-                return HookHelper.hook(() -> policy.onResponse(ctx), policy.id(), policyHooks, ctx, phase);
-            case MESSAGE_REQUEST:
-                return HookHelper.hook(() -> policy.onMessageRequest(ctx), policy.id(), policyMessageHooks, ctx, phase);
-            case MESSAGE_RESPONSE:
-                return HookHelper.hook(() -> policy.onMessageResponse(ctx), policy.id(), policyMessageHooks, ctx, phase);
-            default:
-                return Completable.error(new IllegalArgumentException("Execution phase unknown"));
-        }
+        HttpExecutionContext ctx = (HttpExecutionContext) baseCtx;
+        return switch (phase) {
+            case REQUEST -> HookHelper.hook(() -> policy.onRequest(ctx), policy.id(), policyHooks, ctx, phase);
+            case RESPONSE -> HookHelper.hook(() -> policy.onResponse(ctx), policy.id(), policyHooks, ctx, phase);
+            case MESSAGE_REQUEST -> HookHelper.hook(() -> policy.onMessageRequest(ctx), policy.id(), policyMessageHooks, ctx, phase);
+            case MESSAGE_RESPONSE -> HookHelper.hook(() -> policy.onMessageResponse(ctx), policy.id(), policyMessageHooks, ctx, phase);
+            default -> Completable.error(new IllegalArgumentException("Execution phase unknown"));
+        };
     }
 }

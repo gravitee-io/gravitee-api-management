@@ -23,16 +23,14 @@ import io.gravitee.gateway.reactive.handlers.api.v4.security.policy.SecurityPoli
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class SecurityPlanFactory {
-
-    private static final Logger log = LoggerFactory.getLogger(SecurityPlanFactory.class);
 
     private SecurityPlanFactory() {}
 
@@ -48,7 +46,6 @@ public class SecurityPlanFactory {
             return null;
         }
 
-        // FIXME: use a BaseSecurityPolicy.
         final HttpSecurityPolicy policy = SecurityPolicyFactory.forPlan(apiId, plan, policyManager, executionPhase);
 
         if (policy != null) {

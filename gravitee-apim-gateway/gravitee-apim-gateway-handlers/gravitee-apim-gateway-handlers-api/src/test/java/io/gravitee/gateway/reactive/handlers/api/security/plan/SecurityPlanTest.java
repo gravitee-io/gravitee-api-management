@@ -194,8 +194,7 @@ class SecurityPlanTest {
         when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
         when(plan.getId()).thenReturn(PLAN_ID);
         when(ctx.getAttribute(ContextAttributes.ATTR_API)).thenReturn(API_ID);
-        when(ctx.request()).thenReturn(request);
-        when(request.timestamp()).thenReturn(System.currentTimeMillis());
+        when(ctx.timestamp()).thenReturn(System.currentTimeMillis());
 
         // subscription found with this security token
         final Subscription subscription = mock(Subscription.class);
@@ -218,8 +217,7 @@ class SecurityPlanTest {
         when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
         when(plan.getId()).thenReturn(PLAN_ID);
         when(ctx.getAttribute(ContextAttributes.ATTR_API)).thenReturn(API_ID);
-        when(ctx.request()).thenReturn(request);
-        when(request.timestamp()).thenReturn(System.currentTimeMillis());
+        when(ctx.timestamp()).thenReturn(System.currentTimeMillis());
 
         // subscription found with this security token
         final Subscription subscription = mock(Subscription.class);
