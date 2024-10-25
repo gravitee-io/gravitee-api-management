@@ -711,7 +711,7 @@ workflows:
       - job-slack-announcement:
           context:
             - cicd-orchestrator
-          name: Announce release is starting
+          name: Announce release is completed
           message: 🎆 APIM - 4.2.0 released!
           requires:
             - Release Helm Chart

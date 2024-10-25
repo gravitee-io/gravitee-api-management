@@ -173,7 +173,7 @@ export class FullReleaseWorkflow {
       // Notify APIM team
       new workflow.WorkflowJob(slackAnnouncementJob, {
         context: config.jobContext,
-        name: 'Announce release is starting',
+        name: 'Announce release is completed',
         message: `🎆 APIM - ${environment.graviteeioVersion} released!`,
         requires: ['Release Helm Chart'],
       }),
