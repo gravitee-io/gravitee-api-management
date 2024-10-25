@@ -61,7 +61,12 @@ class SearchResponseTimeUseCaseTest {
     @Test
     void nominal_case() {
         // Given
-        SearchResponseTimeUseCase.Input input = new SearchResponseTimeUseCase.Input("MyApiID", ENV_ID);
+        SearchResponseTimeUseCase.Input input = new SearchResponseTimeUseCase.Input(
+            "MyApiID",
+            ENV_ID,
+            Instant.now().minus(Duration.ofDays(1)),
+            Instant.now()
+        );
         var definition = io.gravitee.definition.model.v4.Api
             .builder()
             .type(ApiType.MESSAGE)
@@ -86,7 +91,12 @@ class SearchResponseTimeUseCaseTest {
     @Test
     void not_found() {
         // Given
-        SearchResponseTimeUseCase.Input input = new SearchResponseTimeUseCase.Input("MyApiID", ENV_ID);
+        SearchResponseTimeUseCase.Input input = new SearchResponseTimeUseCase.Input(
+            "MyApiID",
+            ENV_ID,
+            Instant.now().minus(Duration.ofDays(1)),
+            Instant.now()
+        );
         var definition = io.gravitee.definition.model.v4.Api
             .builder()
             .type(ApiType.MESSAGE)
@@ -109,7 +119,15 @@ class SearchResponseTimeUseCaseTest {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
         assertThatThrownBy(() ->
                 cut
-                    .execute(GraviteeContext.getExecutionContext(), new SearchResponseTimeUseCase.Input(MY_API, "another-environment"))
+                    .execute(
+                        GraviteeContext.getExecutionContext(),
+                        new SearchResponseTimeUseCase.Input(
+                            MY_API,
+                            "another-environment",
+                            Instant.now().minus(Duration.ofDays(1)),
+                            Instant.now()
+                        )
+                    )
                     .blockingGet()
             )
             .isInstanceOf(ApiNotFoundException.class);
@@ -119,7 +137,12 @@ class SearchResponseTimeUseCaseTest {
     void should_throw_if_api_definition_not_v4() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2()));
         assertThatThrownBy(() ->
-                cut.execute(GraviteeContext.getExecutionContext(), new SearchResponseTimeUseCase.Input(MY_API, ENV_ID)).blockingGet()
+                cut
+                    .execute(
+                        GraviteeContext.getExecutionContext(),
+                        new SearchResponseTimeUseCase.Input(MY_API, ENV_ID, Instant.now().minus(Duration.ofDays(1)), Instant.now())
+                    )
+                    .blockingGet()
             )
             .isInstanceOf(ApiInvalidDefinitionVersionException.class);
     }
@@ -128,7 +151,12 @@ class SearchResponseTimeUseCaseTest {
     void should_throw_if_api_is_tcp() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aTcpApiV4()));
         assertThatThrownBy(() ->
-                cut.execute(GraviteeContext.getExecutionContext(), new SearchResponseTimeUseCase.Input(MY_API, ENV_ID)).blockingGet()
+                cut
+                    .execute(
+                        GraviteeContext.getExecutionContext(),
+                        new SearchResponseTimeUseCase.Input(MY_API, ENV_ID, Instant.now().minus(Duration.ofDays(1)), Instant.now())
+                    )
+                    .blockingGet()
             )
             .isInstanceOf(TcpProxyNotSupportedException.class)
             .hasMessage("TCP Proxy not supported");

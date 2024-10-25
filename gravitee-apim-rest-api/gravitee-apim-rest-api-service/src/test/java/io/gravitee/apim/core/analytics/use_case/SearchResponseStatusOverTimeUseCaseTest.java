@@ -85,7 +85,10 @@ class SearchResponseStatusOverTimeUseCaseTest {
         analyticsQueryService.responseStatusOvertime = expectedData;
 
         // When
-        var output = useCase.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID));
+        var output = useCase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(MY_API, ENV_ID, TimeProvider.instantNow().minus(Duration.ofDays(1)), TimeProvider.instantNow())
+        );
 
         // Then
         assertThat(output.responseStatusOvertime()).isSameAs(expectedData);
@@ -108,7 +111,12 @@ class SearchResponseStatusOverTimeUseCaseTest {
         // Given
 
         // When
-        var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID)));
+        var throwable = catchThrowable(() ->
+            useCase.execute(
+                GraviteeContext.getExecutionContext(),
+                new Input(MY_API, ENV_ID, Instant.now().minus(Duration.ofDays(1)), Instant.now())
+            )
+        );
 
         // Then
         assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
@@ -120,7 +128,12 @@ class SearchResponseStatusOverTimeUseCaseTest {
         apiCrudService.initWith(List.of(ApiFixtures.aMessageApiV4()));
 
         // When
-        var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, "another")));
+        var throwable = catchThrowable(() ->
+            useCase.execute(
+                GraviteeContext.getExecutionContext(),
+                new Input(MY_API, "another", Instant.now().minus(Duration.ofDays(1)), Instant.now())
+            )
+        );
 
         // Then
         assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
@@ -132,7 +145,12 @@ class SearchResponseStatusOverTimeUseCaseTest {
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2()));
 
         // When
-        var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID)));
+        var throwable = catchThrowable(() ->
+            useCase.execute(
+                GraviteeContext.getExecutionContext(),
+                new Input(MY_API, ENV_ID, Instant.now().minus(Duration.ofDays(1)), Instant.now())
+            )
+        );
 
         // Then
         assertThat(throwable).isInstanceOf(ApiInvalidDefinitionVersionException.class);
@@ -144,7 +162,12 @@ class SearchResponseStatusOverTimeUseCaseTest {
         apiCrudService.initWith(List.of(ApiFixtures.aTcpApiV4()));
 
         // When
-        var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID)));
+        var throwable = catchThrowable(() ->
+            useCase.execute(
+                GraviteeContext.getExecutionContext(),
+                new Input(MY_API, ENV_ID, Instant.now().minus(Duration.ofDays(1)), Instant.now())
+            )
+        );
 
         // Then
         assertThat(throwable).isInstanceOf(TcpProxyNotSupportedException.class);

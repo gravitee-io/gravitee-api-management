@@ -22,13 +22,14 @@ import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.exception.TcpProxyNotSupportedException;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
@@ -39,10 +40,31 @@ public class SearchResponseTimeUseCase {
     private final AnalyticsQueryService analyticsQueryService;
     private final ApiCrudService apiCrudService;
 
+    private static final Collection<IntervalData> INTERVAL = List.of(
+        new IntervalData(Duration.ofMinutes(5), Duration.ofSeconds(10)),
+        new IntervalData(Duration.ofMinutes(30), Duration.ofSeconds(15)),
+        new IntervalData(Duration.ofHours(1), Duration.ofSeconds(30)),
+        new IntervalData(Duration.ofHours(3), Duration.ofMinutes(1)),
+        new IntervalData(Duration.ofHours(6), Duration.ofMinutes(2)),
+        new IntervalData(Duration.ofHours(12), Duration.ofMinutes(5)),
+        new IntervalData(Duration.ofDays(1), Duration.ofMinutes(10)),
+        new IntervalData(Duration.ofDays(3), Duration.ofMinutes(30)),
+        new IntervalData(Duration.ofDays(7), Duration.ofHours(1)),
+        new IntervalData(Duration.ofDays(14), Duration.ofHours(3)),
+        new IntervalData(Duration.ofDays(30), Duration.ofHours(6)),
+        new IntervalData(Duration.ofDays(90), Duration.ofHours(12))
+    );
+
     public Single<Output> execute(ExecutionContext executionContext, Input input) {
-        Instant to = TimeProvider.instantNow();
-        Instant from = to.minus(Duration.ofDays(1));
-        Duration interval = Duration.ofMinutes(10);
+        Instant to = input.to();
+        Instant from = input.from();
+        Duration duration = Duration.between(from, to);
+        Duration interval = INTERVAL
+            .stream()
+            .filter(id -> id.dataDuration().compareTo(duration) <= 0)
+            .max(Comparator.comparing(IntervalData::dataDuration))
+            .map(IntervalData::interval)
+            .orElse(Duration.ofDays(1));
 
         return validateApiRequirements(input)
             .flatMapMaybe(api -> analyticsQueryService.searchAvgResponseTimeOverTime(executionContext, api.getId(), from, to, interval))
@@ -73,7 +95,9 @@ public class SearchResponseTimeUseCase {
             : Single.error(new ApiInvalidDefinitionVersionException(api.getId()));
     }
 
-    public record Input(String apiId, String environmentId) {}
+    public record Input(String apiId, String environmentId, Instant from, Instant to) {}
 
     public record Output(Instant from, Instant to, Duration interval, List<Long> data) {}
+
+    private record IntervalData(Duration dataDuration, Duration interval) {}
 }

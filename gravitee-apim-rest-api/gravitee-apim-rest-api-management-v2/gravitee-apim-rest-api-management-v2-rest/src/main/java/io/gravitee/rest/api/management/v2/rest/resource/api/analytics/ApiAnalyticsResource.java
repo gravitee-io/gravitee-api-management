@@ -41,7 +41,10 @@ import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+import java.time.Duration;
+import java.time.Instant;
 
 public class ApiAnalyticsResource extends AbstractResource {
 
@@ -126,8 +129,10 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
-    public ApiAnalyticsOverPeriodResponse getResponseTimeOverTime() {
-        var request = new SearchResponseTimeUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment());
+    public ApiAnalyticsOverPeriodResponse getResponseTimeOverTime(@QueryParam("from") Long from, @QueryParam("to") Long to) {
+        Instant end = to != null ? Instant.ofEpochMilli(to) : Instant.now();
+        Instant start = from != null ? Instant.ofEpochMilli(from) : end.minus(Duration.ofDays(1));
+        var request = new SearchResponseTimeUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), start, end);
 
         return searchResponseTimeUseCase
             .execute(GraviteeContext.getExecutionContext(), request)
@@ -148,8 +153,10 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
-    public ApiAnalyticsResponseStatusOvertimeResponse getResponseStatusOvertime() {
-        var request = new SearchResponseStatusOverTimeUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment());
+    public ApiAnalyticsResponseStatusOvertimeResponse getResponseStatusOvertime(@QueryParam("from") Long from, @QueryParam("to") Long to) {
+        Instant end = to != null ? Instant.ofEpochMilli(to) : Instant.now();
+        Instant start = from != null ? Instant.ofEpochMilli(from) : end.minus(Duration.ofDays(1));
+        var request = new SearchResponseStatusOverTimeUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), start, end);
 
         var result = searchResponseStatusOverTimeUseCase.execute(GraviteeContext.getExecutionContext(), request).responseStatusOvertime();
 
