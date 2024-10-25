@@ -144,13 +144,6 @@ export class FullReleaseWorkflow {
         requires: ['Package bundle'],
       }),
 
-      // Create Release note pull request
-      new workflow.WorkflowJob(releaseNoteApimJob, {
-        context: config.jobContext,
-        name: 'Create release note pull request',
-        requires: ['Package bundle'],
-      }),
-
       // Nexus staging
       new workflow.WorkflowJob(nexusStagingJob, {
         context: config.jobContext,
@@ -164,10 +157,16 @@ export class FullReleaseWorkflow {
         name: 'Release Helm Chart',
         requires: [
           'Nexus staging',
-          'Create release note pull request',
           `Build and push RPM packages for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
           `Build and push docker images for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
         ],
+      }),
+
+      // Create Release note pull request
+      new workflow.WorkflowJob(releaseNoteApimJob, {
+        context: config.jobContext,
+        name: 'Create release note pull request',
+        requires: ['Release Helm Chart'],
       }),
 
       // Notify APIM team
