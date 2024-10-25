@@ -51,15 +51,15 @@ export class ApiAnalyticsV2Service {
     return this.http.get<AnalyticsResponseStatusRanges>(`${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-status-ranges`);
   }
 
-  getResponseStatusOvertime(apiId: string): Observable<AnalyticsResponseStatusOvertime> {
+  getResponseStatusOvertime(apiId: string, from: Date, to: Date = new Date()): Observable<AnalyticsResponseStatusOvertime> {
     return this.http.get<AnalyticsResponseStatusOvertime>(
-      `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-status-overtime`,
+      `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-status-overtime?from=${from.getTime()}&to=${to.getTime()}`,
     );
   }
 
-  getResponseTimeOverTime(apiId: string): Observable<AnalyticsResponseTimeOverTime> {
+  getResponseTimeOverTime(apiId: string, from: Date, to: Date = new Date()): Observable<AnalyticsResponseTimeOverTime> {
     return this.http.get<AnalyticsResponseTimeOverTime>(
-      `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-time-over-time`,
+      `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-time-over-time?from=${from.getTime()}&to=${to.getTime()}`,
     );
   }
 }

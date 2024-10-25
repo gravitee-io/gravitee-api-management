@@ -90,5 +90,6 @@ export class GioChartLineComponent implements OnInit {
         type: 'spline',
       })),
     };
+    console.log(this.chartOptions);
   }
 }

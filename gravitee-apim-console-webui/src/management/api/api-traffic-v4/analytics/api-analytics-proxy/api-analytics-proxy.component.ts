@@ -46,6 +46,8 @@ import {
   ApiAnalyticsResponseTimeOverTimeComponent,
   ApiAnalyticsResponseTimeOverTimeComponentInput, ResponseTimeIsLoading
 } from '../components/api-analytics-response-time-over-time/api-analytics-response-time-over-time.component';
+import { TimeRangeParams } from '../../../../home/components/gio-quick-time-range/gio-quick-time-range.component';
+import { GioQuickTimeRangeModule } from "../../../../home/components/gio-quick-time-range/gio-quick-time-range.module";
 
 type ApiAnalyticsVM = {
   isLoading: boolean;
@@ -77,54 +79,62 @@ type LoadingData = [
     ApiAnalyticsFiltersBarComponent,
     ApiAnalyticsResponseStatusRangesComponent,
     ApiAnalyticsResponseStatusOvertimeComponent,
-    ApiAnalyticsResponseTimeOverTimeComponent
+    ApiAnalyticsResponseTimeOverTimeComponent,
+    GioQuickTimeRangeModule
   ],
   templateUrl: './api-analytics-proxy.component.html',
   styleUrl: './api-analytics-proxy.component.scss',
 })
 export class ApiAnalyticsProxyComponent {
+  private static readonly MS_IN_DAY = 24 * 3600 * 1000;
   private readonly apiService = inject(ApiV2Service);
   private readonly apiAnalyticsService = inject(ApiAnalyticsV2Service);
   private readonly activatedRoute = inject(ActivatedRoute);
+  timeRangeParams: TimeRangeParams = {
+    id: '1d',
+    from: new Date().getTime() - ApiAnalyticsProxyComponent.MS_IN_DAY,
+    to: new Date().getTime(),
+    interval: 0,
+  };
 
-  private getRequestsCount$: Observable<Partial<AnalyticsRequestsCount> & { isLoading: boolean }> = this.apiAnalyticsService
-    .getRequestsCount(this.activatedRoute.snapshot.params.apiId)
+  private getRequestsCount: (string, TimeRangeParams) => Observable<Partial<AnalyticsRequestsCount> & { isLoading: boolean }> = (apiId, _timeRangeParams) => this.apiAnalyticsService
+    .getRequestsCount(apiId)
     .pipe(
       map((requestsCount) => ({ isLoading: false, ...requestsCount })),
       startWith({ isLoading: true }),
     );
 
-  private getAverageConnectionDuration$: Observable<Partial<AnalyticsAverageConnectionDuration> & { isLoading: boolean }> =
-    this.apiAnalyticsService.getAverageConnectionDuration(this.activatedRoute.snapshot.params.apiId).pipe(
+  private getAverageConnectionDuration: (string, TimeRangeParams) => Observable<Partial<AnalyticsAverageConnectionDuration> & { isLoading: boolean }> = (apiId, _timeRangeParams) =>
+    this.apiAnalyticsService.getAverageConnectionDuration(apiId).pipe(
       map((requestsCount) => ({ isLoading: false, ...requestsCount })),
       startWith({ isLoading: true }),
     );
 
-  private getResponseStatusRanges$: Observable<Partial<AnalyticsResponseStatusRanges> & { isLoading: boolean }> = this.apiAnalyticsService
-    .getResponseStatusRanges(this.activatedRoute.snapshot.params.apiId)
+  private getResponseStatusRanges: (string, TimeRangeParams) => Observable<Partial<AnalyticsResponseStatusRanges> & { isLoading: boolean }> = (apiId, _timeRangeParams) => this.apiAnalyticsService
+    .getResponseStatusRanges(apiId)
     .pipe(
       map((responseStatusRanges) => ({ isLoading: false, ...responseStatusRanges })),
       startWith({ isLoading: true }),
     );
 
-  private getResponseStatusOvertime$: Observable<Partial<ApiAnalyticsResponseStatusOvertime> & { isLoading: boolean }> =
-    this.apiAnalyticsService.getResponseStatusOvertime(this.activatedRoute.snapshot.params.apiId).pipe(
+  private getResponseStatusOvertime: (string, TimeRangeParams) => Observable<Partial<ApiAnalyticsResponseStatusOvertime> & { isLoading: boolean }> = (apiId, timeRangeParams) =>
+    this.apiAnalyticsService.getResponseStatusOvertime(apiId, new Date(timeRangeParams.from), new Date(timeRangeParams.to)).pipe(
       map((responseStatusOvertime) => ({ isLoading: false, ...responseStatusOvertime })),
       startWith({ isLoading: true }),
     );
 
-  private getResponseTimeOverTime$: Observable<ApiAnalyticsResponseTimeOverTimeComponentInput> =
-    this.apiAnalyticsService.getResponseTimeOverTime(this.activatedRoute.snapshot.params.apiId).pipe(
+  private getResponseTimeOverTime: (string, TimeRangeParams) => Observable<ApiAnalyticsResponseTimeOverTimeComponentInput> = (apiId, timeRangeParams) =>
+    this.apiAnalyticsService.getResponseTimeOverTime(apiId, new Date(timeRangeParams.from), new Date(timeRangeParams.to)).pipe(
       map((responseTimeOverTime) => ({ isLoading: false, ...responseTimeOverTime })),
       startWith(ResponseTimeIsLoading),
     );
 
-  private analyticsData$: Observable<Omit<ApiAnalyticsVM, 'isLoading' | 'isAnalyticsEnabled'>> = combineLatest([
-    this.getRequestsCount$.pipe(catchError(() => of({ isLoading: false, total: undefined }))),
-    this.getAverageConnectionDuration$.pipe(catchError(() => of({ isLoading: false, average: undefined }))),
-    this.getResponseStatusRanges$.pipe(catchError(() => of({ isLoading: false, ranges: undefined }))),
-    this.getResponseStatusOvertime$.pipe(catchError(() => of({ isLoading: false, timeRange: undefined, data: undefined }))),
-    this.getResponseTimeOverTime$.pipe(catchError(() => of(ResponseTimeIsLoading))),
+  private analyticsData: (string, TimeRangeParams) => Observable<Omit<ApiAnalyticsVM, 'isLoading' | 'isAnalyticsEnabled'>> = (apiId, timeRangeParams) => combineLatest([
+    this.getRequestsCount(apiId, timeRangeParams).pipe(catchError(() => of({ isLoading: false, total: undefined }))),
+    this.getAverageConnectionDuration(apiId, timeRangeParams).pipe(catchError(() => of({ isLoading: false, average: undefined }))),
+    this.getResponseStatusRanges(apiId, timeRangeParams).pipe(catchError(() => of({ isLoading: false, ranges: undefined }))),
+    this.getResponseStatusOvertime(apiId, timeRangeParams).pipe(catchError(() => of({ isLoading: false, timeRange: undefined, data: undefined }))),
+    this.getResponseTimeOverTime(apiId, timeRangeParams).pipe(catchError(() => of(ResponseTimeIsLoading))),
   ]).pipe(
     map(([requestsCount, averageConnectionDuration, responseStatuesRanges, responseStatusOvertime, responseTimeOverTime]: LoadingData) => ({
       requestStats: [
@@ -153,16 +163,16 @@ export class ApiAnalyticsProxyComponent {
     })),
   );
 
-  filters$ = new BehaviorSubject<void>(undefined);
+  filters$ = new BehaviorSubject<TimeRangeParams>(this.timeRangeParams);
 
   apiAnalyticsVM$: Observable<ApiAnalyticsVM> = combineLatest([
     this.apiService.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV4Filter()),
     this.filters$,
   ]).pipe(
-    map(([api]) => api.analytics.enabled),
-    switchMap((isAnalyticsEnabled) => {
+    map(([api, timeRange]) => [api.analytics.enabled, timeRange]),
+    switchMap(([isAnalyticsEnabled, range]) => {
       if (isAnalyticsEnabled) {
-        return this.analyticsData$.pipe(map((analyticsData) => ({ isAnalyticsEnabled: true, ...analyticsData })));
+        return this.analyticsData(this.activatedRoute.snapshot.params.apiId, range).pipe(map((analyticsData) => ({ isAnalyticsEnabled: true, ...analyticsData })));
       }
       return of({ isAnalyticsEnabled: false });
     }),

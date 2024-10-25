@@ -43,6 +43,7 @@ import {
   ApiAnalyticsResponseStatusRangesComponent,
 } from '../../../../../shared/components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component';
 import { AnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
+import { TimeRangeParams } from "../../../../home/components/gio-quick-time-range/gio-quick-time-range.component";
 
 type ApiAnalyticsVM = {
   isLoading: boolean;
@@ -110,7 +111,7 @@ export class ApiAnalyticsMessageComponent {
       startWith({ isLoading: true }),
     );
 
-  filters$ = new BehaviorSubject<void>(undefined);
+  filters$ = new BehaviorSubject<TimeRangeParams>(undefined);
 
   apiAnalyticsVM$: Observable<ApiAnalyticsVM> = combineLatest([
     this.apiService.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV4Filter()),
