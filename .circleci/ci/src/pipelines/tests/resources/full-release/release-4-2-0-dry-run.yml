@@ -710,12 +710,6 @@ workflows:
           name: Build and push RPM packages for APIM 4.2.0 - Dry Run
           requires:
             - Package bundle
-      - job-release-notes-apim:
-          context:
-            - cicd-orchestrator
-          name: Create release note pull request
-          requires:
-            - Package bundle
       - job-nexus-staging:
           context:
             - cicd-orchestrator
@@ -728,9 +722,14 @@ workflows:
           name: Release Helm Chart
           requires:
             - Nexus staging
-            - Create release note pull request
             - Build and push RPM packages for APIM 4.2.0 - Dry Run
             - Build and push docker images for APIM 4.2.0 - Dry Run
+      - job-release-notes-apim:
+          context:
+            - cicd-orchestrator
+          name: Create release note pull request
+          requires:
+            - Release Helm Chart
       - job-slack-announcement:
           context:
             - cicd-orchestrator
