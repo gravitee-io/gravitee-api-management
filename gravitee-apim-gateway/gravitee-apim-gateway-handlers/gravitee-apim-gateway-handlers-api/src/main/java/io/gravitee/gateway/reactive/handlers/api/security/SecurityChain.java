@@ -15,17 +15,11 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.security;
 
-import static io.gravitee.common.http.HttpStatusCode.SERVICE_UNAVAILABLE_503;
-import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_FLOW_STAGE;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_TOKEN;
-import static io.reactivex.rxjava3.core.Completable.defer;
-
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.Hookable;
 import io.gravitee.gateway.reactive.api.hook.SecurityPlanHook;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
@@ -40,8 +34,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * {@link SecurityChain} is a special chain dedicated to execute policy associated with plans.
@@ -52,24 +44,14 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SecurityChain implements Hookable<SecurityPlanHook> {
+public class SecurityChain extends AbstractSecurityChain<SecurityPlan, HttpPlainExecutionContext> implements Hookable<SecurityPlanHook> {
 
-    protected static final String PLAN_UNRESOLVABLE = "GATEWAY_PLAN_UNRESOLVABLE";
-    protected static final String PLAN_RESOLUTION_FAILURE = "GATEWAY_PLAN_RESOLUTION_FAILURE";
-    protected static final String UNAUTHORIZED_MESSAGE = "Unauthorized";
-    protected static final String TEMPORARILY_UNAVAILABLE_MESSAGE = "Temporarily Unavailable";
-    protected static final String ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE = "securityChain.planResolutionFailure";
-
-    protected static final Single<Boolean> TRUE = Single.just(true);
-    protected static final Single<Boolean> FALSE = Single.just(false);
-    private static final Logger log = LoggerFactory.getLogger(SecurityChain.class);
-    private final Flowable<SecurityPlan> chain;
     private final ExecutionPhase executionPhase;
 
     private List<SecurityPlanHook> securityPlanHooks;
 
     public SecurityChain(Api api, PolicyManager policyManager, ExecutionPhase executionPhase) {
-        this(
+        super(
             Flowable.fromIterable(
                 api
                     .getPlans()
@@ -78,81 +60,32 @@ public class SecurityChain implements Hookable<SecurityPlanHook> {
                     .filter(Objects::nonNull)
                     .sorted(Comparator.comparingInt(SecurityPlan::order))
                     .collect(Collectors.toList())
-            ),
-            executionPhase
+            )
         );
-    }
-
-    public SecurityChain(Flowable<SecurityPlan> securityPlans, ExecutionPhase executionPhase) {
-        this.chain = securityPlans;
         this.executionPhase = executionPhase;
     }
 
-    /**
-     * Executes the security chain by executing all the {@link SecurityPlan}s in an ordered sequence.
-     * It's up to each {@link SecurityPlan} to provide its order. The lower is the order, the highest priority is.
-     * The result of the security chain execution depends on the first {@link SecurityPlan} able to execute the request.
-     * If no {@link SecurityPlan} has been executed because there is no {@link SecurityPlan} in the chain or none of them can execute the request,
-     * then the chain is interrupted with a 401 response status and the {@link Completable} returns an error.
-     *
-     * @param ctx the current execution context.
-     * @return a {@link Completable} that completes if the request has been successfully handled by a {@link SecurityPlan} or returns
-     * an error if no {@link SecurityPlan} can execute the request or the {@link SecurityPlan} failed.
-     */
-    public Completable execute(HttpExecutionContext ctx) {
-        return defer(() -> {
-            if (!Objects.equals(true, ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP))) {
-                return chain
-                    .concatMapSingle(securityPlan -> continueChain(ctx, securityPlan))
-                    .any(Boolean::booleanValue)
-                    .flatMapCompletable(securityHandled -> {
-                        if (Boolean.FALSE.equals(securityHandled)) {
-                            Throwable throwable = ctx.getInternalAttribute(ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE);
-                            if (throwable != null) {
-                                return ctx.interruptWith(
-                                    new ExecutionFailure(SERVICE_UNAVAILABLE_503)
-                                        .key(PLAN_RESOLUTION_FAILURE)
-                                        .message(TEMPORARILY_UNAVAILABLE_MESSAGE)
-                                );
-                            }
-                            return ctx.interruptWith(
-                                new ExecutionFailure(UNAUTHORIZED_401).key(PLAN_UNRESOLVABLE).message(UNAUTHORIZED_MESSAGE)
-                            );
-                        }
-                        return Completable.complete();
-                    })
-                    .doOnSubscribe(disposable -> {
-                        log.debug("Executing security chain");
-                        ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, "security");
-                    })
-                    .doOnTerminate(() -> {
-                        ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE);
-                        ctx.removeInternalAttribute(ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE);
-                        ctx.removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
-                    });
-            }
-
-            log.debug("Skipping security chain because it has been explicitly required");
-            return Completable.complete();
-        });
+    public SecurityChain(Flowable<SecurityPlan> securityPlans, ExecutionPhase executionPhase) {
+        super(securityPlans);
+        this.executionPhase = executionPhase;
     }
 
-    private Single<Boolean> continueChain(HttpExecutionContext ctx, SecurityPlan securityPlan) {
-        return securityPlan
-            .canExecute(ctx)
-            .onErrorResumeNext(throwable -> {
-                log.error("An error occurred while checking if security plan {} can be executed", securityPlan.id(), throwable);
-                ctx.setInternalAttribute(ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE, throwable);
-                return FALSE;
-            })
-            .flatMap(canExecute -> {
-                if (Boolean.TRUE.equals(canExecute)) {
-                    return HookHelper
-                        .hook(() -> securityPlan.execute(ctx, executionPhase), securityPlan.id(), securityPlanHooks, ctx, executionPhase)
-                        .andThen(TRUE);
-                }
-                return FALSE;
-            });
+    @Override
+    protected Completable sendError(HttpPlainExecutionContext ctx, ExecutionFailure failure) {
+        return ctx.interruptWith(failure);
+    }
+
+    @Override
+    protected Single<Boolean> executePlan(SecurityPlan securityPlan, HttpPlainExecutionContext ctx) {
+        return HookHelper
+            .hook(
+                () -> securityPlan.execute(ctx, executionPhase),
+                securityPlan.id(),
+                securityPlanHooks,
+                (HttpExecutionContext) ctx,
+                executionPhase
+            )
+            .andThen(TRUE);
     }
 
     @Override
