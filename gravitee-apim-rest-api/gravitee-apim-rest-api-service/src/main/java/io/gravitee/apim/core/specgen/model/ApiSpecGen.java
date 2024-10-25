@@ -21,4 +21,4 @@ import io.gravitee.definition.model.v4.ApiType;
  * @author Rémi SULTAN (remi.sultan at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record ApiSpecGen(String id, ApiType type, String environmentId) {}
+public record ApiSpecGen(String id, String name, String description, String version, ApiType type, String environmentId) {}
