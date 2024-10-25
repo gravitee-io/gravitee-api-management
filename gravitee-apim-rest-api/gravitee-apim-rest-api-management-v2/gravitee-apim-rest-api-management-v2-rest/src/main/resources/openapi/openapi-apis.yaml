@@ -2032,6 +2032,16 @@ paths:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
+            - in: query
+              name: from
+              schema:
+                type: integer
+              description: The start timestamp of sample
+            - in: query
+              name: to
+              schema:
+                type: integer
+              description: The end timestamp of sample
         get:
             tags:
                 - API Analytics
@@ -2066,23 +2076,25 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/analytics/response-time-over-time:
-        parameters:
-            - $ref: "#/components/parameters/envIdParam"
-            - $ref: "#/components/parameters/apiIdParam"
-        get:
-            tags:
-                - API Analytics
-            summary: Get API Analytics average response time
-            description: |-
-                Get API Analytics average response time
-
-                User must have the API_ANALYTICS[READ] permission.
-            operationId: getResponseTimeOverTime
-            responses:
-                "200":
-                    $ref: "#/components/responses/ApiAnalyticsOverPeriodResponse"
-                default:
-                    $ref: "#/components/responses/Error"
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+        - $ref: "#/components/parameters/from"
+        - $ref: "#/components/parameters/to"
+      get:
+        tags:
+          - API Analytics
+        summary: Get API Analytics average response time
+        description: |-
+          Get API Analytics average response time
+          
+          User must have the API_ANALYTICS[READ] permission.
+        operationId: getResponseTimeOverTime
+        responses:
+          "200":
+            $ref: "#/components/responses/ApiAnalyticsOverPeriodResponse"
+          default:
+            $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/analytics/response-statuses-over-time:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -7510,6 +7522,7 @@ components:
                 The timestamp from which the logs will be returned.
             schema:
                 type: integer
+                format: int64
         to:
             name: to
             in: query
@@ -7518,6 +7531,7 @@ components:
                 The timestamp to which the logs will be returned.
             schema:
                 type: integer
+                format: int64
         applicationIds:
             name: applicationIds
             description: List of application ids to filter on.
