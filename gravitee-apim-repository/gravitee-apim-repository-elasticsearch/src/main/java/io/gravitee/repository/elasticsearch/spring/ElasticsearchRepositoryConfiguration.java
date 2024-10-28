@@ -61,6 +61,7 @@ import org.springframework.context.annotation.Import;
         LogConfiguration.class,
         io.gravitee.repository.elasticsearch.v4.log.spring.LogConfiguration.class,
         io.gravitee.repository.elasticsearch.v4.analytics.spring.AnalyticsConfiguration.class,
+        io.gravitee.repository.elasticsearch.v4.healthcheck.spring.HealthCheckConfiguration.class,
         MonitoringConfiguration.class,
     }
 )

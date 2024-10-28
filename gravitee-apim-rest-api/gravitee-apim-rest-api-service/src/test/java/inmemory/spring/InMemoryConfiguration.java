@@ -15,6 +15,7 @@
  */
 package inmemory.spring;
 
+import fakes.FakeApiHealthQueryService;
 import inmemory.AccessPointQueryServiceInMemory;
 import inmemory.ApiAuthorizationDomainServiceInMemory;
 import inmemory.ApiCRDExportDomainServiceInMemory;

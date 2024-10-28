@@ -61,6 +61,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.analytics.ApiAnalyticsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.audit.ApiAuditsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.event.ApiEventsResource;
+import io.gravitee.rest.api.management.v2.rest.resource.api.health.ApiHealthResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.log.ApiLogsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.scoring.ApiScoringResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.specgen.ApiSpecGenResource;
@@ -225,6 +226,11 @@ public class ApiResource extends AbstractResource {
     @Path("/analytics")
     public ApiAnalyticsResource getApiAnalyticsResource() {
         return resourceContext.getResource(ApiAnalyticsResource.class);
+    }
+
+    @Path("/health")
+    public ApiHealthResource geApiHealthResource() {
+        return resourceContext.getResource(ApiHealthResource.class);
     }
 
     @Path("/audits")

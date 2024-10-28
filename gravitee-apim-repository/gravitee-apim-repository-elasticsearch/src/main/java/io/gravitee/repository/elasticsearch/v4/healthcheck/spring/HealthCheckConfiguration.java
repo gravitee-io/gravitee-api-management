@@ -13,23 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package fakes.spring;
+package io.gravitee.repository.elasticsearch.v4.healthcheck.spring;
 
-import fakes.FakeAnalyticsQueryService;
-import fakes.FakeApiHealthQueryService;
+import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
+import io.gravitee.repository.elasticsearch.v4.analytics.AnalyticsElasticsearchRepository;
+import io.gravitee.repository.elasticsearch.v4.healthcheck.HealthCheckElasticsearchRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class FakeConfiguration {
+public class HealthCheckConfiguration {
 
     @Bean
-    public FakeAnalyticsQueryService fakeAnalyticsQueryService() {
-        return new FakeAnalyticsQueryService();
-    }
-
-    @Bean
-    public FakeApiHealthQueryService apiHealthQueryServiceInMemory() {
-        return new FakeApiHealthQueryService();
+    public HealthCheckElasticsearchRepository healthCheckElasticsearchRepository(RepositoryConfiguration configuration) {
+        return new HealthCheckElasticsearchRepository(configuration);
     }
 }
