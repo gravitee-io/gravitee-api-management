@@ -60,13 +60,9 @@
       <td mat-cell *matCellDef="let element">
         <span>{{ element.definitionVersion.label }}</span>
 
-        @if (element.provider) {
-          <span class="provider">
-            {{ element.provider | mapProviderName }}
-          </span>
-        } @else {
-          <span class="provider"> Gravitee </span>
-        }
+        <span class="provider">
+          {{ (element.provider | mapProviderName) ?? 'Gravitee' }}
+        </span>
       </td>
     </ng-container>
 
@@ -74,48 +70,30 @@
     <ng-container matColumnDef="states">
       <th mat-header-cell *matHeaderCellDef id="states">Status</th>
       <td mat-cell *matCellDef="let element">
-        <mat-icon
-          *ngIf="element.state === 'STARTED'"
-          matTooltip="Started"
-          class="states__api-started"
-          size="20"
-          svgIcon="gio:play-circle"
-        ></mat-icon>
-        <mat-icon
-          *ngIf="element.state && element.state !== 'STARTED'"
-          matTooltip="Stopped"
-          class="states__api-not-started"
-          size="20"
-          svgIcon="gio:stop-circle"
-        ></mat-icon>
+        @if (element.state === 'STARTED') {
+          <mat-icon matTooltip="Started" class="states__api-started" size="20" svgIcon="gio:play-circle" />
+        } @else if (element.state) {
+          <mat-icon matTooltip="Stopped" class="states__api-not-started" size="20" svgIcon="gio:stop-circle" />
+        }
         <mat-icon
           *ngIf="element.isNotSynced$ | async"
           matTooltip="API out of sync"
           class="states__api-is-not-synced"
           size="20"
           svgIcon="gio:refresh-cw"
-        ></mat-icon>
-        <mat-icon
-          *ngIf="element.lifecycleState === 'PUBLISHED'"
-          matTooltip="Published"
-          class="states__api-published"
-          size="20"
-          svgIcon="gio:cloud-published"
-        ></mat-icon>
-        <mat-icon
-          *ngIf="element.lifecycleState && element.lifecycleState !== 'PUBLISHED'"
-          matTooltip="Unpublished"
-          class="states__api-not-published"
-          size="20"
-          svgIcon="gio:cloud-unpublished"
-        ></mat-icon>
+        />
+        @if (element.lifecycleState === 'PUBLISHED') {
+          <mat-icon matTooltip="Published" class="states__api-published" size="20" svgIcon="gio:cloud-published" />
+        } @else if (element.lifecycleState) {
+          <mat-icon matTooltip="Unpublished" class="states__api-not-published" size="20" svgIcon="gio:cloud-unpublished" />
+        }
         <mat-icon
           *ngIf="element.origin === 'KUBERNETES'"
           matTooltip="Kubernetes Origin"
           class="states__api-origin"
           size="20"
           svgIcon="gio:kubernetes"
-        ></mat-icon>
+        />
         <span
           *ngIf="element.workflowBadge"
           [ngClass]="element.workflowBadge.class"
@@ -145,7 +123,15 @@
     <ng-container matColumnDef="tags">
       <th mat-header-cell *matHeaderCellDef id="tags">Tags</th>
       <td mat-cell *matCellDef="let element">
-        <a>{{ element.tags }}</a>
+        <a>{{ element.tags.join(', ') }}</a>
+      </td>
+    </ng-container>
+
+    <!-- Display Category Column -->
+    <ng-container matColumnDef="categories">
+      <th mat-header-cell *matHeaderCellDef id="categories">Categories</th>
+      <td mat-cell *matCellDef="let element">
+        <a>{{ element.categories.join(', ') }}</a>
       </td>
     </ng-container>
 
