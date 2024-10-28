@@ -119,7 +119,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
         synchronize()
             .andThen(
                 Completable.fromRunnable(() -> {
-                    log.info("Sync service has been scheduled with delay [{}{}]", delay, unit.name());
+                    log.info("Sync service has been scheduled with delay [{} {}]", delay, unit.name());
                     refreshDisposable =
                         Flowable
                             .<Long, Long>generate(
@@ -132,6 +132,10 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                             .delay(delay, unit)
                             .rebatchRequests(1)
                             .concatMapCompletable(interval -> synchronize())
+<<<<<<< HEAD
+=======
+                            .retry()
+>>>>>>> 49ba0c2d31 (fix: sync process should not complete when last attempt reached on one synchronizer)
                             .subscribe();
                 })
             )

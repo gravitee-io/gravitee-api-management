@@ -139,4 +139,66 @@ class DefaultSyncManagerTest {
             RxJavaPlugins.reset();
         }
     }
+
+    @Test
+    void should_synchronize_after_last_attempt_synchronizer_failed() throws Exception {
+        try {
+            final TestScheduler testScheduler = new TestScheduler();
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+            RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
+
+            AtomicInteger counter = new AtomicInteger(0);
+            AtomicInteger counterSyncComplete = new AtomicInteger(0);
+
+            RepositorySynchronizer synchronizer1 = spy(new FakeSynchronizer(Completable.complete(), 1));
+            RepositorySynchronizer synchronizer2 = spy(
+                new FakeSynchronizer(
+                    Completable.defer(() -> {
+                        var currentCounter = counter.getAndIncrement();
+                        if (currentCounter > 0 && currentCounter < 3) {
+                            return Completable.error(new RuntimeException("Sync exception"));
+                        }
+                        counterSyncComplete.incrementAndGet();
+                        return Completable.complete();
+                    }),
+                    2
+                )
+            );
+            synchronizers.add(synchronizer1);
+            synchronizers.add(synchronizer2);
+
+            cut.start();
+
+            InOrder inOrder = inOrder(route, synchronizer1, synchronizer2);
+            inOrder.verify(route).handler(argThat(argument -> argument instanceof SyncHandler));
+            inOrder.verify(synchronizer1).synchronize(eq(-1L), any(), anySet());
+            inOrder.verify(synchronizer2).synchronize(eq(-1L), any(), anySet());
+
+            // Trigger a diff sync (failure)
+            testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
+            testScheduler.triggerActions();
+
+            // First retry (failure)
+            testScheduler.advanceTimeBy(3, TimeUnit.SECONDS);
+            testScheduler.triggerActions();
+
+            // Wait 3 more second for retry delay
+            testScheduler.advanceTimeBy(3, TimeUnit.SECONDS);
+            testScheduler.triggerActions();
+
+            // Sync process retry (success)
+            testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
+            testScheduler.triggerActions();
+
+            // Synchronizer has been called 4 times with 2 success (one on full sync (start) and one on diff sync after 2 failure)
+            assertThat(counter.get()).isEqualTo(4);
+            assertThat(counterSyncComplete.get()).isEqualTo(2);
+
+            // Diff sync should be called with a from date != -1.
+            inOrder.verify(synchronizer1).synchronize(argThat(from -> from != -1L), any(), anySet());
+            inOrder.verify(synchronizer2).synchronize(argThat(from -> from != -1L), any(), anySet());
+        } finally {
+            RxJavaPlugins.reset();
+        }
+    }
 }
