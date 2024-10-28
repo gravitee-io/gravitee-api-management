@@ -15,14 +15,18 @@
  */
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { isNil } from 'lodash';
 
 import { Constants } from '../entities/Constants';
 import { AnalyticsRequestParam } from '../entities/analytics/analyticsRequestParam';
-import { AnalyticsCountResponse, AnalyticsGroupByResponse, AnalyticsStatsResponse } from '../entities/analytics/analyticsResponse';
+import {
+  AnalyticsCountResponse,
+  AnalyticsGroupByResponse,
+  AnalyticsStatsResponse,
+  AnalyticsV4TopApisResponse,
+} from '../entities/analytics/analyticsResponse';
 import { AnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
-import { TopApisV4 } from '../shared/components/top-apis-widget/top-apis-widget.component';
 
 @Injectable({
   providedIn: 'root',
@@ -67,24 +71,8 @@ export class AnalyticsService {
     return this.http.get<AnalyticsResponseStatusRanges>(url);
   }
 
-  getV4TopApis(from: number, to: number): Observable<TopApisV4[]> {
-    // TODO: refactor to use BE when ready
-    return of([
-      {
-        id: '7c316e07-7661-406b-b16e-077661f06b73',
-        name: 'John Doe',
-        count: from,
-      },
-      {
-        id: '7c316e07-7661-406b-b16e-077661f06b73',
-        name: 'APIs s',
-        count: to,
-      },
-      {
-        id: '7c316e07-7661-406b-b16e-077661f06b73',
-        name: 'APIs sd2',
-        count: 1500,
-      },
-    ]);
+  getV4TopApis(from: number, to: number): Observable<AnalyticsV4TopApisResponse> {
+    const url = `${this.constants.env.v2BaseURL}/analytics/top-hits?from=${from}&to=${to}`;
+    return this.http.get<AnalyticsV4TopApisResponse>(url);
   }
 }

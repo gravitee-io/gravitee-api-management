@@ -60,6 +60,7 @@ describe('HomeOverviewComponent', () => {
       expectCountApplicationRequest();
       expectSearchApiEventsRequest();
       expectConsoleSettingsGetRequest();
+      expectTopApisGetRequest();
 
       const stats = await loader.getHarness(GioRequestStatsHarness);
       expect(await stats.getAverage()).toEqual('8.43 ms');
@@ -75,6 +76,7 @@ describe('HomeOverviewComponent', () => {
       expectCountApplicationRequest();
       expectSearchApiEventsRequest();
       expectConsoleSettingsGetRequest();
+      expectTopApisGetRequest();
 
       const timeRangeHarness = await loader.getHarness(GioQuickTimeRangeHarness);
       await timeRangeHarness.selectTimeRangeByText('last hour');
@@ -101,6 +103,7 @@ describe('HomeOverviewComponent', () => {
 
       expectSearchApiEventsRequest();
       expectConsoleSettingsGetRequest();
+      expectTopApisGetRequest();
     });
   });
 
@@ -126,6 +129,7 @@ describe('HomeOverviewComponent', () => {
       expectCountApiRequest();
       expectCountApplicationRequest();
       expectConsoleSettingsGetRequest();
+      expectTopApisGetRequest();
 
       const stats = await loader.getHarness(GioRequestStatsHarness);
       expect(await stats.getAverage()).toEqual('8.43 ms');
@@ -236,6 +240,15 @@ describe('HomeOverviewComponent', () => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
     req.flush({ requests: {} });
+    expect(req.request.method).toEqual('GET');
+  }
+
+  function expectTopApisGetRequest() {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/analytics/top-hits`;
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(url);
+    });
+    req.flush({ data: [] });
     expect(req.request.method).toEqual('GET');
   }
 });
