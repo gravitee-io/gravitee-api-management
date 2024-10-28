@@ -19,6 +19,8 @@ import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.definition.model.v4.nativeapi.NativeListener;
+import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,12 +39,14 @@ public interface ListenerMapper {
     io.gravitee.rest.api.management.v2.rest.model.HttpListener map(HttpListener httpListener);
     io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener map(SubscriptionListener subscriptionListener);
     io.gravitee.rest.api.management.v2.rest.model.TcpListener map(TcpListener tcpListener);
+    io.gravitee.rest.api.management.v2.rest.model.KafkaListener map(KafkaListener kafkaListener);
 
     @Mapping(target = "pathMappingsPattern", source = "pathMappings", qualifiedByName = "toPathMappingsPattern")
     HttpListener map(io.gravitee.rest.api.management.v2.rest.model.HttpListener listener);
 
     SubscriptionListener map(io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener listener);
     TcpListener map(io.gravitee.rest.api.management.v2.rest.model.TcpListener listener);
+    KafkaListener map(io.gravitee.rest.api.management.v2.rest.model.KafkaListener listener);
 
     @Named("toPathMappingsPattern")
     default Map<String, Pattern> toPathMappingsPattern(List<String> pathMappings) {
@@ -52,7 +56,7 @@ public interface ListenerMapper {
         return pathMappings.stream().collect(Collectors.toMap(pathMapping -> pathMapping, pathMapping -> Pattern.compile(pathMapping)));
     }
 
-    @Named("toListeners")
+    @Named("toHttpListeners")
     default List<Listener> mapToListenerEntityV4List(List<io.gravitee.rest.api.management.v2.rest.model.Listener> listeners) {
         if (Objects.isNull(listeners)) {
             return new ArrayList<>();
@@ -74,7 +78,7 @@ public interface ListenerMapper {
             .collect(Collectors.toList());
     }
 
-    @Named("fromListeners")
+    @Named("fromHttpListeners")
     default List<io.gravitee.rest.api.management.v2.rest.model.Listener> mapFromListenerEntityV4List(List<Listener> listeners) {
         if (Objects.isNull(listeners)) {
             return new ArrayList<>();
@@ -91,6 +95,39 @@ public interface ListenerMapper {
                 }
                 if (listener.getType() == io.gravitee.definition.model.v4.listener.ListenerType.TCP) {
                     return new io.gravitee.rest.api.management.v2.rest.model.Listener(this.map((TcpListener) listener));
+                }
+                return null;
+            })
+            .collect(Collectors.toList());
+    }
+
+    @Named("toNativeListeners")
+    default List<NativeListener> mapToNativeListenerV4List(List<io.gravitee.rest.api.management.v2.rest.model.Listener> listeners) {
+        if (Objects.isNull(listeners)) {
+            return new ArrayList<>();
+        }
+        return listeners
+            .stream()
+            .map(listener -> {
+                if (listener.getActualInstance() instanceof io.gravitee.rest.api.management.v2.rest.model.KafkaListener) {
+                    return this.map(listener.getKafkaListener());
+                }
+                return null;
+            })
+            .collect(Collectors.toList());
+    }
+
+    @Named("fromNativeListeners")
+    default List<io.gravitee.rest.api.management.v2.rest.model.Listener> mapFromNativeListenerV4List(List<NativeListener> listeners) {
+        if (Objects.isNull(listeners)) {
+            return new ArrayList<>();
+        }
+
+        return listeners
+            .stream()
+            .map(listener -> {
+                if (listener.getType() == io.gravitee.definition.model.v4.listener.ListenerType.KAFKA) {
+                    return new io.gravitee.rest.api.management.v2.rest.model.Listener(this.map((KafkaListener) listener));
                 }
                 return null;
             })

@@ -16,6 +16,7 @@
 package fixtures;
 
 import io.gravitee.rest.api.management.v2.rest.model.HttpListener;
+import io.gravitee.rest.api.management.v2.rest.model.KafkaListener;
 import io.gravitee.rest.api.management.v2.rest.model.ListenerType;
 import io.gravitee.rest.api.management.v2.rest.model.PathV4;
 import io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener;
@@ -33,7 +34,7 @@ public class ListenerFixtures {
         .builder()
         // BaseListener
         .type(ListenerType.HTTP)
-        .entrypoints(List.of(EntrypointFixtures.anEntrypointV4()))
+        .entrypoints(List.of(EntrypointFixtures.anEntrypointHttpV4()))
         .servers(List.of("my-server1", "my-server2"))
         // HttpListener specific
         .paths(List.of(BASE_PATH_V4.build()))
@@ -44,14 +45,21 @@ public class ListenerFixtures {
         .builder()
         // BaseListener
         .type(ListenerType.SUBSCRIPTION)
-        .entrypoints(List.of(EntrypointFixtures.anEntrypointV4()))
+        .entrypoints(List.of(EntrypointFixtures.anEntrypointHttpV4()))
         .servers(List.of("my-server1", "my-server2"));
 
     private static final TcpListener.TcpListenerBuilder BASE_TCP_LISTENER = TcpListener
         .builder()
         // BaseListener
         .type(ListenerType.TCP)
-        .entrypoints(List.of(EntrypointFixtures.anEntrypointV4()))
+        .entrypoints(List.of(EntrypointFixtures.anEntrypointHttpV4()))
+        .servers(List.of("my-server1", "my-server2"));
+
+    private static final KafkaListener.KafkaListenerBuilder BASE_KAFKA_LISTENER = KafkaListener
+        .builder()
+        // BaseListener
+        .type(ListenerType.KAFKA)
+        .entrypoints(List.of(EntrypointFixtures.anEntrypointHttpV4()))
         .servers(List.of("my-server1", "my-server2"));
 
     public static HttpListener aHttpListener() {
@@ -66,6 +74,10 @@ public class ListenerFixtures {
         return BASE_TCP_LISTENER.build();
     }
 
+    public static KafkaListener aKafkaListener() {
+        return BASE_KAFKA_LISTENER.build();
+    }
+
     public static io.gravitee.definition.model.v4.listener.http.HttpListener aModelHttpListener() {
         return ListenerModelFixtures.aModelHttpListener();
     }
@@ -76,5 +88,9 @@ public class ListenerFixtures {
 
     public static io.gravitee.definition.model.v4.listener.tcp.TcpListener aModelTcpListener() {
         return ListenerModelFixtures.aModelTcpListener();
+    }
+
+    public static io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener aModelKafkaListener() {
+        return ListenerModelFixtures.aModelKafkaListener();
     }
 }

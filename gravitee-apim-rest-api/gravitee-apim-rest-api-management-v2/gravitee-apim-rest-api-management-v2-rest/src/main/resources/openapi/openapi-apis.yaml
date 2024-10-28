@@ -3522,7 +3522,6 @@ components:
             enum:
                 - MESSAGE
                 - PROXY
-                #                FIXME: Kafka Gateway - properly support it, it has just been added for mapstruct
                 - NATIVE
         Visibility:
             type: string
@@ -4140,12 +4139,14 @@ components:
                 - $ref: "#/components/schemas/HttpListener"
                 - $ref: "#/components/schemas/SubscriptionListener"
                 - $ref: "#/components/schemas/TcpListener"
+                - $ref: "#/components/schemas/KafkaListener"
             discriminator:
                 propertyName: type
                 mapping:
                     HTTP: "#/components/schemas/HttpListener"
                     TCP: "#/components/schemas/TcpListener"
                     SUBSCRIPTION: "#/components/schemas/SubscriptionListener"
+                    KAFKA: "#/components/schemas/KafkaListener"
         BaseListener:
             type: object
             required:
@@ -4168,6 +4169,7 @@ components:
                     HTTP: "#/components/schemas/HttpListener"
                     TCP: "#/components/schemas/TcpListener"
                     SUBSCRIPTION: "#/components/schemas/SubscriptionListener"
+                    KAFKA: "#/components/schemas/KafkaListener"
         ListenerType:
             type: string
             description: Listener type.
@@ -4176,7 +4178,6 @@ components:
                 - HTTP
                 - SUBSCRIPTION
                 - TCP
-                #                FIXME: Kafka Gateway: properly support it, it has just been added for mapstruct
                 - KAFKA
         LoadBalancer:
             type: object
@@ -5418,6 +5419,25 @@ components:
                               minLength: 1
                   required:
                       - "hosts"
+        KafkaListener:
+            title: "KafkaListener"
+            required:
+                - type
+            allOf:
+                - $ref: "#/components/schemas/BaseListener"
+                - type: object
+                  properties:
+                      host:
+                          description: A hostname for which the API will match against SNI.
+                          type: string
+                      port:
+                        type: integer
+                        minimum: 0
+                        description: The port of the listener
+                        example: 8080
+                  required:
+                      - "host"
+                      - "port"
         VerifyApiPaths:
             title: "VerifyApiPaths"
             properties:

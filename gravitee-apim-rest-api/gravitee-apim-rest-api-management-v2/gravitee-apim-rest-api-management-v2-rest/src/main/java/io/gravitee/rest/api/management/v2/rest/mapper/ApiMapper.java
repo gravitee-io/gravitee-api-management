@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import static java.util.stream.Collectors.toMap;
 
 import io.gravitee.apim.core.api.model.NewHttpApi;
+import io.gravitee.apim.core.api.model.NewNativeApi;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -149,7 +150,7 @@ public interface ApiMapper {
     ApiFederated mapToFederated(FederatedApiEntity apiEntity, UriInfo uriInfo);
 
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
-    @Mapping(target = "listeners", qualifiedByName = "fromListeners")
+    @Mapping(target = "listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
     ApiV4 mapToV4(ApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
@@ -162,7 +163,7 @@ public interface ApiMapper {
     @Mapping(target = "flows", source = "source.apiDefinitionHttpV4.flows")
     @Mapping(target = "lifecycleState", source = "source.apiLifecycleState")
     @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
-    @Mapping(target = "listeners", source = "source.apiDefinitionHttpV4.listeners", qualifiedByName = "fromListeners")
+    @Mapping(target = "listeners", source = "source.apiDefinitionHttpV4.listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "state", source = "source.lifecycleState")
     ApiV4 mapToV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
@@ -177,20 +178,23 @@ public interface ApiMapper {
         GenericApi.DeploymentStateEnum deploymentState
     );
 
-    @Mapping(target = "listeners", qualifiedByName = "fromListeners")
+    @Mapping(target = "listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "links", ignore = true)
     ApiV4 map(ApiEntity apiEntity);
 
-    @Mapping(target = "listeners", qualifiedByName = "toListeners")
+    @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
     ApiEntity map(ApiV4 api);
 
-    @Mapping(target = "listeners", qualifiedByName = "toListeners")
+    @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
     ApiExport toApiExport(ApiV4 api);
 
-    @Mapping(target = "listeners", qualifiedByName = "toListeners")
-    NewHttpApi map(CreateApiV4 api);
+    @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
+    NewHttpApi mapToNewHttpApi(CreateApiV4 api);
 
-    @Mapping(target = "listeners", qualifiedByName = "toListeners")
+    @Mapping(target = "listeners", qualifiedByName = "toNativeListeners")
+    NewNativeApi mapToNewNativeApi(CreateApiV4 api);
+
+    @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
     @Mapping(target = "plans", qualifiedByName = "mapPlanCRD")
     ApiCRDSpec map(io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec crd);
 
@@ -203,7 +207,7 @@ public interface ApiMapper {
     io.gravitee.apim.core.api.model.crd.PageCRD map(Page crd);
 
     // UpdateApi
-    @Mapping(target = "listeners", qualifiedByName = "toListeners")
+    @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
     @Mapping(target = "id", expression = "java(apiId)")
     UpdateApiEntity map(UpdateApiV4 updateApi, String apiId);
 
