@@ -15,14 +15,20 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import static org.assertj.core.api.Assertions.*;
+
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import java.sql.Date;
+import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
@@ -50,6 +56,48 @@ class ApiCRDAdapterTest {
             soft.assertThat(spec.getPlans()).hasSize(1);
             soft.assertThat(spec.getPlans()).containsKey("plan-name");
         });
+    }
+
+    @Test
+    void should_exclude_closed_plans_from_crd_spec() {
+        var export = exportEntity();
+        var plansWithOneClosedPlan = new HashSet<>(export.getPlans());
+        plansWithOneClosedPlan.add(PlanEntity.builder().status(PlanStatus.CLOSED).name("closed-plan").build());
+        export.setPlans(plansWithOneClosedPlan);
+        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity());
+        assertThat(spec.getPlans()).hasSize(1);
+    }
+
+    @Test
+    void should_resolve_conflicts_with_plan_names_in_crd_spec() {
+        var export = exportEntity();
+        var then = Instant.now();
+        var plansWithConflictingNames = Set.of(
+            PlanEntity
+                .builder()
+                .createdAt(Date.from(then))
+                .id("api-key-1")
+                .name("api-key")
+                .security(PlanSecurity.builder().type("API_KEY").build())
+                .build(),
+            PlanEntity
+                .builder()
+                .createdAt(Date.from(then.plusMillis(1)))
+                .id("api-key-2")
+                .name("api-key")
+                .security(PlanSecurity.builder().type("API_KEY").build())
+                .build(),
+            PlanEntity
+                .builder()
+                .createdAt(Date.from(then.plusMillis(2)))
+                .id("api-key-3")
+                .name("api-key")
+                .security(PlanSecurity.builder().type("API_KEY").build())
+                .build()
+        );
+        export.setPlans(plansWithConflictingNames);
+        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity());
+        assertThat(spec.getPlans()).hasSize(3);
     }
 
     private static ExportApiEntity exportEntity() {
