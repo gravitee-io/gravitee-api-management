@@ -19,16 +19,22 @@ import io.gravitee.gateway.reactive.api.message.Message;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.FlowableTransformer;
 import java.util.function.Function;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@NoArgsConstructor
 public class MessageFlow<T extends Message> {
 
     private Function<FlowableTransformer<T, T>, FlowableTransformer<T, T>> onMessagesInterceptor;
 
     protected Flowable<T> messages = Flowable.empty();
+
+    public MessageFlow(Flowable<T> messages) {
+        this.messages = messages;
+    }
 
     public Flowable<T> messages() {
         return messages;
