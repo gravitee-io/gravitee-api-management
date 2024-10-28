@@ -76,7 +76,7 @@ public class ApiModelFixtures {
         .description("my-description")
         .tags(Set.of("tag1", "tag2"))
         .listeners(List.of(ListenerModelFixtures.aModelHttpListener(), ListenerModelFixtures.aModelSubscriptionListener()))
-        .endpointGroups(List.of(EndpointModelFixtures.aModelEndpointGroupV4()))
+        .endpointGroups(List.of(EndpointModelFixtures.aModelEndpointGroupHttpV4()))
         .analytics(new io.gravitee.definition.model.v4.analytics.Analytics())
         .properties(List.of(PropertyModelFixtures.aModelPropertyV4()))
         .resources(List.of(ResourceModelFixtures.aResourceEntityV4()))

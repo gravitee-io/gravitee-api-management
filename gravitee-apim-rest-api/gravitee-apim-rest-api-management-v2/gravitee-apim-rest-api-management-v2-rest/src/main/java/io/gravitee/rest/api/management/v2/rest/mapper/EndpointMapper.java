@@ -32,17 +32,31 @@ public interface EndpointMapper {
     // V4
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
     @Mapping(target = "sharedConfigurationOverride", qualifiedByName = "serializeConfiguration")
-    io.gravitee.definition.model.v4.endpointgroup.Endpoint map(EndpointV4 entrypoint);
+    io.gravitee.definition.model.v4.endpointgroup.Endpoint mapToHttpV4(EndpointV4 entrypoint);
 
     @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
     @Mapping(target = "sharedConfigurationOverride", qualifiedByName = "deserializeConfiguration")
-    EndpointV4 map(io.gravitee.definition.model.v4.endpointgroup.Endpoint endpoint);
+    EndpointV4 mapFromHttpV4(io.gravitee.definition.model.v4.endpointgroup.Endpoint endpoint);
+
+    @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
+    @Mapping(target = "sharedConfigurationOverride", qualifiedByName = "serializeConfiguration")
+    io.gravitee.definition.model.v4.nativeapi.NativeEndpoint mapToNativeV4(EndpointV4 entrypoint);
+
+    @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(target = "sharedConfigurationOverride", qualifiedByName = "deserializeConfiguration")
+    EndpointV4 mapFromNativeV4(io.gravitee.definition.model.v4.nativeapi.NativeEndpoint endpoint);
 
     @Mapping(target = "sharedConfiguration", qualifiedByName = "serializeConfiguration")
-    io.gravitee.definition.model.v4.endpointgroup.EndpointGroup mapEndpointGroup(EndpointGroupV4 endpointGroup);
+    io.gravitee.definition.model.v4.endpointgroup.EndpointGroup mapEndpointGroupHttpV4(EndpointGroupV4 endpointGroup);
 
     @Mapping(target = "sharedConfiguration", qualifiedByName = "deserializeConfiguration")
-    EndpointGroupV4 mapEndpointGroup(io.gravitee.definition.model.v4.endpointgroup.EndpointGroup endpointGroup);
+    EndpointGroupV4 mapEndpointGroupHttpV4(io.gravitee.definition.model.v4.endpointgroup.EndpointGroup endpointGroup);
+
+    @Mapping(target = "sharedConfiguration", qualifiedByName = "serializeConfiguration")
+    io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup mapEndpointGroupNativeV4(EndpointGroupV4 endpointGroup);
+
+    @Mapping(target = "sharedConfiguration", qualifiedByName = "deserializeConfiguration")
+    EndpointGroupV4 mapEndpointGroupNativeV4(io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup endpointGroup);
 
     // V2
     io.gravitee.definition.model.Endpoint mapEndpoint(HttpEndpointV2 endpoint);
