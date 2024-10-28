@@ -33,12 +33,17 @@ public interface FlowMapper {
 
     // Flow V4
     @Mapping(target = "selectors", qualifiedByName = "mapToSelectorApiModelList")
-    FlowV4 map(io.gravitee.definition.model.v4.flow.Flow flow);
+    FlowV4 mapFromHttpV4(io.gravitee.definition.model.v4.flow.Flow flow);
 
     @Mapping(target = "selectors", qualifiedByName = "mapToSelectorEntityList")
-    io.gravitee.definition.model.v4.flow.Flow map(FlowV4 flow);
+    io.gravitee.definition.model.v4.flow.Flow mapToHttpV4(FlowV4 flow);
 
-    List<io.gravitee.definition.model.v4.flow.Flow> map(List<FlowV4> flows);
+    FlowV4 mapFromNativeV4(io.gravitee.definition.model.v4.nativeapi.NativeFlow flow);
+
+    io.gravitee.definition.model.v4.nativeapi.NativeFlow mapToNativeV4(FlowV4 flow);
+
+    List<io.gravitee.definition.model.v4.flow.Flow> mapToHttpV4(List<FlowV4> flows);
+    List<io.gravitee.definition.model.v4.nativeapi.NativeFlow> mapToNativeV4(List<FlowV4> flows);
 
     @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
     StepV4 mapStep(Step step);

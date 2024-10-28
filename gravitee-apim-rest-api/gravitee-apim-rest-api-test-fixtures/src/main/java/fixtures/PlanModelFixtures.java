@@ -57,7 +57,7 @@ public class PlanModelFixtures {
         .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
         .validation(PlanValidationType.AUTO)
         .selectionRule("{#request.attribute['selectionRule'] != null}")
-        .flows(List.of(FlowModelFixtures.aModelFlowV4()));
+        .flows(List.of(FlowModelFixtures.aModelFlowHttpV4()));
 
     private static final io.gravitee.rest.api.model.PlanEntity.PlanEntityBuilder<?, ?> BASE_PLAN_ENTITY_V2 =
         io.gravitee.rest.api.model.PlanEntity

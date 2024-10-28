@@ -3917,18 +3917,32 @@ components:
                         $ref: "#/components/schemas/Selector"
                 request:
                     type: array
+                    description: Flow step used for PROXY and MESSAGE APIs
                     items:
                         $ref: "#/components/schemas/StepV4"
                 response:
                     type: array
+                    description: Flow step used for PROXY and MESSAGE APIs
                     items:
                         $ref: "#/components/schemas/StepV4"
                 subscribe:
                     type: array
+                    description: Flow step used for MESSAGE and NATIVE APIs
                     items:
                         $ref: "#/components/schemas/StepV4"
                 publish:
                     type: array
+                    description: Flow step used for MESSAGE and NATIVE APIs
+                    items:
+                        $ref: "#/components/schemas/StepV4"
+                connect:
+                    type: array
+                    description: Flow step used for NATIVE APIs
+                    items:
+                        $ref: "#/components/schemas/StepV4"
+                interact:
+                    type: array
+                    description: Flow step used for NATIVE APIs
                     items:
                         $ref: "#/components/schemas/StepV4"
                 tags:
