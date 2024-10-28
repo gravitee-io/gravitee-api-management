@@ -20,6 +20,7 @@ import io.gravitee.common.util.URIUtils;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
+import io.gravitee.gateway.reactive.api.context.TlsSession;
 import io.gravitee.gateway.reactive.core.context.AbstractExecutionContext;
 import io.gravitee.gateway.reactive.handlers.api.el.ApiTemplateVariableProvider;
 import io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariableProvider;
@@ -65,5 +66,20 @@ public class HttpHealthCheckExecutionContext extends AbstractExecutionContext<Ht
     @Override
     public <T> T getComponent(Class<T> componentClass) {
         return deploymentContext.getComponent(componentClass);
+    }
+
+    @Override
+    public String remoteAddress() {
+        return this.request.remoteAddress();
+    }
+
+    @Override
+    public String localAddress() {
+        return this.request.localAddress();
+    }
+
+    @Override
+    public TlsSession tlsSession() {
+        return this.request.tlsSession();
     }
 }
