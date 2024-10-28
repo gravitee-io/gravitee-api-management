@@ -19,6 +19,7 @@ import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.reactive.api.context.TlsSession;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import java.util.Collection;
 
@@ -53,6 +54,21 @@ public class DefaultExecutionContext extends AbstractExecutionContext<MutableReq
     @Override
     public long timestamp() {
         return this.request.timestamp();
+    }
+
+    @Override
+    public String remoteAddress() {
+        return this.request.remoteAddress();
+    }
+
+    @Override
+    public String localAddress() {
+        return this.request.localAddress();
+    }
+
+    @Override
+    public TlsSession tlsSession() {
+        return this.request.tlsSession();
     }
 
     public DefaultExecutionContext componentProvider(final ComponentProvider componentProvider) {
