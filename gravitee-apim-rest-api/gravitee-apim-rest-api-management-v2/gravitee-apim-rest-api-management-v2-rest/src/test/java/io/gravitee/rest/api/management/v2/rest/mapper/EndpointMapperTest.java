@@ -24,6 +24,7 @@ import fixtures.EndpointFixtures;
 import fixtures.EndpointModelFixtures;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -38,15 +39,15 @@ public class EndpointMapperTest {
     @Test
     void shouldMapToEndpointEntityV4() throws JsonProcessingException {
         var endpointV4 = EndpointFixtures.anEndpointV4();
-        var endpointEntityV4 = endpointMapper.map(endpointV4);
+        var endpointEntityV4 = endpointMapper.mapToHttpV4(endpointV4);
 
         assertV4EndpointsAreEquals(endpointEntityV4, endpointV4);
     }
 
     @Test
     void shouldMapFromEndpointEntityV4() throws JsonProcessingException {
-        var endpointEntityV4 = EndpointFixtures.aModelEndpointV4();
-        var endpointV4 = endpointMapper.map(endpointEntityV4);
+        var endpointEntityV4 = EndpointFixtures.aModelEndpointHttpV4();
+        var endpointV4 = endpointMapper.mapFromHttpV4(endpointEntityV4);
 
         assertV4EndpointsAreEquals(endpointEntityV4, endpointV4);
     }
@@ -55,7 +56,7 @@ public class EndpointMapperTest {
     void shouldMapToEndpointGroupEntityV4() throws JsonProcessingException {
         var endpointGroupV4 = EndpointFixtures.anEndpointGroupV4();
 
-        var endpointGroupEntityV4 = endpointMapper.mapEndpointGroup(endpointGroupV4);
+        var endpointGroupEntityV4 = endpointMapper.mapEndpointGroupHttpV4(endpointGroupV4);
         assertThat(endpointGroupEntityV4).isNotNull();
         assertThat(endpointGroupEntityV4.getName()).isEqualTo(endpointGroupV4.getName());
         assertThat(endpointGroupEntityV4.getType()).isEqualTo(endpointGroupV4.getType());
@@ -91,8 +92,8 @@ public class EndpointMapperTest {
 
     @Test
     void shouldMapFromEndpointGroupEntityV4() throws JsonProcessingException {
-        var endpointGroupEntityV4 = EndpointFixtures.aModelEndpointGroupV4();
-        var endpointGroupV4 = endpointMapper.mapEndpointGroup(endpointGroupEntityV4);
+        var endpointGroupEntityV4 = EndpointFixtures.aModelEndpointGroupHttpV4();
+        var endpointGroupV4 = endpointMapper.mapEndpointGroupHttpV4(endpointGroupEntityV4);
         assertThat(endpointGroupV4).isNotNull();
         assertThat(endpointGroupV4.getName()).isEqualTo(endpointGroupEntityV4.getName());
         assertThat(endpointGroupV4.getType()).isEqualTo(endpointGroupEntityV4.getType());
@@ -102,6 +103,76 @@ public class EndpointMapperTest {
             .isEqualTo(new GraviteeMapper().readValue(endpointGroupEntityV4.getSharedConfiguration(), LinkedHashMap.class));
         assertV4EndpointsAreEquals(endpointGroupEntityV4.getEndpoints(), endpointGroupV4.getEndpoints());
         assertThat(endpointGroupV4.getServices()).isNotNull(); // Tested in ServiceMapperTest
+    }
+
+    //////////////////// NATIVE ENDPOINTS
+
+    @Test
+    void shouldMapToNativeEndpointV4() throws JsonProcessingException {
+        var endpointV4 = EndpointFixtures.anEndpointV4();
+        var endpointEntityV4 = endpointMapper.mapToNativeV4(endpointV4);
+
+        assertV4EndpointIsEqual(endpointEntityV4, endpointV4);
+    }
+
+    @Test
+    void shouldMapFromNativeEndpointV4() throws JsonProcessingException {
+        var endpointEntityV4 = EndpointFixtures.aModelEndpointNativeV4();
+        var endpointV4 = endpointMapper.mapFromNativeV4(endpointEntityV4);
+
+        assertV4EndpointIsEqual(endpointEntityV4, endpointV4);
+    }
+
+    @Test
+    void shouldMapToNativeEndpointGroupV4() throws JsonProcessingException {
+        var endpointGroupV4 = EndpointFixtures.anEndpointGroupV4();
+
+        var endpointGroupEntityV4 = endpointMapper.mapEndpointGroupNativeV4(endpointGroupV4);
+        assertThat(endpointGroupEntityV4).isNotNull();
+        assertThat(endpointGroupEntityV4.getName()).isEqualTo(endpointGroupV4.getName());
+        assertThat(endpointGroupEntityV4.getType()).isEqualTo(endpointGroupV4.getType());
+        assertThat(endpointGroupEntityV4.getLoadBalancer()).isNotNull();
+        assertThat(endpointGroupEntityV4.getLoadBalancer().getType().name()).isEqualTo(endpointGroupV4.getLoadBalancer().getType().name());
+        assertThat(endpointGroupEntityV4.getSharedConfiguration())
+            .isEqualTo(new GraviteeMapper().writeValueAsString(endpointGroupV4.getSharedConfiguration()));
+        assertThat(endpointGroupV4.getEndpoints()).isNotNull();
+        assertV4NativeEndpointsAreEqual(endpointGroupEntityV4.getEndpoints(), endpointGroupV4.getEndpoints());
+    }
+
+    @Test
+    void shouldMapFromNativeEndpointGroupV4() throws JsonProcessingException {
+        var endpointGroupEntityV4 = EndpointFixtures.aModelEndpointGroupNativeV4();
+        var endpointGroupV4 = endpointMapper.mapEndpointGroupNativeV4(endpointGroupEntityV4);
+        assertThat(endpointGroupV4).isNotNull();
+        assertThat(endpointGroupV4.getName()).isEqualTo(endpointGroupEntityV4.getName());
+        assertThat(endpointGroupV4.getType()).isEqualTo(endpointGroupEntityV4.getType());
+        assertThat(endpointGroupV4.getLoadBalancer()).isNotNull();
+        assertThat(endpointGroupV4.getLoadBalancer().getType().name()).isEqualTo(endpointGroupEntityV4.getLoadBalancer().getType().name());
+        assertThat(endpointGroupV4.getSharedConfiguration())
+            .isEqualTo(new GraviteeMapper().readValue(endpointGroupEntityV4.getSharedConfiguration(), LinkedHashMap.class));
+        assertV4NativeEndpointsAreEqual(endpointGroupEntityV4.getEndpoints(), endpointGroupV4.getEndpoints());
+        assertThat(endpointGroupV4.getServices()).isNull();
+    }
+
+    private static void assertV4NativeEndpointsAreEqual(List<NativeEndpoint> endpointEntityV4List, List<EndpointV4> endpointV4List)
+        throws JsonProcessingException {
+        assertThat(endpointEntityV4List).isNotNull().asList().hasSize(endpointV4List.size());
+        var endpointEntityV4 = endpointEntityV4List.get(0);
+        var endpointV4 = endpointV4List.get(0);
+        assertV4EndpointIsEqual(endpointEntityV4, endpointV4);
+    }
+
+    private static void assertV4EndpointIsEqual(NativeEndpoint endpointEntityV4, EndpointV4 endpointV4) throws JsonProcessingException {
+        assertThat(endpointEntityV4).isNotNull();
+        assertThat(endpointEntityV4.getName()).isEqualTo(endpointV4.getName());
+        assertThat(endpointEntityV4.getType()).isEqualTo(endpointV4.getType());
+        assertThat(endpointEntityV4.isSecondary()).isEqualTo(endpointV4.getSecondary());
+        assertThat(endpointEntityV4.getTenants()).isEqualTo(endpointV4.getTenants());
+        assertThat(endpointEntityV4.getWeight()).isEqualTo(endpointV4.getWeight());
+        assertThat(endpointEntityV4.isInheritConfiguration()).isEqualTo(endpointV4.getInheritConfiguration());
+        assertThat(endpointEntityV4.getConfiguration()).isEqualTo(new GraviteeMapper().writeValueAsString(endpointV4.getConfiguration()));
+        assertThat(endpointEntityV4.getSharedConfigurationOverride())
+            .isEqualTo(new GraviteeMapper().writeValueAsString(endpointV4.getSharedConfigurationOverride()));
     }
 
     ////////////////////

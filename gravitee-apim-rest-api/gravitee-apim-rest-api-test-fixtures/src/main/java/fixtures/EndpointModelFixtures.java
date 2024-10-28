@@ -18,11 +18,16 @@ package fixtures;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 public class EndpointModelFixtures {
+
+    private static final String ENDPOINT_GROUP_NAME = "Endpoint group name";
+    private static final String ENDPOINT_TYPE_HTTP_GET = "http-get";
 
     private EndpointModelFixtures() {}
 
@@ -59,7 +64,7 @@ public class EndpointModelFixtures {
     private static final io.gravitee.definition.model.EndpointGroup.EndpointGroupBuilder BASE_MODEL_ENDPOINTGROUP_V2 =
         io.gravitee.definition.model.EndpointGroup
             .builder()
-            .name("Endpoint group name")
+            .name(ENDPOINT_GROUP_NAME)
             .endpoints(Set.of(BASE_MODEL_ENDPOINT_V2.build()))
             .loadBalancer(
                 io.gravitee.definition.model.LoadBalancer.builder().type(io.gravitee.definition.model.LoadBalancerType.ROUND_ROBIN).build()
@@ -70,10 +75,10 @@ public class EndpointModelFixtures {
             .httpClientSslOptions(null)
             .headers(Collections.emptyList());
 
-    private static final Endpoint.EndpointBuilder BASE_MODEL_ENDPOINT_V4 = Endpoint
+    private static final Endpoint.EndpointBuilder BASE_MODEL_ENDPOINT_HTTP_V4 = Endpoint
         .builder()
         .name("Endpoint name")
-        .type("http-get")
+        .type(ENDPOINT_TYPE_HTTP_GET)
         .weight(1)
         .inheritConfiguration(false)
         .secondary(false)
@@ -82,10 +87,21 @@ public class EndpointModelFixtures {
         .sharedConfigurationOverride("{\n  \"nice\" : \"configuration\"\n}")
         .services(io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices.builder().healthCheck(null).build());
 
-    private static final EndpointGroup.EndpointGroupBuilder BASE_MODEL_ENDPOINTGROUP_V4 = EndpointGroup
+    private static final NativeEndpoint.NativeEndpointBuilder BASE_MODEL_ENDPOINT_NATIVE_V4 = NativeEndpoint
         .builder()
-        .name("Endpoint group name")
-        .type("http-get")
+        .name("Endpoint name")
+        .type(ENDPOINT_TYPE_HTTP_GET)
+        .weight(1)
+        .inheritConfiguration(false)
+        .secondary(false)
+        .tenants(List.of("tenant1", "tenant2"))
+        .configuration("{\n  \"nice\" : \"configuration\"\n}")
+        .sharedConfigurationOverride("{\n  \"nice\" : \"configuration\"\n}");
+
+    private static final EndpointGroup.EndpointGroupBuilder BASE_MODEL_ENDPOINTGROUP_HTTP_V4 = EndpointGroup
+        .builder()
+        .name(ENDPOINT_GROUP_NAME)
+        .type(ENDPOINT_TYPE_HTTP_GET)
         .loadBalancer(
             io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancer
                 .builder()
@@ -93,8 +109,21 @@ public class EndpointModelFixtures {
                 .build()
         )
         .sharedConfiguration("{\n  \"nice\" : \"configuration\"\n}")
-        .endpoints(List.of(BASE_MODEL_ENDPOINT_V4.build()))
+        .endpoints(List.of(BASE_MODEL_ENDPOINT_HTTP_V4.build()))
         .services(io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices.builder().healthCheck(null).build());
+
+    private static final NativeEndpointGroup.NativeEndpointGroupBuilder BASE_MODEL_ENDPOINTGROUP_NATIVE_V4 = NativeEndpointGroup
+        .builder()
+        .name(ENDPOINT_GROUP_NAME)
+        .type(ENDPOINT_TYPE_HTTP_GET)
+        .loadBalancer(
+            io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancer
+                .builder()
+                .type(io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType.ROUND_ROBIN)
+                .build()
+        )
+        .sharedConfiguration("{\n  \"nice\" : \"configuration\"\n}")
+        .endpoints(List.of(BASE_MODEL_ENDPOINT_NATIVE_V4.build()));
 
     private static final io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService.EndpointHealthCheckServiceBuilder BASE_HEALTH_CHECK_SERVICE =
         io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService.builder().enabled(true).schedule("0 */5 * * * *");
@@ -111,12 +140,20 @@ public class EndpointModelFixtures {
         return BASE_MODEL_ENDPOINTGROUP_V2.build();
     }
 
-    public static Endpoint aModelEndpointV4() {
-        return BASE_MODEL_ENDPOINT_V4.build();
+    public static Endpoint aModelEndpointHttpV4() {
+        return BASE_MODEL_ENDPOINT_HTTP_V4.build();
     }
 
-    public static EndpointGroup aModelEndpointGroupV4() {
-        return BASE_MODEL_ENDPOINTGROUP_V4.build();
+    public static EndpointGroup aModelEndpointGroupHttpV4() {
+        return BASE_MODEL_ENDPOINTGROUP_HTTP_V4.build();
+    }
+
+    public static NativeEndpoint aModelEndpointNativeV4() {
+        return BASE_MODEL_ENDPOINT_NATIVE_V4.build();
+    }
+
+    public static NativeEndpointGroup aModelEndpointGroupNativeV4() {
+        return BASE_MODEL_ENDPOINTGROUP_NATIVE_V4.build();
     }
 
     public static io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService aModelHealthCheckService() {

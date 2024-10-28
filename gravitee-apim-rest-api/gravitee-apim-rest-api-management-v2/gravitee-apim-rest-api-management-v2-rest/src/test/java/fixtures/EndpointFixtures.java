@@ -17,6 +17,8 @@ package fixtures;
 
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupServices;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupServicesV2;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV2;
@@ -126,12 +128,20 @@ public class EndpointFixtures {
         return EndpointModelFixtures.aModelEndpointGroupV2();
     }
 
-    public static Endpoint aModelEndpointV4() {
-        return EndpointModelFixtures.aModelEndpointV4();
+    public static Endpoint aModelEndpointHttpV4() {
+        return EndpointModelFixtures.aModelEndpointHttpV4();
     }
 
-    public static EndpointGroup aModelEndpointGroupV4() {
-        return EndpointModelFixtures.aModelEndpointGroupV4();
+    public static EndpointGroup aModelEndpointGroupHttpV4() {
+        return EndpointModelFixtures.aModelEndpointGroupHttpV4();
+    }
+
+    public static NativeEndpoint aModelEndpointNativeV4() {
+        return EndpointModelFixtures.aModelEndpointNativeV4();
+    }
+
+    public static NativeEndpointGroup aModelEndpointGroupNativeV4() {
+        return EndpointModelFixtures.aModelEndpointGroupNativeV4();
     }
 
     public static EndpointHealthCheckService anEndpointHealthCheckService() {
