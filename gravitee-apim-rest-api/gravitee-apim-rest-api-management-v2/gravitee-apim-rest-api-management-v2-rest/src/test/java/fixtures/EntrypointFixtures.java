@@ -26,18 +26,31 @@ public class EntrypointFixtures {
 
     private EntrypointFixtures() {}
 
-    private static final Entrypoint.EntrypointBuilder BASE_ENTRYPOINT_V4 = Entrypoint
+    private static final Entrypoint.EntrypointBuilder BASE_ENTRYPOINT_HTTP_V4 = Entrypoint
         .builder()
         .type("Entrypoint type")
         .qos(Qos.AT_LEAST_ONCE)
         .dlq(new Dlq().endpoint("my-endpoint"))
         .configuration(new LinkedHashMap<>(Map.of("nice", "configuration")));
 
-    public static Entrypoint anEntrypointV4() {
-        return BASE_ENTRYPOINT_V4.build();
+    private static final Entrypoint.EntrypointBuilder BASE_ENTRYPOINT_NATIVE_V4 = Entrypoint
+        .builder()
+        .type("Entrypoint type")
+        .configuration(new LinkedHashMap<>(Map.of("nice", "configuration")));
+
+    public static Entrypoint anEntrypointHttpV4() {
+        return BASE_ENTRYPOINT_HTTP_V4.build();
     }
 
-    public static io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint aModelEntrypointV4() {
-        return EntrypointModelFixtures.aModelEntrypointV4();
+    public static Entrypoint anEntrypointNativeV4() {
+        return BASE_ENTRYPOINT_NATIVE_V4.build();
+    }
+
+    public static io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint aModelEntrypointHttpV4() {
+        return EntrypointModelFixtures.aModelEntrypointHttpV4();
+    }
+
+    public static io.gravitee.definition.model.v4.nativeapi.NativeEntrypoint aModelEntrypointNativeV4() {
+        return EntrypointModelFixtures.aModelEntrypointNativeV4();
     }
 }

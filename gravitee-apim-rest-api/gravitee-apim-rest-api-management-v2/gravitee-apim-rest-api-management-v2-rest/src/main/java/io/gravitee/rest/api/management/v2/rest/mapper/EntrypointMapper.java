@@ -25,8 +25,14 @@ public interface EntrypointMapper {
     EntrypointMapper INSTANCE = Mappers.getMapper(EntrypointMapper.class);
 
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
-    io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint map(Entrypoint entrypoint);
+    io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint mapToHttpV4(Entrypoint entrypoint);
 
     @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
-    Entrypoint map(io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint entrypoint);
+    Entrypoint mapFromHttpV4(io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint entrypoint);
+
+    @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
+    io.gravitee.definition.model.v4.nativeapi.NativeEntrypoint mapToNativeV4(Entrypoint entrypoint);
+
+    @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
+    Entrypoint mapFromNativeV4(io.gravitee.definition.model.v4.nativeapi.NativeEntrypoint entrypoint);
 }
