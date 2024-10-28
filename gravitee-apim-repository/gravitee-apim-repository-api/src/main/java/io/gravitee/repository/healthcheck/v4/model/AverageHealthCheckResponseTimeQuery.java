@@ -13,23 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package fakes.spring;
+package io.gravitee.repository.healthcheck.v4.model;
 
-import fakes.FakeAnalyticsQueryService;
-import fakes.FakeApiHealthQueryService;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import java.time.Instant;
+import lombok.Builder;
 
-@Configuration
-public class FakeConfiguration {
-
-    @Bean
-    public FakeAnalyticsQueryService fakeAnalyticsQueryService() {
-        return new FakeAnalyticsQueryService();
-    }
-
-    @Bean
-    public FakeApiHealthQueryService apiHealthQueryServiceInMemory() {
-        return new FakeApiHealthQueryService();
-    }
-}
+@Builder(toBuilder = true)
+public record AverageHealthCheckResponseTimeQuery(String apiId, String field, Instant from, Instant to) {}

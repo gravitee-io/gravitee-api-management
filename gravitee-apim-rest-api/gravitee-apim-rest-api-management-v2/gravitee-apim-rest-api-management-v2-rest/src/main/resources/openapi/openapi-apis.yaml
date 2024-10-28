@@ -54,6 +54,8 @@ tags:
       description: Everything about API plans
     - name: API Analytics
       description: Everything about API analytics
+    - name: API Health
+      description: Everything about API health
     - name: API Subscriptions
       description: Everything about API subscriptions
     - name: API Events
@@ -2168,6 +2170,27 @@ paths:
                     $ref: "#/components/responses/ApiMessageLogsResponse"
                 default:
                     $ref: "#/components/responses/Error"
+
+    # API Health
+    /environments/{envId}/apis/{apiId}/health/average-response-time:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+        - $ref: "#/components/parameters/healthField"
+      get:
+        tags:
+          - API Health
+        summary: Get API Health Check average response time
+        description: |-
+          Get API Health Check average response time. 
+          
+          User must have the API_HEALTH[READ] permission.
+        operationId: getApiHealthAverageResponseTime
+        responses:
+          "200":
+            $ref: "#/components/responses/ApiHealthAverageResponseTimeResponse"
+          default:
+            $ref: "#/components/responses/Error"
 
     # API Audits
     /environments/{envId}/apis/{apiId}/audits:
@@ -7493,6 +7516,19 @@ components:
             schema:
                 type: string
 
+        healthField:
+          name: field
+          in: query
+          required: false
+          description: |
+            The field to group response time and availability.
+          schema:
+            type: string
+            default: endpoint
+            enum:
+              - endpoint
+              - gateway
+
     responses:
         ApisResponse:
             description: Page of apis
@@ -8015,6 +8051,29 @@ components:
                                 $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
+
+        # API Health
+        ApiHealthAverageResponseTimeResponse:
+          description: Average response time of an API Health-Check
+          content:
+            application/json:
+              schema:
+                title: "ApiHealthAverageResponseTimeResponse"
+                description: Average response time of an API Health-Check.
+                properties:
+                  global:
+                    type: integer
+                    format: int64
+                    description: Average response time of the API Health-Check for all endpoint combined
+                  group:
+                    type: object
+                    description: Average response time by endpoint or by gateway
+                    additionalProperties:
+                      description: Average response time
+                      type: integer
+                      format: int64
+                    example:
+                      default: 30
 
         # Audit
         AuditsResponse:

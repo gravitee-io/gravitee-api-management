@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package fakes.spring;
+package io.gravitee.apim.core.api_health.query_service;
 
-import fakes.FakeAnalyticsQueryService;
-import fakes.FakeApiHealthQueryService;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime;
+import java.time.Instant;
+import java.util.Optional;
+import lombok.Builder;
 
-@Configuration
-public class FakeConfiguration {
+public interface ApiHealthQueryService {
+    Optional<AverageHealthCheckResponseTime> averageResponseTime(AverageHealthCheckResponseTimeQuery query);
 
-    @Bean
-    public FakeAnalyticsQueryService fakeAnalyticsQueryService() {
-        return new FakeAnalyticsQueryService();
-    }
-
-    @Bean
-    public FakeApiHealthQueryService apiHealthQueryServiceInMemory() {
-        return new FakeApiHealthQueryService();
-    }
+    @Builder(toBuilder = true)
+    record AverageHealthCheckResponseTimeQuery(
+        String organizationId,
+        String environmentId,
+        String apiId,
+        String field,
+        Instant from,
+        Instant to
+    ) {}
 }
