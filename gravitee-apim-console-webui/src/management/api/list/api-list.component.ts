@@ -40,13 +40,14 @@ import {
   PagedResult,
   TcpListener,
 } from '../../../entities/management-api-v2';
+import { CategoryService } from '../../../services-ngx/category.service';
 
 export type ApisTableDS = {
   id: string;
   name: string;
   version: string;
   access: string[];
-  tags: string;
+  tags: string[];
   owner: string;
   ownerEmail: string;
   picture: string;
@@ -60,6 +61,7 @@ export type ApisTableDS = {
   provider?: string;
   readonly: boolean;
   definitionVersion: { label: string; icon?: string };
+  categories: string[];
 }[];
 
 @Component({
@@ -69,7 +71,7 @@ export type ApisTableDS = {
   providers: [TitleCasePipe],
 })
 export class ApiListComponent implements OnInit, OnDestroy {
-  displayedColumns = ['picture', 'name', 'definitionVersion', 'states', 'access', 'tags', 'owner', 'visibility', 'actions'];
+  displayedColumns = ['picture', 'name', 'definitionVersion', 'states', 'access', 'tags', 'categories', 'owner', 'visibility', 'actions'];
   apisTableDSUnpaginatedLength = 0;
   apisTableDS: ApisTableDS = [];
   filters: GioTableWrapperFilters = {
@@ -85,6 +87,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
     PUBLIC: 'public',
     PRIVATE: 'lock',
   };
+  public categoriesNames = new Map<string, string>();
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -93,6 +96,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
     private readonly apiService: ApiService,
     private readonly apiServiceV2: ApiV2Service,
     private readonly titleCasePipe: TitleCasePipe,
+    private readonly categoryService: CategoryService,
   ) {}
 
   ngOnDestroy(): void {
@@ -106,6 +110,11 @@ export class ApiListComponent implements OnInit, OnDestroy {
     if (this.isQualityDisplayed) {
       this.displayedColumns.splice(5, 0, 'qualityScore');
     }
+
+    this.categoryService
+      .list()
+      .pipe(map((cats) => cats.forEach((cat) => this.categoriesNames.set(cat.key, cat.name))))
+      .subscribe();
 
     this.filters$
       .pipe(
@@ -184,7 +193,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
             id: api.id,
             name: api.name,
             version: api.apiVersion,
-            tags: api.tags?.join(', '),
+            tags: api.tags ?? [],
             state: api.state,
             lifecycleState: api.lifecycleState,
             workflowBadge: this.getWorkflowBadge(api),
@@ -195,6 +204,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
             owner: api.primaryOwner?.displayName,
             ownerEmail: api.primaryOwner?.email,
             picture: api._links.pictureUrl,
+            categories: (api.categories ?? []).map((cat) => this.categoriesNames.get(cat)),
           };
           if (api.definitionVersion === 'V4') {
             return {
