@@ -121,7 +121,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
             .retryWhen(RxHelper.retryExponentialBackoff(INITIAL_RETRY_DELAY_MS, MAX_RETRY_DELAY_MS, MILLISECONDS, 1.5))
             .andThen(
                 Completable.fromRunnable(() -> {
-                    log.info("Sync service has been scheduled with delay [{}{}]", delay, unit.name());
+                    log.info("Sync service has been scheduled with delay [{} {}]", delay, unit.name());
                     refreshDisposable =
                         Flowable
                             .<Long, Long>generate(
@@ -134,7 +134,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                             .delay(delay, unit)
                             .rebatchRequests(1)
                             .concatMapCompletable(interval -> synchronize())
-                            .onErrorComplete()
+                            .retry()
                             .subscribe();
                 })
             )
