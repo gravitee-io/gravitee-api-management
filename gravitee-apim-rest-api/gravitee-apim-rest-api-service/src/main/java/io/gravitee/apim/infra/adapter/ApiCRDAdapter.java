@@ -22,13 +22,16 @@ import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.MemberCRD;
 import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -53,7 +56,13 @@ public interface ApiCRDAdapter {
     PlanCRD toCRDPlan(PlanEntity planEntity);
 
     default Map<String, PlanCRD> mapPlans(ExportApiEntity definition) {
-        return definition.getPlans().stream().map(this::toCRDPlan).collect(toMap(PlanCRD::getName, identity()));
+        var plansMap = new HashMap<String, PlanCRD>();
+        var nonClosedPlans = definition.getPlans().stream().filter(plan -> plan.getStatus() != PlanStatus.CLOSED).toList();
+        for (var plan : nonClosedPlans) {
+            var key = plansMap.containsKey(plan.getName()) ? randomize(plan.getName()) : plan.getName();
+            plansMap.put(key, toCRDPlan(plan));
+        }
+        return plansMap;
     }
 
     PageCRD toCRDPage(PageEntity pageEntity);
@@ -76,5 +85,9 @@ public interface ApiCRDAdapter {
                 .map(me -> new MemberCRD(me.getId(), null, null, me.getDisplayName(), me.getRoles().get(0).getName()))
                 .collect(Collectors.toSet())
             : null;
+    }
+
+    private static String randomize(String strToRandomize) {
+        return strToRandomize + "-" + RandomStringUtils.randomNumeric(8);
     }
 }
