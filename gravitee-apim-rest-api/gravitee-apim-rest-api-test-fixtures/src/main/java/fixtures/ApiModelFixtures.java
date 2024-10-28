@@ -81,7 +81,7 @@ public class ApiModelFixtures {
         .properties(List.of(PropertyModelFixtures.aModelPropertyV4()))
         .resources(List.of(ResourceModelFixtures.aResourceEntityV4()))
         .flowExecution(new FlowExecution())
-        .flows(List.of(FlowModelFixtures.aModelFlowV4()))
+        .flows(List.of(FlowModelFixtures.aModelFlowHttpV4()))
         .responseTemplates(Map.of("template-id", Map.of("application/json", new io.gravitee.definition.model.ResponseTemplate())))
         .services(new io.gravitee.definition.model.v4.service.ApiServices())
         .groups(Set.of("my-group1", "my-group2"))

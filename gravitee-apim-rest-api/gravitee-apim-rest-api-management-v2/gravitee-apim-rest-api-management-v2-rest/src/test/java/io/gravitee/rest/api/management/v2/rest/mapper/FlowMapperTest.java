@@ -25,6 +25,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV2;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.model.StepV2;
@@ -38,34 +39,69 @@ public class FlowMapperTest {
 
     private final FlowMapper flowMapper = Mappers.getMapper(FlowMapper.class);
 
+    /**
+     * Http Flow
+     */
+
     @Test
-    void should_map_from_FlowEntityV4() throws JsonProcessingException {
-        var flowEntityV4 = FlowFixtures.aModelFlowV4();
-        var flowV4 = flowMapper.map(flowEntityV4);
+    void should_map_from_HttpFlowEntityV4() throws JsonProcessingException {
+        var flowEntityV4 = FlowFixtures.aModelFlowHttpV4();
+        var flowV4 = flowMapper.mapFromHttpV4(flowEntityV4);
         assertThat(flowV4).isNotNull();
-        assertFlowV4Equals(flowEntityV4, flowV4);
+        assertHttpFlowV4Equals(flowEntityV4, flowV4);
     }
 
     @Test
-    void should_map_to_FlowEntityV4() throws JsonProcessingException {
-        var flowV4 = FlowFixtures.aFlowV4();
-        var flowEntityV4 = flowMapper.map(flowV4);
+    void should_map_to_HttpFlowEntityV4() throws JsonProcessingException {
+        var flowV4 = FlowFixtures.aFlowHttpV4();
+        var flowEntityV4 = flowMapper.mapToHttpV4(flowV4);
         assertThat(flowV4).isNotNull();
-        assertFlowV4Equals(flowEntityV4, flowV4);
+        assertHttpFlowV4Equals(flowEntityV4, flowV4);
     }
 
     @Test
-    void should_map_FlowV4_to_list_of_Flow() throws JsonProcessingException {
-        var flow1 = FlowFixtures.aFlowV4();
-        var flow2 = FlowFixtures.aFlowV4();
-        var flows = flowMapper.map(List.of(flow1, flow2));
+    void should_map_FlowV4_to_list_of_HttpFlow() throws JsonProcessingException {
+        var flow1 = FlowFixtures.aFlowHttpV4();
+        var flow2 = FlowFixtures.aFlowHttpV4();
+        var flows = flowMapper.mapToHttpV4(List.of(flow1, flow2));
         assertThat(flows).isNotNull();
         assertThat(flows.size()).isEqualTo(2);
-        assertFlowV4Equals(flows.get(0), flow1);
-        assertFlowV4Equals(flows.get(1), flow2);
+        assertHttpFlowV4Equals(flows.get(0), flow1);
+        assertHttpFlowV4Equals(flows.get(1), flow2);
     }
 
-    private void assertFlowV4Equals(Flow flowEntityV4, FlowV4 flowV4) throws JsonProcessingException {
+    /**
+     * Native Flow
+     */
+
+    @Test
+    void should_map_from_NativeFlowEntityV4() throws JsonProcessingException {
+        var flowEntityV4 = FlowFixtures.aModelFlowNativeV4();
+        var flowV4 = flowMapper.mapFromNativeV4(flowEntityV4);
+        assertThat(flowV4).isNotNull();
+        assertNativeFlowV4Equals(flowEntityV4, flowV4);
+    }
+
+    @Test
+    void should_map_to_NativeFlowEntityV4() throws JsonProcessingException {
+        var flowV4 = FlowFixtures.aFlowNativeV4();
+        var flowEntityV4 = flowMapper.mapToNativeV4(flowV4);
+        assertThat(flowV4).isNotNull();
+        assertNativeFlowV4Equals(flowEntityV4, flowV4);
+    }
+
+    @Test
+    void should_map_FlowV4_to_list_of_NativeFlow() throws JsonProcessingException {
+        var flow1 = FlowFixtures.aFlowNativeV4();
+        var flow2 = FlowFixtures.aFlowNativeV4();
+        var flows = flowMapper.mapToNativeV4(List.of(flow1, flow2));
+        assertThat(flows).isNotNull();
+        assertThat(flows.size()).isEqualTo(2);
+        assertNativeFlowV4Equals(flows.get(0), flow1);
+        assertNativeFlowV4Equals(flows.get(1), flow2);
+    }
+
+    private void assertHttpFlowV4Equals(Flow flowEntityV4, FlowV4 flowV4) throws JsonProcessingException {
         assertEquals(flowEntityV4.getName(), flowV4.getName());
 
         final var flowSelectors = flowEntityV4.getSelectors();
@@ -89,10 +125,27 @@ public class FlowMapperTest {
             );
         }
 
+        assertThat(flowV4.getConnect()).isNull();
+        assertThat(flowV4.getInteract()).isNull();
+
         assertStepsV4Equals(flowEntityV4.getRequest(), flowV4.getRequest());
         assertStepsV4Equals(flowEntityV4.getPublish(), flowV4.getPublish());
         assertStepsV4Equals(flowEntityV4.getResponse(), flowV4.getResponse());
         assertStepsV4Equals(flowEntityV4.getSubscribe(), flowV4.getSubscribe());
+    }
+
+    private void assertNativeFlowV4Equals(NativeFlow flowEntityV4, FlowV4 flowV4) throws JsonProcessingException {
+        assertEquals(flowEntityV4.getName(), flowV4.getName());
+
+        final var flowV4Selectors = flowV4.getSelectors();
+        assertThat(flowV4Selectors).isNull();
+        assertThat(flowV4.getRequest()).isNull();
+        assertThat(flowV4.getResponse()).isNull();
+
+        assertStepsV4Equals(flowEntityV4.getPublish(), flowV4.getPublish());
+        assertStepsV4Equals(flowEntityV4.getSubscribe(), flowV4.getSubscribe());
+        assertStepsV4Equals(flowEntityV4.getConnect(), flowV4.getConnect());
+        assertStepsV4Equals(flowEntityV4.getInteract(), flowV4.getInteract());
     }
 
     private void assertStepsV4Equals(List<Step> steps, List<StepV4> stepsV4) throws JsonProcessingException {

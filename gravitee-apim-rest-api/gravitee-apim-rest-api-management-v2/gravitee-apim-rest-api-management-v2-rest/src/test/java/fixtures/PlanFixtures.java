@@ -66,7 +66,7 @@ public class PlanFixtures {
         .validation(PlanValidation.AUTO)
         .selectionRule("{#request.attribute['selectionRule'] != null}")
         .security(BASE_PLAN_SECURITY.build())
-        .flows(List.of(FlowFixtures.aFlowV4()));
+        .flows(List.of(FlowFixtures.aFlowHttpV4()));
 
     private static final CreatePlanV2.CreatePlanV2Builder BASE_CREATE_PLAN_V2 = CreatePlanV2
         .builder()
@@ -98,7 +98,7 @@ public class PlanFixtures {
         .validation(PlanValidation.AUTO)
         .selectionRule("{#request.attribute['selectionRule'] != null}")
         .security(BASE_UPDATE_PLAN_SECURITY.build())
-        .flows(List.of(FlowFixtures.aFlowV4()));
+        .flows(List.of(FlowFixtures.aFlowHttpV4()));
 
     private static final UpdatePlanFederated.UpdatePlanFederatedBuilder BASE_UPDATE_PLAN_FEDERATED = UpdatePlanFederated
         .builder()

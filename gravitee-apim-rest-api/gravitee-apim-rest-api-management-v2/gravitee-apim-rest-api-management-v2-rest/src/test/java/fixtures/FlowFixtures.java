@@ -16,6 +16,7 @@
 package fixtures;
 
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.management.v2.rest.model.BaseSelector;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV2;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
@@ -62,7 +63,7 @@ public class FlowFixtures {
         .messageCondition("{#context.attribute['messageCondition'] == true}")
         .configuration(new LinkedHashMap<>(Map.of("nice", "config")));
 
-    private static final FlowV4.FlowV4Builder BASE_FLOW_V4 = FlowV4
+    private static final FlowV4.FlowV4Builder BASE_FLOW_HTTP_V4 = FlowV4
         .builder()
         .name("Flow")
         .enabled(true)
@@ -70,6 +71,16 @@ public class FlowFixtures {
         .request(List.of(BASE_STEP_V4.name("step_request").build()))
         .publish(List.of(BASE_STEP_V4.name("step_publish").build()))
         .response(List.of(BASE_STEP_V4.name("step_response").build()))
+        .subscribe(List.of(BASE_STEP_V4.name("step_subscribe").build()))
+        .tags(Set.of("tag1", "tag2"));
+
+    private static final FlowV4.FlowV4Builder BASE_FLOW_NATIVE_V4 = FlowV4
+        .builder()
+        .name("Flow")
+        .enabled(true)
+        .connect(List.of(BASE_STEP_V4.name("step_connect").build()))
+        .publish(List.of(BASE_STEP_V4.name("step_publish").build()))
+        .interact(List.of(BASE_STEP_V4.name("step_interact").build()))
         .subscribe(List.of(BASE_STEP_V4.name("step_subscribe").build()))
         .tags(Set.of("tag1", "tag2"));
 
@@ -91,16 +102,24 @@ public class FlowFixtures {
         .pre(List.of(BASE_STEP_V2.name("step_pre").build()))
         .post(List.of(BASE_STEP_V2.name("step_pot").build()));
 
-    public static FlowV4 aFlowV4() {
-        return BASE_FLOW_V4.build();
+    public static FlowV4 aFlowHttpV4() {
+        return BASE_FLOW_HTTP_V4.build();
+    }
+
+    public static FlowV4 aFlowNativeV4() {
+        return BASE_FLOW_NATIVE_V4.build();
     }
 
     public static FlowV2 aFlowV2() {
         return BASE_FLOW_V2.build();
     }
 
-    public static Flow aModelFlowV4() {
-        return FlowModelFixtures.aModelFlowV4();
+    public static Flow aModelFlowHttpV4() {
+        return FlowModelFixtures.aModelFlowHttpV4();
+    }
+
+    public static NativeFlow aModelFlowNativeV4() {
+        return FlowModelFixtures.aModelFlowNativeV4();
     }
 
     public static io.gravitee.definition.model.flow.Flow aModelFlowV2() {
