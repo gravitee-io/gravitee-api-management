@@ -181,7 +181,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
-        next: (data) => {
+        next: ({ data }) => {
           this.topApisV4 = data;
           this.changeDetectorRef.markForCheck();
         },
