@@ -47,7 +47,7 @@ import org.mapstruct.factory.Mappers;
 public interface ApiCRDMapper {
     ApiCRDMapper INSTANCE = Mappers.getMapper(ApiCRDMapper.class);
 
-    @Mapping(target = "listeners", qualifiedByName = "fromListeners")
+    @Mapping(target = "listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "lifecycleState", qualifiedByName = "mapLifecycleState")
     ApiCRDSpec map(io.gravitee.apim.core.api.model.crd.ApiCRDSpec coreSpec);
 
