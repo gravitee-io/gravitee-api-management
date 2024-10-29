@@ -123,7 +123,8 @@ public interface PlanMapper {
     @Mapping(target = "definitionVersion", constant = "V4")
     @Mapping(target = "type", constant = "API")
     @Mapping(target = "planDefinitionHttpV4", source = "plan", qualifiedByName = "mapPlanV4ToPlanDefinitionV4")
-    PlanWithFlows toPlanWithFlows(PlanV4 plan);
+    @Mapping(target = "flows", qualifiedByName = "mapListToFlowHttpV4")
+    PlanWithFlows toHttpPlanWithFlows(PlanV4 plan);
 
     @Named("toPlansWithFlows")
     Set<PlanWithFlows> toPlansWithFlows(Set<PlanV4> plans);
@@ -192,4 +193,14 @@ public interface PlanMapper {
     @Named("mapToPlanDefinitionFederated")
     @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
     io.gravitee.definition.model.federation.FederatedPlan mapToPlanDefinitionFederated(UpdatePlanFederated source);
+
+    default List<FlowV4> computeFlows(PlanWithFlows source) {
+        if (source.getDefinitionVersion() != DefinitionVersion.V4) {
+            return null;
+        }
+        if (source.getApiType() == ApiType.NATIVE) {
+            return FlowMapper.INSTANCE.mapFromNativeV4((List<NativeFlow>) source.getFlows());
+        }
+        return FlowMapper.INSTANCE.mapFromHttpV4((List<Flow>) source.getFlows());
+    }
 }

@@ -328,7 +328,7 @@ class CreatePlanDomainServiceTest {
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(result.getApiId()).isEqualTo(API_ID);
-                soft.assertThat(result.getFlows()).hasSize(1).extracting(Flow::getName).containsExactly("flow");
+                soft.assertThat(result.getFlows()).hasSize(1).extracting(AbstractFlow::getName).containsExactly("flow");
                 soft.assertThat(result.getCreatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
                 soft.assertThat(result.getUpdatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
                 soft.assertThat(result.getNeedRedeployAt()).isEqualTo(INSTANT_NOW);

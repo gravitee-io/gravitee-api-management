@@ -236,7 +236,7 @@ public class PlanMapperTest {
 
     @Test
     void should_map_PlanWithFlows_to_PlanV4() {
-        final var planWithFlows = PlanFixtures.aPlanWithFlows();
+        final var planWithFlows = PlanFixtures.aPlanWithHttpFlows();
         final var plan = planMapper.map(planWithFlows);
 
         assertNotNull(plan.getId());
@@ -292,6 +292,41 @@ public class PlanMapperTest {
                         .build()
                 );
         });
+    }
+
+    /**
+     * Native Plan
+     */
+
+    @Test
+    void should_map_native_PlanWithFlows_to_PlanV4() {
+        final var planWithFlows = PlanFixtures.aPlanWithNativeFlows();
+        final var plan = planMapper.map(planWithFlows);
+
+        assertNotNull(plan.getId());
+        assertEquals(planWithFlows.getId(), plan.getId());
+        assertEquals(planWithFlows.getCrossId(), plan.getCrossId());
+        assertEquals(planWithFlows.getName(), plan.getName());
+        assertEquals(planWithFlows.getDescription(), plan.getDescription());
+        assertEquals(planWithFlows.getValidation().name(), plan.getValidation().name());
+        assertEquals(planWithFlows.getType().name(), plan.getType().name());
+        assertEquals(planWithFlows.getPlanMode().name(), plan.getMode().name());
+
+        assertNotNull(plan.getSecurity());
+        assertSecurityV4Equals(planWithFlows.getPlanSecurity(), plan.getSecurity());
+
+        assertEquals(planWithFlows.getPlanDefinitionV4().getSelectionRule(), plan.getSelectionRule());
+        assertEquals(planWithFlows.getPlanDefinitionV4().getTags(), new HashSet<>(plan.getTags()));
+        assertEquals(planWithFlows.getPlanStatus().name(), plan.getStatus().name());
+        assertEquals(planWithFlows.getApiId(), plan.getApiId());
+        assertEquals(planWithFlows.getOrder(), plan.getOrder());
+        assertEquals(planWithFlows.getCharacteristics(), plan.getCharacteristics());
+        assertEquals(planWithFlows.getExcludedGroups(), plan.getExcludedGroups());
+        assertEquals(planWithFlows.getCommentMessage(), plan.getCommentMessage());
+        assertEquals(planWithFlows.isCommentRequired(), plan.getCommentRequired());
+        assertEquals(planWithFlows.getGeneralConditions(), plan.getGeneralConditions());
+
+        assertEquals(planWithFlows.getFlows().size(), plan.getFlows().size());
     }
 
     private void assertSecurityV4Equals(

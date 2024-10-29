@@ -180,7 +180,7 @@ public class PlanFixtures {
         return PlanModelFixtures.aPlanEntityV2();
     }
 
-    public static PlanWithFlows aPlanWithFlows() {
+    public static PlanWithFlows aPlanWithHttpFlows() {
         return PlanWithFlows
             .builder()
             .id("id")
@@ -189,14 +189,17 @@ public class PlanFixtures {
             .description("Description")
             .validation(Plan.PlanValidationType.AUTO)
             .type(Plan.PlanType.API)
+            .apiType(ApiType.MESSAGE)
+            .definitionVersion(DefinitionVersion.V4)
             .planDefinitionHttpV4(
-                fixtures.definition.PlanFixtures
+                fixtures.definition.PlanFixtures.HttpV4Definition
                     .anApiKeyV4()
                     .toBuilder()
                     .security(PlanSecurity.builder().type("API_KEY").configuration("{\"nice\": \"config\"}").build())
                     .selectionRule("{#request.attribute['selectionRule'] != null}")
                     .tags(Set.of("tag1", "tag2"))
                     .status(PlanStatus.CLOSED)
+                    .flows(List.of(FlowFixtures.aModelFlowHttpV4()))
                     .build()
             )
             .apiId("api-id")
@@ -206,7 +209,40 @@ public class PlanFixtures {
             .commentMessage("Comment message")
             .commentRequired(true)
             .generalConditions("General conditions")
-            .flows(List.of(FlowFixtures.aModelFlowV4()))
+            .flows(List.of(FlowFixtures.aModelFlowHttpV4()))
+            .build();
+    }
+
+    public static PlanWithFlows aPlanWithNativeFlows() {
+        return PlanWithFlows
+            .builder()
+            .id("id")
+            .crossId("my-plan-crossId")
+            .name("My plan")
+            .description("Description")
+            .validation(Plan.PlanValidationType.AUTO)
+            .type(Plan.PlanType.API)
+            .apiType(ApiType.NATIVE)
+            .definitionVersion(DefinitionVersion.V4)
+            .planDefinitionNativeV4(
+                fixtures.definition.PlanFixtures.NativeV4Definition
+                    .anApiKeyV4()
+                    .toBuilder()
+                    .security(PlanSecurity.builder().type("API_KEY").configuration("{\"nice\": \"config\"}").build())
+                    .selectionRule("{#request.attribute['selectionRule'] != null}")
+                    .tags(Set.of("tag1", "tag2"))
+                    .status(PlanStatus.CLOSED)
+                    .flows(List.of(FlowFixtures.aModelFlowNativeV4()))
+                    .build()
+            )
+            .apiId("api-id")
+            .order(1)
+            .characteristics(List.of("characteristic1", "characteristic2"))
+            .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+            .commentMessage("Comment message")
+            .commentRequired(true)
+            .generalConditions("General conditions")
+            .flows(List.of(FlowFixtures.aModelFlowNativeV4()))
             .build();
     }
 }
