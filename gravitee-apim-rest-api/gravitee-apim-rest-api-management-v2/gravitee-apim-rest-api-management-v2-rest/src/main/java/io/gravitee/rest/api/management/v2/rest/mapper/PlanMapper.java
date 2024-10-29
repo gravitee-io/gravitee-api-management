@@ -15,11 +15,16 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV4;
+import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.model.Plan;
 import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanFederated;
@@ -70,6 +75,7 @@ public interface PlanMapper {
     @Mapping(target = "status", source = "planDefinitionV4.status")
     @Mapping(target = "tags", source = "planDefinitionV4.tags")
     @Mapping(target = "mode", source = "planDefinitionV4.mode")
+    @Mapping(target = "flows", expression = "java(computeFlows(source))")
     @Mapping(target = "definitionVersion", constant = "V4")
     PlanV4 map(PlanWithFlows source);
 
@@ -106,10 +112,20 @@ public interface PlanMapper {
         }
     }
 
+    default io.gravitee.apim.core.plan.model.Plan map(CreatePlanV4 source, Api api) {
+        return ApiType.NATIVE.equals(api.getType()) ? mapFromNativeV4(source) : map(source);
+    }
+
     @Mapping(target = "validation", defaultValue = "MANUAL")
     @Mapping(target = "definitionVersion", constant = "V4")
-    @Mapping(target = "planDefinitionHttpV4", source = "source", qualifiedByName = "mapToPlanDefinitionV4")
+    @Mapping(target = "planDefinitionHttpV4", source = "source", qualifiedByName = "mapToPlanDefinitionHttpV4")
     io.gravitee.apim.core.plan.model.Plan map(CreatePlanV4 source);
+
+    @Mapping(target = "validation", defaultValue = "MANUAL")
+    @Mapping(target = "definitionVersion", constant = "V4")
+    @Mapping(target = "apiType", constant = "NATIVE")
+    @Mapping(target = "planDefinitionNativeV4", source = "source", qualifiedByName = "mapToPlanDefinitionNativeV4")
+    io.gravitee.apim.core.plan.model.Plan mapFromNativeV4(CreatePlanV4 source);
 
     @Mapping(target = "security", source = "security.type", qualifiedByName = "toV2PlanSecurityType")
     @Mapping(target = "securityDefinition", source = "security.configuration", qualifiedByName = "serializeConfiguration")
@@ -184,11 +200,17 @@ public interface PlanMapper {
 
     Collection<BasePlan> mapToBasePlans(Set<GenericPlanEntity> plans);
 
-    @Named("mapToPlanDefinitionV4")
+    @Named("mapToPlanDefinitionHttpV4")
     @Mapping(target = "security.type", qualifiedByName = "mapFromSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
     @Mapping(target = "mode", defaultValue = "STANDARD")
-    io.gravitee.definition.model.v4.plan.Plan mapToPlanDefinitionV4(CreatePlanV4 source);
+    io.gravitee.definition.model.v4.plan.Plan mapToPlanDefinitionHttpV4(CreatePlanV4 source);
+
+    @Named("mapToPlanDefinitionNativeV4")
+    @Mapping(target = "security.type", qualifiedByName = "mapFromSecurityType")
+    @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
+    @Mapping(target = "mode", defaultValue = "STANDARD")
+    io.gravitee.definition.model.v4.nativeapi.NativePlan mapToPlanDefinitionNativeV4(CreatePlanV4 source);
 
     @Named("mapToPlanDefinitionFederated")
     @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")

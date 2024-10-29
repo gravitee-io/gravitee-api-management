@@ -325,7 +325,7 @@ public class PlanCrudServiceImplTest {
                 .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
                 .generalConditions("General conditions")
                 .planDefinitionHttpV4(
-                    fixtures.definition.PlanFixtures
+                    fixtures.definition.PlanFixtures.HttpV4Definition
                         .aKeylessV4()
                         .toBuilder()
                         .security(PlanSecurity.builder().type("key-less").configuration("{\"nice\": \"config\"}").build())

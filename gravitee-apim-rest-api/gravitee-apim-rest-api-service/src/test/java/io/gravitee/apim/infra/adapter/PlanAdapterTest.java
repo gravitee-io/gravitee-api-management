@@ -478,7 +478,7 @@ class PlanAdapterTest {
                 .anApiKeyV4()
                 .toBuilder()
                 .planDefinitionHttpV4(
-                    fixtures.definition.PlanFixtures
+                    fixtures.definition.PlanFixtures.HttpV4Definition
                         .anApiKeyV4()
                         .toBuilder()
                         .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY.getLabel()).configuration("{}").build())
@@ -531,7 +531,7 @@ class PlanAdapterTest {
                 .anApiKeyV4()
                 .toBuilder()
                 .planDefinitionHttpV4(
-                    fixtures.definition.PlanFixtures
+                    fixtures.definition.PlanFixtures.HttpV4Definition
                         .anApiKeyV4()
                         .toBuilder()
                         .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY.getLabel()).configuration("{}").build())

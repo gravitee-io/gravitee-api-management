@@ -62,7 +62,6 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.PlanType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
@@ -481,7 +480,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             )
                 .thenReturn(false);
 
-            final Response response = target.request().post(Entity.json(PlanFixtures.aCreatePlanV4()));
+            final Response response = target.request().post(Entity.json(PlanFixtures.aCreatePlanHttpV4()));
             assertThat(response).hasStatus(FORBIDDEN_403).asError().hasMessage("You do not have sufficient rights to access this resource");
         }
 
@@ -494,7 +493,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                     return new PlanWithFlows(plan.setPlanId(planId), invocation.getArgument(1));
                 });
 
-            final CreatePlanV4 createPlanV4 = PlanFixtures.aCreatePlanV4();
+            final CreatePlanV4 createPlanV4 = PlanFixtures.aCreatePlanHttpV4();
             final Response response = target.request().post(Entity.json(createPlanV4));
 
             assertThat(response)
