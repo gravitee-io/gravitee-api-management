@@ -22,6 +22,7 @@ import io.gravitee.apim.core.api.model.NewNativeApi;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLinks;
@@ -154,6 +155,13 @@ public interface ApiMapper {
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
     ApiV4 mapToV4(ApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
+    default ApiV4 mapToV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState) {
+        if (ApiType.NATIVE.equals(source.getType())) {
+            return mapToNativeV4(source, uriInfo, deploymentState);
+        }
+        return mapToHttpV4(source, uriInfo, deploymentState);
+    }
+
     @Mapping(target = "definitionContext", source = "source.originContext")
     @Mapping(target = "apiVersion", source = "source.version")
     @Mapping(target = "analytics", source = "source.apiDefinitionHttpV4.analytics")
@@ -165,7 +173,18 @@ public interface ApiMapper {
     @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
     @Mapping(target = "listeners", source = "source.apiDefinitionHttpV4.listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "state", source = "source.lifecycleState")
-    ApiV4 mapToV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+    ApiV4 mapToHttpV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+
+    @Mapping(target = "definitionContext", source = "source.originContext")
+    @Mapping(target = "apiVersion", source = "source.version")
+    @Mapping(target = "deploymentState", source = "deploymentState")
+    @Mapping(target = "endpointGroups", source = "source.apiDefinitionNativeV4.endpointGroups")
+    @Mapping(target = "flows", source = "source.apiDefinitionNativeV4.flows")
+    @Mapping(target = "lifecycleState", source = "source.apiLifecycleState")
+    @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
+    @Mapping(target = "listeners", source = "source.apiDefinitionNativeV4.listeners", qualifiedByName = "fromNativeListeners")
+    @Mapping(target = "state", source = "source.lifecycleState")
+    ApiV4 mapToNativeV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
