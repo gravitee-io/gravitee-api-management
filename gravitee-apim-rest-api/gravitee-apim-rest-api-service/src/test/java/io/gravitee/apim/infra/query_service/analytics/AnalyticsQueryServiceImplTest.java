@@ -26,10 +26,12 @@ import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
+import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
+import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Duration;
@@ -155,6 +157,37 @@ class AnalyticsQueryServiceImplTest {
                             TopHitsApis.TopHitApi.builder().id("api-id-2").count(2L).build(),
                             TopHitsApis.TopHitApi.builder().id("api-id-3").count(17L).build()
                         )
+                );
+        }
+
+        @Test
+        void should_return_request_response_time() {
+            var queryParameters = EnvironmentAnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
+            when(analyticsRepository.searchRequestResponseTimes(any(QueryContext.class), any()))
+                .thenReturn(
+                    RequestResponseTimeAggregate
+                        .builder()
+                        .requestsPerSecond(3.7d)
+                        .requestsTotal(25600L)
+                        .responseMinTime(32.5d)
+                        .responseMaxTime(1220.87d)
+                        .responseAvgTime(159.2d)
+                        .build()
+                );
+
+            var result = cut.searchRequestResponseTime(GraviteeContext.getExecutionContext(), queryParameters);
+
+            assertThat(result)
+                .isNotNull()
+                .isEqualTo(
+                    RequestResponseTime
+                        .builder()
+                        .requestsPerSecond(3.7d)
+                        .requestsTotal(25600L)
+                        .responseMinTime(32.5d)
+                        .responseMaxTime(1220.87d)
+                        .responseAvgTime(159.2d)
+                        .build()
                 );
         }
     }

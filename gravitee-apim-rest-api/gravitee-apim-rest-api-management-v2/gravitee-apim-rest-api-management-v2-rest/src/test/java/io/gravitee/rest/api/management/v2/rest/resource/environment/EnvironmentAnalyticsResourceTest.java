@@ -23,11 +23,13 @@ import static org.mockito.Mockito.when;
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiQueryServiceInMemory;
+import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsRequestResponseTimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusRangesResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopHitsApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.TopHitApi;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -167,10 +169,55 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
     }
 
     @Nested
+    class RequestResponseTimeAnalytics {
+
+        @BeforeEach
+        void setup() {
+            statusRangeTarget = rootTarget().path("request-response-time");
+        }
+
+        @Test
+        void should_return_200_with_valid_request_response_time_analytics() {
+            //Given
+            var topHitApi1Id = "request-response-time-api";
+            var apiV4 = ApiFixtures.aProxyApiV4().toBuilder().id(topHitApi1Id).name("Request Response Time API").build();
+
+            apiQueryService.initWith(List.of(apiV4));
+            analyticsQueryService.requestResponseTime =
+                RequestResponseTime
+                    .builder()
+                    .requestsPerSecond(3.7d)
+                    .requestsTotal(25600L)
+                    .responseMinTime(32.5d)
+                    .responseMaxTime(1220.87d)
+                    .responseAvgTime(159.2d)
+                    .build();
+
+            //When
+
+            Response response = statusRangeTarget.queryParam("from", FROM).queryParam("to", TO).request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(EnvironmentAnalyticsRequestResponseTimeResponse.class)
+                .isEqualTo(
+                    EnvironmentAnalyticsRequestResponseTimeResponse
+                        .builder()
+                        .requestsPerSecond(3.7)
+                        .requestsTotal(25600)
+                        .responseMinTime(32.5)
+                        .responseMaxTime(1220.87)
+                        .responseAvgTime(159.2)
+                        .build()
+                );
+        }
+    }
+
+    @Nested
     class RangeParamValidation {
 
         @ParameterizedTest
-        @ValueSource(strings = { "top-hits", "response-status-ranges" })
+        @ValueSource(strings = { "top-hits", "response-status-ranges", "request-response-time" })
         public void should_return_400_if_time_ranges_parameters_are_not_present(String path) {
             statusRangeTarget = rootTarget().path(path);
             Response response = statusRangeTarget.queryParam("from", FROM).request().get();
@@ -179,7 +226,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "top-hits", "response-status-ranges" })
+        @ValueSource(strings = { "top-hits", "response-status-ranges", "request-response-time" })
         public void should_return_400_if_time_range_parameter_is_less_than_zero(String path) {
             statusRangeTarget = rootTarget().path(path);
             var lessThanZeroFromValue = -12L;

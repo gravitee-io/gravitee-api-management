@@ -25,6 +25,7 @@ import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageCo
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageConnectionDurationResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageMessagesPerRequestQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageMessagesPerRequestResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestResponseTimeAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsCountQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsCountResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusOverTimeAdapter;
@@ -36,6 +37,8 @@ import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
+import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregate;
+import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
@@ -134,5 +137,19 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("Search response top hit query: {}", esQuery);
         return this.client.search(index, null, esQuery).map(SearchTopHitsAdapter::adaptResponse).blockingGet();
+    }
+
+    @Override
+    public RequestResponseTimeAggregate searchRequestResponseTimes(
+        QueryContext queryContext,
+        RequestResponseTimeQueryCriteria queryCriteria
+    ) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var esQuery = SearchRequestResponseTimeAdapter.adaptQuery(queryCriteria);
+
+        log.debug("Search request response time query: {}", esQuery);
+        return this.client.search(index, null, esQuery)
+            .map(response -> SearchRequestResponseTimeAdapter.adaptResponse(response, queryCriteria))
+            .blockingGet();
     }
 }

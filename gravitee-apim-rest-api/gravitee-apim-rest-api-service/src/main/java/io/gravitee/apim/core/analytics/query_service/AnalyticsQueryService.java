@@ -19,6 +19,7 @@ import io.gravitee.apim.core.analytics.model.EnvironmentAnalyticsQueryParameters
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
+import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
@@ -52,6 +53,8 @@ public interface AnalyticsQueryService {
     );
 
     ResponseStatusOvertime searchResponseStatusOvertime(ExecutionContext executionContext, ResponseStatusOverTimeQuery query);
+
+    RequestResponseTime searchRequestResponseTime(ExecutionContext executionContext, EnvironmentAnalyticsQueryParameters parameters);
 
     record ResponseStatusOverTimeQuery(String apiId, Instant from, Instant to, Duration interval) {}
 }

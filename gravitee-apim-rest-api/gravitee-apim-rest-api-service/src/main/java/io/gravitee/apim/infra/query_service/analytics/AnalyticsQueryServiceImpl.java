@@ -23,12 +23,14 @@ import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
+import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
+import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
@@ -163,6 +165,26 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             .builder()
             .data(result.getStatusCount())
             .timeRange(new ResponseStatusOvertime.TimeRange(query.from(), query.to(), query.interval()))
+            .build();
+    }
+
+    @Override
+    public RequestResponseTime searchRequestResponseTime(
+        ExecutionContext executionContext,
+        EnvironmentAnalyticsQueryParameters parameters
+    ) {
+        var result = analyticsRepository.searchRequestResponseTimes(
+            executionContext.getQueryContext(),
+            new RequestResponseTimeQueryCriteria(parameters.getApiIds(), parameters.getFrom(), parameters.getTo())
+        );
+
+        return RequestResponseTime
+            .builder()
+            .requestsPerSecond(result.getRequestsPerSecond())
+            .requestsTotal(result.getRequestsTotal())
+            .responseMinTime(result.getResponseMinTime())
+            .responseMaxTime(result.getResponseMaxTime())
+            .responseAvgTime(result.getResponseAvgTime())
             .build();
     }
 }

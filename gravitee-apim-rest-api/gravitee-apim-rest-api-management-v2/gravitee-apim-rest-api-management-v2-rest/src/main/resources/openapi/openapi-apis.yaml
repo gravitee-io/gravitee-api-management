@@ -2064,23 +2064,23 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/analytics/response-time-over-time:
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/apiIdParam"
-      get:
-        tags:
-          - API Analytics
-        summary: Get API Analytics average response time over 24h by interval of 30 minutes
-        description: |-
-          Get API Analytics average response time over 24h by interval of 30 minutes
-          
-          User must have the API_ANALYTICS[READ] permission.
-        operationId: getAverageConnectionDuration
-        responses:
-          "200":
-            $ref: "#/components/responses/ApiAnalyticsAverageConnectionDurationResponse"
-          default:
-            $ref: "#/components/responses/Error"
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - API Analytics
+            summary: Get API Analytics average response time over 24h by interval of 30 minutes
+            description: |-
+                Get API Analytics average response time over 24h by interval of 30 minutes
+
+                User must have the API_ANALYTICS[READ] permission.
+            operationId: getAverageConnectionDuration
+            responses:
+                "200":
+                    $ref: "#/components/responses/ApiAnalyticsAverageConnectionDurationResponse"
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/analytics/response-statuses-over-time:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -2445,50 +2445,50 @@ paths:
 
     # API SpecGen
     /environments/{envId}/apis/{apiId}/spec-gen/_state:
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/apiIdParam"
-      get:
-        tags:
-          - API SpecGen
-        summary: Evaluate the state of the API SpecGen
-        description: |-
-          Evaluate the state of the API SpecGen
-          
-          User must have the API_DOCUMENTATION[READ] permission.
-        operationId: getSpecGenState
-        responses:
-          "200":
-            description: API Scoring trigger response
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/ApiSpecGenRequestState"
-          default:
-            $ref: "#/components/responses/Error"
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - API SpecGen
+            summary: Evaluate the state of the API SpecGen
+            description: |-
+                Evaluate the state of the API SpecGen
+
+                User must have the API_DOCUMENTATION[READ] permission.
+            operationId: getSpecGenState
+            responses:
+                "200":
+                    description: API Scoring trigger response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiSpecGenRequestState"
+                default:
+                    $ref: "#/components/responses/Error"
 
     /environments/{envId}/apis/{apiId}/spec-gen/_start:
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/apiIdParam"
-      get:
-        tags:
-          - API SpecGen
-        summary: Starts the API SpecGen
-        description: |-
-          Starts the API SpecGen
-          
-          User must have the API_DOCUMENTATION[CREATE] permission.
-        operationId: post
-        responses:
-          "200":
-            description: API Scoring trigger response
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/ApiSpecGenRequestState"
-          default:
-            $ref: "#/components/responses/Error"
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - API SpecGen
+            summary: Starts the API SpecGen
+            description: |-
+                Starts the API SpecGen
+
+                User must have the API_DOCUMENTATION[CREATE] permission.
+            operationId: post
+            responses:
+                "200":
+                    description: API Scoring trigger response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiSpecGenRequestState"
+                default:
+                    $ref: "#/components/responses/Error"
     # API Scoring
     /environments/{envId}/apis/{apiId}/scoring/_evaluate:
         parameters:
@@ -2646,6 +2646,26 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/EnvironmentAnalyticsTopHitsApisResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/analytics/request-response-time:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            parameters:
+                - $ref: "#/components/parameters/from"
+                - $ref: "#/components/parameters/to"
+            tags:
+                - Environment Analytics
+            summary: V4 APIs request and response times analytics
+            description: |-
+                Get analytics for v4 APIs regarding number of requests, requests per second and response max, min and average times for 
+                specified time range. Analytics contains data only for HTTP GET, HTTP POST and HTTP PROXY entrypoints.
+
+            operationId: getDashboardRequestResponseTime
+            responses:
+                "200":
+                    $ref: "#/components/responses/EnvironmentAnalyticsRequestResponseTimeResponse"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -4742,7 +4762,7 @@ components:
                     items:
                         type: string
                     description: The list of ids of APIs to ingest. If null or empty, ingest all.
-            required: ['apiIds']
+            required: ["apiIds"]
 
         CreateSubscription:
             type: object
@@ -7004,23 +7024,23 @@ components:
                         type: string
             required:
                 - name
-      # API SpecGen
+        # API SpecGen
         ApiSpecGenRequestState:
             type: object
             description: API SpecGen state.
             properties:
-              state:
-                $ref: "#/components/schemas/SpecGenState"
+                state:
+                    $ref: "#/components/schemas/SpecGenState"
         SpecGenState:
             type: string
             description: API SpecGen state value
             example: AVAILABLE
             enum:
-              - AVAILABLE
-              - UNAVAILABLE
-              - STARTED
-              - GENERATING
-      # API Scoring
+                - AVAILABLE
+                - UNAVAILABLE
+                - STARTED
+                - GENERATING
+        # API Scoring
         ApiScoringTriggerResponse:
             type: object
             properties:
@@ -7786,40 +7806,40 @@ components:
                                     description: A map of rounded average connection duration by entrypoint
                                     type: number
         ApiAnalyticsOverPeriodResponse:
-          description: Analytics for number over period
-          content:
-            application/json:
-              schema:
-                title: "ApiAnalyticsOverPeriodResponse"
-                description: API Analytics integer data point on a period.
-                properties:
-                  timeRange:
-                    type: object
-                    description: Time range of the analytics
-                    properties:
-                      from:
-                        type: integer
-                        format: int64
-                        description: The timestamp starting the time range
-                        example: 1621339200000
-                      to:
-                        type: integer
-                        format: int64
-                        description: The timestamp ending the time range
-                        example: 1621425600000
-                      interval:
-                        type: integer
-                        format: int64
-                        description: The interval in milliseconds splitting the data
-                        example: 120000
-                  data:
-                    type: array
-                    description: Response time average (in milliseconds) over time
-                    items:
-                      type: integer
-                      format: int64
-                      minimum: 0
-                      exclusiveMinimum: true
+            description: Analytics for number over period
+            content:
+                application/json:
+                    schema:
+                        title: "ApiAnalyticsOverPeriodResponse"
+                        description: API Analytics integer data point on a period.
+                        properties:
+                            timeRange:
+                                type: object
+                                description: Time range of the analytics
+                                properties:
+                                    from:
+                                        type: integer
+                                        format: int64
+                                        description: The timestamp starting the time range
+                                        example: 1621339200000
+                                    to:
+                                        type: integer
+                                        format: int64
+                                        description: The timestamp ending the time range
+                                        example: 1621425600000
+                                    interval:
+                                        type: integer
+                                        format: int64
+                                        description: The interval in milliseconds splitting the data
+                                        example: 120000
+                            data:
+                                type: array
+                                description: Response time average (in milliseconds) over time
+                                items:
+                                    type: integer
+                                    format: int64
+                                    minimum: 0
+                                    exclusiveMinimum: true
         ApiAnalyticsResponseStatusRangesResponse:
             description: Analytics for status codes by entrypoint
             content:
@@ -7868,41 +7888,41 @@ components:
                                             500.0-600.0:
                                                 value: 0
         ApiAnalyticsResponseStatusOvertimeResponse:
-          description: Analytics for status codes over time
-          content:
-            application/json:
-              schema:
-                title: "ApiAnalyticsResponseStatusOvertimeResponse"
-                description: API Analytics for status codes over time.
-                properties:
-                  timeRange:
-                    type: object
-                    description: Time range of the analytics
-                    properties:
-                      from:
-                        type: integer
-                        format: int64
-                        description: The timestamp starting the time range
-                        example: 1621339200000
-                      to:
-                        type: integer
-                        format: int64
-                        description: The timestamp ending the time range
-                        example: 1621425600000
-                      interval:
-                        type: integer
-                        format: int64
-                        description: The interval in milliseconds splitting the data
-                        example: 120000
-                  data:
-                    type: object
-                    description: Status count overt time
-                    additionalProperties:
-                      description: A map of response status and counts
-                      type: array
-                      items:
-                        type: integer
-                        format: int64
+            description: Analytics for status codes over time
+            content:
+                application/json:
+                    schema:
+                        title: "ApiAnalyticsResponseStatusOvertimeResponse"
+                        description: API Analytics for status codes over time.
+                        properties:
+                            timeRange:
+                                type: object
+                                description: Time range of the analytics
+                                properties:
+                                    from:
+                                        type: integer
+                                        format: int64
+                                        description: The timestamp starting the time range
+                                        example: 1621339200000
+                                    to:
+                                        type: integer
+                                        format: int64
+                                        description: The timestamp ending the time range
+                                        example: 1621425600000
+                                    interval:
+                                        type: integer
+                                        format: int64
+                                        description: The interval in milliseconds splitting the data
+                                        example: 120000
+                            data:
+                                type: object
+                                description: Status count overt time
+                                additionalProperties:
+                                    description: A map of response status and counts
+                                    type: array
+                                    items:
+                                        type: integer
+                                        format: int64
         EnvironmentAnalyticsResponseStatusRangesResponse:
             description: Analytics for status codes by entrypoint at environment level
             content:
@@ -7941,6 +7961,40 @@ components:
                                 description: List of top hit results
                                 items:
                                     $ref: "#/components/schemas/TopHitApi"
+        EnvironmentAnalyticsRequestResponseTimeResponse:
+            description: Analytics for request response times at environment level
+            content:
+                application/json:
+                    schema:
+                        title: "EnvironmentAnalyticsRequestResponseTimeResponse"
+                        description: Analytics for top hits APIs at environment level
+                        properties:
+                            requestsPerSecond:
+                                type: number
+                                format: double
+                                description: Number of requests per second
+                                example: 0.7
+                            requestsTotal:
+                                type: number
+                                format: int64
+                                description: Total number of requests
+                                example: 3567
+                            responseMinTime:
+                                type: number
+                                format: double
+                                description: Response minimum time in ms
+                                example: 32.23
+                            responseMaxTime:
+                                type: number
+                                format: double
+                                description: Response maximum time in ms
+                                example: 7240.11
+                            responseAvgTime:
+                                type: number
+                                format: double
+                                description: Response average time in ms
+                                example: 89.2
+
         # Analytics - Logs
         ApiLogsResponse:
             description: Page of API Logs
