@@ -166,7 +166,7 @@ class AcceptSubscriptionUseCaseTest {
     void should_accept_subscription() {
         // Given
         var api = givenExistingApi(ApiFixtures.aProxyApiV4().setId(API_ID));
-        var plan = givenExistingPlan(PlanFixtures.anApiKeyV4().setPlanStatus(PlanStatus.PUBLISHED));
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey().setPlanStatus(PlanStatus.PUBLISHED));
         var application = givenExistingApplication();
         var subscription = givenExistingPendingSubscriptionFor(api, plan, application);
 
@@ -189,7 +189,7 @@ class AcceptSubscriptionUseCaseTest {
     void should_accept_subscription_without_validity_period() {
         // Given
         var api = givenExistingApi(ApiFixtures.aProxyApiV4().setId(API_ID));
-        var plan = givenExistingPlan(PlanFixtures.anApiKeyV4().setPlanStatus(PlanStatus.PUBLISHED));
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey().setPlanStatus(PlanStatus.PUBLISHED));
         var application = givenExistingApplication();
         var subscription = givenExistingPendingSubscriptionFor(api, plan, application);
 
@@ -212,7 +212,7 @@ class AcceptSubscriptionUseCaseTest {
     void should_accept_subscription_with_custom_key() {
         // Given
         var api = givenExistingApi(ApiFixtures.aProxyApiV4().setId(API_ID));
-        var plan = givenExistingPlan(PlanFixtures.anApiKeyV4().setPlanStatus(PlanStatus.PUBLISHED));
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey().setPlanStatus(PlanStatus.PUBLISHED));
         var application = givenExistingApplication();
         var subscription = givenExistingPendingSubscriptionFor(api, plan, application);
 
@@ -346,7 +346,7 @@ class AcceptSubscriptionUseCaseTest {
     void should_generated_key_for_API_Key_plan() {
         // Given
         var api = givenExistingApi(ApiFixtures.aProxyApiV4().setId(API_ID));
-        var plan = givenExistingPlan(PlanFixtures.anApiKeyV4().setPlanStatus(PlanStatus.PUBLISHED));
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey().setPlanStatus(PlanStatus.PUBLISHED));
         var application = givenExistingApplication();
         var subscription = givenExistingPendingSubscriptionFor(api, plan, application);
 
@@ -409,7 +409,7 @@ class AcceptSubscriptionUseCaseTest {
     void should_not_generated_key_for_not_API_Key_plan() {
         // Given
         var api = givenExistingApi(ApiFixtures.aProxyApiV4().setId(API_ID));
-        var plan = givenExistingPlan(PlanFixtures.aPushPlan().setPlanStatus(PlanStatus.PUBLISHED));
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.aPushPlan().setPlanStatus(PlanStatus.PUBLISHED));
         var application = givenExistingApplication();
         var subscription = givenExistingPendingSubscriptionFor(api, plan, application);
 
@@ -503,7 +503,7 @@ class AcceptSubscriptionUseCaseTest {
     void should_throw_when_status_not_pending(SubscriptionEntity.Status status) {
         // Given
         var application = givenExistingApplication();
-        var plan = givenExistingPlan(PlanFixtures.anApiKeyV4().setPlanStatus(PlanStatus.PUBLISHED));
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey().setPlanStatus(PlanStatus.PUBLISHED));
         var subscription = givenExistingSubscription(
             SubscriptionFixtures.aSubscription().toBuilder().planId(plan.getId()).applicationId(application.getId()).status(status).build()
         );
@@ -519,7 +519,7 @@ class AcceptSubscriptionUseCaseTest {
     void should_throw_when_plan_is_closed() {
         // Given
         var application = givenExistingApplication();
-        var plan = givenExistingPlan(PlanFixtures.anApiKeyV4().setPlanStatus(PlanStatus.CLOSED));
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey().setPlanStatus(PlanStatus.CLOSED));
         var subscription = givenExistingSubscription(
             SubscriptionFixtures
                 .aSubscription()
@@ -581,8 +581,8 @@ class AcceptSubscriptionUseCaseTest {
         return switch (api.getDefinitionVersion()) {
             case V1, V2 -> PlanFixtures.aPlanV2().setPlanStatus(PlanStatus.PUBLISHED);
             case V4 -> switch (api.getType()) {
-                case PROXY -> PlanFixtures.anApiKeyV4().setPlanStatus(PlanStatus.PUBLISHED);
-                case MESSAGE -> PlanFixtures.aPushPlan().setPlanStatus(PlanStatus.PUBLISHED);
+                case PROXY -> PlanFixtures.HttpV4.anApiKey().setPlanStatus(PlanStatus.PUBLISHED);
+                case MESSAGE -> PlanFixtures.HttpV4.aPushPlan().setPlanStatus(PlanStatus.PUBLISHED);
                 case NATIVE -> throw new IllegalStateException("NATIVE API not supported");
             };
             case FEDERATED -> PlanFixtures.aFederatedPlan().setPlanStatus(PlanStatus.PUBLISHED);

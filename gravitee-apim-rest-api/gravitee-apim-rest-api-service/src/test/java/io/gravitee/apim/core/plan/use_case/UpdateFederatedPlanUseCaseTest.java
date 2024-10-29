@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.plan.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.mock;
 
 import assertions.CoreAssertions;
@@ -36,8 +35,6 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
-import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
@@ -47,14 +44,11 @@ import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService
 import io.gravitee.apim.infra.domain_service.plan.PlanSynchronizationLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -200,7 +194,7 @@ class UpdateFederatedPlanUseCaseTest {
 
     @Test
     void should_throw_exception_when_update_plan_is_not_federated() {
-        var plan = givenExistingPlan(PlanFixtures.aPlanV4().toBuilder().build());
+        var plan = givenExistingPlan(PlanFixtures.aPlanHttpV4().toBuilder().build());
 
         var throwable = Assertions.catchThrowable(() -> useCase.execute(new UpdateFederatedPlanUseCase.Input(plan, AUDIT_INFO)));
 

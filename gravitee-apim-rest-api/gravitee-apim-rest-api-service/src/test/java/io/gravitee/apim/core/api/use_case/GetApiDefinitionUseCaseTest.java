@@ -17,8 +17,8 @@ package io.gravitee.apim.core.api.use_case;
 
 import static fixtures.core.model.ApiFixtures.aMessageApiV4;
 import static fixtures.core.model.ApiFixtures.aProxyApiV2;
+import static fixtures.core.model.PlanFixtures.aPlanHttpV4;
 import static fixtures.core.model.PlanFixtures.aPlanV2;
-import static fixtures.core.model.PlanFixtures.aPlanV4;
 import static org.junit.jupiter.api.Assertions.*;
 
 import inmemory.ApiCrudServiceInMemory;
@@ -78,11 +78,11 @@ class GetApiDefinitionUseCaseTest {
             flowCrudServiceInMemory.saveApiFlows(API_ID, flows);
 
             //   Plan flow
-            var planPublished = aPlanV4().setPlanId("plan-push-id").toBuilder().apiId(API_ID).build();
+            var planPublished = aPlanHttpV4().setPlanId("plan-push-id").toBuilder().apiId(API_ID).build();
             planPublished.setPlanStatus(PlanStatus.PUBLISHED);
-            var planDeprecated = aPlanV4().setPlanId("plan-deprecate-id").toBuilder().apiId(API_ID).build();
+            var planDeprecated = aPlanHttpV4().setPlanId("plan-deprecate-id").toBuilder().apiId(API_ID).build();
             planDeprecated.setPlanStatus(PlanStatus.DEPRECATED);
-            var planStaging = aPlanV4().setPlanId("plan-staging-id").toBuilder().apiId(API_ID).build();
+            var planStaging = aPlanHttpV4().setPlanId("plan-staging-id").toBuilder().apiId(API_ID).build();
             planStaging.setPlanStatus(PlanStatus.STAGING);
             planQueryServiceInMemory.initWith(List.of(planPublished, planDeprecated, planStaging));
 

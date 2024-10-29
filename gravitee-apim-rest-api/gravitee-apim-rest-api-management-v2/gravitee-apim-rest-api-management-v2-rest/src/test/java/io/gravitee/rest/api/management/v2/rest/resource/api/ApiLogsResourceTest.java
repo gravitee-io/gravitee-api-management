@@ -73,8 +73,8 @@ import org.junit.jupiter.api.Test;
 
 public class ApiLogsResourceTest extends ApiResourceTest {
 
-    private static final Plan PLAN_1 = PlanFixtures.aPlanV4().toBuilder().id("plan1").name("1st plan").apiId(API).build();
-    private static final Plan PLAN_2 = PlanFixtures.aPlanV4().toBuilder().id("plan2").name("2nd plan").apiId(API).build();
+    private static final Plan PLAN_1 = PlanFixtures.aPlanHttpV4().toBuilder().id("plan1").name("1st plan").apiId(API).build();
+    private static final Plan PLAN_2 = PlanFixtures.aPlanHttpV4().toBuilder().id("plan2").name("2nd plan").apiId(API).build();
     private static final BaseApplicationEntity APPLICATION = BaseApplicationEntity.builder().id("app1").name("an application name").build();
     public static final String REQUEST_ID = "request-id";
 

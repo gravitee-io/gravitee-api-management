@@ -17,8 +17,6 @@ package io.gravitee.apim.core.api.use_case;
 
 import static fixtures.ApplicationModelFixtures.anApplicationEntity;
 import static fixtures.core.model.ApiFixtures.aProxyApiV4;
-import static fixtures.core.model.PlanFixtures.aKeylessV4;
-import static fixtures.core.model.PlanFixtures.anApiKeyV4;
 import static fixtures.core.model.SubscriptionFixtures.aSubscription;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,6 +34,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.AuditInfoFixtures;
+import fixtures.core.model.PlanFixtures;
 import fixtures.definition.ApiDefinitionFixtures;
 import fixtures.definition.FlowFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
@@ -724,8 +723,8 @@ class ImportApiCRDUseCaseTest {
             .crossId(API_CROSS_ID)
             .build();
 
-        private static final Plan KEYLESS = aKeylessV4().toBuilder().apiId(API_ID).build().setPlanTags(Set.of(TAG));
-        private static final Plan API_KEY = anApiKeyV4().toBuilder().apiId(API_ID).build().setPlanTags(Set.of(TAG));
+        private static final Plan KEYLESS = PlanFixtures.HttpV4.aKeyless().toBuilder().apiId(API_ID).build().setPlanTags(Set.of(TAG));
+        private static final Plan API_KEY = PlanFixtures.HttpV4.anApiKey().toBuilder().apiId(API_ID).build().setPlanTags(Set.of(TAG));
 
         @BeforeEach
         void setUp() {

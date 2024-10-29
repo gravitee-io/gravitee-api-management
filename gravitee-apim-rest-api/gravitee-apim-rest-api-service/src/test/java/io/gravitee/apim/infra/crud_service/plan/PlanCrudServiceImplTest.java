@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.PlanFixtures;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -273,8 +274,8 @@ public class PlanCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_create_a_v4_plan() {
-            var plan = PlanFixtures
-                .aKeylessV4()
+            var plan = PlanFixtures.HttpV4
+                .aKeyless()
                 .toBuilder()
                 .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                 .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
@@ -296,7 +297,7 @@ public class PlanCrudServiceImplTest {
             when(planRepository.create(any())).thenThrow(TechnicalException.class);
 
             // When
-            Throwable throwable = catchThrowable(() -> service.create(PlanFixtures.aPlanV4()));
+            Throwable throwable = catchThrowable(() -> service.create(PlanFixtures.aPlanHttpV4()));
 
             // Then
             assertThat(throwable)
@@ -312,7 +313,7 @@ public class PlanCrudServiceImplTest {
         @SneakyThrows
         void should_update_an_existing_v4_plan() {
             var plan = PlanFixtures
-                .aPlanV4()
+                .aPlanHttpV4()
                 .toBuilder()
                 .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC))
                 .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC))
@@ -349,6 +350,7 @@ public class PlanCrudServiceImplTest {
                         .crossId("my-plan-crossId")
                         .name("My plan")
                         .definitionVersion(DefinitionVersion.V4)
+                        .apiType(ApiType.PROXY)
                         .description("Description")
                         .security(Plan.PlanSecurityType.KEY_LESS)
                         .securityDefinition("{\"nice\": \"config\"}")
@@ -442,7 +444,7 @@ public class PlanCrudServiceImplTest {
         void should_return_the_updated_plan() {
             when(planRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-            var toUpdate = PlanFixtures.aKeylessV4();
+            var toUpdate = PlanFixtures.HttpV4.aKeyless();
             var result = service.update(toUpdate);
 
             assertThat(result).isEqualTo(toUpdate);
@@ -454,7 +456,7 @@ public class PlanCrudServiceImplTest {
             when(planRepository.update(any())).thenThrow(TechnicalException.class);
 
             // When
-            Throwable throwable = catchThrowable(() -> service.update(PlanFixtures.aPlanV4()));
+            Throwable throwable = catchThrowable(() -> service.update(PlanFixtures.aPlanHttpV4()));
 
             // Then
             assertThat(throwable)

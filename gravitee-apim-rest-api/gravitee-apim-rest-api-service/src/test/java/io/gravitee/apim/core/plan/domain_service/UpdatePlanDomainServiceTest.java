@@ -17,8 +17,6 @@ package io.gravitee.apim.core.plan.domain_service;
 
 import static fixtures.core.model.ApiFixtures.aMessageApiV4;
 import static fixtures.core.model.ApiFixtures.aProxyApiV4;
-import static fixtures.core.model.PlanFixtures.aPushPlan;
-import static fixtures.core.model.PlanFixtures.anApiKeyV4;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
@@ -161,7 +159,7 @@ class UpdatePlanDomainServiceTest {
         @Test
         void should_throw_when_invalid_status_change_detected() {
             // Given
-            var plan = anApiKeyV4().toBuilder().build();
+            var plan = PlanFixtures.HttpV4.anApiKey().toBuilder().build();
             parametersQueryService.initWith(
                 List.of(new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "false"))
             );
@@ -176,7 +174,7 @@ class UpdatePlanDomainServiceTest {
         @Test
         void should_throw_when_security_configuration_is_invalid() {
             // Given
-            var plan = anApiKeyV4().toBuilder().build();
+            var plan = PlanFixtures.HttpV4.anApiKey().toBuilder().build();
             when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
                 .thenThrow(new InvalidDataException("invalid"));
 
@@ -487,9 +485,9 @@ class UpdatePlanDomainServiceTest {
         void should_reorder_all_plans_when_order_is_updated() {
             // Given
             var plans = givenExistingPlans(
-                PlanFixtures.aKeylessV4().toBuilder().id("plan1").order(1).build(),
-                PlanFixtures.aKeylessV4().toBuilder().id("plan2").order(2).build(),
-                PlanFixtures.aKeylessV4().toBuilder().id("plan3").order(3).build()
+                PlanFixtures.HttpV4.aKeyless().toBuilder().id("plan1").order(1).build(),
+                PlanFixtures.HttpV4.aKeyless().toBuilder().id("plan2").order(2).build(),
+                PlanFixtures.HttpV4.aKeyless().toBuilder().id("plan3").order(3).build()
             );
 
             // When
@@ -508,7 +506,8 @@ class UpdatePlanDomainServiceTest {
         return Stream.of(
             Arguments.of(
                 API_PROXY_V4,
-                anApiKeyV4()
+                PlanFixtures.HttpV4
+                    .anApiKey()
                     .toBuilder()
                     .apiId(API_ID)
                     .planDefinitionHttpV4(
@@ -524,7 +523,8 @@ class UpdatePlanDomainServiceTest {
             ),
             Arguments.of(
                 API_MESSAGE_V4,
-                aPushPlan()
+                PlanFixtures.HttpV4
+                    .aPushPlan()
                     .toBuilder()
                     .apiId(API_ID)
                     .planDefinitionHttpV4(

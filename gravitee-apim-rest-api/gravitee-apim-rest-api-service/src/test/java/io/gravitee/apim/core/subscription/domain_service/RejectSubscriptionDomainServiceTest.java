@@ -94,8 +94,8 @@ public class RejectSubscriptionDomainServiceTest {
             );
         planCrudService.initWith(
             List.of(
-                PlanFixtures.aPlanV4().toBuilder().id(PLAN_CLOSED).build().setPlanStatus(PlanStatus.CLOSED),
-                PlanFixtures.aPlanV4().toBuilder().id(PLAN_PUBLISHED).build().setPlanStatus(PlanStatus.PUBLISHED)
+                PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_CLOSED).build().setPlanStatus(PlanStatus.CLOSED),
+                PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_PUBLISHED).build().setPlanStatus(PlanStatus.PUBLISHED)
             )
         );
     }
