@@ -512,7 +512,12 @@ class UpdatePlanDomainServiceTest {
                     .toBuilder()
                     .apiId(API_ID)
                     .planDefinitionHttpV4(
-                        fixtures.definition.PlanFixtures.anApiKeyV4().toBuilder().tags(Set.of(TAG)).status(PlanStatus.STAGING).build()
+                        fixtures.definition.PlanFixtures.HttpV4Definition
+                            .anApiKeyV4()
+                            .toBuilder()
+                            .tags(Set.of(TAG))
+                            .status(PlanStatus.STAGING)
+                            .build()
                     )
                     .build(),
                 List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build())
@@ -523,7 +528,12 @@ class UpdatePlanDomainServiceTest {
                     .toBuilder()
                     .apiId(API_ID)
                     .planDefinitionHttpV4(
-                        fixtures.definition.PlanFixtures.anApiKeyV4().toBuilder().tags(Set.of(TAG)).status(PlanStatus.STAGING).build()
+                        fixtures.definition.PlanFixtures.HttpV4Definition
+                            .anApiKeyV4()
+                            .toBuilder()
+                            .tags(Set.of(TAG))
+                            .status(PlanStatus.STAGING)
+                            .build()
                     )
                     .build(),
                 List.of(Flow.builder().name("flow").selectors(List.of(new ChannelSelector())).build())

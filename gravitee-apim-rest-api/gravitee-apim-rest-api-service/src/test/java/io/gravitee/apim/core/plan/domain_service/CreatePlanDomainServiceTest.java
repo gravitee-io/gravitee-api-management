@@ -55,6 +55,7 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
@@ -191,7 +192,9 @@ class CreatePlanDomainServiceTest {
             // Given
             var plan = aPushPlan()
                 .toBuilder()
-                .planDefinitionHttpV4(PlanFixtures.aPushPlan().toBuilder().security(PlanSecurity.builder().build()).build())
+                .planDefinitionHttpV4(
+                    PlanFixtures.HttpV4Definition.aPushPlan().toBuilder().security(PlanSecurity.builder().build()).build()
+                )
                 .build();
 
             // When
@@ -206,7 +209,10 @@ class CreatePlanDomainServiceTest {
         @Test
         void should_throw_when_security_configuration_is_missing() {
             // Given
-            var plan = aPlanV4().toBuilder().planDefinitionHttpV4(PlanFixtures.anApiKeyV4().toBuilder().security(null).build()).build();
+            var plan = aPlanV4()
+                .toBuilder()
+                .planDefinitionHttpV4(PlanFixtures.HttpV4Definition.anApiKeyV4().toBuilder().security(null).build())
+                .build();
 
             // When
             var throwable = Assertions.catchThrowable(() -> service.create(plan, List.of(), HTTP_PROXY_API_V4, AUDIT_INFO));

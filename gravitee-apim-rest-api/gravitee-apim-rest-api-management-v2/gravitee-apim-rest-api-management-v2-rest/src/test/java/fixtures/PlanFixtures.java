@@ -17,7 +17,8 @@ package fixtures;
 
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
-import io.gravitee.definition.model.v4.plan.PlanMode;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV2;
@@ -28,8 +29,6 @@ import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV4;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
-import java.time.Instant;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -51,7 +50,7 @@ public class PlanFixtures {
             .type(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.API_KEY)
             .configuration("{\"nice\": \"config\"}");
 
-    private static final CreatePlanV4.CreatePlanV4Builder BASE_CREATE_PLAN_V4 = CreatePlanV4
+    private static final CreatePlanV4.CreatePlanV4Builder BASE_CREATE_PLAN_HTTP_V4 = CreatePlanV4
         .builder()
         .name("My plan")
         .description("Description")
@@ -67,6 +66,23 @@ public class PlanFixtures {
         .selectionRule("{#request.attribute['selectionRule'] != null}")
         .security(BASE_PLAN_SECURITY.build())
         .flows(List.of(FlowFixtures.aFlowHttpV4()));
+
+    private static final CreatePlanV4.CreatePlanV4Builder BASE_CREATE_PLAN_NATIVE_V4 = CreatePlanV4
+        .builder()
+        .name("My plan")
+        .description("Description")
+        .order(1)
+        .characteristics(List.of("characteristic1", "characteristic2"))
+        .commentRequired(true)
+        .commentMessage("Comment message")
+        .crossId("my-plan-crossId")
+        .generalConditions("General conditions")
+        .tags(List.of("tag1", "tag2"))
+        .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+        .validation(PlanValidation.AUTO)
+        .selectionRule("{#request.attribute['selectionRule'] != null}")
+        .security(BASE_PLAN_SECURITY.build())
+        .flows(List.of(FlowFixtures.aFlowNativeV4()));
 
     private static final CreatePlanV2.CreatePlanV2Builder BASE_CREATE_PLAN_V2 = CreatePlanV2
         .builder()
@@ -152,8 +168,12 @@ public class PlanFixtures {
         .selectionRule("{#request.attribute['selectionRule'] != null}")
         .flows(List.of(FlowFixtures.aModelFlowV2()));
 
-    public static CreatePlanV4 aCreatePlanV4() {
-        return BASE_CREATE_PLAN_V4.build();
+    public static CreatePlanV4 aCreatePlanHttpV4() {
+        return BASE_CREATE_PLAN_HTTP_V4.build();
+    }
+
+    public static CreatePlanV4 aCreatePlanNativeV4() {
+        return BASE_CREATE_PLAN_NATIVE_V4.build();
     }
 
     public static CreatePlanV2 aCreatePlanV2() {

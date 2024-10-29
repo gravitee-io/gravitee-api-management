@@ -17,16 +17,8 @@ package fixtures.core.model;
 
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.plan.PlanMode;
-import io.gravitee.definition.model.v4.plan.PlanSecurity;
-import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.Supplier;
 
 public class PlanFixtures {
@@ -51,7 +43,7 @@ public class PlanFixtures {
         return BASE
             .get()
             .definitionVersion(DefinitionVersion.V4)
-            .planDefinitionHttpV4(fixtures.definition.PlanFixtures.aKeylessV4())
+            .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.aKeylessV4())
             .build();
     }
 
@@ -60,15 +52,30 @@ public class PlanFixtures {
     }
 
     public static Plan aKeylessV4() {
-        return BASE.get().id("keyless").name("Keyless").planDefinitionHttpV4(fixtures.definition.PlanFixtures.aKeylessV4()).build();
+        return BASE
+            .get()
+            .id("keyless")
+            .name("Keyless")
+            .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.aKeylessV4())
+            .build();
     }
 
     public static Plan anApiKeyV4() {
-        return BASE.get().id("apikey").name("API Key").planDefinitionHttpV4(fixtures.definition.PlanFixtures.anApiKeyV4()).build();
+        return BASE
+            .get()
+            .id("apikey")
+            .name("API Key")
+            .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4())
+            .build();
     }
 
     public static Plan aPushPlan() {
-        return BASE.get().id("push").name("Push Plan").planDefinitionHttpV4(fixtures.definition.PlanFixtures.aPushPlan()).build();
+        return BASE
+            .get()
+            .id("push")
+            .name("Push Plan")
+            .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.aPushPlan())
+            .build();
     }
 
     public static Plan anMtlsPlanV4() {
@@ -77,7 +84,7 @@ public class PlanFixtures {
             .id("mtls")
             .name("mTLS Plan")
             .definitionVersion(DefinitionVersion.V4)
-            .planDefinitionHttpV4(fixtures.definition.PlanFixtures.anMtlsPlanV4())
+            .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.anMtlsPlanV4())
             .build();
     }
 
