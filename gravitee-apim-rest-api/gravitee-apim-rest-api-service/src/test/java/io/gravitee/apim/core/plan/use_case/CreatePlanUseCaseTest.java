@@ -15,8 +15,6 @@
  */
 package io.gravitee.apim.core.plan.use_case;
 
-import static fixtures.core.model.PlanFixtures.aKeylessV4;
-import static fixtures.core.model.PlanFixtures.anApiKeyV4;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -134,7 +132,7 @@ class CreatePlanUseCaseTest {
 
         // When
         var result = createPlanUseCase.execute(
-            new Input(api.getId(), aKeylessV4().toBuilder().id(null).build(), Collections.emptyList(), AUDIT_INFO)
+            new Input(api.getId(), _api -> PlanFixtures.HttpV4.aKeyless().toBuilder().id(null).build(), Collections.emptyList(), AUDIT_INFO)
         );
 
         // Then
@@ -153,7 +151,12 @@ class CreatePlanUseCaseTest {
     void should_not_allow_to_create_secured_plan() {
         // Given
         var api = givenExistingApi(API);
-        var input = new Input(api.getId(), anApiKeyV4().toBuilder().id(null).build(), Collections.emptyList(), AUDIT_INFO);
+        var input = new Input(
+            api.getId(),
+            _api -> PlanFixtures.HttpV4.anApiKey().toBuilder().id(null).build(),
+            Collections.emptyList(),
+            AUDIT_INFO
+        );
 
         // When
         var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
@@ -170,7 +173,12 @@ class CreatePlanUseCaseTest {
         // When
         var throwable = Assertions.catchThrowable(() ->
             createPlanUseCase.execute(
-                new Input(api.getId(), anApiKeyV4().toBuilder().id(null).build(), Collections.emptyList(), AUDIT_INFO)
+                new Input(
+                    api.getId(),
+                    _api -> PlanFixtures.HttpV4.anApiKey().toBuilder().id(null).build(),
+                    Collections.emptyList(),
+                    AUDIT_INFO
+                )
             )
         );
 
@@ -182,8 +190,8 @@ class CreatePlanUseCaseTest {
     void should_throw_when_creating_mtls_plan_for_tcp_api() {
         // Given
         var api = givenExistingApi(ApiFixtures.aTcpApiV4());
-        var mtlsPlan = PlanFixtures.anMtlsPlanV4().toBuilder().id(null).build();
-        var input = new Input(api.getId(), mtlsPlan, Collections.emptyList(), AUDIT_INFO);
+        var mtlsPlan = PlanFixtures.HttpV4.anMtlsPlan().toBuilder().id(null).build();
+        var input = new Input(api.getId(), _api -> mtlsPlan, Collections.emptyList(), AUDIT_INFO);
 
         // When
         var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
@@ -196,8 +204,8 @@ class CreatePlanUseCaseTest {
     void should_create_mtls_plan_for_http_api() {
         // Given
         var api = givenExistingApi(ApiFixtures.aProxyApiV4());
-        var mtlsPlan = PlanFixtures.anMtlsPlanV4().toBuilder().id(null).build();
-        var input = new Input(api.getId(), mtlsPlan, Collections.emptyList(), AUDIT_INFO);
+        var mtlsPlan = PlanFixtures.HttpV4.anMtlsPlan().toBuilder().id(null).build();
+        var input = new Input(api.getId(), _api -> mtlsPlan, Collections.emptyList(), AUDIT_INFO);
 
         // When
         var result = createPlanUseCase.execute(input);
@@ -214,8 +222,8 @@ class CreatePlanUseCaseTest {
     void should_create_push_plan_with_null_security_type() {
         // Given
         var api = givenExistingApi(ApiFixtures.aProxyApiV4());
-        var pushPlan = PlanFixtures.aPushPlan().toBuilder().id(null).build();
-        var input = new Input(api.getId(), pushPlan, Collections.emptyList(), AUDIT_INFO);
+        var pushPlan = PlanFixtures.HttpV4.aPushPlan().toBuilder().id(null).build();
+        var input = new Input(api.getId(), _api -> pushPlan, Collections.emptyList(), AUDIT_INFO);
 
         // When
         var result = createPlanUseCase.execute(input);
@@ -224,6 +232,30 @@ class CreatePlanUseCaseTest {
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(GENERATED_ID);
         assertThat(result.plan()).extracting(PlanWithFlows::getApiId, Plan::getPlanSecurity).containsExactly(api.getId(), null);
+    }
+
+    @Test
+    void should_throw_exception_when_creating_native_plan() {
+        // Given
+        var api = givenExistingApi(ApiFixtures.aNativeApi());
+
+        // When
+        var throwable = Assertions.catchThrowable(() ->
+            createPlanUseCase.execute(
+                new Input(
+                    api.getId(),
+                    _api -> PlanFixtures.NativeV4.anApiKey().toBuilder().id(null).build(),
+                    Collections.emptyList(),
+                    AUDIT_INFO
+                )
+            )
+        );
+
+        // Then
+        Assertions
+            .assertThat(throwable)
+            .isInstanceOf(PlanInvalidException.class)
+            .hasMessage("Plans for Native APIs are currently not supported");
     }
 
     private Api givenExistingApi(Api api) {

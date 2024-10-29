@@ -178,8 +178,8 @@ public class ApiPlansResource extends AbstractResource {
             var output = createPlanUseCase.execute(
                 new CreatePlanUseCase.Input(
                     apiId,
-                    planMapper.map(planV4),
-                    flowMapper.map(planV4.getFlows()),
+                    api -> planMapper.map(planV4, api),
+                    flowMapper.mapToHttpV4(planV4.getFlows()),
                     AuditInfo
                         .builder()
                         .organizationId(executionContext.getOrganizationId())

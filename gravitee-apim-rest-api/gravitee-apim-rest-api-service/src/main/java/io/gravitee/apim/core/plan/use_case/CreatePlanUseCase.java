@@ -26,9 +26,11 @@ import io.gravitee.apim.core.plan.exception.PlanInvalidException;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.List;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -44,11 +46,17 @@ public class CreatePlanUseCase {
             throw new PlanInvalidException("Can't manually create Federated Plan");
         }
 
-        if (isMtls(api, input) && api.getApiDefinitionHttpV4().isTcpProxy()) {
+        // TODO Kafka Gateway: Implement native plan creation for native apis
+        if (api.getType() == ApiType.NATIVE) {
+            throw new PlanInvalidException("Plans for Native APIs are currently not supported");
+        }
+
+        var plan = input.toPlan.apply(api);
+
+        if (isMtls(api, plan) && api.getApiDefinitionHttpV4().isTcpProxy()) {
             throw new PlanInvalidException("Cannot create mTLS plan for TCP API");
         }
 
-        var plan = input.plan;
         plan.setEnvironmentId(api.getEnvironmentId());
         plan.setApiId(input.apiId);
         plan.setType(Plan.PlanType.API);
@@ -67,15 +75,15 @@ public class CreatePlanUseCase {
         return new Output(createdPlan.getId(), createdPlan);
     }
 
-    private static boolean isMtls(Api api, Input input) {
+    private static boolean isMtls(Api api, Plan plan) {
         return (
             api.getDefinitionVersion() == DefinitionVersion.V4 &&
-            !isNull(input.plan().getPlanSecurity()) &&
-            input.plan().getPlanSecurity().getType().equalsIgnoreCase("mtls")
+            !isNull(plan.getPlanSecurity()) &&
+            plan.getPlanSecurity().getType().equalsIgnoreCase("mtls")
         );
     }
 
-    public record Input(String apiId, Plan plan, List<Flow> flows, AuditInfo auditInfo) {}
+    public record Input(String apiId, Function<Api, Plan> toPlan, List<Flow> flows, AuditInfo auditInfo) {}
 
     public record Output(String id, PlanWithFlows plan) {}
 }
