@@ -113,7 +113,10 @@ public class Plan implements GenericPlanEntity {
     }
 
     public AbstractPlan getPlanDefinitionV4() {
-        return this.planDefinitionNativeV4 != null ? this.planDefinitionNativeV4 : this.planDefinitionHttpV4;
+        if (ApiType.NATIVE.equals(apiType)) {
+            return this.planDefinitionNativeV4;
+        }
+        return this.planDefinitionHttpV4;
     }
 
     @Override
