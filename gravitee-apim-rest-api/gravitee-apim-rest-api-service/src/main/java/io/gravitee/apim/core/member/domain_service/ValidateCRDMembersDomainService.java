@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -101,11 +102,16 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
 
     private Optional<Role> findRole(String organizationId, MembershipReferenceType scope, String role) {
         var context = new ReferenceContext(ORGANIZATION, organizationId);
-        return switch (scope) {
-            case API -> roleQueryService.findApiRole(role, context);
-            case APPLICATION -> roleQueryService.findApplicationRole(role, context);
-            default -> throw new TechnicalDomainException(String.format("Role scope [%s] is not supported", scope));
-        };
+        try {
+            UUID roleId = UUID.fromString(role);
+            return roleQueryService.findByIds(Set.of(roleId.toString())).stream().findFirst();
+        } catch (IllegalArgumentException e) {
+            return switch (scope) {
+                case API -> roleQueryService.findApiRole(role, context);
+                case APPLICATION -> roleQueryService.findApplicationRole(role, context);
+                default -> throw new TechnicalDomainException(String.format("Role scope [%s] is not supported", scope));
+            };
+        }
     }
 
     private void validatePrimaryOwner(Input input, Set<MemberCRD> sanitized, ArrayList<Error> errors) {
