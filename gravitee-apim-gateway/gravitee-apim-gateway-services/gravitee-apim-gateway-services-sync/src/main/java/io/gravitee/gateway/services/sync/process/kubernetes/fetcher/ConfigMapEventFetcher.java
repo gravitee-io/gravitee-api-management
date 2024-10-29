@@ -58,8 +58,6 @@ public class ConfigMapEventFetcher {
     private static final String LABEL_MANAGED_BY = "managed-by";
     private static final String LABEL_GIO_TYPE = "gio-type";
 
-    private static final int RETRY_DELAY_MILLIS = 10000;
-
     private static final String EVENT_ADDED = "ADDED";
     private static final String EVENT_MODIFIED = "MODIFIED";
     private static final String EVENT_DELETED = "DELETED";
@@ -109,11 +107,13 @@ public class ConfigMapEventFetcher {
                     .resourceVersion(resourceVersions.get(kind))
                     .build()
             )
-            .doOnSuccess(configMapList -> resourceVersions.put(kind, configMapList.getMetadata().getResourceVersion()))
+            .doOnSuccess(configMapList -> {
+                log.debug("caching config map resources version {} to watch from there", configMapList.getMetadata().getResourceVersion());
+                resourceVersions.put(kind, configMapList.getMetadata().getResourceVersion());
+            })
             .doOnError(err -> {
-                if (err instanceof ResourceVersionNotFoundException) {
-                    resourceVersions.remove(kind);
-                }
+                log.debug("removing resource version from cache for kind {}", kind);
+                resourceVersions.remove(kind);
             })
             .map(ConfigMapList::getItems);
     }
@@ -139,10 +139,10 @@ public class ConfigMapEventFetcher {
             )
             .doOnError(err -> {
                 if (err instanceof ResourceVersionNotFoundException) {
+                    log.debug("removing resource version from cache for kind {}", kind);
                     resourceVersions.remove(kind);
                 }
-            })
-            .retryWhen(errors -> errors.delay(RETRY_DELAY_MILLIS, TimeUnit.MILLISECONDS));
+            });
     }
 
     public Maybe<io.gravitee.repository.management.model.Event> convertTo(final Event<ConfigMap> configMapEvent) {
