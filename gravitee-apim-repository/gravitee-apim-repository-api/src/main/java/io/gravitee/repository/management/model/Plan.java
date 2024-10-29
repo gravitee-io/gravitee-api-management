@@ -144,6 +144,9 @@ public class Plan {
     @Builder.Default
     private Set<String> tags = new HashSet<>();
 
+    /**
+     * The type of V4 API of this plan.
+     */
     private ApiType apiType;
 
     public Plan(Plan cloned) {
