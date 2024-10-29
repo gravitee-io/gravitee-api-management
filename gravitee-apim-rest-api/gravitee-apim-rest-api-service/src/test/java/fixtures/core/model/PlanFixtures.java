@@ -17,6 +17,7 @@ package fixtures.core.model;
 
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.function.Supplier;
@@ -39,11 +40,21 @@ public class PlanFixtures {
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO);
 
-    public static Plan aPlanV4() {
+    public static Plan aPlanHttpV4() {
         return BASE
             .get()
             .definitionVersion(DefinitionVersion.V4)
+            .apiType(ApiType.PROXY)
             .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.aKeylessV4())
+            .build();
+    }
+
+    public static Plan aPlanNativeV4() {
+        return BASE
+            .get()
+            .definitionVersion(DefinitionVersion.V4)
+            .apiType(ApiType.NATIVE)
+            .planDefinitionNativeV4(fixtures.definition.PlanFixtures.NativeV4Definition.aKeylessV4())
             .build();
     }
 
@@ -51,41 +62,96 @@ public class PlanFixtures {
         return BASE.get().definitionVersion(DefinitionVersion.V2).planDefinitionV2(fixtures.definition.PlanFixtures.aKeylessV2()).build();
     }
 
-    public static Plan aKeylessV4() {
-        return BASE
-            .get()
-            .id("keyless")
-            .name("Keyless")
-            .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.aKeylessV4())
-            .build();
+    public static class HttpV4 {
+
+        private HttpV4() {}
+
+        public static Plan aKeyless() {
+            return BASE
+                .get()
+                .id("keyless")
+                .name("Keyless")
+                .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.aKeylessV4())
+                .build();
+        }
+
+        public static Plan anApiKey() {
+            return BASE
+                .get()
+                .id("apikey")
+                .name("API Key")
+                .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4())
+                .build();
+        }
+
+        public static Plan aPushPlan() {
+            return BASE
+                .get()
+                .id("push")
+                .name("Push Plan")
+                .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.aPushPlan())
+                .build();
+        }
+
+        public static Plan anMtlsPlan() {
+            return BASE
+                .get()
+                .id("mtls")
+                .name("mTLS Plan")
+                .definitionVersion(DefinitionVersion.V4)
+                .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.anMtlsPlanV4())
+                .build();
+        }
     }
 
-    public static Plan anApiKeyV4() {
-        return BASE
-            .get()
-            .id("apikey")
-            .name("API Key")
-            .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4())
-            .build();
-    }
+    public static class NativeV4 {
 
-    public static Plan aPushPlan() {
-        return BASE
-            .get()
-            .id("push")
-            .name("Push Plan")
-            .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.aPushPlan())
-            .build();
-    }
+        private NativeV4() {}
 
-    public static Plan anMtlsPlanV4() {
-        return BASE
-            .get()
-            .id("mtls")
-            .name("mTLS Plan")
-            .definitionVersion(DefinitionVersion.V4)
-            .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.anMtlsPlanV4())
-            .build();
+        public static Plan aKeyless() {
+            return BASE
+                .get()
+                .id("keyless")
+                .name("Keyless")
+                .planDefinitionNativeV4(fixtures.definition.PlanFixtures.NativeV4Definition.aKeylessV4())
+                .definitionVersion(DefinitionVersion.V4)
+                .apiType(ApiType.NATIVE)
+                .build();
+        }
+
+        public static Plan anApiKey() {
+            return BASE
+                .get()
+                .id("apikey")
+                .name("API Key")
+                .planDefinitionNativeV4(fixtures.definition.PlanFixtures.NativeV4Definition.anApiKeyV4())
+                .definitionVersion(DefinitionVersion.V4)
+                .apiType(ApiType.NATIVE)
+                .build();
+        }
+
+        public static Plan aPushPlan() {
+            return BASE
+                .get()
+                .id("push")
+                .name("Push Plan")
+                .planDefinitionNativeV4(fixtures.definition.PlanFixtures.NativeV4Definition.aPushPlan())
+                .definitionVersion(DefinitionVersion.V4)
+                .apiType(ApiType.NATIVE)
+                .build();
+        }
+
+        public static Plan anMtlsPlan() {
+            return BASE
+                .get()
+                .id("mtls")
+                .name("mTLS Plan")
+                .definitionVersion(DefinitionVersion.V4)
+                .planDefinitionNativeV4(fixtures.definition.PlanFixtures.NativeV4Definition.anMtlsPlanV4())
+                .definitionVersion(DefinitionVersion.V4)
+                .apiType(ApiType.NATIVE)
+                .build();
+        }
     }
 
     public static Plan aFederatedPlan() {

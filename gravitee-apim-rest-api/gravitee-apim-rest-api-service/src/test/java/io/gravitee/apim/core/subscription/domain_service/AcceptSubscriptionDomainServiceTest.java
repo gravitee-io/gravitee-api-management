@@ -78,14 +78,24 @@ class AcceptSubscriptionDomainServiceTest {
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
 
-    private static final Plan PLAN_CLOSED = PlanFixtures.aPlanV4().toBuilder().id("plan-closed").build().setPlanStatus(PlanStatus.CLOSED);
-    private static final Plan PLAN_PUBLISHED = PlanFixtures
-        .anApiKeyV4()
+    private static final Plan PLAN_CLOSED = PlanFixtures
+        .aPlanHttpV4()
+        .toBuilder()
+        .id("plan-closed")
+        .build()
+        .setPlanStatus(PlanStatus.CLOSED);
+    private static final Plan PLAN_PUBLISHED = PlanFixtures.HttpV4
+        .anApiKey()
         .toBuilder()
         .id("plan-published")
         .build()
         .setPlanStatus(PlanStatus.PUBLISHED);
-    private static final Plan PUSH_PLAN = PlanFixtures.aPushPlan().toBuilder().id("plan-push").build().setPlanStatus(PlanStatus.PUBLISHED);
+    private static final Plan PUSH_PLAN = PlanFixtures.HttpV4
+        .aPushPlan()
+        .toBuilder()
+        .id("plan-push")
+        .build()
+        .setPlanStatus(PlanStatus.PUBLISHED);
 
     private static final ZonedDateTime STARTING_AT = Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault());
     private static final ZonedDateTime ENDING_AT = Instant.parse("2024-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault());
@@ -341,8 +351,8 @@ class AcceptSubscriptionDomainServiceTest {
         @ValueSource(strings = { "api-key", "oauth2" })
         void should_trigger_notifications_for_federated_subscriber_when_it_has_email(String securityType) {
             // Given
-            Plan plan = PlanFixtures
-                .anApiKeyV4()
+            Plan plan = PlanFixtures.HttpV4
+                .anApiKey()
                 .toBuilder()
                 .definitionVersion(DefinitionVersion.FEDERATED)
                 .id("plan-published")

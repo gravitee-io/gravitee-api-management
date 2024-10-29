@@ -125,8 +125,8 @@ class CloseExpiredSubscriptionsUseCaseTest {
         );
         givenExistingPlans(
             List.of(
-                PlanFixtures.anApiKeyV4().toBuilder().id("plan1").apiId("api1").build(),
-                PlanFixtures.anApiKeyV4().toBuilder().id("plan2").apiId("api2").build()
+                PlanFixtures.HttpV4.anApiKey().toBuilder().id("plan1").apiId("api1").build(),
+                PlanFixtures.HttpV4.anApiKey().toBuilder().id("plan2").apiId("api2").build()
             )
         );
         givenExistingApplication(

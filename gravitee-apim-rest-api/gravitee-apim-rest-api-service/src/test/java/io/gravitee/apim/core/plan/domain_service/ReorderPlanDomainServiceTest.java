@@ -65,7 +65,7 @@ class ReorderPlanDomainServiceTest {
             existingOrder
                 .entrySet()
                 .stream()
-                .map(entry -> (Plan) PlanFixtures.aKeylessV4().toBuilder().id(entry.getKey()).order(entry.getValue()).build())
+                .map(entry -> (Plan) PlanFixtures.HttpV4.aKeyless().toBuilder().id(entry.getKey()).order(entry.getValue()).build())
                 .toList()
         );
 
@@ -91,7 +91,9 @@ class ReorderPlanDomainServiceTest {
             existingOrder
                 .entrySet()
                 .stream()
-                .map(entry -> (Plan) PlanFixtures.aKeylessV4().toBuilder().id(entry.getKey()).apiId(API_ID).order(entry.getValue()).build())
+                .map(entry ->
+                    (Plan) PlanFixtures.HttpV4.aKeyless().toBuilder().id(entry.getKey()).apiId(API_ID).order(entry.getValue()).build()
+                )
                 .toList()
         );
 

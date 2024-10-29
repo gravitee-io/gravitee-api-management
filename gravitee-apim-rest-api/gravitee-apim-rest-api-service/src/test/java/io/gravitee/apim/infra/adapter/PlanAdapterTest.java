@@ -199,7 +199,7 @@ class PlanAdapterTest {
         @Test
         void should_convert_v4_plan_to_repository() {
             var model = PlanFixtures
-                .aPlanV4()
+                .aPlanHttpV4()
                 .toBuilder()
                 .closedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC))
                 .needRedeployAt(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")))
@@ -474,8 +474,8 @@ class PlanAdapterTest {
 
         @Test
         public void should_convert_plan_to_plan_entity() {
-            var plan = PlanFixtures
-                .anApiKeyV4()
+            var plan = PlanFixtures.HttpV4
+                .anApiKey()
                 .toBuilder()
                 .planDefinitionHttpV4(
                     fixtures.definition.PlanFixtures.HttpV4Definition
@@ -504,7 +504,7 @@ class PlanAdapterTest {
 
         @Test
         public void should_convert_push_plan_to_plan_entity() {
-            var plan = PlanFixtures.aPushPlan();
+            var plan = PlanFixtures.HttpV4.aPushPlan();
 
             PlanEntity planEntity = PlanAdapter.INSTANCE.toEntityV4(plan);
 
@@ -527,8 +527,8 @@ class PlanAdapterTest {
 
         @Test
         public void should_convert_plan_to_crd() {
-            var plan = PlanFixtures
-                .anApiKeyV4()
+            var plan = PlanFixtures.HttpV4
+                .anApiKey()
                 .toBuilder()
                 .planDefinitionHttpV4(
                     fixtures.definition.PlanFixtures.HttpV4Definition

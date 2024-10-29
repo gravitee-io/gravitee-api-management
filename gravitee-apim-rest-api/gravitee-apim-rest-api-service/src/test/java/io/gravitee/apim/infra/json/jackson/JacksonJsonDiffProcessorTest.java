@@ -17,18 +17,10 @@ package io.gravitee.apim.infra.json.jackson;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fixtures.core.model.PlanFixtures;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
-import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -44,7 +36,7 @@ class JacksonJsonDiffProcessorTest {
     @Test
     void should_process_diff_of_model_using_JsonRawValue_annotation() {
         var oldPlan = PlanFixtures
-            .aPlanV4()
+            .aPlanHttpV4()
             .toBuilder()
             .planDefinitionHttpV4(
                 Plan

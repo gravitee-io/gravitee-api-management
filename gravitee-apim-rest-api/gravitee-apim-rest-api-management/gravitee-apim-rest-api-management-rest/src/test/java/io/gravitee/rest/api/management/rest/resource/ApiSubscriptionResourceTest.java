@@ -126,7 +126,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
     @Test
     public void shouldReject() {
         // Given
-        var plan = givenExistingPlan(PlanFixtures.aPlanV4().toBuilder().id(PLAN_ID).build().setPlanStatus(PlanStatus.PUBLISHED));
+        var plan = givenExistingPlan(PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_ID).build().setPlanStatus(PlanStatus.PUBLISHED));
         var subscription = givenExistingSubscription(
             SubscriptionFixtures
                 .aSubscription()
@@ -152,7 +152,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
     @Test
     public void shouldAccept() {
         // Given
-        var plan = givenExistingPlan(PlanFixtures.aPlanV4().toBuilder().id(PLAN_ID).build().setPlanStatus(PlanStatus.PUBLISHED));
+        var plan = givenExistingPlan(PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_ID).build().setPlanStatus(PlanStatus.PUBLISHED));
         var subscription = givenExistingSubscription(
             SubscriptionFixtures
                 .aSubscription()

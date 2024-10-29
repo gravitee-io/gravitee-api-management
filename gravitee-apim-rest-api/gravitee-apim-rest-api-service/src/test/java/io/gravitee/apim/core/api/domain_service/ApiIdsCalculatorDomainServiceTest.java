@@ -393,7 +393,7 @@ class ApiIdsCalculatorDomainServiceTest {
 
     private static PlanWithFlows buildPlanWithFlows(String id, String crossId) {
         return new PlanWithFlows(
-            PlanFixtures.aPlanV4().setPlanId(id).toBuilder().crossId(crossId).name(generateRandomName()).build(),
+            PlanFixtures.aPlanHttpV4().setPlanId(id).toBuilder().crossId(crossId).name(generateRandomName()).build(),
             List.of()
         );
     }

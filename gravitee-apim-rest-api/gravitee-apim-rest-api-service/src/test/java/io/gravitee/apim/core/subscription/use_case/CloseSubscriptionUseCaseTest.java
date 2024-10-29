@@ -206,7 +206,7 @@ class CloseSubscriptionUseCaseTest {
     void should_reject_pending_subscription() {
         // Given
         var api = givenExistingApi(ApiFixtures.aProxyApiV4());
-        var plan = givenExistingPlan(PlanFixtures.aPlanV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
+        var plan = givenExistingPlan(PlanFixtures.aPlanHttpV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
         givenExistingSubscription(
             SubscriptionFixtures
                 .aSubscription()

@@ -118,7 +118,7 @@ class RejectSubscriptionUseCaseTest {
     @Test
     void should_reject_subscription() {
         // Given
-        var plan = givenExistingPlan(PlanFixtures.aPlanV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
+        var plan = givenExistingPlan(PlanFixtures.aPlanHttpV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
         var subscription = givenExistingSubscription(
             SubscriptionFixtures
                 .aSubscription()
@@ -151,7 +151,7 @@ class RejectSubscriptionUseCaseTest {
     @Test
     void should_create_audit() {
         // Given
-        var plan = givenExistingPlan(PlanFixtures.aPlanV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
+        var plan = givenExistingPlan(PlanFixtures.aPlanHttpV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
         var subscription = givenExistingSubscription(
             SubscriptionFixtures
                 .aSubscription()
@@ -199,7 +199,7 @@ class RejectSubscriptionUseCaseTest {
     @Test
     void should_send_notifications_to_api_and_application_owners() {
         // Given
-        var plan = givenExistingPlan(PlanFixtures.aPlanV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
+        var plan = givenExistingPlan(PlanFixtures.aPlanHttpV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
         var subscription = givenExistingSubscription(
             SubscriptionFixtures
                 .aSubscription()
@@ -229,7 +229,7 @@ class RejectSubscriptionUseCaseTest {
     void should_send_notifications_to_subscriber_when_they_have_an_email() {
         // Given
         var subscriber = givenExistingUser(BaseUserEntity.builder().id("subscriber").email("subscriber@mail.fake").build());
-        var plan = givenExistingPlan(PlanFixtures.aPlanV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
+        var plan = givenExistingPlan(PlanFixtures.aPlanHttpV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
         var subscription = givenExistingSubscription(
             SubscriptionFixtures
                 .aSubscription()
@@ -275,7 +275,7 @@ class RejectSubscriptionUseCaseTest {
 
     @Test
     void should_throw_when_plan_is_closed() {
-        var plan = givenExistingPlan(PlanFixtures.aPlanV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.CLOSED));
+        var plan = givenExistingPlan(PlanFixtures.aPlanHttpV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.CLOSED));
         var subscription = givenExistingSubscription(
             SubscriptionFixtures
                 .aSubscription()
