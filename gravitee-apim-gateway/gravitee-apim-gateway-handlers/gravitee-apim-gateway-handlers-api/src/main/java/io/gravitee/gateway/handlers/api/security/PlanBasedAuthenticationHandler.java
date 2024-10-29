@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.security;
 
+import static io.gravitee.gateway.security.core.AuthenticationContext.ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE;
 import static io.gravitee.gateway.security.core.AuthenticationContext.ATTR_INTERNAL_TOKEN_IDENTIFIED;
 
 import io.gravitee.definition.model.Plan;
@@ -94,6 +95,10 @@ public abstract class PlanBasedAuthenticationHandler implements AuthenticationHa
                 if (Boolean.FALSE.equals(value)) {
                     authenticationContext.setInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED, false);
                 }
+
+                // Set as Last handler (jwt or oauth), no need to check the subscription,
+                // let the CheckSubscriptionPolicy do the job and return an appropriate error.
+                authenticationContext.setInternalAttribute(ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE, true);
                 return Boolean.TRUE.equals(value);
             } catch (ParseException | EvaluationException e) {
                 LOGGER.error("Plan selection rule execution failed", e);
