@@ -20,6 +20,7 @@ import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
+import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
@@ -42,6 +43,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public AverageConnectionDuration averageConnectionDuration;
     public ResponseStatusRanges responseStatusRanges;
     public TopHitsApis topHitsApis;
+    public RequestResponseTime requestResponseTime;
     public LinkedHashMap<String, Double> averageAggregate = new LinkedHashMap<>();
     public ResponseStatusOvertime responseStatusOvertime;
 
@@ -67,6 +69,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
         averageAggregate = new LinkedHashMap<>();
         responseStatusRanges = null;
         responseStatusOvertime = null;
+        requestResponseTime = null;
     }
 
     @Override
@@ -96,5 +99,13 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     @Override
     public ResponseStatusOvertime searchResponseStatusOvertime(ExecutionContext executionContext, ResponseStatusOverTimeQuery query) {
         return responseStatusOvertime;
+    }
+
+    @Override
+    public RequestResponseTime searchRequestResponseTime(
+        ExecutionContext executionContext,
+        EnvironmentAnalyticsQueryParameters parameters
+    ) {
+        return requestResponseTime;
     }
 }

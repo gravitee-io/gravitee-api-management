@@ -16,9 +16,11 @@
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import io.gravitee.apim.core.analytics.model.EnvironmentAnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentRequestResponseTimeUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentResponseStatusRangesUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentTopHitsApisCountUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.EnvironmentAnalyticsMapper;
+import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsRequestResponseTimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusRangesResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopHitsApisResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.param.TimeRangeParam;
@@ -40,6 +42,9 @@ public class EnvironmentAnalyticsResource {
 
     @Inject
     SearchEnvironmentTopHitsApisCountUseCase searchEnvironmentTopHitsApisCountUseCase;
+
+    @Inject
+    SearchEnvironmentRequestResponseTimeUseCase searchEnvironmentRequestResponseTimeUseCase;
 
     @Path("/response-status-ranges")
     @GET
@@ -67,5 +72,19 @@ public class EnvironmentAnalyticsResource {
             .topHitsApis()
             .map(EnvironmentAnalyticsMapper.INSTANCE::map)
             .orElse(EnvironmentAnalyticsTopHitsApisResponse.builder().data(List.of()).build());
+    }
+
+    @Path("/request-response-time")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public EnvironmentAnalyticsRequestResponseTimeResponse getRequestResponseTime(@BeanParam @Valid TimeRangeParam timeRangeParam) {
+        var params = EnvironmentAnalyticsQueryParameters.builder().from(timeRangeParam.getFrom()).to(timeRangeParam.getTo()).build();
+        var input = new SearchEnvironmentRequestResponseTimeUseCase.Input(GraviteeContext.getExecutionContext(), params);
+
+        return searchEnvironmentRequestResponseTimeUseCase
+            .execute(input)
+            .requestResponseTime()
+            .map(EnvironmentAnalyticsMapper.INSTANCE::map)
+            .orElse(EnvironmentAnalyticsRequestResponseTimeResponse.builder().build());
     }
 }

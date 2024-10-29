@@ -24,6 +24,7 @@ import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
+import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
@@ -296,6 +297,61 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var result = cut.searchTopHitsApi(new QueryContext("org#1", "env#1"), null);
 
             assertThat(result).isNotNull().get().extracting(TopHitsAggregate::getTopHitsCounts).isEqualTo(Map.of());
+        }
+    }
+
+    @Nested
+    class RequestResponseTime {
+
+        @Test
+        void should_return_top_hits_count_for_a_given_api_and_date_range() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS).toEpochMilli();
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS).toEpochMilli();
+
+            var result = cut.searchRequestResponseTimes(
+                new QueryContext("org#1", "env#1"),
+                new RequestResponseTimeQueryCriteria(List.of(API_ID), from, to)
+            );
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(result.getRequestsPerSecond()).isEqualTo(2.3148148148148147E-5);
+                softly.assertThat(result.getRequestsTotal()).isEqualTo(4L);
+                softly.assertThat(result.getResponseMinTime()).isEqualTo(20.0);
+                softly.assertThat(result.getResponseMaxTime()).isEqualTo(30000.0);
+                softly.assertThat(result.getResponseAvgTime()).isEqualTo(7800.0);
+            });
+        }
+
+        @Test
+        void should_return_empty_request_response_time_aggregate_for_empty_ids_list() {
+            var from = 1728992401566L;
+            var to = 1729078801566L;
+            var result = cut.searchRequestResponseTimes(
+                new QueryContext("org#1", "env#1"),
+                new RequestResponseTimeQueryCriteria(List.of(API_ID), from, to)
+            );
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(result.getRequestsPerSecond()).isEqualTo(0d);
+                softly.assertThat(result.getRequestsTotal()).isEqualTo(0L);
+                softly.assertThat(result.getResponseMinTime()).isEqualTo(0d);
+                softly.assertThat(result.getResponseMaxTime()).isEqualTo(0d);
+                softly.assertThat(result.getResponseAvgTime()).isEqualTo(0d);
+            });
+        }
+
+        @Test
+        void should_return_empty_request_response_time_aggregate_for_null_query_criteria() {
+            var result = cut.searchRequestResponseTimes(new QueryContext("org#1", "env#1"), null);
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(result.getRequestsPerSecond()).isEqualTo(0d);
+                softly.assertThat(result.getRequestsTotal()).isEqualTo(0L);
+                softly.assertThat(result.getResponseMinTime()).isEqualTo(0d);
+                softly.assertThat(result.getResponseMaxTime()).isEqualTo(0d);
+                softly.assertThat(result.getResponseAvgTime()).isEqualTo(0d);
+            });
         }
     }
 }
