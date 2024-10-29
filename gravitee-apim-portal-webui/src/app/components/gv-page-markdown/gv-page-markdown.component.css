@@ -49,6 +49,9 @@
   max-width: 100%;
   display: inline;
   overflow: auto;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
 }
 
 app-gv-markdown-toc {
