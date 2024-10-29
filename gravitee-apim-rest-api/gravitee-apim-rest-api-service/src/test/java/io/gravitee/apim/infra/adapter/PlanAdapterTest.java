@@ -21,6 +21,7 @@ import fixtures.core.model.PlanFixtures;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.federation.FederatedPlan;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -50,8 +51,8 @@ class PlanAdapterTest {
     class CoreModel {
 
         @Test
-        void should_convert_from_v4_repository_to_core_model() {
-            var repository = planV4().build();
+        void should_convert_from_v4_repository_to_http_core_model() {
+            var repository = planHttpV4().build();
 
             var plan = PlanAdapter.INSTANCE.fromRepository(repository);
 
@@ -77,6 +78,41 @@ class PlanAdapterTest {
                 soft.assertThat(plan.getPlanDefinitionV4().getSelectionRule()).isEqualTo("selection-rule");
                 soft.assertThat(plan.getPlanDefinitionV4().getStatus()).isEqualTo(PlanStatus.PUBLISHED);
                 soft.assertThat(plan.getPlanDefinitionV4().getTags()).isEqualTo(Set.of("tag-1"));
+                soft.assertThat(plan.getType()).isEqualTo(io.gravitee.apim.core.plan.model.Plan.PlanType.API);
+                soft.assertThat(plan.getValidation()).isEqualTo(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.AUTO);
+                soft.assertThat(plan.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(plan.isCommentRequired()).isTrue();
+            });
+        }
+
+        @Test
+        void should_convert_from_v4_repository_to_native_core_model() {
+            var repository = planNativeV4().build();
+
+            var plan = PlanAdapter.INSTANCE.fromRepository(repository);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(plan.getApiId()).isEqualTo("my-api");
+                soft.assertThat(plan.getCharacteristics()).containsExactly("characteristic-1");
+                soft.assertThat(plan.getClosedAt()).isEqualTo(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(plan.getCommentMessage()).isEqualTo("comment-message");
+                soft.assertThat(plan.getCreatedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(plan.getCrossId()).isEqualTo("cross-id");
+                soft.assertThat(plan.getDescription()).isEqualTo("plan-description");
+                soft.assertThat(plan.getExcludedGroups()).containsExactly("excluded-group-1");
+                soft.assertThat(plan.getGeneralConditions()).isEqualTo("general-conditions");
+                soft.assertThat(plan.getId()).isEqualTo("my-id");
+                soft.assertThat(plan.getPlanMode()).isEqualTo(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD);
+                soft.assertThat(plan.getName()).isEqualTo("plan-name");
+                soft.assertThat(plan.getNeedRedeployAt()).isEqualTo(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")));
+                soft.assertThat(plan.getOrder()).isOne();
+                soft.assertThat(plan.getPublishedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft
+                    .assertThat(plan.getPlanSecurity())
+                    .isEqualTo(PlanSecurity.builder().type("api-key").configuration("security-definition").build());
+                soft.assertThat(plan.getPlanDefinitionNativeV4().getSelectionRule()).isEqualTo("selection-rule");
+                soft.assertThat(plan.getPlanDefinitionNativeV4().getStatus()).isEqualTo(PlanStatus.PUBLISHED);
+                soft.assertThat(plan.getPlanDefinitionNativeV4().getTags()).isEqualTo(Set.of("tag-1"));
                 soft.assertThat(plan.getType()).isEqualTo(io.gravitee.apim.core.plan.model.Plan.PlanType.API);
                 soft.assertThat(plan.getValidation()).isEqualTo(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.AUTO);
                 soft.assertThat(plan.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
@@ -314,7 +350,7 @@ class PlanAdapterTest {
             });
         }
 
-        private Plan.PlanBuilder planV4() {
+        private Plan.PlanBuilder planHttpV4() {
             return Plan
                 .builder()
                 .id("my-id")
@@ -322,6 +358,38 @@ class PlanAdapterTest {
                 .crossId("cross-id")
                 .name("plan-name")
                 .definitionVersion(DefinitionVersion.V4)
+                .apiType(ApiType.PROXY)
+                .description("plan-description")
+                .security(Plan.PlanSecurityType.API_KEY)
+                .securityDefinition("security-definition")
+                .selectionRule("selection-rule")
+                .validation(Plan.PlanValidationType.AUTO)
+                .mode(Plan.PlanMode.STANDARD)
+                .order(1)
+                .type(Plan.PlanType.API)
+                .status(Plan.Status.PUBLISHED)
+                .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                .publishedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                .closedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
+                .needRedeployAt(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")))
+                .characteristics(List.of("characteristic-1"))
+                .excludedGroups(List.of("excluded-group-1"))
+                .commentRequired(true)
+                .commentMessage("comment-message")
+                .generalConditions("general-conditions")
+                .tags(Set.of("tag-1"));
+        }
+
+        private Plan.PlanBuilder planNativeV4() {
+            return Plan
+                .builder()
+                .id("my-id")
+                .api("my-api")
+                .crossId("cross-id")
+                .name("plan-name")
+                .definitionVersion(DefinitionVersion.V4)
+                .apiType(ApiType.NATIVE)
                 .description("plan-description")
                 .security(Plan.PlanSecurityType.API_KEY)
                 .securityDefinition("security-definition")
