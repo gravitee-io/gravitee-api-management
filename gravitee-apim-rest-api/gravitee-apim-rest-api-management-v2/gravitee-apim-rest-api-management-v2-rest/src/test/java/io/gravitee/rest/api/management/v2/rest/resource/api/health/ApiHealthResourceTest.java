@@ -24,9 +24,11 @@ import assertions.MAPIAssertions;
 import fakes.FakeApiHealthQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import io.gravitee.apim.core.api_health.model.AvailabilityHealthCheck;
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime;
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTimeOvertime;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
+import io.gravitee.rest.api.management.v2.rest.model.ApiHealthAvailabilityResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiHealthAverageResponseTimeOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiHealthAverageResponseTimeResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
@@ -55,6 +57,8 @@ class ApiHealthResourceTest extends ApiResourceTest {
 
     WebTarget averageResponseTimeTarget;
     WebTarget averageResponseTimeOvertimeTarget;
+
+    WebTarget availabilityTarget;
 
     @Inject
     FakeApiHealthQueryService apiHealthQueryService;
@@ -196,6 +200,59 @@ class ApiHealthResourceTest extends ApiResourceTest {
                                 .build()
                         );
                     assertThat(r.getData()).isEqualTo(List.of(3L));
+                });
+        }
+    }
+
+    @Nested
+    class Availability {
+
+        @BeforeEach
+        public void setUp() {
+            availabilityTarget = rootTarget().path("availability");
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_HEALTH,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = availabilityTarget.request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        void should_return_requests_count() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            apiHealthQueryService.availabilityHealthCheck = new AvailabilityHealthCheck(75, Map.of("default", 75));
+
+            final Response response = availabilityTarget
+                .queryParam("field", "endpoint")
+                .queryParam("from", FROM.toEpochMilli())
+                .queryParam("to", TO.toEpochMilli())
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiHealthAvailabilityResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getGlobal()).isEqualTo(75);
+                    assertThat(r.getGroup()).containsAllEntriesOf(Map.of("default", 75));
                 });
         }
     }

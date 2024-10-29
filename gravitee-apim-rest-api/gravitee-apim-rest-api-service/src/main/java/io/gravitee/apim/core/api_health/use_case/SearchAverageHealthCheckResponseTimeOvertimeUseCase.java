@@ -22,9 +22,10 @@ import io.gravitee.apim.core.api.exception.TcpProxyNotSupportedException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTimeOvertime;
 import io.gravitee.apim.core.api_health.query_service.ApiHealthQueryService;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,44 +37,39 @@ public class SearchAverageHealthCheckResponseTimeOvertimeUseCase {
     private final ApiHealthQueryService apiHealthQueryService;
     private final ApiCrudService apiCrudService;
 
-    public SearchAverageHealthCheckResponseTimeOvertimeUseCase.Output execute(
-        SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input input
-    ) {
-        validateApiRequirements(input);
-
-        var result = apiHealthQueryService.averageResponseTimeOvertime(
-            new ApiHealthQueryService.AverageHealthCheckResponseTimeOvertimeQuery(
-                input.organizationId,
-                input.environmentId,
-                input.apiId,
-                input.from,
-                input.to,
-                input.interval
+    public Maybe<Output> execute(SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input input) {
+        return validateApiRequirements(input)
+            .flatMapMaybe(api ->
+                apiHealthQueryService.averageResponseTimeOvertime(
+                    new ApiHealthQueryService.AverageHealthCheckResponseTimeOvertimeQuery(
+                        input.organizationId,
+                        input.environmentId,
+                        input.apiId,
+                        input.from,
+                        input.to,
+                        input.interval
+                    )
+                )
             )
-        );
-
-        return new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Output(result);
+            .map(Output::new);
     }
 
-    private void validateApiRequirements(SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input input) {
-        final Api api = apiCrudService.get(input.apiId);
-        validateApiMultiTenancyAccess(api, input.environmentId);
-        validateApiIsNotTcp(api);
+    private Single<Api> validateApiRequirements(Input input) {
+        return Single
+            .fromCallable(() -> apiCrudService.get(input.apiId()))
+            .flatMap(api -> validateApiMultiTenancyAccess(api, input.environmentId()))
+            .flatMap(this::validateApiIsNotTcp);
     }
 
-    private void validateApiIsNotTcp(Api api) {
-        if (api.getApiDefinitionHttpV4().isTcpProxy()) {
-            throw new TcpProxyNotSupportedException(api.getId());
-        }
+    private Single<Api> validateApiIsNotTcp(Api api) {
+        return api.getApiDefinitionHttpV4().isTcpProxy() ? Single.error(new TcpProxyNotSupportedException(api.getId())) : Single.just(api);
     }
 
-    private static void validateApiMultiTenancyAccess(Api api, String environmentId) {
-        if (!api.belongsToEnvironment(environmentId)) {
-            throw new ApiNotFoundException(api.getId());
-        }
+    private static Single<Api> validateApiMultiTenancyAccess(Api api, String environmentId) {
+        return !api.belongsToEnvironment(environmentId) ? Single.error(new ApiNotFoundException(api.getId())) : Single.just(api);
     }
 
     public record Input(String organizationId, String environmentId, String apiId, Instant from, Instant to, Duration interval) {}
 
-    public record Output(Optional<AverageHealthCheckResponseTimeOvertime> averageHealthCheckResponseTimeOvertime) {}
+    public record Output(AverageHealthCheckResponseTimeOvertime averageHealthCheckResponseTimeOvertime) {}
 }

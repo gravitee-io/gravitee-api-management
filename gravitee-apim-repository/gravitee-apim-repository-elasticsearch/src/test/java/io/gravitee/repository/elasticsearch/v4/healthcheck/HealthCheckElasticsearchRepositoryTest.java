@@ -15,12 +15,13 @@
  */
 package io.gravitee.repository.elasticsearch.v4.healthcheck;
 
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
+import io.gravitee.repository.healthcheck.v4.model.ApiFieldPeriod;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertimeQuery;
-import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeQuery;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -28,6 +29,7 @@ import java.util.Map;
 import java.util.function.DoublePredicate;
 import java.util.function.Predicate;
 import org.assertj.core.api.Condition;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -55,17 +57,13 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
             var to = from.plus(Duration.ofDays(1));
 
             // When
-            var result = repository.averageResponseTime(
-                new QueryContext("org#1", "env#1"),
-                new AverageHealthCheckResponseTimeQuery(API_ID, "endpoint", from, to)
-            );
+            var responseTime = repository
+                .averageResponseTime(new QueryContext("org#1", "env#1"), new ApiFieldPeriod(API_ID, "endpoint", from, to))
+                .blockingGet();
 
             // Then
-            assertThat(result)
-                .hasValueSatisfying(responseTime -> {
-                    assertThat(responseTime.globalResponseTimeMs()).isEqualTo(7L);
-                    assertThat(responseTime.groupedResponseTimeMs()).contains(Map.entry("default", 5L), Map.entry("other", 8L));
-                });
+            assertThat(requireNonNull(responseTime).globalResponseTimeMs()).isEqualTo(7L);
+            assertThat(responseTime.groupedResponseTimeMs()).contains(Map.entry("default", 5L), Map.entry("other", 8L));
         }
 
         @Test
@@ -76,17 +74,13 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
             var to = from.plus(Duration.ofDays(1));
 
             // When
-            var result = repository.averageResponseTime(
-                new QueryContext("org#1", "env#1"),
-                new AverageHealthCheckResponseTimeQuery(API_ID, "gateway", from, to)
-            );
+            var responseTime = repository
+                .averageResponseTime(new QueryContext("org#1", "env#1"), new ApiFieldPeriod(API_ID, "gateway", from, to))
+                .blockingGet();
 
             // Then
-            assertThat(result)
-                .hasValueSatisfying(responseTime -> {
-                    assertThat(responseTime.globalResponseTimeMs()).isEqualTo(6L);
-                    assertThat(responseTime.groupedResponseTimeMs()).contains(Map.entry("gw1", 8L), Map.entry("gw2", 3L));
-                });
+            assertThat(requireNonNull(responseTime).globalResponseTimeMs()).isEqualTo(6L);
+            assertThat(responseTime.groupedResponseTimeMs()).contains(Map.entry("gw1", 8L), Map.entry("gw2", 3L));
         }
     }
 
@@ -102,21 +96,20 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
             Duration interval = Duration.ofMinutes(10);
 
             // When
-            var result = repository.averageResponseTimeOvertime(
-                new QueryContext("org#1", "env#1"),
-                new AverageHealthCheckResponseTimeOvertimeQuery(API_ID, from, to, interval)
-            );
+            var responseTime = repository
+                .averageResponseTimeOvertime(
+                    new QueryContext("org#1", "env#1"),
+                    new AverageHealthCheckResponseTimeOvertimeQuery(API_ID, from, to, interval)
+                )
+                .blockingGet();
 
             // Then
             long nbBuckets = Duration.between(from, to).dividedBy(interval);
 
-            assertThat(result)
-                .hasValueSatisfying(responseTime -> {
-                    assertThat(responseTime.buckets().entrySet())
-                        .hasSize((int) nbBuckets + 1)
-                        .haveExactly(1, bucketOfTimeHaveValue("17:20:00.000Z", 7L))
-                        .haveExactly(1, bucketOfTimeHaveValue("17:30:00.000Z", 8L));
-                });
+            assertThat(requireNonNull(responseTime).buckets().entrySet())
+                .hasSize((int) nbBuckets + 1)
+                .haveExactly(1, bucketOfTimeHaveValue("17:20:00.000Z", 7L))
+                .haveExactly(1, bucketOfTimeHaveValue("17:30:00.000Z", 8L));
         }
 
         private static Condition<Map.Entry<String, Long>> bucketOfTimeHaveValue(String timeSuffix, long value) {
@@ -129,6 +122,64 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
             String description
         ) {
             return new Condition<>(entry -> value.test(entry.getValue()) && keyPredicate.test(entry.getKey()), description);
+        }
+    }
+
+    @Nested
+    class Availibility {
+
+        @Test
+        void should_return_rate_of_availability_grouped_by_endpoint() {
+            // Given
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = from.plus(Duration.ofDays(1));
+
+            // When
+            var result = repository
+                .availability(new QueryContext("org#1", "env#1"), new ApiFieldPeriod(API_ID, "endpoint", from, to))
+                .blockingGet();
+
+            // Then
+            // we have a result
+            assertThat(result).isNotNull();
+
+            // grouped by endpoint
+            assertThat(result.ratesByFields().keySet()).containsExactlyInAnyOrder("default", "other");
+
+            // correctness of values
+            SoftAssertions solftly = new SoftAssertions();
+            solftly.assertThat(result.ratesByFields().get("default")).isEqualTo(75);
+            solftly.assertThat(result.ratesByFields().get("other")).isEqualTo(0);
+            solftly.assertThat(result.global()).isEqualTo(60);
+            solftly.assertAll();
+        }
+
+        @Test
+        void should_return_rate_of_availability_grouped_by_gateway() {
+            // Given
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = from.plus(Duration.ofDays(1));
+
+            // When
+            var result = repository
+                .availability(new QueryContext("org#1", "env#1"), new ApiFieldPeriod(API_ID, "gateway", from, to))
+                .blockingGet();
+
+            // Then
+            // we have a result
+            assertThat(result).isNotNull();
+
+            // grouped by gateway
+            assertThat(result.ratesByFields().keySet()).containsExactlyInAnyOrder("gw1", "gw2");
+
+            // correctness of values
+            SoftAssertions solftly = new SoftAssertions();
+            solftly.assertThat(result.ratesByFields().get("gw1")).isEqualTo(67);
+            solftly.assertThat(result.ratesByFields().get("gw2")).isEqualTo(50);
+            solftly.assertThat(result.global()).isEqualTo(60);
+            solftly.assertAll();
         }
     }
 }

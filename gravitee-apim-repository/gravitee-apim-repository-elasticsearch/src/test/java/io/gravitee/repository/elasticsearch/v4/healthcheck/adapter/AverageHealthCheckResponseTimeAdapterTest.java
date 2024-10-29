@@ -17,7 +17,7 @@ package io.gravitee.repository.elasticsearch.v4.healthcheck.adapter;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
-import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeQuery;
+import io.gravitee.repository.healthcheck.v4.model.ApiFieldPeriod;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.Nested;
@@ -37,7 +37,7 @@ class AverageHealthCheckResponseTimeAdapterTest {
         @Test
         void should_adapt_query() {
             // Given
-            var query = new AverageHealthCheckResponseTimeQuery("api-id", "endpoint", FROM, TO);
+            var query = new ApiFieldPeriod("api-id", "endpoint", FROM, TO);
 
             // When
             var result = adapter.adaptQuery(query);

@@ -15,26 +15,21 @@
  */
 package io.gravitee.apim.core.api_health.query_service;
 
+import io.gravitee.apim.core.api_health.model.AvailabilityHealthCheck;
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime;
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTimeOvertime;
+import io.reactivex.rxjava3.core.Maybe;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Optional;
 import lombok.Builder;
 
 public interface ApiHealthQueryService {
-    Optional<AverageHealthCheckResponseTime> averageResponseTime(AverageHealthCheckResponseTimeQuery query);
-    Optional<AverageHealthCheckResponseTimeOvertime> averageResponseTimeOvertime(AverageHealthCheckResponseTimeOvertimeQuery query);
+    Maybe<AverageHealthCheckResponseTime> averageResponseTime(ApiFieldPeriodQuery query);
+    Maybe<AvailabilityHealthCheck> availability(ApiFieldPeriodQuery query);
+    Maybe<AverageHealthCheckResponseTimeOvertime> averageResponseTimeOvertime(AverageHealthCheckResponseTimeOvertimeQuery query);
 
     @Builder(toBuilder = true)
-    record AverageHealthCheckResponseTimeQuery(
-        String organizationId,
-        String environmentId,
-        String apiId,
-        String field,
-        Instant from,
-        Instant to
-    ) {}
+    record ApiFieldPeriodQuery(String organizationId, String environmentId, String apiId, String field, Instant from, Instant to) {}
 
     @Builder(toBuilder = true)
     record AverageHealthCheckResponseTimeOvertimeQuery(

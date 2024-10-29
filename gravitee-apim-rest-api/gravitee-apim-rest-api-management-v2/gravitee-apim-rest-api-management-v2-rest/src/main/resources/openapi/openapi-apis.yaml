@@ -2209,6 +2209,25 @@ paths:
             $ref: "#/components/responses/ApiHealthAverageResponseTimeOvertimeResponse"
           default:
             $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/health/availability:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+        - $ref: "#/components/parameters/healthField"
+      get:
+        tags:
+          - API Health
+        summary: Get API availability by endpoint or by gateway
+        description: |-
+          Get API Health availability. 
+          
+          User must have the API_HEALTH[READ] permission.
+        operationId: getApiAvailability
+        responses:
+          "200":
+            $ref: "#/components/responses/ApiHealthAvailabilityResponse"
+          default:
+            $ref: "#/components/responses/Error"
 
     # API Audits
     /environments/{envId}/apis/{apiId}/audits:
@@ -8166,6 +8185,31 @@ components:
                     items:
                       type: integer
                       format: int64
+        ApiHealthAvailabilityResponse:
+          description: Availability of an API
+          content:
+            application/json:
+              schema:
+                title: "ApiHealthAvailabilityResponse"
+                description: Availability of an API.
+                properties:
+                  global:
+                    type: integer
+                    format: int32
+                    minimum: 0
+                    maximum: 100
+                    description: Availability of the API for all endpoint combined
+                  group:
+                    type: object
+                    description: Availability by endpoint or by gateway
+                    additionalProperties:
+                      description: Average response time
+                      type: integer
+                      format: int32
+                      minimum: 0
+                      maximum: 100
+                    example:
+                      default: 30
 
         # Audit
         AuditsResponse:

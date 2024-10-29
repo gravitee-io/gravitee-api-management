@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api_health.use_case;
 
 import static fixtures.core.model.ApiFixtures.MY_API;
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
@@ -89,12 +90,12 @@ class SearchAverageHealthCheckResponseTimeOvertimeUseCaseTest {
         apiHealthQueryService.averageHealthCheckResponseTimeOvertime = expectedData;
 
         // When
-        var output = useCase.execute(
-            new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(ORGANIZATION_ID, ENV_ID, MY_API, FROM, TO, INTERVAL)
-        );
+        var output = useCase
+            .execute(new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(ORGANIZATION_ID, ENV_ID, MY_API, FROM, TO, INTERVAL))
+            .blockingGet();
 
         // Then
-        assertThat(output.averageHealthCheckResponseTimeOvertime()).containsSame(expectedData);
+        assertThat(requireNonNull(output).averageHealthCheckResponseTimeOvertime()).isEqualTo(expectedData);
 
         var queryCaptor = ArgumentCaptor.forClass(ApiHealthQueryService.AverageHealthCheckResponseTimeOvertimeQuery.class);
         verify(apiHealthQueryService).averageResponseTimeOvertime(queryCaptor.capture());
@@ -117,9 +118,9 @@ class SearchAverageHealthCheckResponseTimeOvertimeUseCaseTest {
 
         // When
         var throwable = catchThrowable(() ->
-            useCase.execute(
-                new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(ORGANIZATION_ID, ENV_ID, MY_API, FROM, TO, INTERVAL)
-            )
+            useCase
+                .execute(new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(ORGANIZATION_ID, ENV_ID, MY_API, FROM, TO, INTERVAL))
+                .blockingGet()
         );
 
         // Then
@@ -133,9 +134,11 @@ class SearchAverageHealthCheckResponseTimeOvertimeUseCaseTest {
 
         // When
         var throwable = catchThrowable(() ->
-            useCase.execute(
-                new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(ORGANIZATION_ID, "another", MY_API, FROM, TO, INTERVAL)
-            )
+            useCase
+                .execute(
+                    new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(ORGANIZATION_ID, "another", MY_API, FROM, TO, INTERVAL)
+                )
+                .blockingGet()
         );
 
         // Then
@@ -149,9 +152,9 @@ class SearchAverageHealthCheckResponseTimeOvertimeUseCaseTest {
 
         // When
         var throwable = catchThrowable(() ->
-            useCase.execute(
-                new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(ORGANIZATION_ID, ENV_ID, MY_API, FROM, TO, INTERVAL)
-            )
+            useCase
+                .execute(new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(ORGANIZATION_ID, ENV_ID, MY_API, FROM, TO, INTERVAL))
+                .blockingGet()
         );
 
         // Then

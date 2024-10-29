@@ -20,43 +20,31 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.exception.TcpProxyNotSupportedException;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime;
 import io.gravitee.apim.core.api_health.query_service.ApiHealthQueryService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import java.time.Instant;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
-@RequiredArgsConstructor
 @UseCase
-public class SearchAverageHealthCheckResponseTimeUseCase {
+@RequiredArgsConstructor
+public class AvailabilityUseCase {
 
-    private final ApiHealthQueryService apiHealthQueryService;
     private final ApiCrudService apiCrudService;
+    private final ApiHealthQueryService apiHealthQueryService;
 
-    public Maybe<Output> execute(SearchAverageHealthCheckResponseTimeUseCase.Input input) {
+    public Maybe<Output> execute(Input input) {
         return validateApiRequirements(input)
-            .flatMapMaybe(api ->
-                apiHealthQueryService.averageResponseTime(
-                    new ApiHealthQueryService.ApiFieldPeriodQuery(
-                        input.organizationId,
-                        input.environmentId,
-                        input.apiId,
-                        input.group,
-                        input.from,
-                        input.to
-                    )
-                )
-            )
-            .map(Output::new);
+            .flatMapMaybe(api -> apiHealthQueryService.availability(input.toApiFieldPeriodQuery()))
+            .map(e -> new Output(e.global(), e.byField()));
     }
 
-    private Single<Api> validateApiRequirements(Input input) {
+    private Single<Api> validateApiRequirements(AvailabilityUseCase.Input input) {
         return Single
-            .fromCallable(() -> apiCrudService.get(input.apiId()))
-            .flatMap(api -> validateApiMultiTenancyAccess(api, input.environmentId()))
+            .fromCallable(() -> apiCrudService.get(input.api()))
+            .flatMap(api -> validateApiMultiTenancyAccess(api, input.ctx().getEnvironmentId()))
             .flatMap(this::validateApiIsNotTcp);
     }
 
@@ -68,7 +56,18 @@ public class SearchAverageHealthCheckResponseTimeUseCase {
         return !api.belongsToEnvironment(environmentId) ? Single.error(new ApiNotFoundException(api.getId())) : Single.just(api);
     }
 
-    public record Input(String organizationId, String environmentId, String apiId, String group, Instant from, Instant to) {}
+    public record Input(ExecutionContext ctx, Instant since, Instant until, String api, String field) {
+        public ApiHealthQueryService.ApiFieldPeriodQuery toApiFieldPeriodQuery() {
+            return new ApiHealthQueryService.ApiFieldPeriodQuery(
+                ctx.getOrganizationId(),
+                ctx.getEnvironmentId(),
+                api(),
+                field(),
+                since(),
+                until()
+            );
+        }
+    }
 
-    public record Output(AverageHealthCheckResponseTime averageHealthCheckResponseTime) {}
+    public record Output(int global, Map<String, Integer> byField) {}
 }

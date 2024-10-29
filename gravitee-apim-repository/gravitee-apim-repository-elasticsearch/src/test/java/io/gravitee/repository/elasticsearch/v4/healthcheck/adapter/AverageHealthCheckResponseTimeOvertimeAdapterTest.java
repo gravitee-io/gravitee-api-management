@@ -49,7 +49,7 @@ class AverageHealthCheckResponseTimeOvertimeAdapterTest {
             var result = adapter.adaptQuery(query, esInfo);
 
             // Then
-            assertThatJson(result)
+            assertThatJson(result.toString())
                 .isEqualTo(
                     """
                                 {
@@ -96,7 +96,7 @@ class AverageHealthCheckResponseTimeOvertimeAdapterTest {
             var result = adapter.adaptQuery(query, esInfo);
 
             // Then
-            assertThatJson(result)
+            assertThatJson(result.toString())
                 .isEqualTo(
                     """
                             {

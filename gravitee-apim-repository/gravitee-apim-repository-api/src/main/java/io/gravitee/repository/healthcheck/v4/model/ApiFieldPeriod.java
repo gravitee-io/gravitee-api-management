@@ -19,4 +19,4 @@ import java.time.Instant;
 import lombok.Builder;
 
 @Builder(toBuilder = true)
-public record AverageHealthCheckResponseTimeQuery(String apiId, String field, Instant from, Instant to) {}
+public record ApiFieldPeriod(String apiId, String field, Instant from, Instant to) {}

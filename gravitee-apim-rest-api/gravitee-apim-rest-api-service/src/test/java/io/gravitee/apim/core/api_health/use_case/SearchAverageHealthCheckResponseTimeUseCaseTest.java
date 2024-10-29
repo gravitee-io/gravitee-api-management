@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api_health.use_case;
 
 import static fixtures.core.model.ApiFixtures.MY_API;
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
@@ -83,21 +84,23 @@ class SearchAverageHealthCheckResponseTimeUseCaseTest {
         apiHealthQueryService.averageHealthCheckResponseTime = expectedData;
 
         // When
-        var output = useCase.execute(
-            new SearchAverageHealthCheckResponseTimeUseCase.Input(
-                ORGANIZATION_ID,
-                ENV_ID,
-                MY_API,
-                "endpoint",
-                INSTANT_NOW.minus(1, ChronoUnit.DAYS),
-                INSTANT_NOW
+        var output = useCase
+            .execute(
+                new SearchAverageHealthCheckResponseTimeUseCase.Input(
+                    ORGANIZATION_ID,
+                    ENV_ID,
+                    MY_API,
+                    "endpoint",
+                    INSTANT_NOW.minus(1, ChronoUnit.DAYS),
+                    INSTANT_NOW
+                )
             )
-        );
+            .blockingGet();
 
         // Then
-        assertThat(output.averageHealthCheckResponseTime()).containsSame(expectedData);
+        assertThat(requireNonNull(output).averageHealthCheckResponseTime()).isEqualTo(expectedData);
 
-        var queryCaptor = ArgumentCaptor.forClass(ApiHealthQueryService.AverageHealthCheckResponseTimeQuery.class);
+        var queryCaptor = ArgumentCaptor.forClass(ApiHealthQueryService.ApiFieldPeriodQuery.class);
         verify(apiHealthQueryService).averageResponseTime(queryCaptor.capture());
         assertThat(queryCaptor.getValue())
             .satisfies(query -> {
@@ -118,16 +121,18 @@ class SearchAverageHealthCheckResponseTimeUseCaseTest {
 
         // When
         var throwable = catchThrowable(() ->
-            useCase.execute(
-                new SearchAverageHealthCheckResponseTimeUseCase.Input(
-                    ORGANIZATION_ID,
-                    ENV_ID,
-                    MY_API,
-                    "endpoint",
-                    INSTANT_NOW.minus(1, ChronoUnit.DAYS),
-                    INSTANT_NOW
+            useCase
+                .execute(
+                    new SearchAverageHealthCheckResponseTimeUseCase.Input(
+                        ORGANIZATION_ID,
+                        ENV_ID,
+                        MY_API,
+                        "endpoint",
+                        INSTANT_NOW.minus(1, ChronoUnit.DAYS),
+                        INSTANT_NOW
+                    )
                 )
-            )
+                .blockingGet()
         );
 
         // Then
@@ -141,16 +146,18 @@ class SearchAverageHealthCheckResponseTimeUseCaseTest {
 
         // When
         var throwable = catchThrowable(() ->
-            useCase.execute(
-                new SearchAverageHealthCheckResponseTimeUseCase.Input(
-                    ORGANIZATION_ID,
-                    "another",
-                    MY_API,
-                    "endpoint",
-                    INSTANT_NOW.minus(1, ChronoUnit.DAYS),
-                    INSTANT_NOW
+            useCase
+                .execute(
+                    new SearchAverageHealthCheckResponseTimeUseCase.Input(
+                        ORGANIZATION_ID,
+                        "another",
+                        MY_API,
+                        "endpoint",
+                        INSTANT_NOW.minus(1, ChronoUnit.DAYS),
+                        INSTANT_NOW
+                    )
                 )
-            )
+                .blockingGet()
         );
 
         // Then
@@ -164,16 +171,18 @@ class SearchAverageHealthCheckResponseTimeUseCaseTest {
 
         // When
         var throwable = catchThrowable(() ->
-            useCase.execute(
-                new SearchAverageHealthCheckResponseTimeUseCase.Input(
-                    ORGANIZATION_ID,
-                    ENV_ID,
-                    MY_API,
-                    "endpoint",
-                    INSTANT_NOW.minus(1, ChronoUnit.DAYS),
-                    INSTANT_NOW
+            useCase
+                .execute(
+                    new SearchAverageHealthCheckResponseTimeUseCase.Input(
+                        ORGANIZATION_ID,
+                        ENV_ID,
+                        MY_API,
+                        "endpoint",
+                        INSTANT_NOW.minus(1, ChronoUnit.DAYS),
+                        INSTANT_NOW
+                    )
                 )
-            )
+                .blockingGet()
         );
 
         // Then
