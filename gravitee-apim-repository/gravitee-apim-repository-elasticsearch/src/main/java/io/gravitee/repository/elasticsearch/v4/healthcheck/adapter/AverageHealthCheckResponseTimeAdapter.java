@@ -16,27 +16,23 @@
 package io.gravitee.repository.elasticsearch.v4.healthcheck.adapter;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.repository.healthcheck.v4.model.ApiFieldPeriod;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTime;
-import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeQuery;
+import io.reactivex.rxjava3.core.Maybe;
 import java.util.HashMap;
-import java.util.Optional;
 
-public class AverageHealthCheckResponseTimeAdapter {
-
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+public class AverageHealthCheckResponseTimeAdapter implements QueryResponseAdapter<ApiFieldPeriod, AverageHealthCheckResponseTime> {
 
     private static final String TIME_FIELD = "@timestamp";
     private static final String PERIOD = "period";
 
-    public String adaptQuery(AverageHealthCheckResponseTimeQuery query) {
-        return json().put("size", 0).<ObjectNode>set("query", query(query)).set("aggregations", aggregations(query)).toString();
+    public JsonNode adaptQuery(ApiFieldPeriod query) {
+        return json().put("size", 0).<ObjectNode>set("query", query(query)).set("aggregations", aggregations(query));
     }
 
-    public Optional<AverageHealthCheckResponseTime> adaptResponse(SearchResponse response) {
+    public Maybe<AverageHealthCheckResponseTime> adaptResponse(SearchResponse response) {
         var group = new HashMap<String, Long>();
 
         var groupedBuckets = response.getAggregations().get("terms").getBuckets();
@@ -54,25 +50,25 @@ public class AverageHealthCheckResponseTimeAdapter {
         }
 
         if (group.isEmpty()) {
-            return Optional.empty();
+            return Maybe.empty();
         }
 
         var globalResponseTime = group.values().stream().mapToDouble(Long::doubleValue).average();
         if (globalResponseTime.isPresent()) {
             var average = globalResponseTime.getAsDouble();
-            return Optional.of(new AverageHealthCheckResponseTime(Math.round(average), group));
+            return Maybe.just(new AverageHealthCheckResponseTime(Math.round(average), group));
         }
 
-        return Optional.of(new AverageHealthCheckResponseTime(-1L, group));
+        return Maybe.just(new AverageHealthCheckResponseTime(-1L, group));
     }
 
-    private ObjectNode query(AverageHealthCheckResponseTimeQuery query) {
+    private ObjectNode query(ApiFieldPeriod query) {
         JsonNode termFilter = json().set("term", json().put("api", query.apiId()));
         var bool = json().set("filter", array().add(termFilter));
         return json().set("bool", bool);
     }
 
-    private ObjectNode aggregations(AverageHealthCheckResponseTimeQuery query) {
+    private ObjectNode aggregations(ApiFieldPeriod query) {
         var aggregations = json()
             .set(
                 "ranges",
@@ -101,13 +97,5 @@ public class AverageHealthCheckResponseTimeAdapter {
             .set("order", array().add(json().put("_count", "desc")).add(json().put("_key", "asc")));
 
         return json().set("terms", json().<ObjectNode>set("aggregations", aggregations).set("terms", terms));
-    }
-
-    private ObjectNode json() {
-        return MAPPER.createObjectNode();
-    }
-
-    private ArrayNode array() {
-        return MAPPER.createArrayNode();
     }
 }

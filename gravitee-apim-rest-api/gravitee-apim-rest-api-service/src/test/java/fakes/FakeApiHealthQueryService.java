@@ -15,28 +15,36 @@
  */
 package fakes;
 
+import io.gravitee.apim.core.api_health.model.AvailabilityHealthCheck;
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime;
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTimeOvertime;
 import io.gravitee.apim.core.api_health.query_service.ApiHealthQueryService;
-import java.util.Optional;
+import io.reactivex.rxjava3.core.Maybe;
 
 public class FakeApiHealthQueryService implements ApiHealthQueryService {
 
     public AverageHealthCheckResponseTime averageHealthCheckResponseTime;
+    public AvailabilityHealthCheck availabilityHealthCheck;
     public AverageHealthCheckResponseTimeOvertime averageHealthCheckResponseTimeOvertime;
 
     @Override
-    public Optional<AverageHealthCheckResponseTime> averageResponseTime(AverageHealthCheckResponseTimeQuery query) {
-        return Optional.of(averageHealthCheckResponseTime);
+    public Maybe<AverageHealthCheckResponseTime> averageResponseTime(ApiFieldPeriodQuery query) {
+        return averageHealthCheckResponseTime == null ? Maybe.empty() : Maybe.just(averageHealthCheckResponseTime);
     }
 
     @Override
-    public Optional<AverageHealthCheckResponseTimeOvertime> averageResponseTimeOvertime(AverageHealthCheckResponseTimeOvertimeQuery query) {
-        return Optional.of(averageHealthCheckResponseTimeOvertime);
+    public Maybe<AvailabilityHealthCheck> availability(ApiFieldPeriodQuery query) {
+        return availabilityHealthCheck == null ? Maybe.empty() : Maybe.just(availabilityHealthCheck);
+    }
+
+    @Override
+    public Maybe<AverageHealthCheckResponseTimeOvertime> averageResponseTimeOvertime(AverageHealthCheckResponseTimeOvertimeQuery query) {
+        return averageHealthCheckResponseTimeOvertime == null ? Maybe.empty() : Maybe.just(averageHealthCheckResponseTimeOvertime);
     }
 
     public void reset() {
         averageHealthCheckResponseTime = null;
+        availabilityHealthCheck = null;
         averageHealthCheckResponseTimeOvertime = null;
     }
 }

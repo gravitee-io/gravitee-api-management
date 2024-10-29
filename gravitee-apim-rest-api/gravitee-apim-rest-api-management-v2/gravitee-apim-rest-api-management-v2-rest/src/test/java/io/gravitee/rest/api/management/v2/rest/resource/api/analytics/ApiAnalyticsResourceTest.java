@@ -25,10 +25,10 @@ import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
-import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponseTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
@@ -412,7 +412,11 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                         softly.assertThat(result.getData()).isEqualTo(expectedData);
                         softly
                             .assertThat(result.getTimeRange())
-                            .extracting(AnalyticTimeRange::getFrom, AnalyticTimeRange::getTo, AnalyticTimeRange::getInterval)
+                            .extracting(
+                                io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange::getFrom,
+                                io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange::getTo,
+                                io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange::getInterval
+                            )
                             .contains(
                                 expectedTimeRange.from().toEpochMilli(),
                                 expectedTimeRange.to().toEpochMilli(),

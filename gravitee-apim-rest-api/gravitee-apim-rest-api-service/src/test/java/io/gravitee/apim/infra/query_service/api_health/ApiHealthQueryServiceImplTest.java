@@ -19,19 +19,21 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.api_health.model.AvailabilityHealthCheck;
 import io.gravitee.apim.core.api_health.query_service.ApiHealthQueryService;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.healthcheck.v4.api.HealthCheckRepository;
+import io.gravitee.repository.healthcheck.v4.model.ApiFieldPeriod;
+import io.gravitee.repository.healthcheck.v4.model.AvailabilityResponse;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTime;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertime;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertimeQuery;
-import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeQuery;
+import io.reactivex.rxjava3.core.Maybe;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -71,21 +73,45 @@ class ApiHealthQueryServiceImplTest {
 
         @Test
         void should_call_repository() {
-            var queryCaptor = ArgumentCaptor.forClass(AverageHealthCheckResponseTimeQuery.class);
+            var queryCaptor = ArgumentCaptor.forClass(ApiFieldPeriod.class);
             when(healthCheckRepository.averageResponseTime(any(), any()))
-                .thenReturn(Optional.of(new AverageHealthCheckResponseTime(2L, Map.of("default", 2L))));
+                .thenReturn(Maybe.just(new AverageHealthCheckResponseTime(2L, Map.of("default", 2L))));
 
-            var result = service.averageResponseTime(
-                new ApiHealthQueryService.AverageHealthCheckResponseTimeQuery(ORGANIZATION_ID, ENVIRONMENT_ID, API_ID, "endpoint", FROM, TO)
-            );
+            var result = service
+                .averageResponseTime(
+                    new ApiHealthQueryService.ApiFieldPeriodQuery(ORGANIZATION_ID, ENVIRONMENT_ID, API_ID, "endpoint", FROM, TO)
+                )
+                .blockingGet();
 
             verify(healthCheckRepository).averageResponseTime(queryContextCaptor.capture(), queryCaptor.capture());
             SoftAssertions.assertSoftly(softly -> {
                 softly
                     .assertThat(result)
-                    .contains(new io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime(2L, Map.of("default", 2L)));
+                    .isEqualTo(new io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime(2L, Map.of("default", 2L)));
                 softly.assertThat(queryContextCaptor.getValue()).isEqualTo(new QueryContext(ORGANIZATION_ID, ENVIRONMENT_ID));
-                softly.assertThat(queryCaptor.getValue()).isEqualTo(new AverageHealthCheckResponseTimeQuery(API_ID, "endpoint", FROM, TO));
+                softly.assertThat(queryCaptor.getValue()).isEqualTo(new ApiFieldPeriod(API_ID, "endpoint", FROM, TO));
+            });
+        }
+    }
+
+    @Nested
+    class Availability {
+
+        @Test
+        void should_call_repository() {
+            var queryCaptor = ArgumentCaptor.forClass(ApiFieldPeriod.class);
+            when(healthCheckRepository.availability(any(), any()))
+                .thenReturn(Maybe.just(new AvailabilityResponse(75, Map.of("default", 75))));
+
+            var result = service
+                .availability(new ApiHealthQueryService.ApiFieldPeriodQuery(ORGANIZATION_ID, ENVIRONMENT_ID, API_ID, "endpoint", FROM, TO))
+                .blockingGet();
+
+            verify(healthCheckRepository).availability(queryContextCaptor.capture(), queryCaptor.capture());
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(result).isEqualTo(new AvailabilityHealthCheck(75, Map.of("default", 75)));
+                softly.assertThat(queryContextCaptor.getValue()).isEqualTo(new QueryContext(ORGANIZATION_ID, ENVIRONMENT_ID));
+                softly.assertThat(queryCaptor.getValue()).isEqualTo(new ApiFieldPeriod(API_ID, "endpoint", FROM, TO));
             });
         }
     }
@@ -97,24 +123,26 @@ class ApiHealthQueryServiceImplTest {
         void should_call_repository() {
             var queryCaptor = ArgumentCaptor.forClass(AverageHealthCheckResponseTimeOvertimeQuery.class);
             when(healthCheckRepository.averageResponseTimeOvertime(any(), any()))
-                .thenReturn(Optional.of(new AverageHealthCheckResponseTimeOvertime(Map.of("default", 2L))));
+                .thenReturn(Maybe.just(new AverageHealthCheckResponseTimeOvertime(Map.of("default", 2L))));
 
-            var result = service.averageResponseTimeOvertime(
-                new ApiHealthQueryService.AverageHealthCheckResponseTimeOvertimeQuery(
-                    ORGANIZATION_ID,
-                    ENVIRONMENT_ID,
-                    API_ID,
-                    FROM,
-                    TO,
-                    INTERVAL
+            var result = service
+                .averageResponseTimeOvertime(
+                    new ApiHealthQueryService.AverageHealthCheckResponseTimeOvertimeQuery(
+                        ORGANIZATION_ID,
+                        ENVIRONMENT_ID,
+                        API_ID,
+                        FROM,
+                        TO,
+                        INTERVAL
+                    )
                 )
-            );
+                .blockingGet();
 
             verify(healthCheckRepository).averageResponseTimeOvertime(queryContextCaptor.capture(), queryCaptor.capture());
             SoftAssertions.assertSoftly(softly -> {
                 softly
                     .assertThat(result)
-                    .contains(
+                    .isEqualTo(
                         new io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTimeOvertime(
                             new io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTimeOvertime.TimeRange(FROM, TO, INTERVAL),
                             List.of(2L)

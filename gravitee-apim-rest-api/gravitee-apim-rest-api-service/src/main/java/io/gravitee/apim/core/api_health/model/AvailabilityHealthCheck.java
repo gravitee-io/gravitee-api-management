@@ -13,18 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.elasticsearch.v4.healthcheck.spring;
+package io.gravitee.apim.core.api_health.model;
 
-import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
-import io.gravitee.repository.elasticsearch.v4.healthcheck.HealthCheckElasticsearchRepository;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import java.util.Map;
 
-@Configuration
-public class HealthCheckConfiguration {
-
-    @Bean
-    public HealthCheckElasticsearchRepository healthCheckElasticsearchRepository(RepositoryConfiguration configuration) {
-        return new HealthCheckElasticsearchRepository(configuration);
-    }
-}
+public record AvailabilityHealthCheck(int global, Map<String, Integer> byField) {}

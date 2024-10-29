@@ -20,14 +20,17 @@ import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
+import io.gravitee.repository.elasticsearch.v4.healthcheck.adapter.AvailabilityQueryMapper;
 import io.gravitee.repository.elasticsearch.v4.healthcheck.adapter.AverageHealthCheckResponseTimeAdapter;
 import io.gravitee.repository.elasticsearch.v4.healthcheck.adapter.AverageHealthCheckResponseTimeOvertimeAdapter;
+import io.gravitee.repository.elasticsearch.v4.healthcheck.adapter.QueryResponseAdapter;
 import io.gravitee.repository.healthcheck.v4.api.HealthCheckRepository;
+import io.gravitee.repository.healthcheck.v4.model.ApiFieldPeriod;
+import io.gravitee.repository.healthcheck.v4.model.AvailabilityResponse;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTime;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertime;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertimeQuery;
-import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeQuery;
-import java.util.Optional;
+import io.reactivex.rxjava3.core.Maybe;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -36,6 +39,7 @@ public class HealthCheckElasticsearchRepository extends AbstractElasticsearchRep
     private final String[] clusters;
 
     private final AverageHealthCheckResponseTimeAdapter averageHealthCheckResponseTimeAdapter = new AverageHealthCheckResponseTimeAdapter();
+    private final AvailabilityQueryMapper availabilityQueryMapper = new AvailabilityQueryMapper();
     private final AverageHealthCheckResponseTimeOvertimeAdapter averageHealthCheckResponseTimeOvertimeAdapter =
         new AverageHealthCheckResponseTimeOvertimeAdapter();
 
@@ -44,26 +48,25 @@ public class HealthCheckElasticsearchRepository extends AbstractElasticsearchRep
     }
 
     @Override
-    public Optional<AverageHealthCheckResponseTime> averageResponseTime(
-        QueryContext queryContext,
-        AverageHealthCheckResponseTimeQuery query
-    ) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.HEALTH_CHECK, clusters);
-
-        return this.client.search(index, null, averageHealthCheckResponseTimeAdapter.adaptQuery(query))
-            .map(averageHealthCheckResponseTimeAdapter::adaptResponse)
-            .blockingGet();
+    public Maybe<AverageHealthCheckResponseTime> averageResponseTime(QueryContext queryContext, ApiFieldPeriod query) {
+        return query(queryContext, query, averageHealthCheckResponseTimeAdapter);
     }
 
     @Override
-    public Optional<AverageHealthCheckResponseTimeOvertime> averageResponseTimeOvertime(
+    public Maybe<AvailabilityResponse> availability(QueryContext queryContext, ApiFieldPeriod query) {
+        return query(queryContext, query, availabilityQueryMapper);
+    }
+
+    @Override
+    public Maybe<AverageHealthCheckResponseTimeOvertime> averageResponseTimeOvertime(
         QueryContext queryContext,
         AverageHealthCheckResponseTimeOvertimeQuery query
     ) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.HEALTH_CHECK, clusters);
+        return query(queryContext, query, averageHealthCheckResponseTimeOvertimeAdapter);
+    }
 
-        return this.client.search(index, null, averageHealthCheckResponseTimeOvertimeAdapter.adaptQuery(query, info))
-            .map(averageHealthCheckResponseTimeOvertimeAdapter::adaptResponse)
-            .blockingGet();
+    private <Q, R> Maybe<R> query(QueryContext queryContext, Q query, QueryResponseAdapter<Q, R> adapter) {
+        var index = indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.HEALTH_CHECK, clusters);
+        return client.search(index, null, adapter.adaptQuery(query, info).toString()).flatMapMaybe(adapter::adaptResponse);
     }
 }

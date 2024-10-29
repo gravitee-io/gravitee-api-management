@@ -16,39 +16,36 @@
 package io.gravitee.repository.elasticsearch.v4.healthcheck.adapter;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertime;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertimeQuery;
+import io.reactivex.rxjava3.core.Maybe;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Optional;
 
-public class AverageHealthCheckResponseTimeOvertimeAdapter {
-
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+public class AverageHealthCheckResponseTimeOvertimeAdapter
+    implements QueryResponseAdapter<AverageHealthCheckResponseTimeOvertimeQuery, AverageHealthCheckResponseTimeOvertime> {
 
     private static final String TIME_FIELD = "@timestamp";
     public static final String AGGREGATION_BY_DATE = "by_date";
     public static final String AGGREGATION_AVG_RESPONSE_TIME = "avg_response-time";
 
-    public String adaptQuery(AverageHealthCheckResponseTimeOvertimeQuery query, ElasticsearchInfo esInfo) {
-        return json().put("size", 0).<ObjectNode>set("query", query(query)).set("aggregations", aggregations(query, esInfo)).toString();
+    public JsonNode adaptQuery(AverageHealthCheckResponseTimeOvertimeQuery query, ElasticsearchInfo esInfo) {
+        return json().put("size", 0).<ObjectNode>set("query", query(query)).set("aggregations", aggregations(query, esInfo));
     }
 
-    public Optional<AverageHealthCheckResponseTimeOvertime> adaptResponse(SearchResponse response) {
+    public Maybe<AverageHealthCheckResponseTimeOvertime> adaptResponse(SearchResponse response) {
         final Map<String, Aggregation> aggregations = response.getAggregations();
         if (aggregations == null || aggregations.isEmpty()) {
-            return Optional.empty();
+            return Maybe.empty();
         }
         final var entrypointsAggregation = aggregations.get(AGGREGATION_BY_DATE);
         if (entrypointsAggregation == null) {
-            return Optional.empty();
+            return Maybe.empty();
         }
 
         final var buckets = entrypointsAggregation
@@ -65,7 +62,7 @@ public class AverageHealthCheckResponseTimeOvertimeAdapter {
                 }
             );
 
-        return Optional.of(new AverageHealthCheckResponseTimeOvertime(buckets));
+        return Maybe.just(new AverageHealthCheckResponseTimeOvertime(buckets));
     }
 
     private ObjectNode query(AverageHealthCheckResponseTimeOvertimeQuery query) {
@@ -101,13 +98,5 @@ public class AverageHealthCheckResponseTimeOvertimeAdapter {
         ObjectNode agg = json().set(AGGREGATION_AVG_RESPONSE_TIME, json().set("avg", json().put("field", "response-time")));
 
         return json().set(AGGREGATION_BY_DATE, json().<ObjectNode>set("date_histogram", histogram).set("aggregations", agg));
-    }
-
-    private ObjectNode json() {
-        return MAPPER.createObjectNode();
-    }
-
-    private ArrayNode array() {
-        return MAPPER.createArrayNode();
     }
 }
