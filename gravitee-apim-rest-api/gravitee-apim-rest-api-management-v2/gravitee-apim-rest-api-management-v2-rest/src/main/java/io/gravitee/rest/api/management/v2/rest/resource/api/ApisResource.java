@@ -23,6 +23,7 @@ import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.api.use_case.CreateHttpApiUseCase;
+import io.gravitee.apim.core.api.use_case.CreateNativeApiUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.OAIToImportApiUseCase;
@@ -38,6 +39,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.model.ApiSearchQuery;
+import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
@@ -121,6 +123,9 @@ public class ApisResource extends AbstractResource {
     private CreateHttpApiUseCase createHttpApiUseCase;
 
     @Inject
+    private CreateNativeApiUseCase createNativeApiUseCase;
+
+    @Inject
     private ImportApiCRDUseCase importCRDUseCase;
 
     @Inject
@@ -154,12 +159,14 @@ public class ApisResource extends AbstractResource {
                     .build()
             )
             .build();
-        var output = createHttpApiUseCase.execute(new CreateHttpApiUseCase.Input(ApiMapper.INSTANCE.map(api), audit));
+        var createdApi = api.getType() == ApiType.NATIVE
+            ? createNativeApiUseCase.execute(new CreateNativeApiUseCase.Input(ApiMapper.INSTANCE.mapToNewNativeApi(api), audit)).api()
+            : createHttpApiUseCase.execute(new CreateHttpApiUseCase.Input(ApiMapper.INSTANCE.mapToNewHttpApi(api), audit)).api();
 
-        boolean isSynchronized = apiStateDomainService.isSynchronized(output.api(), audit);
+        boolean isSynchronized = apiStateDomainService.isSynchronized(createdApi, audit);
         return Response
-            .created(this.getLocationHeader(output.api().getId()))
-            .entity(ApiMapper.INSTANCE.map(output.api(), uriInfo, isSynchronized))
+            .created(this.getLocationHeader(createdApi.getId()))
+            .entity(ApiMapper.INSTANCE.map(createdApi, uriInfo, isSynchronized))
             .build();
     }
 
