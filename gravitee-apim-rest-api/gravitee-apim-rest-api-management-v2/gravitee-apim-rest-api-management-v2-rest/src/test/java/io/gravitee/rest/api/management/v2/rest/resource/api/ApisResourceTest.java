@@ -59,6 +59,7 @@ import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.model.HttpListener;
 import io.gravitee.rest.api.management.v2.rest.model.HttpMethod;
 import io.gravitee.rest.api.management.v2.rest.model.HttpSelector;
+import io.gravitee.rest.api.management.v2.rest.model.KafkaListener;
 import io.gravitee.rest.api.management.v2.rest.model.Listener;
 import io.gravitee.rest.api.management.v2.rest.model.ListenerType;
 import io.gravitee.rest.api.management.v2.rest.model.Operator;
@@ -390,6 +391,45 @@ class ApisResourceTest extends AbstractResourceTest {
                 });
         }
 
+        @Test
+        public void should_return_created_native_api() {
+            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+            when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+            when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any()))
+                .thenAnswer(invocation -> {
+                    Api api = invocation.getArgument(0);
+                    return new ApiWithFlows(api.toBuilder().id("api-id").build(), api.getApiDefinitionNativeV4().getFlows());
+                });
+
+            var newApi = aValidNativeV4Api();
+
+            final Response response = target.request().post(Entity.json(newApi));
+
+            assertThat(response)
+                .hasStatus(CREATED_201)
+                .asEntity(ApiV4.class)
+                .satisfies(api -> {
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(api.getId()).isEqualTo("api-id");
+                        soft.assertThat(api.getAnalytics()).isEqualTo(newApi.getAnalytics());
+                        soft.assertThat(api.getApiVersion()).isEqualTo(newApi.getApiVersion());
+                        soft.assertThat(api.getEndpointGroups()).isEqualTo(newApi.getEndpointGroups());
+                        soft.assertThat(api.getDescription()).isEqualTo(newApi.getDescription());
+                        soft.assertThat(api.getDefinitionVersion()).isEqualTo(newApi.getDefinitionVersion());
+                        soft.assertThat(api.getFlowExecution()).isEqualTo(newApi.getFlowExecution());
+                        soft.assertThat(api.getFlows()).isEqualTo(newApi.getFlows());
+                        soft.assertThat(api.getGroups()).isEqualTo(newApi.getGroups());
+                        soft.assertThat(api.getListeners()).isEqualTo(newApi.getListeners());
+                        soft.assertThat(api.getName()).isEqualTo(newApi.getName());
+                        soft.assertThat(api.getTags()).containsExactlyElementsOf(newApi.getTags());
+                        soft.assertThat(api.getType()).isEqualTo(newApi.getType());
+                    });
+                });
+        }
+
         private static CreateApiV4 aValidV4Api() {
             return CreateApiV4
                 .builder()
@@ -469,6 +509,77 @@ class ApisResourceTest extends AbstractResourceTest {
                                     )
                                 )
                             )
+                            .build()
+                    )
+                )
+                .build();
+        }
+
+        private static CreateApiV4 aValidNativeV4Api() {
+            return CreateApiV4
+                .builder()
+                .name("my api")
+                .description("api description")
+                .definitionVersion(DefinitionVersion.V4)
+                .groups(List.of("group1"))
+                .apiVersion("v1")
+                .type(ApiType.NATIVE)
+                .tags(Set.of("tag1"))
+                .listeners(
+                    List.of(
+                        new Listener(
+                            KafkaListener
+                                .builder()
+                                .type(ListenerType.KAFKA)
+                                .host("host")
+                                .port(4000)
+                                .entrypoints(List.of(Entrypoint.builder().type("mock").qos(Qos.AUTO).build()))
+                                .build()
+                        )
+                    )
+                )
+                .endpointGroups(
+                    List.of(
+                        EndpointGroupV4
+                            .builder()
+                            .name("default-group")
+                            .type("http")
+                            .endpoints(
+                                List.of(
+                                    EndpointV4
+                                        .builder()
+                                        .name("default")
+                                        .type("kafka")
+                                        .weight(1)
+                                        .secondary(false)
+                                        .inheritConfiguration(false)
+                                        .configuration(Map.ofEntries(Map.entry("bootstrapServers", "kafka:9092")))
+                                        .sharedConfigurationOverride(
+                                            Map.ofEntries(
+                                                Map.entry(
+                                                    "consumer",
+                                                    Map.ofEntries(
+                                                        Map.entry("enabled", true),
+                                                        Map.entry("topics", List.of("demo")),
+                                                        Map.entry("autoOffsetReset", "earliest")
+                                                    )
+                                                )
+                                            )
+                                        )
+                                        .build()
+                                )
+                            )
+                            .build()
+                    )
+                )
+                .flows(
+                    List.of(
+                        FlowV4
+                            .builder()
+                            .name("flowName")
+                            .enabled(true)
+                            .tags(Set.of("tag1"))
+                            .connect(List.of(StepV4.builder().enabled(true).policy("my-policy").condition("my-condition").build()))
                             .build()
                     )
                 )
