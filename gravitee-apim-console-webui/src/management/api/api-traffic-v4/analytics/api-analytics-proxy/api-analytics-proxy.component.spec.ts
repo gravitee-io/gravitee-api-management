@@ -154,7 +154,20 @@ describe('ApiAnalyticsProxyComponent', () => {
       expectApiAnalyticsResponseStatusRangesGetRequest(
         fakeAnalyticsResponseStatusRanges({
           ranges: {
-            '200': 0,
+            '300.0-400.0': 0,
+            '100.0-200.0': 1,
+            '200.0-300.0': 60,
+            '400.0-500.0': 0,
+            '500.0-600.0': 1,
+          },
+          rangesByEntrypoint: {
+            'http-proxy': {
+              '300.0-400.0': 0,
+              '100.0-200.0': 1,
+              '200.0-300.0': 60,
+              '400.0-500.0': 0,
+              '500.0-600.0': 1,
+            },
           },
         }),
       );
