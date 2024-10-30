@@ -18,6 +18,8 @@ package io.gravitee.repository.noop.healthcheck.v4;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.healthcheck.v4.api.HealthCheckRepository;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTime;
+import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertime;
+import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertimeQuery;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeQuery;
 import java.util.Optional;
 
@@ -27,6 +29,14 @@ public class NoOpHealthCheckRepository implements HealthCheckRepository {
     public Optional<AverageHealthCheckResponseTime> averageResponseTime(
         QueryContext queryContext,
         AverageHealthCheckResponseTimeQuery query
+    ) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<AverageHealthCheckResponseTimeOvertime> averageResponseTimeOvertime(
+        QueryContext queryContext,
+        AverageHealthCheckResponseTimeOvertimeQuery query
     ) {
         return Optional.empty();
     }

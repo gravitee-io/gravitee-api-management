@@ -25,15 +25,17 @@ import fakes.FakeApiHealthQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime;
-import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
+import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTimeOvertime;
+import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
+import io.gravitee.rest.api.management.v2.rest.model.ApiHealthAverageResponseTimeOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiHealthAverageResponseTimeResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -49,8 +51,10 @@ class ApiHealthResourceTest extends ApiResourceTest {
     private static final Instant INSTANT = Instant.parse("2023-10-22T10:15:30Z");
     private static final Instant FROM = INSTANT.minus(1, ChronoUnit.DAYS);
     private static final Instant TO = INSTANT;
+    private static final Duration INTERVAL = Duration.ofMinutes(10);
 
     WebTarget averageResponseTimeTarget;
+    WebTarget averageResponseTimeOvertimeTarget;
 
     @Inject
     FakeApiHealthQueryService apiHealthQueryService;
@@ -127,6 +131,71 @@ class ApiHealthResourceTest extends ApiResourceTest {
                 .satisfies(r -> {
                     assertThat(r.getGlobal()).isEqualTo(3L);
                     assertThat(r.getGroup()).containsAllEntriesOf(Map.of("default", 3L));
+                });
+        }
+    }
+
+    @Nested
+    class AverageResponseTimeOvertime {
+
+        @BeforeEach
+        public void setUp() {
+            averageResponseTimeOvertimeTarget = rootTarget().path("average-response-time-overtime");
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_HEALTH,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = averageResponseTimeOvertimeTarget.request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        void should_return_buckets() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            apiHealthQueryService.averageHealthCheckResponseTimeOvertime =
+                new AverageHealthCheckResponseTimeOvertime(
+                    new AverageHealthCheckResponseTimeOvertime.TimeRange(FROM, TO, INTERVAL),
+                    List.of(3L)
+                );
+
+            final Response response = averageResponseTimeOvertimeTarget
+                .queryParam("from", FROM.toEpochMilli())
+                .queryParam("to", TO.toEpochMilli())
+                .queryParam("interval", INTERVAL.toMillis())
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiHealthAverageResponseTimeOvertimeResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getTimeRange())
+                        .isEqualTo(
+                            AnalyticTimeRange
+                                .builder()
+                                .to(TO.toEpochMilli())
+                                .from(FROM.toEpochMilli())
+                                .interval(INTERVAL.toMillis())
+                                .build()
+                        );
+                    assertThat(r.getData()).isEqualTo(List.of(3L));
                 });
         }
     }

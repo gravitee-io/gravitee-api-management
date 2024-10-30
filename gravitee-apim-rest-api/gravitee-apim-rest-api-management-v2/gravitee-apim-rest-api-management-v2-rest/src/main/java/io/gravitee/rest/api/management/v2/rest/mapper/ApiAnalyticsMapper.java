@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
+import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponseTimeRange;
@@ -58,7 +59,7 @@ public interface ApiAnalyticsMapper {
     @Mapping(target = "from", expression = "java(source.from().toEpochMilli())")
     @Mapping(target = "to", expression = "java(source.to().toEpochMilli())")
     @Mapping(target = "interval", expression = "java(source.interval().toMillis())")
-    ApiAnalyticsOverPeriodResponseTimeRange map(ResponseStatusOvertime.TimeRange source);
+    AnalyticTimeRange map(ResponseStatusOvertime.TimeRange source);
 
     Map<String, Number> map(Map<String, Long> value);
 }

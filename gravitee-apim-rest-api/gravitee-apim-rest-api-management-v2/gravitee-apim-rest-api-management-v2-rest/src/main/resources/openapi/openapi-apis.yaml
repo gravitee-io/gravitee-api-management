@@ -2191,6 +2191,24 @@ paths:
             $ref: "#/components/responses/ApiHealthAverageResponseTimeResponse"
           default:
             $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/health/average-response-time-overtime:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+      get:
+        tags:
+          - API Health
+        summary: Get API Health Check average response time overtime
+        description: |-
+          Get API Health Check average response time overtime. 
+          
+          User must have the API_HEALTH[READ] permission.
+        operationId: getApiHealthAverageResponseTimeOvertime
+        responses:
+          "200":
+            $ref: "#/components/responses/ApiHealthAverageResponseTimeOvertimeResponse"
+          default:
+            $ref: "#/components/responses/Error"
 
     # API Audits
     /environments/{envId}/apis/{apiId}/audits:
@@ -7235,6 +7253,27 @@ components:
                 - PENDING
                 - ERROR
 
+        # Analytics
+        AnalyticTimeRange:
+          type: object
+          description: A Time range
+          properties:
+            from:
+              type: integer
+              format: int64
+              description: The timestamp starting the time range
+              example: 1621339200000
+            to:
+              type: integer
+              format: int64
+              description: The timestamp ending the time range
+              example: 1621425600000
+            interval:
+              type: integer
+              format: int64
+              description: The interval in milliseconds splitting the data
+              example: 120000
+
     parameters:
         #############
         # PathParam #
@@ -7932,24 +7971,7 @@ components:
                         description: API Analytics for status codes over time.
                         properties:
                             timeRange:
-                                type: object
-                                description: Time range of the analytics
-                                properties:
-                                    from:
-                                        type: integer
-                                        format: int64
-                                        description: The timestamp starting the time range
-                                        example: 1621339200000
-                                    to:
-                                        type: integer
-                                        format: int64
-                                        description: The timestamp ending the time range
-                                        example: 1621425600000
-                                    interval:
-                                        type: integer
-                                        format: int64
-                                        description: The interval in milliseconds splitting the data
-                                        example: 120000
+                                $ref: "#/components/schemas/AnalyticTimeRange"
                             data:
                                 type: object
                                 description: Status count overt time
@@ -8128,6 +8150,22 @@ components:
                       format: int64
                     example:
                       default: 30
+        ApiHealthAverageResponseTimeOvertimeResponse:
+          description: Average response time overtime of an API Health-Check
+          content:
+            application/json:
+              schema:
+                title: "ApiHealthAverageResponseTimeOvertimeResponse"
+                description: Average response time of an API Health-Check.
+                properties:
+                  timeRange:
+                    $ref: "#/components/schemas/AnalyticTimeRange"
+                  data:
+                    type: array
+                    description: Average response time buckets
+                    items:
+                      type: integer
+                      format: int64
 
         # Audit
         AuditsResponse:

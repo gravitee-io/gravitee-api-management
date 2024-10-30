@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime;
+import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTimeOvertime;
 import io.gravitee.apim.core.api_health.query_service.ApiHealthQueryService;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,6 +33,9 @@ public interface ApiHealthAdapter {
     io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeQuery map(
         ApiHealthQueryService.AverageHealthCheckResponseTimeQuery source
     );
-
     AverageHealthCheckResponseTime map(io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTime source);
+
+    io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertimeQuery map(
+        ApiHealthQueryService.AverageHealthCheckResponseTimeOvertimeQuery source
+    );
 }
