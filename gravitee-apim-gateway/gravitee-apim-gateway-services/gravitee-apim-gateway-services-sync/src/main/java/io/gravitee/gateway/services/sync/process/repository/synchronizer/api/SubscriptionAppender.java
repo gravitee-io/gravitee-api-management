@@ -63,7 +63,15 @@ public class SubscriptionAppender {
             Map<String, List<Subscription>> subscriptionsByApi = loadSubscriptions(initialSync, allPlans);
             subscriptionsByApi.forEach((api, subscriptions) -> {
                 ApiReactorDeployable deployable = deployableByApi.get(api);
-                deployable.subscriptions(subscriptions);
+                if (deployable == null) {
+                    log.warn(
+                        "Cannot find api {} for subscriptions [{}]",
+                        api,
+                        subscriptions.stream().map(Subscription::getId).collect(Collectors.joining(","))
+                    );
+                } else {
+                    deployable.subscriptions(subscriptions);
+                }
             });
         }
         return deployables;
