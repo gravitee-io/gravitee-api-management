@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api.health;
 
+import io.gravitee.apim.core.api_health.use_case.SearchAverageHealthCheckResponseTimeOvertimeUseCase;
 import io.gravitee.apim.core.api_health.use_case.SearchAverageHealthCheckResponseTimeUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiHealthMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ApiHealthAverageResponseTimeOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiHealthAverageResponseTimeResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -31,6 +33,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 
@@ -41,6 +44,9 @@ public class ApiHealthResource extends AbstractResource {
 
     @Inject
     private SearchAverageHealthCheckResponseTimeUseCase searchAverageHealthCheckResponseTimeUseCase;
+
+    @Inject
+    private SearchAverageHealthCheckResponseTimeOvertimeUseCase searchAverageHealthCheckResponseTimeOvertimeUseCase;
 
     @Path("/average-response-time")
     @GET
@@ -64,6 +70,32 @@ public class ApiHealthResource extends AbstractResource {
                 )
             )
             .averageHealthCheckResponseTime()
+            .map(ApiHealthMapper.INSTANCE::map)
+            .orElse(null);
+    }
+
+    @Path("/average-response-time-overtime")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ) })
+    public ApiHealthAverageResponseTimeOvertimeResponse getAverageResponseTimeOvertime(
+        @QueryParam("from") Long from,
+        @QueryParam("to") Long to,
+        @QueryParam("interval") Long interval
+    ) {
+        var context = GraviteeContext.getExecutionContext();
+        return searchAverageHealthCheckResponseTimeOvertimeUseCase
+            .execute(
+                new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(
+                    context.getOrganizationId(),
+                    context.getEnvironmentId(),
+                    apiId,
+                    Instant.ofEpochMilli(from),
+                    Instant.ofEpochMilli(to),
+                    Duration.ofMillis(interval)
+                )
+            )
+            .averageHealthCheckResponseTimeOvertime()
             .map(ApiHealthMapper.INSTANCE::map)
             .orElse(null);
     }

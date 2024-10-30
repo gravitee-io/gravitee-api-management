@@ -21,8 +21,11 @@ import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.elasticsearch.v4.healthcheck.adapter.AverageHealthCheckResponseTimeAdapter;
+import io.gravitee.repository.elasticsearch.v4.healthcheck.adapter.AverageHealthCheckResponseTimeOvertimeAdapter;
 import io.gravitee.repository.healthcheck.v4.api.HealthCheckRepository;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTime;
+import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertime;
+import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertimeQuery;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeQuery;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +36,8 @@ public class HealthCheckElasticsearchRepository extends AbstractElasticsearchRep
     private final String[] clusters;
 
     private final AverageHealthCheckResponseTimeAdapter averageHealthCheckResponseTimeAdapter = new AverageHealthCheckResponseTimeAdapter();
+    private final AverageHealthCheckResponseTimeOvertimeAdapter averageHealthCheckResponseTimeOvertimeAdapter =
+        new AverageHealthCheckResponseTimeOvertimeAdapter();
 
     public HealthCheckElasticsearchRepository(RepositoryConfiguration configuration) {
         clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
@@ -47,6 +52,18 @@ public class HealthCheckElasticsearchRepository extends AbstractElasticsearchRep
 
         return this.client.search(index, null, averageHealthCheckResponseTimeAdapter.adaptQuery(query))
             .map(averageHealthCheckResponseTimeAdapter::adaptResponse)
+            .blockingGet();
+    }
+
+    @Override
+    public Optional<AverageHealthCheckResponseTimeOvertime> averageResponseTimeOvertime(
+        QueryContext queryContext,
+        AverageHealthCheckResponseTimeOvertimeQuery query
+    ) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.HEALTH_CHECK, clusters);
+
+        return this.client.search(index, null, averageHealthCheckResponseTimeOvertimeAdapter.adaptQuery(query, info))
+            .map(averageHealthCheckResponseTimeOvertimeAdapter::adaptResponse)
             .blockingGet();
     }
 }

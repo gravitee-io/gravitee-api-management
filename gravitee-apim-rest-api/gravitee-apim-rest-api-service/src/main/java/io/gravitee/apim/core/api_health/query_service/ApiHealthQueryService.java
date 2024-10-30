@@ -16,12 +16,15 @@
 package io.gravitee.apim.core.api_health.query_service;
 
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime;
+import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTimeOvertime;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import lombok.Builder;
 
 public interface ApiHealthQueryService {
     Optional<AverageHealthCheckResponseTime> averageResponseTime(AverageHealthCheckResponseTimeQuery query);
+    Optional<AverageHealthCheckResponseTimeOvertime> averageResponseTimeOvertime(AverageHealthCheckResponseTimeOvertimeQuery query);
 
     @Builder(toBuilder = true)
     record AverageHealthCheckResponseTimeQuery(
@@ -31,5 +34,15 @@ public interface ApiHealthQueryService {
         String field,
         Instant from,
         Instant to
+    ) {}
+
+    @Builder(toBuilder = true)
+    record AverageHealthCheckResponseTimeOvertimeQuery(
+        String organizationId,
+        String environmentId,
+        String apiId,
+        Instant from,
+        Instant to,
+        Duration interval
     ) {}
 }

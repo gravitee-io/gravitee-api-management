@@ -15,7 +15,11 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime;
+import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTimeOvertime;
+import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
+import io.gravitee.rest.api.management.v2.rest.model.ApiHealthAverageResponseTimeOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiHealthAverageResponseTimeResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -31,4 +35,12 @@ public interface ApiHealthMapper {
     @Mapping(source = "globalResponseTimeMs", target = "global")
     @Mapping(source = "groupedResponseTimeMs", target = "group")
     ApiHealthAverageResponseTimeResponse map(AverageHealthCheckResponseTime source);
+
+    @Mapping(target = "data", source = "buckets")
+    ApiHealthAverageResponseTimeOvertimeResponse map(AverageHealthCheckResponseTimeOvertime source);
+
+    @Mapping(target = "from", expression = "java(source.from().toEpochMilli())")
+    @Mapping(target = "to", expression = "java(source.to().toEpochMilli())")
+    @Mapping(target = "interval", expression = "java(source.interval().toMillis())")
+    AnalyticTimeRange map(AverageHealthCheckResponseTimeOvertime.TimeRange source);
 }

@@ -16,19 +16,27 @@
 package fakes;
 
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime;
+import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTimeOvertime;
 import io.gravitee.apim.core.api_health.query_service.ApiHealthQueryService;
 import java.util.Optional;
 
 public class FakeApiHealthQueryService implements ApiHealthQueryService {
 
     public AverageHealthCheckResponseTime averageHealthCheckResponseTime;
+    public AverageHealthCheckResponseTimeOvertime averageHealthCheckResponseTimeOvertime;
 
     @Override
     public Optional<AverageHealthCheckResponseTime> averageResponseTime(AverageHealthCheckResponseTimeQuery query) {
         return Optional.of(averageHealthCheckResponseTime);
     }
 
+    @Override
+    public Optional<AverageHealthCheckResponseTimeOvertime> averageResponseTimeOvertime(AverageHealthCheckResponseTimeOvertimeQuery query) {
+        return Optional.of(averageHealthCheckResponseTimeOvertime);
+    }
+
     public void reset() {
         averageHealthCheckResponseTime = null;
+        averageHealthCheckResponseTimeOvertime = null;
     }
 }
