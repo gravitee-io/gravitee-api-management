@@ -22,6 +22,7 @@ import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.management.model.flow.FlowStep;
 import io.gravitee.repository.management.model.flow.selector.FlowChannelSelector;
@@ -42,9 +43,11 @@ import org.springframework.stereotype.Component;
 @Component("FlowMapperV4")
 public class FlowMapper {
 
+    private static final String FLOW_TO_MAP_CANNOT_BE_NULL = "Flow to map cannot be null";
+
     public Flow toDefinition(io.gravitee.repository.management.model.flow.Flow repositoryFlow) {
         if (repositoryFlow == null) {
-            throw new IllegalArgumentException("Flow to map cannot be null");
+            throw new IllegalArgumentException(FLOW_TO_MAP_CANNOT_BE_NULL);
         }
         Flow definitionFlow = new Flow();
         definitionFlow.setId(repositoryFlow.getId());
@@ -59,6 +62,22 @@ public class FlowMapper {
         return definitionFlow;
     }
 
+    public NativeFlow toNativeDefinition(io.gravitee.repository.management.model.flow.Flow repositoryFlow) {
+        if (repositoryFlow == null) {
+            throw new IllegalArgumentException(FLOW_TO_MAP_CANNOT_BE_NULL);
+        }
+        NativeFlow definitionFlow = new NativeFlow();
+        definitionFlow.setId(repositoryFlow.getId());
+        definitionFlow.setName(repositoryFlow.getName());
+        definitionFlow.setEnabled(repositoryFlow.isEnabled());
+        definitionFlow.setPublish(repositoryFlow.getPublish().stream().map(this::toDefinition).collect(Collectors.toList()));
+        definitionFlow.setSubscribe(repositoryFlow.getSubscribe().stream().map(this::toDefinition).collect(Collectors.toList()));
+        definitionFlow.setInteract(repositoryFlow.getInteract().stream().map(this::toDefinition).collect(Collectors.toList()));
+        definitionFlow.setConnect(repositoryFlow.getConnect().stream().map(this::toDefinition).collect(Collectors.toList()));
+        definitionFlow.setTags(repositoryFlow.getTags());
+        return definitionFlow;
+    }
+
     public io.gravitee.repository.management.model.flow.Flow toRepository(
         final Flow definitionFlow,
         final FlowReferenceType referenceType,
@@ -66,7 +85,7 @@ public class FlowMapper {
         final int order
     ) {
         if (definitionFlow == null) {
-            throw new IllegalArgumentException("Flow to map cannot be null");
+            throw new IllegalArgumentException(FLOW_TO_MAP_CANNOT_BE_NULL);
         }
         io.gravitee.repository.management.model.flow.Flow repositoryFlow = new io.gravitee.repository.management.model.flow.Flow();
         repositoryFlow.setId(UuidString.generateRandom());

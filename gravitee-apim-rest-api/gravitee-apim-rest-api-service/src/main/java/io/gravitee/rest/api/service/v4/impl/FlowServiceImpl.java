@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
@@ -126,6 +127,23 @@ public class FlowServiceImpl extends TransactionalService implements FlowService
                 .stream()
                 .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
                 .map(flowMapper::toDefinition)
+                .collect(Collectors.toList());
+        } catch (TechnicalException ex) {
+            final String error = "An error occurs while find flows by reference";
+            log.error(error, ex);
+            throw new TechnicalManagementException(error, ex);
+        }
+    }
+
+    @Override
+    public List<NativeFlow> findNativeFlowByReference(FlowReferenceType flowReferenceType, String referenceId) {
+        try {
+            log.debug("Find flows by reference {} - {}", flowReferenceType, flowReferenceType);
+            return flowRepository
+                .findByReference(flowReferenceType, referenceId)
+                .stream()
+                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
+                .map(flowMapper::toNativeDefinition)
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             final String error = "An error occurs while find flows by reference";
