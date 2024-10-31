@@ -20,7 +20,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.api_health.model.AvailabilityHealthCheck;
+import io.gravitee.apim.core.api_health.model.HealthCheckLog;
 import io.gravitee.apim.core.api_health.query_service.ApiHealthQueryService;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.healthcheck.v4.api.HealthCheckRepository;
 import io.gravitee.repository.healthcheck.v4.model.ApiFieldPeriod;
@@ -28,12 +30,16 @@ import io.gravitee.repository.healthcheck.v4.model.AvailabilityResponse;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTime;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertime;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertimeQuery;
+import io.gravitee.repository.healthcheck.v4.model.HealthCheckLogQuery;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.reactivex.rxjava3.core.Maybe;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -152,6 +158,71 @@ class ApiHealthQueryServiceImplTest {
                 softly
                     .assertThat(queryCaptor.getValue())
                     .isEqualTo(new AverageHealthCheckResponseTimeOvertimeQuery(API_ID, FROM, TO, INTERVAL));
+            });
+        }
+    }
+
+    @Nested
+    class SearchLogs {
+
+        @Test
+        void should_call_repository() {
+            var queryCaptor = ArgumentCaptor.forClass(HealthCheckLogQuery.class);
+            when(healthCheckRepository.searchLogs(any(), any()))
+                .thenReturn(
+                    Maybe.just(
+                        new Page<>(
+                            List.of(
+                                new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog(
+                                    "id",
+                                    INSTANT,
+                                    "api-id",
+                                    "endpoint",
+                                    "gateway",
+                                    21L,
+                                    false,
+                                    List.of()
+                                )
+                            ),
+                            1,
+                            5,
+                            1
+                        )
+                    )
+                );
+
+            var result = service
+                .searchLogs(
+                    new ApiHealthQueryService.SearchLogsQuery(
+                        ORGANIZATION_ID,
+                        ENVIRONMENT_ID,
+                        API_ID,
+                        FROM,
+                        TO,
+                        Optional.of(false),
+                        new PageableImpl(1, 5)
+                    )
+                )
+                .blockingGet();
+
+            verify(healthCheckRepository).searchLogs(queryContextCaptor.capture(), queryCaptor.capture());
+            SoftAssertions.assertSoftly(softly -> {
+                softly
+                    .assertThat(result)
+                    .extracting(Page::getContent, Page::getPageNumber, Page::getTotalElements)
+                    .contains(List.of(new HealthCheckLog("id", INSTANT, "api-id", "endpoint", "gateway", 21L, false, List.of())), 1, 1L);
+                softly.assertThat(queryContextCaptor.getValue()).isEqualTo(new QueryContext(ORGANIZATION_ID, ENVIRONMENT_ID));
+                softly
+                    .assertThat(queryCaptor.getValue())
+                    .isEqualTo(
+                        new HealthCheckLogQuery(
+                            API_ID,
+                            FROM,
+                            TO,
+                            Optional.of(false),
+                            new PageableBuilder().pageNumber(1).pageSize(5).build()
+                        )
+                    );
             });
         }
     }

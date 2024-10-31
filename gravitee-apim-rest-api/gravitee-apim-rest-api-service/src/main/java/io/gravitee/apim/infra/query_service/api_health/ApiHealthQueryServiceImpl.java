@@ -18,8 +18,10 @@ package io.gravitee.apim.infra.query_service.api_health;
 import io.gravitee.apim.core.api_health.model.AvailabilityHealthCheck;
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime;
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTimeOvertime;
+import io.gravitee.apim.core.api_health.model.HealthCheckLog;
 import io.gravitee.apim.core.api_health.query_service.ApiHealthQueryService;
 import io.gravitee.apim.infra.adapter.ApiHealthAdapter;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.healthcheck.v4.api.HealthCheckRepository;
 import io.reactivex.rxjava3.core.Maybe;
@@ -63,5 +65,12 @@ public class ApiHealthQueryServiceImpl implements ApiHealthQueryService {
         return healthCheckRepository
             .availability(new QueryContext(query.organizationId(), query.environmentId()), ApiHealthAdapter.INSTANCE.map(query))
             .map(response -> new AvailabilityHealthCheck(response.global(), response.ratesByFields()));
+    }
+
+    @Override
+    public Maybe<Page<HealthCheckLog>> searchLogs(SearchLogsQuery query) {
+        return healthCheckRepository
+            .searchLogs(new QueryContext(query.organizationId(), query.environmentId()), ApiHealthAdapter.INSTANCE.map(query))
+            .map(page -> page.map(ApiHealthAdapter.INSTANCE::map));
     }
 }

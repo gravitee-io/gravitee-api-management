@@ -27,10 +27,19 @@ import inmemory.ApiCrudServiceInMemory;
 import io.gravitee.apim.core.api_health.model.AvailabilityHealthCheck;
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime;
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTimeOvertime;
+import io.gravitee.apim.core.api_health.model.HealthCheckLog;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.ApiHealthAvailabilityResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiHealthAverageResponseTimeOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiHealthAverageResponseTimeResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiHealthLogsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.HealthCheckLogRequest;
+import io.gravitee.rest.api.management.v2.rest.model.HealthCheckLogStep;
+import io.gravitee.rest.api.management.v2.rest.model.IntegrationsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.Links;
+import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -39,6 +48,8 @@ import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +68,7 @@ class ApiHealthResourceTest extends ApiResourceTest {
 
     WebTarget averageResponseTimeTarget;
     WebTarget averageResponseTimeOvertimeTarget;
+    WebTarget healthCheckLogsTarget;
 
     WebTarget availabilityTarget;
 
@@ -254,6 +266,286 @@ class ApiHealthResourceTest extends ApiResourceTest {
                     assertThat(r.getGlobal()).isEqualTo(.75f);
                     assertThat(r.getGroup()).containsAllEntriesOf(Map.of("default", .75f));
                 });
+        }
+    }
+
+    @Nested
+    class GetHealthCheckLogs {
+
+        @BeforeEach
+        public void setUp() {
+            healthCheckLogsTarget = rootTarget().path("logs");
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_HEALTH,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = healthCheckLogsTarget.request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        void should_return_logs() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            apiHealthQueryService.healthCheckLogs =
+                new Page<>(
+                    List.of(
+                        new HealthCheckLog(
+                            "id",
+                            INSTANT,
+                            API,
+                            "endpoint",
+                            "gateway",
+                            100L,
+                            true,
+                            List.of(
+                                new HealthCheckLog.Step(
+                                    "step1",
+                                    true,
+                                    "message",
+                                    new HealthCheckLog.Request("uri", "GET", Map.of("key", "value")),
+                                    new HealthCheckLog.Response(200, "body", Map.of("key", "value"))
+                                ),
+                                new HealthCheckLog.Step(
+                                    "step2",
+                                    true,
+                                    "message",
+                                    new HealthCheckLog.Request("uri", "GET", null),
+                                    new HealthCheckLog.Response(200, "body", null)
+                                )
+                            )
+                        )
+                    ),
+                    1,
+                    5,
+                    1
+                );
+
+            final Response response = healthCheckLogsTarget
+                .queryParam("from", FROM.toEpochMilli())
+                .queryParam("to", TO.toEpochMilli())
+                .queryParam("success", false)
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiHealthLogsResponse.class)
+                .extracting(ApiHealthLogsResponse::getData)
+                .isEqualTo(
+                    List.of(
+                        new io.gravitee.rest.api.management.v2.rest.model.HealthCheckLog()
+                            .id("id")
+                            .timestamp(INSTANT.atOffset(ZoneOffset.UTC))
+                            .endpointName("endpoint")
+                            .gatewayId("gateway")
+                            .responseTime(100L)
+                            .success(true)
+                            .steps(
+                                List.of(
+                                    new HealthCheckLogStep()
+                                        .name("step1")
+                                        .success(true)
+                                        .message("message")
+                                        .request(
+                                            new io.gravitee.rest.api.management.v2.rest.model.HealthCheckLogRequest()
+                                                .uri("uri")
+                                                .method("GET")
+                                                .headers(Map.of("key", "value"))
+                                        )
+                                        .response(
+                                            new io.gravitee.rest.api.management.v2.rest.model.HealthCheckLogResponse()
+                                                .status(200)
+                                                .body("body")
+                                                .headers(Map.of("key", "value"))
+                                        ),
+                                    new HealthCheckLogStep()
+                                        .name("step2")
+                                        .success(true)
+                                        .message("message")
+                                        .request(
+                                            new io.gravitee.rest.api.management.v2.rest.model.HealthCheckLogRequest()
+                                                .uri("uri")
+                                                .method("GET")
+                                                .headers(Map.of())
+                                        )
+                                        .response(
+                                            new io.gravitee.rest.api.management.v2.rest.model.HealthCheckLogResponse()
+                                                .status(200)
+                                                .body("body")
+                                                .headers(Map.of())
+                                        )
+                                )
+                            )
+                    )
+                );
+        }
+
+        @Test
+        public void should_use_default_pagination_when_no_pagination_param() {
+            // Given
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            apiHealthQueryService.healthCheckLogs =
+                new Page<>(
+                    List.of(
+                        new HealthCheckLog(
+                            "id",
+                            INSTANT,
+                            API,
+                            "endpoint",
+                            "gateway",
+                            100L,
+                            true,
+                            List.of(
+                                new HealthCheckLog.Step(
+                                    "step1",
+                                    true,
+                                    "message",
+                                    new HealthCheckLog.Request("uri", "GET", Map.of("key", "value")),
+                                    new HealthCheckLog.Response(200, "body", Map.of("key", "value"))
+                                ),
+                                new HealthCheckLog.Step(
+                                    "step2",
+                                    true,
+                                    "message",
+                                    new HealthCheckLog.Request("uri", "GET", null),
+                                    new HealthCheckLog.Response(200, "body", null)
+                                )
+                            )
+                        )
+                    ),
+                    1,
+                    5,
+                    1
+                );
+
+            // When
+            Response response = healthCheckLogsTarget
+                .queryParam("from", FROM.toEpochMilli())
+                .queryParam("to", TO.toEpochMilli())
+                .request()
+                .get();
+
+            // Then
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(HttpStatusCode.OK_200)
+                .asEntity(ApiHealthLogsResponse.class)
+                .extracting(ApiHealthLogsResponse::getPagination)
+                .isEqualTo(Pagination.builder().page(1).perPage(10).pageItemsCount(1).pageCount(1).totalCount(1L).build());
+        }
+
+        @Test
+        public void should_compute_links() {
+            // Given
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            apiHealthQueryService.healthCheckLogs =
+                new Page<>(
+                    List.of(
+                        new HealthCheckLog(
+                            "id",
+                            INSTANT,
+                            API,
+                            "endpoint",
+                            "gateway",
+                            100L,
+                            true,
+                            List.of(
+                                new HealthCheckLog.Step(
+                                    "step1",
+                                    true,
+                                    "message",
+                                    new HealthCheckLog.Request("uri", "GET", Map.of("key", "value")),
+                                    new HealthCheckLog.Response(200, "body", Map.of("key", "value"))
+                                ),
+                                new HealthCheckLog.Step(
+                                    "step2",
+                                    true,
+                                    "message",
+                                    new HealthCheckLog.Request("uri", "GET", null),
+                                    new HealthCheckLog.Response(200, "body", null)
+                                )
+                            )
+                        )
+                    ),
+                    2,
+                    5,
+                    15
+                );
+
+            // When
+            Response response = healthCheckLogsTarget
+                .queryParam("from", FROM.toEpochMilli())
+                .queryParam("to", TO.toEpochMilli())
+                .queryParam("page", "2")
+                .queryParam("perPage", 5)
+                .request()
+                .get();
+
+            // Then
+            var target = healthCheckLogsTarget.queryParam("from", FROM.toEpochMilli()).queryParam("to", TO.toEpochMilli());
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(HttpStatusCode.OK_200)
+                .asEntity(ApiHealthLogsResponse.class)
+                .extracting(ApiHealthLogsResponse::getLinks)
+                .isEqualTo(
+                    Links
+                        .builder()
+                        .self(target.queryParam("page", 2).queryParam("perPage", 5).getUri().toString())
+                        .first(target.queryParam("page", 1).queryParam("perPage", 5).getUri().toString())
+                        .last(target.queryParam("page", 3).queryParam("perPage", 5).getUri().toString())
+                        .previous(target.queryParam("page", 1).queryParam("perPage", 5).getUri().toString())
+                        .next(target.queryParam("page", 3).queryParam("perPage", 5).getUri().toString())
+                        .build()
+                );
+        }
+
+        @Test
+        void should_return_empty_response_when_no_logs() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+
+            final Response response = healthCheckLogsTarget
+                .queryParam("from", FROM.toEpochMilli())
+                .queryParam("to", TO.toEpochMilli())
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiHealthLogsResponse.class)
+                .extracting(ApiHealthLogsResponse::getData, ApiHealthLogsResponse::getPagination, ApiHealthLogsResponse::getLinks)
+                .contains(
+                    List.of(),
+                    Pagination.builder().build(),
+                    Links
+                        .builder()
+                        .self(
+                            healthCheckLogsTarget
+                                .queryParam("from", FROM.toEpochMilli())
+                                .queryParam("to", TO.toEpochMilli())
+                                .getUri()
+                                .toString()
+                        )
+                        .build()
+                );
         }
     }
 }

@@ -23,10 +23,18 @@ import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.healthcheck.v4.model.ApiFieldPeriod;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertimeQuery;
+import io.gravitee.repository.healthcheck.v4.model.HealthCheckLogQuery;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.DoublePredicate;
 import java.util.function.Predicate;
 import org.assertj.core.api.Condition;
@@ -111,6 +119,109 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
                 .hasSize((int) nbBuckets + 1)
                 .haveExactly(1, bucketOfTimeHaveValue("17:20:00.000Z", 7L))
                 .haveExactly(1, bucketOfTimeHaveValue("17:30:00.000Z", 8L));
+        }
+
+        private static Condition<Map.Entry<String, Long>> bucketOfTimeHaveValue(String timeSuffix, long value) {
+            return bucket(key -> key.endsWith(timeSuffix), d -> d == value, "entre for '%s' with value %d".formatted(timeSuffix, value));
+        }
+
+        private static Condition<Map.Entry<String, Long>> bucket(
+            Predicate<String> keyPredicate,
+            DoublePredicate value,
+            String description
+        ) {
+            return new Condition<>(entry -> value.test(entry.getValue()) && keyPredicate.test(entry.getKey()), description);
+        }
+    }
+
+    @Nested
+    class SearchLogs {
+
+        @Test
+        void should_return_health_check_logs() {
+            // Given
+            var now = Instant.now();
+            var from = now.truncatedTo(ChronoUnit.DAYS);
+            var to = from.plus(Duration.ofDays(1));
+
+            // When
+            var result = repository
+                .searchLogs(
+                    new QueryContext("org#1", "env#1"),
+                    new HealthCheckLogQuery(API_ID, from, to, Optional.of(false), new PageableBuilder().pageSize(2).pageNumber(1).build())
+                )
+                .blockingGet();
+
+            // Then
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(result.getTotalElements()).isEqualTo(2);
+                softly.assertThat(result.getPageNumber()).isOne();
+                softly.assertThat(result.getPageElements()).isEqualTo(2);
+                softly
+                    .assertThat(result.getContent())
+                    .containsExactly(
+                        new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog(
+                            "AVsGgxUsooztmMPf1gOp",
+                            LocalDateTime
+                                .now()
+                                .withHour(15)
+                                .withMinute(28)
+                                .withSecond(20)
+                                .truncatedTo(ChronoUnit.SECONDS)
+                                .toInstant(ZoneOffset.UTC),
+                            "bf19088c-f2c7-4fec-9908-8cf2c75fece4",
+                            "other",
+                            "gw2",
+                            5L,
+                            false,
+                            List.of(
+                                new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog.Step(
+                                    "default-step",
+                                    false,
+                                    "assertion failed",
+                                    new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog.Request(
+                                        "https://api.gravitee.io/echo/",
+                                        "GET",
+                                        Map.of()
+                                    ),
+                                    new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog.Response(
+                                        200,
+                                        "KO",
+                                        Map.of("Content-Type", "plain/text")
+                                    )
+                                )
+                            )
+                        ),
+                        new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog(
+                            "AVsGg7GYooztmMPf1gO2",
+                            LocalDateTime
+                                .now()
+                                .withHour(17)
+                                .withMinute(29)
+                                .withSecond(10)
+                                .truncatedTo(ChronoUnit.SECONDS)
+                                .toInstant(ZoneOffset.UTC),
+                            "bf19088c-f2c7-4fec-9908-8cf2c75fece4",
+                            "default",
+                            "gw1",
+                            8L,
+                            false,
+                            List.of(
+                                new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog.Step(
+                                    "default-step",
+                                    false,
+                                    "assertion failed",
+                                    new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog.Request(
+                                        "https://api.gravitee.io/echo/",
+                                        "GET",
+                                        Map.of()
+                                    ),
+                                    new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog.Response(200, null, Map.of())
+                                )
+                            )
+                        )
+                    );
+            });
         }
 
         private static Condition<Map.Entry<String, Long>> bucketOfTimeHaveValue(String timeSuffix, long value) {

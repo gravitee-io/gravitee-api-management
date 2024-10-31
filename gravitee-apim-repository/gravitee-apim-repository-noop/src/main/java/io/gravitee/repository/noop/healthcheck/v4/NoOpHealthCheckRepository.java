@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.noop.healthcheck.v4;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.healthcheck.v4.api.HealthCheckRepository;
 import io.gravitee.repository.healthcheck.v4.model.ApiFieldPeriod;
@@ -22,6 +23,8 @@ import io.gravitee.repository.healthcheck.v4.model.AvailabilityResponse;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTime;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertime;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertimeQuery;
+import io.gravitee.repository.healthcheck.v4.model.HealthCheckLog;
+import io.gravitee.repository.healthcheck.v4.model.HealthCheckLogQuery;
 import io.reactivex.rxjava3.core.Maybe;
 
 public class NoOpHealthCheckRepository implements HealthCheckRepository {
@@ -41,6 +44,11 @@ public class NoOpHealthCheckRepository implements HealthCheckRepository {
 
     @Override
     public Maybe<AvailabilityResponse> availability(QueryContext queryContext, ApiFieldPeriod query) {
+        return Maybe.empty();
+    }
+
+    @Override
+    public Maybe<Page<HealthCheckLog>> searchLogs(QueryContext queryContext, HealthCheckLogQuery query) {
         return Maybe.empty();
     }
 }

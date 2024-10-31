@@ -18,7 +18,9 @@ package fakes;
 import io.gravitee.apim.core.api_health.model.AvailabilityHealthCheck;
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime;
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTimeOvertime;
+import io.gravitee.apim.core.api_health.model.HealthCheckLog;
 import io.gravitee.apim.core.api_health.query_service.ApiHealthQueryService;
+import io.gravitee.common.data.domain.Page;
 import io.reactivex.rxjava3.core.Maybe;
 
 public class FakeApiHealthQueryService implements ApiHealthQueryService {
@@ -26,6 +28,7 @@ public class FakeApiHealthQueryService implements ApiHealthQueryService {
     public AverageHealthCheckResponseTime averageHealthCheckResponseTime;
     public AvailabilityHealthCheck availabilityHealthCheck;
     public AverageHealthCheckResponseTimeOvertime averageHealthCheckResponseTimeOvertime;
+    public Page<HealthCheckLog> healthCheckLogs;
 
     @Override
     public Maybe<AverageHealthCheckResponseTime> averageResponseTime(ApiFieldPeriodQuery query) {
@@ -42,9 +45,15 @@ public class FakeApiHealthQueryService implements ApiHealthQueryService {
         return averageHealthCheckResponseTimeOvertime == null ? Maybe.empty() : Maybe.just(averageHealthCheckResponseTimeOvertime);
     }
 
+    @Override
+    public Maybe<Page<HealthCheckLog>> searchLogs(SearchLogsQuery query) {
+        return healthCheckLogs == null ? Maybe.empty() : Maybe.just(healthCheckLogs);
+    }
+
     public void reset() {
         averageHealthCheckResponseTime = null;
         availabilityHealthCheck = null;
         averageHealthCheckResponseTimeOvertime = null;
+        healthCheckLogs = null;
     }
 }
