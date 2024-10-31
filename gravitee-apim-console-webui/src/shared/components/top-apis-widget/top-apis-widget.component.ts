@@ -21,6 +21,8 @@ import { CommonModule } from '@angular/common';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatTableModule } from '@angular/material/table';
 import { MatSortModule } from '@angular/material/sort';
+import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
 
 import { GioTableWrapperModule } from '../gio-table-wrapper/gio-table-wrapper.module';
 import { GioTableWrapperFilters } from '../gio-table-wrapper/gio-table-wrapper.component';
@@ -35,7 +37,17 @@ export interface TopApisV4 {
 @Component({
   selector: 'app-top-apis-widget',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatTableModule, MatCardModule, MatSortModule, GioTableWrapperModule, GioLoaderModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatTableModule,
+    MatCardModule,
+    MatSortModule,
+    GioTableWrapperModule,
+    GioLoaderModule,
+    MatIcon,
+    MatTooltip,
+  ],
   templateUrl: './top-apis-widget.component.html',
   styleUrl: './top-apis-widget.component.scss',
 })

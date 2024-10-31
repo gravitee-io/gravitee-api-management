@@ -24,6 +24,7 @@ import {
   AnalyticsCountResponse,
   AnalyticsGroupByResponse,
   AnalyticsStatsResponse,
+  AnalyticsV4StatsResponse,
   AnalyticsV4TopApisResponse,
 } from '../entities/analytics/analyticsResponse';
 import { AnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
@@ -74,5 +75,10 @@ export class AnalyticsService {
   getV4TopApis(from: number, to: number): Observable<AnalyticsV4TopApisResponse> {
     const url = `${this.constants.env.v2BaseURL}/analytics/top-hits?from=${from}&to=${to}`;
     return this.http.get<AnalyticsV4TopApisResponse>(url);
+  }
+
+  getV4RequestResponseStats(from: number, to: number): Observable<AnalyticsV4StatsResponse> {
+    const url = `${this.constants.env.v2BaseURL}/analytics/request-response-time?from=${from}&to=${to}`;
+    return this.http.get<AnalyticsV4StatsResponse>(url);
   }
 }

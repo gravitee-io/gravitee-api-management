@@ -1,6 +1,25 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
 .top-apis-card {
   height: 100%;
   width: 100%;
+}
+
+.title {
+  @include mat.m2-typography-level($typography, 'body-1');
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  &__tooltip {
+    height: 16px;
+    width: 16px;
+  }
 }
 
 tr.mat-mdc-row {
@@ -9,4 +28,8 @@ tr.mat-mdc-row {
 
 .gio-table-wrapper__footer-bar {
   background-color: red;
+}
+
+.top-apis-table {
+  margin-top: 0 !important;
 }

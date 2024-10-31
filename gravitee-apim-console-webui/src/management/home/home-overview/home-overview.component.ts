@@ -29,6 +29,7 @@ import { ApiLifecycleStateData } from '../components/gio-api-lifecycle-state/gio
 import { ApiAnalyticsResponseStatusRanges } from '../../../shared/components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component';
 import { TopApisV4 } from '../../../shared/components/top-apis-widget/top-apis-widget.component';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { v4ApisRequestStats } from '../components/dashboard-v4-api-request-stats/dashboard-v4-api-request-stats';
 
 @Component({
   selector: 'home-overview',
@@ -49,6 +50,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
   topApis?: TopApisData;
   topApisV4: TopApisV4[];
   requestStats?: RequestStats;
+  requestStatsV4?: v4ApisRequestStats;
   apiResponseStatus?: ApiResponseStatusData;
   v4ApiAnalyticsResponseStatusRanges: ApiAnalyticsResponseStatusRanges;
   apiState?: ApiStateData;
@@ -196,6 +198,16 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
         tap(() => (this.requestStats = undefined)),
         switchMap((val) => this.statsService.getStats({ field: 'response-time', interval: val.interval, from: val.from, to: val.to })),
         tap((data) => (this.requestStats = data)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => this.changeDetectorRef.markForCheck());
+
+    // Request Stats v4
+    this.fetchAnalyticsRequest$
+      .pipe(
+        tap(() => (this.requestStatsV4 = undefined)),
+        switchMap((val) => this.statsService.getV4RequestResponseStats(val.from, val.to)),
+        tap((data) => (this.requestStatsV4 = data)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.changeDetectorRef.markForCheck());

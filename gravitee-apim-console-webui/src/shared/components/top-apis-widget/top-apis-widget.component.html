@@ -17,16 +17,14 @@
 -->
 
 <mat-card class="top-apis-card">
-  <mat-card-content>
-    <div class="mat-body-1">
-      Top APIs
-      <span class="mat-caption">(Ordered by API calls)</span>
-    </div>
-  </mat-card-content>
+  <div class="title">
+    Top APIs
+    <mat-icon class="title__tooltip" svgIcon="gio:info" matTooltip="Ordered by API calls"></mat-icon>
+  </div>
 
   @if (data) {
     <gio-table-wrapper
-      class="topApisV4Table"
+      class="top-apis-table"
       [disableSearchInput]="true"
       [disablePageSize]="true"
       [filters]="tableFilters"

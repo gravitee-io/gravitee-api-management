@@ -38,6 +38,7 @@ import { GioApiResponseStatusModule } from './components/gio-api-response-status
 import { GioApiStateModule } from './components/gio-api-state/gio-api-state.module';
 import { GioApiLifecycleStateModule } from './components/gio-api-lifecycle-state/gio-api-lifecycle-state.module';
 import { GioApiEventsTableModule } from './components/gio-api-events-table/gio-api-events-table.module';
+import { DashboardV4ApiRequestStats } from './components/dashboard-v4-api-request-stats/dashboard-v4-api-request-stats';
 
 import { GioCircularPercentageModule } from '../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
@@ -110,6 +111,7 @@ const homeRoutes: Route[] = [
     GioPermissionModule,
     ApiAnalyticsResponseStatusRangesComponent,
     TopApisWidgetComponent,
+    DashboardV4ApiRequestStats,
   ],
   declarations: [HomeLayoutComponent, HomeOverviewComponent, HomeApiHealthCheckComponent],
 })

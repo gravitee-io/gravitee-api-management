@@ -27,6 +27,7 @@ import { HomeModule } from '../home.module';
 import { GioQuickTimeRangeHarness } from '../components/gio-quick-time-range/gio-quick-time-range.harness';
 import { GioRequestStatsHarness } from '../components/gio-request-stats/gio-request-stats.harness';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { DashboardV4ApiRequestStatsHarness } from '../components/dashboard-v4-api-request-stats/dashboard-v4-api-request-stats.harness';
 
 describe('HomeOverviewComponent', () => {
   let fixture: ComponentFixture<HomeOverviewComponent>;
@@ -61,9 +62,31 @@ describe('HomeOverviewComponent', () => {
       expectSearchApiEventsRequest();
       expectConsoleSettingsGetRequest();
       expectTopApisGetRequest();
+      expectGetRequestStatsForV4();
 
       const stats = await loader.getHarness(GioRequestStatsHarness);
       expect(await stats.getAverage()).toEqual('8.43 ms');
+    });
+
+    it('should show v4 APIs request stats', async () => {
+      expectApiLifecycleStateRequest();
+      expectApiStateRequest();
+      expectResponseStatusRequest();
+      expectRequestStatsRequest();
+      expectTopApiRequest();
+      expectCountApiRequest();
+      expectCountApplicationRequest();
+      expectSearchApiEventsRequest();
+      expectConsoleSettingsGetRequest();
+      expectTopApisGetRequest();
+      expectGetRequestStatsForV4();
+
+      const stats = await loader.getHarness(DashboardV4ApiRequestStatsHarness);
+      expect(await stats.getRequestsPerSecond()).toEqual('< 0.1 ');
+      expect(await stats.getTotalRequests()).toEqual('17 ');
+      expect(await stats.getMinResponseTime()).toEqual('25.12 ms ');
+      expect(await stats.getMaxResponseTime()).toEqual('20,123.13 ms ');
+      expect(await stats.getAverageResponseTime()).toEqual('234.76 ms ');
     });
 
     it('should load request stats when changing date range', async () => {
@@ -77,6 +100,7 @@ describe('HomeOverviewComponent', () => {
       expectSearchApiEventsRequest();
       expectConsoleSettingsGetRequest();
       expectTopApisGetRequest();
+      expectGetRequestStatsForV4();
 
       const timeRangeHarness = await loader.getHarness(GioQuickTimeRangeHarness);
       await timeRangeHarness.selectTimeRangeByText('last hour');
@@ -104,6 +128,7 @@ describe('HomeOverviewComponent', () => {
       expectSearchApiEventsRequest();
       expectConsoleSettingsGetRequest();
       expectTopApisGetRequest();
+      expectGetRequestStatsForV4();
     });
   });
 
@@ -130,6 +155,7 @@ describe('HomeOverviewComponent', () => {
       expectCountApplicationRequest();
       expectConsoleSettingsGetRequest();
       expectTopApisGetRequest();
+      expectGetRequestStatsForV4();
 
       const stats = await loader.getHarness(GioRequestStatsHarness);
       expect(await stats.getAverage()).toEqual('8.43 ms');
@@ -249,6 +275,21 @@ describe('HomeOverviewComponent', () => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
     req.flush({ data: [] });
+    expect(req.request.method).toEqual('GET');
+  }
+
+  function expectGetRequestStatsForV4() {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/analytics/request-response-time`;
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(url);
+    });
+    req.flush({
+      requestsPerSecond: 0.001,
+      requestsTotal: 17,
+      responseMinTime: 25.12,
+      responseMaxTime: 20123.13,
+      responseAvgTime: 234.76,
+    });
     expect(req.request.method).toEqual('GET');
   }
 });
