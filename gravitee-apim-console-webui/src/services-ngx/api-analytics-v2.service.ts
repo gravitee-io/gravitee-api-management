@@ -22,6 +22,8 @@ import { AnalyticsRequestsCount } from '../entities/management-api-v2/analytics/
 import { AnalyticsAverageConnectionDuration } from '../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
 import { AnalyticsAverageMessagesPerRequest } from '../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest';
 import { AnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
+import { AnalyticsResponseStatusOvertime } from '../entities/management-api-v2/analytics/analyticsResponseStatusOvertime';
+import { AnalyticsResponseTimeOverTime } from '../entities/management-api-v2/analytics/analyticsResponseTimeOverTime';
 
 @Injectable({
   providedIn: 'root',
@@ -50,5 +52,15 @@ export class ApiAnalyticsV2Service {
 
   getResponseStatusRanges(apiId: string): Observable<AnalyticsResponseStatusRanges> {
     return this.http.get<AnalyticsResponseStatusRanges>(`${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-status-ranges`);
+  }
+
+  getResponseStatusOvertime(apiId: string, from: number, to: number): Observable<AnalyticsResponseStatusOvertime> {
+    const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-status-overtime?from=${from}&to=${to}`;
+    return this.http.get<AnalyticsResponseStatusOvertime>(url);
+  }
+
+  getResponseTimeOverTime(apiId: string, from: number, to: number): Observable<AnalyticsResponseTimeOverTime> {
+    const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-time-over-time?from=${from}&to=${to}`;
+    return this.http.get<AnalyticsResponseTimeOverTime>(url);
   }
 }

@@ -1,7 +1,7 @@
 @use 'sass:map';
 @use '@angular/material/index' as mat;
 @use '@gravitee/ui-particles-angular/index' as gio;
-@use 'src/scss/gio-layout' as gio-layout;
+@use '../src/scss/gio-layout' as gio-layout;
 
 :host {
   @include gio-layout.gio-responsive-margin-container;
@@ -11,4 +11,9 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-gap: 16px;
+}
+
+.full-bleed {
+  width: 100%;
+  grid-column: 1 / 3;
 }

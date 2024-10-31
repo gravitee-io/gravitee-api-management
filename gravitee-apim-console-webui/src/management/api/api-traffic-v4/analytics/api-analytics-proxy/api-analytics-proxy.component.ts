@@ -38,6 +38,8 @@ import {
   ApiAnalyticsResponseStatusRangesComponent,
 } from '../../../../../shared/components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component';
 import { AnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
+import { ApiAnalyticsResponseStatusOvertimeComponent } from '../components/api-analytics-response-status-overtime/api-analytics-response-status-overtime.component';
+import { ApiAnalyticsResponseTimeOverTimeComponent } from '../components/api-analytics-response-time-over-time/api-analytics-response-time-over-time.component';
 
 type ApiAnalyticsVM = {
   isLoading: boolean;
@@ -58,6 +60,8 @@ type ApiAnalyticsVM = {
     ApiAnalyticsRequestStatsComponent,
     ApiAnalyticsFiltersBarComponent,
     ApiAnalyticsResponseStatusRangesComponent,
+    ApiAnalyticsResponseStatusOvertimeComponent,
+    ApiAnalyticsResponseTimeOverTimeComponent,
   ],
   templateUrl: './api-analytics-proxy.component.html',
   styleUrl: './api-analytics-proxy.component.scss',

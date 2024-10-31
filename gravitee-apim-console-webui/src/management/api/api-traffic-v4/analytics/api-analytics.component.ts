@@ -29,11 +29,13 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
   imports: [CommonModule, ApiAnalyticsMessageComponent, ApiAnalyticsProxyComponent],
   template: `
     @if (api$ | async; as api) {
-      @if (api.type === 'MESSAGE') {
-        <api-analytics-message></api-analytics-message>
-      }
-      @if (api.type === 'PROXY') {
-        <api-analytics-proxy></api-analytics-proxy>
+      @switch (api.type) {
+        @case ('MESSAGE') {
+          <api-analytics-message />
+        }
+        @case ('PROXY') {
+          <api-analytics-proxy />
+        }
       }
     }
   `,
