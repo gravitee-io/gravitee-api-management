@@ -2041,10 +2041,10 @@ paths:
                 TCP Proxy APIs are not supported.
 
                 User must have the API_ANALYTICS[READ] permission.
-            operationId: getResponseTimeOverTime
+            operationId: getAverageConnectionDuration
             responses:
                 "200":
-                    $ref: "#/components/responses/ApiAnalyticsOverPeriodResponse"
+                    $ref: "#/components/responses/ApiAnalyticsAverageConnectionDurationResponse"
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/analytics/response-statuses:
@@ -2072,15 +2072,15 @@ paths:
         get:
             tags:
                 - API Analytics
-            summary: Get API Analytics average response time over 24h by interval of 30 minutes
+            summary: Get API Analytics average response time
             description: |-
-                Get API Analytics average response time over 24h by interval of 30 minutes
+                Get API Analytics average response time
 
                 User must have the API_ANALYTICS[READ] permission.
-            operationId: getAverageConnectionDuration
+            operationId: getResponseTimeOverTime
             responses:
                 "200":
-                    $ref: "#/components/responses/ApiAnalyticsAverageConnectionDurationResponse"
+                    $ref: "#/components/responses/ApiAnalyticsOverPeriodResponse"
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/analytics/response-statuses-over-time:
