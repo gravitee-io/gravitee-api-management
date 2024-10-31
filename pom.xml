@@ -189,7 +189,7 @@
         <gravitee-policy-html-json.version>1.6.3</gravitee-policy-html-json.version>
         <gravitee-policy-http-signature.version>1.7.0</gravitee-policy-http-signature.version>
         <gravitee-policy-interrupt.version>1.1.1</gravitee-policy-interrupt.version>
-        <gravitee-policy-ipfiltering.version>1.14.0</gravitee-policy-ipfiltering.version>
+        <gravitee-policy-ipfiltering.version>1.15.0</gravitee-policy-ipfiltering.version>
         <gravitee-policy-javascript.version>1.3.3</gravitee-policy-javascript.version>
         <gravitee-policy-json-threat-protection.version>1.4.0</gravitee-policy-json-threat-protection.version>
         <gravitee-policy-json-to-json.version>3.0.1</gravitee-policy-json-to-json.version>
