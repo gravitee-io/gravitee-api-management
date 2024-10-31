@@ -18,6 +18,7 @@ package fixtures.repository;
 import fixtures.definition.ApiDefinitionFixtures;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.management.model.Api;
 import java.time.Instant;
 import lombok.SneakyThrows;
@@ -55,6 +56,7 @@ public class ApiFixtures {
     public static Api aV4Api() {
         return BASE
             .definitionVersion(DefinitionVersion.V4)
+            .type(ApiType.PROXY)
             .definition(GRAVITEE_MAPPER.writeValueAsString(ApiDefinitionFixtures.anApiV4()))
             .build();
     }

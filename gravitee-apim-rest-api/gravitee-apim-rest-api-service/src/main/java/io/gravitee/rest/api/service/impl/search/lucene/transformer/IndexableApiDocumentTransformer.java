@@ -52,6 +52,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.rest.api.model.search.Indexable;
@@ -176,7 +177,24 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
     }
 
     private void transformV4Api(Document doc, IndexableApi api) {
-        var apiDefinitionV4 = api.getApi().getApiDefinitionHttpV4();
+        var apiDefinitionV4 = api.getApi().getType() == ApiType.NATIVE
+            ? api.getApi().getApiDefinitionNativeV4()
+            : api.getApi().getApiDefinitionHttpV4();
+
+        if (api.getApi().getType() != ApiType.NATIVE) {
+            transformV4ApiHttpListeners(doc, api.getApi().getApiDefinitionHttpV4());
+        }
+
+        // tags
+        if (apiDefinitionV4.getTags() != null) {
+            for (String tag : apiDefinitionV4.getTags()) {
+                doc.add(new StringField(FIELD_TAGS, tag, Field.Store.NO));
+                doc.add(new TextField(FIELD_TAGS_SPLIT, tag, Field.Store.NO));
+            }
+        }
+    }
+
+    private void transformV4ApiHttpListeners(Document doc, io.gravitee.definition.model.v4.Api apiDefinitionV4) {
         if (apiDefinitionV4 != null && apiDefinitionV4.getListeners() != null) {
             final int[] pathIndex = { 0 };
             apiDefinitionV4
@@ -188,14 +206,6 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
                     return httpListener.getPaths().stream();
                 })
                 .forEach(path -> appendPath(doc, pathIndex, path.getHost(), path.getPath()));
-        }
-
-        // tags
-        if (apiDefinitionV4.getTags() != null) {
-            for (String tag : apiDefinitionV4.getTags()) {
-                doc.add(new StringField(FIELD_TAGS, tag, Field.Store.NO));
-                doc.add(new TextField(FIELD_TAGS_SPLIT, tag, Field.Store.NO));
-            }
         }
     }
 

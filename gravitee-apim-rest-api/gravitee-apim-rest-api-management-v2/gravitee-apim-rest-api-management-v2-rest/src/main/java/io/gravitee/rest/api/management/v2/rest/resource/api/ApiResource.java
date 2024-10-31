@@ -87,6 +87,7 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.security.utils.ImageUtils;
@@ -851,11 +852,17 @@ public class ApiResource extends AbstractResource {
         String backgroundUrl = uriBuilder.build().toString();
 
         if (apiEntity.getDefinitionVersion() == DefinitionVersion.V4) {
-            ApiEntity apiEntityV4 = (ApiEntity) apiEntity;
-            apiEntityV4.setPictureUrl(pictureUrl);
-            apiEntityV4.setPicture(null);
-            apiEntityV4.setBackgroundUrl(backgroundUrl);
-            apiEntityV4.setBackground(null);
+            if (apiEntity instanceof ApiEntity apiEntityV4) {
+                apiEntityV4.setPictureUrl(pictureUrl);
+                apiEntityV4.setPicture(null);
+                apiEntityV4.setBackgroundUrl(backgroundUrl);
+                apiEntityV4.setBackground(null);
+            } else if (apiEntity instanceof NativeApiEntity nativeApiEntityV4) {
+                nativeApiEntityV4.setPictureUrl(pictureUrl);
+                nativeApiEntityV4.setPicture(null);
+                nativeApiEntityV4.setBackgroundUrl(backgroundUrl);
+                nativeApiEntityV4.setBackground(null);
+            }
         }
         if (apiEntity.getDefinitionVersion() == DefinitionVersion.V2) {
             io.gravitee.rest.api.model.api.ApiEntity apiEntityV2 = (io.gravitee.rest.api.model.api.ApiEntity) apiEntity;
@@ -868,7 +875,11 @@ public class ApiResource extends AbstractResource {
 
     private void filterSensitiveData(GenericApiEntity apiEntity) {
         if (apiEntity.getDefinitionVersion() == DefinitionVersion.V4) {
-            filterSensitiveData((ApiEntity) apiEntity);
+            if (apiEntity instanceof ApiEntity asApiEntity) {
+                filterSensitiveData(asApiEntity);
+            } else if (apiEntity instanceof NativeApiEntity asNativeApiEntity) {
+                filterSensitiveData(asNativeApiEntity);
+            }
         }
         if (apiEntity.getDefinitionVersion() == DefinitionVersion.V2) {
             filterSensitiveData((io.gravitee.rest.api.model.api.ApiEntity) apiEntity);
@@ -895,6 +906,12 @@ public class ApiResource extends AbstractResource {
         apiEntity.setServices(null);
         apiEntity.setResources(null);
         apiEntity.setResponseTemplates(null);
+    }
+
+    private void filterSensitiveData(NativeApiEntity apiEntity) {
+        apiEntity.setProperties(null);
+        apiEntity.setServices(null);
+        apiEntity.setResources(null);
     }
 
     private void filterSensitiveData(io.gravitee.rest.api.model.api.ApiEntity apiEntity) {
