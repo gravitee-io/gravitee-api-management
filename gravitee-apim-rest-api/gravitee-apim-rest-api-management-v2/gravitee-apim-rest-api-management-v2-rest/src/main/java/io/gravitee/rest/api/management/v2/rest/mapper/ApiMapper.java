@@ -50,6 +50,7 @@ import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
@@ -117,7 +118,11 @@ public interface ApiMapper {
             return new io.gravitee.rest.api.management.v2.rest.model.Api(this.mapToFederated((FederatedApiEntity) apiEntity, uriInfo));
         }
         if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4) {
-            return new io.gravitee.rest.api.management.v2.rest.model.Api(this.mapToV4((ApiEntity) apiEntity, uriInfo, state));
+            if (apiEntity instanceof ApiEntity asApiEntity) {
+                return new io.gravitee.rest.api.management.v2.rest.model.Api(this.mapToV4(asApiEntity, uriInfo, state));
+            } else if (apiEntity instanceof NativeApiEntity asNativeApiEntity) {
+                return new io.gravitee.rest.api.management.v2.rest.model.Api(this.mapToV4(asNativeApiEntity, uriInfo, state));
+            }
         }
         if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V2) {
             return new io.gravitee.rest.api.management.v2.rest.model.Api(
@@ -154,6 +159,11 @@ public interface ApiMapper {
     @Mapping(target = "listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
     ApiV4 mapToV4(ApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+
+    @Mapping(target = "definitionContext", source = "apiEntity.originContext")
+    @Mapping(target = "listeners", qualifiedByName = "fromNativeListeners")
+    @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
+    ApiV4 mapToV4(NativeApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
     default ApiV4 mapToV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState) {
         if (ApiType.NATIVE.equals(source.getType())) {
@@ -199,7 +209,11 @@ public interface ApiMapper {
 
     @Mapping(target = "listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "links", ignore = true)
-    ApiV4 map(ApiEntity apiEntity);
+    ApiV4 mapFromHttpApiEntity(ApiEntity apiEntity);
+
+    @Mapping(target = "listeners", qualifiedByName = "fromNativeListeners")
+    @Mapping(target = "links", ignore = true)
+    ApiV4 mapFromNativeApiEntity(NativeApiEntity apiEntity);
 
     @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
     ApiEntity map(ApiV4 api);

@@ -270,6 +270,7 @@ public class ApiSearchServiceImplTest {
         Api api = new Api();
         api.setId(API_ID);
         api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.PROXY);
         api.setEnvironmentId("DEFAULT");
 
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));

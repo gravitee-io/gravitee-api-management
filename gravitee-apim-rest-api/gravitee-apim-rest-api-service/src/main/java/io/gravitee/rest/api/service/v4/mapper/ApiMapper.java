@@ -26,6 +26,7 @@ import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
@@ -42,6 +43,8 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.WorkflowService;
@@ -159,6 +162,65 @@ public class ApiMapper {
         return apiEntity;
     }
 
+    public NativeApiEntity toNativeEntity(final Api api, final PrimaryOwnerEntity primaryOwner) {
+        NativeApiEntity apiEntity = new NativeApiEntity();
+
+        apiEntity.setId(api.getId());
+        apiEntity.setCrossId(api.getCrossId());
+        apiEntity.setName(api.getName());
+        apiEntity.setApiVersion(api.getVersion());
+        apiEntity.setUpdatedAt(api.getUpdatedAt());
+        apiEntity.setDeployedAt(api.getDeployedAt());
+        apiEntity.setCreatedAt(api.getCreatedAt());
+        apiEntity.setDescription(api.getDescription());
+
+        if (api.getDefinition() != null) {
+            try {
+                var apiDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.nativeapi.NativeApi.class);
+                apiEntity.setDefinitionVersion(apiDefinition.getDefinitionVersion());
+                apiEntity.setListeners(apiDefinition.getListeners());
+                apiEntity.setEndpointGroups(apiDefinition.getEndpointGroups());
+                apiEntity.setServices(apiDefinition.getServices());
+                apiEntity.setResources(apiDefinition.getResources());
+                apiEntity.setProperties(apiDefinition.getProperties());
+                apiEntity.setTags(apiDefinition.getTags());
+                apiEntity.setFlows(apiDefinition.getFlows());
+            } catch (IOException ioe) {
+                log.error("Unexpected error while generating API definition", ioe);
+            }
+        }
+
+        if (api.getType() != null) {
+            apiEntity.setType(ApiType.fromLabel(api.getType().getLabel()));
+        }
+        apiEntity.setGroups(api.getGroups());
+        apiEntity.setDisableMembershipNotifications(api.isDisableMembershipNotifications());
+        apiEntity.setReferenceType(ReferenceContext.Type.ENVIRONMENT.name());
+        apiEntity.setReferenceId(api.getEnvironmentId());
+        apiEntity.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
+        apiEntity.setPicture(api.getPicture());
+        apiEntity.setBackground(api.getBackground());
+        apiEntity.setLabels(api.getLabels());
+
+        final LifecycleState state = api.getLifecycleState();
+        if (state != null) {
+            apiEntity.setState(Lifecycle.State.valueOf(state.name()));
+        }
+        if (api.getVisibility() != null) {
+            apiEntity.setVisibility(io.gravitee.rest.api.model.Visibility.valueOf(api.getVisibility().toString()));
+        }
+
+        final ApiLifecycleState lifecycleState = api.getApiLifecycleState();
+        if (lifecycleState != null) {
+            apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.valueOf(lifecycleState.name()));
+        }
+
+        apiEntity.setOriginContext(ApiAdapterDecorator.toOriginContext(api));
+
+        apiEntity.setPrimaryOwner(primaryOwner);
+        return apiEntity;
+    }
+
     public FederatedApiEntity federatedToEntity(final Api api, final PrimaryOwnerEntity primaryOwner) {
         api.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
         return ApiAdapter.INSTANCE.toFederatedApiEntity(api, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner));
@@ -177,6 +239,41 @@ public class ApiMapper {
 
         if (readDatabaseFlows) {
             List<Flow> flows = flowService.findByReference(FlowReferenceType.API, api.getId());
+            apiEntity.setFlows(flows);
+        }
+
+        apiEntity.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
+
+        if (
+            parameterService.findAsBoolean(
+                executionContext,
+                Key.API_REVIEW_ENABLED,
+                api.getEnvironmentId(),
+                ParameterReferenceType.ENVIRONMENT
+            )
+        ) {
+            final List<Workflow> workflows = workflowService.findByReferenceAndType(API, api.getId(), REVIEW);
+            if (workflows != null && !workflows.isEmpty()) {
+                apiEntity.setWorkflowState(WorkflowState.valueOf(workflows.get(0).getState()));
+            }
+        }
+
+        return apiEntity;
+    }
+
+    public NativeApiEntity toNativeEntity(
+        final ExecutionContext executionContext,
+        final Api api,
+        final PrimaryOwnerEntity primaryOwner,
+        final boolean readDatabaseFlows
+    ) {
+        NativeApiEntity apiEntity = toNativeEntity(api, primaryOwner);
+
+        Set<NativePlanEntity> plans = planService.findNativePlansByApi(executionContext, api.getId());
+        apiEntity.setPlans(plans);
+
+        if (readDatabaseFlows) {
+            List<NativeFlow> flows = flowService.findNativeFlowByReference(FlowReferenceType.API, api.getId());
             apiEntity.setFlows(flows);
         }
 

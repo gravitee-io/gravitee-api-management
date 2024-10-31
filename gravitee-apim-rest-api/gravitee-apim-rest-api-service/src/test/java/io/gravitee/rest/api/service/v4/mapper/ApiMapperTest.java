@@ -32,6 +32,10 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
@@ -482,5 +486,79 @@ public class ApiMapperTest {
             Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
         );
         assertThat(api.getDefinition()).isEqualTo(objectMapper.writeValueAsString(apiDefinition));
+    }
+
+    @Test
+    public void shouldCreateNativeEntityFromApiRepository() throws JsonProcessingException {
+        var apiDefinition = new io.gravitee.definition.model.v4.nativeapi.NativeApi();
+        apiDefinition.setDefinitionVersion(DefinitionVersion.V4);
+        apiDefinition.setListeners(List.of(new KafkaListener()));
+        apiDefinition.setEndpointGroups(List.of(new NativeEndpointGroup()));
+        apiDefinition.setServices(new NativeApiServices());
+        apiDefinition.setResources(List.of(new Resource()));
+        apiDefinition.setProperties(List.of(new Property("key", "value")));
+        apiDefinition.setTags(Set.of("tag"));
+        apiDefinition.setFlows(List.of(new NativeFlow(), new NativeFlow()));
+
+        Api api = new Api();
+        api.setId("id");
+        api.setCrossId("crossId");
+        api.setType(ApiType.NATIVE);
+        api.setName("name");
+        api.setVersion("version");
+        api.setUpdatedAt(new Date());
+        api.setDeployedAt(new Date());
+        api.setCreatedAt(new Date());
+        api.setDescription("description");
+        api.setGroups(Set.of("group1"));
+        api.setEnvironmentId("environmentId");
+        api.setCategories(Set.of("category"));
+        api.setPicture("picture");
+        api.setBackground("background");
+        api.setLabels(List.of("label"));
+        api.setLifecycleState(LifecycleState.STARTED);
+        api.setVisibility(Visibility.PUBLIC);
+        api.setApiLifecycleState(ApiLifecycleState.CREATED);
+
+        api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
+
+        when(categoryMapper.toCategoryKey(any(), eq(api.getCategories()))).thenReturn(api.getCategories());
+
+        var nativeEntity = apiMapper.toNativeEntity(api, new PrimaryOwnerEntity());
+
+        assertThat(nativeEntity.getId()).isEqualTo("id");
+        assertThat(nativeEntity.getCrossId()).isEqualTo("crossId");
+        assertThat(nativeEntity.getType()).isEqualTo(ApiType.NATIVE);
+        assertThat(nativeEntity.getName()).isEqualTo("name");
+        assertThat(nativeEntity.getApiVersion()).isEqualTo("version");
+        assertThat(nativeEntity.getUpdatedAt()).isNotNull();
+        assertThat(nativeEntity.getDeployedAt()).isNotNull();
+        assertThat(nativeEntity.getCreatedAt()).isNotNull();
+        assertThat(nativeEntity.getDescription()).isEqualTo("description");
+        assertThat(nativeEntity.getGroups().size()).isEqualTo(1);
+        assertThat(nativeEntity.getReferenceType()).isEqualTo(ReferenceContext.Type.ENVIRONMENT.name());
+        assertThat(nativeEntity.getReferenceId()).isEqualTo("environmentId");
+        assertThat(nativeEntity.getCategories().size()).isEqualTo(1);
+        assertThat(nativeEntity.getPicture()).isEqualTo("picture");
+        assertThat(nativeEntity.getBackground()).isEqualTo("background");
+        assertThat(nativeEntity.getLabels().size()).isEqualTo(1);
+        assertThat(nativeEntity.getLifecycleState()).isEqualTo(io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED);
+        assertThat(nativeEntity.getState()).isEqualTo(Lifecycle.State.STARTED);
+        assertThat(nativeEntity.getVisibility()).isEqualTo(io.gravitee.rest.api.model.Visibility.PUBLIC);
+
+        assertThat(nativeEntity.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
+        assertThat(nativeEntity.getListeners()).isNotNull();
+        assertThat(nativeEntity.getListeners().size()).isEqualTo(1);
+        assertThat(nativeEntity.getEndpointGroups()).isNotNull();
+        assertThat(nativeEntity.getEndpointGroups().size()).isEqualTo(1);
+        assertThat(nativeEntity.getServices()).isNotNull();
+        assertThat(nativeEntity.getResources()).isNotNull();
+        assertThat(nativeEntity.getResources().size()).isEqualTo(1);
+        assertThat(nativeEntity.getProperties()).isNotNull();
+        assertThat(nativeEntity.getProperties().size()).isEqualTo(1);
+        assertThat(nativeEntity.getTags()).isNotNull();
+        assertThat(nativeEntity.getTags().size()).isEqualTo(1);
+        assertThat(nativeEntity.getFlows()).isNotNull();
+        assertThat(nativeEntity.getFlows().size()).isEqualTo(2);
     }
 }

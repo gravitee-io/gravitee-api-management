@@ -408,6 +408,7 @@ public class ApiServiceImplTest {
         api.setId(API_ID);
         api.setEnvironmentId(GraviteeContext.getExecutionContext().getEnvironmentId());
         api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.PROXY);
 
         updatedApi = new Api();
         updatedApi.setId(API_ID);
