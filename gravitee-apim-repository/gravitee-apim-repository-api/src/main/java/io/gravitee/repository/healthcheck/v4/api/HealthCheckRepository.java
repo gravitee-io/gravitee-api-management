@@ -15,12 +15,15 @@
  */
 package io.gravitee.repository.healthcheck.v4.api;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.healthcheck.v4.model.ApiFieldPeriod;
 import io.gravitee.repository.healthcheck.v4.model.AvailabilityResponse;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTime;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertime;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertimeQuery;
+import io.gravitee.repository.healthcheck.v4.model.HealthCheckLog;
+import io.gravitee.repository.healthcheck.v4.model.HealthCheckLogQuery;
 import io.reactivex.rxjava3.core.Maybe;
 
 public interface HealthCheckRepository {
@@ -31,4 +34,6 @@ public interface HealthCheckRepository {
         QueryContext queryContext,
         AverageHealthCheckResponseTimeOvertimeQuery query
     );
+
+    Maybe<Page<HealthCheckLog>> searchLogs(QueryContext queryContext, HealthCheckLogQuery query);
 }

@@ -2244,6 +2244,29 @@ paths:
             $ref: "#/components/responses/ApiHealthAvailabilityResponse"
           default:
             $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/health/logs:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+        - in: query
+          name: success
+          schema:
+            type: boolean
+          description: Filter logs by success status
+      get:
+        tags:
+          - API Health
+        summary: Get API Health Check logs
+        description: |-
+          Get API Health Check average response time overtime. 
+
+          User must have the API_HEALTH[READ] permission.
+        operationId: getApiHealthLogs
+        responses:
+          "200":
+            $ref: "#/components/responses/ApiHealthLogsResponse"
+          default:
+            $ref: "#/components/responses/Error"
 
     # API Audits
     /environments/{envId}/apis/{apiId}/audits:
@@ -7320,6 +7343,100 @@ components:
               description: The interval in milliseconds splitting the data
               example: 120000
 
+        # API Health
+        HealthCheckLog:
+          type: object
+          description: A healh check log
+          properties:
+            id:
+              type: string
+              description: The id of the log
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+            timestamp:
+              type: string
+              format: date-time
+              description: The date of the log
+              example: 2023-05-18T12:40:46.184Z
+            endpointName:
+              type: string
+              description: The name of the endpoint
+              example: default
+            gatewayId:
+              type: string
+              description: The id of the gateway that called the health check
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+            responseTime:
+              type: integer
+              format: int64
+              description: The response time in ms
+              example: 12
+            success:
+              type: boolean
+              description: The success of the health check
+              example: true
+            steps:
+              type: array
+              items:
+                  $ref: "#/components/schemas/HealthCheckLogStep"
+
+        HealthCheckLogStep:
+          type: object
+          description: A healh check log step
+          properties:
+            name:
+              type: string
+              description: The step name
+              example: default-step
+            success:
+              type: boolean
+              description: The status of the step
+              example: true
+            message:
+              type: string
+              description: The failure message when step failed
+              example: Assertions failed
+            request:
+              $ref: "#/components/schemas/HealthCheckLogRequest"
+            response:
+              $ref: "#/components/schemas/HealthCheckLogResponse"
+
+        HealthCheckLogRequest:
+          type: object
+          description: A health check request
+          properties:
+            uri:
+              type: string
+              description: The uri called
+              example: https://api.gravitee.io/
+            method:
+              type: string
+              description: The http method
+              example: GET
+            headers:
+              type: object
+              description: The request headers
+              additionalProperties:
+                type: string
+        HealthCheckLogResponse:
+          type: object
+          description: A health check response
+          properties:
+            status:
+              type: integer
+              description: The response status
+              example: 200/
+            body:
+              type: string
+              description: The response body
+              example: OK
+            headers:
+              type: object
+              description: The response headers
+              additionalProperties:
+                type: string
+
+
+
     parameters:
         #############
         # PathParam #
@@ -8224,6 +8341,22 @@ components:
                       multipleOf: 0.0001
                     example:
                       default: 0.7504
+        ApiHealthLogsResponse:
+          description: Page of HealthCheck logs
+          content:
+            application/json:
+              schema:
+                title: "ApiHealthLogsResponse"
+                properties:
+                  data:
+                    description: List of health check logs.
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/HealthCheckLog"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                  links:
+                    $ref: "#/components/schemas/Links"
 
         # Audit
         AuditsResponse:

@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.healthcheck;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
@@ -23,6 +24,7 @@ import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.elasticsearch.v4.healthcheck.adapter.AvailabilityQueryMapper;
 import io.gravitee.repository.elasticsearch.v4.healthcheck.adapter.AverageHealthCheckResponseTimeAdapter;
 import io.gravitee.repository.elasticsearch.v4.healthcheck.adapter.AverageHealthCheckResponseTimeOvertimeAdapter;
+import io.gravitee.repository.elasticsearch.v4.healthcheck.adapter.HealthCheckLogAdapter;
 import io.gravitee.repository.elasticsearch.v4.healthcheck.adapter.QueryResponseAdapter;
 import io.gravitee.repository.healthcheck.v4.api.HealthCheckRepository;
 import io.gravitee.repository.healthcheck.v4.model.ApiFieldPeriod;
@@ -30,6 +32,8 @@ import io.gravitee.repository.healthcheck.v4.model.AvailabilityResponse;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTime;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertime;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertimeQuery;
+import io.gravitee.repository.healthcheck.v4.model.HealthCheckLog;
+import io.gravitee.repository.healthcheck.v4.model.HealthCheckLogQuery;
 import io.reactivex.rxjava3.core.Maybe;
 import lombok.extern.slf4j.Slf4j;
 
@@ -65,8 +69,18 @@ public class HealthCheckElasticsearchRepository extends AbstractElasticsearchRep
         return query(queryContext, query, averageHealthCheckResponseTimeOvertimeAdapter);
     }
 
+    @Override
+    public Maybe<Page<HealthCheckLog>> searchLogs(QueryContext queryContext, HealthCheckLogQuery query) {
+        var adapter = new HealthCheckLogAdapter(query.pageable());
+        return query(queryContext, query, adapter);
+    }
+
     private <Q, R> Maybe<R> query(QueryContext queryContext, Q query, QueryResponseAdapter<Q, R> adapter) {
         var index = indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.HEALTH_CHECK, clusters);
-        return client.search(index, null, adapter.adaptQuery(query, info).toString()).flatMapMaybe(adapter::adaptResponse);
+
+        var esQuery = adapter.adaptQuery(query, info).toString();
+        log.debug("Execute ES query: {}", esQuery);
+
+        return client.search(index, null, esQuery).flatMapMaybe(adapter::adaptResponse);
     }
 }
