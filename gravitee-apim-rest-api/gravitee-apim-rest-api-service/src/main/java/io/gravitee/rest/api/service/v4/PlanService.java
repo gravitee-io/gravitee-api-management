@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.v4;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PlansConfigurationEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
@@ -31,6 +32,7 @@ public interface PlanService {
     PlanEntity findById(ExecutionContext executionContext, String plan);
 
     Set<PlanEntity> findByApi(ExecutionContext executionContext, String api);
+    Set<NativePlanEntity> findNativePlansByApi(ExecutionContext executionContext, String api);
 
     PlanEntity update(final ExecutionContext executionContext, final UpdatePlanEntity plan);
 

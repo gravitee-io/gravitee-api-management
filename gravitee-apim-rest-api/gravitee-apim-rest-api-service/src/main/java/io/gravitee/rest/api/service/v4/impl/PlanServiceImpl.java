@@ -41,6 +41,7 @@ import io.gravitee.rest.api.model.PlanSecurityEntity;
 import io.gravitee.rest.api.model.PlansConfigurationEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
@@ -180,6 +181,11 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     @Override
     public Set<PlanEntity> findByApi(final ExecutionContext executionContext, final String api) {
         return planSearchService.findByApi(executionContext, api).stream().map(PlanEntity.class::cast).collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<NativePlanEntity> findNativePlansByApi(final ExecutionContext executionContext, final String api) {
+        return planSearchService.findByApi(executionContext, api).stream().map(NativePlanEntity.class::cast).collect(Collectors.toSet());
     }
 
     private PlanEntity create(ExecutionContext executionContext, NewPlanEntity newPlan, boolean validatePathParams) {
