@@ -1,0 +1,31 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+:host {
+  display: block;
+}
+
+.title {
+  @include mat.m2-typography-level($typography, 'body-1');
+  padding: 16px;
+  border-bottom: 1px mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
+}
+
+.card {
+  height: 100%;
+
+  &__loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    margin: 16px;
+  }
+
+  &__chart {
+    padding: 16px;
+  }
+}

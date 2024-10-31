@@ -32,6 +32,10 @@ import { AnalyticsAverageConnectionDuration } from '../../../../../entities/mana
 import { fakeAnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration.fixture';
 import { AnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
 import { fakeAnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges.fixture';
+import { AnalyticsResponseStatusOvertime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusOvertime';
+import { AnalyticsResponseTimeOverTime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseTimeOverTime';
+import { fakeAnalyticsResponseStatusOvertime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusOvertime.fixture';
+import { fakeAnalyticsResponseTimeOverTime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseTimeOverTime.fixture';
 
 describe('ApiAnalyticsProxyComponent', () => {
   const API_ID = 'api-id';
@@ -91,6 +95,8 @@ describe('ApiAnalyticsProxyComponent', () => {
   describe('GIVEN an API with analytics.enabled=true', () => {
     beforeEach(async () => {
       expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
+      expectApiGetResponseStatusOvertime();
+      expectApiGetResponseTimeOverTime();
     });
 
     it('should display HTTP Proxy Entrypoint - Request Stats', async () => {
@@ -184,6 +190,7 @@ describe('ApiAnalyticsProxyComponent', () => {
       expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
       expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration({ average: 42.1234556 }));
       expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
+
       expect(await requestStats.getValues()).toEqual([
         {
           label: 'Total Requests',
@@ -252,5 +259,21 @@ describe('ApiAnalyticsProxyComponent', () => {
         method: 'GET',
       })
       .flush(analyticsResponseStatusRanges);
+  }
+
+  function expectApiGetResponseStatusOvertime(res: AnalyticsResponseStatusOvertime = fakeAnalyticsResponseStatusOvertime()) {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/response-status-overtime`;
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(url);
+    });
+    req.flush(res);
+  }
+
+  function expectApiGetResponseTimeOverTime(res: AnalyticsResponseTimeOverTime = fakeAnalyticsResponseTimeOverTime()) {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/response-time-over-time`;
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(url);
+    });
+    req.flush(res);
   }
 });
