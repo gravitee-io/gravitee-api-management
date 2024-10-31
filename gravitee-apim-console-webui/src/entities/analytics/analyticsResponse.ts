@@ -45,3 +45,11 @@ export class AnalyticsCountResponse {
 export interface AnalyticsV4TopApisResponse {
   data: TopApisV4[];
 }
+
+export interface AnalyticsV4StatsResponse {
+  requestsPerSecond: number;
+  requestsTotal: number;
+  responseMinTime: number;
+  responseMaxTime: number;
+  responseAvgTime: number;
+}
