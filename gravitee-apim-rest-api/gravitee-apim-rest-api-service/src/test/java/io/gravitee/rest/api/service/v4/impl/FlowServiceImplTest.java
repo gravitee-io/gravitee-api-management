@@ -96,6 +96,27 @@ public class FlowServiceImplTest {
     }
 
     @Test
+    public void shouldReturnNativeFlowsInOrder() throws TechnicalException {
+        Flow flow5 = new Flow();
+        flow5.setName("flow5");
+        flow5.setOrder(5);
+        Flow flow1 = new Flow();
+        flow1.setName("flow1");
+        flow1.setOrder(1);
+
+        when(flowRepository.findByReference(FlowReferenceType.API, "apiId")).thenReturn(List.of(flow5, flow1));
+        List<io.gravitee.definition.model.v4.nativeapi.NativeFlow> flowServiceByReference = flowService.findNativeFlowByReference(
+            FlowReferenceType.API,
+            "apiId"
+        );
+        assertThat(flowServiceByReference).isNotNull();
+        assertThat(flowServiceByReference.size()).isEqualTo(2);
+        assertThat(flowServiceByReference.get(0).getName()).isEqualTo("flow1");
+        assertThat(flowServiceByReference.get(1).getName()).isEqualTo("flow5");
+        verify(flowRepository).findByReference(FlowReferenceType.API, "apiId");
+    }
+
+    @Test
     public void shouldDeleteAndSaveNewFlows() throws TechnicalException {
         io.gravitee.definition.model.v4.flow.Flow flow1 = new io.gravitee.definition.model.v4.flow.Flow();
         flow1.setName("flow1");
