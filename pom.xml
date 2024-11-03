@@ -22,7 +22,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>22.2.1</version>
+        <version>22.2.2</version>
     </parent>
 
     <groupId>io.gravitee.reporter</groupId>
