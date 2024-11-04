@@ -133,3 +133,15 @@
   display: block;
   color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
 }
+
+.line {
+  display: inline-flex;
+  justify-content: flex-start;
+  align-items: center;
+  & > a {
+    max-width: 15rem;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
