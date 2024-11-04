@@ -109,13 +109,14 @@
     <ng-container matColumnDef="access">
       <th mat-header-cell *matHeaderCellDef mat-sort-header id="access">Access</th>
       <td mat-cell *matCellDef="let element">
-        <ng-container *ngIf="element.access?.length > 0; else noAccessBlock">
+        @if (element.access?.length > 0) {
           <a>{{ element.access[0] }}</a>
-          <span *ngIf="element.access?.length > 1" class="access__badge gio-badge-neutral"> {{ element.access.length - 1 }} more </span>
-        </ng-container>
-        <ng-template #noAccessBlock>
+          @if (element.access.length > 1) {
+            <span class="access__badge gio-badge-neutral"> {{ element.access.length - 1 }} more </span>
+          }
+        } @else {
           <span class="access__message">No access with this configuration</span>
-        </ng-template>
+        }
       </td>
     </ng-container>
 
@@ -123,7 +124,12 @@
     <ng-container matColumnDef="tags">
       <th mat-header-cell *matHeaderCellDef id="tags">Tags</th>
       <td mat-cell *matCellDef="let element">
-        <a>{{ element.tags.join(', ') }}</a>
+        <div class="line">
+          <a>{{ element.tags?.sort()?.join(', ') }}</a>
+          @if (element.tags.length > 1) {
+            <mat-icon [matTooltip]="element.tags.sort().join(', ')" fontIcon="expand_circle_down" />
+          }
+        </div>
       </td>
     </ng-container>
 
@@ -131,7 +137,12 @@
     <ng-container matColumnDef="categories">
       <th mat-header-cell *matHeaderCellDef id="categories">Categories</th>
       <td mat-cell *matCellDef="let element">
-        <a>{{ element.categories.join(', ') }}</a>
+        <div class="line">
+          <a>{{ element.categories?.sort()?.join(', ') }}</a>
+          @if (element.categories.length > 1) {
+            <mat-icon [matTooltip]="element.categories.sort().join(', ')" fontIcon="expand_circle_down" />
+          }
+        </div>
       </td>
     </ng-container>
 
