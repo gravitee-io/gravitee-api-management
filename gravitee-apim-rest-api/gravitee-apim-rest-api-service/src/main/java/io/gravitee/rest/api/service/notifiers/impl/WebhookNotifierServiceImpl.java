@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.notifiers.impl;
 
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.*;
 
+import io.gravitee.apim.core.notification.model.*;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.rest.api.model.*;
@@ -70,70 +71,101 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
         //hook
         content.put("event", hook.name());
         content.put("scope", hook.getScope().name());
-        //api
-        if (params.containsKey(PARAM_API)) {
-            Object api = params.get(PARAM_API);
-            if (api != null) {
-                JsonObject jsonApi = new JsonObject();
-                jsonApi.put("id", api instanceof GenericApiModel ? ((GenericApiModel) api).getId() : ((GenericApiEntity) api).getId());
-                jsonApi.put(
-                    "name",
-                    api instanceof GenericApiModel ? ((GenericApiModel) api).getName() : ((GenericApiEntity) api).getName()
-                );
-                jsonApi.put(
-                    "version",
-                    api instanceof GenericApiModel ? ((GenericApiModel) api).getApiVersion() : ((GenericApiEntity) api).getApiVersion()
-                );
-                content.put("api", jsonApi);
-            }
-        }
-        // application
-        if (params.containsKey(PARAM_APPLICATION)) {
-            ApplicationEntity application = (ApplicationEntity) params.get(PARAM_APPLICATION);
-            if (application != null) {
-                JsonObject jsonApplication = new JsonObject();
-                jsonApplication.put("id", application.getId());
-                jsonApplication.put("name", application.getName());
-                /*
-                if (application.getType() != null) {
-                    jsonApplication.put("type", application.getType());
-                }
-                */
-                content.put("application", jsonApplication);
-            }
-        }
-        // owner
-        if (params.containsKey(PARAM_OWNER)) {
-            PrimaryOwnerEntity owner = (PrimaryOwnerEntity) params.get(PARAM_OWNER);
-            if (owner != null) {
-                JsonObject jsonOwner = new JsonObject();
-                jsonOwner.put("id", owner.getId());
-                jsonOwner.put("username", owner.getDisplayName());
-                content.put("owner", jsonOwner);
-            }
-        }
-        // plan
-        if (params.containsKey(PARAM_PLAN)) {
-            PlanEntity plan = (PlanEntity) params.get(PARAM_PLAN);
-            if (plan != null) {
-                JsonObject jsonPlan = new JsonObject();
-                jsonPlan.put("id", plan.getId());
-                jsonPlan.put("name", plan.getName());
-                jsonPlan.put("security", plan.getSecurity());
-                content.put("plan", jsonPlan);
-            }
-        }
-        // subscription
-        if (params.containsKey(PARAM_SUBSCRIPTION)) {
-            SubscriptionEntity subscription = (SubscriptionEntity) params.get(PARAM_SUBSCRIPTION);
-            if (subscription != null) {
-                JsonObject jsonSubscription = new JsonObject();
-                jsonSubscription.put("id", subscription.getId());
-                jsonSubscription.put("status", subscription.getStatus());
-                content.put("subscription", jsonSubscription);
-            }
-        }
+
+        // Generalized method to populate JSON objects
+        addJsonObject(params, PARAM_API, content, "api", GenericApiModel.class, GenericApiEntity.class, ApiNotificationTemplateData.class);
+
+        addJsonObject(
+            params,
+            PARAM_APPLICATION,
+            content,
+            "application",
+            ApplicationEntity.class,
+            ApplicationNotificationTemplateData.class
+        );
+
+        addJsonObject(params, PARAM_OWNER, content, "owner", PrimaryOwnerEntity.class, PrimaryOwnerNotificationTemplateData.class);
+
+        addJsonObject(params, PARAM_PLAN, content, "plan", PlanEntity.class, PlanNotificationTemplateData.class);
+
+        addJsonObject(
+            params,
+            PARAM_SUBSCRIPTION,
+            content,
+            "subscription",
+            SubscriptionEntity.class,
+            SubscriptionNotificationTemplateData.class
+        );
 
         return content.encode();
+    }
+
+    private void addJsonObject(Map<String, Object> params, String paramKey, JsonObject content, String jsonKey, Class<?>... dataTypes) {
+        if (params.containsKey(paramKey)) {
+            Object object = params.get(paramKey);
+            JsonObject jsonObject = new JsonObject();
+
+            for (Class<?> dataType : dataTypes) {
+                if (dataType.isInstance(object)) {
+                    populateJson(jsonObject, object, dataType);
+                    content.put(jsonKey, jsonObject);
+                    return;
+                }
+            }
+            throw new IllegalArgumentException("Unsupported type for " + jsonKey + ": " + object.getClass().getName());
+        }
+    }
+
+    private void populateJson(JsonObject jsonObject, Object object, Class<?> dataType) {
+        if (dataType == GenericApiModel.class) {
+            GenericApiModel model = (GenericApiModel) object;
+            jsonObject.put("id", model.getId());
+            jsonObject.put("name", model.getName());
+            jsonObject.put("version", model.getApiVersion());
+        } else if (dataType == GenericApiEntity.class) {
+            GenericApiEntity entity = (GenericApiEntity) object;
+            jsonObject.put("id", entity.getId());
+            jsonObject.put("name", entity.getName());
+            jsonObject.put("version", entity.getApiVersion());
+        } else if (dataType == ApiNotificationTemplateData.class) {
+            ApiNotificationTemplateData data = (ApiNotificationTemplateData) object;
+            jsonObject.put("id", data.getId());
+            jsonObject.put("name", data.getName());
+            jsonObject.put("version", data.getVersion());
+        } else if (dataType == ApplicationEntity.class) {
+            ApplicationEntity application = (ApplicationEntity) object;
+            jsonObject.put("id", application.getId());
+            jsonObject.put("name", application.getName());
+        } else if (dataType == ApplicationNotificationTemplateData.class) {
+            ApplicationNotificationTemplateData notificationData = (ApplicationNotificationTemplateData) object;
+            jsonObject.put("id", notificationData.getId());
+            jsonObject.put("name", notificationData.getName());
+        } else if (dataType == PrimaryOwnerEntity.class) {
+            PrimaryOwnerEntity owner = (PrimaryOwnerEntity) object;
+            jsonObject.put("id", owner.getId());
+            jsonObject.put("username", owner.getDisplayName());
+        } else if (dataType == PrimaryOwnerNotificationTemplateData.class) {
+            PrimaryOwnerNotificationTemplateData notificationData = (PrimaryOwnerNotificationTemplateData) object;
+            jsonObject.put("id", notificationData.getId());
+            jsonObject.put("username", notificationData.getDisplayName());
+        } else if (dataType == PlanEntity.class) {
+            PlanEntity plan = (PlanEntity) object;
+            jsonObject.put("id", plan.getId());
+            jsonObject.put("name", plan.getName());
+            jsonObject.put("security", plan.getSecurity());
+        } else if (dataType == PlanNotificationTemplateData.class) {
+            PlanNotificationTemplateData notificationData = (PlanNotificationTemplateData) object;
+            jsonObject.put("id", notificationData.getId());
+            jsonObject.put("name", notificationData.getName());
+            jsonObject.put("security", notificationData.getSecurity());
+        } else if (dataType == SubscriptionEntity.class) {
+            SubscriptionEntity subscription = (SubscriptionEntity) object;
+            jsonObject.put("id", subscription.getId());
+            jsonObject.put("status", subscription.getStatus());
+        } else if (dataType == SubscriptionNotificationTemplateData.class) {
+            SubscriptionNotificationTemplateData notificationData = (SubscriptionNotificationTemplateData) object;
+            jsonObject.put("id", notificationData.getId());
+            jsonObject.put("status", notificationData.getReason());
+        }
     }
 }
