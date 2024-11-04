@@ -1397,7 +1397,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             settings.setOauth(clientSettings);
         }
 
-        if (application.getMetadata() != null && application.getMetadata().containsKey(METADATA_CLIENT_CERTIFICATE)) {
+        if (
+            application.getMetadata() != null &&
+            application.getMetadata().containsKey(METADATA_CLIENT_CERTIFICATE) &&
+            StringUtils.isNotBlank(application.getMetadata().get(METADATA_CLIENT_CERTIFICATE))
+        ) {
             final byte[] decodedCertificate = Base64.getDecoder().decode(application.getMetadata().get(METADATA_CLIENT_CERTIFICATE));
             settings.setTls(TlsSettings.builder().clientCertificate(new String(decodedCertificate)).build());
         }
