@@ -186,6 +186,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                                 member.setRoles(m.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()));
                                 member.setSource(userEntity.getSource());
                                 member.setSourceId(userEntity.getSourceId());
+                                member.setDisplayName(userEntity.getDisplayName());
                                 members.add(member);
                             }
                         });
@@ -325,6 +326,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         private String sourceId;
         private String role;
         private List<String> roles;
+        private String displayName;
 
         public String getSource() {
             return source;
@@ -364,6 +366,14 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
         public void setUsername(String username) {
             this.username = username;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        public void setDisplayName(String displayName) {
+            this.displayName = displayName;
         }
     }
 }

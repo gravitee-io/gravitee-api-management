@@ -15,7 +15,8 @@
       "sourceId": "johndoe-sourceId",
       "roles": [
         "API_PRIMARY_OWNER"
-      ]
+      ],
+      "displayName": "johndoe-sourceId"
     }
   ],
   "pages": [

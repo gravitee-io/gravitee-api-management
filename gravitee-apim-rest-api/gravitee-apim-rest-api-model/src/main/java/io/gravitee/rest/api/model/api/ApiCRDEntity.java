@@ -240,6 +240,7 @@ public class ApiCRDEntity {
         private String source;
         private String sourceId;
         private String role;
+        private String displayName;
     }
 
     @Setter

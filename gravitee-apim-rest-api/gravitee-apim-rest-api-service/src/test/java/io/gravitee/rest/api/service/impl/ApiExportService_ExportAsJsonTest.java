@@ -15,21 +15,9 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
-import io.gravitee.definition.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import java.io.IOException;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;

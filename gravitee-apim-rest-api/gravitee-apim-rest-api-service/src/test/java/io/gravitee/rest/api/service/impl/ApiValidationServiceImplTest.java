@@ -21,7 +21,6 @@ import static io.gravitee.definition.model.DefinitionContext.MODE_FULLY_MANAGED;
 import static io.gravitee.definition.model.DefinitionContext.ORIGIN_KUBERNETES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -31,8 +30,6 @@ import static org.mockito.Mockito.when;
 
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
-import inmemory.GroupQueryServiceInMemory;
-import inmemory.MembershipQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
@@ -45,7 +42,6 @@ import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
-import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.validation.Validator;
@@ -212,7 +208,7 @@ public class ApiValidationServiceImplTest {
     @Test
     public void should_return_no_warning_with_existing_member() {
         ApiCRDEntity apiCRD = anApiCRDEntity();
-        apiCRD.setMembers(List.of(new ApiCRDEntity.Member("memory", "user-id", "USER")));
+        apiCRD.setMembers(List.of(new ApiCRDEntity.Member("memory", "user-id", "USER", "test user")));
 
         ApiValidationResult<ApiCRDEntity> validationResult = cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
 
@@ -224,7 +220,10 @@ public class ApiValidationServiceImplTest {
     public void should_return_warning_with_unknown_member() {
         ApiCRDEntity apiCRD = anApiCRDEntity();
         apiCRD.setMembers(
-            List.of(new ApiCRDEntity.Member("memory", "user-id", "USER"), new ApiCRDEntity.Member("memory", "unknown-user-id", "USER"))
+            List.of(
+                new ApiCRDEntity.Member("memory", "user-id", "USER", "test user"),
+                new ApiCRDEntity.Member("memory", "unknown-user-id", "USER", "unknown user")
+            )
         );
 
         ApiValidationResult<ApiCRDEntity> validationResult = cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
@@ -240,7 +239,7 @@ public class ApiValidationServiceImplTest {
     @Test
     public void should_return_warning_with_unknown_member_role() {
         ApiCRDEntity apiCRD = anApiCRDEntity();
-        apiCRD.setMembers(List.of(new ApiCRDEntity.Member("memory", "user-id", "UNKNOWN")));
+        apiCRD.setMembers(List.of(new ApiCRDEntity.Member("memory", "user-id", "UNKNOWN", "test user")));
 
         ApiValidationResult<ApiCRDEntity> validationResult = cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
 
@@ -252,7 +251,7 @@ public class ApiValidationServiceImplTest {
     @Test
     public void should_return_error_with_primary_owner_role() {
         ApiCRDEntity apiCRD = anApiCRDEntity();
-        apiCRD.setMembers(List.of(new ApiCRDEntity.Member("memory", "user-id", "PRIMARY_OWNER")));
+        apiCRD.setMembers(List.of(new ApiCRDEntity.Member("memory", "user-id", "PRIMARY_OWNER", "test user")));
 
         ApiValidationResult<ApiCRDEntity> validationResult = cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
 
@@ -264,7 +263,7 @@ public class ApiValidationServiceImplTest {
     @Test
     public void should_return_error_changing_primary_owner_role() {
         ApiCRDEntity apiCRD = anApiCRDEntity();
-        apiCRD.setMembers(List.of(new ApiCRDEntity.Member(USER_SOURCE, ACTOR_USER_NAME, "USER")));
+        apiCRD.setMembers(List.of(new ApiCRDEntity.Member(USER_SOURCE, ACTOR_USER_NAME, "USER", "test user")));
 
         ApiValidationResult<ApiCRDEntity> validationResult = cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
 
