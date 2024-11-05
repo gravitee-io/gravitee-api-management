@@ -1706,7 +1706,7 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
-                    <artifactId>gravitee-policy-interops-a-idp</artifactId>
+                    <artifactId>gravitee-policy-interops-a-sp</artifactId>
                     <version>${gravitee-policy-interops.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
@@ -1719,7 +1719,7 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
-                    <artifactId>gravitee-policy-interops-r-idp</artifactId>
+                    <artifactId>gravitee-policy-interops-r-sp</artifactId>
                     <version>${gravitee-policy-interops.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
