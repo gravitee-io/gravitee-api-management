@@ -122,9 +122,14 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     }
 
     @Override
-    public Optional<AverageConnectionDuration> searchAverageConnectionDuration(ExecutionContext executionContext, String apiId) {
+    public Optional<AverageConnectionDuration> searchAverageConnectionDuration(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant from,
+        Instant to
+    ) {
         return analyticsRepository
-            .searchAverageConnectionDuration(executionContext.getQueryContext(), new AverageConnectionDurationQuery(apiId))
+            .searchAverageConnectionDuration(executionContext.getQueryContext(), new AverageConnectionDurationQuery(apiId, from, to))
             .map(averageAggregate ->
                 AverageConnectionDuration
                     .builder()

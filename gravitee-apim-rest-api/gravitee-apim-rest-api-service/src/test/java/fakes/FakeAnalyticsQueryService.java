@@ -58,7 +58,12 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     }
 
     @Override
-    public Optional<AverageConnectionDuration> searchAverageConnectionDuration(ExecutionContext executionContext, String apiId) {
+    public Optional<AverageConnectionDuration> searchAverageConnectionDuration(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant from,
+        Instant to
+    ) {
         return Optional.ofNullable(averageConnectionDuration);
     }
 

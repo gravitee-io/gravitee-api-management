@@ -18,6 +18,10 @@ package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -155,6 +159,63 @@ class SearchAverageConnectionDurationQueryAdapterTest {
                                }
                              }
                              """
+            );
+    }
+
+    @Test
+    void should_build_query_with_time_period_filter() {
+        var now = Instant.parse("2021-01-01T00:00:00Z");
+        var from = now.truncatedTo(ChronoUnit.DAYS);
+        var to = from.plus(Duration.ofDays(1));
+
+        var result = SearchAverageConnectionDurationQueryAdapter.adapt(
+            new AverageConnectionDurationQuery(Optional.of("api-id"), Optional.of(from), Optional.of(to)),
+            true
+        );
+
+        assertThatJson(result)
+            .isEqualTo(
+                """
+                                     {
+                                       "size": 0,
+                                       "query": {
+                                         "bool": {
+                                           "must": [
+                                             {
+                                               "term": { "request-ended": "true" }
+                                             },
+                                             {
+                                               "term": { "api-id": "api-id" }
+                                             },
+                                             {
+                                               "range": {
+                                                 "@timestamp": {
+                                                    "from": 1609459200000,
+                                                    "include_lower": true,
+                                                    "to": 1609545600000,
+                                                    "include_upper": true
+                                                 }
+                                              }
+                                            }
+                                           ]
+                                         }
+                                       },
+                                       "aggs": {
+                                         "entrypoints_agg": {
+                                           "terms": {
+                                             "field": "entrypoint-id"
+                                           },
+                                           "aggs": {
+                                             "avg_ended_request_duration_ms": {
+                                               "avg": {
+                                                 "field": "gateway-response-time-ms"
+                                               }
+                                             }
+                                           }
+                                         }
+                                       }
+                                     }
+                                     """
             );
     }
 }
