@@ -124,12 +124,7 @@
     <ng-container matColumnDef="tags">
       <th mat-header-cell *matHeaderCellDef id="tags">Tags</th>
       <td mat-cell *matCellDef="let element">
-        <div class="line">
-          <a>{{ element.tags?.sort()?.join(', ') }}</a>
-          @if (element.tags.length > 1) {
-            <mat-icon [matTooltip]="element.tags.sort().join(', ')" fontIcon="expand_circle_down" />
-          }
-        </div>
+        <a>{{ element.tags?.sort()?.join(', ') }}</a>
       </td>
     </ng-container>
 
@@ -137,12 +132,12 @@
     <ng-container matColumnDef="categories">
       <th mat-header-cell *matHeaderCellDef id="categories">Categories</th>
       <td mat-cell *matCellDef="let element">
-        <div class="line">
-          <a>{{ element.categories?.sort()?.join(', ') }}</a>
-          @if (element.categories.length > 1) {
-            <mat-icon [matTooltip]="element.categories.sort().join(', ')" fontIcon="expand_circle_down" />
-          }
-        </div>
+        <a>{{ element.categories?.sort()?.[0] }}</a>
+        @if (element.categories.length - 1 > 0) {
+          <span class="access__badge gio-badge-neutral" [matTooltip]="element.categories.sort().join(', ')">
+            {{ element.categories.length - 1 }} more
+          </span>
+        }
       </td>
     </ng-container>
 
