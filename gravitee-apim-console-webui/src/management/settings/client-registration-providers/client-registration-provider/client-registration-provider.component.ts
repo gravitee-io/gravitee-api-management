@@ -43,7 +43,7 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
     },
   ];
   public renewClientSecretMethods = ['POST', 'PATCH', 'PUT'];
-  public renewClientSecretEndpointUrlExample: 'https://authorization_server/oidc/dcr/{#client_id}/renew_secret';
+  public renewClientSecretEndpointUrlExample: string = 'https://authorization_server/oidc/dcr/{#client_id}/renew_secret';
 
   public formInitialValues: unknown;
 
