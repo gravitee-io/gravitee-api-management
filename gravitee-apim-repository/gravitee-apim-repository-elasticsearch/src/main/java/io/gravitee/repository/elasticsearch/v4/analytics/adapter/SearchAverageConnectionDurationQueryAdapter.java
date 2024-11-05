@@ -33,7 +33,7 @@ public class SearchAverageConnectionDurationQueryAdapter {
 
     public static String adapt(AverageConnectionDurationQuery query, boolean isEntrypointIdKeyword) {
         var jsonContent = new HashMap<String, Object>();
-        var esQuery = buildElasticQuery(Optional.ofNullable(query).orElse(AverageConnectionDurationQuery.builder().build()));
+        var esQuery = buildElasticQuery(Optional.ofNullable(query).orElse(new AverageConnectionDurationQuery()));
         jsonContent.put("size", 0);
         jsonContent.put("query", esQuery);
         jsonContent.put("aggs", buildAverageMessagesPerRequestPerEntrypointAggregate(isEntrypointIdKeyword));
@@ -57,10 +57,7 @@ public class SearchAverageConnectionDurationQueryAdapter {
 
         // Compute ended requests only
         terms.add(JsonObject.of("term", JsonObject.of("request-ended", "true")));
-
-        if (query.getApiId() != null) {
-            terms.add(JsonObject.of("term", JsonObject.of("api-id", query.getApiId())));
-        }
+        query.apiId().ifPresent(apiId -> terms.add(JsonObject.of("term", JsonObject.of("api-id", apiId))));
 
         return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(terms.toArray())));
     }

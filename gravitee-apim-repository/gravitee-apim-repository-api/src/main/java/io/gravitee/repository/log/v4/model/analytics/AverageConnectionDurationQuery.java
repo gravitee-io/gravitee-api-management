@@ -15,12 +15,16 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
+import java.util.Optional;
 import lombok.Builder;
 import lombok.Data;
 
-@Builder
-@Data
-public class AverageConnectionDurationQuery {
-
-    String apiId;
+@Builder(toBuilder = true)
+public record AverageConnectionDurationQuery(Optional<String> apiId) {
+    public AverageConnectionDurationQuery() {
+        this(Optional.empty());
+    }
+    public AverageConnectionDurationQuery(String apiId) {
+        this(Optional.ofNullable(apiId));
+    }
 }

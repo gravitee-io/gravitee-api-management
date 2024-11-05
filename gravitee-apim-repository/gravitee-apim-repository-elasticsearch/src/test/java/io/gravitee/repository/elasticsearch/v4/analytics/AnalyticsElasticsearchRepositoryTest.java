@@ -105,7 +105,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         void should_return_average_connection_duration_by_entrypoint_for_a_given_api() {
             var result = cut.searchAverageConnectionDuration(
                 new QueryContext("org#1", "env#1"),
-                AverageConnectionDurationQuery.builder().apiId(API_ID).build()
+                new AverageConnectionDurationQuery(API_ID)
             );
 
             assertThat(result)
