@@ -888,12 +888,20 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
     private void deleteRemovedPages(ExecutionContext executionContext, String apiId, List<PageEntity> givenPages) {
         var givenPageIds = givenPages.stream().map(PageEntity::getId).collect(toSet());
-        var existingPageIds = pageService
-            .findByApi(executionContext.getEnvironmentId(), apiId)
-            .stream()
-            .map(PageEntity::getId)
-            .collect(toSet());
+        List<PageEntity> existingPages = pageService.findByApi(executionContext.getEnvironmentId(), apiId);
 
+        if (existingPages.size() > 1) {
+            existingPages.sort((p0, p1) -> {
+                Integer r0 = PageType.valueOf(p0.getType()).getRemoveOrder();
+                Integer r1 = PageType.valueOf(p1.getType()).getRemoveOrder();
+                if (r0.equals(r1)) {
+                    return Integer.compare(p1.getOrder(), p0.getOrder());
+                }
+                return r0.compareTo(r1);
+            });
+        }
+
+        List<String> existingPageIds = existingPages.stream().map(PageEntity::getId).collect(toList());
         existingPageIds.removeIf(givenPageIds::contains);
 
         try {
