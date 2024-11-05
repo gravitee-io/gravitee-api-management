@@ -43,22 +43,6 @@
             </dependency>
 
             <dependency>
-                <groupId>io.gravitee.plugin</groupId>
-                <artifactId>gravitee-plugin</artifactId>
-                <version>${gravitee-plugin.version}</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.node</groupId>
-                <artifactId>gravitee-node</artifactId>
-                <version>${gravitee-node.version}</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
-
-            <dependency>
                 <groupId>io.gravitee.alert</groupId>
                 <artifactId>gravitee-alert-api</artifactId>
                 <version>${gravitee-alert-api.version}</version>
@@ -217,6 +201,22 @@
                 <groupId>com.graviteesource.cloud</groupId>
                 <artifactId>gravitee-cloud-initializer</artifactId>
                 <version>${gravitee-cloud-initializer.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin</artifactId>
+                <version>${gravitee-plugin.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node</artifactId>
+                <version>${gravitee-node.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
             </dependency>
             <!-- Other dependencies -->
             <dependency>
