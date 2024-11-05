@@ -18,7 +18,6 @@ package io.gravitee.gateway.reactive.core;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.reactive.api.message.DefaultMessage;
 import io.gravitee.gateway.reactive.api.message.Message;
-import io.gravitee.gateway.reactive.core.MessageFlow;
 import io.gravitee.gateway.reactive.core.context.OnMessagesInterceptor;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.FlowableTransformer;
@@ -38,7 +37,7 @@ class MessageFlowTest {
         final Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor = onMessages ->
             upstream -> upstream.doOnNext(message -> message.attribute("intercepted", true)).compose(onMessages);
 
-        cut.messages(Flowable.just(new DefaultMessage("test")));
+        cut.messages(Flowable.just(DefaultMessage.builder().content("test").build()));
         OnMessagesInterceptor.MessagesInterceptor<Message> messagesInterceptor = OnMessagesInterceptor.MessagesInterceptor
             .<Message>builder()
             .id("id")
@@ -58,7 +57,7 @@ class MessageFlowTest {
     void shouldApplyOnMessagesWhenNoInterceptor() {
         final MessageFlow<Message> cut = new MessageFlow<>();
 
-        cut.messages(Flowable.just(new DefaultMessage("test")));
+        cut.messages(Flowable.just(DefaultMessage.builder().content("test").build()));
         cut.onMessages(upstream -> upstream.map(message -> message.content(Buffer.buffer("Transformed test"))));
 
         final TestSubscriber<Message> obs = cut.messages().test();
@@ -73,7 +72,7 @@ class MessageFlowTest {
         final Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor = onMessages ->
             upstream -> upstream.doOnNext(message -> message.attribute("intercepted", true)).compose(onMessages);
 
-        cut.messages(Flowable.just(new DefaultMessage("test")));
+        cut.messages(Flowable.just(DefaultMessage.builder().content("test").build()));
         OnMessagesInterceptor.MessagesInterceptor<Message> messagesInterceptor = OnMessagesInterceptor.MessagesInterceptor
             .<Message>builder()
             .id("id")
