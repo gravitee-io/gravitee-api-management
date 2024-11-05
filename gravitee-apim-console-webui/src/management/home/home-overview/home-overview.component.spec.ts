@@ -103,7 +103,7 @@ describe('HomeOverviewComponent', () => {
       expectGetRequestStatsForV4();
 
       const timeRangeHarness = await loader.getHarness(GioQuickTimeRangeHarness);
-      await timeRangeHarness.selectTimeRangeByText('last hour');
+      await timeRangeHarness.selectTimeRangeByText('Last hour');
       let req = expectApiLifecycleStateRequest();
       expect(req.request.url).toContain('interval=120000');
 

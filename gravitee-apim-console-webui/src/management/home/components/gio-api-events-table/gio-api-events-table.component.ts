@@ -21,7 +21,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { EventService } from '../../../../services-ngx/event.service';
-import { TimeRangeParams } from '../gio-quick-time-range/gio-quick-time-range.component';
+import { TimeRangeParams } from '../../../../shared/utils/timeFrameRanges';
 
 type TableDataSource = {
   apiId: string;

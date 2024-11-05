@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { tap } from 'rxjs/operators';
 
 import { GioChartLineModule } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.module';
 import { GioChartLineData, GioChartLineOptions } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.component';
 import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analytics-v2.service';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
+import { TimeRangeParams } from '../../../../../../shared/utils/timeFrameRanges';
 
 @Component({
   selector: 'api-analytics-response-time-over-time',
@@ -32,16 +32,11 @@ import { SnackBarService } from '../../../../../../services-ngx/snack-bar.servic
   templateUrl: './api-analytics-response-time-over-time.component.html',
   styleUrl: './api-analytics-response-time-over-time.component.scss',
 })
-export class ApiAnalyticsResponseTimeOverTimeComponent implements OnInit {
+export class ApiAnalyticsResponseTimeOverTimeComponent implements OnChanges {
+  @Input() filters: TimeRangeParams;
+
   private destroyRef = inject(DestroyRef);
   private apiId = this.activatedRoute.snapshot.params.apiId;
-
-  // toDo: remove hardcoded values when time filters is developed, by default we take 1 day
-  private MS_IN_DAY = 24 * 3600 * 1000;
-  private timeRange = {
-    from: new Date().getTime() - this.MS_IN_DAY,
-    to: new Date().getTime(),
-  };
 
   public input: GioChartLineData[];
   public options: GioChartLineOptions;
@@ -53,17 +48,16 @@ export class ApiAnalyticsResponseTimeOverTimeComponent implements OnInit {
     private readonly snackBarService: SnackBarService,
   ) {}
 
-  ngOnInit(): void {
-    this.getData();
+  ngOnChanges(changes: SimpleChanges): void {
+    const { from, to } = changes.filters.currentValue;
+    this.getData(from, to);
   }
 
-  getData() {
+  getData(from: number, to: number) {
+    this.isLoading = true;
     this.apiAnalyticsV2Service
-      .getResponseTimeOverTime(this.apiId, this.timeRange.from, this.timeRange.to)
-      .pipe(
-        tap(() => (this.isLoading = true)),
-        takeUntilDestroyed(this.destroyRef),
-      )
+      .getResponseTimeOverTime(this.apiId, from, to)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
           this.input = [

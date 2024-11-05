@@ -130,7 +130,7 @@ describe('HomeApiHealthCheckComponent', () => {
 
     // Expect HealthCheck TimeFrame select changes
     const healthCheckTimeFrameSelect = await loader.getHarness(GioQuickTimeRangeHarness);
-    await healthCheckTimeFrameSelect.selectTimeRangeByText('last week');
+    await healthCheckTimeFrameSelect.selectTimeRangeByText('Last week');
     expectGetApiHealthAverage(api.id);
 
     // For "Health-check of all APIs" check
