@@ -56,21 +56,6 @@ public class DefaultExecutionContext extends AbstractExecutionContext<MutableReq
         return this.request.timestamp();
     }
 
-    @Override
-    public String remoteAddress() {
-        return this.request.remoteAddress();
-    }
-
-    @Override
-    public String localAddress() {
-        return this.request.localAddress();
-    }
-
-    @Override
-    public TlsSession tlsSession() {
-        return this.request.tlsSession();
-    }
-
     public DefaultExecutionContext componentProvider(final ComponentProvider componentProvider) {
         this.componentProvider = componentProvider;
         return this;

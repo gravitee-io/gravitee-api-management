@@ -24,6 +24,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.api.context.TlsSession;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.el.EvaluableMessage;
 import io.gravitee.gateway.reactive.api.el.EvaluableRequest;
@@ -196,6 +197,21 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
     @Override
     public <T> Map<String, T> getInternalAttributes() {
         return (Map<String, T>) internalAttributes;
+    }
+
+    @Override
+    public String remoteAddress() {
+        return this.request.remoteAddress();
+    }
+
+    @Override
+    public String localAddress() {
+        return this.request.localAddress();
+    }
+
+    @Override
+    public TlsSession tlsSession() {
+        return this.request.tlsSession();
     }
 
     @Override
