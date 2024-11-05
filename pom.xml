@@ -284,7 +284,7 @@
         <gravitee-reactor-native-kafka.version>1.0.0-alpha.9</gravitee-reactor-native-kafka.version>
         <gravitee-apim-repository-bridge.version>5.1.2</gravitee-apim-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>1.0.0</gravitee-secretprovider-hc-vault.version>
-        <gravitee-policy-interops.version>1.0.0</gravitee-policy-interops.version>
+        <gravitee-policy-interops.version>1.1.2</gravitee-policy-interops.version>
 
         <gravitee-connectors-native-kafka.version>1.0.0-alpha.2</gravitee-connectors-native-kafka.version>
     </properties>
