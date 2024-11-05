@@ -70,17 +70,14 @@ class SearchAverageConnectionDurationQueryAdapterTest {
 
     @Test
     void should_build_query_with_empty_filter() {
-        var result = SearchAverageConnectionDurationQueryAdapter.adapt(AverageConnectionDurationQuery.builder().build(), true);
+        var result = SearchAverageConnectionDurationQueryAdapter.adapt(new AverageConnectionDurationQuery(), true);
 
         assertThatJson(result).isEqualTo(QUERY_WITHOUT_FILTER);
     }
 
     @Test
     void should_build_query_with_api_filter() {
-        var result = SearchAverageConnectionDurationQueryAdapter.adapt(
-            AverageConnectionDurationQuery.builder().apiId("api-id").build(),
-            true
-        );
+        var result = SearchAverageConnectionDurationQueryAdapter.adapt(new AverageConnectionDurationQuery("api-id"), true);
 
         assertThatJson(result)
             .isEqualTo(
@@ -124,7 +121,7 @@ class SearchAverageConnectionDurationQueryAdapterTest {
 
     @Test
     void should_adapt_the_query_when_entrypoint_id_is_not_a_keyword() {
-        var result = SearchAverageConnectionDurationQueryAdapter.adapt(AverageConnectionDurationQuery.builder().build(), false);
+        var result = SearchAverageConnectionDurationQueryAdapter.adapt(new AverageConnectionDurationQuery(), false);
 
         assertThatJson(result)
             .isEqualTo(
