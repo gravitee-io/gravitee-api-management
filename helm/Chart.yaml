@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.4.13
-appVersion: 4.4.13
+version: 4.4.14
+appVersion: 4.4.14
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -23,10 +23,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: |
-    - kind: fixed
-      description: 'add missing haproxy mapping attribute'
-      links:
-        - name: Github Issue
-          url: https://github.com/gravitee-io/issues/issues/10027
-
+  artifacthub.io/changes: 
