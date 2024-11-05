@@ -45,6 +45,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 
 public class ApiAnalyticsResource extends AbstractResource {
 
@@ -101,8 +102,14 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
-    public ApiAnalyticsAverageConnectionDurationResponse getAverageConnectionDuration() {
-        var request = new SearchAverageConnectionDurationUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment());
+    public ApiAnalyticsAverageConnectionDurationResponse getAverageConnectionDuration(
+        @QueryParam("from") Long from,
+        @QueryParam("to") Long to
+    ) {
+        var end = Optional.ofNullable(to).map(Instant::ofEpochMilli);
+        var start = Optional.ofNullable(from).map(Instant::ofEpochMilli);
+
+        var request = new SearchAverageConnectionDurationUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), start, end);
 
         return searchAverageConnectionDurationUseCase
             .execute(GraviteeContext.getExecutionContext(), request)

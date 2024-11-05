@@ -35,7 +35,12 @@ public interface AnalyticsQueryService {
 
     Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(ExecutionContext executionContext, String apiId);
 
-    Optional<AverageConnectionDuration> searchAverageConnectionDuration(ExecutionContext executionContext, String apiId);
+    Optional<AverageConnectionDuration> searchAverageConnectionDuration(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant from,
+        Instant to
+    );
 
     Optional<ResponseStatusRanges> searchResponseStatusRanges(
         ExecutionContext executionContext,

@@ -39,6 +39,7 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.DoublePredicate;
 import java.util.function.Predicate;
 import org.assertj.core.api.Condition;
@@ -113,6 +114,24 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(averageAggregate.getAverage()).isCloseTo(20261.25, offset(0.1d));
                     assertThat(averageAggregate.getAverageBy())
                         .containsAllEntriesOf(Map.of("http-get", 30_000.0, "websocket", 50_000.0, "sse", 645.0, "http-post", 400.0));
+                });
+        }
+
+        @Test
+        void should_return_average_connection_duration_by_entrypoint_for_a_time_period() {
+            var now = Instant.now();
+            var from = now.truncatedTo(ChronoUnit.DAYS).minus(Duration.ofDays(1));
+            var to = now.truncatedTo(ChronoUnit.DAYS);
+
+            var result = cut.searchAverageConnectionDuration(
+                new QueryContext("org#1", "env#1"),
+                new AverageConnectionDurationQuery(Optional.of(API_ID), Optional.of(from), Optional.of(to))
+            );
+
+            assertThat(result)
+                .hasValueSatisfying(averageAggregate -> {
+                    assertThat(averageAggregate.getAverage()).isCloseTo(332.5, offset(0.1d));
+                    assertThat(averageAggregate.getAverageBy()).containsAllEntriesOf(Map.of("sse", 645.0, "http-post", 20.0));
                 });
         }
     }
