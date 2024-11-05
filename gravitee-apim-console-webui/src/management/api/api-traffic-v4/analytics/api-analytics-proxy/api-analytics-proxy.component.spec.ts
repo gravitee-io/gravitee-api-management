@@ -221,6 +221,8 @@ describe('ApiAnalyticsProxyComponent', () => {
       expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
       expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
       expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
+      expectApiGetResponseStatusOvertime();
+      expectApiGetResponseTimeOverTime();
     });
   });
 

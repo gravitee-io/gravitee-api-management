@@ -40,6 +40,7 @@ import {
 import { AnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
 import { ApiAnalyticsResponseStatusOvertimeComponent } from '../components/api-analytics-response-status-overtime/api-analytics-response-status-overtime.component';
 import { ApiAnalyticsResponseTimeOverTimeComponent } from '../components/api-analytics-response-time-over-time/api-analytics-response-time-over-time.component';
+import { timeFrameRangesParams, TimeRangeParams } from '../../../../../shared/utils/timeFrameRanges';
 
 type ApiAnalyticsVM = {
   isLoading: boolean;
@@ -117,15 +118,20 @@ export class ApiAnalyticsProxyComponent {
     })),
   );
 
-  filters$ = new BehaviorSubject<void>(undefined);
+  private initialTimeRange = timeFrameRangesParams('1d');
+  public filters$ = new BehaviorSubject<TimeRangeParams>(this.initialTimeRange);
+  public filters: TimeRangeParams;
 
   apiAnalyticsVM$: Observable<ApiAnalyticsVM> = combineLatest([
     this.apiService.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV4Filter()),
     this.filters$,
   ]).pipe(
-    map(([api]) => api.analytics.enabled),
-    switchMap((isAnalyticsEnabled) => {
+    map(([api, timeRangeParams]) => {
+      return { isAnalyticsEnabled: api.analytics.enabled, timeRangeParams };
+    }),
+    switchMap(({ isAnalyticsEnabled, timeRangeParams }) => {
       if (isAnalyticsEnabled) {
+        this.filters = { ...timeRangeParams };
         return this.analyticsData$.pipe(map((analyticsData) => ({ isAnalyticsEnabled: true, ...analyticsData })));
       }
       return of({ isAnalyticsEnabled: false });

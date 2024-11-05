@@ -21,7 +21,7 @@
     <mat-card-subtitle>Average response time for the gateway and the API</mat-card-subtitle>
   </mat-card-header>
 
-  @if (!input) {
+  @if (isLoading) {
     <div class="card__loader">
       <gio-loader />
     </div>

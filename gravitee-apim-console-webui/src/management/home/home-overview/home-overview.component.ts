@@ -20,7 +20,7 @@ import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import { toNumber } from 'lodash';
 
 import { AnalyticsService } from '../../../services-ngx/analytics.service';
-import { GioQuickTimeRangeComponent, TimeRangeParams } from '../components/gio-quick-time-range/gio-quick-time-range.component';
+import { GioQuickTimeRangeComponent } from '../components/gio-quick-time-range/gio-quick-time-range.component';
 import { TopApisData } from '../components/gio-top-apis-table/gio-top-apis-table.component';
 import { RequestStats } from '../components/gio-request-stats/gio-request-stats.component';
 import { ApiResponseStatusData } from '../components/gio-api-response-status/gio-api-response-status.component';
@@ -29,6 +29,7 @@ import { ApiLifecycleStateData } from '../components/gio-api-lifecycle-state/gio
 import { ApiAnalyticsResponseStatusRanges } from '../../../shared/components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component';
 import { TopApisV4 } from '../../../shared/components/top-apis-widget/top-apis-widget.component';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { TimeRangeParams } from '../../../shared/utils/timeFrameRanges';
 import { v4ApisRequestStats } from '../components/dashboard-v4-api-request-stats/dashboard-v4-api-request-stats';
 
 @Component({
