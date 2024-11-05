@@ -21,8 +21,8 @@
     <mat-card-header>
       <mat-card-title>API Resources</mat-card-title>
       <mat-card-subtitle
-        >Resources are link to the API lifecycle. They are initialized when the API is starting and released when API is stopped. Resources
-        are used via the API policies to enhance API behavior.</mat-card-subtitle
+        >Resources are linked to the API lifecycle. They are initialized when the API is starting and released when API is stopped.
+        Resources are used via the API policies to enhance API behavior.</mat-card-subtitle
       >
       <div class="headerRightBtn" *gioPermission="{ anyOf: ['api-definition-c'] }">
         <button *ngIf="!apiResourceDS.isReadOnly" mat-raised-button color="primary" (click)="addResource()">
