@@ -119,7 +119,7 @@ class MockEndpointConnectorTest {
         ArgumentCaptor<Function<Message, Maybe<Message>>> messagesCaptor = ArgumentCaptor.forClass(Function.class);
 
         verify(request).onMessage(messagesCaptor.capture());
-        messagesCaptor.getValue().apply(new DefaultMessage(MESSAGE_TO_LOG)).test().assertComplete();
+        messagesCaptor.getValue().apply(DefaultMessage.builder().content(MESSAGE_TO_LOG).build()).test().assertComplete();
         verify(log).info("Received message: {}", MESSAGE_TO_LOG);
     }
 
@@ -244,7 +244,8 @@ class MockEndpointConnectorTest {
             .test()
             .await()
             .assertValue(message -> {
-                assertThat(message.metadata()).containsExactlyInAnyOrderEntriesOf(Map.of("mock-metadata1", "foo", "mock-metadata2", "bar"));
+                assertThat(message.metadata()).containsOnlyKeys("sourceTimestamp", "mock-metadata1", "mock-metadata2");
+                assertThat(message.metadata()).containsAllEntriesOf(Map.of("mock-metadata1", "foo", "mock-metadata2", "bar"));
                 assertThat(message.headers()).isEmpty();
                 return true;
             });
@@ -268,7 +269,7 @@ class MockEndpointConnectorTest {
             .assertValue(message -> {
                 assertThat(message.headers().toSingleValueMap())
                     .containsExactlyInAnyOrderEntriesOf(Map.of("header1", "foo", "header2", "bar"));
-                assertThat(message.metadata()).isEmpty();
+                assertThat(message.metadata()).hasEntrySatisfying("sourceTimestamp", value -> assertThat(value).isInstanceOf(Long.class));
                 return true;
             });
     }
@@ -289,7 +290,8 @@ class MockEndpointConnectorTest {
             .test()
             .await()
             .assertValue(message -> {
-                assertThat(message.metadata()).containsExactlyInAnyOrderEntriesOf(Map.of("mock-metadata1", "foo", "mock-metadata2", "bar"));
+                assertThat(message.metadata()).containsOnlyKeys("sourceTimestamp", "mock-metadata1", "mock-metadata2");
+                assertThat(message.metadata()).containsAllEntriesOf(Map.of("mock-metadata1", "foo", "mock-metadata2", "bar"));
                 assertThat(message.headers().toSingleValueMap())
                     .containsExactlyInAnyOrderEntriesOf(Map.of("header1", "foo", "header2", "bar"));
                 return true;

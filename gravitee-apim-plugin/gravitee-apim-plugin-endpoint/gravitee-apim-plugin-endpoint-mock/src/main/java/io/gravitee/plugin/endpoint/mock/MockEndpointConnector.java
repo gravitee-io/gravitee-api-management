@@ -127,19 +127,22 @@ public class MockEndpointConnector extends EndpointAsyncConnector {
                         // And the entrypoint has no limit or state minus lastId is less than limit, then emit a message
                         (messagesLimitCount == null || (state - stateInitValue) < messagesLimitCount)
                     ) {
-                        DefaultMessage message = new DefaultMessage(configuration.getMessageContent()).id(Long.toString(state));
+                        DefaultMessage.DefaultMessageBuilder messageBuilder = DefaultMessage
+                            .builder()
+                            .content(configuration.getMessageContent())
+                            .id(Long.toString(state));
                         // handle optional params
                         if (configuration.getHeaders() != null) {
                             HttpHeaders headers = HttpHeaders.create();
                             configuration.getHeaders().forEach(h -> headers.add(h.getName(), h.getValue()));
-                            message.headers(headers);
+                            messageBuilder.headers(headers);
                         }
                         if (configuration.getMetadata() != null) {
-                            message.metadata(
+                            messageBuilder.metadata(
                                 configuration.getMetadata().stream().collect(Collectors.toMap(HttpHeader::getName, HttpHeader::getValue))
                             );
                         }
-                        message.tracingAttributes(
+                        messageBuilder.tracingAttributes(
                             Map.of(
                                 TracingMessageAttribute.MESSAGING_OPERATION_NAME.key(),
                                 "receive",
@@ -148,10 +151,10 @@ public class MockEndpointConnector extends EndpointAsyncConnector {
                                 TracingMessageAttribute.MESSAGING_SYSTEM.key(),
                                 "mock",
                                 TracingMessageAttribute.MESSAGING_MESSAGE_BODY_SIZE.key(),
-                                message.content() != null ? String.valueOf(message.content().length()) : "0"
+                                messageBuilder.content() != null ? String.valueOf(messageBuilder.content().length()) : "0"
                             )
                         );
-                        emitter.onNext(message);
+                        emitter.onNext(messageBuilder.build());
                     } else {
                         emitter.onComplete();
                     }
