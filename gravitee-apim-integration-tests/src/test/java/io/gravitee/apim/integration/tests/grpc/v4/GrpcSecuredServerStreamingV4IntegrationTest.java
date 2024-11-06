@@ -31,6 +31,7 @@ import io.vertx.grpc.client.GrpcClientChannel;
 import io.vertx.grpc.common.GrpcStatus;
 import io.vertx.grpc.server.GrpcServer;
 import io.vertx.grpc.server.GrpcServerResponse;
+import io.vertx.grpcio.client.GrpcIoClient;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
@@ -52,7 +53,7 @@ public class GrpcSecuredServerStreamingV4IntegrationTest extends GrpcServerStrea
         gatewayConfigurationBuilder.httpSecured(true).httpAlpn(true).httpSslKeystoreType("self-signed");
     }
 
-    public GrpcClient createGrpcClient() {
-        return getGrpcClient(() -> GrpcClient.client(vertx, new HttpClientOptions().setUseAlpn(true).setSsl(true).setTrustAll(true)));
+    public GrpcIoClient createGrpcClient() {
+        return getGrpcClient(() -> GrpcIoClient.client(vertx, new HttpClientOptions().setUseAlpn(true).setSsl(true).setTrustAll(true)));
     }
 }

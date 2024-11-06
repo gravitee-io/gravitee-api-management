@@ -28,6 +28,7 @@ import io.vertx.grpc.client.GrpcClientRequest;
 import io.vertx.grpc.common.GrpcStatus;
 import io.vertx.grpc.server.GrpcServer;
 import io.vertx.grpc.server.GrpcServerResponse;
+import io.vertx.grpcio.server.GrpcIoServer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -58,7 +59,7 @@ public class GrpcBidirectionalStreamingV4IntegrationTest extends AbstractGrpcV4G
         AtomicInteger replyCount = new AtomicInteger();
 
         // Backend service
-        GrpcServer grpcServer = GrpcServer.server(vertx);
+        GrpcIoServer grpcServer = GrpcIoServer.server(vertx);
         grpcServer.callHandler(
             StreamingGreeterGrpc.getSayHelloStreamingMethod(),
             request -> {
