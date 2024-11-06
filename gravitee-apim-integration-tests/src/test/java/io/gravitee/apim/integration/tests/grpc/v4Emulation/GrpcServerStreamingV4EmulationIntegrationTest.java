@@ -31,6 +31,8 @@ import io.vertx.grpc.client.GrpcClient;
 import io.vertx.grpc.common.GrpcStatus;
 import io.vertx.grpc.server.GrpcServer;
 import io.vertx.grpc.server.GrpcServerResponse;
+import io.vertx.grpcio.client.GrpcIoClient;
+import io.vertx.grpcio.server.GrpcIoServer;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxTestContext;
@@ -62,7 +64,7 @@ public class GrpcServerStreamingV4EmulationIntegrationTest extends AbstractGrpcG
     @Test
     void should_request_grpc_server(VertxTestContext testContext) {
         // start the backend
-        GrpcServer grpcServer = GrpcServer.server(vertx);
+        GrpcIoServer grpcServer = GrpcIoServer.server(vertx);
         grpcServer.callHandler(
             StreamingGreeterGrpc.getSayHelloStreamingMethod(),
             request -> {
@@ -117,7 +119,7 @@ public class GrpcServerStreamingV4EmulationIntegrationTest extends AbstractGrpcG
             });
     }
 
-    protected GrpcClient createGrpcClient() {
+    protected GrpcIoClient createGrpcClient() {
         return getGrpcClient();
     }
 }
