@@ -21,7 +21,6 @@ import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.policy.jwt.utils.TokenExtractor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
