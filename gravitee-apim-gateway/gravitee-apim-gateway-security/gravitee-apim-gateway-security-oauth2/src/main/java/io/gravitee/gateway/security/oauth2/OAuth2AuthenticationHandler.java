@@ -19,10 +19,8 @@ import static io.gravitee.gateway.security.core.AuthenticationContext.ATTR_INTER
 import static io.gravitee.gateway.security.core.AuthenticationContext.TOKEN_TYPE_AUTHORIZATION_BEARER;
 
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.security.core.*;
 import io.gravitee.gateway.security.oauth2.policy.CheckSubscriptionPolicy;
-import io.gravitee.policy.jwt.utils.TokenExtractor;
 import java.util.Arrays;
 import java.util.List;
 
