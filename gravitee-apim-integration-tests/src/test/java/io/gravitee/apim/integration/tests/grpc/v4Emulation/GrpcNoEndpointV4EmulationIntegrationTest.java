@@ -30,6 +30,7 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.vertx.grpc.client.GrpcClientChannel;
+import io.vertx.grpcio.client.GrpcIoClientChannel;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -56,7 +57,7 @@ public class GrpcNoEndpointV4EmulationIntegrationTest extends AbstractGrpcGatewa
     @Test
     void should_have_request_in_error_when_no_endpoint(VertxTestContext testContext) throws InterruptedException {
         // Prepare gRPC Client
-        GrpcClientChannel channel = new GrpcClientChannel(getGrpcClient(), gatewayAddress());
+        GrpcIoClientChannel channel = new GrpcIoClientChannel(getGrpcClient(), gatewayAddress());
 
         // Get a stub to use for interacting with the remote service
         GreeterGrpc.GreeterStub stub = GreeterGrpc.newStub(channel);

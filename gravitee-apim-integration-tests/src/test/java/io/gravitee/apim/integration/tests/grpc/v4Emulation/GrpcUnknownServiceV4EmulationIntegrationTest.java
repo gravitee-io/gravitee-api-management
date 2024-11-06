@@ -30,6 +30,7 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.vertx.grpc.client.GrpcClientChannel;
+import io.vertx.grpcio.client.GrpcIoClientChannel;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -55,35 +56,17 @@ public class GrpcUnknownServiceV4EmulationIntegrationTest extends AbstractGrpcGa
 
     @Test
     void should_request_and_not_get_response(VertxTestContext testContext) throws InterruptedException {
-        // Get a stub to use for interacting with the remote service
-        GrpcClientChannel channel = new GrpcClientChannel(getGrpcClient(), gatewayAddress());
-        StreamingGreeterGrpc.StreamingGreeterStub stub = StreamingGreeterGrpc.newStub(channel);
-
-        // Call the remote service, only to get a proper exception
-        StreamObserver<HelloRequest> requestStreamObserver = stub.sayHelloStreaming(
-            new StreamObserver<>() {
-                @Override
-                public void onNext(HelloReply helloReply) {
-                    testContext.failNow("Should not receive a reply");
-                }
-
-                @Override
-                public void onError(Throwable throwable) {
-                    assertThat(throwable).isNotNull().isInstanceOf(StatusRuntimeException.class);
-                    final StatusRuntimeException exception = (StatusRuntimeException) throwable;
-
-                    assertThat(exception.getStatus().getCode()).isEqualTo(Status.Code.UNKNOWN);
-                    testContext.completeNow();
-                }
-
-                @Override
-                public void onCompleted() {
-                    testContext.failNow("Should not complete");
-                }
-            }
-        );
-
-        requestStreamObserver.onNext(HelloRequest.newBuilder().setName("You").build());
+        getGrpcClient()
+            .request(gatewayAddress(), StreamingGreeterGrpc.getSayHelloStreamingMethod())
+            .compose(request -> {
+                // send one request
+                request.end(HelloRequest.newBuilder().setName("You").build());
+                return request.response();
+            })
+            .onSuccess(response -> {
+                assertThat(response.status().code).isEqualTo(Status.NOT_FOUND.getCode().value());
+                testContext.completeNow();
+            });
 
         assertThat(testContext.awaitCompletion(10, TimeUnit.SECONDS)).isTrue();
     }
