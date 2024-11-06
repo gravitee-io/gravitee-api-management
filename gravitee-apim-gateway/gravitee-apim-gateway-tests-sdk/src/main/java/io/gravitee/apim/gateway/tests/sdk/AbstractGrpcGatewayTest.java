@@ -23,6 +23,7 @@ import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.grpc.client.GrpcClient;
 import io.vertx.grpc.server.GrpcServer;
+import io.vertx.grpcio.client.GrpcIoClient;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +36,7 @@ public abstract class AbstractGrpcGatewayTest extends AbstractGatewayTest {
     protected int grpcServerPort;
 
     protected HttpServer vertxServer;
-    private GrpcClient client;
+    private GrpcIoClient client;
 
     @BeforeEach
     public void setupVertx(io.vertx.rxjava3.core.Vertx v) {
@@ -76,12 +77,12 @@ public abstract class AbstractGrpcGatewayTest extends AbstractGatewayTest {
         return SocketAddress.inetSocketAddress(gatewayPort(), LOCALHOST);
     }
 
-    protected GrpcClient getGrpcClient(Supplier<GrpcClient> factory) {
+    protected GrpcIoClient getGrpcClient(Supplier<GrpcIoClient> factory) {
         this.client = factory.get();
         return this.client;
     }
 
-    public final GrpcClient getGrpcClient() {
-        return getGrpcClient(() -> GrpcClient.client(vertx));
+    public final GrpcIoClient getGrpcClient() {
+        return getGrpcClient(() -> GrpcIoClient.client(vertx));
     }
 }
