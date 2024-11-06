@@ -30,6 +30,7 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.vertx.grpc.client.GrpcClientChannel;
+import io.vertx.grpcio.client.GrpcIoClientChannel;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -56,7 +57,7 @@ public class GrpcUnknownEndpointV4EmulationIntegrationTest extends AbstractGrpcG
     @Test
     void should_request_and_not_get_response(VertxTestContext testContext) throws InterruptedException {
         // Get a stub to use for interacting with the remote service
-        GrpcClientChannel channel = new GrpcClientChannel(getGrpcClient(), gatewayAddress());
+        GrpcIoClientChannel channel = new GrpcIoClientChannel(getGrpcClient(), gatewayAddress());
         GreeterGrpc.GreeterStub stub = GreeterGrpc.newStub(channel);
 
         HelloRequest request = HelloRequest.newBuilder().setName("You").build();

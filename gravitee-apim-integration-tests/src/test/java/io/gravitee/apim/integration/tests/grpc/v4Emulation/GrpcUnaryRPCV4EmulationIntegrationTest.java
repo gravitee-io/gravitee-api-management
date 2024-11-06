@@ -32,6 +32,7 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.grpc.common.GrpcReadStream;
 import io.vertx.grpc.server.GrpcServer;
 import io.vertx.grpc.server.GrpcServerResponse;
+import io.vertx.grpcio.server.GrpcIoServer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -56,9 +57,9 @@ public class GrpcUnaryRPCV4EmulationIntegrationTest extends AbstractGrpcGatewayT
     }
 
     @Test
-    void should_request_and_get_response() throws InterruptedException {
+    void should_request_and_get_response() {
         // create the backend
-        GrpcServer grpcServer = GrpcServer.server(vertx);
+        GrpcIoServer grpcServer = GrpcIoServer.server(vertx);
         grpcServer.callHandler(
             GreeterGrpc.getSayHelloMethod(),
             request -> {

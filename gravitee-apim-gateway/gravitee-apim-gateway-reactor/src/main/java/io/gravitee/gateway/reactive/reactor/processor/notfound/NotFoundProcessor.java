@@ -22,6 +22,7 @@ import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.reporter.api.v4.metric.Metrics;
+import io.grpc.Status;
 import io.reactivex.rxjava3.core.Completable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +53,16 @@ public class NotFoundProcessor implements Processor {
 
             // Send a NOT_FOUND HTTP status code (404)
             ctx.response().status(HttpStatusCode.NOT_FOUND_404);
+
             String message = environment.getProperty("http.errors[404].message", "No context-path matches the request URI.");
+
+            // Properly handle gRPC status if required
+            MediaType mediaType = MediaType.parseMediaType(ctx.request().headers().get(HttpHeaderNames.CONTENT_TYPE));
+            if (MediaType.MEDIA_APPLICATION_GRPC.equals(mediaType)) {
+                ctx.response().headers().set("grpc-status", String.valueOf(Status.NOT_FOUND.getCode().value()));
+                ctx.response().headers().set("grpc-message", message);
+            }
+
             ctx.response().headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(message.length()));
             ctx
                 .response()
