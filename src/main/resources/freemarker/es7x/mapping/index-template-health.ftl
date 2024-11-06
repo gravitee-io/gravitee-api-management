@@ -43,7 +43,7 @@
                 },
                 "success": {
                     "type": "boolean",
-                    "index": false
+                    "index": true
                 }
             }
     }
