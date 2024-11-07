@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.model;
 
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -143,6 +144,8 @@ public class Plan {
     @Builder.Default
     private Set<String> tags = new HashSet<>();
 
+    private ApiType apiType;
+
     public Plan(Plan cloned) {
         this.id = cloned.id;
         this.definitionVersion = cloned.definitionVersion;
@@ -171,6 +174,7 @@ public class Plan {
         this.commentMessage = cloned.commentMessage;
         this.commentRequired = cloned.commentRequired;
         this.securityDefinition = cloned.securityDefinition;
+        this.apiType = cloned.apiType;
     }
 
     @Override

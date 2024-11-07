@@ -97,6 +97,7 @@ public class CreatePlanDomainService {
                 .toBuilder()
                 .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
                 .apiId(api.getId())
+                .apiType(api.getType())
                 .createdAt(TimeProvider.now())
                 .updatedAt(TimeProvider.now())
                 .needRedeployAt(Date.from(TimeProvider.instantNow()))

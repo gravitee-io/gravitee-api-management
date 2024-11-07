@@ -17,11 +17,11 @@ package io.gravitee.rest.api.service.v4.mapper;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
@@ -93,7 +93,7 @@ public class PlanMapper {
         return entity;
     }
 
-    public Plan toRepository(final NewPlanEntity newPlanEntity) {
+    public Plan toRepository(final NewPlanEntity newPlanEntity, Api api) {
         Plan plan = new Plan();
         plan.setDefinitionVersion(DefinitionVersion.V4);
         plan.setId(newPlanEntity.getId());
@@ -120,6 +120,7 @@ public class PlanMapper {
         plan.setSelectionRule(newPlanEntity.getSelectionRule());
         plan.setGeneralConditions(newPlanEntity.getGeneralConditions());
         plan.setOrder(newPlanEntity.getOrder());
+        plan.setApiType(api.getType());
 
         if (newPlanEntity.getStatus() == PlanStatus.PUBLISHED) {
             plan.setPublishedAt(new Date());

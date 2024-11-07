@@ -27,6 +27,7 @@ gravitee-**-webui/node/
 **/.vscode
 **/storybook-static
 **/.angular
+package-lock.json
 
 # used in makefile as working directory
 .working/

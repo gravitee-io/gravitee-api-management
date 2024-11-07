@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.*;
 
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Plan;
 import java.util.*;
@@ -56,6 +57,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(Plan.PlanValidationType.AUTO, plan.get().getValidation());
         assertEquals(Plan.PlanType.API, plan.get().getType());
         assertEquals(Plan.PlanMode.STANDARD, plan.get().getMode());
+        assertEquals(ApiType.NATIVE, plan.get().getApiType());
         assertEquals(Plan.Status.PUBLISHED, plan.get().getStatus());
         assertEquals(2, plan.get().getOrder());
         assertTrue(compareDate(new Date(1506964899000L), plan.get().getCreatedAt()));
@@ -92,6 +94,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
                     .validation(Plan.PlanValidationType.AUTO)
                     .type(Plan.PlanType.API)
                     .mode(Plan.PlanMode.STANDARD)
+                    .apiType(ApiType.PROXY)
                     .status(Plan.Status.PUBLISHED)
                     .order(0)
                     .createdAt(new Date(1506964899000L))
@@ -118,6 +121,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(Plan.PlanSecurityType.API_KEY, plan.getSecurity());
         assertEquals(Plan.PlanValidationType.AUTO, plan.getValidation());
         assertEquals(Plan.PlanType.API, plan.getType());
+        assertEquals(ApiType.NATIVE, plan.getApiType());
         assertEquals(Plan.Status.PUBLISHED, plan.getStatus());
         assertEquals(2, plan.getOrder());
         assertTrue(compareDate(new Date(1506964899000L), plan.getCreatedAt()));
@@ -136,11 +140,31 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
                 Plan::getId,
                 Plan::getName,
                 Plan::getDefinitionVersion,
+                Plan::getApiType,
                 Plan::getCharacteristics,
                 Plan::getExcludedGroups,
                 Plan::getTags
             )
-            .contains(tuple("plan-v4", "Free plan", DefinitionVersion.V4, List.of("charac_v4"), List.of("grp_v4"), Set.of("tag_v4")));
+            .contains(
+                tuple(
+                    "plan-v4",
+                    "Free plan",
+                    DefinitionVersion.V4,
+                    ApiType.PROXY,
+                    List.of("charac_v4"),
+                    List.of("grp_v4"),
+                    Set.of("tag_v4")
+                ),
+                tuple(
+                    "my-plan",
+                    "Free plan",
+                    null,
+                    ApiType.NATIVE,
+                    List.of("charac 1", "charac 2"),
+                    List.of("grp1"),
+                    Set.of("tag1", "tag2")
+                )
+            );
     }
 
     @Test
@@ -164,6 +188,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(Plan.PlanValidationType.MANUAL, planOAuth2.get().getValidation());
         assertEquals(Plan.PlanType.API, planOAuth2.get().getType());
         assertEquals(Plan.PlanMode.PUSH, planOAuth2.get().getMode());
+        assertEquals(ApiType.PROXY, planOAuth2.get().getApiType());
         assertEquals(Plan.Status.STAGING, planOAuth2.get().getStatus());
         assertEquals(0, planOAuth2.get().getOrder());
         assertTrue(compareDate("11/02/2016", planOAuth2.get().getCreatedAt()));
@@ -196,6 +221,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(plans);
         assertEquals(2, plans.size());
+        assertEquals(2, plans.size());
     }
 
     @Test
@@ -208,11 +234,22 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
                 Plan::getId,
                 Plan::getName,
                 Plan::getDefinitionVersion,
+                Plan::getApiType,
                 Plan::getCharacteristics,
                 Plan::getExcludedGroups,
                 Plan::getTags
             )
-            .contains(tuple("plan-v4", "Free plan", DefinitionVersion.V4, List.of("charac_v4"), List.of("grp_v4"), Set.of("tag_v4")));
+            .contains(
+                tuple(
+                    "plan-v4",
+                    "Free plan",
+                    DefinitionVersion.V4,
+                    ApiType.PROXY,
+                    List.of("charac_v4"),
+                    List.of("grp_v4"),
+                    Set.of("tag_v4")
+                )
+            );
     }
 
     @Test
@@ -225,14 +262,31 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
                 Plan::getId,
                 Plan::getName,
                 Plan::getDefinitionVersion,
+                Plan::getApiType,
                 Plan::getCharacteristics,
                 Plan::getExcludedGroups,
                 Plan::getTags
             )
             .contains(
-                tuple("my-plan", "Free plan", null, List.of("charac 1", "charac 2"), List.of("grp1"), Set.of("tag2", "tag1")),
-                tuple("products", "Products", null, emptyList(), emptyList(), emptySet()),
-                tuple("plan-v4", "Free plan", DefinitionVersion.V4, List.of("charac_v4"), List.of("grp_v4"), Set.of("tag_v4"))
+                tuple(
+                    "my-plan",
+                    "Free plan",
+                    null,
+                    ApiType.NATIVE,
+                    List.of("charac 1", "charac 2"),
+                    List.of("grp1"),
+                    Set.of("tag1", "tag2")
+                ),
+                tuple("products", "Products", null, ApiType.MESSAGE, emptyList(), emptyList(), emptySet()),
+                tuple(
+                    "plan-v4",
+                    "Free plan",
+                    DefinitionVersion.V4,
+                    ApiType.PROXY,
+                    List.of("charac_v4"),
+                    List.of("grp_v4"),
+                    Set.of("tag_v4")
+                )
             );
     }
 
@@ -262,6 +316,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         plan.setPublishedAt(parse("13/02/2016"));
         plan.setClosedAt(parse("14/02/2016"));
         plan.setSecurity(Plan.PlanSecurityType.KEY_LESS);
+        plan.setApiType(ApiType.PROXY);
 
         planRepository.create(plan);
 
@@ -281,6 +336,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         Assert.assertTrue("Invalid plan published date.", compareDate(plan.getPublishedAt(), createdPlan.getPublishedAt()));
         Assert.assertTrue("Invalid plan closed date.", compareDate(plan.getClosedAt(), createdPlan.getClosedAt()));
         Assert.assertEquals("Invalid plan security.", plan.getSecurity(), createdPlan.getSecurity());
+        Assert.assertEquals("Invalid plan apiType.", plan.getApiType(), createdPlan.getApiType());
     }
 
     @Test
@@ -297,6 +353,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
             .validation(Plan.PlanValidationType.AUTO)
             .type(Plan.PlanType.API)
             .mode(Plan.PlanMode.STANDARD)
+            .apiType(ApiType.NATIVE)
             .status(Plan.Status.PUBLISHED)
             .order(0)
             .createdAt(new Date(1506964899000L))
@@ -331,6 +388,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
             "{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}"
         );
         plan.setCommentRequired(true);
+        plan.setApiType(ApiType.NATIVE);
 
         planRepository.create(plan);
 
@@ -351,6 +409,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         Assert.assertEquals("Invalid oauth2 plan security.", plan.getSecurity(), createdPlan.getSecurity());
         Assert.assertEquals("Invalid oauth2 plan security definition.", plan.getSecurityDefinition(), createdPlan.getSecurityDefinition());
         Assert.assertEquals("Invalid oauth2 plan comment required.", plan.isCommentRequired(), createdPlan.isCommentRequired());
+        Assert.assertEquals("Invalid oauth2 plan apiType.", plan.getApiType(), createdPlan.getApiType());
     }
 
     @Test
@@ -364,6 +423,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         plan.setGeneralConditions("New GCU");
         plan.setStatus(Plan.Status.CLOSED);
         plan.setTags(Collections.singleton("tag1"));
+        plan.setApiType(ApiType.MESSAGE);
 
         planRepository.update(plan);
 
@@ -376,6 +436,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         Assert.assertEquals("Invalid plan description.", plan.getDescription(), planUpdated.getDescription());
         Assert.assertEquals("Invalid plan status.", plan.getStatus(), planUpdated.getStatus());
         Assert.assertEquals("Invalid plan tags.", plan.getTags().size(), planUpdated.getTags().size());
+        Assert.assertEquals("Invalid plan apiType.", plan.getApiType(), planUpdated.getApiType());
     }
 
     @Test
@@ -388,6 +449,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         plan.setDescription("New oauth2 description");
         plan.setStatus(Plan.Status.CLOSED);
         plan.setSecurityDefinition("{}");
+        plan.setApiType(ApiType.PROXY);
 
         planRepository.update(plan);
 
@@ -399,6 +461,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         Assert.assertEquals("Invalid plan description.", plan.getDescription(), planUpdated.getDescription());
         Assert.assertEquals("Invalid plan status.", plan.getStatus(), planUpdated.getStatus());
         Assert.assertEquals("Invalid plan security definition.", plan.getSecurityDefinition(), planUpdated.getSecurityDefinition());
+        Assert.assertEquals("Invalid plan apiType.", plan.getApiType(), planUpdated.getApiType());
     }
 
     @Test

@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.6.0_add_api_type_to_plans_table
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}plans
+            columns:
+              - column:
+                  name: api_type
+                  type: nvarchar(64)
