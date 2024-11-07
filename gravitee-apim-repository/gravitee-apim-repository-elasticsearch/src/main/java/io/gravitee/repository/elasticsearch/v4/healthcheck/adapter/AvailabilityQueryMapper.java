@@ -74,9 +74,9 @@ public class AvailabilityQueryMapper implements QueryResponseAdapter<ApiFieldPer
 
         long sum = byFieldValue.values().stream().mapToLong(ByField::success).sum();
 
-        var collect = byFieldValue.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().percent()));
+        var collect = byFieldValue.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().round()));
 
-        return Maybe.just(new AvailabilityResponse(AvailabilityQueryMapper.percent(sum, total), collect));
+        return Maybe.just(new AvailabilityResponse(AvailabilityQueryMapper.round(sum, total), collect));
     }
 
     private static ByField getByField(JsonNode json) {
@@ -88,12 +88,14 @@ public class AvailabilityQueryMapper implements QueryResponseAdapter<ApiFieldPer
     }
 
     private record ByField(String name, long total, long success) {
-        public int percent() {
-            return AvailabilityQueryMapper.percent(success(), total());
+        public float round() {
+            return AvailabilityQueryMapper.round(success(), total());
         }
     }
 
-    private static int percent(long num, long denum) {
-        return Math.round(num * 100f / denum);
+    private static float round(long num, long denum) {
+        int precision = 4;
+        var value = ((Double) Math.pow(10, precision)).floatValue();
+        return Math.round(num * value / denum) / value;
     }
 }

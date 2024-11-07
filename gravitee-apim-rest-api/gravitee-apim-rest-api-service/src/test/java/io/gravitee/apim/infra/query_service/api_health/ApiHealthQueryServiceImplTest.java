@@ -101,7 +101,7 @@ class ApiHealthQueryServiceImplTest {
         void should_call_repository() {
             var queryCaptor = ArgumentCaptor.forClass(ApiFieldPeriod.class);
             when(healthCheckRepository.availability(any(), any()))
-                .thenReturn(Maybe.just(new AvailabilityResponse(75, Map.of("default", 75))));
+                .thenReturn(Maybe.just(new AvailabilityResponse(.75f, Map.of("default", .75f))));
 
             var result = service
                 .availability(new ApiHealthQueryService.ApiFieldPeriodQuery(ORGANIZATION_ID, ENVIRONMENT_ID, API_ID, "endpoint", FROM, TO))
@@ -109,7 +109,7 @@ class ApiHealthQueryServiceImplTest {
 
             verify(healthCheckRepository).availability(queryContextCaptor.capture(), queryCaptor.capture());
             SoftAssertions.assertSoftly(softly -> {
-                softly.assertThat(result).isEqualTo(new AvailabilityHealthCheck(75, Map.of("default", 75)));
+                softly.assertThat(result).isEqualTo(new AvailabilityHealthCheck(.75f, Map.of("default", .75f)));
                 softly.assertThat(queryContextCaptor.getValue()).isEqualTo(new QueryContext(ORGANIZATION_ID, ENVIRONMENT_ID));
                 softly.assertThat(queryCaptor.getValue()).isEqualTo(new ApiFieldPeriod(API_ID, "endpoint", FROM, TO));
             });
