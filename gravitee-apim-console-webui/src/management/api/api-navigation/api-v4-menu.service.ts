@@ -23,7 +23,7 @@ import { ApiMenuService } from './ApiMenuService';
 import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../entities/Constants';
-import { ApiV4 } from '../../../entities/management-api-v2';
+import { ApiType, ApiV4 } from '../../../entities/management-api-v2';
 import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
 
 @Injectable()
@@ -51,6 +51,7 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addDeploymentMenuEntry(),
       this.addApiTrafficMenuEntry(hasTcpListeners),
       this.addApiRuntimeAlertsMenuEntry(),
+      ...this.addHealthCheckMenuEntry(api.type),
     ].filter((entry) => entry != null && !entry.tabs?.every((tab) => tab.routerLink === 'DISABLED'));
 
     return { subMenuItems, groupItems: [] };
@@ -372,5 +373,21 @@ export class ApiV4MenuService implements ApiMenuService {
       },
       tabs,
     };
+  }
+
+  private addHealthCheckMenuEntry(apiType: ApiType): MenuItem[] {
+    return apiType === 'PROXY'
+      ? [
+          {
+            displayName: 'Health-Check Dashboard',
+            icon: 'monitor',
+            routerLink: 'v4/healthcheck-dashboard',
+            header: {
+              title: 'Health-Check Dashboard',
+              subtitle: 'Monitor and identify health-check issues and trends',
+            },
+          },
+        ]
+      : [];
   }
 }

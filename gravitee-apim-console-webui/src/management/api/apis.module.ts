@@ -55,6 +55,7 @@ import { ApiHistoryV4Module } from './history-v4/api-history-v4.module';
 import { ApiFailoverV4Module } from './failover-v4/api-failover-v4.module';
 import { ApiResourcesComponent } from './resources/api-resources.component';
 import { ApiScoringModule } from './scoring/api-scoring.module';
+import { ApiHealthCheckDashboardV4Module } from './health-check-dashboard-v4/api-health-check-dashboard-v4.module';
 
 import { DocumentationModule } from '../../components/documentation/documentation.module';
 import { AlertsModule } from '../../components/alerts/alerts.module';
@@ -66,6 +67,7 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
 
     ApisRoutingModule,
 
+    ApiHealthCheckDashboardV4Module,
     AlertsModule,
     ApiAnalyticsModule,
     ApiAuditModule,
