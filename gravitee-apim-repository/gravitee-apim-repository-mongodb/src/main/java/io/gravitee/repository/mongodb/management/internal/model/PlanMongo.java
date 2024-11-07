@@ -108,5 +108,5 @@ public class PlanMongo extends Auditable {
 
     private String selectionRule;
 
-    private ApiType apiType;
+    private String apiType;
 }
