@@ -17,6 +17,7 @@ package io.gravitee.repository.elasticsearch.v4.healthcheck;
 
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.withPrecision;
 
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
@@ -126,7 +127,7 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
     }
 
     @Nested
-    class Availibility {
+    class Availability {
 
         @Test
         void should_return_rate_of_availability_grouped_by_endpoint() {
@@ -149,9 +150,9 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
 
             // correctness of values
             SoftAssertions solftly = new SoftAssertions();
-            solftly.assertThat(result.ratesByFields().get("default")).isEqualTo(75);
-            solftly.assertThat(result.ratesByFields().get("other")).isEqualTo(0);
-            solftly.assertThat(result.global()).isEqualTo(60);
+            solftly.assertThat(result.ratesByFields().get("default")).isCloseTo(.75f, withPrecision(.0001f));
+            solftly.assertThat(result.ratesByFields().get("other")).isCloseTo(0f, withPrecision(.0001f));
+            solftly.assertThat(result.global()).isCloseTo(.6f, withPrecision(.0001f));
             solftly.assertAll();
         }
 
@@ -176,9 +177,9 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
 
             // correctness of values
             SoftAssertions solftly = new SoftAssertions();
-            solftly.assertThat(result.ratesByFields().get("gw1")).isEqualTo(67);
-            solftly.assertThat(result.ratesByFields().get("gw2")).isEqualTo(50);
-            solftly.assertThat(result.global()).isEqualTo(60);
+            solftly.assertThat(result.ratesByFields().get("gw1")).isCloseTo(.6667f, withPrecision(.0001f));
+            solftly.assertThat(result.ratesByFields().get("gw2")).isCloseTo(.5f, withPrecision(.0001f));
+            solftly.assertThat(result.global()).isCloseTo(.6f, withPrecision(.0001f));
             solftly.assertAll();
         }
     }

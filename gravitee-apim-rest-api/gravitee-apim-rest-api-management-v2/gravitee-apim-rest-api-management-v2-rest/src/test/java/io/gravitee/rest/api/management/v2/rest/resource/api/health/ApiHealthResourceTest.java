@@ -237,7 +237,7 @@ class ApiHealthResourceTest extends ApiResourceTest {
         @Test
         void should_return_requests_count() {
             apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
-            apiHealthQueryService.availabilityHealthCheck = new AvailabilityHealthCheck(75, Map.of("default", 75));
+            apiHealthQueryService.availabilityHealthCheck = new AvailabilityHealthCheck(.75f, Map.of("default", .75f));
 
             final Response response = availabilityTarget
                 .queryParam("field", "endpoint")
@@ -251,8 +251,8 @@ class ApiHealthResourceTest extends ApiResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(ApiHealthAvailabilityResponse.class)
                 .satisfies(r -> {
-                    assertThat(r.getGlobal()).isEqualTo(75);
-                    assertThat(r.getGroup()).containsAllEntriesOf(Map.of("default", 75));
+                    assertThat(r.getGlobal()).isEqualTo(.75f);
+                    assertThat(r.getGroup()).containsAllEntriesOf(Map.of("default", .75f));
                 });
         }
     }

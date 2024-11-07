@@ -69,5 +69,5 @@ public class AvailabilityUseCase {
         }
     }
 
-    public record Output(int global, Map<String, Integer> byField) {}
+    public record Output(float global, Map<String, Float> byField) {}
 }
