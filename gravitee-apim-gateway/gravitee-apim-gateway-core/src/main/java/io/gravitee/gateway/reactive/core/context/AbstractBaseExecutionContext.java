@@ -19,6 +19,7 @@ import io.gravitee.common.util.ListUtils;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ public abstract class AbstractBaseExecutionContext implements BaseExecutionConte
     protected Map<String, Object> internalAttributes = new HashMap<>();
     protected ComponentProvider componentProvider;
     protected TemplateEngine templateEngine;
+    protected Tracer tracer;
     private final long timestamp = System.currentTimeMillis();
 
     @Override
@@ -104,5 +106,10 @@ public abstract class AbstractBaseExecutionContext implements BaseExecutionConte
     @Override
     public long timestamp() {
         return timestamp;
+    }
+
+    @Override
+    public Tracer getTracer() {
+        return tracer;
     }
 }
