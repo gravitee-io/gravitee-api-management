@@ -58,8 +58,8 @@ import io.gravitee.gateway.reactive.api.apiservice.ApiService;
 import io.gravitee.gateway.reactive.api.apiservice.ApiServiceFactory;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
@@ -69,7 +69,7 @@ import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailur
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
-import io.gravitee.gateway.reactive.core.v4.invoker.EndpointInvoker;
+import io.gravitee.gateway.reactive.core.v4.invoker.HttpEndpointInvoker;
 import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.ConnectionHandlerAdapter;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
@@ -216,7 +216,7 @@ class DefaultApiReactorTest {
     private EndpointManager endpointManager;
 
     @Mock
-    private EndpointInvoker defaultInvoker;
+    private HttpEndpointInvoker defaultInvoker;
 
     @Mock
     private io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory flowChainFactory;
@@ -342,7 +342,7 @@ class DefaultApiReactorTest {
         lenient().when(afterApiExecutionProcessors.getId()).thenReturn("mockAfterApiFlowsProcessors");
         lenient().when(onErrorProcessors.getId()).thenReturn("mockOnErrorProcessors");
 
-        lenient().when(defaultInvoker.invoke(any(ExecutionContext.class))).thenReturn(spyInvokerChain);
+        lenient().when(defaultInvoker.invoke(any(HttpExecutionContext.class))).thenReturn(spyInvokerChain);
         lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER)).thenReturn(defaultInvoker);
         lenient().when(entrypointConnector.handleRequest(ctx)).thenReturn(spyEntrypointRequest);
         lenient().when(entrypointConnector.handleResponse(ctx)).thenReturn(spyEntrypointResponse);
@@ -506,7 +506,7 @@ class DefaultApiReactorTest {
     @Test
     void shouldSkipApiResponseAndExecuteErrorChainWhenExceptionOccurs() {
         spyInvokerChain = spy(Completable.error(new Exception("Mock exception")));
-        when(defaultInvoker.invoke(any(ExecutionContext.class))).thenReturn(spyInvokerChain);
+        when(defaultInvoker.invoke(any(HttpExecutionContext.class))).thenReturn(spyInvokerChain);
 
         cut.handle(ctx).test().assertComplete();
 
@@ -538,7 +538,7 @@ class DefaultApiReactorTest {
     @Test
     void shouldSkipApiResponseAndExecuteErrorChainWhenInterruptionFailureExceptionOccurs() {
         spyInvokerChain = spy(Completable.error(new InterruptionFailureException(new ExecutionFailure(500))));
-        when(defaultInvoker.invoke(any(ExecutionContext.class))).thenReturn(spyInvokerChain);
+        when(defaultInvoker.invoke(any(HttpExecutionContext.class))).thenReturn(spyInvokerChain);
 
         cut.handle(ctx).test().assertComplete();
 
@@ -570,7 +570,7 @@ class DefaultApiReactorTest {
     @Test
     void shouldSkipApiResponseAndExecutePostProcessorChainWhenNormalInterruptionOccurs() {
         spyInvokerChain = spy(Completable.error(new InterruptionException()));
-        when(defaultInvoker.invoke(any(ExecutionContext.class))).thenReturn(spyInvokerChain);
+        when(defaultInvoker.invoke(any(HttpExecutionContext.class))).thenReturn(spyInvokerChain);
 
         cut.handle(ctx).test().assertComplete();
 
@@ -663,7 +663,7 @@ class DefaultApiReactorTest {
     void shouldTimeoutDuringApiFlow() {
         when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(10000L, 0L);
         spyInvokerChain = spy(Completable.complete().delay(20000, TimeUnit.MILLISECONDS));
-        when(defaultInvoker.invoke(ctx)).thenReturn(spyInvokerChain);
+        when(defaultInvoker.invoke((HttpExecutionContext) ctx)).thenReturn(spyInvokerChain);
 
         final TestObserver<Void> obs = cut.handle(ctx).subscribeOn(testScheduler).test();
 
@@ -715,7 +715,7 @@ class DefaultApiReactorTest {
         when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay()).thenReturn(1000L);
         spyInvokerChain = spy(Completable.complete().delay(9000, TimeUnit.MILLISECONDS));
         spyResponsePlatformFlowChain = spy(Completable.complete().delay(3000, TimeUnit.MILLISECONDS));
-        when(defaultInvoker.invoke(ctx)).thenReturn(spyInvokerChain);
+        when(defaultInvoker.invoke((HttpExecutionContext) ctx)).thenReturn(spyInvokerChain);
         when(platformFlowChain.execute(ctx, RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
 
         final TestObserver<Void> obs = cut.handle(ctx).subscribeOn(testScheduler).test();

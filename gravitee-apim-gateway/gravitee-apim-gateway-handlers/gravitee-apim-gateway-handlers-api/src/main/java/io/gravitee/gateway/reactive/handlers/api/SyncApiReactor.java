@@ -43,6 +43,7 @@ import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.hook.ChainHook;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
+import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionHelper;
@@ -94,7 +95,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     protected final List<InvokerHook> invokerHooks;
     protected final ComponentProvider componentProvider;
     protected final List<TemplateVariableProvider> templateVariableProviders;
-    protected final Invoker defaultInvoker;
+    protected final HttpInvoker defaultInvoker;
     protected final ResourceLifecycleManager resourceLifecycleManager;
     protected final PolicyManager policyManager;
     protected final GroupLifecycleManager groupLifecycleManager;
@@ -124,7 +125,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         final Api api,
         final ComponentProvider componentProvider,
         final List<TemplateVariableProvider> templateVariableProviders,
-        final Invoker defaultInvoker,
+        final HttpInvoker defaultInvoker,
         final ResourceLifecycleManager resourceLifecycleManager,
         final ApiProcessorChainFactory apiProcessorChainFactory,
         final PolicyManager policyManager,
@@ -294,7 +295,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     private Completable invokeBackend(final MutableExecutionContext ctx) {
         return defer(() -> {
                 if (!Objects.equals(false, ctx.<Boolean>getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER))) {
-                    Invoker invoker = getInvoker(ctx);
+                    HttpInvoker invoker = getInvoker(ctx);
 
                     if (invoker != null) {
                         return HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null);
@@ -314,7 +315,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      * @param ctx the current context where the invoker is referenced.
      * @return the current invoker in the expected type.
      */
-    private Invoker getInvoker(HttpExecutionContext ctx) {
+    private HttpInvoker getInvoker(HttpExecutionContext ctx) {
         final Object invoker = ctx.getInternalAttribute(ATTR_INTERNAL_INVOKER);
 
         if (invoker == null) {
@@ -325,7 +326,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             return new InvokerAdapter((io.gravitee.gateway.api.Invoker) invoker);
         }
 
-        return (Invoker) invoker;
+        return (HttpInvoker) invoker;
     }
 
     private Completable endResponse(MutableExecutionContext ctx) {

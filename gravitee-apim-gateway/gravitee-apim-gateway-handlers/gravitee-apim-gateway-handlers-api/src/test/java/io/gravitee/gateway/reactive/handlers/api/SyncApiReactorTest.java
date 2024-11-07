@@ -48,6 +48,7 @@ import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
@@ -420,7 +421,7 @@ class SyncApiReactorTest {
         when(apiFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiFlowChain);
         when(afterApiFlowsProcessors.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyAfterApiFlowsProcessors);
         fillRequestExecutionContext();
-        when(invokerAdapter.invoke(any(ExecutionContext.class))).thenReturn(spyInvokerAdapterChain);
+        when(invokerAdapter.invoke(any(HttpExecutionContext.class))).thenReturn(spyInvokerAdapterChain);
         cut.doStart();
         when(securityChain.execute(any())).thenReturn(spySecurityChain);
         ReflectionTestUtils.setField(cut, "securityChain", securityChain);
@@ -458,7 +459,7 @@ class SyncApiReactorTest {
         when(apiFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiFlowChain);
         when(afterApiFlowsProcessors.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyAfterApiFlowsProcessors);
         fillRequestExecutionContext();
-        when(invokerAdapter.invoke(any(ExecutionContext.class))).thenReturn(spyInvokerAdapterChain);
+        when(invokerAdapter.invoke(any(HttpExecutionContext.class))).thenReturn(spyInvokerAdapterChain);
         cut.doStart();
         when(securityChain.execute(any())).thenReturn(spySecurityChain);
         ReflectionTestUtils.setField(cut, "securityChain", securityChain);
@@ -558,7 +559,7 @@ class SyncApiReactorTest {
         when(afterApiFlowsProcessors.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyAfterApiFlowsProcessors);
         fillRequestExecutionContext();
 
-        when(invokerAdapter.invoke(any(ExecutionContext.class))).thenReturn(spyInvokerAdapterError);
+        when(invokerAdapter.invoke(any(HttpExecutionContext.class))).thenReturn(spyInvokerAdapterError);
 
         cut.doStart();
         when(securityChain.execute(any())).thenReturn(spySecurityChain);

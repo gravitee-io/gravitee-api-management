@@ -33,6 +33,7 @@ import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
+import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
@@ -66,7 +67,7 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
     protected final DefaultEntrypointConnectorResolver entrypointConnectorResolver;
     protected final AtomicLong pendingRequests = new AtomicLong(0);
     protected final TracingContext tracingContext;
-    protected Invoker defaultInvoker;
+    protected HttpInvoker defaultInvoker;
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
     private final long pendingRequestsTimeout;
     protected final List<InvokerHook> invokerHooks = new ArrayList<>();
@@ -136,9 +137,9 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
         return ExecutionPhase.REQUEST;
     }
 
-    protected Optional<Invoker> getInvoker(final MutableExecutionContext ctx) {
+    protected Optional<HttpInvoker> getInvoker(final MutableExecutionContext ctx) {
         final Object invoker = ctx.getInternalAttribute(ATTR_INTERNAL_INVOKER);
-        if (invoker instanceof Invoker reactiveInvoker) {
+        if (invoker instanceof HttpInvoker reactiveInvoker) {
             return Optional.of(reactiveInvoker);
         } else if (invoker instanceof io.gravitee.gateway.api.Invoker legacyInvoker) {
             return Optional.of(new InvokerAdapter(legacyInvoker));

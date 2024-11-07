@@ -41,7 +41,7 @@ import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.hook.ChainHook;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
-import io.gravitee.gateway.reactive.api.invoker.Invoker;
+import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionHelper;
 import io.gravitee.gateway.reactive.core.failover.FailoverInvoker;
@@ -52,7 +52,7 @@ import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
-import io.gravitee.gateway.reactive.core.v4.invoker.EndpointInvoker;
+import io.gravitee.gateway.reactive.core.v4.invoker.HttpEndpointInvoker;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LoggingHook;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory;
@@ -193,8 +193,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
         this.processorChainHooks = new ArrayList<>();
     }
 
-    protected Invoker endpointInvoker(EndpointManager endpointManager) {
-        final EndpointInvoker endpointInvoker = new EndpointInvoker(endpointManager);
+    protected HttpInvoker endpointInvoker(EndpointManager endpointManager) {
+        final HttpEndpointInvoker endpointInvoker = new HttpEndpointInvoker(endpointManager);
         if (api.getDefinition().failoverEnabled()) {
             return new FailoverInvoker(endpointInvoker, api.getDefinition().getFailover(), api.getId());
         }

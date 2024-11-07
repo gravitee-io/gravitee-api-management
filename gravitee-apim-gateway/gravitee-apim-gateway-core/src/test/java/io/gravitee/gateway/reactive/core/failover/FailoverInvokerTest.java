@@ -25,13 +25,13 @@ import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
-import io.gravitee.gateway.reactive.core.v4.invoker.EndpointInvoker;
+import io.gravitee.gateway.reactive.core.v4.invoker.HttpEndpointInvoker;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.concurrent.TimeUnit;
@@ -56,7 +56,7 @@ class FailoverInvokerTest {
     private static final String API_ID = "api-id";
 
     @Mock
-    private EndpointInvoker endpointInvoker;
+    private HttpEndpointInvoker endpointInvoker;
 
     @Mock
     private MutableRequest request;
@@ -64,7 +64,7 @@ class FailoverInvokerTest {
     @Mock
     private MutableResponse response;
 
-    private ExecutionContext executionContext;
+    private HttpExecutionContext executionContext;
 
     private FailoverInvoker cut;
 
@@ -140,7 +140,7 @@ class FailoverInvokerTest {
                 t instanceof InterruptionFailureException && ((InterruptionFailureException) t).getExecutionFailure().statusCode() == 502
             );
 
-        ArgumentCaptor<ExecutionContext> executionContextArgumentCaptor = ArgumentCaptor.forClass(ExecutionContext.class);
+        ArgumentCaptor<HttpExecutionContext> executionContextArgumentCaptor = ArgumentCaptor.forClass(HttpExecutionContext.class);
         verify(endpointInvoker, times(3)).invoke(executionContextArgumentCaptor.capture());
 
         assertThat(executionContextArgumentCaptor.getAllValues())
@@ -161,7 +161,7 @@ class FailoverInvokerTest {
         executionContext.setAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT, "endpoint-name");
         cut.invoke(executionContext).test().awaitDone(2, TimeUnit.SECONDS).assertComplete();
 
-        ArgumentCaptor<ExecutionContext> executionContextArgumentCaptor = ArgumentCaptor.forClass(ExecutionContext.class);
+        ArgumentCaptor<HttpExecutionContext> executionContextArgumentCaptor = ArgumentCaptor.forClass(HttpExecutionContext.class);
         verify(endpointInvoker, times(2)).invoke(executionContextArgumentCaptor.capture());
 
         assertThat(executionContextArgumentCaptor.getValue())
@@ -189,7 +189,7 @@ class FailoverInvokerTest {
                 t instanceof InterruptionFailureException && ((InterruptionFailureException) t).getExecutionFailure().statusCode() == 502
             );
 
-        ArgumentCaptor<ExecutionContext> executionContextArgumentCaptor = ArgumentCaptor.forClass(ExecutionContext.class);
+        ArgumentCaptor<HttpExecutionContext> executionContextArgumentCaptor = ArgumentCaptor.forClass(HttpExecutionContext.class);
         verify(endpointInvoker, times(1)).invoke(executionContextArgumentCaptor.capture());
 
         assertThat(executionContextArgumentCaptor.getAllValues())
