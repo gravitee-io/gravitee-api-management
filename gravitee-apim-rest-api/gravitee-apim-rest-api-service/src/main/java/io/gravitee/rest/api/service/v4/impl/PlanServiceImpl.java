@@ -212,7 +212,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             String id = newPlan.getId() != null && UUID.fromString(newPlan.getId()) != null ? newPlan.getId() : UuidString.generateRandom();
             newPlan.setId(id);
 
-            Plan plan = planMapper.toRepository(newPlan);
+            Plan plan = planMapper.toRepository(newPlan, api);
             plan.setEnvironmentId(executionContext.getEnvironmentId());
             plan = planRepository.create(plan);
 
@@ -311,6 +311,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             newPlan.setPublishedAt(oldPlan.getPublishedAt());
             newPlan.setClosedAt(oldPlan.getClosedAt());
             newPlan.setMode(oldPlan.getMode());
+            newPlan.setApiType(oldPlan.getApiType());
             // for existing plans, needRedeployAt doesn't exist. We have to initialize it
             if (oldPlan.getNeedRedeployAt() == null) {
                 newPlan.setNeedRedeployAt(oldPlan.getUpdatedAt());

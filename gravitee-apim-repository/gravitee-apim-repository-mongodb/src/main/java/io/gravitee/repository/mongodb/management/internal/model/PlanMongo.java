@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import io.gravitee.definition.model.v4.ApiType;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -106,4 +107,6 @@ public class PlanMongo extends Auditable {
     private Set<String> tags;
 
     private String selectionRule;
+
+    private ApiType apiType;
 }
