@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiQueryServiceInMemory;
-import io.gravitee.apim.core.analytics.model.EnvironmentAnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
@@ -68,7 +68,7 @@ class SearchEnvironmentTopHitsApisCountUseCaseTest {
         var input = SearchEnvironmentTopHitsApisCountUseCase.Input
             .builder()
             .executionContext(executionContext)
-            .parameters(EnvironmentAnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();
 
         when(analyticsQueryService.searchTopHitsApis(any(), any()))
@@ -112,7 +112,7 @@ class SearchEnvironmentTopHitsApisCountUseCaseTest {
         var input = SearchEnvironmentTopHitsApisCountUseCase.Input
             .builder()
             .executionContext(executionContext)
-            .parameters(EnvironmentAnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();
 
         when(analyticsQueryService.searchTopHitsApis(any(), any()))
@@ -146,7 +146,7 @@ class SearchEnvironmentTopHitsApisCountUseCaseTest {
         var input = SearchEnvironmentTopHitsApisCountUseCase.Input
             .builder()
             .executionContext(executionContext)
-            .parameters(EnvironmentAnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();
 
         when(analyticsQueryService.searchTopHitsApis(any(), any()))

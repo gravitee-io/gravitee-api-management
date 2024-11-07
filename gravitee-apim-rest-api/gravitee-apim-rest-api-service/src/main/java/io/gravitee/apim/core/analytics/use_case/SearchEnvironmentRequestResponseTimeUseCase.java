@@ -16,7 +16,7 @@
 package io.gravitee.apim.core.analytics.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.analytics.model.EnvironmentAnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
@@ -65,7 +65,7 @@ public class SearchEnvironmentRequestResponseTimeUseCase {
     }
 
     @Builder
-    public record Input(ExecutionContext executionContext, EnvironmentAnalyticsQueryParameters parameters) {}
+    public record Input(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {}
 
     public record Output(Optional<RequestResponseTime> requestResponseTime) {
         Output(RequestResponseTime requestResponseTime) {

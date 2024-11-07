@@ -22,7 +22,7 @@ import lombok.With;
 
 @Data
 @Builder
-public class EnvironmentAnalyticsQueryParameters {
+public class AnalyticsQueryParameters {
 
     @With
     List<String> apiIds;
