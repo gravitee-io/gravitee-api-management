@@ -28,7 +28,6 @@ import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
-import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponseTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
@@ -352,8 +351,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                 .extracting(ApiAnalyticsOverPeriodResponse::getData)
                 .isNotNull()
                 .satisfies(output -> {
-                    assertThat(output).hasSize(2);
-                    assertThat(output).containsExactly(1L, 2L);
+                    assertThat(output).hasSize(2).containsExactly(1L, 2L);
                 });
         }
     }

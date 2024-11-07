@@ -22,10 +22,10 @@ import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusOverTimeUseC
 import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusRangesUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseTimeUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiAnalyticsMapper;
+import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
-import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponseTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
@@ -139,7 +139,7 @@ public class ApiAnalyticsResource extends AbstractResource {
             .map(out ->
                 new ApiAnalyticsOverPeriodResponse()
                     .timeRange(
-                        new ApiAnalyticsOverPeriodResponseTimeRange()
+                        new AnalyticTimeRange()
                             .from(out.from().toEpochMilli())
                             .to(out.to().toEpochMilli())
                             .interval(out.interval().toMillis())

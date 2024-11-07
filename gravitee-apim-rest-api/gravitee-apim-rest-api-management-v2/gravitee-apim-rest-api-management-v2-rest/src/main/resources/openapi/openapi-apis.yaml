@@ -2099,6 +2099,8 @@ paths:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/from"
+            - $ref: "#/components/parameters/to"
         get:
             tags:
                 - API Analytics
@@ -2207,6 +2209,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/envIdParam"
         - $ref: "#/components/parameters/apiIdParam"
+        - $ref: "#/components/parameters/from"
+        - $ref: "#/components/parameters/to"
       get:
         tags:
           - API Health
@@ -7933,24 +7937,7 @@ components:
                         description: API Analytics integer data point on a period.
                         properties:
                             timeRange:
-                                type: object
-                                description: Time range of the analytics
-                                properties:
-                                    from:
-                                        type: integer
-                                        format: int64
-                                        description: The timestamp starting the time range
-                                        example: 1621339200000
-                                    to:
-                                        type: integer
-                                        format: int64
-                                        description: The timestamp ending the time range
-                                        example: 1621425600000
-                                    interval:
-                                        type: integer
-                                        format: int64
-                                        description: The interval in milliseconds splitting the data
-                                        example: 120000
+                              $ref: "#/components/schemas/AnalyticTimeRange"
                             data:
                                 type: array
                                 description: Response time average (in milliseconds) over time
