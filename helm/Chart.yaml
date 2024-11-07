@@ -31,3 +31,5 @@ annotations:
       links:
         - name: Github Issue
           url: https://github.com/gravitee-io/issues/issues/10027
+    - kind: changed
+      description: 'Add support for new OpenTelemetry feature. BREAKING CHANGE: gravitee.services.tracing block of configuration has been replaced by gravitee.services.opentelemetry.'
