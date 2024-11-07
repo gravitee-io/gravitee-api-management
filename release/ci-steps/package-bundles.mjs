@@ -12,7 +12,7 @@ await within(async () => {
   // https://maven.apache.org/plugins/maven-help-plugin/effective-pom-mojo.html
   // `help:effective-pom` allows to get the pom.xml with all the inherited properties
   // `-Dbundle` activate the "bundle" profile (from distribution/pom.xml). This maven profile adds some EE plugins in the release.
-  await $`mvn help:effective-pom -Doutput=.effective-pom.xml -Dbundle`;
+  await $`mvn help:effective-pom -Doutput=.effective-pom.xml -Dbundle -s ../.gravitee.settings.xml`;
 });
 
 const pomXml = await fs.readFile(`../gravitee-apim-distribution/.effective-pom.xml`, 'utf-8');
