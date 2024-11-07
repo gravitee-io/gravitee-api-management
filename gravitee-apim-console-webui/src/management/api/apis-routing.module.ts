@@ -88,6 +88,7 @@ import { ApiDocumentationV4MainPagesTabComponent } from './documentation-v4/main
 import { DocumentationEditCustomPageComponent } from './documentation-v4/documentation-pages-tab/documentation-edit-custom-page/documentation-edit-custom-page.component';
 import { DocumentationEditHomepageComponent } from './documentation-v4/main-pages-tab/documentation-edit-homepage/documentation-edit-homepage.component';
 import { ApiDocumentationChooseExistingPageComponent } from './documentation-v4/components/api-documentation-choose-existing-page/api-documentation-choose-existing-page.component';
+import { ApiHealthCheckDashboardV4Component } from './health-check-dashboard-v4/api-health-check-dashboard-v4.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -1103,6 +1104,10 @@ const apisRoutes: Routes = [
             anyOf: ['api-event-r'],
           },
         },
+      },
+      {
+        path: 'v4/healthcheck-dashboard',
+        component: ApiHealthCheckDashboardV4Component,
       },
     ],
   },

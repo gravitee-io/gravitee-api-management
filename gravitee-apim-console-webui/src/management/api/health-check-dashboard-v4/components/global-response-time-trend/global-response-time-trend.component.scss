@@ -1,0 +1,15 @@
+.card {
+  height: 100%;
+
+  &__loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    margin-top: 16px;
+  }
+
+  &__chart {
+    padding-top: 16px;
+  }
+}

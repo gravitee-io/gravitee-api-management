@@ -78,13 +78,13 @@ export class GioChartLineComponent implements OnInit {
       plotOptions: {
         series: {
           marker: { enabled: false },
-          pointStart: Math.floor(this.options.pointStart / this.options.pointInterval) * this.options.pointInterval,
-          pointInterval: this.options.pointInterval,
+          pointStart: Math.floor(this.options?.pointStart / this.options?.pointInterval) * this.options?.pointInterval,
+          pointInterval: this.options?.pointInterval,
         },
         line: {},
       },
 
-      series: this.data.map((item) => ({
+      series: this.data?.map((item) => ({
         name: item.name,
         data: item.values,
         type: 'spline',
