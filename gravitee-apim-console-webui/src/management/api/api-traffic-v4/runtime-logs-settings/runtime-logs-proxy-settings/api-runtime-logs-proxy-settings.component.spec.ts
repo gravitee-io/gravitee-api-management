@@ -124,6 +124,7 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
             content: { headers: true, payload: true },
             condition: 'condition',
           },
+          tracing: { enabled: false, verbose: false },
         },
       });
     });
@@ -226,4 +227,102 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
     expect(await componentHarness.isPayloadDisabled()).toStrictEqual(false);
     expect(await componentHarness.isConditionDisabled()).toStrictEqual(false);
   }
+
+  describe('OpenTelemetry settings', () => {
+    const apiWithTracingDisabled = fakeProxyApiV4({
+      id: API_ID,
+      analytics: {
+        enabled: true,
+        logging: {
+          mode: { entrypoint: true, endpoint: true },
+          phase: { request: true, response: true },
+          content: { headers: true, payload: true },
+          condition: 'condition',
+        },
+        tracing: {
+          enabled: false,
+          verbose: false,
+        },
+      },
+    });
+
+    const apiWithTracingEnabled = fakeProxyApiV4({
+      id: API_ID,
+      analytics: {
+        enabled: true,
+        tracing: {
+          enabled: true,
+          verbose: true,
+        },
+      },
+    });
+
+    beforeEach(async () => {
+      await initComponent();
+    });
+
+    it('should reflect the initial state of OpenTelemetry controls', async () => {
+      expectApiGetRequest(apiWithTracingDisabled);
+
+      expect(await componentHarness.isEnabledChecked()).toStrictEqual(true);
+
+      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(false);
+      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(false);
+    });
+
+    it('should enable and disable OpenTelemetry controls correctly', async () => {
+      expectApiGetRequest(apiWithTracingEnabled);
+
+      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(true);
+      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(true);
+
+      await componentHarness.toggleTracingEnabled();
+      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(false);
+
+      await componentHarness.toggleTracingVerbose();
+      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(false);
+
+      await componentHarness.toggleTracingEnabled();
+      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(true);
+
+      await componentHarness.toggleTracingVerbose();
+      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(true);
+    });
+
+    it('should save API proxy OpenTelemetry settings', async () => {
+      expectApiGetRequest(apiWithTracingDisabled);
+
+      await componentHarness.toggleTracingEnabled();
+      await componentHarness.toggleTracingVerbose();
+
+      await componentHarness.clickOnSaveButton();
+
+      expectApiGetRequest(apiWithTracingDisabled);
+      expectApiPutRequest({
+        ...apiWithTracingDisabled,
+        analytics: {
+          ...apiWithTracingDisabled.analytics,
+          tracing: {
+            enabled: true,
+            verbose: true,
+          },
+        },
+      });
+    });
+
+    it('should discard changes in OpenTelemetry controls', async () => {
+      expectApiGetRequest(apiWithTracingEnabled);
+
+      await componentHarness.toggleTracingEnabled();
+      await componentHarness.toggleTracingVerbose();
+
+      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(false);
+      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(false);
+
+      await componentHarness.clickOnResetButton();
+
+      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(true);
+      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(true);
+    });
+  });
 });

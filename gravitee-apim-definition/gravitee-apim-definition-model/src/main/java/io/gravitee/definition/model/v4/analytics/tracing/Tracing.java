@@ -32,9 +32,9 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
-@Schema(name = "LoggingV4")
+@Schema(name = "TracingV4")
 public class Tracing implements Serializable {
 
-    private boolean enabled = true;
+    private boolean enabled;
     private boolean verbose;
 }

@@ -2754,6 +2754,8 @@ components:
                     $ref: "#/components/schemas/Sampling"
                 logging:
                     $ref: "#/components/schemas/LoggingV4"
+                tracing:
+                    $ref: "#/components/schemas/TracingV4"
         Api:
             oneOf:
                 - $ref: "#/components/schemas/ApiV1"
@@ -4202,6 +4204,15 @@ components:
                     type: boolean
                 response:
                     type: boolean
+        TracingV4:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+              description: Enable OpenTelemetry tracing
+            verbose:
+              type: boolean
+              description: Enable technical tracing to get more details on request execution. Be careful this settings would generate more noise and would impact performance.
         ResponseMetadata:
             description: Generic object to handle additional information about an entity. Can also be used for pagination data.
             type: object
