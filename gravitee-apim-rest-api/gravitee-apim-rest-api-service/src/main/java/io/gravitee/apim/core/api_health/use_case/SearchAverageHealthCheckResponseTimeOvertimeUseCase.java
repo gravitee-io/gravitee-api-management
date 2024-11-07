@@ -22,9 +22,9 @@ import io.gravitee.apim.core.api.exception.TcpProxyNotSupportedException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTimeOvertime;
 import io.gravitee.apim.core.api_health.query_service.ApiHealthQueryService;
+import io.gravitee.apim.core.utils.DurationUtils;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
-import java.time.Duration;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +38,8 @@ public class SearchAverageHealthCheckResponseTimeOvertimeUseCase {
     private final ApiCrudService apiCrudService;
 
     public Maybe<Output> execute(SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input input) {
+        var interval = DurationUtils.buildIntervalFromTimePeriod(input.from(), input.to());
+
         return validateApiRequirements(input)
             .flatMapMaybe(api ->
                 apiHealthQueryService.averageResponseTimeOvertime(
@@ -47,7 +49,7 @@ public class SearchAverageHealthCheckResponseTimeOvertimeUseCase {
                         input.apiId,
                         input.from,
                         input.to,
-                        input.interval
+                        interval
                     )
                 )
             )
@@ -69,7 +71,7 @@ public class SearchAverageHealthCheckResponseTimeOvertimeUseCase {
         return !api.belongsToEnvironment(environmentId) ? Single.error(new ApiNotFoundException(api.getId())) : Single.just(api);
     }
 
-    public record Input(String organizationId, String environmentId, String apiId, Instant from, Instant to, Duration interval) {}
+    public record Input(String organizationId, String environmentId, String apiId, Instant from, Instant to) {}
 
     public record Output(AverageHealthCheckResponseTimeOvertime averageHealthCheckResponseTimeOvertime) {}
 }

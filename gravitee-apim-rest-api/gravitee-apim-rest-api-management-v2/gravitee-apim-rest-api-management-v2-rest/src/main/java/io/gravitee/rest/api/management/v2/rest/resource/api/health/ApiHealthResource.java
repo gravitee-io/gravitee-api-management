@@ -35,7 +35,6 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
-import java.time.Duration;
 import java.time.Instant;
 
 public class ApiHealthResource extends AbstractResource {
@@ -84,8 +83,7 @@ public class ApiHealthResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ) })
     public ApiHealthAverageResponseTimeOvertimeResponse getAverageResponseTimeOvertime(
         @QueryParam("from") Long from,
-        @QueryParam("to") Long to,
-        @QueryParam("interval") Long interval
+        @QueryParam("to") Long to
     ) {
         var context = GraviteeContext.getExecutionContext();
         return searchAverageHealthCheckResponseTimeOvertimeUseCase
@@ -95,8 +93,7 @@ public class ApiHealthResource extends AbstractResource {
                     context.getEnvironmentId(),
                     apiId,
                     Instant.ofEpochMilli(from),
-                    Instant.ofEpochMilli(to),
-                    Duration.ofMillis(interval)
+                    Instant.ofEpochMilli(to)
                 )
             )
             .map(SearchAverageHealthCheckResponseTimeOvertimeUseCase.Output::averageHealthCheckResponseTimeOvertime)
