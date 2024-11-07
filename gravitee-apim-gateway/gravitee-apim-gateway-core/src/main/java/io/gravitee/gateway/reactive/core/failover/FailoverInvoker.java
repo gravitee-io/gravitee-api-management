@@ -27,15 +27,17 @@ import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.reactivex.rxjava3.core.Completable;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 
-public class FailoverInvoker implements Invoker {
+public class FailoverInvoker implements HttpInvoker, Invoker {
 
-    private final Invoker delegate;
+    private final HttpInvoker delegate;
     private final Failover failoverConfiguration;
 
     @VisibleForTesting
@@ -49,7 +51,7 @@ public class FailoverInvoker implements Invoker {
         return "failover-invoker";
     }
 
-    public FailoverInvoker(Invoker delegate, Failover failoverConfiguration, String apiId) {
+    public FailoverInvoker(HttpInvoker delegate, Failover failoverConfiguration, String apiId) {
         this.delegate = delegate;
         this.failoverConfiguration = failoverConfiguration;
         final CircuitBreakerConfig circuitBreakerConfiguration = CircuitBreakerConfig
@@ -74,7 +76,12 @@ public class FailoverInvoker implements Invoker {
     }
 
     @Override
-    public Completable invoke(ExecutionContext ctx) {
+    public Completable invoke(ExecutionContext executionContext) {
+        return invoke((HttpExecutionContext) executionContext);
+    }
+
+    @Override
+    public Completable invoke(HttpExecutionContext ctx) {
         final String originalEndpoint = ctx.getAttribute(ATTR_REQUEST_ENDPOINT);
         return Completable
             .defer(() -> {
@@ -91,7 +98,7 @@ public class FailoverInvoker implements Invoker {
             .onErrorResumeNext(t -> ctx.interruptWith(new ExecutionFailure(502)));
     }
 
-    private CircuitBreaker circuitBreaker(ExecutionContext ctx) {
+    private CircuitBreaker circuitBreaker(HttpExecutionContext ctx) {
         if (failoverConfiguration.isPerSubscription()) {
             final String subscription = ctx.getAttribute(ContextAttributes.ATTR_SUBSCRIPTION_ID);
             return circuitBreakerRegistry.circuitBreaker(subscription);

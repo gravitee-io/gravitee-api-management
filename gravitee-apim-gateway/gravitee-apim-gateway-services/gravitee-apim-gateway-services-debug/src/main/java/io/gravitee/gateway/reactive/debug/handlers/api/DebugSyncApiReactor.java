@@ -25,7 +25,7 @@ import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.opentelemetry.TracingContext;
-import io.gravitee.gateway.reactive.api.invoker.Invoker;
+import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.debug.invoker.DebugInvokerHook;
 import io.gravitee.gateway.reactive.debug.policy.DebugPolicyHook;
@@ -38,8 +38,6 @@ import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
-import io.gravitee.node.api.opentelemetry.Tracer;
-import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Collections;
 import java.util.List;
@@ -55,7 +53,7 @@ public class DebugSyncApiReactor extends SyncApiReactor {
         final Api api,
         final ComponentProvider componentProvider,
         final List<TemplateVariableProvider> templateVariableProviders,
-        final Invoker defaultInvoker,
+        final HttpInvoker defaultInvoker,
         final ResourceLifecycleManager resourceLifecycleManager,
         final ApiProcessorChainFactory apiProcessorChainFactory,
         final PolicyManager policyManager,

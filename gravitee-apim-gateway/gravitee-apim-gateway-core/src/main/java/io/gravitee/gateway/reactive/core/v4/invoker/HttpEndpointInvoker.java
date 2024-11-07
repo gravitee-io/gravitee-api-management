@@ -24,8 +24,11 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
-import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector;
+import io.gravitee.gateway.reactive.api.connector.endpoint.HttpEndpointConnector;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.HttpEntrypointConnector;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointCriteria;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
@@ -38,7 +41,7 @@ import java.util.regex.Pattern;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EndpointInvoker implements Invoker {
+public class HttpEndpointInvoker implements HttpInvoker, Invoker {
 
     private static final String MATCH_GROUP_ENDPOINT = "endpoint";
     private static final String MATCH_GROUP_PATH = "path";
@@ -51,7 +54,7 @@ public class EndpointInvoker implements Invoker {
 
     private final EndpointManager endpointManager;
 
-    public EndpointInvoker(final EndpointManager endpointManager) {
+    public HttpEndpointInvoker(final EndpointManager endpointManager) {
         this.endpointManager = endpointManager;
     }
 
@@ -60,18 +63,24 @@ public class EndpointInvoker implements Invoker {
         return "endpoint-invoker";
     }
 
-    public Completable invoke(final ExecutionContext ctx) {
-        final EndpointConnector endpointConnector = resolveConnector(ctx);
+    @Override
+    public Completable invoke(ExecutionContext executionContext) {
+        return invoke((HttpExecutionContext) executionContext);
+    }
+
+    @Override
+    public Completable invoke(final HttpExecutionContext ctx) {
+        final HttpEndpointConnector endpointConnector = resolveConnector(ctx);
 
         if (endpointConnector == null) {
             return ctx.interruptWith(new ExecutionFailure(HttpStatusCode.SERVICE_UNAVAILABLE_503).key(NO_ENDPOINT_FOUND_KEY));
         }
 
-        return connect(endpointConnector, ctx);
+        return connect(((EndpointConnector) endpointConnector), ((ExecutionContext) ctx));
     }
 
-    private <T extends EndpointConnector> T resolveConnector(final ExecutionContext ctx) {
-        final EntrypointConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
+    private <T extends HttpEndpointConnector> T resolveConnector(final HttpExecutionContext ctx) {
+        final HttpEntrypointConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
 
         final EndpointCriteria endpointCriteria = new EndpointCriteria(
             entrypointConnector.supportedApi(),
@@ -108,6 +117,7 @@ public class EndpointInvoker implements Invoker {
         return null;
     }
 
+    // Do not remove this signature until all connectors are migrated to HttpEndpointConnectors#connect(HttpExecutionContext ctx)
     protected Completable connect(final EndpointConnector endpointConnector, final ExecutionContext ctx) {
         final Object requestMethodAttribute = ctx.getAttribute(io.gravitee.gateway.api.ExecutionContext.ATTR_REQUEST_METHOD);
         if (requestMethodAttribute != null) {

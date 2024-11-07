@@ -18,7 +18,7 @@ package io.gravitee.gateway.reactive.core.v4.invoker;
 import static io.gravitee.gateway.api.ExecutionContext.ATTR_REQUEST_METHOD;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
-import static io.gravitee.gateway.reactive.core.v4.invoker.EndpointInvoker.NO_ENDPOINT_FOUND_KEY;
+import static io.gravitee.gateway.reactive.core.v4.invoker.HttpEndpointInvoker.NO_ENDPOINT_FOUND_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,7 +29,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
-import io.gravitee.gateway.reactive.api.connector.entrypoint.async.EntrypointAsyncConnector;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.async.HttpEntrypointAsyncConnector;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
@@ -57,7 +57,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-class EndpointInvokerTest {
+class HttpEndpointInvokerTest {
 
     @Mock
     private EndpointManager endpointManager;
@@ -77,11 +77,11 @@ class EndpointInvokerTest {
     @Mock
     private Request request;
 
-    private EndpointInvoker cut;
+    private HttpEndpointInvoker cut;
 
     @BeforeEach
     void init() {
-        cut = new EndpointInvoker(endpointManager);
+        cut = new HttpEndpointInvoker(endpointManager);
     }
 
     @Test
@@ -91,8 +91,8 @@ class EndpointInvokerTest {
 
     @Test
     void shouldConnectToEndpointConnector() {
-        final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
+        final HttpEntrypointAsyncConnector HttpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(HttpEntrypointAsyncConnector);
         when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
         when(managedEndpoint.getConnector()).thenReturn(endpointConnector);
         when(endpointConnector.connect(ctx)).thenReturn(Completable.complete());
@@ -105,8 +105,8 @@ class EndpointInvokerTest {
     @ParameterizedTest
     @ValueSource(strings = { "custom", "c_u/s$t*o-m" })
     void shouldConnectToNamedEndpointConnectorWithCustomEndpointAttribute(String endpointName) {
-        final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
+        final HttpEntrypointAsyncConnector HttpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(HttpEntrypointAsyncConnector);
         when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn(endpointName + ":");
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue(anyString(), eq(String.class))).thenAnswer(i -> i.getArgument(0));
@@ -124,8 +124,8 @@ class EndpointInvokerTest {
 
     @Test
     void shouldConnectToNamedEndpointConnectorWithCustomEndpointAttributeContainingColon() {
-        final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
+        final HttpEntrypointAsyncConnector HttpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(HttpEntrypointAsyncConnector);
         when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("name:with:colon:");
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue(anyString(), eq(String.class))).thenAnswer(i -> i.getArgument(0));
@@ -143,8 +143,8 @@ class EndpointInvokerTest {
 
     @Test
     void shouldConnectToNextEndpointConnectorWhenUrlEndpointAttributeIsDefined() {
-        final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
+        final HttpEntrypointAsyncConnector HttpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(HttpEntrypointAsyncConnector);
         when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("http://api.gravitee.io/echo");
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue(anyString(), eq(String.class))).thenAnswer(i -> i.getArgument(0));
@@ -161,8 +161,8 @@ class EndpointInvokerTest {
 
     @Test
     void shouldConnectAndReplaceWithEvaluatedEndpointAttributeWhenUrlEndpointAttributeIsDefined() {
-        final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
+        final HttpEntrypointAsyncConnector httpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(httpEntrypointAsyncConnector);
         when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("{#api.properties['url']}");
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue(anyString(), eq(String.class))).thenReturn("http://api.gravitee.io/echo");
@@ -180,8 +180,8 @@ class EndpointInvokerTest {
 
     @Test
     void shouldFailWith503WhenNoEndpointConnectorHasBeenResolved() {
-        final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
+        final HttpEntrypointAsyncConnector httpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(httpEntrypointAsyncConnector);
         when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(null);
         when(ctx.interruptWith(any(ExecutionFailure.class)))
             .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
@@ -202,8 +202,8 @@ class EndpointInvokerTest {
     @ParameterizedTest(name = "[{index}] {1}")
     @MethodSource("provideOverrideMethodAttributes")
     void shouldOverrideHttpMethodThanksToAttribute(Object attribute, String testName) {
-        final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
+        final HttpEntrypointAsyncConnector httpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(httpEntrypointAsyncConnector);
         when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
         when(managedEndpoint.getConnector()).thenReturn(endpointConnector);
         when(endpointConnector.connect(ctx)).thenReturn(Completable.complete());
@@ -220,8 +220,8 @@ class EndpointInvokerTest {
 
     @Test
     void shouldNotOverrideHttpMethodWhenAttributeIsNotValid() {
-        final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
+        final HttpEntrypointAsyncConnector httpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(httpEntrypointAsyncConnector);
         when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
         when(managedEndpoint.getConnector()).thenReturn(endpointConnector);
         when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn(null);
@@ -242,7 +242,7 @@ class EndpointInvokerTest {
                 assertThat(failureException.getExecutionFailure().message())
                     .isNotNull()
                     .isEqualTo("Http method cannot be overridden because ATTR_REQUEST_METHOD attribute is invalid");
-                assertThat(failureException.getExecutionFailure().key()).isEqualTo(EndpointInvoker.INVALID_HTTP_METHOD);
+                assertThat(failureException.getExecutionFailure().key()).isEqualTo(HttpEndpointInvoker.INVALID_HTTP_METHOD);
                 return true;
             });
     }
