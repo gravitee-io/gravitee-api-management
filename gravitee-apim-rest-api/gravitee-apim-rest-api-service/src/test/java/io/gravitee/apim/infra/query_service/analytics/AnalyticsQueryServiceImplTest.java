@@ -20,7 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.analytics.model.EnvironmentAnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.repository.common.query.QueryContext;
@@ -109,7 +109,7 @@ class AnalyticsQueryServiceImplTest {
 
         @Test
         void should_return_request_status_ranges() {
-            var queryParameters = EnvironmentAnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
+            var queryParameters = AnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
             when(analyticsRepository.searchResponseStatusRanges(any(QueryContext.class), any()))
                 .thenReturn(
                     Optional.of(
@@ -139,7 +139,7 @@ class AnalyticsQueryServiceImplTest {
 
         @Test
         void should_return_top_hits() {
-            var queryParameters = EnvironmentAnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
+            var queryParameters = AnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
             when(analyticsRepository.searchTopHitsApi(any(QueryContext.class), any()))
                 .thenReturn(
                     Optional.of(TopHitsAggregate.builder().topHitsCounts(Map.of("api-id-1", 15L, "api-id-2", 2L, "api-id-3", 17L)).build())
@@ -162,7 +162,7 @@ class AnalyticsQueryServiceImplTest {
 
         @Test
         void should_return_request_response_time() {
-            var queryParameters = EnvironmentAnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
+            var queryParameters = AnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
             when(analyticsRepository.searchRequestResponseTimes(any(QueryContext.class), any()))
                 .thenReturn(
                     RequestResponseTimeAggregate

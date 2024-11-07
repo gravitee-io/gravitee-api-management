@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.infra.adapter;
 
-import io.gravitee.apim.core.analytics.model.EnvironmentAnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -24,5 +24,5 @@ import org.mapstruct.factory.Mappers;
 public interface ResponseStatusQueryCriteriaAdapter {
     ResponseStatusQueryCriteriaAdapter INSTANCE = Mappers.getMapper(ResponseStatusQueryCriteriaAdapter.class);
 
-    ResponseStatusQueryCriteria map(EnvironmentAnalyticsQueryParameters environmentAnalyticsQueryParameters);
+    ResponseStatusQueryCriteria map(AnalyticsQueryParameters analyticsQueryParameters);
 }

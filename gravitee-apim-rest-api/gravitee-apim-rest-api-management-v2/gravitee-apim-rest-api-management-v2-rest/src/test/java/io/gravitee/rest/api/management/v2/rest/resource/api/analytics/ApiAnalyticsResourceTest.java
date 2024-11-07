@@ -282,6 +282,8 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
 
         @Test
         void should_return_status_codes_by_entrypoint() {
+            var FROM = 1728981738L;
+            var TO = 1729068138L;
             apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
             fakeAnalyticsQueryService.responseStatusRanges =
                 ResponseStatusRanges
@@ -289,7 +291,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     .statusRangesCountByEntrypoint(Map.of("http-get", Map.of("100.0-200.0", 1L), "http-post", Map.of("100.0-200.0", 1L)))
                     .build();
 
-            final Response response = statusCodesByEntrypointTarget.request().get();
+            final Response response = statusCodesByEntrypointTarget.queryParam("from", FROM).queryParam("to", TO).request().get();
 
             MAPIAssertions
                 .assertThat(response)

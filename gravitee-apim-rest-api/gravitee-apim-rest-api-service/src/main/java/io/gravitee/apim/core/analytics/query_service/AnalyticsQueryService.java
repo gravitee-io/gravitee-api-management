@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.analytics.query_service;
 
-import io.gravitee.apim.core.analytics.model.EnvironmentAnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
@@ -42,12 +42,9 @@ public interface AnalyticsQueryService {
         Instant to
     );
 
-    Optional<ResponseStatusRanges> searchResponseStatusRanges(
-        ExecutionContext executionContext,
-        EnvironmentAnalyticsQueryParameters queryParameters
-    );
+    Optional<ResponseStatusRanges> searchResponseStatusRanges(ExecutionContext executionContext, AnalyticsQueryParameters queryParameters);
 
-    Optional<TopHitsApis> searchTopHitsApis(ExecutionContext executionContext, EnvironmentAnalyticsQueryParameters parameters);
+    Optional<TopHitsApis> searchTopHitsApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
 
     Maybe<Map<String, Double>> searchAvgResponseTimeOverTime(
         ExecutionContext executionContext,
@@ -59,7 +56,7 @@ public interface AnalyticsQueryService {
 
     ResponseStatusOvertime searchResponseStatusOvertime(ExecutionContext executionContext, ResponseStatusOverTimeQuery query);
 
-    RequestResponseTime searchRequestResponseTime(ExecutionContext executionContext, EnvironmentAnalyticsQueryParameters parameters);
+    RequestResponseTime searchRequestResponseTime(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
 
     record ResponseStatusOverTimeQuery(String apiId, Instant from, Instant to, Duration interval) {}
 }
