@@ -45,6 +45,7 @@ export class PackageBundleJob {
         'var-name': 'ARTIFACTORY_PASSWORD',
       }),
       new commands.Checkout(),
+      new commands.workspace.Attach({ at: '.' }),
       new commands.Run({
         name: `Checkout tag ${parsedGraviteeioVersion.full}`,
         command: `git checkout ${parsedGraviteeioVersion.full}`,

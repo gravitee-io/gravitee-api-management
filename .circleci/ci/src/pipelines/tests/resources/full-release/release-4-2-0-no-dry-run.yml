@@ -419,6 +419,8 @@ jobs:
           secret-url: keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/password
           var-name: ARTIFACTORY_PASSWORD
       - checkout
+      - attach_workspace:
+          at: .
       - run:
           name: Checkout tag 4.2.0
           command: git checkout 4.2.0

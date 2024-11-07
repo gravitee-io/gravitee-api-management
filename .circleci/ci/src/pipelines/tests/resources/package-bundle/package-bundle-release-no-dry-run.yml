@@ -32,6 +32,21 @@ commands:
           name: Yarn Set Version Stable
           command: yarn set version 4.1.1
 jobs:
+  job-setup:
+    docker:
+      - image: cimg/base:stable
+    resource_class: small
+    steps:
+      - checkout
+      - keeper/env-export:
+          secret-url: keeper://7CgijuGiFDSLynRJt1Dm9w/custom_field/xml
+          var-name: MAVEN_SETTINGS
+      - run:
+          command: "echo $MAVEN_SETTINGS > .gravitee.settings.xml "
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .gravitee.settings.xml
   job-package-bundle:
     docker:
       - image: cimg/openjdk:17.0.8-node
@@ -44,6 +59,8 @@ jobs:
           secret-url: keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/password
           var-name: ARTIFACTORY_PASSWORD
       - checkout
+      - attach_workspace:
+          at: .
       - run:
           name: Checkout tag 4.1.0
           command: git checkout 4.1.0
@@ -71,9 +88,16 @@ jobs:
 workflows:
   package_bundle:
     jobs:
+      - job-setup:
+          context:
+            - cicd-orchestrator
+          name: Setup
       - job-package-bundle:
           context:
             - cicd-orchestrator
+          name: Package bundle
+          requires:
+            - Setup
 orbs:
   keeper: gravitee-io/keeper@0.6.3
   aws-s3: circleci/aws-s3@3.0.0
