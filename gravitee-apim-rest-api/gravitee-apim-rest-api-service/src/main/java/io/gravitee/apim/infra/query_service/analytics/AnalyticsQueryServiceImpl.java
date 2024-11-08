@@ -70,10 +70,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     @Override
     public Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(ExecutionContext executionContext, String apiId) {
         return analyticsRepository
-            .searchAverageMessagesPerRequest(
-                executionContext.getQueryContext(),
-                AverageMessagesPerRequestQuery.builder().apiId(apiId).build()
-            )
+            .searchAverageMessagesPerRequest(executionContext.getQueryContext(), new AverageMessagesPerRequestQuery(apiId))
             .map(averageAggregate ->
                 AverageMessagesPerRequest
                     .builder()

@@ -15,12 +15,17 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
+import java.util.Optional;
 import lombok.Builder;
 import lombok.Data;
 
 @Builder
-@Data
-public class AverageMessagesPerRequestQuery {
+public record AverageMessagesPerRequestQuery(Optional<String> apiId) {
+    public AverageMessagesPerRequestQuery() {
+        this(Optional.empty());
+    }
 
-    String apiId;
+    public AverageMessagesPerRequestQuery(String apiId) {
+        this(Optional.ofNullable(apiId));
+    }
 }

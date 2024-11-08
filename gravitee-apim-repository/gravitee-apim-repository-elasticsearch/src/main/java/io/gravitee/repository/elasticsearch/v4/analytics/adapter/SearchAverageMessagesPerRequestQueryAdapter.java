@@ -35,7 +35,7 @@ public class SearchAverageMessagesPerRequestQueryAdapter {
 
     public static String adapt(AverageMessagesPerRequestQuery query) {
         var jsonContent = new HashMap<String, Object>();
-        var esQuery = buildElasticQuery(Optional.ofNullable(query).orElse(AverageMessagesPerRequestQuery.builder().build()));
+        var esQuery = buildElasticQuery(Optional.ofNullable(query).orElse(new AverageMessagesPerRequestQuery()));
         jsonContent.put("size", 0);
         jsonContent.put("query", esQuery);
         jsonContent.put("aggs", buildAverageMessagesPerRequestPerEntrypointAggregate());
@@ -77,9 +77,7 @@ public class SearchAverageMessagesPerRequestQueryAdapter {
         var terms = new ArrayList<JsonObject>();
         terms.add(JsonObject.of("term", JsonObject.of("connector-type", "entrypoint")));
 
-        if (query.getApiId() != null) {
-            terms.add(JsonObject.of("term", JsonObject.of("api-id", query.getApiId())));
-        }
+        query.apiId().ifPresent(apiId -> terms.add(JsonObject.of("term", JsonObject.of("api-id", apiId))));
 
         return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(terms.toArray())));
     }

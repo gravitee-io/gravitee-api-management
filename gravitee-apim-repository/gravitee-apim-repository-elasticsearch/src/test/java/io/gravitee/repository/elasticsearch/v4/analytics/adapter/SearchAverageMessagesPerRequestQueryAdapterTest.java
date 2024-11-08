@@ -84,14 +84,14 @@ class SearchAverageMessagesPerRequestQueryAdapterTest {
 
     @Test
     void should_build_query_with_empty_filter() {
-        var result = SearchAverageMessagesPerRequestQueryAdapter.adapt(AverageMessagesPerRequestQuery.builder().build());
+        var result = SearchAverageMessagesPerRequestQueryAdapter.adapt(new AverageMessagesPerRequestQuery());
 
         assertThatJson(result).isEqualTo(QUERY_WITHOUT_FILTER);
     }
 
     @Test
     void should_build_query_with_api_filter() {
-        var result = SearchAverageMessagesPerRequestQueryAdapter.adapt(AverageMessagesPerRequestQuery.builder().apiId("api-id").build());
+        var result = SearchAverageMessagesPerRequestQueryAdapter.adapt(new AverageMessagesPerRequestQuery("api-id"));
 
         assertThatJson(result)
             .isEqualTo(
