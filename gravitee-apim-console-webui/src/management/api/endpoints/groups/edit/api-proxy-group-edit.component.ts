@@ -108,7 +108,11 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
           groupIndex !== -1 ? api.proxy.groups.splice(groupIndex, 1, updatedGroup) : api.proxy.groups.push(updatedGroup);
           return this.apiService.update(api.id, api);
         }),
-        tap(() => this.snackBarService.success('Configuration successfully saved!')),
+        tap(() => {
+          this.snackBarService.success('Configuration successfully saved!');
+          this.initialGroupFormValue = this.groupForm.getRawValue();
+          this.groupForm.markAsPristine();
+        }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
