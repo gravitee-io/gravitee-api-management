@@ -21,7 +21,7 @@ $typography: map.get(gio.$mat-theme, typography);
     flex-direction: column;
 
     &__title {
-      @include mat.m2-typography-level($typography, subtitle-1);
+      @include mat.m2-typography-level($typography, subtitle-2);
       border-bottom: 1px mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
       height: 52px;
       padding-right: 8px;
