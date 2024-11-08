@@ -91,8 +91,14 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
-    public ApiAnalyticsAverageMessagesPerRequestResponse getAverageMessagesPerRequest() {
-        var request = new SearchAverageMessagesPerRequestAnalyticsUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment());
+    public ApiAnalyticsAverageMessagesPerRequestResponse getAverageMessagesPerRequest(
+        @QueryParam("from") Long from,
+        @QueryParam("to") Long to
+    ) {
+        var end = Optional.ofNullable(to).map(Instant::ofEpochMilli);
+        var start = Optional.ofNullable(from).map(Instant::ofEpochMilli);
+
+        var request = new SearchAverageMessagesPerRequestAnalyticsUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), start, end);
 
         return searchAverageMessagesPerRequestAnalyticsUseCase
             .execute(GraviteeContext.getExecutionContext(), request)

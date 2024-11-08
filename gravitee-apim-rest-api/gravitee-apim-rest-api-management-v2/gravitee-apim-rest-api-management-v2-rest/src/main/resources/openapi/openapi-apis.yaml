@@ -2016,6 +2016,8 @@ paths:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/from"
+            - $ref: "#/components/parameters/to"
         get:
             tags:
                 - API Analytics
