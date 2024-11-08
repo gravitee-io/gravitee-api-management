@@ -73,9 +73,9 @@ public class CloseSubscriptionDomainService {
 
     public SubscriptionEntity closeSubscription(String subscriptionId, AuditInfo auditInfo) {
         var subscription = subscriptionCrudService.get(subscriptionId);
-        var plan = apiCrudService.get(subscription.getApiId());
+        var api = apiCrudService.get(subscription.getApiId());
 
-        return closeSubscription(subscription, plan, auditInfo);
+        return closeSubscription(subscription, api, auditInfo);
     }
 
     public SubscriptionEntity closeSubscription(String subscriptionId, Api api, AuditInfo auditInfo) {

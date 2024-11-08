@@ -23,7 +23,9 @@ import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.apim.core.json.JsonSerializer;
 import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -81,7 +83,59 @@ public abstract class SubscriptionAdapter {
     @Mapping(source = "applicationId", target = "application")
     @Mapping(source = "requestMessage", target = "request")
     @Mapping(source = "reasonMessage", target = "reason")
+    @Mapping(target = "security", ignore = true)
+    @Mapping(target = "keys", ignore = true)
     public abstract io.gravitee.rest.api.model.SubscriptionEntity map(SubscriptionEntity subscription);
+
+    @Mapping(target = "type", ignore = true)
+    @Mapping(source = "api", target = "apiId")
+    @Mapping(source = "plan", target = "planId")
+    @Mapping(source = "application", target = "applicationId")
+    @Mapping(source = "request", target = "requestMessage")
+    @Mapping(source = "reason", target = "reasonMessage")
+    @Mapping(target = "generalConditionsContentRevision", ignore = true)
+    @Mapping(target = "generalConditionsContentPageId", ignore = true)
+    @Mapping(target = "generalConditionsAccepted", ignore = true)
+    public abstract SubscriptionEntity toCore(io.gravitee.rest.api.model.SubscriptionEntity subscription);
+
+    public SubscriptionEntity.Status toCore(SubscriptionStatus status) {
+        return status == SubscriptionStatus.RESUMED ? SubscriptionEntity.Status.ACCEPTED : SubscriptionEntity.Status.valueOf(status.name());
+    }
+
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "startingAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "type", ignore = true)
+    @Mapping(target = "subscribedBy", ignore = true)
+    @Mapping(target = "requestMessage", ignore = true)
+    @Mapping(target = "reasonMessage", ignore = true)
+    @Mapping(target = "processedBy", ignore = true)
+    @Mapping(target = "processedAt", ignore = true)
+    @Mapping(target = "pausedAt", ignore = true)
+    @Mapping(target = "metadata", ignore = true)
+    @Mapping(target = "generalConditionsContentRevision", ignore = true)
+    @Mapping(target = "generalConditionsContentPageId", ignore = true)
+    @Mapping(target = "generalConditionsAccepted", ignore = true)
+    @Mapping(target = "failureCause", ignore = true)
+    @Mapping(target = "environmentId", ignore = true)
+    @Mapping(target = "daysToExpirationOnLastNotification", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "consumerStatus", ignore = true)
+    @Mapping(target = "consumerPausedAt", ignore = true)
+    @Mapping(target = "configuration", ignore = true)
+    @Mapping(target = "closedAt", ignore = true)
+    @Mapping(target = "clientId", ignore = true)
+    @Mapping(target = "clientCertificate", ignore = true)
+    public abstract SubscriptionEntity fromSpec(SubscriptionCRDSpec spec);
+
+    @Mapping(target = "request", ignore = true)
+    @Mapping(target = "apiKeyMode", ignore = true)
+    @Mapping(source = "applicationId", target = "application")
+    @Mapping(source = "planId", target = "plan")
+    @Mapping(target = "generalConditionsContentRevision", ignore = true)
+    public abstract io.gravitee.rest.api.model.NewSubscriptionEntity fromCoreForCreate(SubscriptionEntity entity);
+
+    public abstract io.gravitee.rest.api.model.UpdateSubscriptionEntity fromCoreForUpdate(SubscriptionEntity entity);
 
     @Named("deserializeConfiguration")
     public SubscriptionConfiguration deserializeConfiguration(String configuration) {
