@@ -20,8 +20,11 @@ import static java.lang.String.format;
 import io.gravitee.apim.core.api_key.use_case.RevokeApiSubscriptionApiKeyUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.DeleteSubscriptionSpecUseCase;
+import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
@@ -59,6 +62,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -129,6 +133,12 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
     @Inject
     private SecurityContext securityContext;
+
+    @Inject
+    private ImportSubscriptionSpecUseCase importSubscriptionSpecUseCase;
+
+    @Inject
+    private DeleteSubscriptionSpecUseCase deleteSubscriptionSpecUseCase;
 
     @PathParam("apiId")
     private String apiId;
@@ -303,6 +313,21 @@ public class ApiSubscriptionsResource extends AbstractResource {
         expandData(subscription, expands);
 
         return Response.ok(subscription).build();
+    }
+
+    @PUT
+    @Path("/spec/_import")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response importSubscriptionSpec(@Valid SubscriptionCRDSpec spec) {
+        return Response.ok(importSubscriptionSpecUseCase.execute(new ImportSubscriptionSpecUseCase.Input(getAuditInfo(), spec))).build();
+    }
+
+    @DELETE
+    @Path("/spec/{id}")
+    public Response deleteSubscriptionSpec(@PathParam("id") String id) {
+        deleteSubscriptionSpecUseCase.execute(new DeleteSubscriptionSpecUseCase.Input(getAuditInfo(), id));
+        return Response.noContent().build();
     }
 
     @PUT

@@ -55,6 +55,13 @@ public interface SubscriptionService {
 
     SubscriptionEntity create(ExecutionContext executionContext, NewSubscriptionEntity newSubscriptionEntity, String customApiKey);
 
+    SubscriptionEntity create(
+        ExecutionContext executionContext,
+        NewSubscriptionEntity newSubscriptionEntity,
+        String customApiKey,
+        String customId
+    );
+
     SubscriptionEntity update(ExecutionContext executionContext, UpdateSubscriptionEntity subscription);
 
     SubscriptionEntity update(
