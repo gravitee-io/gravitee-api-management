@@ -13,26 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ComponentHarness } from '@angular/cdk/testing';
+import { SpanHarness } from '@gravitee/ui-particles-angular/testing';
 
-export interface ApiHealthResponseTimeOvertime {
-  timeRange: {
-    from: number;
-    to: number;
-    interval: number;
-  };
-  data: number[];
-}
+export class AverageResponseTimeHarness extends ComponentHarness {
+  static hostSelector = 'global-average-response-time';
 
-export interface ApiAvailability {
-  global: number;
-  group: {
-    [key: string]: number;
-  };
-}
+  private widget = this.locatorForOptional(SpanHarness.with({ selector: '[data-testid=averageResponseTime]' }));
 
-export interface ApiAverageResponseTime {
-  global: number;
-  group: {
-    [key: string]: number;
-  };
+  public async getWidgetValue() {
+    return await this.widget().then((value) => value.getText());
+  }
 }

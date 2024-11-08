@@ -13,30 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { Component, DestroyRef, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DecimalPipe } from '@angular/common';
+import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 
-import { GioChartLineModule } from '../../../../../shared/components/gio-chart-line/gio-chart-line.module';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { GioChartLineData, GioChartLineOptions } from '../../../../../shared/components/gio-chart-line/gio-chart-line.component';
 import { ApiHealthV2Service } from '../../../../../services-ngx/api-health-v2.service';
 
 @Component({
-  selector: 'app-global-response-time-trend',
+  selector: 'global-availability',
   standalone: true,
-  imports: [MatCardModule, GioLoaderModule, GioChartLineModule],
-  templateUrl: './global-response-time-trend.component.html',
-  styleUrl: './global-response-time-trend.component.scss',
+  imports: [MatCardModule, DecimalPipe, GioLoaderModule],
+  templateUrl: './global-availability.component.html',
+  styleUrl: './global-availability.component.scss',
 })
-export class GlobalResponseTimeTrendComponent implements OnInit {
-  private apiId = this.activatedRoute.snapshot.params.apiId;
+export class GlobalAvailabilityComponent implements OnInit {
   public isLoading = true;
-  public input: GioChartLineData[];
-  public options: GioChartLineOptions;
+  public globalAvailability: number;
+  private readonly apiId = this.activatedRoute.snapshot.params.apiId;
 
   constructor(
     private readonly destroyRef: DestroyRef,
@@ -50,8 +47,8 @@ export class GlobalResponseTimeTrendComponent implements OnInit {
       .activeFilter()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (data) => {
-          this.getData(data.from, data.to);
+        next: (timeRange) => {
+          this.getData(timeRange.from, timeRange.to);
         },
       });
   }
@@ -59,20 +56,11 @@ export class GlobalResponseTimeTrendComponent implements OnInit {
   getData(from: number, to: number) {
     this.isLoading = true;
     this.apiHealthV2Service
-      .getApiHealthResponseTimeOvertime(this.apiId, from, to)
+      .getApiAvailability(this.apiId, from, to)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
-          this.input = [
-            {
-              name: 'Response time (ms)',
-              values: res.data,
-            },
-          ];
-          this.options = {
-            pointStart: res.timeRange.from,
-            pointInterval: res.timeRange.interval,
-          };
+          this.globalAvailability = res.global;
           this.isLoading = false;
         },
         error: ({ error }) => {

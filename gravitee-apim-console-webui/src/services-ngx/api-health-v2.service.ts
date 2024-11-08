@@ -20,7 +20,7 @@ import { HttpClient } from '@angular/common/http';
 
 import { ActiveFilter } from '../management/api/health-check-dashboard-v4/components/filters/api-health-check-dashboard-v4-filters.component';
 import { Constants } from '../entities/Constants';
-import { ApiHealthResponseTimeOvertime } from '../entities/management-api-v2/api/v4/healthCheck';
+import { ApiAvailability, ApiAverageResponseTime, ApiHealthResponseTimeOvertime } from '../entities/management-api-v2/api/v4/healthCheck';
 import { timeFrameRangesParams, TimeRangeParams } from '../shared/utils/timeFrameRanges';
 
 @Injectable({
@@ -47,5 +47,15 @@ export class ApiHealthV2Service {
   public getApiHealthResponseTimeOvertime(apiId: string, from: number, to: number): Observable<ApiHealthResponseTimeOvertime> {
     const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/health/average-response-time-overtime?from=${from}&to=${to}`;
     return this.httpClient.get<ApiHealthResponseTimeOvertime>(url);
+  }
+
+  public getApiAvailability(apiId: string, from: number, to: number): Observable<ApiAvailability> {
+    const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/health/availability?from=${from}&to=${to}&field=endpoint`;
+    return this.httpClient.get<ApiAvailability>(url);
+  }
+
+  public getApiAverageResponseTime(apiId: string, from: number, to: number): Observable<ApiAverageResponseTime> {
+    const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/health/average-response-time?from=${from}&to=${to}&field=endpoint`;
+    return this.httpClient.get<ApiAverageResponseTime>(url);
   }
 }

@@ -20,10 +20,18 @@ import { CommonModule } from '@angular/common';
 import { ApiHealthCheckDashboardV4Component } from './api-health-check-dashboard-v4.component';
 import { ApiHealthCheckDashboardV4FiltersComponent } from './components/filters/api-health-check-dashboard-v4-filters.component';
 import { GlobalResponseTimeTrendComponent } from './components/global-response-time-trend/global-response-time-trend.component';
+import { GlobalAvailabilityComponent } from './components/global-availability/global-availability.component';
+import { GlobalAverageResponseTimeComponent } from './components/global-average-response-time/global-average-response-time.component';
 
 @NgModule({
   declarations: [ApiHealthCheckDashboardV4Component],
-  imports: [CommonModule, ApiHealthCheckDashboardV4FiltersComponent, GlobalResponseTimeTrendComponent],
+  imports: [
+    CommonModule,
+    ApiHealthCheckDashboardV4FiltersComponent,
+    GlobalResponseTimeTrendComponent,
+    GlobalAvailabilityComponent,
+    GlobalAverageResponseTimeComponent,
+  ],
   exports: [ApiHealthCheckDashboardV4Component],
 })
 export class ApiHealthCheckDashboardV4Module {}
