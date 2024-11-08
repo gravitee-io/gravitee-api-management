@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public interface AnalyticsQueryService {
-    Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId);
+    Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to);
 
     Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(ExecutionContext executionContext, String apiId);
 

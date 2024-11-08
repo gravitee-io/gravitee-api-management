@@ -52,6 +52,14 @@ public class SearchRequestsCountQueryAdapter {
         var terms = new ArrayList<JsonObject>();
         query.apiId().ifPresent(apiId -> terms.add(JsonObject.of("term", JsonObject.of("api-id", apiId))));
 
+        var timestamp = new JsonObject();
+        query.from().ifPresent(from -> timestamp.put("from", from.toEpochMilli()).put("include_lower", true));
+        query.to().ifPresent(to -> timestamp.put("to", to.toEpochMilli()).put("include_upper", true));
+
+        if (!timestamp.isEmpty()) {
+            terms.add(JsonObject.of("range", JsonObject.of("@timestamp", timestamp)));
+        }
+
         if (!terms.isEmpty()) {
             return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(terms.toArray())));
         }
