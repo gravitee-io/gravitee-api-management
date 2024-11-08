@@ -20,6 +20,7 @@ import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.tracing.Tracer;
+import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ import java.util.Set;
 @SuppressWarnings("unchecked")
 public abstract class AbstractBaseExecutionContext implements BaseExecutionContext {
 
+    private static final Tracer NO_OP_TRACER = new Tracer(null, new NoOpTracer());
     protected Map<String, Object> attributes = new ContextAttributeMap();
     protected Map<String, Object> internalAttributes = new HashMap<>();
     protected ComponentProvider componentProvider;
@@ -110,6 +112,9 @@ public abstract class AbstractBaseExecutionContext implements BaseExecutionConte
 
     @Override
     public Tracer getTracer() {
+        if (tracer == null) {
+            return NO_OP_TRACER;
+        }
         return tracer;
     }
 }
