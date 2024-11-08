@@ -20,32 +20,32 @@
     <gio-quick-time-range [formControl]="timeRangeControl" (onRefreshClicked)="fetchAnalyticsRequest()"></gio-quick-time-range>
   </div>
   <div class="home-overview__row-cards">
-    <mat-card class="home-overview__card flex">
-      <mat-card-content>
-        <div class="mat-body-1">Summary</div>
-        <div *ngIf="apiNb !== undefined && applicationNb !== undefined; else loader" class="home-overview__card__list">
-          <div class="home-overview__card__list__row">
-            <span class="home-overview__card__list__row__value">{{ apiNb }}</span>
-            <span class="home-overview__card__list__row__label">Total APIs</span>
+    <mat-card class="card flex">
+      <div class="card__header">Summary</div>
+      <mat-card-content class="card__content">
+        <div *ngIf="apiNb !== undefined && applicationNb !== undefined; else loader" class="card__list">
+          <div class="card__list__row">
+            <span class="card__list__row__value">{{ apiNb }}</span>
+            <span class="card__list__row__label">Total APIs</span>
           </div>
-          <div class="home-overview__card__list__row">
-            <span class="home-overview__card__list__row__value">{{ applicationNb }}</span>
-            <span class="home-overview__card__list__row__label">Total Applications</span>
+          <div class="card__list__row">
+            <span class="card__list__row__value">{{ applicationNb }}</span>
+            <span class="card__list__row__label">Total Applications</span>
           </div>
         </div>
       </mat-card-content>
     </mat-card>
-    <mat-card class="home-overview__card">
-      <mat-card-content>
-        <div class="mat-body-1">API Lifecycle State</div>
+    <mat-card class="card">
+      <div class="card__header">API Lifecycle State</div>
+      <mat-card-content class="card__content">
         <ng-container *ngIf="apiLifecycleState; else loader">
           <gio-api-lifecycle-state [data]="apiLifecycleState"></gio-api-lifecycle-state>
         </ng-container>
       </mat-card-content>
     </mat-card>
-    <mat-card class="home-overview__card">
-      <mat-card-content>
-        <div class="mat-body-1">API State</div>
+    <mat-card class="card">
+      <div class="card__header">API State</div>
+      <mat-card-content class="card__content">
         <ng-container *ngIf="apiState; else loader">
           <gio-api-state [data]="apiState"></gio-api-state>
         </ng-container>
@@ -55,28 +55,26 @@
 
   <h2 class="home-overview__row-title">V2 APIs</h2>
   <div class="home-overview__row-cards">
-    <mat-card class="home-overview__card">
-      <mat-card-content>
-        <div class="mat-body-1">API Response Status</div>
-
+    <mat-card class="card">
+      <div class="card__header">API Response Status</div>
+      <mat-card-content class="card__content">
         <ng-container *ngIf="apiResponseStatus; else loader">
           <gio-api-response-status [data]="apiResponseStatus"></gio-api-response-status>
         </ng-container>
       </mat-card-content>
     </mat-card>
-    <mat-card class="home-overview__card">
-      <mat-card-content>
-        <div class="mat-body-1">
-          Top APIs
-          <span class="mat-caption">(Ordered by API calls)</span>
-        </div>
-      </mat-card-content>
+    <mat-card class="card">
+      <div class="card__header">
+        Top APIs
+        <mat-icon class="card__header__tooltip" svgIcon="gio:info" matTooltip="Ordered by API calls"></mat-icon>
+      </div>
       <ng-container *ngIf="topApis; else loader">
         <gio-top-apis-table [data]="topApis"></gio-top-apis-table>
       </ng-container>
     </mat-card>
-    <mat-card class="home-overview__card flex">
-      <mat-card-content>
+    <mat-card class="card">
+      <div class="card__header">API Request Stats</div>
+      <mat-card-content class="card__content">
         <ng-container *ngIf="requestStats; else loader">
           <gio-request-stats [data]="requestStats"></gio-request-stats>
         </ng-container>
