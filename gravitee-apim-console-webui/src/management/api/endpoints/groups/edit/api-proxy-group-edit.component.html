@@ -52,6 +52,7 @@
     *ngIf="!isReadOnly"
     class="save-bar"
     [creationMode]="mode === 'new'"
+    [opened]="groupForm.dirty"
     [form]="groupForm"
     [formInitialValues]="initialGroupFormValue"
     (submitted)="onSubmit()"
