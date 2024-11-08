@@ -477,7 +477,6 @@ describe('ApiProxyGroupEditComponent', () => {
     });
 
     it('should not be able to create new group when name is already used', async () => {
-      const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
       const newGroupName = 'default-group';
       const groupNameInput = await loader.getHarness(MatInputHarness.with({ selector: '[aria-label="Group name input"]' }));
 
@@ -486,6 +485,7 @@ describe('ApiProxyGroupEditComponent', () => {
       const lbSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Load balancing algorithm"]' }));
       await lbSelect.clickOptions({ text: 'RANDOM' });
 
+      const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await gioSaveBar.isSubmitButtonInvalid()).toBeTruthy();
       expect(fixture.componentInstance.generalForm.get('name').hasError('isUnique')).toBeTruthy();
     });
