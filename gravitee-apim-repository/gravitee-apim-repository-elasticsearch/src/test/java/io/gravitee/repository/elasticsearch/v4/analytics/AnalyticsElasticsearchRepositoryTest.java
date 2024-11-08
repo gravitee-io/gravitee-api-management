@@ -87,7 +87,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         void should_return_average_messages_per_request_by_entrypoint_for_a_given_api() {
             var result = cut.searchAverageMessagesPerRequest(
                 new QueryContext("org#1", "env#1"),
-                AverageMessagesPerRequestQuery.builder().apiId(API_ID).build()
+                new AverageMessagesPerRequestQuery(API_ID)
             );
 
             assertThat(result)
