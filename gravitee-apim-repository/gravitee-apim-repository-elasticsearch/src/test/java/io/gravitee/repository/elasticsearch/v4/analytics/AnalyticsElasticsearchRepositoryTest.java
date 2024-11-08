@@ -69,7 +69,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_all_the_requests_count_by_entrypoint_for_a_given_api() {
-            var result = cut.searchRequestsCount(new QueryContext("org#1", "env#1"), RequestsCountQuery.builder().apiId(API_ID).build());
+            var result = cut.searchRequestsCount(new QueryContext("org#1", "env#1"), new RequestsCountQuery(API_ID));
 
             assertThat(result)
                 .hasValueSatisfying(countAggregate -> {

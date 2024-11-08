@@ -61,7 +61,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     @Override
     public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId) {
         return analyticsRepository
-            .searchRequestsCount(executionContext.getQueryContext(), RequestsCountQuery.builder().apiId(apiId).build())
+            .searchRequestsCount(executionContext.getQueryContext(), new RequestsCountQuery(apiId))
             .map(countAggregate ->
                 RequestsCount.builder().total(countAggregate.getTotal()).countsByEntrypoint(countAggregate.getCountBy()).build()
             );
