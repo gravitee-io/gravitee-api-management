@@ -26,6 +26,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.time.Instant;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +43,10 @@ public class SearchAverageMessagesPerRequestAnalyticsUseCase {
         validateApiRequirements(input);
 
         // Verify v4 api
-        return analyticsQueryService.searchAverageMessagesPerRequest(executionContext, input.apiId()).map(Output::new).orElse(new Output());
+        return analyticsQueryService
+            .searchAverageMessagesPerRequest(executionContext, input.apiId(), input.from.orElse(null), input.to.orElse(null))
+            .map(Output::new)
+            .orElse(new Output());
     }
 
     private void validateApiRequirements(Input input) {
@@ -77,7 +81,7 @@ public class SearchAverageMessagesPerRequestAnalyticsUseCase {
         }
     }
 
-    public record Input(String apiId, String environmentId) {}
+    public record Input(String apiId, String environmentId, Optional<Instant> from, Optional<Instant> to) {}
 
     public record Output(Optional<AverageMessagesPerRequest> averageMessagesPerRequest) {
         Output(AverageMessagesPerRequest averageMessagesPerRequest) {

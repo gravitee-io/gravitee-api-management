@@ -53,7 +53,12 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     }
 
     @Override
-    public Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(ExecutionContext executionContext, String apiId) {
+    public Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant from,
+        Instant to
+    ) {
         return Optional.ofNullable(averageMessagesPerRequest);
     }
 

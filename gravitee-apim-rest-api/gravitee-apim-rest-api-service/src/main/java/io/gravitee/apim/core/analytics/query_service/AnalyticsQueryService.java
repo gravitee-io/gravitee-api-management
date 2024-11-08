@@ -33,7 +33,12 @@ import java.util.Optional;
 public interface AnalyticsQueryService {
     Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId);
 
-    Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(ExecutionContext executionContext, String apiId);
+    Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant from,
+        Instant to
+    );
 
     Optional<AverageConnectionDuration> searchAverageConnectionDuration(
         ExecutionContext executionContext,

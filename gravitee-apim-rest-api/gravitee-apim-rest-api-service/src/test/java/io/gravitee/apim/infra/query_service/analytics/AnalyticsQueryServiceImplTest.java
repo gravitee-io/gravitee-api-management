@@ -148,8 +148,6 @@ class AnalyticsQueryServiceImplTest {
             var result = cut.searchTopHitsApis(GraviteeContext.getExecutionContext(), queryParameters);
 
             assertThat(result)
-                .isNotNull()
-                .isPresent()
                 .hasValueSatisfying(topHits ->
                     assertThat(topHits.getData())
                         .containsExactlyInAnyOrder(
