@@ -51,14 +51,14 @@ class SearchRequestsCountQueryAdapterTest {
 
     @Test
     void should_build_query_with_empty_filter() {
-        var result = SearchRequestsCountQueryAdapter.adapt(RequestsCountQuery.builder().build(), true);
+        var result = SearchRequestsCountQueryAdapter.adapt(new RequestsCountQuery(), true);
 
         assertThatJson(result).isEqualTo(QUERY_WITHOUT_FILTER);
     }
 
     @Test
     void should_build_query_with_api_filter() {
-        var result = SearchRequestsCountQueryAdapter.adapt(RequestsCountQuery.builder().apiId("api-id").build(), true);
+        var result = SearchRequestsCountQueryAdapter.adapt(new RequestsCountQuery("api-id"), true);
 
         assertThatJson(result)
             .isEqualTo(
@@ -86,7 +86,7 @@ class SearchRequestsCountQueryAdapterTest {
 
     @Test
     void should_adapt_the_query_according_when_entrypoint_id_not_keyword() {
-        var result = SearchRequestsCountQueryAdapter.adapt(RequestsCountQuery.builder().apiId("api-id").build(), false);
+        var result = SearchRequestsCountQueryAdapter.adapt(new RequestsCountQuery("api-id"), false);
 
         assertThatJson(result)
             .isEqualTo(

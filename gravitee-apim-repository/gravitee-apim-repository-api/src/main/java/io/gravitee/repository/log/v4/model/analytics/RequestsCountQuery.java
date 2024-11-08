@@ -15,12 +15,17 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
+import java.util.Optional;
 import lombok.Builder;
 import lombok.Data;
 
-@Builder
-@Data
-public class RequestsCountQuery {
+@Builder(toBuilder = true)
+public record RequestsCountQuery(Optional<String> apiId) {
+    public RequestsCountQuery() {
+        this(Optional.empty());
+    }
 
-    String apiId;
+    public RequestsCountQuery(String apiId) {
+        this(Optional.ofNullable(apiId));
+    }
 }

@@ -50,9 +50,7 @@ public class SearchRequestsCountQueryAdapter {
         }
 
         var terms = new ArrayList<JsonObject>();
-        if (query.getApiId() != null) {
-            terms.add(JsonObject.of("term", JsonObject.of("api-id", query.getApiId())));
-        }
+        query.apiId().ifPresent(apiId -> terms.add(JsonObject.of("term", JsonObject.of("api-id", apiId))));
 
         if (!terms.isEmpty()) {
             return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(terms.toArray())));
