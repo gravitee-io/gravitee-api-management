@@ -20,7 +20,7 @@ const aqua = {
 const artifactoryUrl = 'https://odbxikk7vo-artifactory.services.clever-cloud.com';
 
 const cache = {
-  prefix: 'gravitee-api-management-v10',
+  prefix: 'gravitee-api-management-v11',
 };
 
 const dockerImages = {
