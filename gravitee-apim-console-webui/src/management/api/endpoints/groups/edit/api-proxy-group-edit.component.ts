@@ -112,6 +112,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
           this.snackBarService.success('Configuration successfully saved!');
           this.initialGroupFormValue = this.groupForm.getRawValue();
           this.groupForm.markAsPristine();
+          this.mode = 'edit';
         }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
