@@ -36,6 +36,7 @@ public class DurationUtils {
     }
 
     private static final Collection<IntervalData> INTERVAL = List.of(
+        new IntervalData(Duration.ofMinutes(1), Duration.ofSeconds(1)),
         new IntervalData(Duration.ofMinutes(5), Duration.ofSeconds(10)),
         new IntervalData(Duration.ofMinutes(30), Duration.ofSeconds(15)),
         new IntervalData(Duration.ofHours(1), Duration.ofSeconds(30)),
