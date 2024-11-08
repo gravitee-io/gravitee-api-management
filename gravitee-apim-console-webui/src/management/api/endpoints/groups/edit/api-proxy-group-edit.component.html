@@ -49,7 +49,7 @@
   </mat-tab-group>
 
   <gio-save-bar
-    *ngIf="!isReadOnly"
+    *ngIf="!isReadOnly && groupForm.dirty"
     class="save-bar"
     [creationMode]="mode === 'new'"
     [form]="groupForm"
