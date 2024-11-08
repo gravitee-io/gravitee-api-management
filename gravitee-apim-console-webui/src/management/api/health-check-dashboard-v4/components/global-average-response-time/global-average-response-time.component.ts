@@ -13,45 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { Component, DestroyRef, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 
-import { GioChartLineModule } from '../../../../../shared/components/gio-chart-line/gio-chart-line.module';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { GioChartLineData, GioChartLineOptions } from '../../../../../shared/components/gio-chart-line/gio-chart-line.component';
 import { ApiHealthV2Service } from '../../../../../services-ngx/api-health-v2.service';
 
 @Component({
-  selector: 'app-global-response-time-trend',
+  selector: 'global-average-response-time',
   standalone: true,
-  imports: [MatCardModule, GioLoaderModule, GioChartLineModule],
-  templateUrl: './global-response-time-trend.component.html',
-  styleUrl: './global-response-time-trend.component.scss',
+  imports: [MatCardModule, GioLoaderModule],
+  templateUrl: './global-average-response-time.component.html',
+  styleUrl: './global-average-response-time.component.scss',
 })
-export class GlobalResponseTimeTrendComponent implements OnInit {
-  private apiId = this.activatedRoute.snapshot.params.apiId;
+export class GlobalAverageResponseTimeComponent implements OnInit {
+  private readonly apiId = this.activatedRoute.snapshot.params.apiId;
   public isLoading = true;
-  public input: GioChartLineData[];
-  public options: GioChartLineOptions;
+  public averageResponseTime: number;
 
   constructor(
-    private readonly destroyRef: DestroyRef,
     private readonly activatedRoute: ActivatedRoute,
-    private readonly snackBarService: SnackBarService,
+    private readonly destroyRef: DestroyRef,
     public readonly apiHealthV2Service: ApiHealthV2Service,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit() {
+    this.getFilterChanges();
+  }
+
+  getFilterChanges() {
     this.apiHealthV2Service
       .activeFilter()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (data) => {
-          this.getData(data.from, data.to);
+        next: (timeRange) => {
+          this.getData(timeRange.from, timeRange.to);
         },
       });
   }
@@ -59,24 +59,15 @@ export class GlobalResponseTimeTrendComponent implements OnInit {
   getData(from: number, to: number) {
     this.isLoading = true;
     this.apiHealthV2Service
-      .getApiHealthResponseTimeOvertime(this.apiId, from, to)
+      .getApiAverageResponseTime(this.apiId, from, to)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (res) => {
-          this.input = [
-            {
-              name: 'Response time (ms)',
-              values: res.data,
-            },
-          ];
-          this.options = {
-            pointStart: res.timeRange.from,
-            pointInterval: res.timeRange.interval,
-          };
+        next: (averageResponseTime) => {
           this.isLoading = false;
+          this.averageResponseTime = averageResponseTime.global;
         },
         error: ({ error }) => {
-          this.snackBarService.error(error.message);
+          this.snackBarService.error('Getting average response time failed ' + error.message);
           this.isLoading = false;
         },
       });

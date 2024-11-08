@@ -17,9 +17,15 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 
 import { ApiHealthCheckDashboardV4FiltersHarness } from './components/filters/api-health-check-dashboard-v4-filters.harness';
+import { AvailabilityHarness } from './components/global-availability/global-availability.harness';
+import { AverageResponseTimeHarness } from './components/global-average-response-time/global-average-response-time.harness';
 
 export class ApiHealthCheckDashboardV4Harness extends ComponentHarness {
   static hostSelector = 'app-health-check-dashboard-v4';
 
   getFiltersHarness = this.locatorForOptional(ApiHealthCheckDashboardV4FiltersHarness);
+
+  getAvailabilityWidgetHarness = this.locatorForOptional(AvailabilityHarness);
+
+  getAverageResponseTimeWidgetHarness = this.locatorForOptional(AverageResponseTimeHarness);
 }

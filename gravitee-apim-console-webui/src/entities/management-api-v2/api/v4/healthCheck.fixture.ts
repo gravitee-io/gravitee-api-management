@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ApiHealthResponseTimeOvertime } from './healthCheck';
+import { ApiAvailability, ApiAverageResponseTime, ApiHealthResponseTimeOvertime } from './healthCheck';
 
 export function fakeApiHealthResponseTimeOvertime(attribute?: Partial<ApiHealthResponseTimeOvertime>): ApiHealthResponseTimeOvertime {
   const base: ApiHealthResponseTimeOvertime = {
@@ -24,6 +24,34 @@ export function fakeApiHealthResponseTimeOvertime(attribute?: Partial<ApiHealthR
       interval: 10,
     },
     data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+  };
+
+  return {
+    ...base,
+    ...attribute,
+  };
+}
+
+export function fakeApiHealthAvailability(attribute?: Partial<ApiAvailability>): ApiAvailability {
+  const base: ApiAvailability = {
+    global: 0.9876,
+    group: {
+      example: 100,
+    },
+  };
+
+  return {
+    ...base,
+    ...attribute,
+  };
+}
+
+export function fakeApiHealthAverageResponseTime(attribute?: Partial<ApiAverageResponseTime>): ApiAverageResponseTime {
+  const base: ApiAverageResponseTime = {
+    global: 100,
+    group: {
+      example: 100,
+    },
   };
 
   return {
