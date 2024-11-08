@@ -1995,6 +1995,8 @@ paths:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/from"
+            - $ref: "#/components/parameters/to"
         get:
             tags:
                 - API Analytics
@@ -2032,16 +2034,8 @@ paths:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
-            - in: query
-              name: from
-              schema:
-                type: integer
-              description: The start timestamp of sample
-            - in: query
-              name: to
-              schema:
-                type: integer
-              description: The end timestamp of sample
+            - $ref: "#/components/parameters/from"
+            - $ref: "#/components/parameters/to"
         get:
             tags:
                 - API Analytics

@@ -48,7 +48,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public ResponseStatusOvertime responseStatusOvertime;
 
     @Override
-    public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId) {
+    public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
         return Optional.ofNullable(requestsCount);
     }
 

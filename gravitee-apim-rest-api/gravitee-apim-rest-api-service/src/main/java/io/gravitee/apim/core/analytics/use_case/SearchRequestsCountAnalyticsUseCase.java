@@ -24,6 +24,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.time.Instant;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +41,10 @@ public class SearchRequestsCountAnalyticsUseCase {
         validateApiRequirements(input);
 
         // Verify v4 api
-        return analyticsQueryService.searchRequestsCount(executionContext, input.apiId()).map(Output::new).orElse(new Output());
+        return analyticsQueryService
+            .searchRequestsCount(executionContext, input.apiId(), input.from.orElse(null), input.to.orElse(null))
+            .map(Output::new)
+            .orElse(new Output());
     }
 
     private void validateApiRequirements(Input input) {
@@ -68,7 +72,7 @@ public class SearchRequestsCountAnalyticsUseCase {
         }
     }
 
-    public record Input(String apiId, String environmentId) {}
+    public record Input(String apiId, String environmentId, Optional<Instant> from, Optional<Instant> to) {}
 
     public record Output(Optional<RequestsCount> requestsCount) {
         Output(RequestsCount requestsCount) {
