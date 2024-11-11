@@ -592,13 +592,7 @@ class ImportApiCRDUseCaseTest {
                 )
             );
 
-            var member = MemberCRD
-                .builder()
-                .source(USER_ENTITY_SOURCE)
-                .sourceId(USER_ENTITY_SOURCE_ID)
-                .displayName("test_member")
-                .role("USER")
-                .build();
+            var member = MemberCRD.builder().source(USER_ENTITY_SOURCE).sourceId(USER_ENTITY_SOURCE_ID).role("USER").build();
 
             useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().members(Set.of(member)).build()));
 

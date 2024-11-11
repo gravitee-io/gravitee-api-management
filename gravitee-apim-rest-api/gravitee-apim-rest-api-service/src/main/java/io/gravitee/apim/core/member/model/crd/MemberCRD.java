@@ -29,6 +29,5 @@ public class MemberCRD {
     private String id;
     private String source;
     private String sourceId;
-    private String displayName;
     private String role;
 }
