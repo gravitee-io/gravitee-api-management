@@ -92,7 +92,7 @@ public interface ApiCRDAdapter {
             ? definition
                 .getMembers()
                 .stream()
-                .map(me -> new MemberCRD(me.getId(), null, null, me.getDisplayName(), me.getRoles().get(0).getName()))
+                .map(me -> new MemberCRD(me.getId(), null, null, me.getRoles().get(0).getName()))
                 .collect(Collectors.toSet())
             : null;
     }
