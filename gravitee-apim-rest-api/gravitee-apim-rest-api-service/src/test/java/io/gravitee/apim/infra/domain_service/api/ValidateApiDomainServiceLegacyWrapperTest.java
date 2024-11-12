@@ -26,6 +26,7 @@ import fixtures.core.model.ApiFixtures;
 import fixtures.definition.FlowFixtures;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.GroupValidationService;
+import io.gravitee.apim.core.api.exception.NativeApiWithMultipleFlowsException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -39,6 +40,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeEntrypoint;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
@@ -301,14 +303,25 @@ class ValidateApiDomainServiceLegacyWrapperTest {
         }
 
         @Test
-        void should_throw_when_validation_fails() {
-            doThrow(new RuntimeException("error")).when(apiValidationService).validateAndSanitizeNewApi(any(), any(), any());
-
-            var throwable = Assertions.catchThrowable(() ->
-                service.validateAndSanitizeForCreation(ApiFixtures.aProxyApiV4(), PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID)
+        void should_throw_when_multiple_api_flows() {
+            var nativeApi = ApiFixtures.aNativeApi();
+            nativeApi.setApiDefinitionNativeV4(
+                nativeApi
+                    .getApiDefinitionNativeV4()
+                    .toBuilder()
+                    .flows(List.of(NativeFlow.builder().id("flow-1").build(), NativeFlow.builder().id("flow-1").build()))
+                    .build()
             );
 
-            Assertions.assertThat(throwable).isInstanceOf(RuntimeException.class);
+            doThrow(new NativeApiWithMultipleFlowsException())
+                .when(flowValidationDomainService)
+                .validateAndSanitizeNativeV4(eq(nativeApi.getApiDefinitionNativeV4().getFlows()));
+
+            var throwable = Assertions.catchThrowable(() ->
+                service.validateAndSanitizeForCreation(nativeApi, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID)
+            );
+
+            Assertions.assertThat(throwable).isInstanceOf(NativeApiWithMultipleFlowsException.class);
         }
     }
 }

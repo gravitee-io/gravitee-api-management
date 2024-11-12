@@ -45,6 +45,7 @@ import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
+import io.gravitee.apim.core.api.exception.NativeApiWithMultipleFlowsException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.use_case.CreateNativeApiUseCase.Input;
@@ -213,6 +214,24 @@ class CreateNativeApiUseCaseTest {
 
         // Then
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+    }
+
+    @Test
+    void should_throw_when_multiple_api_flows() {
+        // Given
+        when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
+            .thenThrow(new NativeApiWithMultipleFlowsException());
+        var newApi = NewApiFixtures
+            .aNativeApiV4()
+            .toBuilder()
+            .flows(List.of(NativeFlow.builder().id("flow-1").build(), NativeFlow.builder().id("flow-2").build()))
+            .build();
+
+        // When
+        var throwable = catchThrowable(() -> useCase.execute(new Input(newApi, AUDIT_INFO)));
+
+        // Then
+        assertThat(throwable).isInstanceOf(NativeApiWithMultipleFlowsException.class);
     }
 
     @Test

@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.flow.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.api.exception.NativeApiWithMultipleFlowsException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.plugin.model.PlatformPlugin;
@@ -93,6 +94,9 @@ public class FlowValidationDomainService {
 
     public List<NativeFlow> validateAndSanitizeNativeV4(List<NativeFlow> flows) {
         if (flows != null) {
+            if (flows.size() > 1) {
+                throw new NativeApiWithMultipleFlowsException();
+            }
             flows.forEach(flow -> {
                 // Validate policy
                 var steps = Stream
