@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.EntrypointPluginQueryServiceInMemory;
+import io.gravitee.apim.core.api.exception.NativeApiWithMultipleFlowsException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.plugin.query_service.EntrypointPluginQueryService;
@@ -233,6 +234,18 @@ public class FlowValidationDomainServiceTest {
             var throwable = catchThrowable(() -> service.validateAndSanitizeNativeV4(List.of(flow)));
 
             assertThat(throwable).isInstanceOf(InvalidDataException.class);
+        }
+
+        @Test
+        public void should_throw_exception_with_multiple_flows() {
+            var flow = NativeFlow
+                .builder()
+                .interact(List.of(Step.builder().policy("policy").configuration("configuration").build()))
+                .build();
+
+            var throwable = catchThrowable(() -> service.validateAndSanitizeNativeV4(List.of(flow, flow)));
+
+            assertThat(throwable).isInstanceOf(NativeApiWithMultipleFlowsException.class);
         }
     }
 
