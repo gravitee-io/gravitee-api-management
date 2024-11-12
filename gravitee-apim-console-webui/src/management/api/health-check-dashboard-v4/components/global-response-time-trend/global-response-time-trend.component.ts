@@ -19,6 +19,7 @@ import { MatCardModule } from '@angular/material/card';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { switchMap } from 'rxjs';
 
 import { GioChartLineModule } from '../../../../../shared/components/gio-chart-line/gio-chart-line.module';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
@@ -48,19 +49,13 @@ export class GlobalResponseTimeTrendComponent implements OnInit {
   ngOnInit() {
     this.apiHealthV2Service
       .activeFilter()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (data) => {
-          this.getData(data.from, data.to);
-        },
-      });
-  }
-
-  getData(from: number, to: number) {
-    this.isLoading = true;
-    this.apiHealthV2Service
-      .getApiHealthResponseTimeOvertime(this.apiId, from, to)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        switchMap(({ from, to }) => {
+          this.isLoading = true;
+          return this.apiHealthV2Service.getApiHealthResponseTimeOvertime(this.apiId, from, to);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         next: (res) => {
           this.input = [

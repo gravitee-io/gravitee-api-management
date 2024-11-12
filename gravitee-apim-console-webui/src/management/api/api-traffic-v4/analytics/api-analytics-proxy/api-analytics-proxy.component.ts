@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatButton } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { BehaviorSubject, combineLatest, Observable, of, switchMap } from 'rxjs';
+import { combineLatest, Observable, of, switchMap } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { catchError, map, startWith } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
@@ -40,7 +40,6 @@ import {
 import { AnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
 import { ApiAnalyticsResponseStatusOvertimeComponent } from '../components/api-analytics-response-status-overtime/api-analytics-response-status-overtime.component';
 import { ApiAnalyticsResponseTimeOverTimeComponent } from '../components/api-analytics-response-time-over-time/api-analytics-response-time-over-time.component';
-import { timeFrameRangesParams, TimeRangeParams } from '../../../../../shared/utils/timeFrameRanges';
 
 type ApiAnalyticsVM = {
   isLoading: boolean;
@@ -68,11 +67,7 @@ type ApiAnalyticsVM = {
   styleUrl: './api-analytics-proxy.component.scss',
 })
 export class ApiAnalyticsProxyComponent {
-  private readonly apiService = inject(ApiV2Service);
-  private readonly apiAnalyticsService = inject(ApiAnalyticsV2Service);
-  private readonly activatedRoute = inject(ActivatedRoute);
-
-  private getRequestsCount$: Observable<Partial<AnalyticsRequestsCount> & { isLoading: boolean }> = this.apiAnalyticsService
+  private getRequestsCount$: Observable<Partial<AnalyticsRequestsCount> & { isLoading: boolean }> = this.apiAnalyticsV2Service
     .getRequestsCount(this.activatedRoute.snapshot.params.apiId)
     .pipe(
       map((requestsCount) => ({ isLoading: false, ...requestsCount })),
@@ -80,17 +75,34 @@ export class ApiAnalyticsProxyComponent {
     );
 
   private getAverageConnectionDuration$: Observable<Partial<AnalyticsAverageConnectionDuration> & { isLoading: boolean }> =
-    this.apiAnalyticsService.getAverageConnectionDuration(this.activatedRoute.snapshot.params.apiId).pipe(
+    this.apiAnalyticsV2Service.getAverageConnectionDuration(this.activatedRoute.snapshot.params.apiId).pipe(
       map((requestsCount) => ({ isLoading: false, ...requestsCount })),
       startWith({ isLoading: true }),
     );
 
-  private getResponseStatusRanges$: Observable<Partial<AnalyticsResponseStatusRanges> & { isLoading: boolean }> = this.apiAnalyticsService
+  private getResponseStatusRanges$: Observable<Partial<AnalyticsResponseStatusRanges> & { isLoading: boolean }> = this.apiAnalyticsV2Service
     .getResponseStatusRanges(this.activatedRoute.snapshot.params.apiId)
     .pipe(
       map((responseStatusRanges) => ({ isLoading: false, ...responseStatusRanges })),
       startWith({ isLoading: true }),
     );
+
+  public apiAnalyticsVM$: Observable<ApiAnalyticsVM> = combineLatest([
+    this.apiService.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV4Filter()),
+    this.apiAnalyticsV2Service.timeRangeFilter(),
+  ]).pipe(
+    map(([api]) => {
+      return { isAnalyticsEnabled: api.analytics.enabled };
+    }),
+    switchMap(({ isAnalyticsEnabled }) => {
+      if (isAnalyticsEnabled) {
+        return this.analyticsData$.pipe(map((analyticsData) => ({ isAnalyticsEnabled: true, ...analyticsData })));
+      }
+      return of({ isAnalyticsEnabled: false });
+    }),
+    map((analyticsData) => ({ isLoading: false, ...analyticsData })),
+    startWith({ isLoading: true }),
+  );
 
   private analyticsData$: Observable<Omit<ApiAnalyticsVM, 'isLoading' | 'isAnalyticsEnabled'>> = combineLatest([
     this.getRequestsCount$.pipe(catchError(() => of({ isLoading: false, total: undefined }))),
@@ -118,25 +130,9 @@ export class ApiAnalyticsProxyComponent {
     })),
   );
 
-  private initialTimeRange = timeFrameRangesParams('1d');
-  public filters$ = new BehaviorSubject<TimeRangeParams>(this.initialTimeRange);
-  public filters: TimeRangeParams;
-
-  apiAnalyticsVM$: Observable<ApiAnalyticsVM> = combineLatest([
-    this.apiService.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV4Filter()),
-    this.filters$,
-  ]).pipe(
-    map(([api, timeRangeParams]) => {
-      return { isAnalyticsEnabled: api.analytics.enabled, timeRangeParams };
-    }),
-    switchMap(({ isAnalyticsEnabled, timeRangeParams }) => {
-      if (isAnalyticsEnabled) {
-        this.filters = { ...timeRangeParams };
-        return this.analyticsData$.pipe(map((analyticsData) => ({ isAnalyticsEnabled: true, ...analyticsData })));
-      }
-      return of({ isAnalyticsEnabled: false });
-    }),
-    map((analyticsData) => ({ isLoading: false, ...analyticsData })),
-    startWith({ isLoading: true }),
-  );
+  constructor(
+    private readonly apiService: ApiV2Service,
+    private readonly apiAnalyticsV2Service: ApiAnalyticsV2Service,
+    private readonly activatedRoute: ActivatedRoute,
+  ) {}
 }

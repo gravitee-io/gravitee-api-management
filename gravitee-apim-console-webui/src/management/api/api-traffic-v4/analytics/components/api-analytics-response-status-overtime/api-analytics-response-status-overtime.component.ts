@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, inject, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, DestroyRef, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { switchMap } from 'rxjs/operators';
 
 import { GioChartLineModule } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.module';
 import { GioChartLineData, GioChartLineOptions } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.component';
 import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analytics-v2.service';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
-import { TimeRangeParams } from '../../../../../../shared/utils/timeFrameRanges';
 
 @Component({
   selector: 'api-analytics-response-status-overtime',
@@ -32,40 +32,36 @@ import { TimeRangeParams } from '../../../../../../shared/utils/timeFrameRanges'
   templateUrl: './api-analytics-response-status-overtime.component.html',
   styleUrl: './api-analytics-response-status-overtime.component.scss',
 })
-export class ApiAnalyticsResponseStatusOvertimeComponent implements OnChanges {
-  @Input() filters: TimeRangeParams;
-
-  private apiId = this.activatedRoute.snapshot.params.apiId;
-  private destroyRef = inject(DestroyRef);
-
-  public input: GioChartLineData[];
+export class ApiAnalyticsResponseStatusOvertimeComponent implements OnInit {
+  public chartInput: GioChartLineData[];
   public isLoading = true;
-  public options: GioChartLineOptions;
+  public chartOptions: GioChartLineOptions;
 
   constructor(
-    private readonly apiAnalyticsV2Service: ApiAnalyticsV2Service,
     private readonly activatedRoute: ActivatedRoute,
+    private readonly apiAnalyticsV2Service: ApiAnalyticsV2Service,
+    private readonly destroyRef: DestroyRef,
     private readonly snackBarService: SnackBarService,
   ) {}
 
-  ngOnChanges(changes: SimpleChanges): void {
-    const { from, to } = changes.filters.currentValue;
-    this.getData(from, to);
-  }
-
-  getData(from: number, to: number) {
-    this.isLoading = true;
+  ngOnInit() {
     this.apiAnalyticsV2Service
-      .getResponseStatusOvertime(this.apiId, from, to)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .timeRangeFilter()
+      .pipe(
+        switchMap(() => {
+          this.isLoading = true;
+          return this.apiAnalyticsV2Service.getResponseStatusOvertime(this.activatedRoute.snapshot.params.apiId);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         next: (res) => {
           this.isLoading = false;
-          this.input = Object.entries(res.data).map(([key, value]) => ({
+          this.chartInput = Object.entries(res.data).map(([key, value]) => ({
             name: key,
             values: value,
           }));
-          this.options = {
+          this.chartOptions = {
             pointStart: res.timeRange?.from,
             pointInterval: res.timeRange?.interval,
           };

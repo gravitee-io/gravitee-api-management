@@ -28,13 +28,13 @@
       subtitle="Your metrics live here. Start monitoring your API by enabling the Analytics in the settings."
     ></gio-card-empty-state>
   } @else {
-    <api-analytics-filters-bar (filtersChange)="filters$.next($event)"></api-analytics-filters-bar>
+    <api-analytics-filters-bar></api-analytics-filters-bar>
     <h2>Entrypoint</h2>
     <div class="gridContent">
       <app-api-analytics-request-stats title="Request Stats" [requestsStats]="apiAnalyticsVM.requestStats" />
       <api-analytics-response-status-ranges title="Response Status" [responseStatusRanges]="apiAnalyticsVM.responseStatusRanges" />
-      <api-analytics-response-status-overtime [filters]="filters" class="full-bleed" />
-      <api-analytics-response-time-over-time [filters]="filters" class="full-bleed" />
+      <api-analytics-response-status-overtime class="full-bleed" />
+      <api-analytics-response-time-over-time class="full-bleed" />
     </div>
   }
 }

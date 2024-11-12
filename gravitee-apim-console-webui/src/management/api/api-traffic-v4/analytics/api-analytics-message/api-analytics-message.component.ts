@@ -17,7 +17,7 @@ import { Component, inject } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatButton } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { BehaviorSubject, combineLatest, Observable, of, switchMap } from 'rxjs';
+import { combineLatest, Observable, of, switchMap } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { map, startWith } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
@@ -43,7 +43,6 @@ import {
   ApiAnalyticsResponseStatusRangesComponent,
 } from '../../../../../shared/components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component';
 import { AnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
-import { TimeRangeParams } from '../../../../../shared/utils/timeFrameRanges';
 
 type ApiAnalyticsVM = {
   isLoading: boolean;
@@ -80,43 +79,40 @@ type ApiAnalyticsVM = {
 })
 export class ApiAnalyticsMessageComponent {
   private readonly apiService = inject(ApiV2Service);
-  private readonly apiAnalyticsService = inject(ApiAnalyticsV2Service);
+  private readonly apiAnalyticsV2Service = inject(ApiAnalyticsV2Service);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly connectorPluginsV2Service = inject(ConnectorPluginsV2Service);
   private readonly iconService = inject(IconService);
 
-  private getRequestsCount$: Observable<Partial<AnalyticsRequestsCount> & { isLoading: boolean }> = this.apiAnalyticsService
+  private readonly getRequestsCount$: Observable<Partial<AnalyticsRequestsCount> & { isLoading: boolean }> = this.apiAnalyticsV2Service
     .getRequestsCount(this.activatedRoute.snapshot.params.apiId)
     .pipe(
       map((requestsCount) => ({ isLoading: false, ...requestsCount })),
       startWith({ isLoading: true }),
     );
 
-  private getAverageConnectionDuration$: Observable<Partial<AnalyticsAverageConnectionDuration> & { isLoading: boolean }> =
-    this.apiAnalyticsService.getAverageConnectionDuration(this.activatedRoute.snapshot.params.apiId).pipe(
+  private readonly getAverageConnectionDuration$: Observable<Partial<AnalyticsAverageConnectionDuration> & { isLoading: boolean }> =
+    this.apiAnalyticsV2Service.getAverageConnectionDuration(this.activatedRoute.snapshot.params.apiId).pipe(
       map((requestsCount) => ({ isLoading: false, ...requestsCount })),
       startWith({ isLoading: true }),
     );
 
-  private getAverageMessagesPerRequest$: Observable<Partial<AnalyticsAverageMessagesPerRequest> & { isLoading: boolean }> =
-    this.apiAnalyticsService.getAverageMessagesPerRequest(this.activatedRoute.snapshot.params.apiId).pipe(
+  private readonly getAverageMessagesPerRequest$: Observable<Partial<AnalyticsAverageMessagesPerRequest> & { isLoading: boolean }> =
+    this.apiAnalyticsV2Service.getAverageMessagesPerRequest(this.activatedRoute.snapshot.params.apiId).pipe(
       map((requestsCount) => ({ isLoading: false, ...requestsCount })),
       startWith({ isLoading: true }),
     );
 
-  private getResponseStatusRanges$: Observable<Partial<AnalyticsResponseStatusRanges> & { isLoading: boolean }> = this.apiAnalyticsService
-    .getResponseStatusRanges(this.activatedRoute.snapshot.params.apiId)
-    .pipe(
+  private readonly getResponseStatusRanges$: Observable<Partial<AnalyticsResponseStatusRanges> & { isLoading: boolean }> =
+    this.apiAnalyticsV2Service.getResponseStatusRanges(this.activatedRoute.snapshot.params.apiId).pipe(
       map((responseStatusRanges) => ({ isLoading: false, ...responseStatusRanges })),
       startWith({ isLoading: true }),
     );
 
-  filters$ = new BehaviorSubject<TimeRangeParams>(null);
-
-  apiAnalyticsVM$: Observable<ApiAnalyticsVM> = combineLatest([
+  public apiAnalyticsVM$: Observable<ApiAnalyticsVM> = combineLatest([
     this.apiService.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV4Filter()),
     this.connectorPluginsV2Service.listAsyncEntrypointPlugins(),
-    this.filters$,
+    this.apiAnalyticsV2Service.timeRangeFilter(),
   ]).pipe(
     switchMap(([api, availableEntrypoints]) => {
       if (api.analytics.enabled) {
