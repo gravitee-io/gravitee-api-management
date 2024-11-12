@@ -1246,6 +1246,19 @@
                     </exclusions>
                     <type>zip</type>
                 </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.connector</groupId>
+                    <artifactId>gravitee-entrypoint-native-kafka</artifactId>
+                    <version>${gravitee-connectors-native-kafka.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
 
                 <!-- Endpoints -->
                 <dependency>
@@ -1291,6 +1304,19 @@
                     <groupId>com.graviteesource.endpoint</groupId>
                     <artifactId>gravitee-endpoint-azure-service-bus</artifactId>
                     <version>${gravitee-endpoint-azure-service-bus.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.connector</groupId>
+                    <artifactId>gravitee-endpoint-native-kafka</artifactId>
+                    <version>${gravitee-connectors-native-kafka.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
