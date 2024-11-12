@@ -83,6 +83,16 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
   let componentHarness: ApiRuntimeLogsMessageSettingsHarness;
 
   const initComponent = async (api: ApiV4 = testApi, settings: ConsoleSettings = testSettings) => {
+    fixture = TestBed.createComponent(ApiRuntimeLogsMessageSettingsComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsMessageSettingsHarness);
+
+    fixture.componentInstance.api = api;
+    expectConsoleSettingsGetRequest(settings);
+    fixture.detectChanges();
+  };
+
+  beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, ApiRuntimeLogsMessageSettingsModule, MatIconTestingModule],
       providers: [
@@ -94,15 +104,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
         },
       ],
     }).compileComponents();
-
-    fixture = TestBed.createComponent(ApiRuntimeLogsMessageSettingsComponent);
-    httpTestingController = TestBed.inject(HttpTestingController);
-    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsMessageSettingsHarness);
-
-    fixture.componentInstance.api = api;
-    expectConsoleSettingsGetRequest(settings);
-    fixture.detectChanges();
-  };
+  });
 
   afterEach(() => {
     httpTestingController.verify();
@@ -113,7 +115,6 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
 
     expect(await componentHarness.isEnabledChecked()).toStrictEqual(true);
 
-    // Expect all fields enabled
     expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(false);
     expect(await componentHarness.isEndpointDisabled()).toStrictEqual(false);
     await componentHarness.toggleEntrypoint();
@@ -125,7 +126,6 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
 
     await componentHarness.toggleEnabled();
 
-    // Expect all fields disabled
     expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(true);
     expect(await componentHarness.isEndpointDisabled()).toStrictEqual(true);
     expect(await componentHarness.isMessageContentDisabled()).toEqual(true);
@@ -135,14 +135,13 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
 
     await componentHarness.toggleEnabled();
 
-    // Expect all fields enabled like before
     expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(false);
     expect(await componentHarness.isEndpointDisabled()).toStrictEqual(false);
     expect(await componentHarness.isMessageContentDisabled()).toEqual(false);
     expect(await componentHarness.isMessageHeadersDisabled()).toEqual(false);
     expect(await componentHarness.isMessageMetadataDisabled()).toEqual(false);
     expect(await componentHarness.isHeadersDisabled()).toEqual(false);
-    // With previous state
+
     expect(await componentHarness.isEntrypointChecked()).toStrictEqual(true);
     expect(await componentHarness.isMessageContentChecked()).toEqual(true);
   });
@@ -370,7 +369,6 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
     it('should validate sampling value with COUNT type', async () => {
       await initComponent();
       expect(await componentHarness.getSamplingType()).toStrictEqual('Count');
-      // Component is initialized with an api with sampling count, so form should use its value
       expect(await componentHarness.getSamplingValue()).toStrictEqual(testApi.analytics.sampling.value);
 
       await componentHarness.addSamplingValue(null);
@@ -503,7 +501,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
           messageCondition: 'message condition',
         },
         tracing: {
-          enabled: true,
+          enabled: false,
           verbose: false,
         },
         sampling: { type: 'COUNT', value: '50' },
@@ -521,61 +519,65 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
       },
     });
 
-    let fixture: ComponentFixture<ApiRuntimeLogsMessageSettingsComponent>;
-    let httpTestingController: HttpTestingController;
-    let componentHarness: ApiRuntimeLogsMessageSettingsHarness;
+    const apiWithTracingEnabledAndVerboseFalse = fakeApiV4({
+      id: API_ID,
+      analytics: {
+        enabled: true,
+        tracing: {
+          enabled: true,
+          verbose: false,
+        },
+      },
+    });
 
-    const initComponent = async (api: ApiV4 = apiWithTracingDisabled, settings: ConsoleSettings = testSettings) => {
-      await TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioTestingModule, ApiRuntimeLogsMessageSettingsModule, MatIconTestingModule],
-        providers: [
-          { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
-          { provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] },
-          {
-            provide: Constants,
-            useValue: CONSTANTS_TESTING,
-          },
-        ],
-      }).compileComponents();
-
-      fixture = TestBed.createComponent(ApiRuntimeLogsMessageSettingsComponent);
-      httpTestingController = TestBed.inject(HttpTestingController);
-      componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsMessageSettingsHarness);
-
-      fixture.componentInstance.api = api;
-      expectConsoleSettingsGetRequest(settings);
-      fixture.detectChanges();
-    };
-
-    afterEach(() => {
-      httpTestingController.verify();
+    beforeEach(async () => {
+      await initComponent(apiWithTracingEnabled);
     });
 
     it('should reflect the initial state of OpenTelemetry controls', async () => {
-      await initComponent(apiWithTracingDisabled);
-
-      expect(await componentHarness.isEnabledChecked()).toStrictEqual(true);
       expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(true);
-      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(false);
+      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(true);
+      expect(await componentHarness.isTracingVerboseDisabled()).toStrictEqual(false);
     });
 
-    it('should enable and disable OpenTelemetry controls correctly', async () => {
-      await initComponent(apiWithTracingEnabled);
-
-      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(true);
-      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(true);
-
-      await componentHarness.toggleTracingEnabled();
-      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(false);
-
-      await componentHarness.toggleTracingVerbose();
-      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(false);
+    it('should disable tracingVerbose when tracingEnabled is toggled off from enabled state where tracingVerbose was enabled', async () => {
+      expect(await componentHarness.isTracingEnabledChecked()).toBe(true);
+      expect(await componentHarness.isTracingVerboseChecked()).toBe(true);
+      expect(await componentHarness.isTracingVerboseDisabled()).toBe(false);
 
       await componentHarness.toggleTracingEnabled();
-      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(true);
 
-      await componentHarness.toggleTracingVerbose();
-      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(true);
+      expect(await componentHarness.isTracingEnabledChecked()).toBe(false);
+      expect(await componentHarness.isTracingVerboseChecked()).toBe(false);
+      expect(await componentHarness.isTracingVerboseDisabled()).toBe(true);
+    });
+
+    it('should disable tracingVerbose when tracingEnabled is toggled off from enabled state where tracingVerbose was disabled', async () => {
+      await initComponent(apiWithTracingEnabledAndVerboseFalse);
+
+      expect(await componentHarness.isTracingEnabledChecked()).toBe(true);
+      expect(await componentHarness.isTracingVerboseChecked()).toBe(false);
+      expect(await componentHarness.isTracingVerboseDisabled()).toBe(false);
+
+      await componentHarness.toggleTracingEnabled();
+
+      expect(await componentHarness.isTracingEnabledChecked()).toBe(false);
+      expect(await componentHarness.isTracingVerboseChecked()).toBe(false);
+      expect(await componentHarness.isTracingVerboseDisabled()).toBe(true);
+    });
+
+    it('should enable tracingVerbose when tracingEnabled is toggled on from disabled state, with tracingVerbose set to false', async () => {
+      await initComponent(apiWithTracingDisabled);
+
+      expect(await componentHarness.isTracingEnabledChecked()).toBe(false);
+      expect(await componentHarness.isTracingVerboseChecked()).toBe(false);
+      expect(await componentHarness.isTracingVerboseDisabled()).toBe(true);
+
+      await componentHarness.toggleTracingEnabled();
+
+      expect(await componentHarness.isTracingEnabledChecked()).toBe(true);
+      expect(await componentHarness.isTracingVerboseChecked()).toBe(false);
+      expect(await componentHarness.isTracingVerboseDisabled()).toBe(false);
     });
 
     it('should save API proxy OpenTelemetry settings', async () => {
@@ -592,7 +594,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
         analytics: {
           ...apiWithTracingDisabled.analytics,
           tracing: {
-            enabled: false,
+            enabled: true,
             verbose: true,
           },
         },
@@ -600,8 +602,6 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
     });
 
     it('should discard changes in OpenTelemetry controls', async () => {
-      await initComponent(apiWithTracingEnabled);
-
       await componentHarness.toggleTracingEnabled();
       await componentHarness.toggleTracingVerbose();
 
@@ -627,12 +627,6 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
       const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
       expect(req.request.body).toStrictEqual(api);
       req.flush(api);
-    }
-
-    function expectConsoleSettingsGetRequest(consoleSettingsResponse: ConsoleSettings) {
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings`);
-      req.flush(consoleSettingsResponse);
-      expect(req.request.method).toEqual('GET');
     }
   });
 });

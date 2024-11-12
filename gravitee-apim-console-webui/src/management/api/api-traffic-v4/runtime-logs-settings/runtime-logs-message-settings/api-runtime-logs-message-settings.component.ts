@@ -55,6 +55,7 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
         this.settings = settings;
         this.initForm();
         this.handleEnabledChanges();
+        this.handleTracingEnabledChanges();
         this.handleSamplingTypeChanges();
         this.handleLoggingModeChanges();
       });
@@ -106,7 +107,7 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
           this.form.markAsPristine();
         }),
         map(() => {
-          this.snackBarService.success(`Runtime logs settings successfully saved!`);
+          this.snackBarService.success('Runtime logs settings successfully saved!');
         }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
@@ -141,7 +142,7 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
       }),
       tracingVerbose: new UntypedFormControl({
         value: this.api.analytics?.tracing?.verbose ?? false,
-        disabled: !analyticsEnabled || isReadOnly,
+        disabled: !analyticsEnabled || !this.api.analytics?.tracing?.enabled || isReadOnly,
       }),
       request: new UntypedFormControl({
         value: this.api?.analytics?.logging?.phase?.request ?? false,
@@ -217,6 +218,19 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
                 control.enable();
               }
             });
+        }
+      });
+  }
+
+  private handleTracingEnabledChanges(): void {
+    this.form
+      .get('tracingEnabled')
+      .valueChanges.pipe(takeUntil(this.unsubscribe$))
+      .subscribe((tracingEnabled) => {
+        if (!tracingEnabled) {
+          this.disableAndUncheck('tracingVerbose');
+        } else {
+          this.form.get('tracingVerbose').enable();
         }
       });
   }
