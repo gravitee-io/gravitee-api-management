@@ -13,28 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { BaseListener } from './baseListener';
 
-import { Selector } from './selector';
-import { StepV4 } from './stepV4';
-
-export interface FlowV4 {
-  /**
-   * Flow's name.
-   */
-  name?: string;
-  /**
-   * Is the flow enabled.
-   */
-  enabled?: boolean;
-  selectors?: Selector[];
-  request?: StepV4[];
-  response?: StepV4[];
-  subscribe?: StepV4[];
-  publish?: StepV4[];
-  connect?: StepV4[];
-  interact?: StepV4[];
-  /**
-   * Flow's tags.
-   */
-  tags?: string[];
+export interface KafkaListener extends BaseListener {
+  host?: string;
+  port?: number;
 }

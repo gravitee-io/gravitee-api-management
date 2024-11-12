@@ -32,6 +32,7 @@ export * from './flowExecution';
 export * from './flowV4';
 export * from './httpListener';
 export * from './httpSelector';
+export * from './kafkaListener';
 export * from './listener';
 export * from './listenerType';
 export * from './loggingContentV4';

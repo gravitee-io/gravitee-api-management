@@ -17,4 +17,4 @@
 /**
  * API's type.
  */
-export type ApiType = 'MESSAGE' | 'PROXY';
+export type ApiType = 'MESSAGE' | 'PROXY' | 'NATIVE';
