@@ -19,6 +19,7 @@ import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
+import { switchMap } from 'rxjs/operators';
 
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApiHealthV2Service } from '../../../../../services-ngx/api-health-v2.service';
@@ -45,19 +46,13 @@ export class GlobalAvailabilityComponent implements OnInit {
   ngOnInit() {
     this.apiHealthV2Service
       .activeFilter()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (timeRange) => {
-          this.getData(timeRange.from, timeRange.to);
-        },
-      });
-  }
-
-  getData(from: number, to: number) {
-    this.isLoading = true;
-    this.apiHealthV2Service
-      .getApiAvailability(this.apiId, from, to)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        switchMap((timeRange) => {
+          this.isLoading = true;
+          return this.apiHealthV2Service.getApiAvailability(this.apiId, timeRange.from, timeRange.to);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         next: (res) => {
           this.globalAvailability = res.global;

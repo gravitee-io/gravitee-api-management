@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, EventEmitter, inject, OnInit, Output } from '@angular/core';
+import { Component, DestroyRef, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
@@ -27,6 +27,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FiltersApplied } from './api-analytics-filters-bar.configuration';
 
 import { timeFrames, TimeRangeParams } from '../../../../../../shared/utils/timeFrameRanges';
+import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analytics-v2.service';
 
 @Component({
   selector: 'api-analytics-filters-bar',
@@ -46,34 +47,34 @@ import { timeFrames, TimeRangeParams } from '../../../../../../shared/utils/time
   styleUrl: './api-analytics-filters-bar.component.scss',
 })
 export class ApiAnalyticsFiltersBarComponent implements OnInit {
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly defaultFilters = { period: '1d' };
+  private readonly defaultFilters = this.apiAnalyticsV2Service.defaultFilters;
   protected readonly timeFrames = timeFrames;
-
-  @Output()
-  public filtersChange = new EventEmitter<TimeRangeParams>();
   public formGroup: FormGroup;
-  public filtersApplied: FiltersApplied = this.defaultFilters;
+  public activeFilters: FiltersApplied = this.defaultFilters;
 
-  constructor(private readonly formBuilder: FormBuilder) {}
+  constructor(
+    private readonly formBuilder: FormBuilder,
+    private readonly destroyRef: DestroyRef,
+    private readonly apiAnalyticsV2Service: ApiAnalyticsV2Service,
+  ) {}
 
   ngOnInit() {
     this.initForm();
   }
 
-  initForm() {
+  private initForm() {
     this.formGroup = this.formBuilder.group(this.defaultFilters);
     this.formGroup.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((value) => {
-      this.filtersApplied = { ...value };
-      this.filtersChange.emit(this.mapToTimeRangeParams(this.filtersApplied));
+      this.activeFilters = value;
+      this.apiAnalyticsV2Service.setTimeRangeFilter(this.getPeriodTimeRangeParams());
     });
   }
 
-  refresh() {
-    this.filtersChange.emit(this.mapToTimeRangeParams(this.filtersApplied));
+  public refresh() {
+    this.apiAnalyticsV2Service.setTimeRangeFilter(this.getPeriodTimeRangeParams());
   }
 
-  mapToTimeRangeParams(filtersApplied: FiltersApplied): TimeRangeParams {
-    return timeFrames.find((timeFrame) => timeFrame.id === filtersApplied.period)?.timeFrameRangesParams();
+  private getPeriodTimeRangeParams(): TimeRangeParams {
+    return timeFrames.find((timeFrame) => timeFrame.id === this.activeFilters.period)?.timeFrameRangesParams();
   }
 }

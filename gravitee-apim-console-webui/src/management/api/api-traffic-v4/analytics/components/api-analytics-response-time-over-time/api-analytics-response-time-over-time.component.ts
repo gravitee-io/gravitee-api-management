@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, inject, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, DestroyRef, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { switchMap } from 'rxjs/operators';
 
 import { GioChartLineModule } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.module';
 import { GioChartLineData, GioChartLineOptions } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.component';
 import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analytics-v2.service';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
-import { TimeRangeParams } from '../../../../../../shared/utils/timeFrameRanges';
 
 @Component({
   selector: 'api-analytics-response-time-over-time',
@@ -32,32 +32,29 @@ import { TimeRangeParams } from '../../../../../../shared/utils/timeFrameRanges'
   templateUrl: './api-analytics-response-time-over-time.component.html',
   styleUrl: './api-analytics-response-time-over-time.component.scss',
 })
-export class ApiAnalyticsResponseTimeOverTimeComponent implements OnChanges {
-  @Input() filters: TimeRangeParams;
-
-  private destroyRef = inject(DestroyRef);
+export class ApiAnalyticsResponseTimeOverTimeComponent implements OnInit {
   private apiId = this.activatedRoute.snapshot.params.apiId;
-
+  public isLoading = true;
   public input: GioChartLineData[];
   public options: GioChartLineOptions;
-  public isLoading = true;
 
   constructor(
     private readonly apiAnalyticsV2Service: ApiAnalyticsV2Service,
     private readonly activatedRoute: ActivatedRoute,
     private readonly snackBarService: SnackBarService,
+    private readonly destroyRef: DestroyRef,
   ) {}
 
-  ngOnChanges(changes: SimpleChanges): void {
-    const { from, to } = changes.filters.currentValue;
-    this.getData(from, to);
-  }
-
-  getData(from: number, to: number) {
-    this.isLoading = true;
+  ngOnInit() {
     this.apiAnalyticsV2Service
-      .getResponseTimeOverTime(this.apiId, from, to)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .timeRangeFilter()
+      .pipe(
+        switchMap(() => {
+          this.isLoading = true;
+          return this.apiAnalyticsV2Service.getResponseTimeOverTime(this.apiId);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         next: (res) => {
           this.input = [

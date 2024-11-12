@@ -4,17 +4,12 @@
 }
 
 .filters {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .form {
   display: flex;
   gap: 8px;
-}
-
-.filters-applied {
-  margin-top: 16px;
-}
-
-.pointer {
-  cursor: pointer;
 }
