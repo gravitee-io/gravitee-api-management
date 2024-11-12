@@ -62,5 +62,6 @@ export class ApiRuntimeLogsProxySettingsHarness extends ComponentHarness {
   public isTracingEnabledChecked = async () => (await this.getTracingEnabledToggle()).isChecked();
   public toggleTracingEnabled = async () => (await this.getTracingEnabledToggle()).toggle();
   public isTracingVerboseChecked = async () => (await this.getTracingVerboseToggle()).isChecked();
+  public isTracingVerboseDisabled = async () => (await this.getTracingVerboseToggle()).isDisabled();
   public toggleTracingVerbose = async () => (await this.getTracingVerboseToggle()).toggle();
 }

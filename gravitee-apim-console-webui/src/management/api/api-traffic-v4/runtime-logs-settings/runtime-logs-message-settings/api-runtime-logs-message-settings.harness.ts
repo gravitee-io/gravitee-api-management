@@ -210,4 +210,5 @@ export class ApiRuntimeLogsMessageSettingsHarness extends ComponentHarness {
   public toggleTracingEnabled = async () => (await this.getTracingEnabledToggle()).toggle();
   public isTracingVerboseChecked = async () => (await this.getTracingVerboseToggle()).isChecked();
   public toggleTracingVerbose = async () => (await this.getTracingVerboseToggle()).toggle();
+  public isTracingVerboseDisabled = async () => (await this.getTracingVerboseToggle()).isDisabled();
 }
