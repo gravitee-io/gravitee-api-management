@@ -15,7 +15,7 @@
 #
 
 # First stage to share environment variable
-FROM graviteeio/java:17-alpine-3.18 AS base
+FROM graviteeio/java:17-alpine-3.20 AS base
 ENV GRAVITEEIO_HOME=/opt/graviteeio-management-api
 
 RUN addgroup -g 1000 graviteeio \
