@@ -18,25 +18,41 @@ package io.gravitee.apim.core.api.model.crd;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.Path;
+import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeListener;
+import io.gravitee.definition.model.v4.nativeapi.NativePlan;
+import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
+import io.gravitee.definition.model.v4.service.AbstractApiServices;
+import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.rest.api.model.context.OriginContext;
+import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -82,15 +98,15 @@ public class ApiCRDSpec {
 
     private Map<String, PlanCRD> plans;
 
-    private List<Flow> flows;
+    private List<? extends AbstractFlow> flows;
 
-    private List<Property> properties;
+    private List<EncryptableProperty> properties;
 
     private List<ApiMetadata> metadata;
 
-    private List<Listener> listeners;
+    private List<? extends AbstractListener<? extends AbstractEntrypoint>> listeners;
 
-    private List<EndpointGroup> endpointGroups;
+    private List<@Valid ? extends AbstractEndpointGroup<? extends AbstractEndpoint>> endpointGroups;
 
     private Analytics analytics;
 
@@ -106,10 +122,16 @@ public class ApiCRDSpec {
 
     private Set<String> categories;
 
-    private Map<String, PageCRD> pages;
+    private ApiServicesCRD services;
+
+    private Map<String, @Valid PageCRD> pages;
 
     public String getDefinitionVersion() {
         return "V4";
+    }
+
+    public boolean isNative() {
+        return ApiType.NATIVE.name().equalsIgnoreCase(type);
     }
 
     /**
@@ -151,16 +173,40 @@ public class ApiCRDSpec {
             .analytics(analytics)
             .apiVersion(version)
             .definitionVersion(DefinitionVersion.V4)
-            .endpointGroups(endpointGroups)
+            .endpointGroups(endpointGroups != null ? (List<EndpointGroup>) endpointGroups : null)
             .failover(failover)
-            .flows(flows)
+            .flows(flows != null ? (List<Flow>) flows : null)
             .id(id)
-            .listeners(listeners)
+            .listeners(listeners != null ? (List<Listener>) listeners : null)
             .name(name)
-            .properties(properties)
+            .properties(toProperties(properties))
             .resources(resources)
             .responseTemplates(responseTemplates)
+            .plans(toApiPlans(plans))
+            .services(services != null ? new ApiServices(services.getDynamicProperty()) : null)
             .tags(tags)
+            .type(ApiType.valueOf(type));
+    }
+
+    /**
+     * @return An instance of {@link io.gravitee.definition.model.v4.nativeapi.NativeApi.NativeApiBuilder} based on the current state of this ApiCRD.
+     */
+    public io.gravitee.definition.model.v4.nativeapi.NativeApi.NativeApiBuilder<?, ?> toNativeApiDefinitionBuilder() {
+        // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to allow MapStruct in core.
+        return io.gravitee.definition.model.v4.nativeapi.NativeApi
+            .builder()
+            .apiVersion(version)
+            .definitionVersion(DefinitionVersion.V4)
+            .endpointGroups(endpointGroups != null ? (List<NativeEndpointGroup>) endpointGroups : null)
+            .flows(flows != null ? (List<NativeFlow>) flows : null)
+            .id(id)
+            .listeners(listeners != null ? (List<NativeListener>) listeners : null)
+            .name(name)
+            .properties(toProperties(properties))
+            .resources(resources)
+            .tags(tags)
+            .plans(toNativePlans(plans))
+            .services(services != null ? new NativeApiServices(services.getDynamicProperty()) : null)
             .type(ApiType.valueOf(type));
     }
 
@@ -178,6 +224,61 @@ public class ApiCRDSpec {
                     )
             )
             .toList();
+    }
+
+    public List<Property> toProperties(List<EncryptableProperty> properties) {
+        return properties
+            .stream()
+            .map(ep -> Property.builder().key(ep.getKey()).value(ep.getValue()).dynamic(ep.isDynamic()).encrypted(ep.isEncrypted()).build())
+            .collect(Collectors.toList());
+    }
+
+    public Map<String, Plan> toApiPlans(Map<String, PlanCRD> plans) {
+        return plans
+            .entrySet()
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    v -> {
+                        PlanCRD planCRD = v.getValue();
+                        Plan plan = new Plan();
+                        plan.setId(planCRD.getId());
+                        plan.setName(planCRD.getName());
+                        plan.setTags(planCRD.getTags());
+                        plan.setSecurity(planCRD.getSecurity());
+                        plan.setSelectionRule(planCRD.getSelectionRule());
+                        plan.setStatus(planCRD.getStatus());
+                        plan.setFlows((List<Flow>) planCRD.getFlows());
+
+                        return plan;
+                    }
+                )
+            );
+    }
+
+    public Map<String, NativePlan> toNativePlans(Map<String, PlanCRD> plans) {
+        return plans
+            .entrySet()
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    v -> {
+                        PlanCRD planCRD = v.getValue();
+                        NativePlan nativePlan = new NativePlan();
+                        nativePlan.setId(planCRD.getId());
+                        nativePlan.setName(planCRD.getName());
+                        nativePlan.setTags(planCRD.getTags());
+                        nativePlan.setSecurity(planCRD.getSecurity());
+                        nativePlan.setSelectionRule(planCRD.getSelectionRule());
+                        nativePlan.setStatus(planCRD.getStatus());
+                        nativePlan.setFlows((List<NativeFlow>) planCRD.getFlows());
+
+                        return nativePlan;
+                    }
+                )
+            );
     }
 
     public static class ApiCRDSpecBuilder {

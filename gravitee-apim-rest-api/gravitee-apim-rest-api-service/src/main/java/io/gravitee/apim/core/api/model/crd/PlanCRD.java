@@ -16,11 +16,10 @@
 package io.gravitee.apim.core.api.model.crd;
 
 import io.gravitee.apim.core.plan.model.Plan;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -63,7 +62,7 @@ public class PlanCRD {
     private Plan.PlanValidationType validation;
 
     @Builder.Default
-    private List<Flow> flows = List.of();
+    private List<? extends AbstractFlow> flows = List.of();
 
     private PlanMode mode;
 }

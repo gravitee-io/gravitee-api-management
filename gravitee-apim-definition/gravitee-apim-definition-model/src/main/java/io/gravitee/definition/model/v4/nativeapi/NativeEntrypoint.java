@@ -17,7 +17,6 @@ package io.gravitee.definition.model.v4.nativeapi;
 
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,11 +24,11 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
-@NoArgsConstructor
-@SuperBuilder
 @Getter
 @Setter
+@NoArgsConstructor
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "NativeEntrypointV4")
+@SuperBuilder(toBuilder = true)
 public class NativeEntrypoint extends AbstractEntrypoint {}
