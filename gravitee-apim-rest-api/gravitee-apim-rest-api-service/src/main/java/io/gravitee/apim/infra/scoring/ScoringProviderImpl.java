@@ -28,6 +28,7 @@ import io.gravitee.scoring.api.model.ScoringRequest;
 import io.gravitee.scoring.api.model.asset.AssetToAnalyze;
 import io.gravitee.scoring.api.model.asset.AssetType;
 import io.gravitee.scoring.api.model.asset.ContentType;
+import io.gravitee.scoring.api.model.ruleset.CustomRuleset;
 import io.reactivex.rxjava3.core.Completable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -71,7 +72,8 @@ public class ScoringProviderImpl implements ScoringProvider {
                             )
                         )
                         .toList(),
-                    request.customRulesets()
+                    null,
+                    request.customRulesets().stream().map(r -> new CustomRuleset(r.content())).toList()
                 )
             )
         );

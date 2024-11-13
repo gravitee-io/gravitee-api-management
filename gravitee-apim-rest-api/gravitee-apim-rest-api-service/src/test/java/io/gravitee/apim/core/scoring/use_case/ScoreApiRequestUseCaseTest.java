@@ -228,7 +228,10 @@ class ScoreApiRequestUseCaseTest {
                     ENVIRONMENT_ID,
                     api.getId(),
                     List.of(new ScoreRequest.AssetToScore(page.getId(), ScoringAssetType.SWAGGER, page.getName(), page.getContent())),
-                    List.of(CUSTOM_RULESET_1.payload(), CUSTOM_RULESET_2.payload())
+                    List.of(
+                        new ScoreRequest.CustomRuleset(CUSTOM_RULESET_1.payload()),
+                        new ScoreRequest.CustomRuleset(CUSTOM_RULESET_2.payload())
+                    )
                 )
             );
     }
