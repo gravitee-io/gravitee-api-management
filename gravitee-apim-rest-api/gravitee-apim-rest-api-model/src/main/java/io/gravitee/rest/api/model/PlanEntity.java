@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.flow.Flow;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -54,11 +55,11 @@ public class PlanEntity extends BasePlanEntity {
 
         PlanEntity that = (PlanEntity) o;
 
-        return getId().equals(that.getId());
+        return Objects.equals(getId(), that.getId());
     }
 
     @Override
     public int hashCode() {
-        return getId().hashCode();
+        return Objects.hashCode(getId());
     }
 }
