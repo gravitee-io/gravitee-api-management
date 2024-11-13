@@ -205,10 +205,14 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
     }
 
     private static List<Path> extractPaths(Api api) {
-        return api.getDefinitionVersion() == DefinitionVersion.V4 ? getV4Paths(api) : getV2Paths(api);
+        return api.getDefinitionVersion() == DefinitionVersion.V4 ? getHttpV4Paths(api) : getV2Paths(api);
     }
 
-    private static List<Path> getV4Paths(Api api) {
+    private static List<Path> getHttpV4Paths(Api api) {
+        if (api.getApiDefinitionHttpV4() == null) {
+            return new ArrayList<>();
+        }
+
         return api
             .getApiDefinitionHttpV4()
             .getListeners()
