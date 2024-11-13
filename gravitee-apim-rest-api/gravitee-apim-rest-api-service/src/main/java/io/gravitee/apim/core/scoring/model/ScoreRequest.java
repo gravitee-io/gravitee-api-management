@@ -25,11 +25,12 @@ public record ScoreRequest(
     String environmentId,
     String apiId,
     List<AssetToScore> assets,
-    List<String> customRulesets
+    List<CustomRuleset> customRulesets
 ) {
     public ScoreRequest(String jobId, String organizationId, String environmentId, String apiId, List<AssetToScore> assets) {
         this(jobId, organizationId, environmentId, apiId, assets, emptyList());
     }
 
     public record AssetToScore(String assetId, ScoringAssetType assetType, String assetName, String content) {}
+    public record CustomRuleset(String content) {}
 }

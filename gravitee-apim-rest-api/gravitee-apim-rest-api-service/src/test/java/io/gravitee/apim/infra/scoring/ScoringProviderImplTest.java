@@ -35,6 +35,7 @@ import io.gravitee.scoring.api.model.ScoringRequest;
 import io.gravitee.scoring.api.model.asset.AssetToAnalyze;
 import io.gravitee.scoring.api.model.asset.AssetType;
 import io.gravitee.scoring.api.model.asset.ContentType;
+import io.gravitee.scoring.api.model.ruleset.CustomRuleset;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
 import java.util.Map;
@@ -108,7 +109,8 @@ class ScoringProviderImplTest {
                         INSTALLATION_ID,
                         new ScoringRequest(
                             List.of(new AssetToAnalyze("page-id", AssetType.OPEN_API, "echo-oas.json", "{}", ContentType.JSON)),
-                            List.of("custom-ruleset-payload")
+                            null,
+                            List.of(new CustomRuleset("custom-ruleset-payload"))
                         )
                     )
                 );
@@ -135,7 +137,7 @@ class ScoringProviderImplTest {
                 ENVIRONMENT_ID,
                 API_ID,
                 List.of(new ScoreRequest.AssetToScore("page-id", ScoringAssetType.SWAGGER, "echo-oas.json", "{}")),
-                List.of("custom-ruleset-payload")
+                List.of(new ScoreRequest.CustomRuleset("custom-ruleset-payload"))
             );
         }
     }

@@ -66,7 +66,7 @@ public class ScoreApiRequestUseCase {
                 scoringRulesetQueryService.findByReference(input.auditInfo.environmentId(), ScoringRuleset.ReferenceType.ENVIRONMENT)
             )
             .flatMap(Flowable::fromIterable)
-            .map(ScoringRuleset::payload)
+            .map(r -> new ScoreRequest.CustomRuleset(r.payload()))
             .toList();
 
         return Maybe
