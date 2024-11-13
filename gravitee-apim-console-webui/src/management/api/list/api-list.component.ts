@@ -34,6 +34,7 @@ import {
   ApiV2,
   ApiV4,
   HttpListener,
+  KafkaListener,
   Listener,
   ListenerType,
   Origin,
@@ -241,6 +242,9 @@ export class ApiListComponent implements OnInit, OnDestroy {
       case 'V2':
         return { label: this.titleCasePipe.transform(api.definitionVersion) };
       case 'V4':
+        if ((api as ApiV4).type === 'NATIVE') {
+          return { label: `${api.definitionVersion} - ${this.titleCasePipe.transform((api as ApiV4).type)}${this.getLabelType(api)}` };
+        }
         return { label: `${api.definitionVersion} -${this.getLabelType(api)} ${this.titleCasePipe.transform((api as ApiV4).type)}` };
       case 'FEDERATED':
         return { label: this.titleCasePipe.transform(api.definitionVersion) };
@@ -255,6 +259,10 @@ export class ApiListComponent implements OnInit, OnDestroy {
     }
 
     if (api.definitionVersion === 'V4') {
+      if (api.type === 'NATIVE') {
+        return api.listeners.map((listener: Listener): ListenerType => listener.type).includes('KAFKA') ? ' Kafka' : '';
+      }
+
       return api.listeners.map((listener: Listener): ListenerType => listener.type).includes('TCP') ? ' TCP' : ' HTTP';
     }
 
@@ -288,6 +296,18 @@ export class ApiListComponent implements OnInit, OnDestroy {
 
   private getApiAccess(api: ApiV4 | ApiV2): string[] | null {
     if (api.definitionVersion === 'V4') {
+      if (api.type === 'NATIVE') {
+        const kafkaListenerHosts = api.listeners
+          .filter((listener) => listener.type === 'KAFKA')
+          .map((kafkaListener: KafkaListener) => {
+            const host = kafkaListener.host ?? '';
+            const port = kafkaListener.port ? `:${kafkaListener.port}` : '';
+            return `${host}${port}`;
+          });
+
+        return kafkaListenerHosts.length > 0 ? kafkaListenerHosts : null;
+      }
+
       const tcpListenerHosts = api.listeners
         .filter((listener) => listener.type === 'TCP')
         .flatMap((listener: TcpListener) => listener.hosts);
