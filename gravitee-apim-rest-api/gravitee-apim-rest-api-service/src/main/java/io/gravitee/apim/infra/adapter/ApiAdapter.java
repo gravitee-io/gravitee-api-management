@@ -68,12 +68,10 @@ public interface ApiAdapter {
     @Mapping(target = "failover", source = "apiDefinitionHttpV4.failover")
     NewApiEntity toNewApiEntity(Api source);
 
-    @Mapping(target = "apiVersion", source = "version")
-    io.gravitee.definition.model.v4.Api toApiDefinition(ApiCRDSpec source);
-
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "version", target = "apiVersion")
     @Mapping(target = "disableMembershipNotifications", expression = "java(!spec.isNotifyMembers())")
+    @Mapping(target = "listeners", expression = "java((List<Listener>) spec.getListeners())")
     UpdateApiEntity toUpdateApiEntity(ApiCRDSpec spec);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
@@ -89,6 +87,7 @@ public interface ApiAdapter {
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "version", target = "apiVersion")
     @Mapping(target = "metadata", ignore = true)
+    @Mapping(target = "listeners", expression = "java((List<Listener>) api.getListeners())")
     ApiEntity toApiEntity(ApiCRDSpec api);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)

@@ -15,7 +15,15 @@
  */
 package io.gravitee.rest.api.management.v2.rest.model;
 
+import io.gravitee.definition.model.DefinitionContext;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.listener.AbstractListener;
+import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -27,13 +35,19 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ApiCRDSpec {
 
     @NotNull
@@ -61,11 +75,11 @@ public class ApiCRDSpec {
 
     private Set<String> tags = new HashSet<>();
 
-    private List<@Valid Listener> listeners;
+    private List<@Valid ? extends AbstractListener<? extends AbstractEntrypoint>> listeners;
 
     @NotNull
     @Size(min = 1)
-    private List<@Valid EndpointGroupV4> endpointGroups;
+    private List<@Valid ? extends AbstractEndpointGroup<? extends AbstractEndpoint>> endpointGroups;
 
     private Analytics analytics;
 
@@ -83,7 +97,7 @@ public class ApiCRDSpec {
 
     private Map<String, Map<String, ResponseTemplate>> responseTemplates = new LinkedHashMap<>();
 
-    private ApiServices services;
+    private ApiServicesCRD services;
 
     private Set<String> groups;
 

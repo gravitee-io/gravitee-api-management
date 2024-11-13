@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.model.factory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewHttpApi;
 import io.gravitee.apim.core.api.model.NewNativeApi;
+import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.async_job.model.AsyncJob;
@@ -25,8 +26,14 @@ import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.common.UuidString;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ApiModelFactory {
 
@@ -63,15 +70,46 @@ public class ApiModelFactory {
     public static Api fromCrd(ApiCRDSpec crd, String environmentId) {
         var id = crd.getId() != null ? crd.getId() : UuidString.generateRandom();
         var now = TimeProvider.now();
-        return crd
+        Api api = crd
             .toApiBuilder()
             .id(id)
             .environmentId(environmentId)
             .createdAt(now)
             .updatedAt(now)
             .visibility(Api.Visibility.valueOf(crd.getVisibility()))
-            .apiDefinitionHttpV4(crd.toApiDefinitionBuilder().id(id).build())
             .disableMembershipNotifications(!crd.isNotifyMembers())
+            .build();
+
+        if (api.isNative()) {
+            api.setApiDefinitionNativeV4(crd.toNativeApiDefinitionBuilder().id(id).build());
+        } else {
+            api.setApiDefinitionHttpV4(crd.toApiDefinitionBuilder().id(id).build());
+        }
+
+        return api;
+    }
+
+    public static UpdateNativeApi toUpdateNativeApi(ApiCRDSpec spec) {
+        return UpdateNativeApi
+            .builder()
+            .id(spec.getId())
+            .name(spec.getName())
+            .description(spec.getDescription())
+            .visibility(Api.Visibility.valueOf(spec.getVisibility()))
+            .resources(spec.getResources())
+            .disableMembershipNotifications(!spec.isNotifyMembers())
+            .endpointGroups(spec.getEndpointGroups() != null ? (List<NativeEndpointGroup>) spec.getEndpointGroups() : null)
+            .apiVersion(spec.getVersion())
+            .definitionVersion(DefinitionVersion.valueOf(spec.getDefinitionVersion()))
+            .categories(spec.getCategories())
+            .groups(spec.getGroups())
+            .labels(spec.getLabels() != null ? spec.getLabels().stream().collect(Collectors.toList()) : null)
+            .lifecycleState(Api.ApiLifecycleState.valueOf(spec.getLifecycleState()))
+            .services(spec.getServices() != null ? new NativeApiServices(spec.getServices().getDynamicProperty()) : null)
+            .tags(spec.getTags())
+            .listeners(spec.getListeners() != null ? (List<NativeListener>) spec.getListeners() : null)
+            .flows(spec.getFlows() != null ? (List<NativeFlow>) spec.getFlows() : null)
+            .properties(spec.getProperties())
             .build();
     }
 
