@@ -54,7 +54,7 @@ import { onlyApiV2V4Filter } from '../../../util/apiFilter.operator';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { Api } from '../../../entities/management-api-v2';
+import { Api, ApiV4 } from '../../../entities/management-api-v2';
 import { ResourceV2Service } from '../../../services-ngx/resource-v2.service';
 
 type TableDataSource = {
@@ -147,7 +147,7 @@ export class ApiResourcesComponent implements OnInit {
         });
 
         const filteredResources = gioTableFilterCollection(apiResourcesDS, tableFilters);
-        this.isReadOnly = api.definitionContext?.origin === 'KUBERNETES';
+        this.isReadOnly = api.definitionContext?.origin === 'KUBERNETES' || (api as ApiV4).type === 'NATIVE';
         return {
           isReadOnly: this.isReadOnly,
           isLoading: false,

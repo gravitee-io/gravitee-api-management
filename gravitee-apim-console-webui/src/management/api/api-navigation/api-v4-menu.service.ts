@@ -42,15 +42,15 @@ export class ApiV4MenuService implements ApiMenuService {
 
     const subMenuItems: MenuItem[] = [
       this.addConfigurationMenuEntry(),
-      ...(this.constants.org.settings?.scoring?.enabled ? [this.addApiScoreMenuEntry()] : []),
-      this.addEntrypointsMenuEntry(hasTcpListeners),
-      this.addEndpointsMenuEntry(api, hasTcpListeners),
-      this.addPoliciesMenuEntry(hasTcpListeners),
-      this.addConsumersMenuEntry(hasTcpListeners),
+      ...(this.constants.org.settings?.scoring?.enabled && api.type !== 'NATIVE' ? [this.addApiScoreMenuEntry()] : []),
+      ...(api.type !== 'NATIVE' ? [this.addEntrypointsMenuEntry(hasTcpListeners)] : []),
+      ...(api.type !== 'NATIVE' ? [this.addEndpointsMenuEntry(api, hasTcpListeners)] : []),
+      ...(api.type !== 'NATIVE' ? [this.addPoliciesMenuEntry(hasTcpListeners)] : []),
+      ...(api.type !== 'NATIVE' ? [this.addConsumersMenuEntry(hasTcpListeners)] : []),
       this.addDocumentationMenuEntry(api),
-      this.addDeploymentMenuEntry(),
-      this.addApiTrafficMenuEntry(hasTcpListeners),
-      this.addApiRuntimeAlertsMenuEntry(),
+      ...(api.type !== 'NATIVE' ? [this.addDeploymentMenuEntry()] : []),
+      ...(api.type !== 'NATIVE' ? [this.addApiTrafficMenuEntry(hasTcpListeners)] : []),
+      ...(api.type !== 'NATIVE' ? [this.addApiRuntimeAlertsMenuEntry()] : []),
       ...this.addHealthCheckMenuEntry(api.type),
     ].filter((entry) => entry != null && !entry.tabs?.every((tab) => tab.routerLink === 'DISABLED'));
 

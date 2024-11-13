@@ -131,6 +131,7 @@
         mat-button
         class="details-card__actions_btn"
         data-testid="api_info_export_menu"
+        [disabled]="apiType === 'NATIVE'"
         (click)="exportApi()"
       >
         <mat-icon svgIcon="gio:upload"></mat-icon> Export
@@ -148,7 +149,7 @@
         *gioPermission="{ anyOf: ['api-definition-c'] }"
         mat-button
         class="details-card__actions_btn"
-        [disabled]="isKubernetesOrigin || api.definitionVersion === 'V1'"
+        [disabled]="isKubernetesOrigin || api.definitionVersion === 'V1' || apiType === 'NATIVE'"
         data-testid="api_info_duplicate_menu"
         (click)="duplicateApi()"
       >
@@ -158,7 +159,7 @@
         *gioPermission="{ anyOf: ['api-definition-u'] }"
         mat-button
         class="details-card__actions_btn"
-        [disabled]="cannotPromote"
+        [disabled]="cannotPromote || apiType === 'NATIVE'"
         data-testid="api_info_promote"
         (click)="promoteApi()"
       >
@@ -173,7 +174,12 @@
     [apiId]="apiId"
   ></api-general-info-quality>
 
-  <api-general-info-danger-zone class="danger-zone" [api]="api" (reloadDetails)="ngOnInit()"></api-general-info-danger-zone>
+  <api-general-info-danger-zone
+    *ngIf="apiType !== 'NATIVE'"
+    class="danger-zone"
+    [api]="api"
+    (reloadDetails)="ngOnInit()"
+  ></api-general-info-danger-zone>
 
   <gio-save-bar
     [form]="parentForm"
