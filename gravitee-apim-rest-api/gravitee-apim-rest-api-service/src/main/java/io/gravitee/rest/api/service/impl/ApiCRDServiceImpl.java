@@ -96,8 +96,7 @@ public class ApiCRDServiceImpl extends AbstractService implements ApiCRDService 
 
             ApiEntity importedApi;
             if (existingApiEntity != null) {
-                importedApi =
-                    apiDuplicatorService.updateWithImportedDefinition(executionContext, existingApiEntity.getId(), sanitizedApiDefinition);
+                importedApi = apiDuplicatorService.updateWithImportedDefinition(executionContext, null, sanitizedApiDefinition);
             } else {
                 importedApi = apiDuplicatorService.createWithImportedDefinition(executionContext, sanitizedApiDefinition);
             }
