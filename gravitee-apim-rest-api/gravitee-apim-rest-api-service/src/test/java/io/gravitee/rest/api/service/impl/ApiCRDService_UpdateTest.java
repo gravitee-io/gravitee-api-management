@@ -105,7 +105,7 @@ public class ApiCRDService_UpdateTest {
         when(apiService.findByEnvironmentIdAndCrossId(DEFAULT_ENVIRONMENT_ID, API_CROSS_ID)).thenReturn(Optional.of(toApiEntity(apiCRD)));
 
         apiCRD.setName("update_name");
-        when(apiDuplicatorService.updateWithImportedDefinition(ec, API_ID, objectMapper.writeValueAsString(apiCRD)))
+        when(apiDuplicatorService.updateWithImportedDefinition(ec, null, objectMapper.writeValueAsString(apiCRD)))
             .thenReturn(toApiEntity(apiCRD));
 
         final ApiCRDStatusEntity apiCRDStatus = apiCRDService.importApiDefinitionCRD(ec, apiCRD);
@@ -131,7 +131,7 @@ public class ApiCRDService_UpdateTest {
         when(apiService.findByEnvironmentIdAndCrossId(DEFAULT_ENVIRONMENT_ID, API_CROSS_ID)).thenReturn(Optional.of(toApiEntity(apiCRD)));
 
         apiCRD.setName("update_name");
-        when(apiDuplicatorService.updateWithImportedDefinition(ec, API_ID, objectMapper.writeValueAsString(apiCRD)))
+        when(apiDuplicatorService.updateWithImportedDefinition(ec, null, objectMapper.writeValueAsString(apiCRD)))
             .thenReturn(toApiEntity(apiCRD));
 
         when(membershipService.getPrimaryOwner(DEFAULT_ORGANIZATION_ID, MembershipReferenceType.API, API_ID))
@@ -162,7 +162,7 @@ public class ApiCRDService_UpdateTest {
 
         apiCRD.setDefinitionContext(new DefinitionContext(ORIGIN_KUBERNETES, MODE_FULLY_MANAGED, ORIGIN_MANAGEMENT));
         apiCRD.setName("update_name");
-        when(apiDuplicatorService.updateWithImportedDefinition(ec, API_ID, objectMapper.writeValueAsString(apiCRD)))
+        when(apiDuplicatorService.updateWithImportedDefinition(ec, null, objectMapper.writeValueAsString(apiCRD)))
             .thenReturn(toApiEntity(apiCRD));
 
         final ApiCRDStatusEntity apiCRDStatus = apiCRDService.importApiDefinitionCRD(ec, apiCRD);
@@ -190,7 +190,7 @@ public class ApiCRDService_UpdateTest {
         apiCRD.setDefinitionContext(new DefinitionContext(ORIGIN_KUBERNETES, MODE_FULLY_MANAGED, ORIGIN_MANAGEMENT));
         apiCRD.setName("update_name");
         apiCRD.setState(STOPPED);
-        when(apiDuplicatorService.updateWithImportedDefinition(ec, API_ID, objectMapper.writeValueAsString(apiCRD)))
+        when(apiDuplicatorService.updateWithImportedDefinition(ec, null, objectMapper.writeValueAsString(apiCRD)))
             .thenReturn(toApiEntity(apiCRD));
 
         final ApiCRDStatusEntity apiCRDStatus = apiCRDService.importApiDefinitionCRD(ec, apiCRD);
