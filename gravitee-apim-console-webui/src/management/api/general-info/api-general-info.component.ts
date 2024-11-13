@@ -47,7 +47,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioApiImportDialogComponent, GioApiImportDialogData } from '../component/gio-api-import-dialog/gio-api-import-dialog.component';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { Api, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from '../../../entities/management-api-v2';
+import { Api, ApiType, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from '../../../entities/management-api-v2';
 import { Integration } from '../../integrations/integrations.model';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 
@@ -61,6 +61,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
 
   public apiId: string;
   public api: Api;
+  public apiType: ApiType;
 
   public apiDetailsForm: UntypedFormGroup;
   public apiImagesForm: UntypedFormGroup;
@@ -140,8 +141,16 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
         ),
         tap(([api, categories]) => {
           this.isKubernetesOrigin = api.originContext?.origin === 'KUBERNETES';
+
+          if (api.definitionVersion === 'V4') {
+            this.apiType = (api as ApiV4).type;
+          }
+
           this.isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-definition-u']) || this.isKubernetesOrigin || api.definitionVersion === 'V1';
+            !this.permissionService.hasAnyMatching(['api-definition-u']) ||
+            this.isKubernetesOrigin ||
+            api.definitionVersion === 'V1' ||
+            this.apiType === 'NATIVE';
 
           this.api = api;
 

@@ -33,7 +33,7 @@ import {
 import { SearchableUser } from '../../../../entities/user/searchableUser';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiMemberV2Service } from '../../../../services-ngx/api-member-v2.service';
-import { Api, Group, Member } from '../../../../entities/management-api-v2';
+import { Api, ApiV4, Group, Member } from '../../../../entities/management-api-v2';
 import { GroupV2Service } from '../../../../services-ngx/group-v2.service';
 import { ApiGeneralGroupsComponent, ApiGroupsDialogData, ApiGroupsDialogResult } from '../groups/api-general-groups.component';
 import {
@@ -285,7 +285,11 @@ export class ApiGeneralMembersComponent implements OnInit {
 
   private initForm(api: Api) {
     this.isKubernetesOrigin = api.originContext?.origin === 'KUBERNETES';
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']) || api.definitionVersion === 'V1' || this.isKubernetesOrigin;
+    this.isReadOnly =
+      !this.permissionService.hasAnyMatching(['api-member-u']) ||
+      api.definitionVersion === 'V1' ||
+      this.isKubernetesOrigin ||
+      (api as ApiV4).type === 'NATIVE';
     this.form = new UntypedFormGroup({
       isNotificationsEnabled: new UntypedFormControl({
         value: !api.disableMembershipNotifications,
