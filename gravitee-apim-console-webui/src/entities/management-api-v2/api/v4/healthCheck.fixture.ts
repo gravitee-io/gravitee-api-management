@@ -33,11 +33,12 @@ export function fakeApiHealthResponseTimeOvertime(attribute?: Partial<ApiHealthR
 }
 
 export function fakeApiHealthAvailability(attribute?: Partial<ApiAvailability>): ApiAvailability {
+  const groups: { [id: string]: number }[] = [{}];
+  groups['someSampleGroup'] = 0.99;
+
   const base: ApiAvailability = {
     global: 0.9876,
-    group: {
-      example: 100,
-    },
+    group: groups,
   };
 
   return {
@@ -47,11 +48,12 @@ export function fakeApiHealthAvailability(attribute?: Partial<ApiAvailability>):
 }
 
 export function fakeApiHealthAverageResponseTime(attribute?: Partial<ApiAverageResponseTime>): ApiAverageResponseTime {
-  const base: ApiAverageResponseTime = {
+  const groups: { [id: string]: number }[] = [{}];
+  groups['someSampleGroup'] = 150;
+
+  const base: ApiAvailability = {
     global: 100,
-    group: {
-      example: 100,
-    },
+    group: groups,
   };
 
   return {
