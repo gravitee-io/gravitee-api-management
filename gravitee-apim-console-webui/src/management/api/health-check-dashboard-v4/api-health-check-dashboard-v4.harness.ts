@@ -19,6 +19,7 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { ApiHealthCheckDashboardV4FiltersHarness } from './components/filters/api-health-check-dashboard-v4-filters.harness';
 import { AvailabilityHarness } from './components/global-availability/global-availability.harness';
 import { AverageResponseTimeHarness } from './components/global-average-response-time/global-average-response-time.harness';
+import { AvailabilityPerFieldHarness } from './components/availability-per-field/availability-per-field.harness';
 
 export class ApiHealthCheckDashboardV4Harness extends ComponentHarness {
   static hostSelector = 'app-health-check-dashboard-v4';
@@ -28,4 +29,10 @@ export class ApiHealthCheckDashboardV4Harness extends ComponentHarness {
   getAvailabilityWidgetHarness = this.locatorForOptional(AvailabilityHarness);
 
   getAverageResponseTimeWidgetHarness = this.locatorForOptional(AverageResponseTimeHarness);
+
+  getAvailabilityPerEndpointWidgetHarness = this.locatorForOptional(
+    AvailabilityPerFieldHarness.with({ title: 'Availability Per Endpoint' }),
+  );
+
+  getAvailabilityPerGatewayWidgetHarness = this.locatorForOptional(AvailabilityPerFieldHarness.with({ title: 'Availability Per Gateway' }));
 }

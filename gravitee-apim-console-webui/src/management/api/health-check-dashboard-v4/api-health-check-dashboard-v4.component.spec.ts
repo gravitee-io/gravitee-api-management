@@ -19,6 +19,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { parallel } from '@angular/cdk/testing';
 
 import { ApiHealthCheckDashboardV4Component } from './api-health-check-dashboard-v4.component';
 import { ApiHealthCheckDashboardV4Harness } from './api-health-check-dashboard-v4.harness';
@@ -119,6 +120,70 @@ describe('ApiHealthCheckDashboardV4Component', () => {
     expect(await averageResponseTimeWidget.getWidgetValue()).toEqual('100 ms');
   });
 
+  it('should display correct data in Availability Per Endpoint widget', async () => {
+    expectGetApiHealthResponseStatusOvertime();
+    expectGetApiAvailability();
+    expectGetApiAverageResponseTime();
+
+    const availabilityPerEndpointWidget = await componentHarness.getAvailabilityPerEndpointWidgetHarness();
+
+    const tableHarness = await availabilityPerEndpointWidget.tableHarness();
+
+    const headerRows = await tableHarness.getHeaderRows();
+    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+
+    const rows = await tableHarness.getRows();
+    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+
+    expect(headerCells).toEqual([
+      {
+        name: 'Endpoint',
+        availability: 'Availability',
+        'response-time': 'Response Time',
+      },
+    ]);
+
+    expect(rowCells[1]).toEqual({
+      name: 'someSampleGroup',
+      availability: '99.0%',
+      'response-time': '150ms',
+    });
+
+    expect((await availabilityPerEndpointWidget.getTitle()) === 'Availability Per Endpoint');
+  });
+
+  it('should display correct data in Availability Per Gateway widget', async () => {
+    expectGetApiHealthResponseStatusOvertime();
+    expectGetApiAvailability();
+    expectGetApiAverageResponseTime();
+
+    const availabilityPerEndpointWidget = await componentHarness.getAvailabilityPerGatewayWidgetHarness();
+
+    const tableHarness = await availabilityPerEndpointWidget.tableHarness();
+
+    const headerRows = await tableHarness.getHeaderRows();
+    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+
+    const rows = await tableHarness.getRows();
+    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+
+    expect(headerCells).toEqual([
+      {
+        name: 'Gateway',
+        availability: 'Availability',
+        'response-time': 'Response Time',
+      },
+    ]);
+
+    expect(rowCells[1]).toEqual({
+      name: 'someSampleGroup',
+      availability: '99.0%',
+      'response-time': '150ms',
+    });
+
+    expect((await availabilityPerEndpointWidget.getTitle()) === 'Availability Per Gateway');
+  });
+
   function expectGetApiHealthResponseStatusOvertime(res = fakeApiHealthResponseTimeOvertime()) {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/health/average-response-time-overtime`;
     const req = httpTestingController.expectOne((req) => {
@@ -129,17 +194,21 @@ describe('ApiHealthCheckDashboardV4Component', () => {
 
   function expectGetApiAvailability(res: ApiAvailability = fakeApiHealthAvailability()) {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/health/availability`;
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.match((req) => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
-    req.flush(res);
+    req.map((request) => {
+      if (!request.cancelled) request.flush(res);
+    });
   }
 
   function expectGetApiAverageResponseTime(res: ApiAverageResponseTime = fakeApiHealthAverageResponseTime()) {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/health/average-response-time`;
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.match((req) => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
-    req.flush(res);
+    req.map((request) => {
+      if (!request.cancelled) request.flush(res);
+    });
   }
 });

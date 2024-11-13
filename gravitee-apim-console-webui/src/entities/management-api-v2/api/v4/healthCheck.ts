@@ -27,12 +27,17 @@ export interface ApiAvailability {
   global: number;
   group: {
     [key: string]: number;
-  };
+  }[];
 }
 
 export interface ApiAverageResponseTime {
   global: number;
   group: {
     [key: string]: number;
-  };
+  }[];
+}
+
+export enum FieldParameter {
+  endpoint = 'endpoint',
+  gateway = 'gateway',
 }

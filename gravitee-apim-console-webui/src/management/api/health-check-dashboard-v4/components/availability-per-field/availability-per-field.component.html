@@ -1,0 +1,58 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<mat-card class="card">
+  <mat-card-header>
+    <mat-card-title class="mat-h5">Availability Per {{ this.field | titlecase }}</mat-card-title>
+  </mat-card-header>
+
+  @if (isLoading) {
+    <div class="card__loader">
+      <gio-loader />
+    </div>
+  } @else {
+    <mat-card-content>
+      <gio-table-wrapper
+        class="table"
+        [length]="totalLength"
+        [disableSearchInput]="true"
+        [disablePageSize]="true"
+        [filters]="currentFilters"
+        (filtersChange)="onFiltersChanged($event)"
+      >
+        <table mat-table matSort [dataSource]="filteredDataSource">
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef id="name">{{ this.field | titlecase }}</th>
+            <td mat-cell *matCellDef="let group">{{ group.name }}</td>
+          </ng-container>
+          <ng-container matColumnDef="availability">
+            <th mat-header-cell *matHeaderCellDef id="availability">Availability</th>
+            <td mat-cell *matCellDef="let group">{{ group.availability * 100 | number: '.1-2' }}%</td>
+          </ng-container>
+          <ng-container matColumnDef="response-time">
+            <th mat-header-cell *matHeaderCellDef id="response-time">Response Time</th>
+            <td mat-cell *matCellDef="let group">{{ group.responseTime }}ms</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+      </gio-table-wrapper>
+    </mat-card-content>
+  }
+</mat-card>
