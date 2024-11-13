@@ -377,7 +377,7 @@ public class ApisResource extends AbstractResource {
                         api.getCrossId(),
                         api.getState(),
                         validationResult,
-                        api.planIdMapping()
+                        Map.of()
                     )
                 )
                 .build();
