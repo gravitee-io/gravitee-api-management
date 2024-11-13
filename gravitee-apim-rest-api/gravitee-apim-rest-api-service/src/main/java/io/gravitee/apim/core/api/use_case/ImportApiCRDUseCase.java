@@ -56,6 +56,8 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -80,6 +82,7 @@ public class ImportApiCRDUseCase {
     private final CreatePlanDomainService createPlanDomainService;
     private final ApiStateDomainService apiStateDomainService;
     private final UpdateApiDomainService updateApiDomainService;
+    private final UpdateNativeApiUseCase updateNativeApiUseCase;
     private final ApiCrudService apiCrudService;
     private final PlanQueryService planQueryService;
     private final PageQueryService pageQueryService;
@@ -104,6 +107,7 @@ public class ImportApiCRDUseCase {
         CreatePlanDomainService createPlanDomainService,
         ApiStateDomainService apiStateDomainService,
         UpdateApiDomainService updateApiDomainService,
+        UpdateNativeApiUseCase updateNativeApiUseCase,
         PlanQueryService planQueryService,
         UpdatePlanDomainService updatePlanDomainService,
         DeletePlanDomainService deletePlanDomainService,
@@ -126,6 +130,7 @@ public class ImportApiCRDUseCase {
         this.createPlanDomainService = createPlanDomainService;
         this.apiStateDomainService = apiStateDomainService;
         this.updateApiDomainService = updateApiDomainService;
+        this.updateNativeApiUseCase = updateNativeApiUseCase;
         this.planQueryService = planQueryService;
         this.updatePlanDomainService = updatePlanDomainService;
         this.deletePlanDomainService = deletePlanDomainService;
@@ -199,7 +204,12 @@ public class ImportApiCRDUseCase {
                     Map.entry(
                         entry.getKey(),
                         createPlanDomainService
-                            .create(initPlanFromCRD(entry.getValue()), entry.getValue().getFlows(), createdApi, sanitizedInput.auditInfo)
+                            .create(
+                                initPlanFromCRD(entry.getValue(), createdApi),
+                                entry.getValue().getFlows(),
+                                createdApi,
+                                sanitizedInput.auditInfo
+                            )
                             .getId()
                     )
                 )
@@ -243,8 +253,15 @@ public class ImportApiCRDUseCase {
 
             var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
 
-            var updatedApi = updateApiDomainService.update(existingApi.getId(), sanitizedInput.spec, sanitizedInput.auditInfo);
-
+            Api updatedApi;
+            if (existingApi.isNative()) {
+                updatedApi =
+                    updateNativeApiUseCase
+                        .execute(new UpdateNativeApiUseCase.Input(ApiModelFactory.toUpdateNativeApi(sanitizedInput.spec), input.auditInfo))
+                        .updatedApi();
+            } else {
+                updatedApi = updateApiDomainService.update(existingApi.getId(), sanitizedInput.spec, sanitizedInput.auditInfo);
+            }
             // update state and definition context because legacy service does not update it
             // Why are we getting MANAGEMENT as an origin here ? the API has been saved as kubernetes before
             var api = apiCrudService.update(
@@ -276,14 +293,14 @@ public class ImportApiCRDUseCase {
                         return Map.entry(
                             key,
                             updatePlanDomainService
-                                .update(initPlanFromCRD(plan), plan.getFlows(), existingPlanStatuses, api, sanitizedInput.auditInfo)
+                                .update(initPlanFromCRD(plan, api), plan.getFlows(), existingPlanStatuses, api, sanitizedInput.auditInfo)
                                 .getId()
                         );
                     }
 
                     return Map.entry(
                         key,
-                        createPlanDomainService.create(initPlanFromCRD(plan), plan.getFlows(), api, sanitizedInput.auditInfo).getId()
+                        createPlanDomainService.create(initPlanFromCRD(plan, api), plan.getFlows(), api, sanitizedInput.auditInfo).getId()
                     );
                 })
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -347,13 +364,38 @@ public class ImportApiCRDUseCase {
         reorderPlanDomainService.refreshOrderAfterDelete(api.getId());
     }
 
-    private Plan initPlanFromCRD(PlanCRD planCRD) {
-        return Plan
+    private Plan initPlanFromCRD(PlanCRD planCRD, Api api) {
+        Plan plan = Plan
             .builder()
             .id(planCRD.getId())
             .name(planCRD.getName())
             .description(planCRD.getDescription())
-            .planDefinitionHttpV4(
+            .characteristics(planCRD.getCharacteristics())
+            .definitionVersion(api.getDefinitionVersion())
+            .crossId(planCRD.getCrossId())
+            .excludedGroups(planCRD.getExcludedGroups())
+            .generalConditions(planCRD.getGeneralConditions())
+            .order(planCRD.getOrder())
+            .type(planCRD.getType())
+            .validation(planCRD.getValidation())
+            .apiType(api.getType())
+            .apiId(api.getId())
+            .build();
+
+        if (ApiType.NATIVE.equals(api.getType())) {
+            plan.setPlanDefinitionNativeV4(
+                NativePlan
+                    .builder()
+                    .security(planCRD.getSecurity())
+                    .selectionRule(planCRD.getSelectionRule())
+                    .status(planCRD.getStatus())
+                    .tags(planCRD.getTags())
+                    .mode(planCRD.getMode())
+                    .name(planCRD.getName())
+                    .build()
+            );
+        } else {
+            plan.setPlanDefinitionHttpV4(
                 io.gravitee.definition.model.v4.plan.Plan
                     .builder()
                     .security(planCRD.getSecurity())
@@ -361,16 +403,12 @@ public class ImportApiCRDUseCase {
                     .status(planCRD.getStatus())
                     .tags(planCRD.getTags())
                     .mode(planCRD.getMode())
+                    .name(planCRD.getName())
                     .build()
-            )
-            .characteristics(planCRD.getCharacteristics())
-            .crossId(planCRD.getCrossId())
-            .excludedGroups(planCRD.getExcludedGroups())
-            .generalConditions(planCRD.getGeneralConditions())
-            .order(planCRD.getOrder())
-            .type(planCRD.getType())
-            .validation(planCRD.getValidation())
-            .build();
+            );
+        }
+
+        return plan;
     }
 
     private void deleteRemovedPages(Map<String, PageCRD> pages, String apiId) {
@@ -407,16 +445,13 @@ public class ImportApiCRDUseCase {
             pageCrudService
                 .findById(page.getId())
                 .ifPresentOrElse(
-                    oldPage -> {
+                    oldPage ->
                         updateApiDocumentationDomainService.updatePage(
                             page.toBuilder().createdAt(oldPage.getCreatedAt()).updatedAt(now).build(),
                             oldPage,
                             auditInfo
-                        );
-                    },
-                    () -> {
-                        createApiDocumentationDomainService.createPage(page.toBuilder().createdAt(now).updatedAt(now).build(), auditInfo);
-                    }
+                        ),
+                    () -> createApiDocumentationDomainService.createPage(page.toBuilder().createdAt(now).updatedAt(now).build(), auditInfo)
                 );
         });
     }

@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLifecycleState;
 import io.gravitee.rest.api.management.v2.rest.model.Listener;
@@ -47,7 +46,6 @@ import org.mapstruct.factory.Mappers;
 public interface ApiCRDMapper {
     ApiCRDMapper INSTANCE = Mappers.getMapper(ApiCRDMapper.class);
 
-    @Mapping(target = "listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "lifecycleState", qualifiedByName = "mapLifecycleState")
     ApiCRDSpec map(io.gravitee.apim.core.api.model.crd.ApiCRDSpec coreSpec);
 

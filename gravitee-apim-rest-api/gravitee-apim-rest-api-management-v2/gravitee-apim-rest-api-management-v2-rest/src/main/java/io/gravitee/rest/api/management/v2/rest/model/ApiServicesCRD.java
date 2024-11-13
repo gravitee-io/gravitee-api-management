@@ -15,54 +15,25 @@
  */
 package io.gravitee.rest.api.management.v2.rest.model;
 
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.v4.service.Service;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
-@AllArgsConstructor
+/**
+ * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
-public class PlanCRD {
+@ToString
+public class ApiServicesCRD {
 
-    @NotNull
-    @NotEmpty
-    private String id;
-
-    private String crossId;
-
-    private String name;
-
-    private String description;
-
-    private PlanSecurity security;
-
-    private List<String> characteristics;
-
-    private List<String> excludedGroups;
-
-    private String generalConditions;
-
-    private int order;
-
-    private String selectionRule;
-
-    @NotNull
-    private PlanStatus status;
-
-    private List<String> tags;
-
-    @NotNull
-    private PlanType type;
-
-    private PlanValidation validation;
-
-    private List<FlowV4> flows;
-
-    @NotNull
-    private PlanMode mode;
+    @JsonProperty("dynamicProperty")
+    private Service dynamicProperty;
 }
