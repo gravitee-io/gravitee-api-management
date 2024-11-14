@@ -19,17 +19,20 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.exception.DuplicatedHostException;
 import io.gravitee.apim.core.api.exception.HostAlreadyExistsException;
 import io.gravitee.apim.core.api.exception.InvalidHostException;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -117,16 +120,36 @@ public class VerifyApiHostsDomainService {
             )
             .filter(api ->
                 !api.getId().equals(apiId) &&
-                ApiType.PROXY.equals(api.getType()) &&
                 DefinitionVersion.V4.equals(api.getDefinitionVersion()) &&
-                null != api.getApiDefinitionHttpV4()
+                (
+                    (ApiType.PROXY.equals(api.getType()) && null != api.getApiDefinitionHttpV4()) ||
+                    (ApiType.NATIVE.equals(api.getType()) && null != api.getApiDefinitionNativeV4())
+                )
             )
-            .flatMap(api -> api.getApiDefinitionHttpV4().getListeners().stream())
-            .filter(TcpListener.class::isInstance)
-            .map(TcpListener.class::cast)
-            .map(TcpListener::getHosts)
-            .filter(extractedHosts -> !extractedHosts.isEmpty())
-            .flatMap(List::stream)
+            .flatMap(this::extractHostsFromListeners)
             .collect(Collectors.toSet());
+    }
+
+    private Stream<String> extractHostsFromListeners(Api api) {
+        if (api.getType() == ApiType.PROXY && api.getApiDefinitionHttpV4() != null) {
+            return api
+                .getApiDefinitionHttpV4()
+                .getListeners()
+                .stream()
+                .filter(TcpListener.class::isInstance)
+                .map(TcpListener.class::cast)
+                .map(TcpListener::getHosts)
+                .filter(extractedHosts -> !extractedHosts.isEmpty())
+                .flatMap(List::stream);
+        } else if (api.getType() == ApiType.NATIVE && api.getApiDefinitionNativeV4() != null) {
+            return api
+                .getApiDefinitionNativeV4()
+                .getListeners()
+                .stream()
+                .filter(KafkaListener.class::isInstance)
+                .map(KafkaListener.class::cast)
+                .map(KafkaListener::getHost);
+        }
+        return Stream.of();
     }
 }
