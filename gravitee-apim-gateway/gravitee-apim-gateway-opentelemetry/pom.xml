@@ -35,12 +35,10 @@
         <dependency>
             <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-api</artifactId>
-            <version>${gravitee-node.version}</version>
         </dependency>
         <dependency>
             <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-opentelemetry</artifactId>
-            <version>${gravitee-node.version}</version>
         </dependency>
         <dependency>
             <groupId>io.gravitee.common</groupId>
