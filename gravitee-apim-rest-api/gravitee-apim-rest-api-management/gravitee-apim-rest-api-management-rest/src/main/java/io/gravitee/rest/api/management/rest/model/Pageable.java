@@ -33,7 +33,7 @@ public class Pageable {
     @QueryParam("size")
     @DefaultValue("20")
     @Min(value = 1, message = "Page size should not be less than 1")
-    @Max(value = 100, message = "Page size should not be more than 100")
+    @Max(value = 200, message = "Page size should not be more than 200")
     private int size = DEFAULT_PAGE_SIZE;
 
     @QueryParam("page")
