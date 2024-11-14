@@ -197,6 +197,7 @@ public class ApiCRDEntity {
         return !this.notifyMembers;
     }
 
+    @JsonProperty("disable_membership_notifications")
     public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
         this.notifyMembers = !disableMembershipNotifications;
     }
@@ -221,14 +222,6 @@ public class ApiCRDEntity {
             return properties.getProperties();
         }
         return Collections.emptyList();
-    }
-
-    public Map<String, String> planIdMapping() {
-        if (!CollectionUtils.isEmpty(plans)) {
-            return plans.stream().collect(Collectors.toMap(PlanEntity::getCrossId, PlanEntity::getId));
-        }
-
-        return Collections.emptyMap();
     }
 
     @Setter
