@@ -32,6 +32,8 @@ export class Step5SummaryComponent implements OnInit {
   public currentStepPayload: ApiCreationPayload;
   public paths: string[];
   public hosts: string[];
+  public host: string;
+  public port: number;
   public listenerTypes: string[];
   public entrypointsDeployable: boolean;
   public endpointsDeployable: boolean;
@@ -41,7 +43,7 @@ export class Step5SummaryComponent implements OnInit {
   public isOEM$: Observable<boolean>;
   public hasReviewEnabled = this.constants.env?.settings?.apiReview?.enabled ?? false;
 
-  private apiType: ApiCreationPayload['type'];
+  public apiType: ApiCreationPayload['type'];
 
   constructor(
     private readonly stepService: ApiCreationStepService,
@@ -55,6 +57,8 @@ export class Step5SummaryComponent implements OnInit {
 
     this.paths = this.currentStepPayload.paths?.map((path) => path.path);
     this.hosts = this.currentStepPayload.hosts?.map((host) => host.host);
+    this.host = this.currentStepPayload.host?.host;
+    this.port = this.currentStepPayload.port?.port;
     this.listenerTypes = [
       ...new Set(this.currentStepPayload.selectedEntrypoints.map(({ supportedListenerType }) => supportedListenerType)),
     ];
