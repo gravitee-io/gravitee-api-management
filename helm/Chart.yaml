@@ -11,7 +11,7 @@ icon: https://avatars2.githubusercontent.com/u/12655666?s=200&v=4
 keywords:
   - gravitee.io
   - gravitee
-  - graviteeio 
+  - graviteeio
   - API
   - API Management
 kubeVersion: ">=1.14.0-0"
@@ -33,3 +33,8 @@ annotations:
           url: https://github.com/gravitee-io/issues/issues/10027
     - kind: changed
       description: 'Add support for new OpenTelemetry feature. BREAKING CHANGE: gravitee.services.tracing block of configuration has been replaced by gravitee.services.opentelemetry.'
+    - kind: fixed
+      description: 'allow users to overwrite the Elasticsearch or Opensearch rollover alias property name'
+      links:
+        - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/10100
