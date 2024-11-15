@@ -60,6 +60,14 @@
               <span class="step-5-summary__step__info__key">Host:</span>
               <span class="step-5-summary__step__info__value">{{ hosts.join(', ') }}</span>
             </div>
+            <div class="step-5-summary__step__info__row" *ngIf="host?.length > 0">
+              <span class="step-5-summary__step__info__key">Host:</span>
+              <span class="step-5-summary__step__info__value">{{ host }}</span>
+            </div>
+            <div class="step-5-summary__step__info__row" *ngIf="!!port">
+              <span class="step-5-summary__step__info__key">Port:</span>
+              <span class="step-5-summary__step__info__value">{{ port }}</span>
+            </div>
             <div class="step-5-summary__step__info__row">
               <span class="step-5-summary__step__info__key">Type:</span>
               <span class="gio-badge-accent" *ngFor="let listenerType of listenerTypes">{{ listenerType }}</span>
@@ -98,7 +106,7 @@
               </div>
             </div>
           </div>
-          <div>
+          <div *ngIf="apiType !== 'NATIVE'">
             <button mat-stroked-button (click)="onChangeStepInfo('Endpoints')">Change</button>
           </div>
         </div>
@@ -121,7 +129,7 @@
             </div>
             <ng-template #elseBlock> No plans are selected. </ng-template>
           </div>
-          <div>
+          <div *ngIf="apiType !== 'NATIVE'">
             <button mat-stroked-button (click)="onChangeStepInfo('Security')">Change</button>
           </div>
         </div>
@@ -144,7 +152,7 @@
           ></mat-icon>
         </button>
         <button
-          *ngIf="!hasReviewEnabled"
+          *ngIf="!hasReviewEnabled && apiType !== 'NATIVE'"
           data-testid="deploy_api_button"
           color="primary"
           mat-flat-button
