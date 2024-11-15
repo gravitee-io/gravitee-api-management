@@ -17,13 +17,13 @@ import { FormControl } from '@angular/forms';
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 
-import { tcpHostAsyncValidator } from './tcp-host-async-validator.directive';
+import { hostAsyncValidator } from './host-async-validator.directive';
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../testing';
 import { Constants } from '../../../entities/Constants';
 
-describe('TcpHostAsyncValidator', () => {
+describe('HostAsyncValidator', () => {
   const fakeConstants = CONSTANTS_TESTING;
   let httpTestingController: HttpTestingController;
   let apiV2Service: ApiV2Service;
@@ -44,7 +44,7 @@ describe('TcpHostAsyncValidator', () => {
 
   it('should be invalid host', fakeAsync(async () => {
     const formControl = new FormControl('', {
-      asyncValidators: tcpHostAsyncValidator(apiV2Service),
+      asyncValidators: hostAsyncValidator(apiV2Service),
     });
     formControl.markAsDirty();
     formControl.patchValue('already-used-host');
@@ -58,7 +58,7 @@ describe('TcpHostAsyncValidator', () => {
 
   it('should be invalid host for api', fakeAsync(async () => {
     const formControl = new FormControl('', {
-      asyncValidators: tcpHostAsyncValidator(apiV2Service, 'api-id'),
+      asyncValidators: hostAsyncValidator(apiV2Service, 'api-id'),
     });
     formControl.markAsDirty();
     formControl.patchValue('already-used-host');
@@ -72,7 +72,7 @@ describe('TcpHostAsyncValidator', () => {
 
   it('should be valid host', fakeAsync(() => {
     const formControl = new FormControl('', {
-      asyncValidators: tcpHostAsyncValidator(apiV2Service),
+      asyncValidators: hostAsyncValidator(apiV2Service),
     });
     formControl.markAsDirty();
     formControl.patchValue('valid-host');
