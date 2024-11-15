@@ -35,6 +35,7 @@ import io.gravitee.spec.gen.api.SpecGenRequest;
 import io.reactivex.rxjava3.core.Single;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -48,14 +49,28 @@ public class SpecGenProviderImpl implements SpecGenProvider {
 
     private final CockpitConnector cockpitConnector;
     private final InstallationService installationService;
+    private final boolean cloudEnabled;
+    private final boolean specGenEnabled;
 
-    public SpecGenProviderImpl(@Lazy CockpitConnector cockpitConnector, @Lazy InstallationService installationService) {
+    public SpecGenProviderImpl(
+        @Value("${cloud.enabled:false}") boolean cloudEnabled,
+        @Value("${spec-gen.enabled:false}") boolean specGenEnabled,
+        @Lazy CockpitConnector cockpitConnector,
+        @Lazy InstallationService installationService
+    ) {
+        this.cloudEnabled = cloudEnabled;
+        this.specGenEnabled = specGenEnabled;
         this.cockpitConnector = cockpitConnector;
         this.installationService = installationService;
     }
 
     public Single<ApiSpecGenRequestReply> performRequest(String apiId, ApiSpecGenOperation operation, String userId) {
+        if (!cloudEnabled || !specGenEnabled) {
+            return Single.just(new ApiSpecGenRequestReply(UNAVAILABLE));
+        }
+
         var command = new SpecGenRequestCommand(buildPayload(apiId, Operation.valueOf(operation.name()), userId));
+
         return cockpitConnector
             .sendCommand(command)
             .cast(SpecGenRequestReply.class)

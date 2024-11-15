@@ -41,7 +41,8 @@ public enum ApiHook implements Hook {
     ASK_FOR_REVIEW("Ask for API review", "Triggered when an API can be reviewed", "REVIEW"),
     REVIEW_OK("Accept API review", "Triggered when an API's review has been accepted", "REVIEW"),
     REQUEST_FOR_CHANGES("Reject API review", "Triggered when an API's review has been rejected", "REVIEW"),
-    API_DEPRECATED("API Deprecated", "Triggered when an API is deprecated", "LIFECYCLE");
+    API_DEPRECATED("API Deprecated", "Triggered when an API is deprecated", "LIFECYCLE"),
+    NEW_SPEC_GENERATED("New specification generated", "Triggered when an API has a new generated specification", "DOCUMENTATION", true);
 
     private String label;
     private String description;

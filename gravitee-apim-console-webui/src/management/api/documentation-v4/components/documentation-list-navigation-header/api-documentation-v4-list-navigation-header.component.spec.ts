@@ -71,4 +71,19 @@ describe('ApiDocumentationV4NavigationHeaderComponent', () => {
     const buttonHarnesses = await harnessLoader.getAllHarnesses(MatButtonHarness.with({ text: 'Add new folder' }));
     expect(buttonHarnesses.length).toEqual(0);
   });
+
+  it('should emit event when clicking on NewtAI button', async () => {
+    await init(['api-documentation-c', 'api-documentation-r']);
+    const spy = jest.spyOn(component.generate, 'emit');
+    const button = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'NewtAI' }));
+    await button.click();
+
+    expect(spy).toHaveBeenCalled();
+  });
+
+  it('should not show NewtAI button if does not have update permission', async () => {
+    await init([]);
+    const buttonHarnesses = await harnessLoader.getAllHarnesses(MatButtonHarness.with({ text: 'NewtAI' }));
+    expect(buttonHarnesses.length).toEqual(0);
+  });
 });

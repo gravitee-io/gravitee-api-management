@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.infra.query_service.specgen;
 
+import static io.gravitee.definition.model.DefinitionVersion.V4;
+
 import io.gravitee.apim.core.specgen.model.ApiSpecGen;
 import io.gravitee.apim.core.specgen.query_service.ApiSpecGenQueryService;
 import io.gravitee.definition.model.v4.ApiType;
@@ -51,6 +53,7 @@ public class ApiSpecGenQueryServiceImpl implements ApiSpecGenQueryService {
         try {
             return apiRepository
                 .findById(id)
+                .filter(api -> V4.equals(api.getDefinitionVersion()))
                 .filter(api -> api.getEnvironmentId().equals(context.getEnvironmentId()))
                 .map(api ->
                     new ApiSpecGen(
@@ -59,7 +62,8 @@ public class ApiSpecGenQueryServiceImpl implements ApiSpecGenQueryService {
                         api.getDescription(),
                         api.getVersion(),
                         api.getType(),
-                        api.getEnvironmentId()
+                        api.getEnvironmentId(),
+                        api.getDefinition()
                     )
                 );
         } catch (TechnicalException e) {

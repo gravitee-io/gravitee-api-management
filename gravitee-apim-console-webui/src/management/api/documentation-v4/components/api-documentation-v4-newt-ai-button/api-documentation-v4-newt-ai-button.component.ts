@@ -13,32 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
-import { Breadcrumb, PageType } from '../../../../../entities/management-api-v2';
+import { PageType } from '../../../../../entities/management-api-v2';
 import { ApiSpecGenState } from '../../../../../services-ngx/api-spec-gen.service';
 
 @Component({
-  selector: 'api-documentation-list-navigation-header',
-  templateUrl: './api-documentation-v4-list-navigation-header.component.html',
-  styleUrls: ['./api-documentation-v4-list-navigation-header.component.scss'],
+  selector: 'api-documentation-v4-newt-ai-button',
+  templateUrl: './api-documentation-v4-newt-ai-button.component.html',
 })
-export class ApiDocumentationV4ListNavigationHeaderComponent {
+export class ApiDocumentationV4NewtAiButtonComponent {
   @Input()
-  breadcrumbs: Breadcrumb[];
-  @Input()
-  isReadOnly: boolean;
-  @Input()
-  hasPages: boolean;
-  @Input()
-  specGenState: ApiSpecGenState;
+  state: ApiSpecGenState = ApiSpecGenState.UNAVAILABLE;
+
   @Output()
-  addFolder = new EventEmitter<void>();
-  @Output()
-  addPage = new EventEmitter<PageType>();
-  @Output()
-  onNavigateTo = new EventEmitter<string>();
-  @Output()
-  generate = new EventEmitter<void>();
+  generate = new EventEmitter<PageType>();
+
+  getIcon() {
+    switch (this.state) {
+      case ApiSpecGenState.AVAILABLE:
+        return 'gio:magic-wand';
+      case ApiSpecGenState.STARTED:
+      case ApiSpecGenState.GENERATING:
+        return 'gio:question-mark-circle';
+      default:
+        return '';
+    }
+  }
+
+  isNotUnavailable(): boolean {
+    return this.state !== ApiSpecGenState.UNAVAILABLE;
+  }
 }
