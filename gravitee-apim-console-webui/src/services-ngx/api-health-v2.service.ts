@@ -16,7 +16,7 @@
 
 import { Inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 
 import { ActiveFilter } from '../management/api/health-check-dashboard-v4/components/filters/api-health-check-dashboard-v4-filters.component';
 import { Constants } from '../entities/Constants';
@@ -25,6 +25,8 @@ import {
   ApiAverageResponseTime,
   ApiHealthResponseTimeOvertime,
   FieldParameter,
+  HealthCheckLogsRequestParams,
+  HealthCheckLogsResponse,
 } from '../entities/management-api-v2/api/v4/healthCheck';
 import { timeFrameRangesParams, TimeRangeParams } from '../shared/utils/timeFrameRanges';
 
@@ -62,5 +64,16 @@ export class ApiHealthV2Service {
   public getApiAverageResponseTime(apiId: string, from: number, to: number, field: FieldParameter): Observable<ApiAverageResponseTime> {
     const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/health/average-response-time?from=${from}&to=${to}&field=${field}`;
     return this.httpClient.get<ApiAverageResponseTime>(url);
+  }
+
+  public getApiHealthCheckLogs(apiId: string, requestParams: HealthCheckLogsRequestParams): Observable<HealthCheckLogsResponse> {
+    let params = new HttpParams();
+    params = params.append('from', requestParams.from);
+    params = params.append('to', requestParams.to);
+    params = params.append('page', requestParams.page);
+    params = params.append('perPage', requestParams.perPage);
+    params = params.append('success', requestParams.success);
+
+    return this.httpClient.get<HealthCheckLogsResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/health/logs`, { params });
   }
 }

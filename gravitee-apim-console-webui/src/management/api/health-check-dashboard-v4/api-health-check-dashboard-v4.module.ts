@@ -23,6 +23,7 @@ import { GlobalResponseTimeTrendComponent } from './components/global-response-t
 import { GlobalAvailabilityComponent } from './components/global-availability/global-availability.component';
 import { GlobalAverageResponseTimeComponent } from './components/global-average-response-time/global-average-response-time.component';
 import { AvailabilityPerFieldComponent } from './components/availability-per-field/availability-per-field.component';
+import { FailedHealthChecksComponent } from './components/failed-health-checks/failed-health-checks.component';
 
 @NgModule({
   declarations: [ApiHealthCheckDashboardV4Component],
@@ -32,6 +33,7 @@ import { AvailabilityPerFieldComponent } from './components/availability-per-fie
     GlobalResponseTimeTrendComponent,
     GlobalAvailabilityComponent,
     GlobalAverageResponseTimeComponent,
+    FailedHealthChecksComponent,
     AvailabilityPerFieldComponent,
   ],
   exports: [ApiHealthCheckDashboardV4Component],

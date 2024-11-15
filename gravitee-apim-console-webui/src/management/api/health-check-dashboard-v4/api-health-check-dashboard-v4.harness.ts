@@ -20,6 +20,7 @@ import { ApiHealthCheckDashboardV4FiltersHarness } from './components/filters/ap
 import { AvailabilityHarness } from './components/global-availability/global-availability.harness';
 import { AverageResponseTimeHarness } from './components/global-average-response-time/global-average-response-time.harness';
 import { AvailabilityPerFieldHarness } from './components/availability-per-field/availability-per-field.harness';
+import { FailedHealthChecksHarness } from './components/failed-health-checks/failed-health-checks.harness';
 
 export class ApiHealthCheckDashboardV4Harness extends ComponentHarness {
   static hostSelector = 'app-health-check-dashboard-v4';
@@ -30,9 +31,9 @@ export class ApiHealthCheckDashboardV4Harness extends ComponentHarness {
 
   getAverageResponseTimeWidgetHarness = this.locatorForOptional(AverageResponseTimeHarness);
 
-  getAvailabilityPerEndpointWidgetHarness = this.locatorForOptional(
-    AvailabilityPerFieldHarness.with({ title: 'Availability Per Endpoint' }),
-  );
+  getAvailabilityPerEndpointWidgetHarness = this.locatorForOptional(AvailabilityPerFieldHarness.with({ title: 'Per-Endpoint' }));
 
-  getAvailabilityPerGatewayWidgetHarness = this.locatorForOptional(AvailabilityPerFieldHarness.with({ title: 'Availability Per Gateway' }));
+  getAvailabilityPerGatewayWidgetHarness = this.locatorForOptional(AvailabilityPerFieldHarness.with({ title: 'Per-Gateway' }));
+
+  getFailedHealthChecksWidgetHarness = this.locatorForOptional(FailedHealthChecksHarness);
 }

@@ -60,7 +60,9 @@ export class GlobalAverageResponseTimeComponent implements OnInit {
       .subscribe({
         next: (averageResponseTime) => {
           this.isLoading = false;
-          this.averageResponseTime = averageResponseTime.global;
+          if (averageResponseTime && averageResponseTime.global) {
+            this.averageResponseTime = averageResponseTime.global;
+          }
         },
         error: ({ error }) => {
           this.snackBarService.error('Getting average response time failed ' + error.message);
