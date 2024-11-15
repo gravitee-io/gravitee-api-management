@@ -1415,7 +1415,7 @@ describe('ApiCreationV4Component - Navigation', () => {
       it('should go to confirmation page after clicking Save API & Ask for review', async () => {
         await step5Harness.clickCreateAndAskForReviewMyApiButton();
 
-        httpExpects.expectCallsForApiCreation(API_ID, PLAN_ID);
+        httpExpects.expectCallsForApiAndPlanCreation(API_ID, PLAN_ID);
 
         const publishPlansRequest = httpTestingController.expectOne({
           url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_ID}/_publish`,

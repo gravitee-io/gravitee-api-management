@@ -33,7 +33,7 @@ import { Step4MenuItemComponent } from './steps/step-4-menu-item/step-4-menu-ite
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { ApiPlanV2Service } from '../../../services-ngx/api-plan-v2.service';
-import { PlanV4, Api, CreateApiV4, EndpointGroupV4, Entrypoint, Listener } from '../../../entities/management-api-v2';
+import { PlanV4, Api, CreateApiV4, EndpointGroupV4, Entrypoint, Listener, ListenerType } from '../../../entities/management-api-v2';
 import { ApiReviewV2Service } from '../../../services-ngx/api-review-v2.service';
 
 export interface Result {
@@ -190,12 +190,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
       const listenerConfig = {
         type: listenersType,
-        ...(listenersType === 'HTTP'
-          ? { paths: apiCreationPayload.paths }
-          : listenersType === 'TCP'
-            ? // api is expecting hosts as a list of strings
-              { hosts: apiCreationPayload.hosts.map((host) => host.host) }
-            : {}),
+        ...this.getListenerSpecificConfig(listenersType, apiCreationPayload),
         entrypoints,
       };
       return [...listeners, listenerConfig];
@@ -319,5 +314,18 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
         });
       }),
     );
+  }
+
+  private getListenerSpecificConfig(listenerType: ListenerType, apiCreationPayload: ApiCreationPayload): object {
+    switch (listenerType) {
+      case 'HTTP':
+        return { paths: apiCreationPayload.paths };
+      case 'TCP':
+        return { hosts: apiCreationPayload.hosts.map((host) => host.host) };
+      case 'KAFKA':
+        return { host: apiCreationPayload.host?.host, port: apiCreationPayload.port?.port };
+      default:
+        return {};
+    }
   }
 }
