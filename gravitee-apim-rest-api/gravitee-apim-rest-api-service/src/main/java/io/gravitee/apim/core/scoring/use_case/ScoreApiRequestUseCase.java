@@ -18,24 +18,29 @@ package io.gravitee.apim.core.scoring.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
-import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.async_job.crud_service.AsyncJobCrudService;
 import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.json.GraviteeDefinitionSerializer;
+import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.apim.core.scoring.model.ScoreRequest;
 import io.gravitee.apim.core.scoring.model.ScoringAssetType;
 import io.gravitee.apim.core.scoring.model.ScoringRuleset;
 import io.gravitee.apim.core.scoring.query_service.ScoringRulesetQueryService;
 import io.gravitee.apim.core.scoring.service_provider.ScoringProvider;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
-import java.util.List;
+import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -44,23 +49,17 @@ public class ScoreApiRequestUseCase {
 
     private final ApiCrudService apiCrudService;
     private final ApiDocumentationDomainService apiDocumentationDomainService;
+    private final ApiExportDomainService apiExportDomainService;
+    private final GraviteeDefinitionSerializer graviteeDefinitionSerializer;
     private final ScoringProvider scoringProvider;
     private final AsyncJobCrudService asyncJobCrudService;
     private final ScoringRulesetQueryService scoringRulesetQueryService;
 
     public Completable execute(Input input) {
-        var assets$ = Flowable
+        var pages$ = Flowable
             .fromIterable(apiDocumentationDomainService.getApiPages(input.apiId, null))
             .filter(page -> page.isAsyncApi() || page.isSwagger())
-            .map(page ->
-                new ScoreRequest.AssetToScore(
-                    page.getId(),
-                    ScoringAssetType.fromPageType(page.getType()),
-                    page.getName(),
-                    page.getContent()
-                )
-            )
-            .toList();
+            .map(this::assetToScore);
         var customRulesets$ = Flowable
             .fromCallable(() ->
                 scoringRulesetQueryService.findByReference(input.auditInfo.environmentId(), ScoringRuleset.ReferenceType.ENVIRONMENT)
@@ -69,22 +68,27 @@ public class ScoreApiRequestUseCase {
             .map(r -> new ScoreRequest.CustomRuleset(r.payload()))
             .toList();
 
+        var export$ = Flowable
+            .fromCallable(() -> apiExportDomainService.export(input.apiId, input.auditInfo))
+            .map(this::assetToScore)
+            // export service throw error in some case (like if API isn't V4)
+            .onErrorResumeNext(th -> Flowable.empty());
+
         return Maybe
             .fromOptional(apiCrudService.findById(input.apiId()))
             .switchIfEmpty(Single.error(new ApiNotFoundException(input.apiId())))
-            .flatMap(api ->
-                Single.zip(
-                    assets$,
-                    customRulesets$,
-                    (assets, customRulesets) ->
-                        new ScoreRequest(
-                            UuidString.generateRandom(),
-                            input.auditInfo.organizationId(),
-                            input.auditInfo.environmentId(),
-                            input.apiId,
-                            assets,
-                            customRulesets
-                        )
+            .flatMap(api -> Flowable.merge(pages$, export$).toList())
+            .flatMap(assets ->
+                customRulesets$.map(customRulesets ->
+                    new ScoreRequest(
+                        UuidString.generateRandom(),
+                        input.auditInfo.organizationId(),
+                        input.auditInfo.environmentId(),
+                        input.apiId,
+                        assets,
+                        customRulesets,
+                        Collections.emptyList()
+                    )
                 )
             )
             .flatMapCompletable(request -> {
@@ -94,6 +98,33 @@ public class ScoreApiRequestUseCase {
                 var job = newScoringJob(request.jobId(), input.auditInfo, input.apiId);
                 return scoringProvider.requestScore(request).doOnComplete(() -> asyncJobCrudService.create(job));
             });
+    }
+
+    private ScoreRequest.AssetToScore assetToScore(Page page) {
+        return new ScoreRequest.AssetToScore(
+            page.getId(),
+            new ScoreRequest.AssetType(ScoringAssetType.fromPageType(page.getType())),
+            page.getName(),
+            page.getContent()
+        );
+    }
+
+    private ScoreRequest.AssetToScore assetToScore(GraviteeDefinition definition) throws JsonProcessingException {
+        return new ScoreRequest.AssetToScore(
+            definition.getApi().getId(),
+            new ScoreRequest.AssetType(
+                ScoringAssetType.GRAVITEE_DEFINITION,
+                definition.getApi().getDefinitionVersion() == DefinitionVersion.FEDERATED
+                    ? ScoreRequest.Format.GRAVITEE_FEDERATED
+                    : switch (definition.getApi().getType()) {
+                        case PROXY -> ScoreRequest.Format.GRAVITEE_PROXY;
+                        case MESSAGE -> ScoreRequest.Format.GRAVITEE_MESSAGE;
+                        default -> null;
+                    }
+            ),
+            definition.getApi().getName(),
+            graviteeDefinitionSerializer.serialize(definition)
+        );
     }
 
     public AsyncJob newScoringJob(String id, AuditInfo auditInfo, String apiId) {

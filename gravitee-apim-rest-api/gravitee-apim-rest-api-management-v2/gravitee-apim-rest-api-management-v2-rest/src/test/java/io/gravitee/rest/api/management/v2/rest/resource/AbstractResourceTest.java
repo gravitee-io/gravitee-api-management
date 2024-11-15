@@ -32,6 +32,7 @@ import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PrimaryOwnerDomainServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.group.model.Group;
@@ -211,6 +212,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected SpecGenRequestUseCase specGenRequestUseCase;
+
+    @Autowired
+    protected ApiExportDomainService apiExportDomainService;
 
     @BeforeEach
     public void setUp() {

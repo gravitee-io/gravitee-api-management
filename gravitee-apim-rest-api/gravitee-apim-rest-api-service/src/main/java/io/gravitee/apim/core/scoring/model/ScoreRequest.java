@@ -25,12 +25,25 @@ public record ScoreRequest(
     String environmentId,
     String apiId,
     List<AssetToScore> assets,
-    List<CustomRuleset> customRulesets
+    List<CustomRuleset> customRulesets,
+    List<Function> customFunctions
 ) {
     public ScoreRequest(String jobId, String organizationId, String environmentId, String apiId, List<AssetToScore> assets) {
-        this(jobId, organizationId, environmentId, apiId, assets, emptyList());
+        this(jobId, organizationId, environmentId, apiId, assets, emptyList(), emptyList());
     }
 
-    public record AssetToScore(String assetId, ScoringAssetType assetType, String assetName, String content) {}
+    public record AssetToScore(String assetId, AssetType assetType, String assetName, String content) {}
+    public record AssetType(ScoringAssetType type, Format format) {
+        public AssetType(ScoringAssetType type) {
+            this(type, null);
+        }
+    }
     public record CustomRuleset(String content) {}
+    public record Function(String filename, String content) {}
+
+    public enum Format {
+        GRAVITEE_PROXY,
+        GRAVITEE_MESSAGE,
+        GRAVITEE_FEDERATED,
+    }
 }

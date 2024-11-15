@@ -110,7 +110,8 @@ class ScoringProviderImplTest {
                         new ScoringRequest(
                             List.of(new AssetToAnalyze("page-id", AssetType.OPEN_API, "echo-oas.json", "{}", ContentType.JSON)),
                             null,
-                            List.of(new CustomRuleset("custom-ruleset-payload"))
+                            List.of(new CustomRuleset("custom-ruleset-payload")),
+                            List.of()
                         )
                     )
                 );
@@ -136,8 +137,11 @@ class ScoringProviderImplTest {
                 ORGANIZATION_ID,
                 ENVIRONMENT_ID,
                 API_ID,
-                List.of(new ScoreRequest.AssetToScore("page-id", ScoringAssetType.SWAGGER, "echo-oas.json", "{}")),
-                List.of(new ScoreRequest.CustomRuleset("custom-ruleset-payload"))
+                List.of(
+                    new ScoreRequest.AssetToScore("page-id", new ScoreRequest.AssetType(ScoringAssetType.SWAGGER), "echo-oas.json", "{}")
+                ),
+                List.of(new ScoreRequest.CustomRuleset("custom-ruleset-payload")),
+                List.of()
             );
         }
     }

@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package assertions;
+package io.gravitee.apim.core.api.domain_service;
 
-import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.scoring.model.ScoreRequest;
-import org.assertj.core.api.Assertions;
+import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
+import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 
-public class CoreAssertions extends Assertions {
-
-    public static ApiAssert assertThat(Api actual) {
-        return new ApiAssert(actual);
-    }
-
-    public static ScoreRequestAssert assertThat(ScoreRequest actual) {
-        return new ScoreRequestAssert(actual);
-    }
+public interface ApiExportDomainService {
+    GraviteeDefinition export(String apiId, AuditInfo auditInfo);
 }

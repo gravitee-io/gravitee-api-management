@@ -25,6 +25,7 @@ import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
+import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
@@ -804,5 +805,10 @@ public class ResourceContextConfiguration {
     @Bean
     public SubscriptionAdapter subscriptionAdapter() {
         return new SubscriptionAdapterImpl();
+    }
+
+    @Bean
+    public ApiExportDomainService apiExportDomainService() {
+        return mock(ApiExportDomainService.class);
     }
 }

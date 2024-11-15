@@ -28,6 +28,8 @@ import io.gravitee.scoring.api.model.ScoringRequest;
 import io.gravitee.scoring.api.model.asset.AssetToAnalyze;
 import io.gravitee.scoring.api.model.asset.AssetType;
 import io.gravitee.scoring.api.model.asset.ContentType;
+import io.gravitee.scoring.api.model.asset.Format;
+import io.gravitee.scoring.api.model.functions.CustomFunction;
 import io.gravitee.scoring.api.model.ruleset.CustomRuleset;
 import io.reactivex.rxjava3.core.Completable;
 import lombok.extern.slf4j.Slf4j;
@@ -61,19 +63,17 @@ public class ScoringProviderImpl implements ScoringProvider {
                         .map(a ->
                             new AssetToAnalyze(
                                 a.assetId(),
-                                switch (a.assetType()) {
-                                    case SWAGGER -> AssetType.OPEN_API;
-                                    case ASYNCAPI -> AssetType.ASYNC_API;
-                                    case GRAVITEE_DEFINITION -> AssetType.GRAVITEE_API;
-                                },
+                                assetType(a.assetType()),
                                 a.assetName(),
                                 a.content(),
-                                detectContentType(a.content())
+                                detectContentType(a.content()),
+                                format(a.assetType())
                             )
                         )
                         .toList(),
                     null,
-                    request.customRulesets().stream().map(r -> new CustomRuleset(r.content())).toList()
+                    request.customRulesets().stream().map(r -> new CustomRuleset(r.content())).toList(),
+                    request.customFunctions().stream().map(fct -> new CustomFunction(fct.filename(), fct.content())).toList()
                 )
             )
         );
@@ -90,6 +90,26 @@ public class ScoringProviderImpl implements ScoringProvider {
                 }
                 return Completable.complete();
             });
+    }
+
+    private AssetType assetType(ScoreRequest.AssetType source) {
+        return switch (source.type()) {
+            case SWAGGER -> AssetType.OPEN_API;
+            case ASYNCAPI -> AssetType.ASYNC_API;
+            case GRAVITEE_DEFINITION -> AssetType.GRAVITEE_API;
+        };
+    }
+
+    private Format format(ScoreRequest.AssetType source) {
+        if (source.format() == null) {
+            return null;
+        }
+
+        return switch (source.format()) {
+            case GRAVITEE_PROXY -> Format.GRAVITEE_PROXY;
+            case GRAVITEE_MESSAGE -> Format.GRAVITEE_MESSAGE;
+            case GRAVITEE_FEDERATED -> Format.GRAVITEE_FEDERATED;
+        };
     }
 
     private ContentType detectContentType(String content) {
