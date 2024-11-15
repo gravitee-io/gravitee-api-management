@@ -50,6 +50,7 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
         data.put("numberOfReplicas", this.configuration.getNumberOfReplicas());
         data.put("refreshInterval", this.configuration.getRefreshInterval());
         data.put("indexLifecyclePolicyPropertyName", this.configuration.getIndexLifecyclePolicyPropertyName());
+        data.put("indexLifecycleRolloverAliasPropertyName", this.configuration.getIndexLifecycleRolloverAliasPropertyName());
         data.put("indexLifecyclePolicyHealth", this.configuration.getIndexLifecyclePolicyHealth());
         data.put("indexLifecyclePolicyMonitor", this.configuration.getIndexLifecyclePolicyMonitor());
         data.put("indexLifecyclePolicyRequest", this.configuration.getIndexLifecyclePolicyRequest());

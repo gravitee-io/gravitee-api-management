@@ -3,7 +3,7 @@
     "index_patterns": ["${indexName}*"],
     "settings": {
         <#if indexLifecyclePolicyHealth??>"${indexLifecyclePolicyPropertyName}": "${indexLifecyclePolicyHealth}",</#if>
-        <#if indexLifecyclePolicyHealth??>"index.lifecycle.rollover_alias": "${indexName}",</#if>
+        <#if indexLifecyclePolicyHealth??>"${indexLifecycleRolloverAliasPropertyName}": "${indexName}",</#if>
         "index.number_of_shards":${numberOfShards},
         "index.number_of_replicas":${numberOfReplicas},
         "index.refresh_interval": "${refreshInterval}"

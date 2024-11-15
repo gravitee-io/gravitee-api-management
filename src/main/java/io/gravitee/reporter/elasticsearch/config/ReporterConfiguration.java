@@ -207,6 +207,12 @@ public class ReporterConfiguration {
     private String indexLifecyclePolicyPropertyName;
 
     /**
+     * Rollover name Property name
+     */
+    @Value("${reporters.elasticsearch.lifecycle.rollover_alias_property_name:index.lifecycle.rollover_alias}")
+    private String indexLifecycleRolloverAliasPropertyName;
+
+    /**
      * Extended settings template
      */
     @Value("${reporters.elasticsearch.template_mapping.extended_settings:#{null}}")
@@ -536,5 +542,13 @@ public class ReporterConfiguration {
         }
 
         return properties;
+    }
+
+    public String getIndexLifecycleRolloverAliasPropertyName() {
+        return indexLifecycleRolloverAliasPropertyName;
+    }
+
+    public void setIndexLifecycleRolloverAliasPropertyName(String indexLifecycleRolloverAliasPropertyName) {
+        this.indexLifecycleRolloverAliasPropertyName = indexLifecycleRolloverAliasPropertyName;
     }
 }
