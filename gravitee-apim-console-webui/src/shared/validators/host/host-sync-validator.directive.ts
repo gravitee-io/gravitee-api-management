@@ -26,7 +26,7 @@ const HOST_PATTERN_REGEX = new RegExp(
   /^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-_]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-_]{0,61}[a-zA-Z0-9]))*$/,
 );
 
-export const tcpHostSyncValidator: ValidatorFn = (formControl: FormControl): ValidationErrors | null => {
+export const hostSyncValidator: ValidatorFn = (formControl: FormControl): ValidationErrors | null => {
   const host = formControl.value || '';
   if (isEmpty(host.trim())) {
     return { required: 'Host is required.' };

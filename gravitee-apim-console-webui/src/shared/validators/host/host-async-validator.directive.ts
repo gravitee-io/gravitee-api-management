@@ -19,7 +19,7 @@ import { map, switchMap } from 'rxjs/operators';
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 
-export function tcpHostAsyncValidator(apiV2Service: ApiV2Service, apiId?: string): AsyncValidatorFn {
+export function hostAsyncValidator(apiV2Service: ApiV2Service, apiId?: string): AsyncValidatorFn {
   return (formControl: FormControl): Observable<ValidationErrors | null> => {
     if (formControl && formControl.dirty) {
       return timer(250).pipe(

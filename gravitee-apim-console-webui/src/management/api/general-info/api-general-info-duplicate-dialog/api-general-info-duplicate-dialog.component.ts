@@ -24,8 +24,8 @@ import { Api, ApiV2, ApiV4, DuplicateFilteredField, HttpListener, TcpListener } 
 import { ApiService } from '../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { tcpHostSyncValidator } from '../../../../shared/validators/tcp-hosts/tcp-host-sync-validator.directive';
-import { tcpHostAsyncValidator } from '../../../../shared/validators/tcp-hosts/tcp-host-async-validator.directive';
+import { hostSyncValidator } from '../../../../shared/validators/host/host-sync-validator.directive';
+import { hostAsyncValidator } from '../../../../shared/validators/host/host-async-validator.directive';
 import { contextPathModePathSyncValidator } from '../../../../shared/validators/context-path/context-path-sync-validator.directive';
 import { contextPathAsyncValidator } from '../../../../shared/validators/context-path/context-path-async-validator.directive';
 
@@ -90,7 +90,7 @@ export class ApiGeneralInfoDuplicateDialogComponent implements OnDestroy {
 
     if (dialogData.api.definitionVersion === 'V4') {
       if (dialogData.api.listeners?.find((listener) => listener.type === 'TCP')) {
-        this.duplicateApiForm.addControl('host', new FormControl('', [tcpHostSyncValidator], [tcpHostAsyncValidator(this.apiV2Service)]));
+        this.duplicateApiForm.addControl('host', new FormControl('', [hostSyncValidator], [hostAsyncValidator(this.apiV2Service)]));
       } else {
         this.duplicateApiForm.addControl(
           'contextPath',

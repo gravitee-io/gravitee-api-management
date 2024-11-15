@@ -15,9 +15,9 @@
  */
 import { FormControl } from '@angular/forms';
 
-import { tcpHostSyncValidator } from './tcp-host-sync-validator.directive';
+import { hostSyncValidator } from './host-sync-validator.directive';
 
-describe('TcpHostSyncValidator', () => {
+describe('HostSyncValidator', () => {
   it.each`
     key           | message                           | host
     ${'format'}   | ${`Host is not valid`}            | ${'ThisIsALongHostNameWithMoreThan63CharactersWhichIsNotValidInOurCase'}
@@ -25,10 +25,10 @@ describe('TcpHostSyncValidator', () => {
     ${'required'} | ${`Host is required.`}            | ${''}
     ${'required'} | ${`Host is required.`}            | ${null}
   `('should be invalid host: $host because $message', ({ key, message, host }) => {
-    expect(tcpHostSyncValidator(new FormControl(host))).toEqual({ [key]: message });
+    expect(hostSyncValidator(new FormControl(host))).toEqual({ [key]: message });
   });
 
   it('should be valid host', () => {
-    expect(tcpHostSyncValidator(new FormControl('host'))).toBeNull();
+    expect(hostSyncValidator(new FormControl('host'))).toBeNull();
   });
 });

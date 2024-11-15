@@ -32,8 +32,8 @@ import { asyncScheduler, Observable, Subject } from 'rxjs';
 
 import { TcpHost } from '../../../../../entities/management-api-v2/api/v4/tcpHost';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { tcpHostSyncValidator } from '../../../../../shared/validators/tcp-hosts/tcp-host-sync-validator.directive';
-import { tcpHostAsyncValidator } from '../../../../../shared/validators/tcp-hosts/tcp-host-async-validator.directive';
+import { hostSyncValidator } from '../../../../../shared/validators/host/host-sync-validator.directive';
+import { hostAsyncValidator } from '../../../../../shared/validators/host/host-async-validator.directive';
 
 @Component({
   selector: 'gio-form-listeners-tcp-hosts',
@@ -149,8 +149,8 @@ export class GioFormListenersTcpHostsComponent implements OnInit, OnDestroy, Con
   public newListenerFormGroup(listener: TcpHost) {
     return new FormGroup({
       host: new FormControl(listener.host || '', {
-        validators: [tcpHostSyncValidator],
-        asyncValidators: [tcpHostAsyncValidator(this.apiV2Service, this.apiId)],
+        validators: [hostSyncValidator],
+        asyncValidators: [hostAsyncValidator(this.apiV2Service, this.apiId)],
       }),
     });
   }
