@@ -125,3 +125,49 @@ tests:
               # Elasticsearch reporter
               elasticsearch:
                 enabled: false
+
+  - it: Check override es lifecycle settings
+    template: gateway/gateway-configmap.yaml
+    set:
+      es:
+        index_mode: ilm
+        lifecycle:
+          enabled: true
+          policyPropertyName: index.plugins.index_state_management.policy_id
+          rolloverAliasPropertyName: index.plugins.index_state_management.rollover_alias
+          policies:
+            monitor: monitor
+            request: request
+            health: health
+            log: log
+    asserts:
+      - hasDocuments:
+          count: 1
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            reporters:
+              # Elasticsearch reporter
+              elasticsearch:
+                endpoints:
+                  - http://graviteeio-apim-elasticsearch-ingest-hl:9200
+                index_mode: ilm
+                pipeline:
+                  plugins:
+                    ingest: geoip, user_agent
+                lifecycle:
+                  policy_property_name: index.plugins.index_state_management.policy_id
+                  rollover_alias_property_name: index.plugins.index_state_management.rollover_alias
+                  policies:
+                    monitor: monitor
+                    request: request
+                    health: health
+                    log: log
+                index: gravitee
+                settings:
+                  number_of_replicas: 1
+                  number_of_shards: 1
+                  refresh_interval: 5s
+                bulk:
+                  actions: 1000           # Number of requests action before flush
+                  flush_interval: 5       # Flush interval in seconds
