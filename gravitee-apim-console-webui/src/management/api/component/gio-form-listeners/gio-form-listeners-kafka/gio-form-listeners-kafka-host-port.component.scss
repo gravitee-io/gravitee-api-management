@@ -1,0 +1,12 @@
+.kafka-configuration {
+  display: flex;
+  width: 100%;
+
+  &__host {
+    flex: 1 1 100%;
+  }
+
+  &__port {
+    flex: 1 1 40%;
+  }
+}
