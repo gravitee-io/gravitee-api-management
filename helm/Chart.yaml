@@ -23,4 +23,9 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: 
+  artifacthub.io/changes: |
+    - kind: fixed
+      description: 'allow users to overwrite the Elasticsearch or Opensearch rollover alias property name'
+      links:
+        - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/10100
