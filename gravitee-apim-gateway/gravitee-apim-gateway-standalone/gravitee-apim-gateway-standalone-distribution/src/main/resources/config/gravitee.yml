@@ -419,12 +419,13 @@ reporters:
     endpoints:
       - http://${ds.elastic.host}:${ds.elastic.port}
 #    lifecycle:
-#      policy_property_name: index.lifecycle.name   #for openDistro, use 'opendistro.index_state_management.policy_id' instead of 'index.lifecycle.name'
+#      policy_property_name: index.lifecycle.name   #for Opensearch, use 'index.plugins.index_state_management.policy_id' instead of 'index.lifecycle.name'
+#      rollover_alias_property_name: index.lifecycle.rollover_alias   #for Opensearch, use 'index.plugins.index_state_management.rollover_alias' instead of 'index.lifecycle.rollover_alias'
 #      policies:
-#        monitor: my_policy ## ILM policy for the gravitee-monitor-* indexes
-#        request: my_policy ## ILM policy for the gravitee-request-* indexes
-#        health: my_policy ## ILM policy for the gravitee-health-* indexes
-#        log: my_policy ## ILM policy for the gravitee-log-* indexes
+#        monitor: my_policy # ILM policy for the gravitee-monitor-* indexes
+#        request: my_policy # ILM policy for the gravitee-request-* indexes
+#        health: my_policy # ILM policy for the gravitee-health-* indexes
+#        log: my_policy # ILM policy for the gravitee-log-* indexes
 #    index: gravitee
 #    index_per_type: true
 #    index_mode: daily         # "daily" indexes, suffixed with date. Or "ilm" managed indexes, without date
