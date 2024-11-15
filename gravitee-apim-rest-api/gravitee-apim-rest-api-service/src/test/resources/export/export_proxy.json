@@ -1,0 +1,245 @@
+{
+    "api": {
+        "definitionVersion": "V4",
+        "type": "PROXY",
+        "listeners": [
+            {
+                "type": "HTTP",
+                "paths": [
+                    {
+                        "path": "/proxy-api",
+                        "overrideAccess": true
+                    }
+                ],
+                "entrypoints": [
+                    {
+                        "type": "http-proxy",
+                        "qos": "AUTO",
+                        "configuration": {}
+                    }
+                ]
+            }
+        ],
+        "endpointGroups": [
+            {
+                "name": "Default HTTP proxy group",
+                "type": "http-proxy",
+                "loadBalancer": {
+                    "type": "ROUND_ROBIN"
+                },
+                "sharedConfiguration": {
+                    "proxy": {
+                        "useSystemProxy": false,
+                        "enabled": false
+                    },
+                    "http": {
+                        "keepAliveTimeout": 30000,
+                        "keepAlive": true,
+                        "followRedirects": false,
+                        "readTimeout": 10000,
+                        "idleTimeout": 60000,
+                        "connectTimeout": 3000,
+                        "useCompression": true,
+                        "maxConcurrentConnections": 20,
+                        "version": "HTTP_1_1",
+                        "pipelining": false
+                    },
+                    "ssl": {
+                        "keyStore": {
+                            "type": ""
+                        },
+                        "hostnameVerifier": true,
+                        "trustStore": {
+                            "type": ""
+                        },
+                        "trustAll": false
+                    }
+                },
+                "endpoints": [
+                    {
+                        "name": "Default HTTP proxy",
+                        "type": "http-proxy",
+                        "weight": 1,
+                        "inheritConfiguration": true,
+                        "configuration": {
+                            "target": "https://api.gravitee.io/echo"
+                        },
+                        "sharedConfigurationOverride": {},
+                        "services": {},
+                        "secondary": false
+                    }
+                ],
+                "services": {
+                    "healthCheck": {
+                        "overrideConfiguration": false,
+                        "configuration": {
+                            "schedule": "*/1 * * * * *",
+                            "headers": [],
+                            "overrideEndpointPath": true,
+                            "method": "GET",
+                            "failureThreshold": 2,
+                            "assertion": "{#response.status == 200}",
+                            "successThreshold": 2,
+                            "target": "/"
+                        },
+                        "enabled": true,
+                        "type": "http-health-check"
+                    }
+                }
+            }
+        ],
+        "analytics": {
+            "enabled": true,
+            "logging": {
+                "condition": "{#request.timestamp <= 1709737299215l}",
+                "content": {
+                    "headers": true,
+                    "messageHeaders": false,
+                    "payload": true,
+                    "messagePayload": false,
+                    "messageMetadata": false
+                },
+                "phase": {
+                    "request": true,
+                    "response": true
+                },
+                "mode": {
+                    "endpoint": true,
+                    "entrypoint": true
+                }
+            }
+        },
+        "flowExecution": {
+            "mode": "DEFAULT",
+            "matchRequired": false
+        },
+        "flows": [
+            {
+                "id": "flow-id",
+                "name": "api flows",
+                "enabled": true,
+                "selectors": [
+                    {
+                        "type": "HTTP",
+                        "path": "/",
+                        "pathOperator": "STARTS_WITH",
+                        "methods": []
+                    }
+                ],
+                "request": [],
+                "response": [],
+                "subscribe": [],
+                "publish": [],
+                "tags": []
+            }
+        ],
+        "id": "api-id",
+        "name": "My Api",
+        "description": "My Api description",
+        "apiVersion": "1.0.0",
+        "deployedAt": "2024-11-08T10:22:17.487Z",
+        "createdAt": "2023-11-07T15:17:44.946Z",
+        "updatedAt": "2024-11-13T14:31:05.066Z",
+        "disableMembershipNotifications": false,
+        "groups": ["group1"],
+        "state": "STARTED",
+        "visibility": "PUBLIC",
+        "lifecycleState": "PUBLISHED",
+        "tags": [],
+        "categories": [],
+        "originContext": {
+            "origin": "MANAGEMENT"
+        },
+        "responseTemplates": {
+            "DEFAULT": {
+                "*.*": {
+                    "propagateErrorKeyToLogs": false,
+                    "status": 200
+                }
+            }
+        },
+        "properties": [
+            {
+                "key": "prop-key",
+                "value": "prop-value",
+                "encrypted": false,
+                "dynamic": false
+            }
+        ],
+        "resources": []
+    },
+    "members": [
+        {
+            "id": "member-id",
+            "displayName": "John Doe",
+            "roles": [
+                {
+                    "name": "PRIMARY_OWNER",
+                    "scope": "API"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "key": "email-support",
+            "name": "email-support",
+            "format": "MAIL",
+            "value": "${(api.primaryOwner.email)!''}"
+        }
+    ],
+    "pages": [
+        {
+            "id": "page-id",
+            "name": "openapi.json",
+            "type": "SWAGGER",
+            "content": "{\n  \"openapi\" : \"3.0.1\",\n  \"info\" : {\n    \"title\" : \"Echo\",\n    \"description\" : \"This is an echo API \",\n    \"version\" : \"2024-06-25T06:52:05Z\"\n  },\n  \"servers\" : [ {\n    \"url\" : \"https://5a1pbut3t9.execute-api.eu-west-3.amazonaws.com/{basePath}\",\n    \"variables\" : {\n      \"basePath\" : {\n        \"default\" : \"dev\"\n      }\n    }\n  } ],\n  \"paths\" : {\n    \"/echo\" : {\n      \"get\" : {\n        \"operationId\": \"echo\",\n        \"responses\" : {\n          \"200\" : {\n            \"description\" : \"200 response\",\n            \"headers\" : {\n              \"Access-Control-Allow-Origin\" : {\n                \"schema\" : {\n                  \"type\" : \"string\"\n                }\n              }\n            },\n            \"content\" : {\n              \"application/json\" : {\n                \"schema\" : {\n                  \"$ref\" : \"#/components/schemas/Empty\"\n                }\n              }\n            }\n          }\n        },\n        \"security\" : [ {\n          \"api_key\" : [ ]\n        } ]\n      },\n      \"options\" : {\n        \"responses\" : {\n          \"200\" : {\n            \"description\" : \"200 response\",\n            \"headers\" : {\n              \"Access-Control-Allow-Origin\" : {\n                \"schema\" : {\n                  \"type\" : \"string\"\n                }\n              },\n              \"Access-Control-Allow-Methods\" : {\n                \"schema\" : {\n                  \"type\" : \"string\"\n                }\n              },\n              \"Access-Control-Allow-Headers\" : {\n                \"schema\" : {\n                  \"type\" : \"string\"\n                }\n              }\n            },\n            \"content\" : {\n              \"application/json\" : {\n                \"schema\" : {\n                  \"$ref\" : \"#/components/schemas/Empty\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"components\" : {\n    \"schemas\" : {\n      \"Empty\" : {\n        \"title\" : \"Empty Schema\",\n        \"type\" : \"object\"\n      }\n    },\n    \"securitySchemes\" : {\n      \"api_key\" : {\n        \"type\" : \"apiKey\",\n        \"name\" : \"x-api-key\",\n        \"in\" : \"header\"\n      }\n    }\n  }\n}",
+            "order": 0,
+            "published": true,
+            "visibility": "PUBLIC",
+            "createdAt": "2024-09-13T07:00:07.874Z",
+            "updatedAt": "2024-09-13T08:00:07.874Z",
+            "homepage": false,
+            "excludedAccessControls": false,
+            "referenceType": "API",
+            "referenceId": "api-id",
+            "accessControls": []
+        }
+    ],
+    "plans": [
+        {
+            "definitionVersion": "V4",
+            "flows": [],
+            "id": "plan-id",
+            "name": "Default Keyless (UNSECURED)",
+            "description": "Default unsecured plan",
+            "apiId": "api-id",
+            "security": {
+                "type": "KEY_LESS",
+                "configuration": {}
+            },
+            "mode": "STANDARD",
+            "commentRequired": false,
+            "createdAt": "2023-11-07T15:17:46.156Z",
+            "order": 1,
+            "publishedAt": "2023-11-07T15:17:46.295Z",
+            "status": "PUBLISHED",
+            "tags": [],
+            "type": "API",
+            "updatedAt": "2023-12-05T07:33:32.922Z",
+            "validation": "AUTO"
+        }
+    ],
+    "apiPicture": "data:image/png;base64,picture",
+    "apiBackground": "data:image/png;base64,background",
+    "apiMedia": [
+        {
+            "hash": "DB0A773F02AF003348F1B09734717266",
+            "type": "image",
+            "subType": "jpeg",
+            "fileName": "my-media.jpeg",
+            "size": 123456,
+            "data": "ZHVtbXktZGF0YQ=="
+        }
+    ]
+}

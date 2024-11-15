@@ -13,42 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.v4.analytics.logging;
+package io.gravitee.apim.core.api.model.import_definition;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import java.io.Serializable;
+import io.gravitee.apim.core.api.model.NewApiMetadata;
+import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.media.model.Media;
+import io.gravitee.apim.core.plan.model.PlanWithFlows;
+import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
+ * Represents the definition of an exported API.
  */
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
+@Data
 @Builder(toBuilder = true)
-@Getter
-@Setter
-@ToString
-@EqualsAndHashCode
-@Schema(name = "LoggingV4")
-public class Logging implements Serializable {
+public class GraviteeDefinition {
 
-    @Builder.Default
-    private LoggingMode mode = new LoggingMode();
+    private ApiExport api;
 
-    @Builder.Default
-    private LoggingPhase phase = new LoggingPhase();
+    private Set<ApiMember> members;
 
-    @Builder.Default
-    private LoggingContent content = new LoggingContent();
+    private Set<NewApiMetadata> metadata;
 
-    private String condition;
+    private List<PageExport> pages;
 
-    private String messageCondition;
+    private Set<PlanExport> plans;
+
+    private List<Media> apiMedia;
+
+    private String apiPicture;
+    private String apiBackground;
 }

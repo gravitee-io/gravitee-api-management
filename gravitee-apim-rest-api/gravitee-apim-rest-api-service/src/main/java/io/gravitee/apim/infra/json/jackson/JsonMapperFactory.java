@@ -40,7 +40,7 @@ public class JsonMapperFactory {
         return builder.build();
     }
 
-    private static JsonMapper.Builder jsonBuilder() {
+    public static JsonMapper.Builder jsonBuilder() {
         return JsonMapper
             .builder()
             .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
