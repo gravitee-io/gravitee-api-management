@@ -76,7 +76,7 @@ describe('IntegrationsNavigationComponent', () => {
 
   describe('menu items without permissions', () => {
     beforeEach(async () => {
-      init(false);
+      await init(false);
     });
 
     it('should not be in view', async (): Promise<void> => {
@@ -103,7 +103,7 @@ describe('IntegrationsNavigationComponent', () => {
 
   describe('menu items with permissions', () => {
     beforeEach(async () => {
-      init(true);
+      await init(true);
     });
 
     it('should be in view', async (): Promise<void> => {
