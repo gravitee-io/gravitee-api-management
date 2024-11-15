@@ -13,22 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseHarnessFilters, ComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
+import { ComponentHarness } from '@angular/cdk/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
 
-export type AvailabilityPerFieldHarnessFilters = BaseHarnessFilters & {
-  title?: 'Per-Endpoint' | 'Per-Gateway';
-};
-
-export class AvailabilityPerFieldHarness extends ComponentHarness {
-  static hostSelector = 'availability-per-field';
-
-  static with(options: AvailabilityPerFieldHarnessFilters = {}): HarnessPredicate<AvailabilityPerFieldHarness> {
-    return new HarnessPredicate(AvailabilityPerFieldHarness, options).addOption('title', options.title, (harness, field) =>
-      HarnessPredicate.stringMatches(harness.getTitle(), field),
-    );
-  }
+export class FailedHealthChecksHarness extends ComponentHarness {
+  static hostSelector = 'failed-health-checks';
 
   async getTitle(): Promise<string> {
     const el = await this.locatorFor(MatCardHarness)();

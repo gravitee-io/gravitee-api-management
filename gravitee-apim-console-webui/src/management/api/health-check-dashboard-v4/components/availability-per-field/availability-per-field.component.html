@@ -18,7 +18,8 @@
 
 <mat-card class="card">
   <mat-card-header>
-    <mat-card-title class="mat-h5">Availability Per {{ this.field | titlecase }}</mat-card-title>
+    <mat-card-title class="mat-h5">Per-{{ this.field | titlecase }}</mat-card-title>
+    <mat-card-subtitle> Availability per-{{ this.field }} where health-check is enabled.</mat-card-subtitle>
   </mat-card-header>
 
   @if (isLoading) {
@@ -26,7 +27,7 @@
       <gio-loader />
     </div>
   } @else {
-    <mat-card-content>
+    <mat-card-content class="card__table">
       <gio-table-wrapper
         class="table"
         [length]="totalLength"
@@ -51,6 +52,11 @@
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+          <!-- Row shown when there is no data -->
+          <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+            <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">No data</td>
+          </tr>
         </table>
       </gio-table-wrapper>
     </mat-card-content>

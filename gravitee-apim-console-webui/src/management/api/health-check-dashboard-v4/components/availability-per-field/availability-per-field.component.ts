@@ -117,6 +117,11 @@ export class AvailabilityPerFieldComponent implements OnInit {
 
   mergeGroups = (responseTimes: ApiAverageResponseTime, availability: ApiAvailability): TableData[] => {
     const tableData: TableData[] = [];
+
+    if (!responseTimes?.group || !availability?.group) {
+      return [];
+    }
+
     Object.keys(responseTimes.group).forEach((key) => {
       if (key in availability.group) {
         tableData.push({

@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import { Pagination } from '../../pagination';
+import { Links } from '../../links';
+
 export interface ApiHealthResponseTimeOvertime {
   timeRange: {
     from: number;
@@ -35,6 +38,54 @@ export interface ApiAverageResponseTime {
   group: {
     [key: string]: number;
   }[];
+}
+
+export interface HealthCheckLogsRequestParams {
+  from: number;
+  to: number;
+  page: number;
+  perPage: number;
+  success: boolean;
+}
+
+export interface HealthCheckLogsResponse {
+  data?: HealthCheckLog[];
+  pagination?: Pagination;
+  links?: Links;
+}
+
+export interface HealthCheckLog {
+  id: string;
+  timestamp: string;
+  endpointName: string;
+  gatewayId: string;
+  responseTime: number;
+  success: boolean;
+  steps: HealthCheckStep[];
+}
+
+export interface HealthCheckStep {
+  name: string;
+  success: string;
+  message: string;
+  request: HealthCheckStepRequest;
+  response: HealthCheckStepResponse;
+}
+
+export interface HealthCheckStepRequest {
+  uri: string;
+  method: string;
+  headers: {
+    [key: string]: string;
+  };
+}
+
+export interface HealthCheckStepResponse {
+  status: number;
+  body: string;
+  headers: {
+    [key: string]: string;
+  };
 }
 
 export enum FieldParameter {
