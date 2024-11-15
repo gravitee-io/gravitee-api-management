@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiType, CreatePlanV4, ListenerType, PathV4, Qos } from '../../../../entities/management-api-v2';
+import { ApiType, CreatePlanV4, KafkaHost, KafkaPort, ListenerType, PathV4, Qos } from '../../../../entities/management-api-v2';
 import { TcpHost } from '../../../../entities/management-api-v2/api/v4/tcpHost';
 
 export type ApiCreationPayload = Partial<{
@@ -27,6 +27,8 @@ export type ApiCreationPayload = Partial<{
   selectedNativeType?: 'KAFKA';
   paths?: PathV4[];
   hosts?: TcpHost[];
+  host?: KafkaHost;
+  port?: KafkaPort;
   selectedEntrypoints?: {
     id: string;
     name: string;
