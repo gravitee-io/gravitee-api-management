@@ -82,6 +82,30 @@
             ></gio-license-banner>
           </div>
         </mat-radio-button>
+        <mat-radio-button value="KAFKA" [class.gio-selection__selected]="form.controls['type'].value === 'KAFKA'">
+          <gio-selection-list-option-layout>
+            <gio-selection-list-option-layout-title>
+              <div class="option__kafka-title option__badges">
+                <div>Kafka Protocol</div>
+                <span class="gio-badge-accent">New</span>
+              </div>
+            </gio-selection-list-option-layout-title>
+
+            <gio-selection-list-option-layout-body>
+              <p>
+                Choose this mode if you want to proxy the native Kafka protocol. In this case, the gateway acts as a Kafka broker to Kafka
+                clients.
+              </p>
+            </gio-selection-list-option-layout-body>
+          </gio-selection-list-option-layout>
+          <div *ngIf="shouldUpgrade$ | async">
+            <gio-license-banner
+              [license]="license$ | async"
+              [isOEM]="isOEM$ | async"
+              (onRequestUpgrade)="onRequestUpgrade()"
+            ></gio-license-banner>
+          </div>
+        </mat-radio-button>
       </mat-radio-group>
 
       <div class="api-creation-v4__step__footer">

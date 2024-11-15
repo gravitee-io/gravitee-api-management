@@ -27,7 +27,7 @@ import { Step3Endpoints2ConfigHarness } from './steps/step-3-endpoints/step-3-en
 import { Step4Security1PlansHarness } from './steps/step-4-security/step-4-security-1-plans.harness';
 import { Step3EndpointListHarness } from './steps/step-3-endpoints/step-3-endpoints-1-list.harness';
 
-import { ApiType, ConnectorPlugin } from '../../../entities/management-api-v2';
+import { ConnectorPlugin } from '../../../entities/management-api-v2';
 
 export class ApiCreationV4SpecStepperHelper {
   private ossLicense: License = { tier: 'oss', features: [], packs: [] };
@@ -50,9 +50,9 @@ export class ApiCreationV4SpecStepperHelper {
     await apiDetails.fillAndValidate(name, version, description);
   }
 
-  async fillAndValidateStep2_0_EntrypointsArchitecture(type: ApiType = 'MESSAGE') {
+  async fillAndValidateStep2_0_EntrypointsArchitecture(type: 'PROXY' | 'MESSAGE' | 'KAFKA' = 'MESSAGE') {
     const architecture = await this.harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
-    if (type === 'MESSAGE') {
+    if (type === 'MESSAGE' || type === 'KAFKA') {
       expect(await architecture.isLicenseBannerShown()).toEqual(true);
     }
     await architecture.fillAndValidate(type);

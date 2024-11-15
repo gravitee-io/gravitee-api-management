@@ -20,10 +20,12 @@ import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, Lic
 import { MatDialog } from '@angular/material/dialog';
 
 import { Step2Entrypoints1ListComponent } from './step-2-entrypoints-1-list.component';
+import { Step2Entrypoints2ConfigComponent } from './step-2-entrypoints-2-config.component';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ApiType } from '../../../../../entities/management-api-v2';
 import { UTMTags, ApimFeature } from '../../../../../shared/components/gio-license/gio-license-data';
+import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 
 @Component({
   selector: 'step-2-entrypoints-0-architecture',
@@ -53,7 +55,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
     const currentStepPayload = this.stepService.payload;
 
     this.form = this.formBuilder.group({
-      type: this.formBuilder.control(currentStepPayload.type ?? null, [Validators.required]),
+      type: this.formBuilder.control(this.getArchitectureOptionFromPayload(currentStepPayload), [Validators.required]),
     });
 
     this.initialValue = this.form.getRawValue();
@@ -73,10 +75,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   }
 
   save() {
-    const previousType = this.stepService.payload.type;
-    const selectedType = this.form.value.type;
-
-    if (previousType && selectedType !== previousType) {
+    if (this.hasArchitectureOptionChanged(this.stepService.payload)) {
       // When changing the type, all previously filled steps must be deleted to restart from scratch.
       this.matDialog
         .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
@@ -91,14 +90,47 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
         .subscribe((confirmed) => {
           if (confirmed) {
             this.stepService.removeAllNextSteps();
-            this.form.value.type === 'PROXY' ? this.doSaveSync() : this.doSaveAsync();
+            this.saveByApiType();
           } else {
             this.form.setValue(this.initialValue);
           }
         });
       return;
     }
-    this.form.value.type === 'PROXY' ? this.doSaveSync() : this.doSaveAsync();
+    this.saveByApiType();
+  }
+
+  private getArchitectureOptionFromPayload(payload: ApiCreationPayload): string {
+    if (payload.type === 'NATIVE') {
+      return payload.selectedNativeType;
+    }
+    return payload.type ?? null;
+  }
+
+  private hasArchitectureOptionChanged(payload: ApiCreationPayload): boolean {
+    const previousType = payload.type;
+    const previousSelectedNativeType = payload.selectedNativeType;
+    const selectedType = this.form.value.type;
+
+    if (previousType === 'NATIVE') {
+      return previousSelectedNativeType && previousSelectedNativeType !== selectedType;
+    }
+
+    return previousType && selectedType !== previousType;
+  }
+
+  private saveByApiType(): void {
+    switch (this.form.value.type) {
+      case 'PROXY':
+        this.doSaveSync();
+        break;
+      case 'MESSAGE':
+        this.doSaveAsync();
+        break;
+      case 'KAFKA':
+        this.doSaveKafka();
+        break;
+    }
   }
 
   private doSaveSync() {
@@ -120,6 +152,28 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
     this.stepService.goToNextStep({
       groupNumber: 2,
       component: Step2Entrypoints1ListComponent,
+    });
+  }
+
+  private doSaveKafka() {
+    // TODO: Incorporate call to get native plugins
+    this.stepService.validStep((previousPayload) => ({
+      ...previousPayload,
+      selectedEntrypoints: [
+        {
+          id: 'native-kafka',
+          name: 'Native Kafka Entrypoint',
+          icon: 'gio:kafka',
+          supportedListenerType: 'KAFKA',
+          deployed: true,
+        },
+      ],
+      type: 'NATIVE',
+      selectedNativeType: 'KAFKA',
+    }));
+    this.stepService.goToNextStep({
+      groupNumber: 2,
+      component: Step2Entrypoints2ConfigComponent,
     });
   }
 

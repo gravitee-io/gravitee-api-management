@@ -24,6 +24,7 @@ export type ApiCreationPayload = Partial<{
 
   // Entrypoints
   type?: ApiType;
+  selectedNativeType?: 'KAFKA';
   paths?: PathV4[];
   hosts?: TcpHost[];
   selectedEntrypoints?: {
