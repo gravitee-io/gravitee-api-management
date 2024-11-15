@@ -129,7 +129,7 @@ secrets:
 #  idleTimeout: 0
 #  tcpKeepAlive: true
 #  instances: 0
-#  requestTimeout: 0 (in v4 mode, default is 30_000 ms)
+#  requestTimeout: 30_000 # default is 30_000 ms
 #  # TCP REQUIRES TLS to be set up properly
 #  secured: true
 #  ssl:
@@ -166,7 +166,7 @@ secrets:
 #  idleTimeout: 0
 #  tcpKeepAlive: true
 #  instances: 0
-#  requestTimeout: 0 (in v4 mode, default is 30_000 ms)
+#  requestTimeout: 35_000 # default is 35_000 ms
 #  # TCP REQUIRES TLS to be set up properly
 #  secured: true
 #  ssl:
