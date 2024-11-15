@@ -406,6 +406,7 @@ data:
         {{- if (eq .Values.es.lifecycle.enabled true) }}
         lifecycle:
           policy_property_name: {{ .Values.es.lifecycle.policyPropertyName }}
+          rollover_alias_property_name: {{ .Values.es.lifecycle.rolloverAliasPropertyName }}
           policies:
             monitor: {{ .Values.es.lifecycle.policies.monitor }}
             request: {{ .Values.es.lifecycle.policies.request }}
