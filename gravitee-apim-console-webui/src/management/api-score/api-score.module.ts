@@ -17,13 +17,15 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { ApiScoreRoutingModule } from './api-score-routing.module';
-import { ApiScoreDashboardModule } from './api-score-dashboard/api-score-dashboard.module';
+import { ApiScoreDashboardModule } from './dashboard/api-score-dashboard.module';
+import { ApiScoreNavigationComponent } from './navigation/api-score-navigation.component';
+import { ApiScoreRulesetsModule } from './rulesets/api-score-rulesets.module';
 
 import { ApiScoringService } from '../../services-ngx/api-scoring.service';
 
 @NgModule({
   declarations: [],
-  imports: [CommonModule, ApiScoreRoutingModule, ApiScoreDashboardModule],
+  imports: [CommonModule, ApiScoreRoutingModule, ApiScoreDashboardModule, ApiScoreRulesetsModule, ApiScoreNavigationComponent],
   providers: [ApiScoringService],
 })
 export class ApiScoreModule {}

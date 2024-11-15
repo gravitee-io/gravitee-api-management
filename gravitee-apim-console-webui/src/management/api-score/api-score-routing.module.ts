@@ -16,18 +16,25 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-import { ApiScoreDashboardComponent } from './api-score-dashboard/api-score-dashboard.component';
+import { ApiScoreDashboardComponent } from './dashboard/api-score-dashboard.component';
+import { ApiScoreNavigationComponent } from './navigation/api-score-navigation.component';
+import { ApiScoreRulesetsComponent } from './rulesets/api-score-rulesets.component';
 
 const routes: Routes = [
   {
     path: '',
-    pathMatch: 'full',
-    component: ApiScoreDashboardComponent,
-    data: {
-      docs: {
-        page: 'management-apis',
+    component: ApiScoreNavigationComponent,
+
+    children: [
+      {
+        path: '',
+        component: ApiScoreDashboardComponent,
       },
-    },
+      {
+        path: 'rulesets',
+        component: ApiScoreRulesetsComponent,
+      },
+    ],
   },
 ];
 
