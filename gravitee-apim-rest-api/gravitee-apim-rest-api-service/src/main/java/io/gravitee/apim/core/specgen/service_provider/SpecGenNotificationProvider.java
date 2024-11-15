@@ -13,24 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.specgen.model;
+package io.gravitee.apim.core.specgen.service_provider;
 
-import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.apim.core.specgen.model.ApiSpecGen;
 
 /**
  * @author Rémi SULTAN (remi.sultan at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record ApiSpecGen(
-    String id,
-    String name,
-    String description,
-    String version,
-    ApiType type,
-    String environmentId,
-    String definition
-) {
-    public ApiSpecGen(String id, String name, String description, String version, ApiType type, String environmentId) {
-        this(id, name, description, version, type, environmentId, null);
-    }
+public interface SpecGenNotificationProvider {
+    void notify(ApiSpecGen apiSpecGen, String userId);
 }

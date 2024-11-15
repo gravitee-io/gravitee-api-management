@@ -66,7 +66,7 @@ public class BuildSpecGenPageResponseUseCase {
             .builder()
             .referenceId(api.id())
             .referenceType(API)
-            .name(api.name() + " by NewtAI - " + now)
+            .name(api.name() + " by Newt - " + now)
             .content(rawSpec)
             .type(Type.SWAGGER)
             .visibility(PRIVATE)

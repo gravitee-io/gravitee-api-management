@@ -352,6 +352,12 @@
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
+               <dependency>
+                       <groupId>org.awaitility</groupId>
+                       <artifactId>awaitility</artifactId>
+                       <version>${awaitility.version}</version>
+                       <scope>test</scope>
+               </dependency>
 
 		<!-- wiremock is late on jetty have to use its internal version to avoid classloading issues-->
 		<dependency>

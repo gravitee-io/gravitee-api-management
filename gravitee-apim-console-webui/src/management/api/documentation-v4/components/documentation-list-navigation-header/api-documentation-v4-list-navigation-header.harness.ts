@@ -27,6 +27,7 @@ export class ApiDocumentationV4ListNavigationHeaderHarness extends ComponentHarn
 
   private addNewFolderButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Add new folder' }));
   private menuLocator = this.locatorFor(MatMenuHarness);
+
   public async clickAddNewFolder() {
     return this.addNewFolderButtonLocator().then((btn) => btn.click());
   }
