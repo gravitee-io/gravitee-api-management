@@ -33,12 +33,12 @@
           [class.gio-selection__selected]="form.controls['type'].value === 'PROXY'"
         >
           <gio-selection-list-option-layout>
-            <gio-selection-list-option-layout-title> Proxy upstream Protocol </gio-selection-list-option-layout-title>
+            <gio-selection-list-option-layout-title> Proxy Generic Protocol </gio-selection-list-option-layout-title>
 
             <gio-selection-list-option-layout-body>
               <p>
-                This mode puts a proxy in front of upstream services. It passes the response through the gateway with policies on request
-                and response phases.
+                Choose this mode if you want to proxy an upstream HTTP or TCP service such as a REST API, SOAP service, WebSocket server or
+                gRPC service.
               </p>
               <div class="option__badges">
                 Can proxy
@@ -57,13 +57,13 @@
         <mat-radio-button value="MESSAGE" [class.gio-selection__selected]="form.controls['type'].value === 'MESSAGE'">
           <gio-selection-list-option-layout>
             <gio-selection-list-option-layout-title>
-              <div class="option__badges">Introspect Messages from Event-Driven Backend</div>
+              <div class="option__badges">Protocol Mediation</div>
             </gio-selection-list-option-layout-title>
 
             <gio-selection-list-option-layout-body>
               <p>
-                This mode produces and consumes messages to event-driven services and allows for message transformation in between via
-                message policies and multiple entrypoints.
+                This mode serves incoming requests on a generic protocol such as HTTP and translates the request into a specialized backend
+                protocol such as Kafka or Solace.
               </p>
               <div class="option__badges">
                 Can expose
