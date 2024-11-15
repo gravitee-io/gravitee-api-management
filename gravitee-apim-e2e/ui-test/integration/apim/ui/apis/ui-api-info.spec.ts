@@ -207,27 +207,27 @@ describe('API Info Page functionality', () => {
     cy.visit(`/#!/DEFAULT/apis/${v4dangerzoneApi.id}`);
     cy.getByDataTestId('api_info_dangerzone_publish_api').click();
     cy.getByDataTestId('confirm-dialog').click();
-    cy.contains('The API has been publish with success.');
+    cy.contains('The API has been published with success.');
     cy.getByDataTestId('api_info_dangerzone_unpublish_api').click();
     cy.getByDataTestId('confirm-dialog').click();
-    cy.contains('The API has been unpublish with success.');
+    cy.contains('The API has been unpublished with success.');
   });
 
   it('Danger Zone - Make Public and Make Private the API', () => {
     cy.visit(`/#!/DEFAULT/apis/${v4dangerzoneApi.id}`);
     cy.getByDataTestId('api_info_dangerzone_make_public', { timeout: 60000 }).click();
     cy.getByDataTestId('confirm-dialog').click();
-    cy.contains('The API has been Make Public with success.');
+    cy.contains('The API has been made Public with success.');
     cy.getByDataTestId('api_info_dangerzone_make_private').click();
     cy.getByDataTestId('confirm-dialog').click();
-    cy.contains('The API has been Make Private with success.');
+    cy.contains('The API has been made Private with success.');
   });
 
   it('Danger Zone - Deprecate the API', () => {
     cy.visit(`/#!/DEFAULT/apis/${v4dangerzoneApi.id}`);
     cy.getByDataTestId('api_info_dangerzone_deprecate_api').click();
     cy.getByDataTestId('confirm-dialog').click();
-    cy.contains('The API has been deprecate with success.');
+    cy.contains('The API has been deprecated with success.');
     cy.contains('This API is deprecated.');
     cy.getByDataTestId('api_info_dangerzone_publish_api').should('not.exist');
     cy.getByDataTestId('api_info_dangerzone_unpublish_api').should('not.exist');
