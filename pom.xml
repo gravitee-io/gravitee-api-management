@@ -300,6 +300,7 @@
         <system>GitHub Issues</system>
     </issueManagement>
 
+<<<<<<< HEAD
     <repositories>
         <repository>
             <id>oss.sonatype.org-snapshot</id>
@@ -312,6 +313,1093 @@
             </snapshots>
         </repository>
     </repositories>
+=======
+        <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin in gravitee-apim-gateway-standalone-container -->
+        <vertx.version>4.4.8</vertx.version>
+        <!-- For Test SDK & Gateway Integration tests. Make sure it is aligned with the version used by Vert.x -->
+        <grpc.version>1.61.0</grpc.version>
+        <!-- Gravitee dependencies version -->
+        <gravitee-bom.version>6.0.39</gravitee-bom.version>
+        <gravitee-alert-api.version>1.9.1</gravitee-alert-api.version>
+        <gravitee-cockpit-api.version>2.5.0</gravitee-cockpit-api.version>
+        <gravitee-common.version>3.4.1</gravitee-common.version>
+        <gravitee-connector-api.version>1.1.4</gravitee-connector-api.version>
+        <gravitee-expression-language.version>3.2.1</gravitee-expression-language.version>
+        <gravitee-fetcher-api.version>2.0.0</gravitee-fetcher-api.version>
+        <gravitee-gateway-api.version>3.4.2</gravitee-gateway-api.version>
+        <gravitee-license-node.version>1.3.1</gravitee-license-node.version>
+        <gravitee-node.version>4.8.7</gravitee-node.version>
+        <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
+        <gravitee-plugin.version>2.2.2</gravitee-plugin.version>
+        <gravitee-platform-repository-api.version>1.3.0</gravitee-platform-repository-api.version>
+        <gravitee-policy-api.version>1.11.0</gravitee-policy-api.version>
+        <gravitee-reporter-api.version>1.30.0</gravitee-reporter-api.version>
+        <gravitee-resource-auth-provider-api.version>1.3.0</gravitee-resource-auth-provider-api.version>
+        <gravitee-resource-cache-provider-api.version>1.4.0</gravitee-resource-cache-provider-api.version>
+        <gravitee-resource-oauth2-provider-api.version>1.4.0</gravitee-resource-oauth2-provider-api.version>
+        <gravitee-service-discovery-api.version>1.1.1</gravitee-service-discovery-api.version>
+        <gravitee-kubernetes.version>3.2.1</gravitee-kubernetes.version>
+        <gravitee-json-validation.version>2.0.1</gravitee-json-validation.version>
+        <!-- Other dependencies version -->
+        <angus-mail.version>2.0.1</angus-mail.version>
+        <angus-activation.version>2.0.0</angus-activation.version>
+        <asm.version>9.2</asm.version>
+        <batik-transcoder.version>1.17</batik-transcoder.version>
+        <bcpkix-jdk15on.version>1.70</bcpkix-jdk15on.version>
+        <classgraph.version>4.8.138</classgraph.version>
+        <commons-io.version>2.11.0</commons-io.version>
+        <commons-lang.version>2.6</commons-lang.version>
+        <commons-lang3.version>3.12.0</commons-lang3.version>
+        <commons-pool2.version>2.11.1</commons-pool2.version>
+        <commons-text.version>1.10.0</commons-text.version>
+        <commons-email.version>1.5</commons-email.version>
+        <dozer.version>6.5.2</dozer.version>
+        <everit-json-schema.version>1.14.0</everit-json-schema.version>
+        <flexmark.version>0.62.2</flexmark.version>
+        <freemarker.version>2.3.31</freemarker.version>
+        <gatling-charts-highcharts.version>3.7.6</gatling-charts-highcharts.version>
+        <gson.version>2.8.9</gson.version>
+        <guava.version>32.1.2-jre</guava.version>
+        <hamcrest.version>1.3</hamcrest.version>
+        <hazelcast.version>5.3.0</hazelcast.version>
+        <hibernate-validator.version>8.0.1.Final</hibernate-validator.version>
+        <httpclient.version>4.5.13</httpclient.version>
+        <imageio.version>3.8.1</imageio.version>
+        <java-jwt.version>3.19.1</java-jwt.version>
+        <javassist.version>3.28.0-GA</javassist.version>
+        <jakarta.validation-api.version>3.0.2</jakarta.validation-api.version>
+        <jakarta.annotation-api.version>2.1.1</jakarta.annotation-api.version>
+        <jakarta.inject-api.version>2.0.1</jakarta.inject-api.version>
+        <javax.inject.version>1</javax.inject.version>
+        <jakarta.servlet-api.version>6.0.0</jakarta.servlet-api.version>
+        <jakarta.transaction-api.version>2.0.1</jakarta.transaction-api.version>
+        <jakarta.activation-api.version>2.1.2</jakarta.activation-api.version>
+        <jakarta.xml.bind-api.version>4.0.0</jakarta.xml.bind-api.version>
+        <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
+
+        <!-- javax dependencies still required for compatibility or test -->
+        <jaxb-impl.version>4.0.2</jaxb-impl.version>
+        <jaxb-api.version>2.3.1</jaxb-api.version>
+        <javax.servlet-api.version>3.0.1</javax.servlet-api.version>
+
+        <awaitility.version>4.2.0</awaitility.version>
+        <jmh.version>1.33</jmh.version>
+        <jcstress.version>0.15</jcstress.version>
+        <jsonassert.version>1.5.0</jsonassert.version>
+        <json-unit.version>3.0.0</json-unit.version>
+        <json-patch.version>1.13</json-patch.version>
+        <json-path.version>2.6.0</json-path.version>
+        <json-smart.version>2.4.11</json-smart.version>
+        <jsoup.version>1.15.3</jsoup.version>
+        <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+        <lucene.version>9.5.0</lucene.version>
+        <mapstruct.version>1.5.3.Final</mapstruct.version>
+        <netty-tcnative-boringssl-static.version>2.0.48.Final</netty-tcnative-boringssl-static.version>
+        <nimbus-jose-jwt.version>9.31</nimbus-jose-jwt.version>
+        <owasp-java-html-sanitizer.version>20211018.2</owasp-java-html-sanitizer.version>
+        <protobuf-java.version>3.19.3</protobuf-java.version>
+        <reactor-core.version>3.5.0</reactor-core.version>
+        <reactor-adapter.version>3.5.0</reactor-adapter.version>
+        <slf4j2-mock.version>2.3.0</slf4j2-mock.version>
+        <snakeyaml.version>2.0</snakeyaml.version>
+        <swagger-jaxrs2.version>2.2.9</swagger-jaxrs2.version>
+        <swagger-core.version>2.2.9</swagger-core.version>
+        <swagger-parser.version>2.1.13</swagger-parser.version>
+        <!-- !! Transitive dependency !! need to remove when swagger parser will include a version higher than 1.7.12 -->
+        <rhino.version>1.7.14</rhino.version>
+        <testcontainers.version>1.18.3</testcontainers.version>
+        <xmlbeans.version>3.1.0</xmlbeans.version>
+        <wiremock.version>3.3.1</wiremock.version>
+        <wsdl4j.version>1.6.3</wsdl4j.version>
+        <!-- Plugins version -->
+        <gatling-maven-plugin.version>4.0.1</gatling-maven-plugin.version>
+        <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
+        <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
+        <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
+        <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
+        <os-maven-plugin.version>1.7.0</os-maven-plugin.version>
+        <swagger-maven-plugin.version>>2.2.9</swagger-maven-plugin.version>
+        <maven-plugin-prettier.version>0.19</maven-plugin-prettier.version>
+        <maven-plugin-prettier.prettierjava.version>2.1.0</maven-plugin-prettier.prettierjava.version>
+        <skip.validation>false</skip.validation>
+
+        <!-- Versions of the plugins for the full distribution -->
+        <!-- Management API & Gateway -->
+        <gravitee-alert-engine-connectors-ws.version>2.1.0</gravitee-alert-engine-connectors-ws.version>
+        <gravitee-connector-http.version>3.1.4</gravitee-connector-http.version>
+        <gravitee-policy-apikey.version>4.0.1</gravitee-policy-apikey.version>
+        <gravitee-policy-assign-attributes.version>2.0.3</gravitee-policy-assign-attributes.version>
+        <gravitee-policy-assign-content.version>2.0.1</gravitee-policy-assign-content.version>
+        <gravitee-policy-assign-metrics.version>3.1.0</gravitee-policy-assign-metrics.version>
+        <gravitee-policy-basic-authentication.version>1.6.0</gravitee-policy-basic-authentication.version>
+        <gravitee-policy-cache.version>2.0.6</gravitee-policy-cache.version>
+        <gravitee-policy-callout-http.version>3.0.1</gravitee-policy-callout-http.version>
+        <gravitee-policy-circuit-breaker.version>1.1.5</gravitee-policy-circuit-breaker.version>
+        <gravitee-policy-custom-query-parameters.version>2.0.0</gravitee-policy-custom-query-parameters.version>
+        <gravitee-policy-cloud-events.version>1.1.0</gravitee-policy-cloud-events.version>
+        <gravitee-policy-data-logging-masking.version>3.1.1</gravitee-policy-data-logging-masking.version>
+        <gravitee-policy-dynamic-routing.version>1.13.0</gravitee-policy-dynamic-routing.version>
+        <gravitee-policy-generate-http-signature.version>1.3.0</gravitee-policy-generate-http-signature.version>
+        <gravitee-policy-generate-jwt.version>1.8.0</gravitee-policy-generate-jwt.version>
+        <gravitee-policy-geoip-filtering.version>2.0.2</gravitee-policy-geoip-filtering.version>
+        <gravitee-policy-groovy.version>2.6.2</gravitee-policy-groovy.version>
+        <gravitee-policy-html-json.version>1.6.3</gravitee-policy-html-json.version>
+        <gravitee-policy-http-signature.version>1.7.0</gravitee-policy-http-signature.version>
+        <gravitee-policy-interrupt.version>1.1.1</gravitee-policy-interrupt.version>
+        <gravitee-policy-ipfiltering.version>1.15.0</gravitee-policy-ipfiltering.version>
+        <gravitee-policy-javascript.version>1.3.3</gravitee-policy-javascript.version>
+        <gravitee-policy-json-threat-protection.version>1.4.0</gravitee-policy-json-threat-protection.version>
+        <gravitee-policy-json-to-json.version>3.0.1</gravitee-policy-json-to-json.version>
+        <gravitee-policy-json-validation.version>1.7.1</gravitee-policy-json-validation.version>
+        <gravitee-policy-json-xml.version>3.0.3</gravitee-policy-json-xml.version>
+        <gravitee-policy-jws.version>1.6.0</gravitee-policy-jws.version>
+        <gravitee-policy-jwt.version>4.2.0</gravitee-policy-jwt.version>
+        <gravitee-policy-keyless.version>3.0.1</gravitee-policy-keyless.version>
+        <gravitee-policy-latency.version>2.0.1</gravitee-policy-latency.version>
+        <gravitee-policy-metrics-reporter.version>2.0.1</gravitee-policy-metrics-reporter.version>
+        <gravitee-policy-message-filtering.version>1.1.4</gravitee-policy-message-filtering.version>
+        <gravitee-policy-mock.version>1.14.0</gravitee-policy-mock.version>
+        <gravitee-policy-oauth2.version>3.0.5</gravitee-policy-oauth2.version>
+        <gravitee-policy-openid-connect-userinfo.version>1.7.0</gravitee-policy-openid-connect-userinfo.version>
+        <gravitee-policy-override-http-method.version>2.2.0</gravitee-policy-override-http-method.version>
+        <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
+        <!--    <gravitee-policy-quota.version>2.1.1</gravitee-policy-quota.version>    -->
+        <!--    <gravitee-policy-spikearrest.version>2.1.1</gravitee-policy-spikearrest.version>    -->
+        <gravitee-policy-ratelimit.version>2.1.3</gravitee-policy-ratelimit.version>
+        <gravitee-policy-regex-threat-protection.version>1.5.0</gravitee-policy-regex-threat-protection.version>
+        <gravitee-policy-request-content-limit.version>1.8.1</gravitee-policy-request-content-limit.version>
+        <gravitee-policy-request-validation.version>1.15.1</gravitee-policy-request-validation.version>
+        <gravitee-policy-resource-filtering.version>1.10.0</gravitee-policy-resource-filtering.version>
+        <gravitee-policy-rest-to-soap.version>1.14.1</gravitee-policy-rest-to-soap.version>
+        <gravitee-policy-retry.version>2.1.3</gravitee-policy-retry.version>
+        <gravitee-policy-role-based-access-control.version>1.3.0</gravitee-policy-role-based-access-control.version>
+        <gravitee-policy-ssl-enforcement.version>1.4.0</gravitee-policy-ssl-enforcement.version>
+        <gravitee-policy-traffic-shadowing.version>2.0.1</gravitee-policy-traffic-shadowing.version>
+        <gravitee-policy-transform-avro-json.version>2.0.4</gravitee-policy-transform-avro-json.version>
+        <gravitee-policy-transformheaders.version>3.0.2</gravitee-policy-transformheaders.version>
+        <gravitee-policy-transformqueryparams.version>1.9.0</gravitee-policy-transformqueryparams.version>
+        <gravitee-policy-url-rewriting.version>1.7.0</gravitee-policy-url-rewriting.version>
+        <gravitee-policy-xml-json.version>2.0.1</gravitee-policy-xml-json.version>
+        <gravitee-policy-xml-threat-protection.version>1.5.1</gravitee-policy-xml-threat-protection.version>
+        <gravitee-policy-xml-validation.version>1.2.0</gravitee-policy-xml-validation.version>
+        <gravitee-policy-xslt.version>3.0.1</gravitee-policy-xslt.version>
+        <gravitee-policy-wssecurity-authentication.version>2.0.2</gravitee-policy-wssecurity-authentication.version>
+
+        <gravitee-resource-cache.version>2.0.0</gravitee-resource-cache.version>
+        <gravitee-resource-oauth2-provider-am.version>2.0.1</gravitee-resource-oauth2-provider-am.version>
+        <gravitee-resource-oauth2-provider-generic.version>2.0.2</gravitee-resource-oauth2-provider-generic.version>
+        <gravitee-service-discovery-consul.version>1.3.0</gravitee-service-discovery-consul.version>
+        <!-- Management API Only -->
+        <gravitee-cockpit-connectors-ws.version>4.0.2</gravitee-cockpit-connectors-ws.version>
+        <gravitee-fetcher-bitbucket.version>2.0.1</gravitee-fetcher-bitbucket.version>
+        <gravitee-fetcher-git.version>2.0.0</gravitee-fetcher-git.version>
+        <gravitee-fetcher-github.version>2.0.1</gravitee-fetcher-github.version>
+        <gravitee-fetcher-gitlab.version>2.0.1</gravitee-fetcher-gitlab.version>
+        <gravitee-fetcher-http.version>2.0.1</gravitee-fetcher-http.version>
+        <gravitee-notifier-email.version>1.5.1</gravitee-notifier-email.version>
+        <gravitee-notifier-slack.version>1.3.0</gravitee-notifier-slack.version>
+        <gravitee-notifier-webhook.version>1.1.3</gravitee-notifier-webhook.version>
+        <!-- Gateway Only -->
+        <gravitee-reporter-elasticsearch.version>5.3.3</gravitee-reporter-elasticsearch.version>
+        <gravitee-reporter-file.version>3.2.1</gravitee-reporter-file.version>
+        <gravitee-reporter-tcp.version>2.3.1</gravitee-reporter-tcp.version>
+        <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
+        <!--    <gravitee-gateway-services-ratelimit.version>1.15.0</gravitee-gateway-services-ratelimit.version>    -->
+        <gravitee-tracer-jaeger.version>3.0.1</gravitee-tracer-jaeger.version>
+
+        <!-- Versions of the plugins for the full distribution on dev environment-->
+        <!-- Management API & Gateway -->
+        <!-- Community plugins -->
+        <gravitee-connector-kafka.version>1.1.1</gravitee-connector-kafka.version>
+        <gravitee-policy-aws-lambda.version>1.2.0</gravitee-policy-aws-lambda.version>
+        <gravitee-policy-circuit-breaker.version>1.1.5</gravitee-policy-circuit-breaker.version>
+        <gravitee-policy-geoip-filtering.version>2.0.0</gravitee-policy-geoip-filtering.version>
+        <gravitee-policy-javascript.version>1.3.3</gravitee-policy-javascript.version>
+        <gravitee-resource-auth-provider-http.version>1.3.2</gravitee-resource-auth-provider-http.version>
+        <gravitee-resource-auth-provider-inline.version>1.3.0</gravitee-resource-auth-provider-inline.version>
+        <gravitee-resource-auth-provider-ldap.version>1.3.0</gravitee-resource-auth-provider-ldap.version>
+        <gravitee-resource-cache-redis.version>1.5.0</gravitee-resource-cache-redis.version>
+        <gravitee-resource-oauth2-provider-keycloak.version>2.0.0</gravitee-resource-oauth2-provider-keycloak.version>
+        <gravitee-service-geoip.version>3.0.0</gravitee-service-geoip.version>
+        <gravitee-secretprovider-kubernetes.version>1.0.1</gravitee-secretprovider-kubernetes.version>
+
+        <!-- Enterprise plugins -->
+        <gravitee-entrypoint-http-get.version>1.1.0</gravitee-entrypoint-http-get.version>
+        <gravitee-entrypoint-http-post.version>1.1.0</gravitee-entrypoint-http-post.version>
+        <gravitee-entrypoint-sse.version>4.0.2</gravitee-entrypoint-sse.version>
+        <gravitee-entrypoint-webhook.version>2.3.1</gravitee-entrypoint-webhook.version>
+        <gravitee-entrypoint-websocket.version>1.0.4</gravitee-entrypoint-websocket.version>
+        <gravitee-endpoint-kafka.version>2.10.2</gravitee-endpoint-kafka.version>
+        <gravitee-endpoint-mqtt5.version>2.2.0</gravitee-endpoint-mqtt5.version>
+        <gravitee-endpoint-rabbitmq.version>1.3.1</gravitee-endpoint-rabbitmq.version>
+        <gravitee-endpoint-solace.version>1.1.0</gravitee-endpoint-solace.version>
+        <gravitee-resource-schema-registry-confluent.version>2.0.0</gravitee-resource-schema-registry-confluent.version>
+        <gravitee-reactor-message.version>2.0.0</gravitee-reactor-message.version>
+        <gravitee-repository-bridge.version>4.2.2</gravitee-repository-bridge.version>
+        <gravitee-secretprovider-hc-vault.version>1.0.0</gravitee-secretprovider-hc-vault.version>
+        <gravitee-policy-interops.version>1.0.0</gravitee-policy-interops.version>
+
+        <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
+        <archunit-junit5.version>1.1.0</archunit-junit5.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+
+            <!-- Gravitee dependencies -->
+            <!-- Import bom to properly inherit all dependencies -->
+            <dependency>
+                <groupId>io.gravitee</groupId>
+                <artifactId>gravitee-bom</artifactId>
+                <version>${gravitee-bom.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.alert</groupId>
+                <artifactId>gravitee-alert-api</artifactId>
+                <version>${gravitee-alert-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.cockpit</groupId>
+                <artifactId>gravitee-cockpit-api</artifactId>
+                <version>${gravitee-cockpit-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.common</groupId>
+                <artifactId>gravitee-common</artifactId>
+                <version>${gravitee-common.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.connector</groupId>
+                <artifactId>gravitee-connector-api</artifactId>
+                <version>${gravitee-connector-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.el</groupId>
+                <artifactId>gravitee-expression-language</artifactId>
+                <version>${gravitee-expression-language.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.fetcher</groupId>
+                <artifactId>gravitee-fetcher-api</artifactId>
+                <version>${gravitee-fetcher-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.gateway</groupId>
+                <artifactId>gravitee-gateway-api</artifactId>
+                <version>${gravitee-gateway-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-api</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-cluster-plugin-handler</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-cache-common</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-cache-plugin-handler</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-container</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-management</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-license</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-vertx</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-kubernetes</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node.services</groupId>
+                <artifactId>gravitee-node-services-upgrader</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node.services</groupId>
+                <artifactId>gravitee-node-services-initializer</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.notifier</groupId>
+                <artifactId>gravitee-notifier-api</artifactId>
+                <version>${gravitee-notifier-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.policy</groupId>
+                <artifactId>gravitee-policy-api</artifactId>
+                <version>${gravitee-policy-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-alert</artifactId>
+                <version>${gravitee-plugin.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-cockpit</artifactId>
+                <version>${gravitee-plugin.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-core</artifactId>
+                <version>${gravitee-plugin.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-fetcher</artifactId>
+                <version>${gravitee-plugin.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-notifier</artifactId>
+                <version>${gravitee-plugin.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-policy</artifactId>
+                <version>${gravitee-plugin.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-resource</artifactId>
+                <version>${gravitee-plugin.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.graviteesource.license</groupId>
+                <artifactId>gravitee-license-node</artifactId>
+                <version>${gravitee-license-node.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-service-discovery</artifactId>
+                <version>${gravitee-plugin.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-connector</artifactId>
+                <version>${gravitee-plugin.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-repository</artifactId>
+                <version>${gravitee-plugin.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.platform</groupId>
+                <artifactId>gravitee-platform-repository-api</artifactId>
+                <version>${gravitee-platform-repository-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.reporter</groupId>
+                <artifactId>gravitee-reporter-api</artifactId>
+                <version>${gravitee-reporter-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.resource</groupId>
+                <artifactId>gravitee-resource-auth-provider</artifactId>
+                <version>${gravitee-resource-auth-provider-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.resource</groupId>
+                <artifactId>gravitee-resource-cache-provider-api</artifactId>
+                <version>${gravitee-resource-cache-provider-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.resource</groupId>
+                <artifactId>gravitee-resource-oauth2-provider-api</artifactId>
+                <version>${gravitee-resource-oauth2-provider-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.discovery</groupId>
+                <artifactId>gravitee-service-discovery-api</artifactId>
+                <version>${gravitee-service-discovery-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.kubernetes</groupId>
+                <artifactId>gravitee-kubernetes-mapper</artifactId>
+                <version>${gravitee-kubernetes.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.kubernetes</groupId>
+                <artifactId>gravitee-kubernetes-client</artifactId>
+                <version>${gravitee-kubernetes.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.json</groupId>
+                <artifactId>gravitee-json-validation</artifactId>
+                <version>${gravitee-json-validation.version}</version>
+            </dependency>
+
+            <!-- Other dependencies -->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-lang</groupId>
+                <artifactId>commons-lang</artifactId>
+                <version>${commons-lang.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.auth0</groupId>
+                <artifactId>java-jwt</artifactId>
+                <version>${java-jwt.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.dozermapper</groupId>
+                <artifactId>dozer-core</artifactId>
+                <version>${dozer.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wiremock</groupId>
+                <artifactId>wiremock-standalone</artifactId>
+                <version>${wiremock.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>${gson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java-util</artifactId>
+                <version>${protobuf-java.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <!-- 19.0 ??? 20.0 is required -->
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>com.hazelcast</groupId>
+                <artifactId>hazelcast</artifactId>
+                <version>${hazelcast.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.hibernate.validator</groupId>
+                <artifactId>hibernate-validator</artifactId>
+                <version>${hibernate-validator.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.jayway.jsonpath</groupId>
+                <artifactId>json-path</artifactId>
+                <version>${json-path.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.nimbusds</groupId>
+                <artifactId>nimbus-jose-jwt</artifactId>
+                <version>${nimbus-jose-jwt.version}</version>
+            </dependency>
+
+            <!-- json-smart is needed by nimbus-jose-jwt -->
+            <dependency>
+                <groupId>net.minidev</groupId>
+                <artifactId>json-smart</artifactId>
+                <version>${json-smart.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.skyscreamer</groupId>
+                <artifactId>jsonassert</artifactId>
+                <version>${jsonassert.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.javacrumbs.json-unit</groupId>
+                <artifactId>json-unit-assertj</artifactId>
+                <version>${json-unit.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.twelvemonkeys.imageio</groupId>
+                <artifactId>imageio-core</artifactId>
+                <version>${imageio.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.twelvemonkeys.imageio</groupId>
+                <artifactId>imageio-jpeg</artifactId>
+                <version>${imageio.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.twelvemonkeys.imageio</groupId>
+                <artifactId>imageio-batik</artifactId>
+                <version>${imageio.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gatling.highcharts</groupId>
+                <artifactId>gatling-charts-highcharts</artifactId>
+                <version>${gatling-charts-highcharts.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>io.github.classgraph</groupId>
+                <artifactId>classgraph</artifactId>
+                <version>${classgraph.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-tcnative-boringssl-static</artifactId>
+                <version>${netty-tcnative-boringssl-static.version}</version>
+                <classifier>${os.detected.classifier}</classifier>
+            </dependency>
+
+            <dependency>
+                <groupId>io.projectreactor</groupId>
+                <artifactId>reactor-core</artifactId>
+                <version>${reactor-core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.projectreactor.addons</groupId>
+                <artifactId>reactor-adapter</artifactId>
+                <version>${reactor-adapter.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-jaxrs2-jakarta</artifactId>
+                <version>${swagger-jaxrs2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-annotations</artifactId>
+                <version>${swagger-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.swagger.parser.v3</groupId>
+                <artifactId>swagger-parser</artifactId>
+                <version>${swagger-parser.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.github.fge</groupId>
+                        <artifactId>json-patch</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>javax.validation</groupId>
+                        <artifactId>validation-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <!--
+            !! Transitive dependency !!
+            Imported in DepManagement until swagger parser dependencies will update it
+             -->
+            <dependency>
+                <groupId>org.mozilla</groupId>
+                <artifactId>rhino</artifactId>
+                <version>${rhino.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-core</artifactId>
+                <version>${swagger-core.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>javax.validation</groupId>
+                        <artifactId>validation-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <!-- JAXB API & implementation -->
+            <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-impl</artifactId>
+                <version>${jaxb-impl.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>jakarta.xml.bind</groupId>
+                <artifactId>jakarta.xml.bind-api</artifactId>
+                <version>${jakarta.xml.bind-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>jakarta.activation</groupId>
+                <artifactId>jakarta.activation-api</artifactId>
+                <version>${jakarta.activation-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>jakarta.annotation</groupId>
+                <artifactId>jakarta.annotation-api</artifactId>
+                <version>${jakarta.annotation-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>jakarta.inject</groupId>
+                <artifactId>jakarta.inject-api</artifactId>
+                <version>${jakarta.inject-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.inject</groupId>
+                <artifactId>javax.inject</artifactId>
+                <version>${javax.inject.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.angus</groupId>
+                <artifactId>angus-activation</artifactId>
+                <version>${angus-activation.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.angus</groupId>
+                <artifactId>angus-mail</artifactId>
+                <version>${angus-mail.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <version>${jakarta.servlet-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>jakarta.transaction</groupId>
+                <artifactId>jakarta.transaction-api</artifactId>
+                <version>${jakarta.transaction-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>jakarta.validation</groupId>
+                <artifactId>jakarta.validation-api</artifactId>
+                <version>${jakarta.validation-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-pool2</artifactId>
+                <version>${commons-pool2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-text</artifactId>
+                <version>${commons-text.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-email</artifactId>
+                <version>${commons-email.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>fluent-hc</artifactId>
+                <version>${httpclient.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>commons-logging</artifactId>
+                        <groupId>commons-logging</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${httpclient.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.lucene</groupId>
+                <artifactId>lucene-core</artifactId>
+                <version>${lucene.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.lucene</groupId>
+                <artifactId>lucene-queryparser</artifactId>
+                <version>${lucene.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.lucene</groupId>
+                <artifactId>lucene-analysis-common</artifactId>
+                <version>${lucene.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.xmlbeans</groupId>
+                <artifactId>xmlbeans</artifactId>
+                <version>${xmlbeans.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.xmlgraphics</groupId>
+                <artifactId>batik-transcoder</artifactId>
+                <version>${batik-transcoder.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk15on</artifactId>
+                <version>${bcpkix-jdk15on.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.freemarker</groupId>
+                <artifactId>freemarker</artifactId>
+                <version>${freemarker.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.java-json-tools</groupId>
+                <artifactId>json-patch</artifactId>
+                <version>${json-patch.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.erosb</groupId>
+                <artifactId>everit-json-schema</artifactId>
+                <version>${everit-json-schema.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+                <artifactId>owasp-java-html-sanitizer</artifactId>
+                <version>${owasp-java-html-sanitizer.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.javassist</groupId>
+                <artifactId>javassist</artifactId>
+                <version>${javassist.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-library</artifactId>
+                <version>${hamcrest.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.awaitility</groupId>
+                <artifactId>awaitility</artifactId>
+                <version>${awaitility.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jsoup</groupId>
+                <artifactId>jsoup</artifactId>
+                <version>${jsoup.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.openjdk.jmh</groupId>
+                <artifactId>jmh-core</artifactId>
+                <version>${jmh.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.openjdk.jmh</groupId>
+                <artifactId>jmh-generator-annprocess</artifactId>
+                <version>${jmh.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm</artifactId>
+                <version>${asm.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.simplify4u</groupId>
+                <artifactId>slf4j2-mock</artifactId>
+                <version>${slf4j2-mock.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.vladsch.flexmark</groupId>
+                <artifactId>flexmark-html2md-converter</artifactId>
+                <version>${flexmark.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>${snakeyaml.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>wsdl4j</groupId>
+                <artifactId>wsdl4j</artifactId>
+                <version>${wsdl4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>${os-maven-plugin.version}</version>
+            </dependency>
+
+            <!-- Mapstruct + Lombok -->
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok-mapstruct-binding</artifactId>
+                <version>${lombok-mapstruct-binding.version}</version>
+                <scope>provided</scope>
+                <optional>true</optional>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.annotation</groupId>
+                <artifactId>javax.annotation-api</artifactId>
+                <version>${javax.annotation-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api</artifactId>
+                <version>${jaxb-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>${javax.servlet-api.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.tngtech.archunit</groupId>
+                <artifactId>archunit-junit5</artifactId>
+                <version>${archunit-junit5.version}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- Mapstruct + Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <optional>true</optional>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok-mapstruct-binding</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Unit Tests -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+>>>>>>> 451e56a6b1 (chore(deps): bump endpoint rabbitmq version to 1.3.1)
 
     <build>
         <plugins>
