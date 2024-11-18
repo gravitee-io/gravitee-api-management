@@ -61,7 +61,7 @@ export class BridgeCompatibilityTestsWorkflow {
         matrix: {
           execution_mode: ['v3', 'v4-emulation-engine'],
           database: ['bridge'],
-          apim_client_tag: ['4.2.x-latest', '4.1.x-latest', 'graviteeio@4.0', 'graviteeio@3.20'],
+          apim_client_tag: ['4.2.x-latest', 'graviteeio@4.1', 'graviteeio@4.0', 'graviteeio@3.20'],
         },
       }),
     ];
