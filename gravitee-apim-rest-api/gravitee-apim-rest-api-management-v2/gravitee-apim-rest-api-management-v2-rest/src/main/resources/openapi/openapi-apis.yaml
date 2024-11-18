@@ -2057,7 +2057,7 @@ paths:
                     $ref: "#/components/responses/ApiAnalyticsAverageConnectionDurationResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/analytics/response-statuses:
+    /environments/{envId}/apis/{apiId}/analytics/response-status-ranges:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
