@@ -2054,6 +2054,7 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/analytics/response-status-ranges:
+<<<<<<< HEAD
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
@@ -2114,6 +2115,25 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+=======
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+      get:
+        tags:
+          - API Analytics
+        summary: Get API Analytics response status counts
+        description: |-
+          Get API analytics response status counts. Response statuses are grouped by endpoint and status code hundreds.
+          
+          User must have the API_ANALYTICS[READ] permission.
+        operationId: getResponseStatusCodes
+        responses:
+          "200":
+            $ref: "#/components/responses/ApiAnalyticsResponseStatusRangesResponse"
+          default:
+            $ref: "#/components/responses/Error"
+>>>>>>> 69ff4a12b0 (fix: use good path for mapi V2 api analytics response status endpoint)
     # API Analytics - Logs
     /environments/{envId}/apis/{apiId}/logs:
         parameters:
