@@ -22,6 +22,7 @@ import { switchMap } from 'rxjs/operators';
 
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApiHealthV2Service } from '../../../../../services-ngx/api-health-v2.service';
+import { FieldParameter } from '../../../../../entities/management-api-v2/api/v4/healthCheck';
 
 @Component({
   selector: 'global-average-response-time',
@@ -52,14 +53,16 @@ export class GlobalAverageResponseTimeComponent implements OnInit {
       .pipe(
         switchMap(({ from, to }) => {
           this.isLoading = true;
-          return this.apiHealthV2Service.getApiAverageResponseTime(this.apiId, from, to);
+          return this.apiHealthV2Service.getApiAverageResponseTime(this.apiId, from, to, FieldParameter.endpoint);
         }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: (averageResponseTime) => {
           this.isLoading = false;
-          this.averageResponseTime = averageResponseTime.global;
+          if (averageResponseTime && averageResponseTime.global) {
+            this.averageResponseTime = averageResponseTime.global;
+          }
         },
         error: ({ error }) => {
           this.snackBarService.error('Getting average response time failed ' + error.message);

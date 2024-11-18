@@ -154,8 +154,13 @@ public class TargetTokenCommandHandler implements CommandHandler<TargetTokenComm
             ? ROLE_ENVIRONMENT_FEDERATION_AGENT
             : ROLE_ENVIRONMENT_API_PUBLISHER;
 
-        if (roleService.findByScopeAndName(RoleScope.ENVIRONMENT, newRole.getName(), payload.environmentId()).isEmpty()) {
-            log.error("Couldn't find environment {} for organization with id [{}]", newRole.getName(), payload.organizationId());
+        if (roleService.findByScopeAndName(RoleScope.ENVIRONMENT, newRole.getName(), payload.organizationId()).isEmpty()) {
+            log.error(
+                "Couldn't find role {} with scope {} for organization with id [{}]",
+                newRole.getName(),
+                RoleScope.ENVIRONMENT,
+                payload.organizationId()
+            );
             return false;
         }
 

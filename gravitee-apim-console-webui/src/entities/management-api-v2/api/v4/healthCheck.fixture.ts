@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ApiAvailability, ApiAverageResponseTime, ApiHealthResponseTimeOvertime } from './healthCheck';
+import { ApiAvailability, ApiAverageResponseTime, ApiHealthResponseTimeOvertime, HealthCheckLogsResponse } from './healthCheck';
 
 export function fakeApiHealthResponseTimeOvertime(attribute?: Partial<ApiHealthResponseTimeOvertime>): ApiHealthResponseTimeOvertime {
   const base: ApiHealthResponseTimeOvertime = {
@@ -33,11 +33,12 @@ export function fakeApiHealthResponseTimeOvertime(attribute?: Partial<ApiHealthR
 }
 
 export function fakeApiHealthAvailability(attribute?: Partial<ApiAvailability>): ApiAvailability {
+  const groups: { [id: string]: number }[] = [{}];
+  groups['someSampleGroup'] = 0.99;
+
   const base: ApiAvailability = {
     global: 0.9876,
-    group: {
-      example: 100,
-    },
+    group: groups,
   };
 
   return {
@@ -47,11 +48,41 @@ export function fakeApiHealthAvailability(attribute?: Partial<ApiAvailability>):
 }
 
 export function fakeApiHealthAverageResponseTime(attribute?: Partial<ApiAverageResponseTime>): ApiAverageResponseTime {
-  const base: ApiAverageResponseTime = {
+  const groups: { [id: string]: number }[] = [{}];
+  groups['someSampleGroup'] = 150;
+
+  const base: ApiAvailability = {
     global: 100,
-    group: {
-      example: 100,
+    group: groups,
+  };
+
+  return {
+    ...base,
+    ...attribute,
+  };
+}
+
+export function fakeApiHealthCheckLogs(attribute?: Partial<HealthCheckLogsResponse>): HealthCheckLogsResponse {
+  const base: HealthCheckLogsResponse = {
+    data: [
+      {
+        id: 'sample-log-id',
+        timestamp: '2024-11-13T15:50:41Z',
+        endpointName: 'sample-endpoint-name',
+        gatewayId: 'sample-gateway-id',
+        responseTime: 150,
+        success: false,
+        steps: [],
+      },
+    ],
+    pagination: {
+      totalCount: 1,
+      page: 1,
+      pageCount: 1,
+      pageItemsCount: 1,
+      perPage: 10,
     },
+    links: { self: 'self' },
   };
 
   return {

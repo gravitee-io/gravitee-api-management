@@ -23,6 +23,7 @@ import { switchMap } from 'rxjs/operators';
 
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApiHealthV2Service } from '../../../../../services-ngx/api-health-v2.service';
+import { FieldParameter } from '../../../../../entities/management-api-v2/api/v4/healthCheck';
 
 @Component({
   selector: 'global-availability',
@@ -49,7 +50,7 @@ export class GlobalAvailabilityComponent implements OnInit {
       .pipe(
         switchMap((timeRange) => {
           this.isLoading = true;
-          return this.apiHealthV2Service.getApiAvailability(this.apiId, timeRange.from, timeRange.to);
+          return this.apiHealthV2Service.getApiAvailability(this.apiId, timeRange.from, timeRange.to, FieldParameter.endpoint);
         }),
         takeUntilDestroyed(this.destroyRef),
       )

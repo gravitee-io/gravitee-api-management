@@ -304,6 +304,8 @@ public class ApiFixtures {
                         List.of(
                             KafkaListener
                                 .builder()
+                                .host("native.kafka")
+                                .port(1000)
                                 .entrypoints(List.of(NativeEntrypoint.builder().type("native-type").configuration("{}").build()))
                                 .build()
                         )

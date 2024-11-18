@@ -60,7 +60,11 @@
             <groupId>io.gravitee.apim.gateway</groupId>
             <artifactId>gravitee-apim-gateway-opentelemetry</artifactId>
             <version>${project.version}</version>
-            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-opentelemetry</artifactId>
         </dependency>
 
         <dependency>

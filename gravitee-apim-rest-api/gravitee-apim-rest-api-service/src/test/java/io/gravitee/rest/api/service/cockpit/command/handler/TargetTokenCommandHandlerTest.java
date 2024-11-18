@@ -87,7 +87,7 @@ class TargetTokenCommandHandlerTest {
         when(userService.create(any(), any(), eq(false))).thenReturn(user);
         when(roleService.findByScopeAndName(eq(RoleScope.ORGANIZATION), eq(SystemRole.ADMIN.name()), eq(ORGANISATION_ID)))
             .thenReturn(Optional.of(new RoleEntity()));
-        when(roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), eq(ROLE_ENVIRONMENT_API_PUBLISHER.getName()), eq(ENVIRONMENT_ID)))
+        when(roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), eq(ROLE_ENVIRONMENT_API_PUBLISHER.getName()), eq(ORGANISATION_ID)))
             .thenReturn(Optional.of(new RoleEntity()));
 
         TokenEntity tokenEntity = new TokenEntity();
@@ -112,7 +112,9 @@ class TargetTokenCommandHandlerTest {
         when(userService.create(any(), any(), eq(false))).thenReturn(user);
         when(roleService.findByScopeAndName(eq(RoleScope.ORGANIZATION), eq(DEFAULT_ROLE_ORGANIZATION_USER.getName()), eq(ORGANISATION_ID)))
             .thenReturn(Optional.of(new RoleEntity()));
-        when(roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), eq(ROLE_ENVIRONMENT_FEDERATION_AGENT.getName()), eq(ENVIRONMENT_ID)))
+        when(
+            roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), eq(ROLE_ENVIRONMENT_FEDERATION_AGENT.getName()), eq(ORGANISATION_ID))
+        )
             .thenReturn(Optional.of(new RoleEntity()));
 
         TokenEntity tokenEntity = new TokenEntity();
@@ -180,7 +182,7 @@ class TargetTokenCommandHandlerTest {
         when(userService.create(any(), any(), eq(false))).thenReturn(user);
         when(roleService.findByScopeAndName(eq(RoleScope.ORGANIZATION), eq(SystemRole.ADMIN.name()), eq(ORGANISATION_ID)))
             .thenReturn(Optional.of(new RoleEntity()));
-        when(roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), eq(ROLE_ENVIRONMENT_API_PUBLISHER.getName()), eq(ENVIRONMENT_ID)))
+        when(roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), eq(ROLE_ENVIRONMENT_API_PUBLISHER.getName()), eq(ORGANISATION_ID)))
             .thenReturn(Optional.empty());
 
         targetTokenCommandHandler

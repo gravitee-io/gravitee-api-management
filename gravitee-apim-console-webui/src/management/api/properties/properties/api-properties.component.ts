@@ -109,7 +109,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
           }
           this.apiProperties = api.properties?.map((p) => ({ ...p, _id: uniqueId(), dynamic: p.dynamic })) ?? [];
 
-          this.isReadOnly = api.originContext?.origin === 'KUBERNETES';
+          this.isReadOnly = api.originContext?.origin === 'KUBERNETES' || (api as ApiV4).type === 'NATIVE';
 
           // Initialize the properties form group
           this.initPropertiesFormGroup();

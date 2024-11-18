@@ -30,7 +30,7 @@ import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
-import io.gravitee.gateway.reactive.core.v4.invoker.EndpointInvoker;
+import io.gravitee.gateway.reactive.core.v4.invoker.HttpEndpointInvoker;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LoggingHook;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.DefaultTcpAcceptor;
@@ -76,7 +76,7 @@ public class TcpApiReactor extends AbstractApiReactor {
         );
         this.node = node;
         this.endpointManager = endpointManager;
-        this.defaultInvoker = new EndpointInvoker(endpointManager);
+        this.defaultInvoker = new HttpEndpointInvoker(endpointManager);
         this.lifecycleState = Lifecycle.State.INITIALIZED;
         this.loggingExcludedResponseType =
             configuration.getProperty(REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY, String.class, null);

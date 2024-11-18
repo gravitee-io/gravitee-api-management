@@ -20,7 +20,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 
-import fixtures.core.model.ApiFixtures;
 import fixtures.definition.ApiDefinitionFixtures;
 import inmemory.ApiHostValidatorDomainServiceGoogleImpl;
 import io.gravitee.apim.core.api.model.Api;
@@ -35,9 +34,9 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
@@ -286,7 +285,7 @@ class VerifyApiPathDomainServiceTest {
     public void should_throw_exception_if_path_already_used_by_api_v4() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
 
-        givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("", "/path/")))));
+        givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiHttpV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("", "/path/")))));
 
         var errors = service
             .validateAndSanitize(
@@ -301,7 +300,7 @@ class VerifyApiPathDomainServiceTest {
     public void should_ignore_path_already_used_by_same_api_v4() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
 
-        givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, API_ID, List.of(Pair.of("", "/path/")))));
+        givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiHttpV4WithPaths(ENVIRONMENT_ID, API_ID, List.of(Pair.of("", "/path/")))));
 
         var paths = service
             .validateAndSanitize(
@@ -317,7 +316,10 @@ class VerifyApiPathDomainServiceTest {
     public void should_return_error_if_path_already_used_by_api_v4_with_host() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
-        givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.com", "/path/")))));
+        givenExistingApis(
+            ENVIRONMENT_ID,
+            Stream.of(buildApiHttpV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.com", "/path/"))))
+        );
 
         // If domain is not set, first domain of domain restriction is used
         var errors = service
@@ -337,7 +339,10 @@ class VerifyApiPathDomainServiceTest {
     public void should_ignore_if_path_already_used_by_api_v4_with_different_host() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
-        givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.net", "/path/")))));
+        givenExistingApis(
+            ENVIRONMENT_ID,
+            Stream.of(buildApiHttpV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.net", "/path/"))))
+        );
 
         var paths = service
             .validateAndSanitize(
@@ -357,7 +362,10 @@ class VerifyApiPathDomainServiceTest {
     public void should_ignore_path_used_by_same_api_v4_with_host() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
-        givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, API_ID, List.of(Pair.of("domain.com", "/path/")))));
+        givenExistingApis(
+            ENVIRONMENT_ID,
+            Stream.of(buildApiHttpV4WithPaths(ENVIRONMENT_ID, API_ID, List.of(Pair.of("domain.com", "/path/"))))
+        );
 
         // Check should be ok if same path but different domain
         var paths = service
@@ -378,7 +386,7 @@ class VerifyApiPathDomainServiceTest {
     public void should_return_severe_error_if_path_is_sub_path_of_another_api_v4() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of());
 
-        givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of(null, "/path/")))));
+        givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiHttpV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of(null, "/path/")))));
 
         // If domain is not set, first domain of domain restriction is used
         var errors = service
@@ -394,7 +402,10 @@ class VerifyApiPathDomainServiceTest {
     public void should_throw_exception_if_path_is_sub_path_of_another_api_v4_with_host() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
-        givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.com", "/path/")))));
+        givenExistingApis(
+            ENVIRONMENT_ID,
+            Stream.of(buildApiHttpV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.com", "/path/"))))
+        );
 
         // If domain is not set, first domain of domain restriction is used
         var errors = service
@@ -408,6 +419,22 @@ class VerifyApiPathDomainServiceTest {
             .severe();
 
         assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
+    }
+
+    @Test
+    public void should_handle_native_api() {
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
+
+        givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiNativeV4(ENVIRONMENT_ID, "another-api")));
+
+        var paths = service
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(ENVIRONMENT_ID, API_ID, List.of(Path.builder().path("/path/").build()))
+            )
+            .map(VerifyApiPathDomainService.Input::paths)
+            .value();
+
+        assertThat(paths).isPresent().hasValue(List.of(Path.builder().path("/path/").host(null).build()));
     }
 
     private void givenExistingRestrictedDomains(String environmentId, List<String> domainRestrictions) {
@@ -466,7 +493,7 @@ class VerifyApiPathDomainServiceTest {
     }
 
     @SneakyThrows
-    private Api buildApiV4WithPaths(String environmentId, String apiId, List<Pair<String, String>> paths) {
+    private Api buildApiHttpV4WithPaths(String environmentId, String apiId, List<Pair<String, String>> paths) {
         io.gravitee.definition.model.v4.Api apiDefV4 = ApiDefinitionFixtures
             .anApiV4()
             .toBuilder()
@@ -492,5 +519,16 @@ class VerifyApiPathDomainServiceTest {
             )
             .build();
         return Api.builder().id(apiId).environmentId(environmentId).apiDefinitionHttpV4(apiDefV4).build();
+    }
+
+    @SneakyThrows
+    private Api buildApiNativeV4(String environmentId, String apiId) {
+        io.gravitee.definition.model.v4.nativeapi.NativeApi apiDefV4 = ApiDefinitionFixtures
+            .aNativeApiV4()
+            .toBuilder()
+            .id((apiId))
+            .listeners(List.of(KafkaListener.builder().build()))
+            .build();
+        return Api.builder().id(apiId).environmentId(environmentId).apiDefinitionNativeV4(apiDefV4).build();
     }
 }

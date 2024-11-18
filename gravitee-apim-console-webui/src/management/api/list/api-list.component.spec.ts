@@ -31,6 +31,7 @@ import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wra
 import { Api, ApiV4, fakeApiV2, fakeApiV4, fakePagedResult, fakeProxyApiV4 } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../entities/Constants';
+import { fakeKafkaListener } from '../../../entities/management-api-v2/api/v4/listener.fixture';
 
 describe('ApisListComponent', () => {
   let fixture: ComponentFixture<ApiListComponent>;
@@ -415,6 +416,41 @@ describe('ApisListComponent', () => {
       loader = TestbedHarnessEnvironment.loader(fixture);
       fixture.detectChanges();
     }
+  });
+
+  describe('with Native Kafka API', () => {
+    describe('without quality score', () => {
+      beforeEach(() => {
+        TestBed.configureTestingModule({
+          imports: [ApiListModule, MatIconTestingModule, NoopAnimationsModule, GioTestingModule],
+          providers: [
+            { provide: GioTestingPermissionProvider, useValue: ['environment-api-c'] },
+            { provide: Constants, useValue: fakeConstants },
+          ],
+        }).compileComponents();
+
+        fixture = TestBed.createComponent(ApiListComponent);
+        httpTestingController = TestBed.inject(HttpTestingController);
+      });
+
+      it('should display a table with one row', fakeAsync(async () => {
+        const api = fakeApiV4({ type: 'NATIVE', listeners: [fakeKafkaListener()] });
+        await initComponent([api]);
+
+        const { rowCells } = await computeApisTableCells();
+        expect(rowCells).toEqual([
+          ['', '🪐 Planets (1.0)', 'V4 - Native Kafka Gravitee', '', 'kafka-host:1000', '', '', '', 'admin', 'public', 'edit'],
+        ]);
+        expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
+      }));
+
+      async function initComponent(apis: Api[]) {
+        // APIs are sorted by name by default
+        expectApisListRequest(apis, 'name');
+        loader = TestbedHarnessEnvironment.loader(fixture);
+        fixture.detectChanges();
+      }
+    });
   });
 
   async function computeApisTableCells() {

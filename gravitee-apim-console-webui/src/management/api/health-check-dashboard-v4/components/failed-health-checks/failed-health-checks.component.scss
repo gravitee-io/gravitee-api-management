@@ -1,0 +1,17 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.card {
+  &__loader {
+    margin-top: 16px;
+  }
+
+  &__table {
+    padding: 0;
+  }
+
+  &__no-data {
+    padding: 16px;
+  }
+}

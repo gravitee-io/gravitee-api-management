@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api.domain_service;
 
 import static fixtures.core.model.ApiFixtures.aMessageApiV4;
+import static fixtures.core.model.ApiFixtures.aNativeApi;
 import static fixtures.core.model.ApiFixtures.aProxyApiV4;
 import static fixtures.core.model.ApiFixtures.aTcpApiV4;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,6 +50,7 @@ class VerifyApiHostsDomainServiceTest {
         .build();
     private static final Api V4_HTTP_API_2 = aProxyApiV4().toBuilder().id("http-1").environmentId(ENVIRONMENT_ID).build();
     private static final Api V4_MESSAGE_API = aMessageApiV4().toBuilder().id("message-1").environmentId(ENVIRONMENT_ID).build();
+    private static final Api V4_NATIVE_KAFKA_API = aNativeApi().toBuilder().id("native-1").environmentId(ENVIRONMENT_ID).build();
 
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
     private VerifyApiHostsDomainService verifyApiHostsDomainService;
@@ -56,7 +58,7 @@ class VerifyApiHostsDomainServiceTest {
     @BeforeEach
     void setUp() {
         verifyApiHostsDomainService = new VerifyApiHostsDomainService(apiQueryService);
-        apiQueryService.initWith(List.of(V4_TCP_API_1, V4_TCP_API_2, V4_HTTP_API_2, V4_MESSAGE_API));
+        apiQueryService.initWith(List.of(V4_TCP_API_1, V4_TCP_API_2, V4_HTTP_API_2, V4_MESSAGE_API, V4_NATIVE_KAFKA_API));
     }
 
     @AfterEach
@@ -86,6 +88,14 @@ class VerifyApiHostsDomainServiceTest {
         assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts))
             .isInstanceOf(HostAlreadyExistsException.class)
             .hasMessage("Hosts [foo.example.com] already exists");
+    }
+
+    @Test
+    void should_throw_hosts_already_exist_exception_when_host_is_used_by_another_native_api() {
+        var hosts = List.of("native.kafka");
+        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts))
+            .isInstanceOf(HostAlreadyExistsException.class)
+            .hasMessage("Hosts [native.kafka] already exists");
     }
 
     @Test

@@ -19,6 +19,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { parallel } from '@angular/cdk/testing';
 
 import { ApiHealthCheckDashboardV4Component } from './api-health-check-dashboard-v4.component';
 import { ApiHealthCheckDashboardV4Harness } from './api-health-check-dashboard-v4.harness';
@@ -28,6 +29,7 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import {
   fakeApiHealthAvailability,
   fakeApiHealthAverageResponseTime,
+  fakeApiHealthCheckLogs,
   fakeApiHealthResponseTimeOvertime,
 } from '../../../entities/management-api-v2/api/v4/healthCheck.fixture';
 import { ApiAvailability, ApiAverageResponseTime } from '../../../entities/management-api-v2/api/v4/healthCheck';
@@ -69,12 +71,14 @@ describe('ApiHealthCheckDashboardV4Component', () => {
     expectGetApiHealthResponseStatusOvertime();
     expectGetApiAvailability();
     expectGetApiAverageResponseTime();
+    expectGetApiHealthCheckLogs();
   });
 
   it('should call backend for data on refresh', async () => {
     expectGetApiHealthResponseStatusOvertime();
     expectGetApiAvailability();
     expectGetApiAverageResponseTime();
+    expectGetApiHealthCheckLogs();
 
     const filters = await componentHarness.getFiltersHarness();
 
@@ -83,12 +87,14 @@ describe('ApiHealthCheckDashboardV4Component', () => {
     expectGetApiHealthResponseStatusOvertime();
     expectGetApiAvailability();
     expectGetApiAverageResponseTime();
+    expectGetApiHealthCheckLogs();
   });
 
   it('should call backend for data on filter date change', async () => {
     expectGetApiHealthResponseStatusOvertime();
     expectGetApiAvailability();
     expectGetApiAverageResponseTime();
+    expectGetApiHealthCheckLogs();
 
     const filters = await componentHarness.getFiltersHarness();
 
@@ -97,12 +103,14 @@ describe('ApiHealthCheckDashboardV4Component', () => {
     expectGetApiHealthResponseStatusOvertime();
     expectGetApiAvailability();
     expectGetApiAverageResponseTime();
+    expectGetApiHealthCheckLogs();
   });
 
   it('should display correct data in Availability widget', async () => {
     expectGetApiHealthResponseStatusOvertime();
     expectGetApiAvailability();
     expectGetApiAverageResponseTime();
+    expectGetApiHealthCheckLogs();
 
     const availabilityWidget = await componentHarness.getAvailabilityWidgetHarness();
 
@@ -113,10 +121,115 @@ describe('ApiHealthCheckDashboardV4Component', () => {
     expectGetApiHealthResponseStatusOvertime();
     expectGetApiAvailability();
     expectGetApiAverageResponseTime();
+    expectGetApiHealthCheckLogs();
 
     const averageResponseTimeWidget = await componentHarness.getAverageResponseTimeWidgetHarness();
 
     expect(await averageResponseTimeWidget.getWidgetValue()).toEqual('100 ms');
+  });
+
+  it('should display correct data in Availability Per Endpoint widget', async () => {
+    expectGetApiHealthResponseStatusOvertime();
+    expectGetApiAvailability();
+    expectGetApiAverageResponseTime();
+    expectGetApiHealthCheckLogs();
+
+    const availabilityPerEndpointWidget = await componentHarness.getAvailabilityPerEndpointWidgetHarness();
+
+    const tableHarness = await availabilityPerEndpointWidget.tableHarness();
+
+    const headerRows = await tableHarness.getHeaderRows();
+    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+
+    const rows = await tableHarness.getRows();
+    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+
+    expect(headerCells).toEqual([
+      {
+        name: 'Endpoint',
+        availability: 'Availability',
+        'response-time': 'Response Time',
+      },
+    ]);
+
+    expect(rowCells[1]).toEqual({
+      name: 'someSampleGroup',
+      availability: '99.0%',
+      'response-time': '150ms',
+    });
+
+    expect(await availabilityPerEndpointWidget.getTitle()).toEqual('Per-Endpoint');
+    expect(await availabilityPerEndpointWidget.getSubtitle()).toEqual('Availability per-endpoint where health-check is enabled.');
+  });
+
+  it('should display correct data in Availability Per Gateway widget', async () => {
+    expectGetApiHealthResponseStatusOvertime();
+    expectGetApiAvailability();
+    expectGetApiAverageResponseTime();
+    expectGetApiHealthCheckLogs();
+
+    const availabilityPerEndpointWidget = await componentHarness.getAvailabilityPerGatewayWidgetHarness();
+
+    const tableHarness = await availabilityPerEndpointWidget.tableHarness();
+
+    const headerRows = await tableHarness.getHeaderRows();
+    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+
+    const rows = await tableHarness.getRows();
+    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+
+    expect(headerCells).toEqual([
+      {
+        name: 'Gateway',
+        availability: 'Availability',
+        'response-time': 'Response Time',
+      },
+    ]);
+
+    expect(rowCells[1]).toEqual({
+      name: 'someSampleGroup',
+      availability: '99.0%',
+      'response-time': '150ms',
+    });
+
+    expect(await availabilityPerEndpointWidget.getTitle()).toEqual('Per-Gateway');
+    expect(await availabilityPerEndpointWidget.getSubtitle()).toEqual('Availability per-gateway where health-check is enabled.');
+  });
+
+  it('should display correct data in Availability Failed Health Checks widget', async () => {
+    expectGetApiHealthResponseStatusOvertime();
+    expectGetApiAvailability();
+    expectGetApiAverageResponseTime();
+    expectGetApiHealthCheckLogs();
+
+    const failedHealthCheckWidget = await componentHarness.getFailedHealthChecksWidgetHarness();
+
+    const tableHarness = await failedHealthCheckWidget.tableHarness();
+
+    const headerRows = await tableHarness.getHeaderRows();
+    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+
+    const rows = await tableHarness.getRows();
+    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+
+    expect(headerCells).toEqual([
+      {
+        timestamp: 'Timestamp',
+        endpoint: 'Endpoint',
+        gateway: 'Gateway',
+      },
+    ]);
+
+    expect(rowCells).toEqual([
+      {
+        timestamp: '2024-11-13T15:50:41Z',
+        endpoint: 'sample-endpoint-name',
+        gateway: 'sample-gateway-id',
+      },
+    ]);
+
+    expect(await failedHealthCheckWidget.getTitle()).toEqual('Failed Health Checks');
+    expect(await failedHealthCheckWidget.getSubtitle()).toEqual('Recent failures, incidents, or downtimes from the health checks.');
   });
 
   function expectGetApiHealthResponseStatusOvertime(res = fakeApiHealthResponseTimeOvertime()) {
@@ -129,14 +242,26 @@ describe('ApiHealthCheckDashboardV4Component', () => {
 
   function expectGetApiAvailability(res: ApiAvailability = fakeApiHealthAvailability()) {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/health/availability`;
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.match((req) => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
-    req.flush(res);
+    req.map((request) => {
+      if (!request.cancelled) request.flush(res);
+    });
   }
 
   function expectGetApiAverageResponseTime(res: ApiAverageResponseTime = fakeApiHealthAverageResponseTime()) {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/health/average-response-time`;
+    const req = httpTestingController.match((req) => {
+      return req.method === 'GET' && req.url.startsWith(url);
+    });
+    req.map((request) => {
+      if (!request.cancelled) request.flush(res);
+    });
+  }
+
+  function expectGetApiHealthCheckLogs(res = fakeApiHealthCheckLogs()) {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/health/logs`;
     const req = httpTestingController.expectOne((req) => {
       return req.method === 'GET' && req.url.startsWith(url);
     });

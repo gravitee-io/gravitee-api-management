@@ -16,11 +16,18 @@
 
 import { Inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 
 import { ActiveFilter } from '../management/api/health-check-dashboard-v4/components/filters/api-health-check-dashboard-v4-filters.component';
 import { Constants } from '../entities/Constants';
-import { ApiAvailability, ApiAverageResponseTime, ApiHealthResponseTimeOvertime } from '../entities/management-api-v2/api/v4/healthCheck';
+import {
+  ApiAvailability,
+  ApiAverageResponseTime,
+  ApiHealthResponseTimeOvertime,
+  FieldParameter,
+  HealthCheckLogsRequestParams,
+  HealthCheckLogsResponse,
+} from '../entities/management-api-v2/api/v4/healthCheck';
 import { timeFrameRangesParams, TimeRangeParams } from '../shared/utils/timeFrameRanges';
 
 @Injectable({
@@ -49,13 +56,24 @@ export class ApiHealthV2Service {
     return this.httpClient.get<ApiHealthResponseTimeOvertime>(url);
   }
 
-  public getApiAvailability(apiId: string, from: number, to: number): Observable<ApiAvailability> {
-    const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/health/availability?from=${from}&to=${to}&field=endpoint`;
+  public getApiAvailability(apiId: string, from: number, to: number, field: 'endpoint' | 'gateway'): Observable<ApiAvailability> {
+    const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/health/availability?from=${from}&to=${to}&field=${field}`;
     return this.httpClient.get<ApiAvailability>(url);
   }
 
-  public getApiAverageResponseTime(apiId: string, from: number, to: number): Observable<ApiAverageResponseTime> {
-    const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/health/average-response-time?from=${from}&to=${to}&field=endpoint`;
+  public getApiAverageResponseTime(apiId: string, from: number, to: number, field: FieldParameter): Observable<ApiAverageResponseTime> {
+    const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/health/average-response-time?from=${from}&to=${to}&field=${field}`;
     return this.httpClient.get<ApiAverageResponseTime>(url);
+  }
+
+  public getApiHealthCheckLogs(apiId: string, requestParams: HealthCheckLogsRequestParams): Observable<HealthCheckLogsResponse> {
+    let params = new HttpParams();
+    params = params.append('from', requestParams.from);
+    params = params.append('to', requestParams.to);
+    params = params.append('page', requestParams.page);
+    params = params.append('perPage', requestParams.perPage);
+    params = params.append('success', requestParams.success);
+
+    return this.httpClient.get<HealthCheckLogsResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/health/logs`, { params });
   }
 }

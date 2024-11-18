@@ -13,16 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ComponentHarness } from '@angular/cdk/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
+import { MatCardHarness } from '@angular/material/card/testing';
 
-import { Component } from '@angular/core';
+export class FailedHealthChecksHarness extends ComponentHarness {
+  static hostSelector = 'failed-health-checks';
 
-import { FieldParameter } from '../../../entities/management-api-v2/api/v4/healthCheck';
+  async getTitle(): Promise<string> {
+    const el = await this.locatorFor(MatCardHarness)();
+    return el.getTitleText();
+  }
 
-@Component({
-  selector: 'app-health-check-dashboard-v4',
-  templateUrl: './api-health-check-dashboard-v4.component.html',
-  styleUrl: './api-health-check-dashboard-v4.component.scss',
-})
-export class ApiHealthCheckDashboardV4Component {
-  protected readonly FieldParameter = FieldParameter;
+  async getSubtitle(): Promise<string> {
+    const el = await this.locatorFor(MatCardHarness)();
+    return el.getSubtitleText();
+  }
+
+  public tableHarness = this.locatorForOptional(MatTableHarness);
 }

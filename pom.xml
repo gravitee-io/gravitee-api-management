@@ -47,7 +47,7 @@
         <protobuf-java.version>4.28.2</protobuf-java.version>
         <grpc-java.version>1.65.0</grpc-java.version>
         <!-- Gravitee dependencies version -->
-        <gravitee-bom.version>8.1.16</gravitee-bom.version>
+        <gravitee-bom.version>8.1.17</gravitee-bom.version>
         <gravitee-alert-api.version>2.0.0</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>3.6.2</gravitee-cockpit-api.version>
         <gravitee-cloud-initializer.version>2.0.2</gravitee-cloud-initializer.version>
@@ -57,11 +57,11 @@
         <gravitee-exchange.version>1.8.2</gravitee-exchange.version>
         <gravitee-expression-language.version>3.2.1</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>2.1.0</gravitee-fetcher-api.version>
-        <gravitee-gateway-api.version>3.9.0-alpha.13</gravitee-gateway-api.version>
+        <gravitee-gateway-api.version>3.9.0-alpha.15</gravitee-gateway-api.version>
         <gravitee-integration-api.version>4.1.0</gravitee-integration-api.version>
         <gravitee-json-validation.version>2.0.1</gravitee-json-validation.version>
         <gravitee-kubernetes.version>3.4.1</gravitee-kubernetes.version>
-        <gravitee-node.version>7.0.0-alpha.1</gravitee-node.version>
+        <gravitee-node.version>7.0.0-alpha.3</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
         <gravitee-platform-repository-api.version>1.4.0</gravitee-platform-repository-api.version>
         <gravitee-plugin.version>4.3.0</gravitee-plugin.version>
@@ -190,14 +190,14 @@
         <gravitee-policy-json-validation.version>1.7.1</gravitee-policy-json-validation.version>
         <gravitee-policy-json-xml.version>3.0.3</gravitee-policy-json-xml.version>
         <gravitee-policy-jws.version>1.6.1</gravitee-policy-jws.version>
-        <gravitee-policy-jwt.version>5.2.0</gravitee-policy-jwt.version>
+        <gravitee-policy-jwt.version>6.0.0-alpha.2</gravitee-policy-jwt.version>
         <gravitee-policy-keyless.version>3.0.1</gravitee-policy-keyless.version>
         <gravitee-policy-latency.version>2.0.1</gravitee-policy-latency.version>
         <gravitee-policy-metrics-reporter.version>2.0.1</gravitee-policy-metrics-reporter.version>
         <gravitee-policy-message-filtering.version>1.1.4</gravitee-policy-message-filtering.version>
         <gravitee-policy-mock.version>1.14.0</gravitee-policy-mock.version>
         <gravitee-policy-mtls.version>1.0.0</gravitee-policy-mtls.version>
-        <gravitee-policy-oauth2.version>3.0.5</gravitee-policy-oauth2.version>
+        <gravitee-policy-oauth2.version>4.0.0-alpha.1</gravitee-policy-oauth2.version>
         <gravitee-policy-oas-validation.version>1.0.0</gravitee-policy-oas-validation.version>
         <gravitee-policy-openid-connect-userinfo.version>1.7.0</gravitee-policy-openid-connect-userinfo.version>
         <gravitee-policy-override-http-method.version>2.2.1</gravitee-policy-override-http-method.version>
@@ -280,8 +280,8 @@
         <gravitee-endpoint-azure-service-bus.version>1.0.0-alpha.1</gravitee-endpoint-azure-service-bus.version>
         <gravitee-policy-graphql-rate-limit.version>1.0.1</gravitee-policy-graphql-rate-limit.version>
         <gravitee-resource-schema-registry-confluent.version>3.1.0</gravitee-resource-schema-registry-confluent.version>
-        <gravitee-reactor-message.version>5.0.0-alpha.2</gravitee-reactor-message.version>
-        <gravitee-reactor-native-kafka.version>1.0.0-alpha.4</gravitee-reactor-native-kafka.version>
+        <gravitee-reactor-message.version>5.0.0-alpha.3</gravitee-reactor-message.version>
+        <gravitee-reactor-native-kafka.version>1.0.0-alpha.9</gravitee-reactor-native-kafka.version>
         <gravitee-apim-repository-bridge.version>5.1.2</gravitee-apim-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>1.0.0</gravitee-secretprovider-hc-vault.version>
         <gravitee-policy-interops.version>1.0.0</gravitee-policy-interops.version>
