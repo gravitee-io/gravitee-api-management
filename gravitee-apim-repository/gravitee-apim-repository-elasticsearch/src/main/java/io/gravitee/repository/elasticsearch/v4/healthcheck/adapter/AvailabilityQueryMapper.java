@@ -61,11 +61,15 @@ public class AvailabilityQueryMapper implements QueryResponseAdapter<ApiFieldPer
         if (aggregations == null || aggregations.isEmpty()) {
             return Maybe.empty();
         }
-        long total = response.getSearchHits().getTotal().getValue();
+
         final var entrypointsAggregation = aggregations.get(BY_FIELD_AGGS);
         if (entrypointsAggregation == null) {
             return Maybe.empty();
         }
+
+        // Did it this way because of 10.000 hits results per query limit for ElasticSearchQuery
+        // https://www.elastic.co/guide/en/app-search/8.12/limits.html
+        var total = entrypointsAggregation.getBuckets().stream().map(jsonNode -> jsonNode.get("doc_count").asLong()).reduce(0L, Long::sum);
 
         final var byFieldValue = entrypointsAggregation
             .getBuckets()
