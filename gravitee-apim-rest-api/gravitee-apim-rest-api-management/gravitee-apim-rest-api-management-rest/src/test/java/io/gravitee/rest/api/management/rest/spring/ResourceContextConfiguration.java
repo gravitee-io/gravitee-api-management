@@ -64,12 +64,19 @@ import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGrou
 import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UndeploySharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGroupUseCase;
+import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
+import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDomainService;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.DeleteSubscriptionSpecUseCase;
+import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
+import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
+import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
 import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceLegacyWrapper;
+import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDSpecDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
 import io.gravitee.apim.infra.spring.CoreServiceSpringConfiguration;
@@ -153,7 +160,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.env.Environment;
 
 @Configuration
 @Import(
@@ -768,5 +774,35 @@ public class ResourceContextConfiguration {
     @Bean
     public PermissionDomainService permissionDomainService(MembershipService membershipService, PermissionService permissionService) {
         return new PermissionDomainServiceLegacyWrapper(membershipService, permissionService);
+    }
+
+    @Bean
+    public SubscriptionCRDSpecDomainService subscriptionSpecDomainService(
+        SubscriptionService subscriptionService,
+        SubscriptionAdapter subscriptionAdapter,
+        AcceptSubscriptionDomainService acceptSubscriptionDomainService,
+        CloseSubscriptionDomainService closeSubscriptionDomainService
+    ) {
+        return new SubscriptionCRDSpecDomainServiceImpl(
+            subscriptionService,
+            subscriptionAdapter,
+            acceptSubscriptionDomainService,
+            closeSubscriptionDomainService
+        );
+    }
+
+    @Bean
+    public ImportSubscriptionSpecUseCase importSubscriptionSpecUseCase(SubscriptionCRDSpecDomainService subscriptionSpecDomainService) {
+        return new ImportSubscriptionSpecUseCase(subscriptionSpecDomainService);
+    }
+
+    @Bean
+    public DeleteSubscriptionSpecUseCase deleteSubscriptionSpecUseCase(SubscriptionCRDSpecDomainService subscriptionSpecDomainService) {
+        return new DeleteSubscriptionSpecUseCase(subscriptionSpecDomainService);
+    }
+
+    @Bean
+    public SubscriptionAdapter subscriptionAdapter() {
+        return new SubscriptionAdapterImpl();
     }
 }

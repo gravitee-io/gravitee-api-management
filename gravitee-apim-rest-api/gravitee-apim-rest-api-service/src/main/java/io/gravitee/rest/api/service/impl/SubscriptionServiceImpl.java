@@ -142,6 +142,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
@@ -310,6 +311,16 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         final ExecutionContext executionContext,
         NewSubscriptionEntity newSubscriptionEntity,
         String customApiKey
+    ) {
+        return create(executionContext, newSubscriptionEntity, customApiKey, null);
+    }
+
+    @Override
+    public SubscriptionEntity create(
+        final ExecutionContext executionContext,
+        NewSubscriptionEntity newSubscriptionEntity,
+        String customApiKey,
+        @Nullable String customId
     ) {
         String plan = newSubscriptionEntity.getPlan();
         String application = newSubscriptionEntity.getApplication();
@@ -505,7 +516,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             Subscription subscription = new Subscription();
             subscription.setPlan(plan);
-            subscription.setId(UuidString.generateRandom());
+            subscription.setId(customId == null ? UuidString.generateRandom() : customId);
             subscription.setApplication(application);
             subscription.setEnvironmentId(executionContext.getEnvironmentId());
             subscription.setCreatedAt(new Date());
