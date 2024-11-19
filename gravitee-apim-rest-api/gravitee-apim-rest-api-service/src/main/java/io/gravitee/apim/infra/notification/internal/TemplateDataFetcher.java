@@ -158,6 +158,7 @@ public class TemplateDataFetcher {
                     var primaryOwner = applicationPrimaryOwnerDomainService.getApplicationPrimaryOwner(organizationId, applicationId);
                     return ApplicationNotificationTemplateData
                         .builder()
+                        .id(application.getId())
                         .name(application.getName())
                         .type(application.getType().name())
                         .description(application.getDescription())
