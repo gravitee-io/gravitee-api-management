@@ -364,7 +364,7 @@ class DefaultExecutionContextTest {
 
     @Test
     void should_provide_template_variables_when_providers_are_specified() {
-        final TemplateVariableProvider templateVariableProvider = mock(TemplateVariableProvider.class);
+        final ExecutionContextTemplateVariableProvider templateVariableProvider = mock(ExecutionContextTemplateVariableProvider.class);
         cut.templateVariableProviders(List.of(templateVariableProvider));
 
         cut.getTemplateEngine();
