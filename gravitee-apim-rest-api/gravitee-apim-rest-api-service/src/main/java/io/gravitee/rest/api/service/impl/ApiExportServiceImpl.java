@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.model.Path;
+import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.kubernetes.v1alpha1.ApiDefinitionResource;
 import io.gravitee.kubernetes.mapper.CustomResourceDefinitionMapper;
 import io.gravitee.rest.api.model.PageEntity;
@@ -98,14 +99,7 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
         String exportVersion,
         String... filteredFields
     ) {
-        ApiEntity apiEntity = apiService.findById(executionContext, apiId);
-        generateAndSaveCrossId(executionContext, apiEntity);
-        // set metadata for serialize process
-        Map<String, Object> metadata = new HashMap<>();
-        metadata.put(ApiSerializer.METADATA_EXPORT_VERSION, exportVersion);
-        metadata.put(ApiSerializer.METADATA_FILTERED_FIELDS_LIST, Arrays.asList(filteredFields));
-        apiEntity.setMetadata(metadata);
-
+        ApiEntity apiEntity = getApi(executionContext, apiId, exportVersion, filteredFields);
         try {
             return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(apiEntity);
         } catch (final Exception e) {
@@ -116,8 +110,11 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
 
     @Override
     public String exportAsCustomResourceDefinition(ExecutionContext executionContext, String apiId, ApiExportQuery exportQuery) {
-        String json = exportAsJson(executionContext, apiId, "2.0.0", exportQuery.getExcludedFields());
         try {
+            ApiEntity apiEntity = getApi(executionContext, apiId, "2.0.0", exportQuery.getExcludedFields());
+
+            String json = objectMapper.writeValueAsString(apiEntity);
+
             JsonNode jsonNode = objectMapper.readTree(json);
 
             String name = jsonNode.get("name").asText();
@@ -131,6 +128,8 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
             if (apiDefinitionResource.hasPages()) {
                 prepareApiPagesForExport(apiDefinitionResource.getPages());
             }
+
+            apiDefinitionResource.setState(apiEntity.getState() == null ? Lifecycle.State.STOPPED.name() : apiEntity.getState().name());
 
             if (exportQuery.isRemoveIds()) {
                 apiDefinitionResource.removeIds();
@@ -161,6 +160,17 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
             LOGGER.error(String.format("An error occurs while trying to convert API %s to CRD", apiId), e);
             throw new TechnicalManagementException(e);
         }
+    }
+
+    private ApiEntity getApi(ExecutionContext executionContext, String apiId, String exportVersion, String... filteredFields) {
+        ApiEntity apiEntity = apiService.findById(executionContext, apiId);
+        generateAndSaveCrossId(executionContext, apiEntity);
+        // set metadata for serialize process
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put(ApiSerializer.METADATA_EXPORT_VERSION, exportVersion);
+        metadata.put(ApiSerializer.METADATA_FILTERED_FIELDS_LIST, Arrays.asList(filteredFields));
+        apiEntity.setMetadata(metadata);
+        return apiEntity;
     }
 
     private void mapCRDMembers(ExecutionContext executionContext, ArrayNode members) {

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.*;
 import io.gravitee.kubernetes.mapper.CustomResourceDefinitionMapper;
@@ -149,6 +150,7 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         apiEntity.setExecutionMode(ExecutionMode.V3);
         apiEntity.setFlowMode(FlowMode.DEFAULT);
         apiEntity.setFlows(null);
+
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V1.getLabel());
         // set proxy
         Proxy proxy = new Proxy();
@@ -315,6 +317,15 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         ApiExportQuery exportQuery = ApiExportQuery.builder().contextPath("/test-updated").build();
         String actualExport = apiExportService.exportAsCustomResourceDefinition(GraviteeContext.getExecutionContext(), API_ID, exportQuery);
         String expectedExport = getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource-contextPath.yml");
+        Assertions.assertThat(actualExport).isEqualTo(expectedExport);
+    }
+
+    @Test
+    public void shouldConvertAsCustomResourceDefinition_withStartedState() throws Exception {
+        ApiExportQuery exportQuery = ApiExportQuery.builder().contextPath("/test").build();
+        apiEntity.setState(Lifecycle.State.STARTED);
+        String actualExport = apiExportService.exportAsCustomResourceDefinition(GraviteeContext.getExecutionContext(), API_ID, exportQuery);
+        String expectedExport = getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource-state-started.yml");
         Assertions.assertThat(actualExport).isEqualTo(expectedExport);
     }
 
