@@ -443,6 +443,36 @@ class ApisResourceTest extends AbstractResourceTest {
                 });
         }
 
+        @Test
+        public void should_return_created_native_api_without_kafka_listener_port() {
+            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+            when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+            when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any()))
+                .thenAnswer(invocation -> {
+                    Api api = invocation.getArgument(0);
+                    return new ApiWithFlows(api.toBuilder().id("api-id").build(), api.getApiDefinitionNativeV4().getFlows());
+                });
+
+            var newApi = aValidNativeV4Api();
+            var kafkaListenerWithoutPort = (KafkaListener) newApi.getListeners().get(0).getKafkaListener().toBuilder().port(null).build();
+            newApi.setListeners(List.of(new Listener(kafkaListenerWithoutPort)));
+
+            final Response response = target.request().post(Entity.json(newApi));
+
+            assertThat(response)
+                .hasStatus(CREATED_201)
+                .asEntity(ApiV4.class)
+                .satisfies(api -> {
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(api.getId()).isEqualTo("api-id");
+                        soft.assertThat(api.getListeners()).isEqualTo(newApi.getListeners());
+                    });
+                });
+        }
+
         private static CreateApiV4 aValidV4Api() {
             return CreateApiV4
                 .builder()
