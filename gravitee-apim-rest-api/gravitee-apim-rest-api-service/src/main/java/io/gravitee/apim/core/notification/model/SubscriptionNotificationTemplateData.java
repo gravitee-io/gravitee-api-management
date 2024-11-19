@@ -27,4 +27,5 @@ public class SubscriptionNotificationTemplateData {
     private String id;
     private String request;
     private String reason;
+    private String status;
 }
