@@ -78,6 +78,7 @@ public class ScoringProviderImpl implements ScoringProvider {
             )
         );
 
+        log.debug("send scoring request command: {}", command);
         return cockpitConnector
             .sendCommand(command)
             .onErrorReturn(error ->
