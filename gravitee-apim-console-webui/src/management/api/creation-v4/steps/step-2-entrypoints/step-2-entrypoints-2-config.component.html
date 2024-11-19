@@ -55,7 +55,7 @@
       <div id="kafka-listeners" class="api-creation-v4__form-container" *ngIf="hasKafkaListeners">
         <h3>Configure common entrypoints fields</h3>
 
-        <gio-form-listeners-kafka-host-port formControlName="kafka" />
+        <gio-form-listeners-kafka-host formControlName="kafka" />
       </div>
 
       <ng-container *ngFor="let entrypoint of selectedEntrypoints">

@@ -64,10 +64,6 @@
               <span class="step-5-summary__step__info__key">Host:</span>
               <span class="step-5-summary__step__info__value">{{ host }}</span>
             </div>
-            <div class="step-5-summary__step__info__row" *ngIf="!!port">
-              <span class="step-5-summary__step__info__key">Port:</span>
-              <span class="step-5-summary__step__info__value">{{ port }}</span>
-            </div>
             <div class="step-5-summary__step__info__row">
               <span class="step-5-summary__step__info__key">Type:</span>
               <span class="gio-badge-accent" *ngFor="let listenerType of listenerTypes">{{ listenerType }}</span>

@@ -26,12 +26,12 @@ import { Step3Endpoints1ListComponent } from '../step-3-endpoints/step-3-endpoin
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 import { Step3Endpoints2ConfigComponent } from '../step-3-endpoints/step-3-endpoints-2-config.component';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
-import { KafkaHost, KafkaPort, PathV4, Qos } from '../../../../../entities/management-api-v2';
+import { KafkaHost, PathV4, Qos } from '../../../../../entities/management-api-v2';
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 import { RestrictedDomainService } from '../../../../../services-ngx/restricted-domain.service';
 import { TcpHost } from '../../../../../entities/management-api-v2/api/v4/tcpHost';
 import { Step5SummaryComponent } from '../step-5-summary/step-5-summary.component';
-import { KafkaHostPortData } from '../../../component/gio-form-listeners/gio-form-listeners-kafka/gio-form-listeners-kafka-host-port.component';
+import { KafkaHostData } from '../../../component/gio-form-listeners/gio-form-listeners-kafka/gio-form-listeners-kafka-host.component';
 
 @Component({
   selector: 'step-2-entrypoints-2-config',
@@ -72,7 +72,6 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     const paths = currentStepPayload.paths ?? [];
     const tcpHosts = currentStepPayload.hosts ?? [];
     const kafkaHost = currentStepPayload.host;
-    const kafkaPort = currentStepPayload.port;
 
     this.restrictedDomainService
       .get()
@@ -86,7 +85,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       .subscribe();
     this.formGroup = this.formBuilder.group({});
 
-    this.initFormForSyncEntrypoints(currentStepPayload, paths, tcpHosts, kafkaHost, kafkaPort);
+    this.initFormForSyncEntrypoints(currentStepPayload, paths, tcpHosts, kafkaHost);
 
     currentStepPayload.selectedEntrypoints.forEach(({ id, configuration, selectedQos }) => {
       this.formGroup.addControl(`${id}-config`, this.formBuilder.control(configuration ?? {}));
@@ -117,13 +116,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       });
   }
 
-  private initFormForSyncEntrypoints(
-    currentStepPayload: ApiCreationPayload,
-    paths: PathV4[],
-    tcpHosts: TcpHost[],
-    kafkaHost: KafkaHost,
-    kafkaPort: KafkaPort,
-  ) {
+  private initFormForSyncEntrypoints(currentStepPayload: ApiCreationPayload, paths: PathV4[], tcpHosts: TcpHost[], kafkaHost: KafkaHost) {
     this.hasHttpListeners =
       currentStepPayload.selectedEntrypoints.find((entrypoint) => entrypoint.supportedListenerType === 'HTTP') != null;
     if (this.hasHttpListeners) {
@@ -135,7 +128,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     }
     this.hasKafkaListeners = currentStepPayload.selectedEntrypoints.some((entrypoint) => entrypoint.supportedListenerType === 'KAFKA');
     if (this.hasKafkaListeners) {
-      const initialKafkaControlValue: KafkaHostPortData = { host: kafkaHost, port: kafkaPort };
+      const initialKafkaControlValue: KafkaHostData = kafkaHost;
 
       this.formGroup.addControl('kafka', this.formBuilder.control(initialKafkaControlValue, Validators.required));
     }
@@ -154,19 +147,16 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   save(): void {
     const pathsValue = this.formGroup.get('paths')?.value ?? [];
     const hostsValues = this.formGroup.get('hosts')?.value ?? [];
-    const hostValue = this.formGroup.get('kafka')?.value?.host;
-    const portValue = this.formGroup.get('kafka')?.value?.port;
+    const hostValue = this.formGroup.get('kafka')?.value;
 
     this.stepService.validStep((previousPayload) => {
       let paths: PathV4[];
       let hosts: TcpHost[];
       let host: KafkaHost;
-      let port: KafkaPort;
       if (this.selectedEntrypoints.some((entrypoint) => entrypoint.supportedListenerType === 'TCP')) {
         hosts = hostsValues;
       } else if (this.selectedEntrypoints.some((entrypoint) => entrypoint.supportedListenerType === 'KAFKA')) {
         host = hostValue;
-        port = portValue;
       } else {
         paths = this.enableVirtualHost
           ? // Remove host and overrideAccess from virualHost if is not necessary
@@ -187,7 +177,6 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
         paths,
         hosts,
         host,
-        port,
         selectedEntrypoints,
         ...(this.apiType === 'NATIVE'
           ? {

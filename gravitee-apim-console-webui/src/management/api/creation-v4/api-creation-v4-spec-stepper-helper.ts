@@ -99,7 +99,6 @@ export class ApiCreationV4SpecStepperHelper {
     paths: string[] = ['/api/my-api-3'],
     hosts: string[] = ['host'],
     host: string = 'kafka-host',
-    port: number = 1000,
   ) {
     const entrypointsConfig = await this.harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
     this.httpExpects.expectRestrictedDomainsGetRequest([]);
@@ -117,7 +116,6 @@ export class ApiCreationV4SpecStepperHelper {
     } else if (entrypoints.some((entrypoint) => entrypoint.supportedListenerType === 'KAFKA')) {
       await entrypointsConfig.fillHost(host);
       this.httpExpects.expectVerifyHosts([host]);
-      await entrypointsConfig.fillPort(port);
     }
 
     expect(await entrypointsConfig.hasValidationDisabled()).toBeFalsy();

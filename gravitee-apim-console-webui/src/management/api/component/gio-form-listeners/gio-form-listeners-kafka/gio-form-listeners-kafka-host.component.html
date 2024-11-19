@@ -21,7 +21,7 @@
     <tr>
       <th class="gio-form-listeners__table__row__th">
         <div class="gio-form-listeners__table__title">
-          Host and Port
+          Host
           <mat-icon
             class="gio-form-listeners__table__title__icon"
             matTooltip="The host and port to run the server on."
@@ -29,7 +29,7 @@
           />
         </div>
         <div class="gio-form-listeners__table__subtitle">
-          Host can contain an uppercase letter, number, dot, dash or underscore. Total maximum length is 63 chars.
+          Can contain an uppercase letter, number, dot, dash or underscore. Total maximum length is 63 chars.
         </div>
       </th>
     </tr>
@@ -51,15 +51,6 @@
           }
           @if (hostFormControl.hasError('format')) {
             <mat-error> {{ hostFormControl.getError('format') }}</mat-error>
-          }
-        </mat-form-field>
-      </div>
-      <div class="gio-form-listeners__table__row__td kafka-configuration__port">
-        <mat-form-field class="gio-form-listeners__table__field">
-          <mat-label>Port</mat-label>
-          <input type="number" matInput formControlName="port" placeholder="Port" />
-          @if (portFormControl.hasError('required')) {
-            <mat-error> Port is required </mat-error>
           }
         </mat-form-field>
       </div>

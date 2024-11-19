@@ -28,7 +28,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { isEmpty } from 'lodash';
-import { combineLatestWith, filter, map, observeOn, startWith, take, tap } from 'rxjs/operators';
+import { filter, map, observeOn, startWith, take, tap } from 'rxjs/operators';
 import { FocusMonitor } from '@angular/cdk/a11y';
 import { asyncScheduler, Observable } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
@@ -39,51 +39,46 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { KafkaHost, KafkaPort } from '../../../../../entities/management-api-v2';
+import { KafkaHost } from '../../../../../entities/management-api-v2';
 import { hostAsyncValidator } from '../../../../../shared/validators/host/host-async-validator.directive';
 import { hostSyncValidator } from '../../../../../shared/validators/host/host-sync-validator.directive';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 
-export interface KafkaHostPortData {
-  host?: KafkaHost;
-  port?: KafkaPort;
-}
+export type KafkaHostData = KafkaHost;
 
 @Component({
-  selector: 'gio-form-listeners-kafka-host-port',
-  templateUrl: './gio-form-listeners-kafka-host-port.component.html',
-  styleUrls: ['../gio-form-listeners.common.scss', './gio-form-listeners-kafka-host-port.component.scss'],
+  selector: 'gio-form-listeners-kafka-host',
+  templateUrl: './gio-form-listeners-kafka-host.component.html',
+  styleUrls: ['../gio-form-listeners.common.scss', './gio-form-listeners-kafka-host.component.scss'],
   imports: [MatInputModule, MatFormFieldModule, ReactiveFormsModule, MatIconModule, GioIconsModule, MatButtonModule, MatTooltipModule],
   standalone: true,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => GioFormListenersKafkaHostPortComponent),
+      useExisting: forwardRef(() => GioFormListenersKafkaHostComponent),
       multi: true,
     },
     {
       provide: NG_ASYNC_VALIDATORS,
-      useExisting: forwardRef(() => GioFormListenersKafkaHostPortComponent),
+      useExisting: forwardRef(() => GioFormListenersKafkaHostComponent),
       multi: true,
     },
   ],
 })
-export class GioFormListenersKafkaHostPortComponent implements OnInit, ControlValueAccessor, AsyncValidator {
+export class GioFormListenersKafkaHostComponent implements OnInit, ControlValueAccessor, AsyncValidator {
   @Input()
   public apiId?: string;
 
   public host: KafkaHost;
-  public port: KafkaPort;
 
   public hostFormControl: FormControl<string>;
-  public portFormControl: FormControl<number>;
 
-  public mainForm: FormGroup<{ host: FormControl<string>; port: FormControl<number> }>;
+  public mainForm: FormGroup<{ host: FormControl<string> }>;
   public isDisabled = false;
 
   private destroyRef = inject(DestroyRef);
 
-  protected _onChange: (_listener: KafkaHostPortData) => void = () => ({});
+  protected _onChange: (_listener: KafkaHostData) => void = () => ({});
 
   protected _onTouched: () => void = () => ({});
 
@@ -99,16 +94,14 @@ export class GioFormListenersKafkaHostPortComponent implements OnInit, ControlVa
       validators: [hostSyncValidator, Validators.required],
       asyncValidators: [hostAsyncValidator(this.apiV2Service, this.apiId)],
     });
-    this.portFormControl = this.fb.control(0, [Validators.required]);
 
     this.mainForm = this.fb.group({
       host: this.hostFormControl,
-      port: this.portFormControl,
     });
 
     this.mainForm.valueChanges
       .pipe(
-        tap((value) => this._onChange({ host: { host: value.host }, port: { port: value.port } })),
+        tap((value) => this._onChange({ host: value.host })),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
@@ -122,18 +115,17 @@ export class GioFormListenersKafkaHostPortComponent implements OnInit, ControlVa
   }
 
   // From ControlValueAccessor interface
-  public writeValue(data: KafkaHostPortData | null = {}): void {
+  public writeValue(data: KafkaHostData | null = {}): void {
     if (!data || isEmpty(data)) {
       return;
     }
 
-    this.host = data.host;
-    this.port = data.port;
+    this.host = data;
     this.initForm();
   }
 
   // From ControlValueAccessor interface
-  public registerOnChange(fn: (host: KafkaHostPortData | null) => void): void {
+  public registerOnChange(fn: (host: KafkaHostData | null) => void): void {
     this._onChange = fn;
   }
 
@@ -151,24 +143,22 @@ export class GioFormListenersKafkaHostPortComponent implements OnInit, ControlVa
 
   public validate(): Observable<ValidationErrors | null> {
     return this.validateHostFormControl().pipe(
-      combineLatestWith(this.validatePortFormControl()),
-      map(() => (this.mainForm.controls.host.valid && this.mainForm.controls.port.valid ? null : { invalid: true })),
+      map(() => (this.mainForm.controls.host.valid ? null : { invalid: true })),
       take(1),
     );
   }
 
-  protected getValue(): KafkaHostPortData {
+  protected getValue(): KafkaHost {
     const formData = this.mainForm.getRawValue();
-    return { host: { host: formData.host }, port: { port: formData.port } };
+    return { host: formData.host };
   }
 
   private initForm(): void {
     // Reset with current values
-    this.mainForm.reset({ host: this.host?.host, port: this.port?.port });
+    this.mainForm.reset(this.host);
 
     // Update controls
     this.hostFormControl.updateValueAndValidity();
-    this.portFormControl.updateValueAndValidity();
   }
 
   private validateHostFormControl(): Observable<FormControlStatus> {
@@ -176,13 +166,6 @@ export class GioFormListenersKafkaHostPortComponent implements OnInit, ControlVa
       observeOn(asyncScheduler),
       startWith(this.hostFormControl.status),
       filter(() => !this.mainForm.controls.host.pending),
-    );
-  }
-
-  private validatePortFormControl(): Observable<FormControlStatus> {
-    return this.portFormControl.statusChanges.pipe(
-      startWith(this.portFormControl.status),
-      filter(() => !this.mainForm.controls.port.pending),
     );
   }
 }

@@ -118,7 +118,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
   });
 
   describe('Entrypoint validation', () => {
-    it('should not continue when host and port not specified', fakeAsync(async () => {
+    it('should not continue when host not specified', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('KAFKA');
 
@@ -131,9 +131,6 @@ describe('ApiCreationV4Component - Native Kafka', () => {
       await entrypointsConfig.fillHost('my-lovely-host');
       httpExpects.expectVerifyHosts(['my-lovely-host'], 1);
 
-      expect(await entrypointsConfig.hasValidationDisabled()).toBeTruthy();
-
-      await entrypointsConfig.fillPort(1000);
       expect(await entrypointsConfig.hasValidationDisabled()).toBeFalsy();
 
       discardPeriodicTasks();
@@ -150,7 +147,6 @@ describe('ApiCreationV4Component - Native Kafka', () => {
         httpExpects.expectRestrictedDomainsGetRequest([]);
         httpExpects.expectSchemaGetRequest(nativeKafkaEntrypoint);
 
-        await entrypointsConfig.fillPort(1000);
         await entrypointsConfig.fillHost(contextPath);
         httpExpects.expectVerifyContextPath();
         expect(await entrypointsConfig.hasValidationDisabled()).toBeTruthy();

@@ -22,14 +22,14 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 
-import { GioFormListenersKafkaHostPortHarness } from './gio-form-listeners-kafka-host-port.harness';
-import { GioFormListenersKafkaHostPortComponent } from './gio-form-listeners-kafka-host-port.component';
+import { GioFormListenersKafkaHostHarness } from './gio-form-listeners-kafka-host.harness';
+import { GioFormListenersKafkaHostComponent, KafkaHostData } from './gio-form-listeners-kafka-host.component';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { Constants } from '../../../../../entities/Constants';
 
 @Component({
-  template: ` <form [formGroup]="form"><gio-form-listeners-kafka-host-port formControlName="kafka" /></form> `,
+  template: ` <form [formGroup]="form"><gio-form-listeners-kafka-host formControlName="kafka" /></form> `,
 })
 class TestComponent {
   public form = new FormGroup({
@@ -38,7 +38,7 @@ class TestComponent {
 }
 
 @Component({
-  template: ` <form [formGroup]="form"><gio-form-listeners-kafka-host-port formControlName="kafka" apiId="api-id" /></form> `,
+  template: ` <form [formGroup]="form"><gio-form-listeners-kafka-host formControlName="kafka" apiId="api-id" /></form> `,
 })
 class TestComponentWithApiId {
   public form = new FormGroup({
@@ -46,29 +46,22 @@ class TestComponentWithApiId {
   });
 }
 
-describe('GioFormListenersKafkaHostPortComponent', () => {
+describe('GioFormListenersKafkaHostComponent', () => {
   const fakeConstants = CONSTANTS_TESTING;
   let fixture: ComponentFixture<TestComponent>;
   let loader: HarnessLoader;
   let testComponent: TestComponent;
   let httpTestingController: HttpTestingController;
 
-  const KAFKA_CONFIG = {
-    host: { host: 'host1' },
-    port: { port: 1000 },
+  const KAFKA_CONFIG: KafkaHostData = {
+    host: 'host1',
   };
 
   describe('without api id', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
         declarations: [TestComponent],
-        imports: [
-          GioFormListenersKafkaHostPortComponent,
-          NoopAnimationsModule,
-          MatIconTestingModule,
-          ReactiveFormsModule,
-          GioTestingModule,
-        ],
+        imports: [GioFormListenersKafkaHostComponent, NoopAnimationsModule, MatIconTestingModule, ReactiveFormsModule, GioTestingModule],
         providers: [
           {
             provide: Constants,
@@ -87,13 +80,12 @@ describe('GioFormListenersKafkaHostPortComponent', () => {
       httpTestingController.verify({ ignoreCancelled: true });
     });
 
-    it('should display host + port', async () => {
+    it('should display host', async () => {
       testComponent.form.setValue({ kafka: KAFKA_CONFIG });
 
-      const formHarness = await loader.getHarness(GioFormListenersKafkaHostPortHarness);
+      const formHarness = await loader.getHarness(GioFormListenersKafkaHostHarness);
 
-      expect(await formHarness.getHostInput().then((host) => host.getValue())).toEqual(KAFKA_CONFIG.host.host);
-      expect(await formHarness.getPortInput().then((post) => post.getValue())).toEqual(`${KAFKA_CONFIG.port.port}`);
+      expect(await formHarness.getHostInput().then((host) => host.getValue())).toEqual(KAFKA_CONFIG.host);
     });
 
     describe('Validation', () => {
@@ -117,7 +109,7 @@ describe('GioFormListenersKafkaHostPortComponent', () => {
         ${'Can contain dash and underscore'}                                 | ${true}  | ${'simple-host_underscored'}
         ${'Can contain uppercase, numbers, dash and underscore'}             | ${true}  | ${'simple1-Host_underscored33'}
       `('should validate `$reason`: is valid=$isValid', async ({ isValid, host }) => {
-        const formHarness = await loader.getHarness(GioFormListenersKafkaHostPortHarness);
+        const formHarness = await loader.getHarness(GioFormListenersKafkaHostHarness);
         const hostInput = await formHarness.getHostInput();
 
         expect(await hostInput.getValue()).toEqual('');
@@ -132,18 +124,18 @@ describe('GioFormListenersKafkaHostPortComponent', () => {
 
     it('should edit host', async () => {
       testComponent.form.setValue({ kafka: KAFKA_CONFIG });
-      const formHarness = await loader.getHarness(GioFormListenersKafkaHostPortHarness);
+      const formHarness = await loader.getHarness(GioFormListenersKafkaHostHarness);
 
       const hostRowToEdit = await formHarness.getHostInput();
       await hostRowToEdit.setValue('host-modified');
       expectVerifyHosts(['host-modified']);
 
-      expect(testComponent.form.controls.kafka.value).toEqual({ ...KAFKA_CONFIG, host: { host: 'host-modified' } });
+      expect(testComponent.form.controls.kafka.value).toEqual({ host: 'host-modified' });
     });
 
     it('should handle touched & dirty on focus and change value', async () => {
       testComponent.form.reset();
-      const formHarness = await loader.getHarness(GioFormListenersKafkaHostPortHarness);
+      const formHarness = await loader.getHarness(GioFormListenersKafkaHostHarness);
 
       expect(testComponent.form.touched).toEqual(false);
       expect(testComponent.form.dirty).toEqual(false);
@@ -165,13 +157,7 @@ describe('GioFormListenersKafkaHostPortComponent', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
         declarations: [TestComponentWithApiId],
-        imports: [
-          GioFormListenersKafkaHostPortComponent,
-          NoopAnimationsModule,
-          MatIconTestingModule,
-          ReactiveFormsModule,
-          GioTestingModule,
-        ],
+        imports: [GioFormListenersKafkaHostComponent, NoopAnimationsModule, MatIconTestingModule, ReactiveFormsModule, GioTestingModule],
         providers: [
           {
             provide: Constants,
@@ -211,7 +197,7 @@ describe('GioFormListenersKafkaHostPortComponent', () => {
         ${'Can contain dash and underscore'}                                 | ${true}  | ${'simple-host_underscored'}
         ${'Can contain uppercase, numbers, dash and underscore'}             | ${true}  | ${'simple1-Host_underscored33'}
       `('should validate `$reason`: is valid=$isValid', async ({ isValid, host }) => {
-        const formHarness = await loader.getHarness(GioFormListenersKafkaHostPortHarness);
+        const formHarness = await loader.getHarness(GioFormListenersKafkaHostHarness);
         const hostInput = await formHarness.getHostInput();
 
         expect(await hostInput.getValue()).toEqual('');
@@ -225,7 +211,7 @@ describe('GioFormListenersKafkaHostPortComponent', () => {
       });
 
       it('should send the API ID when verifying hosts', async () => {
-        const formPaths = await loader.getHarness(GioFormListenersKafkaHostPortHarness);
+        const formPaths = await loader.getHarness(GioFormListenersKafkaHostHarness);
 
         const host = await formPaths.getHostInput();
 
