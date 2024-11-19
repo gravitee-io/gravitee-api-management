@@ -315,6 +315,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     "application",
                     ApplicationNotificationTemplateData
                         .builder()
+                        .id("application-id")
                         .name("application-name")
                         .type("SIMPLE")
                         .status("ACTIVE")
@@ -540,6 +541,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     "application",
                     ApplicationNotificationTemplateData
                         .builder()
+                        .id("application-id")
                         .name("application-name")
                         .type("SIMPLE")
                         .status("ACTIVE")
@@ -869,6 +871,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     "application",
                     ApplicationNotificationTemplateData
                         .builder()
+                        .id("application-id")
                         .name("application-name")
                         .type("SIMPLE")
                         .status("ACTIVE")
