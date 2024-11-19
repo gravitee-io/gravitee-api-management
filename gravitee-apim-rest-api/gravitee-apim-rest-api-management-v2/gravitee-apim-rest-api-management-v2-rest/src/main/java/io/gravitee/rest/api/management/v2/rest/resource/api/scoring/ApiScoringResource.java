@@ -72,7 +72,6 @@ public class ApiScoringResource extends AbstractResource {
     }
 
     @GET
-    @Path("/")
     @Produces(MediaType.APPLICATION_JSON)
     public ApiScoring getApiScoring() {
         var report = getLatestReportUseCase.execute(new GetLatestReportUseCase.Input(apiId)).report();
