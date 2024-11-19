@@ -5449,7 +5449,6 @@ components:
                         example: 8080
                   required:
                       - "host"
-                      - "port"
         VerifyApiPaths:
             title: "VerifyApiPaths"
             properties:
