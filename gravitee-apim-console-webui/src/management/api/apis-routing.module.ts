@@ -1074,6 +1074,17 @@ const apisRoutes: Routes = [
           },
         },
       },
+
+      {
+        path: 'v4/health-check-dashboard',
+        component: ApiHealthCheckDashboardV4Component,
+        data: {
+          permissions: {
+            anyOf: ['api-definition-r'],
+          },
+        },
+      },
+
       {
         path: 'properties/v4/dynamic-properties',
         component: ApiDynamicPropertiesV4Component,
@@ -1104,10 +1115,6 @@ const apisRoutes: Routes = [
             anyOf: ['api-event-r'],
           },
         },
-      },
-      {
-        path: 'v4/healthcheck-dashboard',
-        component: ApiHealthCheckDashboardV4Component,
       },
     ],
   },

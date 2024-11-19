@@ -2,7 +2,8 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-gap: 16px;
-  margin-bottom: 32px;
+  padding-top: 24px;
+  padding-bottom: 48px;
 }
 
 .full-width {
