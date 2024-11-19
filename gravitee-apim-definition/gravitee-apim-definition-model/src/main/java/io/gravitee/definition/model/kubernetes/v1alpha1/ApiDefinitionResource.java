@@ -96,6 +96,8 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
 
     private static final String ENDPOINTS_FIELD = "endpoints";
 
+    private static final String STATE_FIELD = "state";
+
     public ApiDefinitionResource(String name, ObjectNode apiDefinition) {
         super(GIO_V1_ALPHA_1_API_DEFINITION, new ObjectMeta(name), apiDefinition);
         removeUnsupportedFields();
@@ -123,6 +125,10 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
 
     public boolean hasPages() {
         return getSpec().hasNonNull(PAGES_FIELD);
+    }
+
+    public void setState(String state) {
+        getSpec().put(STATE_FIELD, state);
     }
 
     @JsonIgnore

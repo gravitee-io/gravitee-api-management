@@ -92,4 +92,5 @@ spec:
         status: 400
         body: "{\"bad\":\"news\"}"
         propagateErrorKeyToLogs: false
+  state: "STOPPED"
   notifyMembers: true
