@@ -54,10 +54,14 @@ class SseAssertions {
     static void assertOnMessage(Buffer chunk, long id, String messageContent, @NotNull String... expectedComments) {
         Objects.requireNonNull(expectedComments);
         final String[] splitMessage = chunk.toString().split("\n");
-        assertThat(splitMessage).hasSize(3 + expectedComments.length);
+        assertThat(splitMessage).hasSize(4 + expectedComments.length); // 3 message data + 1 sourceTimestamp + n expected comments
         assertMessageData(messageContent, id, splitMessage);
+
+        // check that sourceTimestamp is filled
+        assertThat(splitMessage[3]).matches(":sourceTimestamp: \\d+");
+
         List<String> actualComments = new ArrayList<>();
-        for (int i = 3; i < splitMessage.length; i++) {
+        for (int i = 4; i < splitMessage.length; i++) {
             actualComments.add(splitMessage[i].substring(1)); // remove starting ':'
         }
         assertThat(actualComments).containsExactlyInAnyOrder(expectedComments);
