@@ -14,36 +14,33 @@
  * limitations under the License.
  */
 
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { EMPTY, Observable } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
-const yamlFileExample = `
-ratelimit-headers:
-    description: Response must include ratelimit-x headers
-    message: '{{description}}; missing {{property}}'
-    severity: error
-    given: $..responses.*
-    then:
-      - field: headers.ratelimit-limit
-        function: truthy
-      - field: headers.ratelimit-remaining
-        function: truthy
-      - field: headers.ratelimit-reset
-        function: truthy
-
-  properties-must-include-examples:
-    description: Object properties must include examples
-    given: $..properties..properties.*
-    severity: error
-    message: '{{description}}; {{property}}'
-    then:
-      function: ensurePropertiesExample
-`;
+import { RulesetV2Service } from '../../../services-ngx/ruleset-v2.service';
+import { ScoringRulesetsResponse } from '../../../entities/management-api-v2/api/v4/ruleset';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'app-api-score-rulesets',
   templateUrl: './api-score-rulesets.component.html',
   styleUrl: './api-score-rulesets.component.scss',
 })
-export class ApiScoreRulesetsComponent {
-  public readonly yamlFileExample = yamlFileExample;
+export class ApiScoreRulesetsComponent implements OnInit {
+  rulesets$: Observable<ScoringRulesetsResponse>;
+
+  constructor(
+    private readonly rulesetV2Service: RulesetV2Service,
+    private readonly snackBarService: SnackBarService,
+  ) {}
+
+  ngOnInit(): void {
+    this.rulesets$ = this.rulesetV2Service.listRulesets().pipe(
+      catchError(({ error }) => {
+        this.snackBarService.error(error.message);
+        return EMPTY;
+      }),
+    );
+  }
 }

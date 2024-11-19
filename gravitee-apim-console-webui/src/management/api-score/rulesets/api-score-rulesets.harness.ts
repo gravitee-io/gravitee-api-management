@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ComponentHarness } from '@angular/cdk/testing';
+import { MatExpansionPanelHarness } from '@angular/material/expansion/testing';
+import { MatCardHarness } from '@angular/material/card/testing';
 
-import { NgModule } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { AsyncPipe } from '@angular/common';
+export class ApiScoreRulesetsHarness extends ComponentHarness {
+  static hostSelector = 'app-api-score-rulesets';
 
-import { ApiScoreRulesetsComponent } from './api-score-rulesets.component';
+  getMatExpansionPanelHarness = this.locatorForOptional(MatExpansionPanelHarness);
 
-@NgModule({
-  declarations: [ApiScoreRulesetsComponent],
-  imports: [MatCardModule, MatButtonModule, MatExpansionModule, AsyncPipe],
-  exports: [ApiScoreRulesetsComponent],
-})
-export class ApiScoreRulesetsModule {}
+  getMatCardHarness = this.locatorForOptional(MatCardHarness);
+}

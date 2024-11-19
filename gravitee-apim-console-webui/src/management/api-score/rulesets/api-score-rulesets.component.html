@@ -28,21 +28,25 @@
 
   <div class="separator-hr"></div>
 
-  <mat-card-content>
-    <mat-expansion-panel>
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          Default Ruleset provided by Gravitee
-          <span class="gio-badge-neutral">5 rules</span>
-          <span class="gio-badge-accent">Gravitee</span>
-        </mat-panel-title>
-        <span class="body-2 subtitle">This is the Gravitee’s default ruleset governing API.</span>
-      </mat-expansion-panel-header>
-
-      <div class="separator-hr"></div>
-
-      <h4>Raw file preview</h4>
-      <pre class="file-preview">{{ yamlFileExample }}</pre>
-    </mat-expansion-panel>
-  </mat-card-content>
+  @if (rulesets$ | async; as rulesets) {
+    <mat-card-content class="rulesets">
+      @for (ruleset of rulesets.data; track ruleset.id) {
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              {{ ruleset.name }}
+            </mat-panel-title>
+            <mat-panel-description>
+              <span class="body-2 subtitle">{{ ruleset.description }}</span>
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+          <div class="separator-hr"></div>
+          <h4>Raw file preview</h4>
+          <pre class="file-preview">{{ ruleset.payload }}</pre>
+        </mat-expansion-panel>
+      } @empty {
+        No rulesets
+      }
+    </mat-card-content>
+  }
 </mat-card>
