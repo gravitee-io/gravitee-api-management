@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.AccessControlEntity;
@@ -182,6 +183,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+members+pages.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionContext(new DefinitionContext());
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
@@ -263,6 +265,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+members.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionContext(new DefinitionContext());
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
@@ -341,6 +344,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+pages.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionContext(new DefinitionContext());
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
@@ -397,6 +401,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionContext(new DefinitionContext());
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
@@ -424,6 +429,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+primaryOwner.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionContext(new DefinitionContext());
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
@@ -456,6 +462,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+primaryOwnerGroup.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionContext(new DefinitionContext());
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
@@ -494,6 +501,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-new-api.definition.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionContext(new DefinitionContext());
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
@@ -521,6 +529,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition_enum_lowercase.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionContext(new DefinitionContext());
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
@@ -544,6 +553,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+plans.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionContext(new DefinitionContext());
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
@@ -614,6 +624,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+metadata.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionContext(new DefinitionContext());
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
@@ -638,6 +649,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+members.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionContext(new DefinitionContext());
         apiEntity.setId(API_ID);
         when(apiService.createWithApiDefinition(eq(GraviteeContext.getExecutionContext()), any(), any(), any())).thenReturn(apiEntity);
 
@@ -724,6 +736,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-new-kubernetes-api.definition.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionContext(new DefinitionContext());
         Api api = new Api();
         api.setId(apiId);
         apiEntity.setId(apiId);
@@ -794,6 +807,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+members.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionContext(new DefinitionContext());
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);

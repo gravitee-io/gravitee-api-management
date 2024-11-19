@@ -201,7 +201,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 apiJsonNode.getJsonNode()
             );
             createOrUpdateApiNestedEntities(executionContext, createdApiEntity, apiJsonNode);
-            createPageAndMedia(executionContext, createdApiEntity, apiJsonNode);
+
+            // No need to create ASIDE Folder when origin is Kubernetes
+            if (!createdApiEntity.getDefinitionContext().isOriginKubernetes()) {
+                createPageAndMedia(executionContext, createdApiEntity, apiJsonNode);
+            }
             return createdApiEntity;
         } catch (IOException e) {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
