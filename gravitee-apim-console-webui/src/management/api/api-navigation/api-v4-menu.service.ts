@@ -23,7 +23,7 @@ import { ApiMenuService } from './ApiMenuService';
 import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../entities/Constants';
-import { ApiType, ApiV4 } from '../../../entities/management-api-v2';
+import { ApiV4 } from '../../../entities/management-api-v2';
 import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
 
 @Injectable()
@@ -51,7 +51,6 @@ export class ApiV4MenuService implements ApiMenuService {
       ...(api.type !== 'NATIVE' ? [this.addDeploymentMenuEntry()] : []),
       ...(api.type !== 'NATIVE' ? [this.addApiTrafficMenuEntry(hasTcpListeners)] : []),
       ...(api.type !== 'NATIVE' ? [this.addApiRuntimeAlertsMenuEntry()] : []),
-      ...this.addHealthCheckMenuEntry(api.type),
     ].filter((entry) => entry != null && !entry.tabs?.every((tab) => tab.routerLink === 'DISABLED'));
 
     return { subMenuItems, groupItems: [] };
@@ -174,6 +173,13 @@ export class ApiV4MenuService implements ApiMenuService {
         displayName: 'Endpoints',
         routerLink: 'v4/endpoints',
       });
+
+      if (api.type === 'PROXY' && !hasTcpListeners) {
+        tabs.push({
+          displayName: 'Health Check Dashboard',
+          routerLink: 'v4/health-check-dashboard',
+        });
+      }
     }
 
     if ((api.type === 'PROXY' && !hasTcpListeners) || api.type === 'MESSAGE')
@@ -373,21 +379,5 @@ export class ApiV4MenuService implements ApiMenuService {
       },
       tabs,
     };
-  }
-
-  private addHealthCheckMenuEntry(apiType: ApiType): MenuItem[] {
-    return apiType === 'PROXY'
-      ? [
-          {
-            displayName: 'Health-Check Dashboard',
-            icon: 'monitor',
-            routerLink: 'v4/healthcheck-dashboard',
-            header: {
-              title: 'Health-Check Dashboard',
-              subtitle: 'Monitor and identify health-check issues and trends',
-            },
-          },
-        ]
-      : [];
   }
 }
