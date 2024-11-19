@@ -29,7 +29,7 @@
       </div>
       <div class="api-creation-confirmation__content__actions">
         <h3>Next steps</h3>
-        <div class="action">
+        <div class="action" *ngIf="apiType !== 'NATIVE'">
           <div class="action__text">
             <h4>Policy configuration</h4>
             <div class="action__text__subtitle">Shape traffic reaching the gateway by configuring your policies with our flow editor</div>
