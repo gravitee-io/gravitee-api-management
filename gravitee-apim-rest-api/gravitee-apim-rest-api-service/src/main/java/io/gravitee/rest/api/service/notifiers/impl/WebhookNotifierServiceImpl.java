@@ -165,7 +165,7 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
         } else if (dataType == SubscriptionNotificationTemplateData.class) {
             SubscriptionNotificationTemplateData notificationData = (SubscriptionNotificationTemplateData) object;
             jsonObject.put("id", notificationData.getId());
-            jsonObject.put("status", notificationData.getReason());
+            jsonObject.put("status", notificationData.getStatus());
         }
     }
 }
