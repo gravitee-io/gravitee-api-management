@@ -425,7 +425,15 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
             );
 
-            givenExistingSubscription(Subscription.builder().id("subscription-id").request("my-request").reason("my-reason").build());
+            givenExistingSubscription(
+                Subscription
+                    .builder()
+                    .id("subscription-id")
+                    .request("my-request")
+                    .reason("my-reason")
+                    .status(Subscription.Status.ACCEPTED)
+                    .build()
+            );
             // When
             final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest(
                 "api-id",
@@ -445,7 +453,13 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             assertThat(params)
                 .containsEntry(
                     "subscription",
-                    SubscriptionNotificationTemplateData.builder().id("subscription-id").request("my-request").reason("my-reason").build()
+                    SubscriptionNotificationTemplateData
+                        .builder()
+                        .id("subscription-id")
+                        .request("my-request")
+                        .reason("my-reason")
+                        .status("ACCEPTED")
+                        .build()
                 );
         }
 
@@ -785,7 +799,15 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
             );
 
-            givenExistingSubscription(Subscription.builder().id("subscription-id").request("my-request").reason("my-reason").build());
+            givenExistingSubscription(
+                Subscription
+                    .builder()
+                    .id("subscription-id")
+                    .request("my-request")
+                    .reason("my-reason")
+                    .status(Subscription.Status.ACCEPTED)
+                    .build()
+            );
             // When
             var hook = new SimpleApplicationHookContextForTest(
                 "application-id",
@@ -806,7 +828,13 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             assertThat(params)
                 .containsEntry(
                     "subscription",
-                    SubscriptionNotificationTemplateData.builder().id("subscription-id").request("my-request").reason("my-reason").build()
+                    SubscriptionNotificationTemplateData
+                        .builder()
+                        .id("subscription-id")
+                        .request("my-request")
+                        .reason("my-reason")
+                        .status("ACCEPTED")
+                        .build()
                 );
         }
 
