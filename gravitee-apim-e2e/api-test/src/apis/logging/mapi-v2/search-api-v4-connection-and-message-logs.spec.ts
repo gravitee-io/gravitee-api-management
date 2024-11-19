@@ -94,6 +94,7 @@ describe('API - V4 - MESSAGE - Search logs', () => {
           });
           expect(json.items[0].metadata).toEqual({
             Metadata: 'metadata-value',
+            sourceTimestamp: expect.any(Number),
           });
         });
       await fetchGatewaySuccess({ contextPath: apiPath })
@@ -107,6 +108,7 @@ describe('API - V4 - MESSAGE - Search logs', () => {
           });
           expect(json.items[0].metadata).toEqual({
             Metadata: 'metadata-value',
+            sourceTimestamp: expect.any(Number),
           });
         });
     });
@@ -183,6 +185,7 @@ describe('API - V4 - MESSAGE - Search logs', () => {
             },
             metadata: {
               Metadata: 'metadata-value',
+              sourceTimestamp: expect.any(String),
             },
             isError: undefined,
           }),
@@ -196,6 +199,7 @@ describe('API - V4 - MESSAGE - Search logs', () => {
             },
             metadata: {
               Metadata: 'metadata-value',
+              sourceTimestamp: expect.any(String),
             },
             isError: undefined,
           }),
