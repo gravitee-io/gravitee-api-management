@@ -91,6 +91,7 @@ public class WebhookNotifierServiceImplTest {
             .builder()
             .id("subsNotifId")
             .reason("subsNotifReason")
+            .status("PENDING")
             .build();
         params.put("subscription", subscriptionNotificationTemplateData);
 
@@ -102,7 +103,7 @@ public class WebhookNotifierServiceImplTest {
             "\"application\":{\"id\":\"appNotifTempDataId\",\"name\":\"appNotifTempName\"}," +
             "\"owner\":{\"id\":\"primaryId\",\"username\":\"displayNamePrimary\"}," +
             "\"plan\":{\"id\":\"planNotifId\",\"name\":\"planNotifName\",\"security\":\"API_KEY\"}," +
-            "\"subscription\":{\"id\":\"subsNotifId\",\"status\":\"subsNotifReason\"}}";
+            "\"subscription\":{\"id\":\"subsNotifId\",\"status\":\"PENDING\"}}";
 
         Map<String, String> expectedHeaders = new HashMap<>();
         expectedHeaders.put("X-Gravitee-Event", hook.name());
