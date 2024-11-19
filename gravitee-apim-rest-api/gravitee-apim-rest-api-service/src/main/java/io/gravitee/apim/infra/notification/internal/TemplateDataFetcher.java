@@ -216,6 +216,7 @@ public class TemplateDataFetcher {
                         .id(subscription.getId())
                         .reason(subscription.getReason())
                         .request(subscription.getRequest())
+                        .status(subscription.getStatus().name())
                         .build()
                 );
         } catch (TechnicalException e) {
