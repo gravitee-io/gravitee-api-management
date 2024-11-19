@@ -275,7 +275,7 @@
         <gravitee-entrypoint-websocket.version>2.0.0-alpha.1</gravitee-entrypoint-websocket.version>
         <gravitee-endpoint-kafka.version>3.0.0-alpha.1</gravitee-endpoint-kafka.version>
         <gravitee-endpoint-mqtt5.version>3.0.0-alpha.1</gravitee-endpoint-mqtt5.version>
-        <gravitee-endpoint-rabbitmq.version>2.0.0-alpha.1</gravitee-endpoint-rabbitmq.version>
+        <gravitee-endpoint-rabbitmq.version>2.0.0-alpha.3</gravitee-endpoint-rabbitmq.version>
         <gravitee-endpoint-solace.version>2.0.0-alpha.1</gravitee-endpoint-solace.version>
         <gravitee-endpoint-azure-service-bus.version>1.0.0-alpha.1</gravitee-endpoint-azure-service-bus.version>
         <gravitee-policy-graphql-rate-limit.version>1.0.1</gravitee-policy-graphql-rate-limit.version>
