@@ -17,8 +17,8 @@
 import { BaseHarnessFilters, ComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 
-export class GioFormListenersKafkaHostPortHarness extends ComponentHarness {
-  public static hostSelector = 'gio-form-listeners-kafka-host-port';
+export class GioFormListenersKafkaHostHarness extends ComponentHarness {
+  public static hostSelector = 'gio-form-listeners-kafka-host';
 
   /**
    * Gets a `HarnessPredicate` that can be used to search for a `GioFormListenersContextPathHarness` that meets
@@ -27,18 +27,13 @@ export class GioFormListenersKafkaHostPortHarness extends ComponentHarness {
    * @param options Options for filtering which input instances are considered a match.
    * @return a `HarnessPredicate` configured with the given options.
    */
-  public static with(options: BaseHarnessFilters = {}): HarnessPredicate<GioFormListenersKafkaHostPortHarness> {
-    return new HarnessPredicate(GioFormListenersKafkaHostPortHarness, options);
+  public static with(options: BaseHarnessFilters = {}): HarnessPredicate<GioFormListenersKafkaHostHarness> {
+    return new HarnessPredicate(GioFormListenersKafkaHostHarness, options);
   }
 
   protected hostInput = this.locatorFor(MatInputHarness.with({ ancestor: '.kafka-configuration__host' }));
-  protected portInput = this.locatorFor(MatInputHarness.with({ ancestor: '.kafka-configuration__port' }));
 
   public getHostInput(): Promise<MatInputHarness> {
     return this.hostInput();
-  }
-
-  public getPortInput(): Promise<MatInputHarness> {
-    return this.portInput();
   }
 }

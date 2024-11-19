@@ -18,20 +18,20 @@ import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule } from '@angular/common/http';
 
-import { GioFormListenersKafkaHostPortComponent } from './gio-form-listeners-kafka-host-port.component';
+import { GioFormListenersKafkaHostComponent } from './gio-form-listeners-kafka-host.component';
 
 export default {
-  title: 'API / Listeners / Kafka / Form listeners Kafka host + port',
-  component: GioFormListenersKafkaHostPortComponent,
+  title: 'API / Listeners / Kafka / Form listeners Kafka host',
+  component: GioFormListenersKafkaHostComponent,
   decorators: [
     moduleMetadata({
-      imports: [BrowserAnimationsModule, GioFormListenersKafkaHostPortComponent, FormsModule, ReactiveFormsModule, HttpClientModule],
+      imports: [BrowserAnimationsModule, GioFormListenersKafkaHostComponent, FormsModule, ReactiveFormsModule, HttpClientModule],
       providers: [],
     }),
   ],
   argTypes: {},
   render: (args) => ({
-    template: `<gio-form-listeners-kafka-host-port [ngModel]="listeners" />`,
+    template: `<gio-form-listeners-kafka-host [ngModel]="listeners" />`,
     props: args,
   }),
   args: {
