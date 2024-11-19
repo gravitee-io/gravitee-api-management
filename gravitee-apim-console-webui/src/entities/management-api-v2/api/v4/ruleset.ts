@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export interface ScoringRulesetsResponse {
+  data: ScoringRuleset[];
+}
 
-import { NgModule } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { AsyncPipe } from '@angular/common';
-
-import { ApiScoreRulesetsComponent } from './api-score-rulesets.component';
-
-@NgModule({
-  declarations: [ApiScoreRulesetsComponent],
-  imports: [MatCardModule, MatButtonModule, MatExpansionModule, AsyncPipe],
-  exports: [ApiScoreRulesetsComponent],
-})
-export class ApiScoreRulesetsModule {}
+export interface ScoringRuleset {
+  id: string;
+  name: string;
+  description: string;
+  payload: string;
+  createdAt: string;
+  referenceId: string;
+  referenceType: string;
+}

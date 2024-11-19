@@ -81,3 +81,9 @@ $typography: map.get(gio.$mat-theme, typography);
 .file-preview {
   margin: 0;
 }
+
+.rulesets {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
