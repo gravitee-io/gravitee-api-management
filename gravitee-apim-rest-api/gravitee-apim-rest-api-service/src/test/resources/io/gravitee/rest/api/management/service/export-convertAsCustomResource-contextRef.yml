@@ -97,6 +97,7 @@ spec:
         status: 400
         body: "{\"bad\":\"news\"}"
         propagateErrorKeyToLogs: false
+  state: "STOPPED"
   contextRef:
     name: "apim-dev-ctx"
     namespace: "default"
