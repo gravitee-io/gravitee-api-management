@@ -63,7 +63,7 @@ spec:
   path_mappings: []
   proxy:
     virtual_hosts:
-    - path: "/test"
+    - path: "/test/"
     strip_context_path: false
     preserve_host: false
     logging:
@@ -97,5 +97,5 @@ spec:
         status: 400
         body: "{\"bad\":\"news\"}"
         propagateErrorKeyToLogs: false
-  state: "STOPPED"
+  state: "STARTED"
   notifyMembers: true
