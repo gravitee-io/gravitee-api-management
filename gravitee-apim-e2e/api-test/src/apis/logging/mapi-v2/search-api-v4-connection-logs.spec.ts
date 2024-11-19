@@ -210,6 +210,7 @@ describe('API - V4 - Connection Logs', () => {
           });
           expect(json.items[0].metadata).toEqual({
             Metadata: 'metadata-value',
+            sourceTimestamp: expect.any(Number),
           });
         });
     };
