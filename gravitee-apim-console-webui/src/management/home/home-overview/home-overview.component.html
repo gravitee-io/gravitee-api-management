@@ -90,7 +90,7 @@
       [responseStatusRanges]="v4ApiAnalyticsResponseStatusRanges"
     ></api-analytics-response-status-ranges>
 
-    <app-top-apis-widget [data]="topApisV4"></app-top-apis-widget>
+    <app-top-apis-widget [data]="topApisV4" [period]="this.timeRangeParams.id"></app-top-apis-widget>
     <dashboard-v4-api-request-stats [data]="requestStatsV4"></dashboard-v4-api-request-stats>
   </div>
 </div>
