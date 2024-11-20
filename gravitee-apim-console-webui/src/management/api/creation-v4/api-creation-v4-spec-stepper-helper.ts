@@ -27,7 +27,7 @@ import { Step3Endpoints2ConfigHarness } from './steps/step-3-endpoints/step-3-en
 import { Step4Security1PlansHarness } from './steps/step-4-security/step-4-security-1-plans.harness';
 import { Step3EndpointListHarness } from './steps/step-3-endpoints/step-3-endpoints-1-list.harness';
 
-import { ConnectorPlugin } from '../../../entities/management-api-v2';
+import { ConnectorPlugin, fakeConnectorPlugin } from '../../../entities/management-api-v2';
 
 export class ApiCreationV4SpecStepperHelper {
   private ossLicense: License = { tier: 'oss', features: [], packs: [] };
@@ -55,7 +55,27 @@ export class ApiCreationV4SpecStepperHelper {
     if (type === 'MESSAGE' || type === 'KAFKA') {
       expect(await architecture.isLicenseBannerShown()).toEqual(true);
     }
+
     await architecture.fillAndValidate(type);
+
+    if (type === 'KAFKA') {
+      this.httpExpects.expectEntrypointGetRequest(
+        fakeConnectorPlugin({
+          id: 'native-kafka',
+          supportedApiType: 'NATIVE',
+          name: 'Native Kafka Entrypoint',
+          supportedListenerType: 'KAFKA',
+        }),
+      );
+      this.httpExpects.expectEndpointGetRequest(
+        fakeConnectorPlugin({
+          id: 'native-kafka',
+          supportedApiType: 'NATIVE',
+          name: 'Native Kafka Endpoint',
+          supportedListenerType: 'KAFKA',
+        }),
+      );
+    }
   }
 
   async fillAndValidateStep2_1_EntrypointsList(

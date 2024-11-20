@@ -38,6 +38,9 @@ describe('ApiCreationV4Component - Native Kafka', () => {
   const nativeKafkaEntrypoint: Partial<ConnectorPlugin>[] = [
     { id: 'native-kafka', supportedApiType: 'NATIVE', name: 'Native Kafka Entrypoint', supportedListenerType: 'KAFKA' },
   ];
+  const nativeKafkaEndpoint: Partial<ConnectorPlugin>[] = [
+    { id: 'native-kafka', supportedApiType: 'NATIVE', name: 'Native Kafka Endpoint', supportedListenerType: 'KAFKA' },
+  ];
 
   let fixture: ComponentFixture<ApiCreationV4Component>;
   let harnessLoader: HarnessLoader;
@@ -121,6 +124,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
     it('should not continue when host not specified', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('KAFKA');
+      fixture.detectChanges();
 
       httpExpects.expectRestrictedDomainsGetRequest([]);
       httpExpects.expectSchemaGetRequest(nativeKafkaEntrypoint);
@@ -160,6 +164,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API name', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('KAFKA');
       await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig(nativeKafkaEntrypoint);
+      await stepperHelper.fillAndValidateStep3_2_EndpointsConfig(nativeKafkaEndpoint);
 
       discardPeriodicTasks();
 

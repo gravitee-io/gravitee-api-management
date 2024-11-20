@@ -15,9 +15,10 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { Observable, Subject } from 'rxjs';
+import { combineLatest, Observable, Subject } from 'rxjs';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
+import { takeUntil, tap } from 'rxjs/operators';
 
 import { Step2Entrypoints1ListComponent } from './step-2-entrypoints-1-list.component';
 import { Step2Entrypoints2ConfigComponent } from './step-2-entrypoints-2-config.component';
@@ -26,6 +27,8 @@ import { ApiCreationStepService } from '../../services/api-creation-step.service
 import { ApiType } from '../../../../../entities/management-api-v2';
 import { UTMTags, ApimFeature } from '../../../../../shared/components/gio-license/gio-license-data';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
+import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
+import { IconService } from '../../../../../services-ngx/icon.service';
 
 @Component({
   selector: 'step-2-entrypoints-0-architecture',
@@ -47,7 +50,9 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   constructor(
     private readonly formBuilder: UntypedFormBuilder,
     private readonly stepService: ApiCreationStepService,
+    private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly matDialog: MatDialog,
+    private readonly iconService: IconService,
     private readonly licenseService: GioLicenseService,
   ) {}
 
@@ -156,25 +161,43 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   }
 
   private doSaveKafka() {
-    // TODO: Incorporate call to get native plugins
-    this.stepService.validStep((previousPayload) => ({
-      ...previousPayload,
-      selectedEntrypoints: [
-        {
-          id: 'native-kafka',
-          name: 'Native Kafka Entrypoint',
-          icon: 'gio:kafka',
-          supportedListenerType: 'KAFKA',
-          deployed: true,
-        },
-      ],
-      type: 'NATIVE',
-      selectedNativeType: 'KAFKA',
-    }));
-    this.stepService.goToNextStep({
-      groupNumber: 2,
-      component: Step2Entrypoints2ConfigComponent,
-    });
+    combineLatest([
+      this.connectorPluginsV2Service.getEntrypointPlugin('native-kafka'),
+      this.connectorPluginsV2Service.getEndpointPlugin('native-kafka'),
+    ])
+      .pipe(
+        tap(([nativeKafkaEntrypoint, nativeKafkaEndpoint]) => {
+          this.stepService.validStep((previousPayload) => ({
+            ...previousPayload,
+            selectedEntrypoints: [
+              {
+                id: nativeKafkaEntrypoint.id,
+                name: nativeKafkaEntrypoint.name,
+                icon: this.iconService.registerSvg(nativeKafkaEntrypoint.id, nativeKafkaEntrypoint.icon),
+                supportedListenerType: nativeKafkaEntrypoint.supportedListenerType,
+                deployed: nativeKafkaEntrypoint.deployed,
+              },
+            ],
+            selectedEndpoints: [
+              {
+                id: nativeKafkaEndpoint.id,
+                name: nativeKafkaEndpoint.name,
+                icon: this.iconService.registerSvg(nativeKafkaEndpoint.id, nativeKafkaEndpoint.icon),
+                supportedListenerType: nativeKafkaEndpoint.supportedListenerType,
+                deployed: nativeKafkaEndpoint.deployed,
+              },
+            ],
+            type: 'NATIVE',
+            selectedNativeType: 'KAFKA',
+          }));
+          this.stepService.goToNextStep({
+            groupNumber: 2,
+            component: Step2Entrypoints2ConfigComponent,
+          });
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 
   public onRequestUpgrade() {

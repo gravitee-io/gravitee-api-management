@@ -30,7 +30,6 @@ import { KafkaHost, PathV4, Qos } from '../../../../../entities/management-api-v
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 import { RestrictedDomainService } from '../../../../../services-ngx/restricted-domain.service';
 import { TcpHost } from '../../../../../entities/management-api-v2/api/v4/tcpHost';
-import { Step5SummaryComponent } from '../step-5-summary/step-5-summary.component';
 import { KafkaHostData } from '../../../component/gio-form-listeners/gio-form-listeners-kafka/gio-form-listeners-kafka-host.component';
 
 @Component({
@@ -171,27 +170,12 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
         selectedQos: this.formGroup.get(`${entrypoint.id}-qos`)?.value,
       }));
 
-      // TODO: Incorporate call to get native plugins
       return {
         ...previousPayload,
         paths,
         hosts,
         host,
         selectedEntrypoints,
-        ...(this.apiType === 'NATIVE'
-          ? {
-              selectedEndpoints: [
-                {
-                  id: 'native-kafka',
-                  name: 'Native Kafka Endpoint',
-                  deployed: true,
-                  icon: 'gio:kafka',
-                  configuration: {},
-                  sharedConfiguration: {},
-                },
-              ],
-            }
-          : {}),
       };
     });
 
@@ -203,15 +187,10 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
         });
         break;
       case 'PROXY':
+      case 'NATIVE':
         this.stepService.goToNextStep({
           groupNumber: 3,
           component: Step3Endpoints2ConfigComponent,
-        });
-        break;
-      case 'NATIVE':
-        this.stepService.goToNextStep({
-          groupNumber: 5,
-          component: Step5SummaryComponent,
         });
         break;
     }
