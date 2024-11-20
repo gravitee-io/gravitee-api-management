@@ -158,7 +158,7 @@ describe('ApiHealthCheckDashboardV4Component', () => {
       'response-time': '150ms',
     });
 
-    expect(await availabilityPerEndpointWidget.getTitle()).toEqual('Per-Endpoint');
+    expect(await availabilityPerEndpointWidget.getTitle()).toEqual('Availability Per-Endpoint');
     expect(await availabilityPerEndpointWidget.getSubtitle()).toEqual('Availability per-endpoint where health-check is enabled.');
   });
 
@@ -192,7 +192,7 @@ describe('ApiHealthCheckDashboardV4Component', () => {
       'response-time': '150ms',
     });
 
-    expect(await availabilityPerEndpointWidget.getTitle()).toEqual('Per-Gateway');
+    expect(await availabilityPerEndpointWidget.getTitle()).toEqual('Availability Per-Gateway');
     expect(await availabilityPerEndpointWidget.getSubtitle()).toEqual('Availability per-gateway where health-check is enabled.');
   });
 

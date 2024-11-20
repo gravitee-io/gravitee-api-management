@@ -173,13 +173,6 @@ export class ApiV4MenuService implements ApiMenuService {
         displayName: 'Endpoints',
         routerLink: 'v4/endpoints',
       });
-
-      if (api.type === 'PROXY' && !hasTcpListeners) {
-        tabs.push({
-          displayName: 'Health Check Dashboard',
-          routerLink: 'v4/health-check-dashboard',
-        });
-      }
     }
 
     if ((api.type === 'PROXY' && !hasTcpListeners) || api.type === 'MESSAGE')
@@ -187,6 +180,15 @@ export class ApiV4MenuService implements ApiMenuService {
         displayName: 'Failover',
         routerLink: 'v4/failover',
       });
+
+    if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
+      if (api.type === 'PROXY' && !hasTcpListeners) {
+        tabs.push({
+          displayName: 'Health Check Dashboard',
+          routerLink: 'v4/health-check-dashboard',
+        });
+      }
+    }
 
     return {
       displayName: 'Endpoints',
