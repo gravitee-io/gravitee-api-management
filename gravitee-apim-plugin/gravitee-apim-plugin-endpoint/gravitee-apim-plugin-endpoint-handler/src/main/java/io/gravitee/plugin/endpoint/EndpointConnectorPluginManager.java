@@ -15,7 +15,6 @@
  */
 package io.gravitee.plugin.endpoint;
 
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import java.io.IOException;
@@ -27,8 +26,6 @@ public interface EndpointConnectorPluginManager extends ConfigurablePluginManage
     <T extends EndpointConnectorFactory<?>> T getFactoryById(final String endpointPluginId);
 
     <T extends EndpointConnectorFactory<?>> T getFactoryById(final String endpointPluginId, boolean includeNotDeployed);
-
-    String getSharedConfigurationSchema(String pluginId) throws IOException;
 
     String getSharedConfigurationSchema(String pluginId, boolean includeNotDeployed) throws IOException;
 }

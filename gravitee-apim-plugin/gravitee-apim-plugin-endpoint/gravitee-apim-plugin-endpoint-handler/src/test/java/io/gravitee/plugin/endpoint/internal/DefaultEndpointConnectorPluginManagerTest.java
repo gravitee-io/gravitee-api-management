@@ -94,14 +94,14 @@ class DefaultEndpointConnectorPluginManagerTest {
     @Test
     void shouldNotFindEndpointGroupSchemaFile() throws IOException {
         cut.register(new FakeEndpointConnectorPlugin(true));
-        final String schema = cut.getSharedConfigurationSchema(FAKE_ENDPOINT);
+        final String schema = cut.getSharedConfigurationSchema(FAKE_ENDPOINT, false);
         assertThat(schema).isNull();
     }
 
     @Test
     void shouldGetFirstEndpointGroupSchemaFile() throws IOException {
         cut.register(new FakeEndpointConnectorPlugin());
-        final String schema = cut.getSharedConfigurationSchema(FAKE_ENDPOINT);
+        final String schema = cut.getSharedConfigurationSchema(FAKE_ENDPOINT, false);
         assertThat(schema).isEqualTo("{\n  \"schema\": \"sharedConfiguration\"\n}");
     }
 

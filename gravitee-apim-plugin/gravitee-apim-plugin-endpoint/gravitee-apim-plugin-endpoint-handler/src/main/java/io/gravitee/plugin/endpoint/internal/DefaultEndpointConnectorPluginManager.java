@@ -103,11 +103,6 @@ public class DefaultEndpointConnectorPluginManager
     }
 
     @Override
-    public String getSharedConfigurationSchema(String pluginId) throws IOException {
-        return getSharedConfigurationSchema(pluginId, false);
-    }
-
-    @Override
     public String getSharedConfigurationSchema(String pluginId, boolean includeNotDeployed) throws IOException {
         return getSchema(pluginId, "sharedConfiguration", includeNotDeployed);
     }
