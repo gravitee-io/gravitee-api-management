@@ -18,7 +18,7 @@ import { MatTableHarness } from '@angular/material/table/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
 
 export type AvailabilityPerFieldHarnessFilters = BaseHarnessFilters & {
-  title?: 'Per-Endpoint' | 'Per-Gateway';
+  title?: 'Availability Per-Endpoint' | 'Availability Per-Gateway';
 };
 
 export class AvailabilityPerFieldHarness extends ComponentHarness {

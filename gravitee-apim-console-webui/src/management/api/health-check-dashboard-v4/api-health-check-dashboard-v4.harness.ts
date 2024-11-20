@@ -31,9 +31,11 @@ export class ApiHealthCheckDashboardV4Harness extends ComponentHarness {
 
   getAverageResponseTimeWidgetHarness = this.locatorForOptional(AverageResponseTimeHarness);
 
-  getAvailabilityPerEndpointWidgetHarness = this.locatorForOptional(AvailabilityPerFieldHarness.with({ title: 'Per-Endpoint' }));
+  getAvailabilityPerEndpointWidgetHarness = this.locatorForOptional(
+    AvailabilityPerFieldHarness.with({ title: 'Availability Per-Endpoint' }),
+  );
 
-  getAvailabilityPerGatewayWidgetHarness = this.locatorForOptional(AvailabilityPerFieldHarness.with({ title: 'Per-Gateway' }));
+  getAvailabilityPerGatewayWidgetHarness = this.locatorForOptional(AvailabilityPerFieldHarness.with({ title: 'Availability Per-Gateway' }));
 
   getFailedHealthChecksWidgetHarness = this.locatorForOptional(FailedHealthChecksHarness);
 }
