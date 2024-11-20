@@ -220,7 +220,7 @@ public class Api {
     public Api setPlans(List<Plan> plans) {
         switch (definitionVersion) {
             case V4 -> {
-                if (apiDefinitionHttpV4.getType() == ApiType.NATIVE) {
+                if (this.type == ApiType.NATIVE) {
                     apiDefinitionNativeV4.setPlans(plans.stream().map(Plan::getPlanDefinitionNativeV4).toList());
                 }
 
