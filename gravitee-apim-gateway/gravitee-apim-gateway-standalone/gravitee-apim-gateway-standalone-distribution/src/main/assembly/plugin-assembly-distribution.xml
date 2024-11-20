@@ -148,6 +148,7 @@
                 <exclude>io.gravitee.fetcher:*:zip</exclude>
                 <exclude>io.gravitee.notifier:*:zip</exclude>
                 <exclude>io.gravitee.apim.plugin.apiservice.dynamicproperties:gravitee-apim-plugin-apiservice-dynamicproperties-http:zip</exclude>
+                <exclude>com.graviteesource.connector:gravitee-*-native-kafka:zip</exclude>
             </excludes>
             <useProjectArtifact>false</useProjectArtifact>
             <fileMode>755</fileMode>

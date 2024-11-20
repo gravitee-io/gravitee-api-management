@@ -189,6 +189,8 @@ const gatewayDependenciesExclusion = [
   'gravitee-apim-repository-elasticsearch',
   'gravitee-cockpit-connectors-ws',
   'gravitee-apim-plugin-apiservice-dynamicproperties-http',
+  'gravitee-endpoint-native-kafka',
+  'gravitee-entrypoint-native-kafka',
 ];
 
 console.log(chalk.blue(`Add plugins to Gateway`));
