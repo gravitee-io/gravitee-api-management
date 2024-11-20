@@ -13,20 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.adapter;
+package io.gravitee.apim.core.workflow.query_service;
 
 import io.gravitee.apim.core.workflow.model.Workflow;
 import java.util.List;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 
-@Mapper
-public interface WorkflowAdapter {
-    WorkflowAdapter INSTANCE = Mappers.getMapper(WorkflowAdapter.class);
-
-    Workflow toEntity(io.gravitee.repository.management.model.Workflow source);
-
-    List<Workflow> toEntities(List<io.gravitee.repository.management.model.Workflow> source);
-
-    io.gravitee.repository.management.model.Workflow toRepository(Workflow source);
+public interface WorkflowQueryService {
+    List<Workflow> findAllByApiIdAndType(String apiId, Workflow.Type type);
 }
