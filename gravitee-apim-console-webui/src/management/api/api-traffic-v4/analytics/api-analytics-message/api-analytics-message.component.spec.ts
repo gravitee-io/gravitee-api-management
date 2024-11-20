@@ -46,8 +46,8 @@ describe('ApiAnalyticsMessageComponent', () => {
   let componentHarness: ApiAnalyticsMessageHarness;
   let httpTestingController: HttpTestingController;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  const initComponent = async (queryParams = {}) => {
+    TestBed.configureTestingModule({
       imports: [ApiAnalyticsMessageComponent, NoopAnimationsModule, MatIconTestingModule, GioTestingModule],
       providers: [
         {
@@ -55,26 +55,27 @@ describe('ApiAnalyticsMessageComponent', () => {
           useValue: {
             snapshot: {
               params: { apiId: API_ID },
+              queryParams: queryParams,
             },
           },
         },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
       ],
-    }).compileComponents();
-
+    });
     await TestBed.compileComponents();
     fixture = TestBed.createComponent(ApiAnalyticsMessageComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiAnalyticsMessageHarness);
-    fixture.autoDetectChanges(true);
-  });
+    fixture.detectChanges();
+  };
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
   it('should display loading', async () => {
+    await initComponent();
     expect(await componentHarness.isLoaderDisplayed()).toBeTruthy();
 
     expectGetEntrypoints();
@@ -86,6 +87,7 @@ describe('ApiAnalyticsMessageComponent', () => {
 
   describe('GIVEN an API with analytics.enabled=false', () => {
     beforeEach(async () => {
+      await initComponent();
       expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: false } }));
       expectGetEntrypoints();
     });
@@ -98,6 +100,7 @@ describe('ApiAnalyticsMessageComponent', () => {
 
   describe('GIVEN an API with analytics.enabled=true', () => {
     beforeEach(async () => {
+      await initComponent();
       expectApiGetRequest(
         fakeApiV4({
           id: API_ID,
@@ -374,6 +377,35 @@ describe('ApiAnalyticsMessageComponent', () => {
     });
   });
 
+  describe('Query parameters for enabled analytics', () => {
+    [
+      { input: {}, expected: 'Last day' },
+      { input: { period: '1M' }, expected: 'Last month' },
+      { input: { period: 'incorrect' }, expected: 'Last day' },
+      { input: { otherParameter: 'otherParameter' }, expected: 'Last day' },
+    ].forEach((testParams) => {
+      it(`should display "${testParams.expected}" time range if query parameter is ${JSON.stringify(testParams.input)}`, async () => {
+        await initComponent(testParams.input);
+        expectAllAnalyticsCall();
+
+        const filtersBar = await componentHarness.getFiltersBarHarness();
+
+        const matSelect = await filtersBar.getMatSelect();
+        const selectedValue = await matSelect.getValueText();
+        expect(selectedValue).toEqual(testParams.expected);
+      });
+    });
+
+    function expectAllAnalyticsCall() {
+      expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
+      expectGetEntrypoints();
+      expectApiAnalyticsRequestsCountGetReq(fakeAnalyticsRequestsCount());
+      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
+      expectApiAnalyticsAverageMessagesPerRequestGetRequest(fakeAnalyticsAverageMessagesPerRequest());
+      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
+    }
+  });
+
   function expectApiGetRequest(api: ApiV4) {
     httpTestingController
       .expectOne({
@@ -417,6 +449,11 @@ describe('ApiAnalyticsMessageComponent', () => {
   }
 
   function expectGetEntrypoints(): void {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints`, method: 'GET' }).flush(ENTRYPOINTS);
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints`,
+        method: 'GET',
+      })
+      .flush(ENTRYPOINTS);
   }
 });

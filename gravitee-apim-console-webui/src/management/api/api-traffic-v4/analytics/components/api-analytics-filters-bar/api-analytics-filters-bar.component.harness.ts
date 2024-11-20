@@ -15,6 +15,7 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 
 export class ApiAnalyticsFiltersBarHarness extends ComponentHarness {
   static hostSelector = 'api-analytics-filters-bar';
@@ -24,4 +25,6 @@ export class ApiAnalyticsFiltersBarHarness extends ComponentHarness {
   async refresh(): Promise<void> {
     return (await this.getRefreshButton()).click();
   }
+
+  getMatSelect = this.locatorFor(MatSelectHarness);
 }
