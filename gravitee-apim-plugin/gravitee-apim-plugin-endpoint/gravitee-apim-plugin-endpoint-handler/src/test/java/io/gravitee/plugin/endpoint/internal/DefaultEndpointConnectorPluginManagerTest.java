@@ -16,6 +16,11 @@
 package io.gravitee.plugin.endpoint.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
@@ -29,6 +34,7 @@ import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnectorFactory;
 import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnectorPlugin;
 import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -50,9 +56,11 @@ class DefaultEndpointConnectorPluginManagerTest {
     @BeforeEach
     void beforeEach() {
         cut =
-            new DefaultEndpointConnectorPluginManager(
-                new DefaultEndpointConnectorClassLoaderFactory(),
-                new PluginConfigurationHelper(null, new ObjectMapper())
+            spy(
+                new DefaultEndpointConnectorPluginManager(
+                    new DefaultEndpointConnectorClassLoaderFactory(),
+                    new PluginConfigurationHelper(null, new ObjectMapper())
+                )
             );
     }
 
@@ -93,28 +101,48 @@ class DefaultEndpointConnectorPluginManagerTest {
 
     @Test
     void shouldNotFindEndpointGroupSchemaFile() throws IOException {
-        cut.register(new FakeEndpointConnectorPlugin(true));
+        cut.register(FakeEndpointConnectorPlugin.createWithoutSharedConfigurationFile(true));
         final String schema = cut.getSharedConfigurationSchema(FAKE_ENDPOINT, false);
         assertThat(schema).isNull();
     }
 
     @Test
     void shouldGetFirstEndpointGroupSchemaFile() throws IOException {
-        cut.register(new FakeEndpointConnectorPlugin());
-        final String schema = cut.getSharedConfigurationSchema(FAKE_ENDPOINT, false);
+        cut.register(FakeEndpointConnectorPlugin.createWithSharedConfigurationFile(true));
+        final String schema = cut.getSharedConfigurationSchema(FAKE_ENDPOINT, true);
         assertThat(schema).isEqualTo("{\n  \"schema\": \"sharedConfiguration\"\n}");
+
+        verify(cut, never()).getSchema(any(), any(), eq(true));
+    }
+
+    @Nested
+    class DeprecatedForBackwardCompatibility {
+
+        @Test
+        void shouldNotFindEndpointGroupSchemaFile() throws IOException {
+            cut.register(FakeEndpointConnectorPlugin.createLegacyWithoutSharedConfigurationFile(true));
+            final String schema = cut.getSharedConfigurationSchema(FAKE_ENDPOINT, true);
+            assertThat(schema).isNull();
+        }
+
+        @Test
+        void shouldGetFirstEndpointGroupSchemaFile() throws IOException {
+            cut.register(FakeEndpointConnectorPlugin.createLegacyWithSharedConfigurationFile(true));
+            final String schema = cut.getSharedConfigurationSchema(FAKE_ENDPOINT, true);
+            assertThat(schema).isEqualTo("{\n  \"schema\": \"sharedConfiguration\"\n}");
+        }
     }
 
     @Test
     void shouldNotFindNotDeployedPlugin() {
-        cut.register(new FakeEndpointConnectorPlugin(true, false));
+        cut.register(FakeEndpointConnectorPlugin.createLegacyWithSharedConfigurationFile(false));
         final EndpointConnector factoryById = cut.getFactoryById(FAKE_ENDPOINT);
         assertThat(factoryById).isNull();
     }
 
     @Test
     void shouldFindNotDeployedPlugin() {
-        cut.register(new FakeEndpointConnectorPlugin(true, false));
+        cut.register(FakeEndpointConnectorPlugin.createLegacyWithSharedConfigurationFile(false));
         final EndpointConnectorFactory<FakeEndpointConnector> fake = cut.getFactoryById(FAKE_ENDPOINT, true);
         assertThat(fake).isNotNull();
     }

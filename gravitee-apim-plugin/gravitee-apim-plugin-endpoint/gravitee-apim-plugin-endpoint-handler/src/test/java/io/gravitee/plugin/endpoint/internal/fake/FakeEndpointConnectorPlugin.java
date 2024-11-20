@@ -21,6 +21,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
 /**
  * @author GraviteeSource Team
@@ -32,21 +33,47 @@ public class FakeEndpointConnectorPlugin
     private static final String WITHOUT_ENDPOINT_SHARED_CONFIGURATION_FILE = "without-endpoint-group-configuration";
 
     private final String resourceFolder;
+    private final Map<String, String> properties;
 
     private final boolean deployed;
 
-    public FakeEndpointConnectorPlugin(boolean withoutResource) {
-        this(withoutResource, true);
+    public static FakeEndpointConnectorPlugin createWithSharedConfigurationFile(boolean deployed) {
+        return new FakeEndpointConnectorPlugin(false, true, deployed);
     }
 
-    public FakeEndpointConnectorPlugin(boolean withoutResource, boolean deployed) {
+    public static FakeEndpointConnectorPlugin createWithoutSharedConfigurationFile(boolean deployed) {
+        return new FakeEndpointConnectorPlugin(true, true, deployed);
+    }
+
+    /**
+     * Legacy way to define shared configuration file
+     */
+    public static FakeEndpointConnectorPlugin createLegacyWithSharedConfigurationFile(boolean deployed) {
+        return new FakeEndpointConnectorPlugin(false, false, deployed);
+    }
+
+    /**
+     * Legacy way to define shared configuration file
+     */
+    public static FakeEndpointConnectorPlugin createLegacyWithoutSharedConfigurationFile(boolean deployed) {
+        return new FakeEndpointConnectorPlugin(true, false, deployed);
+    }
+
+    private FakeEndpointConnectorPlugin(boolean withoutResource, boolean withPropertyConfig, boolean deployed) {
+        if (!withPropertyConfig) {
+            resourceFolder = withoutResource ? WITHOUT_ENDPOINT_SHARED_CONFIGURATION_FILE : WITH_ENDPOINT_SHARED_CONFIGURATION_FILE;
+            this.properties = Map.of();
+            this.deployed = deployed;
+            return;
+        }
+
         resourceFolder = withoutResource ? WITHOUT_ENDPOINT_SHARED_CONFIGURATION_FILE : WITH_ENDPOINT_SHARED_CONFIGURATION_FILE;
+        this.properties = withoutResource ? Map.of() : Map.of("schema.sharedConfiguration", "sharedConfiguration/schema-form.json");
         this.deployed = deployed;
     }
 
     public FakeEndpointConnectorPlugin() {
-        resourceFolder = WITH_ENDPOINT_SHARED_CONFIGURATION_FILE;
-        this.deployed = true;
+        this(false, true, true);
     }
 
     @Override
@@ -80,7 +107,54 @@ public class FakeEndpointConnectorPlugin
 
     @Override
     public PluginManifest manifest() {
-        return null;
+        var properties = this.properties;
+
+        return new PluginManifest() {
+            @Override
+            public String id() {
+                return "fake-endpoint";
+            }
+
+            @Override
+            public String name() {
+                return id();
+            }
+
+            @Override
+            public String description() {
+                return "Fake endpoint connector";
+            }
+
+            @Override
+            public String category() {
+                return "";
+            }
+
+            @Override
+            public String version() {
+                return "";
+            }
+
+            @Override
+            public String plugin() {
+                return FakeEndpointConnectorPlugin.class.getName();
+            }
+
+            @Override
+            public String type() {
+                return "endpoint-connector";
+            }
+
+            @Override
+            public String feature() {
+                return "internal";
+            }
+
+            @Override
+            public Map<String, String> properties() {
+                return properties;
+            }
+        };
     }
 
     @Override

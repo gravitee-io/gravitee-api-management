@@ -104,6 +104,13 @@ public class DefaultEndpointConnectorPluginManager
 
     @Override
     public String getSharedConfigurationSchema(String pluginId, boolean includeNotDeployed) throws IOException {
+        String schemaByPropertyKey = getSchema(pluginId, "schema.sharedConfiguration", false, includeNotDeployed);
+        if (schemaByPropertyKey != null) {
+            return schemaByPropertyKey;
+        }
+
+        // If no schema found by property key, try to find it with Deprecated method.
+        // This is for backward compatibility
         return getSchema(pluginId, "sharedConfiguration", includeNotDeployed);
     }
 }
