@@ -72,6 +72,14 @@ export class ApiCreationV4SpecHttpExpects {
     });
   }
 
+  expectEntrypointGetRequest(connector: Partial<ConnectorPlugin>) {
+    const fullConnector = fakeConnectorPlugin(connector);
+
+    this.httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints/${fullConnector.id}`, method: 'GET' })
+      .flush(fullConnector);
+  }
+
   expectEntrypointsGetRequest(connectors: Partial<ConnectorPlugin>[]) {
     const fullConnectors = connectors.map((partial) => fakeConnectorPlugin(partial));
     this.httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints` }).flush(fullConnectors);
