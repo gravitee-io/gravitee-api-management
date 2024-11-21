@@ -29,12 +29,18 @@ import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.BaseEntrypointConnector;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.HttpEntrypointConnector;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
+import io.gravitee.gateway.reactive.api.context.tcp.TcpExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
+import io.gravitee.gateway.reactive.api.invoker.BaseInvoker;
 import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
+import io.gravitee.gateway.reactive.api.invoker.TcpInvoker;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
@@ -94,16 +100,16 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
 
     abstract ExecutionFailure noEntrypointFailure();
 
-    protected Completable handleEntrypointRequest(final MutableExecutionContext ctx) {
+    protected <C extends BaseExecutionContext> Completable handleEntrypointRequest(final MutableExecutionContext ctx) {
         return Completable.defer(() -> {
-            final EntrypointConnector entrypointConnector = entrypointConnectorResolver.resolve(ctx);
+            final BaseEntrypointConnector<C> entrypointConnector = entrypointConnectorResolver.resolve((C) ctx);
             if (entrypointConnector == null) {
                 return ctx.interruptWith(noEntrypointFailure());
             }
             // Add the resolved entrypoint connector into the internal attributes, so it can be used later (ex: for endpoint connector resolution).
             ctx.setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR, entrypointConnector);
 
-            return entrypointConnector.handleRequest(ctx);
+            return entrypointConnector.handleRequest((C) ctx);
         });
     }
 
@@ -111,7 +117,7 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
         return Completable
             .defer(() -> {
                 if (ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE) == null) {
-                    final EntrypointConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
+                    final BaseEntrypointConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
                     if (entrypointConnector != null) {
                         return entrypointConnector.handleResponse(ctx);
                     }
@@ -121,30 +127,8 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
             .compose(upstream -> timeout(upstream, ctx));
     }
 
-    protected Completable invokeBackend(final MutableExecutionContext ctx) {
-        return Completable.defer(() -> {
-            if (!TRUE.equals(ctx.<Boolean>getInternalAttribute(ATTR_INTERNAL_INVOKER_SKIP))) {
-                return getInvoker(ctx)
-                    .map(invoker -> HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, endpointExecutionPhase())
-                    )
-                    .orElse(Completable.complete());
-            }
-            return Completable.complete();
-        });
-    }
-
     protected ExecutionPhase endpointExecutionPhase() {
         return ExecutionPhase.REQUEST;
-    }
-
-    protected Optional<HttpInvoker> getInvoker(final MutableExecutionContext ctx) {
-        final Object invoker = ctx.getInternalAttribute(ATTR_INTERNAL_INVOKER);
-        if (invoker instanceof HttpInvoker reactiveInvoker) {
-            return Optional.of(reactiveInvoker);
-        } else if (invoker instanceof io.gravitee.gateway.api.Invoker legacyInvoker) {
-            return Optional.of(new InvokerAdapter(legacyInvoker));
-        }
-        return Optional.empty();
     }
 
     abstract Completable onTimeout(MutableExecutionContext ctx);
@@ -184,7 +168,6 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
         ctx.setAttribute(ContextAttributes.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
         ctx.setAttribute(ContextAttributes.ATTR_ORGANIZATION, api.getOrganizationId());
         ctx.setAttribute(ContextAttributes.ATTR_ENVIRONMENT, api.getEnvironmentId());
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER, defaultInvoker);
     }
 
     protected void dumpAcceptors() {

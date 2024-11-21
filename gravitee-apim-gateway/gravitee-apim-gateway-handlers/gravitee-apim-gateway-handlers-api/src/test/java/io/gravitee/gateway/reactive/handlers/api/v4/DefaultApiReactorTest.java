@@ -56,7 +56,9 @@ import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.apiservice.ApiService;
 import io.gravitee.gateway.reactive.api.apiservice.ApiServiceFactory;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.BaseEntrypointConnector;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.async.EntrypointAsyncConnector;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.async.HttpEntrypointAsyncConnector;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
@@ -255,7 +257,7 @@ class DefaultApiReactorTest {
     private MutableResponse response;
 
     @Mock
-    private EntrypointAsyncConnector entrypointConnector;
+    private BaseEntrypointConnector entrypointConnector;
 
     @Mock
     private io.gravitee.gateway.reactive.handlers.api.flow.FlowChain platformFlowChain;
