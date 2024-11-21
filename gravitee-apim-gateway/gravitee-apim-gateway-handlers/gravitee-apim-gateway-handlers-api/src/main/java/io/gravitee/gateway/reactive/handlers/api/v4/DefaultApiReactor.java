@@ -19,6 +19,9 @@ import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTER
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_MAX_SIZE_PROPERTY;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP;
+import static java.lang.Boolean.TRUE;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.event.EventManager;
@@ -39,8 +42,10 @@ import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.ChainHook;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
+import io.gravitee.gateway.reactive.api.invoker.BaseInvoker;
 import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionHelper;
@@ -53,6 +58,7 @@ import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.reactive.core.v4.invoker.HttpEndpointInvoker;
+import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LoggingHook;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory;
@@ -79,6 +85,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -363,10 +370,37 @@ public class DefaultApiReactor extends AbstractApiReactor {
     }
 
     protected Completable invokeBackend(final MutableExecutionContext ctx) {
-        return super
-            .invokeBackend(ctx)
+        return invokeBackend0(ctx)
             .doOnSubscribe(disposable -> initEndpointResponseTimeMetric(ctx))
             .doFinally(() -> computeEndpointResponseTimeMetric(ctx));
+    }
+
+    protected Completable invokeBackend0(final MutableExecutionContext ctx) {
+        return Completable.defer(() -> {
+            if (!TRUE.equals(ctx.<Boolean>getInternalAttribute(ATTR_INTERNAL_INVOKER_SKIP))) {
+                return getInvoker(ctx)
+                    .map(invoker -> HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, endpointExecutionPhase())
+                    )
+                    .orElse(Completable.complete());
+            }
+            return Completable.complete();
+        });
+    }
+
+    @Override
+    protected void prepareCommonAttributes(MutableExecutionContext ctx) {
+        super.prepareCommonAttributes(ctx);
+        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER, defaultInvoker);
+    }
+
+    protected Optional<HttpInvoker> getInvoker(final MutableExecutionContext ctx) {
+        final Object invoker = ctx.getInternalAttribute(ATTR_INTERNAL_INVOKER);
+        if (invoker instanceof HttpInvoker reactiveInvoker) {
+            return Optional.of(reactiveInvoker);
+        } else if (invoker instanceof io.gravitee.gateway.api.Invoker legacyInvoker) {
+            return Optional.of(new InvokerAdapter(legacyInvoker));
+        }
+        return Optional.empty();
     }
 
     @Override

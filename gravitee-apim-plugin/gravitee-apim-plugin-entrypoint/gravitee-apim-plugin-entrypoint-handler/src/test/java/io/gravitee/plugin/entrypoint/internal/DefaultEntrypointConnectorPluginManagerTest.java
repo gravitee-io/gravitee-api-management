@@ -18,9 +18,10 @@ package io.gravitee.plugin.entrypoint.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.BaseEntrypointConnector;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnectorConfiguration;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.HttpEntrypointConnector;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
@@ -67,7 +68,7 @@ class DefaultEntrypointConnectorPluginManagerTest {
         cut.register(entrypointPlugin);
         EntrypointConnectorFactory<?> fake = cut.getFactoryById("fake-entrypoint");
         assertThat(fake).isNotNull();
-        EntrypointConnector fakeConnector = fake.createConnector(deploymentContext, null);
+        BaseEntrypointConnector fakeConnector = fake.createConnector(deploymentContext, null);
         assertThat(fakeConnector).isNotNull();
     }
 
@@ -82,7 +83,7 @@ class DefaultEntrypointConnectorPluginManagerTest {
         cut.register(entrypointPlugin);
         EntrypointConnectorFactory<?> fake = cut.getFactoryById("fake-entrypoint");
         assertThat(fake).isNotNull();
-        EntrypointConnector fakeConnector = fake.createConnector(deploymentContext, "{\"info\":\"test\"}");
+        BaseEntrypointConnector fakeConnector = fake.createConnector(deploymentContext, "{\"info\":\"test\"}");
         assertThat(fakeConnector).isNotNull();
         assertThat(fakeConnector).isInstanceOf(FakeEntrypointConnector.class);
         FakeEntrypointConnector fakeEntrypointConnector = (FakeEntrypointConnector) fakeConnector;
@@ -91,7 +92,7 @@ class DefaultEntrypointConnectorPluginManagerTest {
 
     @Test
     void shouldNotRetrieveUnRegisterPlugin() {
-        final EntrypointConnector factoryById = cut.getFactoryById("fake-endpoint");
+        final HttpEntrypointConnector factoryById = cut.getFactoryById("fake-endpoint");
         assertThat(factoryById).isNull();
     }
 
@@ -112,14 +113,14 @@ class DefaultEntrypointConnectorPluginManagerTest {
     @Test
     void shouldNotRetrieveNotDeployedPlugin() {
         cut.register(new FakeEntrypointConnectorPlugin(true, false));
-        final EntrypointConnector factoryById = cut.getFactoryById("fake-endpoint");
+        final HttpEntrypointConnector factoryById = cut.getFactoryById("fake-endpoint");
         assertThat(factoryById).isNull();
     }
 
     @Test
     void shouldRetrieveNotDeployedPlugin() {
         cut.register(new FakeEntrypointConnectorPlugin(true, false));
-        final EntrypointConnector factoryById = cut.getFactoryById("fake-endpoint", true);
+        final HttpEntrypointConnector factoryById = cut.getFactoryById("fake-endpoint", true);
         assertThat(factoryById).isNull();
     }
 
