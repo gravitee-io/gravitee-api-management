@@ -15,9 +15,11 @@
  */
 package io.gravitee.apim.infra.domain_service.api;
 
+import io.gravitee.apim.core.api.domain_service.ApiLifecycleStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.GroupValidationService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
@@ -26,12 +28,16 @@ import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
+import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
+import java.util.Objects;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -47,6 +53,8 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
     private final GroupValidationService groupValidationService;
     private final ListenerValidationService listenerValidationService;
     private final EndpointGroupsValidationService endpointGroupsValidationService;
+    private final ResourcesValidationService resourcesValidationService;
+    private final ApiLifecycleStateDomainService apiLifecycleStateDomainService;
 
     @Override
     public Api validateAndSanitizeForCreation(Api api, PrimaryOwnerEntity primaryOwner, String environmentId, String organizationId) {
@@ -55,9 +63,9 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         }
 
         if (api.getType() == ApiType.NATIVE) {
-            this.validateAndSanitizeNativeV4(api, primaryOwner, environmentId, organizationId);
+            this.validateAndSanitizeNativeV4ForCreation(api, primaryOwner, environmentId, organizationId);
         } else {
-            this.validateAndSanitizeHttpV4(api, primaryOwner, environmentId, organizationId);
+            this.validateAndSanitizeHttpV4ForCreation(api, primaryOwner, environmentId, organizationId);
         }
 
         api.setCategories(categoryDomainService.toCategoryId(api, environmentId));
@@ -65,7 +73,33 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         return api;
     }
 
-    private void validateAndSanitizeHttpV4(final Api api, PrimaryOwnerEntity primaryOwner, String environmentId, String organizationId) {
+    @Override
+    public Api validateAndSanitizeForUpdate(
+        Api existingApi,
+        Api apiToBeUpdated,
+        PrimaryOwnerEntity primaryOwner,
+        String environmentId,
+        String organizationId
+    ) {
+        if (!Objects.equals(existingApi.getEnvironmentId(), environmentId)) {
+            throw new ApiNotFoundException(existingApi.getId());
+        }
+        if (existingApi.getDefinitionVersion() != DefinitionVersion.V4) {
+            throw new ValidationDomainException("Definition not supported, should be V4");
+        }
+        if (existingApi.getType() != ApiType.NATIVE) {
+            throw new ValidationDomainException("Only Native V4 APIs are currently supported");
+        }
+
+        return validateAndSanitizeNativeV4ForUpdate(existingApi, apiToBeUpdated, primaryOwner, environmentId, organizationId);
+    }
+
+    private void validateAndSanitizeHttpV4ForCreation(
+        final Api api,
+        PrimaryOwnerEntity primaryOwner,
+        String environmentId,
+        String organizationId
+    ) {
         var newApiEntity = ApiAdapter.INSTANCE.toNewApiEntity(api);
 
         apiValidationService.validateAndSanitizeNewApi(
@@ -97,7 +131,7 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         );
     }
 
-    private void validateAndSanitizeNativeV4(
+    private void validateAndSanitizeNativeV4ForCreation(
         final Api newApi,
         PrimaryOwnerEntity primaryOwner,
         String environmentId,
@@ -118,13 +152,57 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         // Validate groups
         newApi.setGroups(groupValidationService.validateAndSanitize(Set.of(), newApi.getEnvironmentId(), primaryOwner));
 
-        // Validate and clean listeners
-        var apiDefinition = newApi.getApiDefinitionNativeV4();
+        // Validate and clean definition
+        newApi.setApiDefinitionNativeV4(validateAndSanitizeNativeV4Definition(newApi.getApiDefinitionNativeV4(), executionContext));
+    }
 
+    private Api validateAndSanitizeNativeV4ForUpdate(
+        final Api existingApi,
+        Api toBeUpdatedApi,
+        PrimaryOwnerEntity primaryOwner,
+        String environmentId,
+        String organizationId
+    ) {
+        var executionContext = new ExecutionContext(organizationId, environmentId);
+
+        // Clean description
+        toBeUpdatedApi.setDescription(HtmlSanitizer.sanitize(toBeUpdatedApi.getDescription()));
+
+        // Validate tags
+        toBeUpdatedApi.setTags(tagsValidationService.validateAndSanitize(executionContext, null, toBeUpdatedApi.getTags()));
+
+        // Validate groups
+        toBeUpdatedApi.setGroups(
+            groupValidationService.validateAndSanitize(toBeUpdatedApi.getGroups(), toBeUpdatedApi.getEnvironmentId(), primaryOwner)
+        );
+
+        // Lifecycle state
+        toBeUpdatedApi.setApiLifecycleState(
+            apiLifecycleStateDomainService.validateAndSanitizeForUpdate(
+                toBeUpdatedApi.getId(),
+                existingApi.getApiLifecycleState(),
+                toBeUpdatedApi.getApiLifecycleState()
+            )
+        );
+
+        // Validate and clean definition
+        toBeUpdatedApi.setApiDefinitionNativeV4(
+            validateAndSanitizeNativeV4Definition(toBeUpdatedApi.getApiDefinitionNativeV4(), executionContext)
+        );
+
+        // Validate and clean resources
+        toBeUpdatedApi
+            .getApiDefinitionNativeV4()
+            .setResources(resourcesValidationService.validateAndSanitize(toBeUpdatedApi.getApiDefinitionNativeV4().getResources()));
+
+        return toBeUpdatedApi;
+    }
+
+    private NativeApi validateAndSanitizeNativeV4Definition(NativeApi apiDefinition, ExecutionContext executionContext) {
         apiDefinition.setListeners(
             listenerValidationService.validateAndSanitizeNativeV4(
                 executionContext,
-                null,
+                apiDefinition.getId(),
                 apiDefinition.getListeners(),
                 apiDefinition.getEndpointGroups()
             )
@@ -137,9 +215,9 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         apiDefinition.setFlows(flowValidationDomainService.validateAndSanitizeNativeV4(apiDefinition.getFlows()));
 
         apiValidationService.validateDynamicProperties(
-            newApi.getApiDefinitionNativeV4().getServices() != null
-                ? newApi.getApiDefinitionNativeV4().getServices().getDynamicProperty()
-                : null
+            apiDefinition.getServices() != null ? apiDefinition.getServices().getDynamicProperty() : null
         );
+
+        return apiDefinition;
     }
 }
