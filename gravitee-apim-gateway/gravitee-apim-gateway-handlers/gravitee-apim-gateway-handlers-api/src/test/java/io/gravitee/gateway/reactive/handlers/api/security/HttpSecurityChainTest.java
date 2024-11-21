@@ -27,7 +27,6 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.SecurityPolicy;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
@@ -47,7 +46,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-class SecurityChainTest {
+class HttpSecurityChainTest {
 
     protected static final String MOCK_POLICY = "mock-policy";
     protected static final String MOCK_POLICY_CONFIG = "mock-policy-configuration";
@@ -79,7 +78,7 @@ class SecurityChainTest {
 
         when(policy2.onRequest(ctx)).thenReturn(Completable.complete());
 
-        final SecurityChain cut = new SecurityChain(api, policyManager, ExecutionPhase.REQUEST);
+        final HttpSecurityChain cut = new HttpSecurityChain(api, policyManager, ExecutionPhase.REQUEST);
         final TestObserver<Void> obs = cut.execute(ctx).test();
 
         obs.assertResult();
@@ -103,7 +102,7 @@ class SecurityChainTest {
 
         when(policy1.onRequest(ctx)).thenReturn(Completable.complete());
 
-        final SecurityChain cut = new SecurityChain(api, policyManager, ExecutionPhase.REQUEST);
+        final HttpSecurityChain cut = new HttpSecurityChain(api, policyManager, ExecutionPhase.REQUEST);
         final TestObserver<Void> obs = cut.execute(ctx).test();
 
         obs.assertResult();
@@ -129,7 +128,7 @@ class SecurityChainTest {
 
         when(ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP)).thenReturn(true);
 
-        final SecurityChain cut = new SecurityChain(api, policyManager, ExecutionPhase.REQUEST);
+        final HttpSecurityChain cut = new HttpSecurityChain(api, policyManager, ExecutionPhase.REQUEST);
         final TestObserver<Void> obs = cut.execute(ctx).test();
 
         obs.assertResult();
@@ -144,7 +143,7 @@ class SecurityChainTest {
         when(api.getPlans()).thenReturn(new ArrayList<>());
         when(ctx.interruptWith(any())).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
 
-        final SecurityChain cut = new SecurityChain(api, policyManager, ExecutionPhase.REQUEST);
+        final HttpSecurityChain cut = new HttpSecurityChain(api, policyManager, ExecutionPhase.REQUEST);
         final TestObserver<Void> obs = cut.execute(ctx).test();
 
         obs.assertError(Throwable.class);
@@ -169,7 +168,7 @@ class SecurityChainTest {
 
         when(ctx.interruptWith(any())).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
 
-        final SecurityChain cut = new SecurityChain(api, policyManager, ExecutionPhase.REQUEST);
+        final HttpSecurityChain cut = new HttpSecurityChain(api, policyManager, ExecutionPhase.REQUEST);
         final TestObserver<Void> obs = cut.execute(ctx).test();
 
         obs.assertError(Throwable.class);
@@ -182,8 +181,8 @@ class SecurityChainTest {
             .interruptWith(
                 argThat(failure -> {
                     assertEquals(HttpStatusCode.UNAUTHORIZED_401, failure.statusCode());
-                    Assertions.assertEquals(SecurityChain.UNAUTHORIZED_MESSAGE, failure.message());
-                    Assertions.assertEquals(SecurityChain.PLAN_UNRESOLVABLE, failure.key());
+                    Assertions.assertEquals(HttpSecurityChain.UNAUTHORIZED_MESSAGE, failure.message());
+                    Assertions.assertEquals(HttpSecurityChain.PLAN_UNRESOLVABLE, failure.key());
                     assertNull(failure.parameters());
                     assertNull(failure.contentType());
 

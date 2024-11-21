@@ -73,7 +73,7 @@ import io.gravitee.gateway.reactive.core.v4.invoker.HttpEndpointInvoker;
 import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.ConnectionHandlerAdapter;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
-import io.gravitee.gateway.reactive.handlers.api.v4.security.SecurityChain;
+import io.gravitee.gateway.reactive.handlers.api.v4.security.HttpSecurityChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import io.gravitee.gateway.reactor.handler.Acceptor;
@@ -267,7 +267,7 @@ class DefaultApiReactorTest {
     private io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain apiFlowChain;
 
     @Mock
-    private SecurityChain securityChain;
+    private HttpSecurityChain securityChain;
 
     @Mock
     private RequestTimeoutConfiguration requestTimeoutConfiguration;
@@ -405,7 +405,7 @@ class DefaultApiReactorTest {
             ReflectionTestUtils.setField(defaultApiReactor, "entrypointConnectorResolver", entrypointConnectorResolver);
             ReflectionTestUtils.setField(defaultApiReactor, "defaultInvoker", defaultInvoker);
             defaultApiReactor.doStart();
-            ReflectionTestUtils.setField(defaultApiReactor, "securityChain", securityChain);
+            ReflectionTestUtils.setField(defaultApiReactor, "httpSecurityChain", securityChain);
         } catch (Exception e) {
             fail(e);
         }
