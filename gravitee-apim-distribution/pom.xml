@@ -1421,6 +1421,19 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-data-cache</artifactId>
+                    <version>${gravitee-policy-data-cache.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
 
                 <!-- Reactors -->
                 <dependency>
@@ -1721,19 +1734,6 @@
                     <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-interops-r-sp</artifactId>
                     <version>${gravitee-policy-interops.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>*</groupId>
-                            <artifactId>*</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-                <dependency>
-                    <groupId>com.graviteesource.policy</groupId>
-                    <artifactId>gravitee-policy-data-cache</artifactId>
-                    <version>${gravitee-policy-data-cache.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
