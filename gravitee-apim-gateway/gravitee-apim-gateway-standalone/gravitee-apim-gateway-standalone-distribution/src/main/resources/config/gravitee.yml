@@ -161,6 +161,11 @@ secrets:
 # Gateway Kafka server
 #kafka:
 #  enabled: false
+
+#  # Host Mode
+#  routingMode: host # default is host. Only host is supported for now.
+#  brokerHostPrefix: broker- # default is broker-
+
 #  port: 9092
 #  host: 0.0.0.0
 #  idleTimeout: 0
