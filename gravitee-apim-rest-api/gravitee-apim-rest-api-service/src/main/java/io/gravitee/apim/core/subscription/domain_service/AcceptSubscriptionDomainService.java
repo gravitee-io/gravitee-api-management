@@ -17,6 +17,7 @@ package io.gravitee.apim.core.subscription.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.api_key.domain_service.GenerateApiKeyDomainService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -27,8 +28,10 @@ import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
+import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.Recipient;
+import io.gravitee.apim.core.notification.model.hook.HookContextEntry;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApplicationHookContext;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
@@ -63,6 +66,7 @@ public class AcceptSubscriptionDomainService {
     private final IntegrationAgent integrationAgent;
     private final TriggerNotificationDomainService triggerNotificationDomainService;
     private final UserCrudService userCrudService;
+    private final ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService;
 
     /**
      * Auto accept a subscription when Plan is configured with AUTO validation.
@@ -249,13 +253,19 @@ public class AcceptSubscriptionDomainService {
 
         var additionalRecipients = subscriberEmail.map(List::of).orElse(Collections.emptyList());
 
+        var applicationPrimaryOwner = applicationPrimaryOwnerDomainService.getApplicationPrimaryOwner(
+            organizationId,
+            acceptedSubscription.getApplicationId()
+        );
+
         triggerNotificationDomainService.triggerApiNotification(
             organizationId,
             new SubscriptionAcceptedApiHookContext(
                 acceptedSubscription.getApiId(),
                 acceptedSubscription.getApplicationId(),
                 acceptedSubscription.getPlanId(),
-                acceptedSubscription.getId()
+                acceptedSubscription.getId(),
+                applicationPrimaryOwner.id()
             )
         );
         triggerNotificationDomainService.triggerApplicationNotification(
@@ -264,7 +274,8 @@ public class AcceptSubscriptionDomainService {
                 acceptedSubscription.getApplicationId(),
                 acceptedSubscription.getApiId(),
                 acceptedSubscription.getPlanId(),
-                acceptedSubscription.getId()
+                acceptedSubscription.getId(),
+                applicationPrimaryOwner.id()
             ),
             additionalRecipients
         );

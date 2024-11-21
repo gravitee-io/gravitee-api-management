@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.subscription.use_case;
 
 import static fixtures.ApplicationModelFixtures.anApplicationEntity;
+import static fixtures.core.model.MembershipFixtures.anApplicationPrimaryOwnerUserMembership;
 import static io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService.REJECT_BY_TECHNICAL_ERROR_MESSAGE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -24,6 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 
+import fixtures.ApplicationModelFixtures;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.PlanFixtures;
@@ -33,9 +35,12 @@ import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IntegrationAgentInMemory;
+import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
+import inmemory.RoleQueryServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
@@ -48,6 +53,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
 import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionException;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
+import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApplicationHookContext;
@@ -61,6 +67,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
@@ -88,6 +95,7 @@ class AcceptSubscriptionUseCaseTest {
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String API_ID = "api-id";
     private static final String USER_ID = "user-id";
+    private static final String APPLICATION_ID = "my-application";
 
     private static final ZonedDateTime STARTING_AT = Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault());
     private static final ZonedDateTime ENDING_AT = Instant.parse("2024-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault());
@@ -105,6 +113,9 @@ class AcceptSubscriptionUseCaseTest {
     ApiKeyCrudServiceInMemory apiKeyCrudService = new ApiKeyCrudServiceInMemory();
     ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
     IntegrationAgentInMemory integrationAgent = spy(new IntegrationAgentInMemory());
+    GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
+    RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     AcceptSubscriptionUseCase useCase;
 
     @BeforeAll
@@ -124,6 +135,13 @@ class AcceptSubscriptionUseCaseTest {
             auditDomainService
         );
 
+        ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService = new ApplicationPrimaryOwnerDomainService(
+            groupQueryService,
+            membershipQueryService,
+            roleQueryService,
+            userCrudService
+        );
+
         var acceptSubscriptionDomainService = new AcceptSubscriptionDomainService(
             subscriptionCrudService,
             auditDomainService,
@@ -133,10 +151,27 @@ class AcceptSubscriptionUseCaseTest {
             generateApiKeyDomainService,
             integrationAgent,
             triggerNotificationDomainService,
-            userCrudService
+            userCrudService,
+            applicationPrimaryOwnerDomainService
         );
 
         useCase = new AcceptSubscriptionUseCase(subscriptionCrudService, planCrudService, acceptSubscriptionDomainService);
+
+        membershipQueryService.initWith(List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)));
+        applicationCrudService.initWith(
+            List.of(
+                ApplicationModelFixtures
+                    .anApplicationEntity()
+                    .toBuilder()
+                    .id(APPLICATION_ID)
+                    .primaryOwner(PrimaryOwnerEntity.builder().id(USER_ID).displayName("Jane").build())
+                    .build()
+            )
+        );
+        roleQueryService.resetSystemRoles(ORGANIZATION_ID);
+        userCrudService.initWith(
+            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
+        );
     }
 
     @AfterEach
@@ -434,12 +469,20 @@ class AcceptSubscriptionUseCaseTest {
 
         // Then
         assertThat(triggerNotificationDomainService.getApiNotifications())
-            .containsExactly(new SubscriptionAcceptedApiHookContext("api-id", application.getId(), plan.getId(), subscription.getId()));
+            .containsExactly(
+                new SubscriptionAcceptedApiHookContext("api-id", application.getId(), plan.getId(), subscription.getId(), null)
+            );
 
         assertThat(triggerNotificationDomainService.getApplicationNotifications())
             .containsExactly(
                 new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
-                    new SubscriptionAcceptedApplicationHookContext(application.getId(), "api-id", plan.getId(), subscription.getId())
+                    new SubscriptionAcceptedApplicationHookContext(
+                        application.getId(),
+                        "api-id",
+                        plan.getId(),
+                        subscription.getId(),
+                        USER_ID
+                    )
                 )
             );
     }
@@ -472,7 +515,13 @@ class AcceptSubscriptionUseCaseTest {
             .contains(
                 new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
                     new Recipient("EMAIL", "subscriber@mail.fake"),
-                    new SubscriptionAcceptedApplicationHookContext(application.getId(), "api-id", plan.getId(), subscription.getId())
+                    new SubscriptionAcceptedApplicationHookContext(
+                        application.getId(),
+                        "api-id",
+                        plan.getId(),
+                        subscription.getId(),
+                        USER_ID
+                    )
                 )
             );
     }
