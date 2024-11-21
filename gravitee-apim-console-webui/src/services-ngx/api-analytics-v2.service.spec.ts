@@ -49,12 +49,7 @@ describe('ApiAnalyticsV2Service', () => {
         done();
       });
 
-      httpTestingController
-        .expectOne({
-          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics/requests-count`,
-          method: 'GET',
-        })
-        .flush(fakeAnalyticsRequestsCount());
+      expectGetRequestCount();
     });
   });
 
@@ -92,6 +87,14 @@ describe('ApiAnalyticsV2Service', () => {
       expectApiAnalyticsResponseStatusRangesGetRequest();
     });
   });
+
+  function expectGetRequestCount() {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics/requests-count`;
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(url);
+    });
+    req.flush(fakeAnalyticsRequestsCount());
+  }
 
   function expectApiAnalyticsResponseStatusRangesGetRequest() {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics/response-status-ranges`;
