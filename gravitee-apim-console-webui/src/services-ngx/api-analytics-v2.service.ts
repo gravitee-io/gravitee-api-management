@@ -51,7 +51,12 @@ export class ApiAnalyticsV2Service {
   }
 
   getRequestsCount(apiId: string): Observable<AnalyticsRequestsCount> {
-    return this.http.get<AnalyticsRequestsCount>(`${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/requests-count`);
+    return this.timeRangeFilter().pipe(
+      switchMap(({ from, to }) => {
+        const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/requests-count?from=${from}&to=${to}`;
+        return this.http.get<AnalyticsRequestsCount>(url);
+      }),
+    );
   }
 
   getAverageConnectionDuration(apiId: string): Observable<AnalyticsAverageConnectionDuration> {
