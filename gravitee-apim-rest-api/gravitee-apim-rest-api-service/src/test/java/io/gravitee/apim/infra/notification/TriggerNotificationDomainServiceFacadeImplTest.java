@@ -84,6 +84,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -150,7 +152,8 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                         roleQueryService,
                         userCrudService
                     ),
-                    new ApiMetadataDecoderDomainService(apiMetadataQueryService, new FreemarkerTemplateProcessor())
+                    new ApiMetadataDecoderDomainService(apiMetadataQueryService, new FreemarkerTemplateProcessor()),
+                    userCrudService
                 )
             );
 
@@ -495,6 +498,31 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 );
         }
 
+        @ParameterizedTest
+        @EnumSource(value = ApiHook.class, names = { "SUBSCRIPTION_NEW", "SUBSCRIPTION_ACCEPTED", "SUBSCRIPTION_REJECTED" })
+        public void should_fetch_owner_notification_data(ApiHook hook) {
+            // Given
+            givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
+
+            // When
+            final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest(
+                API_ID,
+                Map.of(HookContextEntry.OWNER, USER_ID),
+                hook
+            );
+
+            service.triggerApiNotification(ORGANIZATION_ID, apiHookContext);
+
+            // Then
+            verify(notifierService).trigger(eq(new ExecutionContext(ORGANIZATION_ID, null)), eq(hook), eq(API_ID), paramsCaptor.capture());
+
+            assertThat(paramsCaptor.getValue())
+                .containsEntry(
+                    "owner",
+                    PrimaryOwnerNotificationTemplateData.builder().id(USER_ID).displayName("Jane Doe").email("jane.doe@gravitee.io").build()
+                );
+        }
+
         static class SimpleApiHookContextForTest extends ApiHookContext {
 
             private final Map<HookContextEntry, String> properties;
@@ -505,6 +533,11 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
 
             public SimpleApiHookContextForTest(String apiId, Map<HookContextEntry, String> properties) {
                 super(ApiHook.SUBSCRIPTION_CLOSED, apiId);
+                this.properties = properties;
+            }
+
+            public SimpleApiHookContextForTest(String apiId, Map<HookContextEntry, String> properties, ApiHook hook) {
+                super(hook, apiId);
                 this.properties = properties;
             }
 

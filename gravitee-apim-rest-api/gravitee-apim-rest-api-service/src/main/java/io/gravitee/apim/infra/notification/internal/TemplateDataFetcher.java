@@ -15,11 +15,17 @@
  */
 package io.gravitee.apim.infra.notification.internal;
 
+import static io.gravitee.rest.api.service.notification.ApiHook.SUBSCRIPTION_ACCEPTED;
+import static io.gravitee.rest.api.service.notification.ApiHook.SUBSCRIPTION_NEW;
+import static io.gravitee.rest.api.service.notification.ApiHook.SUBSCRIPTION_REJECTED;
+
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.ApiMetadataDecodeContext;
 import io.gravitee.apim.core.documentation.model.PrimaryOwnerApiTemplateData;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.notification.model.ApiNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.ApplicationNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.PlanNotificationTemplateData;
@@ -27,12 +33,14 @@ import io.gravitee.apim.core.notification.model.PrimaryOwnerNotificationTemplate
 import io.gravitee.apim.core.notification.model.SubscriptionNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.hook.HookContext;
 import io.gravitee.apim.core.notification.model.hook.HookContextEntry;
+import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -51,6 +59,7 @@ public class TemplateDataFetcher {
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService;
     private final ApiMetadataDecoderDomainService apiMetadataDecoderDomainService;
+    private final UserCrudService userCrudService;
 
     public TemplateDataFetcher(
         @Lazy ApiRepository apiRepository,
@@ -59,7 +68,8 @@ public class TemplateDataFetcher {
         @Lazy SubscriptionRepository subscriptionRepository,
         ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
         ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService,
-        ApiMetadataDecoderDomainService apiMetadataDecoderDomainService
+        ApiMetadataDecoderDomainService apiMetadataDecoderDomainService,
+        UserCrudService userCrudService
     ) {
         this.apiRepository = apiRepository;
         this.applicationRepository = applicationRepository;
@@ -68,6 +78,7 @@ public class TemplateDataFetcher {
         this.apiPrimaryOwnerDomainService = apiPrimaryOwnerDomainService;
         this.applicationPrimaryOwnerDomainService = applicationPrimaryOwnerDomainService;
         this.apiMetadataDecoderDomainService = apiMetadataDecoderDomainService;
+        this.userCrudService = userCrudService;
     }
 
     public Map<String, Object> fetchData(String organizationId, HookContext hookContext) {
@@ -84,12 +95,32 @@ public class TemplateDataFetcher {
                         case PLAN_ID -> buildPlanNotificationTemplateData(entry.getValue());
                         case SUBSCRIPTION_ID -> buildSubscriptionNotificationTemplateData(entry.getValue());
                         case API_KEY -> Optional.of(entry.getValue());
+                        case OWNER -> buildOwnerNotificationTemplateData(hookContext.getHook().name(), entry.getValue());
                     }
                 )
             )
             .filter(entry -> entry.getValue().isPresent())
             .map(entry -> Map.entry(entry.getKey(), entry.getValue().get()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private Optional<PrimaryOwnerNotificationTemplateData> buildOwnerNotificationTemplateData(String hook, String userId) {
+        if (List.of(SUBSCRIPTION_NEW.name(), SUBSCRIPTION_ACCEPTED.name(), SUBSCRIPTION_REJECTED.name()).contains(hook)) {
+            try {
+                var user = userCrudService.getBaseUser(userId);
+                return Optional.of(
+                    PrimaryOwnerNotificationTemplateData
+                        .builder()
+                        .id(user.getId())
+                        .displayName(user.displayName())
+                        .email(user.getEmail())
+                        .build()
+                );
+            } catch (ApiPrimaryOwnerNotFoundException e) {
+                throw new TechnicalManagementException(e);
+            }
+        }
+        return Optional.empty();
     }
 
     private String keyFor(HookContextEntry entry) {
@@ -99,6 +130,7 @@ public class TemplateDataFetcher {
             case PLAN_ID -> "plan";
             case SUBSCRIPTION_ID -> "subscription";
             case API_KEY -> "apiKey";
+            case OWNER -> "owner";
         };
     }
 

@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.subscription.domain_service;
 
+import static fixtures.core.model.MembershipFixtures.anApplicationPrimaryOwnerUserMembership;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -27,9 +28,12 @@ import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IntegrationAgentInMemory;
+import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
+import inmemory.RoleQueryServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
@@ -40,6 +44,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
+import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApplicationHookContext;
@@ -52,6 +57,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.federation.FederatedPlan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.context.IntegrationContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
@@ -105,6 +111,9 @@ class AcceptSubscriptionDomainServiceTest {
     ApiKeyCrudServiceInMemory apiKeyCrudService = new ApiKeyCrudServiceInMemory();
     ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
     IntegrationAgentInMemory integrationAgent = new IntegrationAgentInMemory();
+    GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
+    RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     AcceptSubscriptionDomainService cut;
 
     @BeforeAll
@@ -124,6 +133,13 @@ class AcceptSubscriptionDomainServiceTest {
             auditDomainService
         );
 
+        ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService = new ApplicationPrimaryOwnerDomainService(
+            groupQueryService,
+            membershipQueryService,
+            roleQueryService,
+            userCrudService
+        );
+
         cut =
             new AcceptSubscriptionDomainService(
                 subscriptionCrudService,
@@ -134,12 +150,27 @@ class AcceptSubscriptionDomainServiceTest {
                 generateApiKeyDomainService,
                 integrationAgent,
                 triggerNotificationDomainService,
-                userCrudService
+                userCrudService,
+                applicationPrimaryOwnerDomainService
             );
 
         planCrudService.initWith(List.of(PLAN_CLOSED, PLAN_PUBLISHED, PUSH_PLAN));
 
-        applicationCrudService.initWith(List.of(ApplicationModelFixtures.anApplicationEntity().toBuilder().id(APPLICATION_ID).build()));
+        membershipQueryService.initWith(List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)));
+        applicationCrudService.initWith(
+            List.of(
+                ApplicationModelFixtures
+                    .anApplicationEntity()
+                    .toBuilder()
+                    .id(APPLICATION_ID)
+                    .primaryOwner(PrimaryOwnerEntity.builder().id(USER_ID).displayName("Jane").build())
+                    .build()
+            )
+        );
+        roleQueryService.resetSystemRoles(ORGANIZATION_ID);
+        userCrudService.initWith(
+            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
+        );
     }
 
     @AfterEach
@@ -297,12 +328,14 @@ class AcceptSubscriptionDomainServiceTest {
 
         // Then
         assertThat(triggerNotificationDomainService.getApiNotifications())
-            .containsExactly(new SubscriptionAcceptedApiHookContext("api-id", "application-id", "plan-published", "subscription-id"));
+            .containsExactly(
+                new SubscriptionAcceptedApiHookContext("api-id", "application-id", "plan-published", "subscription-id", USER_ID)
+            );
 
         assertThat(triggerNotificationDomainService.getApplicationNotifications())
             .containsExactly(
                 new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
-                    new SubscriptionAcceptedApplicationHookContext("application-id", "api-id", "plan-published", "subscription-id")
+                    new SubscriptionAcceptedApplicationHookContext("application-id", "api-id", "plan-published", "subscription-id", USER_ID)
                 )
             );
     }
@@ -329,7 +362,7 @@ class AcceptSubscriptionDomainServiceTest {
             .contains(
                 new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
                     new Recipient("EMAIL", "subscriber@mail.fake"),
-                    new SubscriptionAcceptedApplicationHookContext("application-id", "api-id", "plan-published", "subscription-id")
+                    new SubscriptionAcceptedApplicationHookContext("application-id", "api-id", "plan-published", "subscription-id", USER_ID)
                 )
             );
     }
@@ -379,7 +412,8 @@ class AcceptSubscriptionDomainServiceTest {
                             "application-id",
                             subscription.getApiId(),
                             "plan-published",
-                            "subscription-id"
+                            "subscription-id",
+                            USER_ID
                         )
                     )
                 );

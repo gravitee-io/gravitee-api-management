@@ -23,16 +23,33 @@ public class SubscriptionAcceptedApplicationHookContext extends ApplicationHookC
     private final String apiId;
     private final String planId;
     private final String subscriptionId;
+    private final String applicationPrimaryOwner;
 
-    public SubscriptionAcceptedApplicationHookContext(String applicationId, String apiId, String planId, String subscriptionId) {
+    public SubscriptionAcceptedApplicationHookContext(
+        String applicationId,
+        String apiId,
+        String planId,
+        String subscriptionId,
+        String applicationPrimaryOwner
+    ) {
         super(ApplicationHook.SUBSCRIPTION_ACCEPTED, applicationId);
         this.apiId = apiId;
         this.planId = planId;
         this.subscriptionId = subscriptionId;
+        this.applicationPrimaryOwner = applicationPrimaryOwner;
     }
 
     @Override
     protected Map<HookContextEntry, String> getChildProperties() {
-        return Map.of(HookContextEntry.API_ID, apiId, HookContextEntry.PLAN_ID, planId, HookContextEntry.SUBSCRIPTION_ID, subscriptionId);
+        return Map.of(
+            HookContextEntry.API_ID,
+            apiId,
+            HookContextEntry.PLAN_ID,
+            planId,
+            HookContextEntry.SUBSCRIPTION_ID,
+            subscriptionId,
+            HookContextEntry.OWNER,
+            applicationPrimaryOwner
+        );
     }
 }
