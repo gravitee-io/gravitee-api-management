@@ -17,8 +17,8 @@ package io.gravitee.gateway.reactive.handlers.api.v4.security;
 
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.handlers.api.security.plan.SecurityPlan;
-import io.gravitee.gateway.reactive.handlers.api.v4.security.plan.SecurityPlanFactory;
+import io.gravitee.gateway.reactive.handlers.api.security.plan.HttpSecurityPlan;
+import io.gravitee.gateway.reactive.handlers.api.v4.security.plan.HttpSecurityPlanFactory;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.reactivex.rxjava3.core.Flowable;
 import jakarta.annotation.Nonnull;
@@ -34,15 +34,19 @@ import java.util.stream.Stream;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SecurityChain extends io.gravitee.gateway.reactive.handlers.api.security.SecurityChain {
+public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api.security.HttpSecurityChain {
 
-    public SecurityChain(@Nonnull final Api api, @Nonnull final PolicyManager policyManager, @Nonnull final ExecutionPhase executionPhase) {
+    public HttpSecurityChain(
+        @Nonnull final Api api,
+        @Nonnull final PolicyManager policyManager,
+        @Nonnull final ExecutionPhase executionPhase
+    ) {
         super(
             Flowable.fromIterable(
                 stream(api.getPlans())
-                    .map(plan -> SecurityPlanFactory.forPlan(api.getId(), plan, policyManager, executionPhase))
+                    .map(plan -> HttpSecurityPlanFactory.forPlan(api.getId(), plan, policyManager, executionPhase))
                     .filter(Objects::nonNull)
-                    .sorted(Comparator.comparingInt(SecurityPlan::order))
+                    .sorted(Comparator.comparingInt(HttpSecurityPlan::order))
                     .collect(Collectors.toList())
             ),
             executionPhase

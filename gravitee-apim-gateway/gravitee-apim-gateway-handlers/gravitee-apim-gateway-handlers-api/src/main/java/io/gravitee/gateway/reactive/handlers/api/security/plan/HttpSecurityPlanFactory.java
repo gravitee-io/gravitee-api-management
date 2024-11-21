@@ -28,18 +28,18 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SecurityPlanFactory {
+public class HttpSecurityPlanFactory {
 
-    private static final Logger log = LoggerFactory.getLogger(SecurityPlanFactory.class);
+    private static final Logger log = LoggerFactory.getLogger(HttpSecurityPlanFactory.class);
 
-    private SecurityPlanFactory() {}
+    private HttpSecurityPlanFactory() {}
 
     @Nullable
-    public static SecurityPlan forPlan(@Nonnull Plan plan, @Nonnull PolicyManager policyManager) {
+    public static HttpSecurityPlan forPlan(@Nonnull Plan plan, @Nonnull PolicyManager policyManager) {
         final HttpSecurityPolicy policy = SecurityPolicyFactory.forPlan(plan, policyManager);
 
         if (policy != null) {
-            return new SecurityPlan(plan.getId(), policy, plan.getSelectionRule());
+            return new HttpSecurityPlan(plan.getId(), policy, plan.getSelectionRule());
         }
 
         log.warn(

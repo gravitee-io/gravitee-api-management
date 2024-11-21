@@ -62,7 +62,7 @@ import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.reactive.handlers.api.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
-import io.gravitee.gateway.reactive.handlers.api.security.SecurityChain;
+import io.gravitee.gateway.reactive.handlers.api.security.HttpSecurityChain;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LoggingHook;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
@@ -169,7 +169,7 @@ class SyncApiReactorTest {
     InvokerAdapter invokerAdapter;
 
     @Mock
-    SecurityChain securityChain;
+    HttpSecurityChain httpSecurityChain;
 
     @Spy
     Completable spyRequestPlatformFlowChain = Completable.complete();
@@ -327,7 +327,7 @@ class SyncApiReactorTest {
         verify(resourceLifecycleManager).start();
         verify(policyManager).start();
         verify(groupLifecycleManager).start();
-        assertThat(cut.securityChain).isNotNull();
+        assertThat(cut.httpSecurityChain).isNotNull();
         assertThat(cut.processorChainHooks).isEmpty();
         assertThat(cut.invokerHooks).isEmpty();
     }
@@ -341,7 +341,7 @@ class SyncApiReactorTest {
         verify(resourceLifecycleManager).start();
         verify(policyManager).start();
         verify(groupLifecycleManager).start();
-        assertThat(cut.securityChain).isNotNull();
+        assertThat(cut.httpSecurityChain).isNotNull();
         assertThat(cut.processorChainHooks).hasSize(1);
         assertThat(cut.processorChainHooks.get(0)).isInstanceOf(TracingHook.class);
         assertThat(cut.invokerHooks).hasSize(1);
@@ -359,7 +359,7 @@ class SyncApiReactorTest {
         verify(resourceLifecycleManager).start();
         verify(policyManager).start();
         verify(groupLifecycleManager).start();
-        assertThat(cut.securityChain).isNotNull();
+        assertThat(cut.httpSecurityChain).isNotNull();
         assertThat(cut.invokerHooks).hasSize(1);
         assertThat(cut.invokerHooks.get(0)).isInstanceOf(LoggingHook.class);
     }
@@ -423,8 +423,8 @@ class SyncApiReactorTest {
         fillRequestExecutionContext();
         when(invokerAdapter.invoke(any(HttpExecutionContext.class))).thenReturn(spyInvokerAdapterChain);
         cut.doStart();
-        when(securityChain.execute(any())).thenReturn(spySecurityChain);
-        ReflectionTestUtils.setField(cut, "securityChain", securityChain);
+        when(httpSecurityChain.execute(any())).thenReturn(spySecurityChain);
+        ReflectionTestUtils.setField(cut, "httpSecurityChain", httpSecurityChain);
 
         cut.handle(ctx).test().assertComplete();
 
@@ -461,8 +461,8 @@ class SyncApiReactorTest {
         fillRequestExecutionContext();
         when(invokerAdapter.invoke(any(HttpExecutionContext.class))).thenReturn(spyInvokerAdapterChain);
         cut.doStart();
-        when(securityChain.execute(any())).thenReturn(spySecurityChain);
-        ReflectionTestUtils.setField(cut, "securityChain", securityChain);
+        when(httpSecurityChain.execute(any())).thenReturn(spySecurityChain);
+        ReflectionTestUtils.setField(cut, "httpSecurityChain", httpSecurityChain);
 
         cut.handle(ctx).test().assertComplete();
         InOrder orderedChain = getInOrder();
@@ -506,8 +506,8 @@ class SyncApiReactorTest {
         lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_INVOKER)).thenReturn(endpointInvoker);
         ArgumentCaptor<Handler<ProxyConnection>> handlerArgumentCaptor = ArgumentCaptor.forClass(Handler.class);
         cut.doStart();
-        when(securityChain.execute(any())).thenReturn(spySecurityChain);
-        ReflectionTestUtils.setField(cut, "securityChain", securityChain);
+        when(httpSecurityChain.execute(any())).thenReturn(spySecurityChain);
+        ReflectionTestUtils.setField(cut, "httpSecurityChain", httpSecurityChain);
 
         cut.handle(ctx).subscribe();
 
@@ -562,8 +562,8 @@ class SyncApiReactorTest {
         when(invokerAdapter.invoke(any(HttpExecutionContext.class))).thenReturn(spyInvokerAdapterError);
 
         cut.doStart();
-        when(securityChain.execute(any())).thenReturn(spySecurityChain);
-        ReflectionTestUtils.setField(cut, "securityChain", securityChain);
+        when(httpSecurityChain.execute(any())).thenReturn(spySecurityChain);
+        ReflectionTestUtils.setField(cut, "httpSecurityChain", httpSecurityChain);
 
         cut.handle(ctx).test().assertComplete();
         InOrder orderedChain = getInOrder();
@@ -597,8 +597,8 @@ class SyncApiReactorTest {
         when(invokerAdapter.invoke(any(ExecutionContext.class))).thenReturn(spyTimeout);
 
         cut.doStart();
-        when(securityChain.execute(any())).thenReturn(spySecurityChain);
-        ReflectionTestUtils.setField(cut, "securityChain", securityChain);
+        when(httpSecurityChain.execute(any())).thenReturn(spySecurityChain);
+        ReflectionTestUtils.setField(cut, "httpSecurityChain", httpSecurityChain);
 
         cut.handle(ctx).subscribe();
         testScheduler.advanceTimeBy(REQUEST_TIMEOUT + 30L, TimeUnit.MILLISECONDS);
@@ -636,8 +636,8 @@ class SyncApiReactorTest {
         fillRequestExecutionContext();
 
         cut.doStart();
-        when(securityChain.execute(any())).thenReturn(spySecurityChain);
-        ReflectionTestUtils.setField(cut, "securityChain", securityChain);
+        when(httpSecurityChain.execute(any())).thenReturn(spySecurityChain);
+        ReflectionTestUtils.setField(cut, "httpSecurityChain", httpSecurityChain);
 
         cut.handle(ctx).subscribe();
         testScheduler.advanceTimeBy(REQUEST_TIMEOUT + 30L, TimeUnit.MILLISECONDS);
@@ -675,8 +675,8 @@ class SyncApiReactorTest {
         fillRequestExecutionContext();
 
         cut.doStart();
-        when(securityChain.execute(any())).thenReturn(spySecurityChain);
-        ReflectionTestUtils.setField(cut, "securityChain", securityChain);
+        when(httpSecurityChain.execute(any())).thenReturn(spySecurityChain);
+        ReflectionTestUtils.setField(cut, "httpSecurityChain", httpSecurityChain);
 
         cut.handle(ctx).subscribe();
         testScheduler.advanceTimeBy(REQUEST_TIMEOUT + 30L, TimeUnit.MILLISECONDS);
@@ -709,8 +709,8 @@ class SyncApiReactorTest {
         when(onErrorProcessors.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyOnErrorProcessors);
         fillRequestExecutionContext();
         cut.doStart();
-        when(securityChain.execute(any())).thenReturn(spyInterruptSecurityChain);
-        ReflectionTestUtils.setField(cut, "securityChain", securityChain);
+        when(httpSecurityChain.execute(any())).thenReturn(spyInterruptSecurityChain);
+        ReflectionTestUtils.setField(cut, "httpSecurityChain", httpSecurityChain);
 
         cut.handle(ctx).test().assertComplete();
         InOrder orderedChain = getInOrder();

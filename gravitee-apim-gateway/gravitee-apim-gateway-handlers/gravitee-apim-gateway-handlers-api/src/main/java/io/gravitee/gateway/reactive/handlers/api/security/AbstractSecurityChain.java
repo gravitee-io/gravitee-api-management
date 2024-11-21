@@ -50,7 +50,7 @@ public abstract class AbstractSecurityChain<
     protected static final String PLAN_RESOLUTION_FAILURE = "GATEWAY_PLAN_RESOLUTION_FAILURE";
     protected static final String UNAUTHORIZED_MESSAGE = "Unauthorized";
     protected static final String TEMPORARILY_UNAVAILABLE_MESSAGE = "Temporarily Unavailable";
-    protected static final String ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE = "securityChain.planResolutionFailure";
+    protected static final String ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE = "httpSecurityChain.planResolutionFailure";
 
     protected static final Single<Boolean> TRUE = Single.just(true);
     protected static final Single<Boolean> FALSE = Single.just(false);

@@ -24,7 +24,7 @@ import io.reactivex.rxjava3.core.Maybe;
 import jakarta.annotation.Nonnull;
 
 /**
- * {@link SecurityPlan} allows to wrap a {@link io.gravitee.gateway.reactive.api.policy.http.HttpPolicy} implementing {@link HttpSecurityPolicy} and make it working in a security chain.
+ * {@link HttpSecurityPlan} allows to wrap a {@link io.gravitee.gateway.reactive.api.policy.http.HttpPolicy} implementing {@link HttpSecurityPolicy} and make it working in a security chain.
  * Security plan is responsible to
  * <ul>
  *     <li>Check if a policy can handle the security or not</li>
@@ -36,9 +36,9 @@ import jakarta.annotation.Nonnull;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SecurityPlan extends AbstractSecurityPlan<HttpSecurityPolicy, HttpPlainExecutionContext> {
+public class HttpSecurityPlan extends AbstractSecurityPlan<HttpSecurityPolicy, HttpPlainExecutionContext> {
 
-    public SecurityPlan(@Nonnull final String planId, @Nonnull final HttpSecurityPolicy policy, final String selectionRule) {
+    public HttpSecurityPlan(@Nonnull final String planId, @Nonnull final HttpSecurityPolicy policy, final String selectionRule) {
         super(planId, policy, selectionRule);
     }
 

@@ -102,7 +102,7 @@ public class DebugSyncApiReactor extends SyncApiReactor {
     @Override
     protected void doStart() throws Exception {
         super.doStart();
-        securityChain.addHooks(new DebugPolicyHook());
+        httpSecurityChain.addHooks(new DebugPolicyHook());
     }
 
     @Override

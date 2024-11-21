@@ -23,8 +23,8 @@ import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.Hookable;
 import io.gravitee.gateway.reactive.api.hook.SecurityPlanHook;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
-import io.gravitee.gateway.reactive.handlers.api.security.plan.SecurityPlan;
-import io.gravitee.gateway.reactive.handlers.api.security.plan.SecurityPlanFactory;
+import io.gravitee.gateway.reactive.handlers.api.security.plan.HttpSecurityPlan;
+import io.gravitee.gateway.reactive.handlers.api.security.plan.HttpSecurityPlanFactory;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
@@ -36,36 +36,38 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * {@link SecurityChain} is a special chain dedicated to execute policy associated with plans.
- * The security chain is responsible to create {@link SecurityPlan} for each plan of the api and executed them in order.
- * Only the first {@link SecurityPlan} that can handle the current request is executed.
- * The result of the security chain execution depends on this {@link SecurityPlan} execution.
+ * {@link HttpSecurityChain} is a special chain dedicated to execute policy associated with plans.
+ * The security chain is responsible to create {@link HttpSecurityPlan} for each plan of the api and executed them in order.
+ * Only the first {@link HttpSecurityPlan} that can handle the current request is executed.
+ * The result of the security chain execution depends on this {@link HttpSecurityPlan} execution.
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SecurityChain extends AbstractSecurityChain<SecurityPlan, HttpPlainExecutionContext> implements Hookable<SecurityPlanHook> {
+public class HttpSecurityChain
+    extends AbstractSecurityChain<HttpSecurityPlan, HttpPlainExecutionContext>
+    implements Hookable<SecurityPlanHook> {
 
     private final ExecutionPhase executionPhase;
 
     private List<SecurityPlanHook> securityPlanHooks;
 
-    public SecurityChain(Api api, PolicyManager policyManager, ExecutionPhase executionPhase) {
+    public HttpSecurityChain(Api api, PolicyManager policyManager, ExecutionPhase executionPhase) {
         super(
             Flowable.fromIterable(
                 api
                     .getPlans()
                     .stream()
-                    .map(plan -> SecurityPlanFactory.forPlan(plan, policyManager))
+                    .map(plan -> HttpSecurityPlanFactory.forPlan(plan, policyManager))
                     .filter(Objects::nonNull)
-                    .sorted(Comparator.comparingInt(SecurityPlan::order))
+                    .sorted(Comparator.comparingInt(HttpSecurityPlan::order))
                     .collect(Collectors.toList())
             )
         );
         this.executionPhase = executionPhase;
     }
 
-    public SecurityChain(Flowable<SecurityPlan> securityPlans, ExecutionPhase executionPhase) {
+    public HttpSecurityChain(Flowable<HttpSecurityPlan> securityPlans, ExecutionPhase executionPhase) {
         super(securityPlans);
         this.executionPhase = executionPhase;
     }
@@ -76,11 +78,11 @@ public class SecurityChain extends AbstractSecurityChain<SecurityPlan, HttpPlain
     }
 
     @Override
-    protected Single<Boolean> executePlan(SecurityPlan securityPlan, HttpPlainExecutionContext ctx) {
+    protected Single<Boolean> executePlan(HttpSecurityPlan httpSecurityPlan, HttpPlainExecutionContext ctx) {
         return HookHelper
             .hook(
-                () -> securityPlan.execute(ctx, executionPhase),
-                securityPlan.id(),
+                () -> httpSecurityPlan.execute(ctx, executionPhase),
+                httpSecurityPlan.id(),
                 securityPlanHooks,
                 (HttpExecutionContext) ctx,
                 executionPhase

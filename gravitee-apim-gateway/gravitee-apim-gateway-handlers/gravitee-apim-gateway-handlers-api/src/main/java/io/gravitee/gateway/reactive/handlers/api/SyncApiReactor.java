@@ -57,7 +57,7 @@ import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.reactive.handlers.api.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
-import io.gravitee.gateway.reactive.handlers.api.security.SecurityChain;
+import io.gravitee.gateway.reactive.handlers.api.security.HttpSecurityChain;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LoggingHook;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
@@ -119,7 +119,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     private final AtomicInteger pendingRequests = new AtomicInteger(0);
     private final long pendingRequestsTimeout;
     protected AnalyticsContext analyticsContext;
-    protected SecurityChain securityChain;
+    protected HttpSecurityChain httpSecurityChain;
 
     public SyncApiReactor(
         final Api api,
@@ -231,7 +231,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             // Before Security Chain.
             .andThen(executeProcessorChain(ctx, beforeSecurityChainProcessors, REQUEST))
             // Execute security chain.
-            .andThen(securityChain.execute(ctx))
+            .andThen(httpSecurityChain.execute(ctx))
             // Execute before flows processors
             .andThen(executeProcessorChain(ctx, beforeApiFlowsProcessors, REQUEST))
             .andThen(executeFlowChain(ctx, apiPlanFlowChain, REQUEST))
@@ -430,8 +430,8 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
         dumpVirtualHosts();
 
-        // Create securityChain once policy manager has been started.
-        this.securityChain = new SecurityChain(api.getDefinition(), policyManager, REQUEST);
+        // Create httpSecurityChain once policy manager has been started.
+        this.httpSecurityChain = new HttpSecurityChain(api.getDefinition(), policyManager, REQUEST);
 
         tracingContext.start();
         this.analyticsContext =
@@ -444,7 +444,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
                 processorChainHooks.add(new TracingHook("Processor chain"));
             }
             invokerHooks.add(new InvokerTracingHook("Invoker"));
-            securityChain.addHooks(new TracingHook("Security plan"));
+            httpSecurityChain.addHooks(new TracingHook("Security plan"));
         }
 
         long endTime = System.currentTimeMillis(); // Get the end Time

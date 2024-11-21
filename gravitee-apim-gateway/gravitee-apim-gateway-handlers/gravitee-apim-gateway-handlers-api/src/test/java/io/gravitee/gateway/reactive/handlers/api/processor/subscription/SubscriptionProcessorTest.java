@@ -93,7 +93,7 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
     }
 
     @Nested
-    class SecurityChain {
+    class HttpSecurityChain {
 
         @Test
         void should_set_metrics_when_security_chain_is_not_skipped() {

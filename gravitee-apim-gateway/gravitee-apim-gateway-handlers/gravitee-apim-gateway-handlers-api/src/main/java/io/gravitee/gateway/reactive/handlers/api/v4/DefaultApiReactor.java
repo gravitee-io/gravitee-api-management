@@ -57,7 +57,7 @@ import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LoggingHoo
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
-import io.gravitee.gateway.reactive.handlers.api.v4.security.SecurityChain;
+import io.gravitee.gateway.reactive.handlers.api.v4.security.HttpSecurityChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.AccessPointHttpAcceptor;
@@ -124,7 +124,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected final String loggingExcludedResponseType;
     protected final String loggingMaxSize;
     private final DeploymentContext deploymentContext;
-    protected SecurityChain securityChain;
+    protected HttpSecurityChain httpSecurityChain;
     private Lifecycle.State lifecycleState;
     protected AnalyticsContext analyticsContext;
     private List<ApiService> services;
@@ -250,7 +250,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
             // Before Security Chain.
             .chainWith(executeProcessorChain(ctx, beforeSecurityChainProcessors, REQUEST))
             // Execute security chain.
-            .chainWith(securityChain.execute(ctx))
+            .chainWith(httpSecurityChain.execute(ctx))
             // Before flows processors.
             .chainWith(executeProcessorChain(ctx, beforeApiExecutionProcessors, REQUEST))
             // Resolve entrypoint and prepare request to be handled.
@@ -472,8 +472,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
         resourceLifecycleManager.start();
         policyManager.start();
 
-        // Create securityChain once policy manager has been started.
-        securityChain = new SecurityChain(api.getDefinition(), policyManager, ExecutionPhase.REQUEST);
+        // Create httpSecurityChain once policy manager has been started.
+        httpSecurityChain = new HttpSecurityChain(api.getDefinition(), policyManager, ExecutionPhase.REQUEST);
 
         tracingContext.start();
         analyticsContext = analyticsContext();
@@ -487,7 +487,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
                     processorChainHooks.add(new TracingHook("Processor chain"));
                 }
                 invokerHooks.add(new InvokerTracingHook("Invoker"));
-                securityChain.addHooks(new TracingHook("Security"));
+                httpSecurityChain.addHooks(new TracingHook("Security"));
             }
         }
         addInvokerHooks(invokerHooks);
