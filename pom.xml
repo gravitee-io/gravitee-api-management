@@ -280,8 +280,8 @@
         <gravitee-endpoint-azure-service-bus.version>1.0.0-alpha.3</gravitee-endpoint-azure-service-bus.version>
         <gravitee-policy-graphql-rate-limit.version>1.0.1</gravitee-policy-graphql-rate-limit.version>
         <gravitee-resource-schema-registry-confluent.version>3.1.0</gravitee-resource-schema-registry-confluent.version>
-        <gravitee-reactor-message.version>5.0.0-alpha.5</gravitee-reactor-message.version>
-        <gravitee-reactor-native-kafka.version>1.0.0-alpha.12</gravitee-reactor-native-kafka.version>
+        <gravitee-reactor-message.version>5.0.0-alpha.6</gravitee-reactor-message.version>
+        <gravitee-reactor-native-kafka.version>1.0.0-alpha.13</gravitee-reactor-native-kafka.version>
         <gravitee-apim-repository-bridge.version>5.1.2</gravitee-apim-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>1.0.0</gravitee-secretprovider-hc-vault.version>
         <gravitee-policy-interops.version>1.1.2</gravitee-policy-interops.version>
