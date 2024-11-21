@@ -21,5 +21,6 @@ public enum HookContextEntry {
     PLAN_ID,
     SUBSCRIPTION_ID,
     API_KEY,
+    OWNER,
     INTEGRATION_ID,
 }
