@@ -52,4 +52,8 @@ public interface FlowRepository extends CrudRepository<Flow, String> {
      * @throws TechnicalException
      */
     List<String> deleteByReferenceIdAndReferenceType(String referenceId, FlowReferenceType referenceType) throws TechnicalException;
+
+    List<Flow> createAll(List<Flow> flows) throws TechnicalException;
+
+    List<Flow> updateAll(List<Flow> flows) throws TechnicalException;
 }

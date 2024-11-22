@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.management;
 
+import static org.assertj.core.api.AssertionsForClassTypes.tuple;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -227,5 +229,58 @@ public class FlowRepositoryTest extends AbstractManagementRepositoryTest {
         flowRepository.deleteAllById(ids);
 
         assertEquals(0, flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-deleted").size());
+    }
+
+    @Test
+    public void shouldSaveAll() throws TechnicalException {
+        Flow flow1 = aFlow().toBuilder().id("flow-to-create-1").name("flow-to-create-1").build();
+        Flow flow2 = flow1.toBuilder().id("flow-to-create-2").name("flow-to-create-2").order(2).build();
+
+        List<Flow> result = flowRepository.createAll(List.of(flow1, flow2));
+        assertThat(result).hasSize(2);
+        assertThat(result)
+            .extracting(Flow::getId, Flow::getName)
+            .containsExactlyInAnyOrder(tuple("flow-to-create-1", "flow-to-create-1"), tuple("flow-to-create-2", "flow-to-create-2"));
+    }
+
+    @Test
+    public void shouldUpdateAll() throws TechnicalException {
+        Flow flow1 = aFlow().toBuilder().id("flow-to-update-1").name("flow-to-update-1").build();
+        Flow flow2 = flow1.toBuilder().id("flow-to-update-2").name("flow-to-update-2").order(2).build();
+
+        List<Flow> createdFlows = flowRepository.createAll(List.of(flow1, flow2));
+        assertThat(createdFlows).hasSize(2);
+        assertThat(createdFlows)
+            .extracting(Flow::getId, Flow::getName)
+            .containsExactlyInAnyOrder(tuple("flow-to-update-1", "flow-to-update-1"), tuple("flow-to-update-2", "flow-to-update-2"));
+
+        flow1.setName("flow-to-update-1-updated");
+        flow2.setName("flow-to-update-2-updated");
+
+        List<Flow> updatedFlows = flowRepository.updateAll(List.of(flow1, flow2));
+        assertThat(updatedFlows).hasSize(2);
+        assertThat(updatedFlows)
+            .extracting(Flow::getId, Flow::getName)
+            .containsExactlyInAnyOrder(
+                tuple("flow-to-update-1", "flow-to-update-1-updated"),
+                tuple("flow-to-update-2", "flow-to-update-2-updated")
+            );
+    }
+
+    private Flow aFlow() {
+        return Flow
+            .builder()
+            .id("flow")
+            .name("flow")
+            .condition("my-condition")
+            .createdAt(new Date(1470157767000L))
+            .enabled(false)
+            .methods(new HashSet<>(List.of(HttpMethod.CONNECT)))
+            .path("/")
+            .operator(FlowOperator.STARTS_WITH)
+            .referenceId("my-api-id")
+            .referenceType(FlowReferenceType.API)
+            .order(1)
+            .build();
     }
 }
