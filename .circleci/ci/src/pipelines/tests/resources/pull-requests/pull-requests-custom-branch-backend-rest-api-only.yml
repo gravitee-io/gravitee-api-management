@@ -158,7 +158,7 @@ jobs:
             - gravitee-api-management-v11-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run Rest API tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Drest-api-modules -Dskip.validation=true -T 2C
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress --update-snapshots -Drest-api-modules -Dskip.validation=true -T 2C
       - run:
           name: Save test results
           command: |-
