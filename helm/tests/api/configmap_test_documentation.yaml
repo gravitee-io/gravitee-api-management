@@ -1,0 +1,28 @@
+suite: Test Management API default configmap - Installation
+templates:
+  - "api/api-configmap.yaml"
+tests:
+  - it: should not set documentation.audit.maxContentSize with no size defined
+    template: api/api-configmap.yaml
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            documentation:
+              audit:
+                max-content-size:
+
+  - it: should set documentation.audit.maxContentSize with size defined
+    template: api/api-configmap.yaml
+    set:
+      api:
+        documentation:
+          audit:
+            maxContentSize: 100
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            documentation:
+              audit:
+                max-content-size: 100
