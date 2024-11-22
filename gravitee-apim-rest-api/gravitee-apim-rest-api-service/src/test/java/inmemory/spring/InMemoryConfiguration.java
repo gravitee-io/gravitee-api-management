@@ -15,7 +15,6 @@
  */
 package inmemory.spring;
 
-import fakes.FakeApiHealthQueryService;
 import inmemory.AccessPointQueryServiceInMemory;
 import inmemory.ApiAuthorizationDomainServiceInMemory;
 import inmemory.ApiCRDExportDomainServiceInMemory;
@@ -75,6 +74,8 @@ import inmemory.PrimaryOwnerDomainServiceInMemory;
 import inmemory.ResourcePluginCrudServiceInMemory;
 import inmemory.ResourcePluginQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
+import inmemory.ScoringFunctionCrudServiceInMemory;
+import inmemory.ScoringFunctionQueryServiceInMemory;
 import inmemory.ScoringProviderInMemory;
 import inmemory.ScoringReportCrudServiceInMemory;
 import inmemory.ScoringReportQueryServiceInMemory;
@@ -482,6 +483,16 @@ public class InMemoryConfiguration {
     @Bean
     public ScoringRulesetQueryServiceInMemory scoringRulesetQueryService(ScoringRulesetCrudServiceInMemory scoringRulesetCrudService) {
         return new ScoringRulesetQueryServiceInMemory(scoringRulesetCrudService);
+    }
+
+    @Bean
+    public ScoringFunctionCrudServiceInMemory scoringFunctionCrudService() {
+        return new ScoringFunctionCrudServiceInMemory();
+    }
+
+    @Bean
+    public ScoringFunctionQueryServiceInMemory scoringFunctionQueryService(ScoringFunctionCrudServiceInMemory scoringFunctionCrudService) {
+        return new ScoringFunctionQueryServiceInMemory(scoringFunctionCrudService);
     }
 
     @Bean

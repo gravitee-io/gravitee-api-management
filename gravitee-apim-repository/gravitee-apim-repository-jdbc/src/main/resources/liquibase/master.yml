@@ -216,4 +216,6 @@ databaseChangeLog:
     - include:
           - file: liquibase/changelogs/v4_6_0/00_migrate_spg_phase.yml
     - include:
-        - file: liquibase/changelogs/v4_6_0/01_add_api_type_to_plans_table.yml
+          - file: liquibase/changelogs/v4_6_0/01_add_api_type_to_plans_table.yml
+    - include:
+          - file: liquibase/changelogs/v4_6_0/02_add_scoring_function_table.yml
