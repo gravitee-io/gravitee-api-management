@@ -15,6 +15,7 @@
  */
 package io.gravitee.plugin.endpoint.internal;
 
+import io.gravitee.gateway.reactive.api.connector.endpoint.BaseEndpointConnectorFactory;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorFactory;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.plugin.core.api.AbstractConfigurablePluginManager;
@@ -40,9 +41,9 @@ public class DefaultEndpointConnectorPluginManager
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultEndpointConnectorPluginManager.class);
     private final EndpointConnectorClassLoaderFactory classLoaderFactory;
-    private final Map<String, EndpointConnectorFactory<?>> factories = new HashMap<>();
+    private final Map<String, BaseEndpointConnectorFactory<?>> factories = new HashMap<>();
 
-    private final Map<String, EndpointConnectorFactory<?>> notDeployedPluginFactories = new HashMap<>();
+    private final Map<String, BaseEndpointConnectorFactory<?>> notDeployedPluginFactories = new HashMap<>();
     private final PluginConfigurationHelper pluginConfigurationHelper;
 
     public DefaultEndpointConnectorPluginManager(
@@ -60,9 +61,9 @@ public class DefaultEndpointConnectorPluginManager
         // Create endpoint
         PluginClassLoader pluginClassLoader = classLoaderFactory.getOrCreateClassLoader(plugin);
         try {
-            final Class<EndpointConnectorFactory<?>> connectorFactoryClass =
-                (Class<EndpointConnectorFactory<?>>) pluginClassLoader.loadClass(plugin.clazz());
-            EndpointConnectorFactory<?> factory = createFactory(connectorFactoryClass);
+            final Class<BaseEndpointConnectorFactory<?>> connectorFactoryClass =
+                (Class<BaseEndpointConnectorFactory<?>>) pluginClassLoader.loadClass(plugin.clazz());
+            BaseEndpointConnectorFactory<?> factory = createFactory(connectorFactoryClass);
             if (plugin.deployed()) {
                 factories.put(plugin.id(), factory);
             } else {
@@ -73,29 +74,29 @@ public class DefaultEndpointConnectorPluginManager
         }
     }
 
-    private EndpointConnectorFactory<?> createFactory(final Class<EndpointConnectorFactory<?>> connectorFactoryClass)
+    private BaseEndpointConnectorFactory<?> createFactory(final Class<BaseEndpointConnectorFactory<?>> connectorFactoryClass)
         throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-        EndpointConnectorFactory<?> factory;
+        BaseEndpointConnectorFactory<?> factory;
         try {
-            Constructor<EndpointConnectorFactory<?>> constructorWithConfigurationHelper = connectorFactoryClass.getDeclaredConstructor(
+            Constructor<BaseEndpointConnectorFactory<?>> constructorWithConfigurationHelper = connectorFactoryClass.getDeclaredConstructor(
                 PluginConfigurationHelper.class
             );
             factory = constructorWithConfigurationHelper.newInstance(pluginConfigurationHelper);
         } catch (NoSuchMethodException e) {
-            Constructor<EndpointConnectorFactory<?>> emptyConstructor = connectorFactoryClass.getDeclaredConstructor();
+            Constructor<BaseEndpointConnectorFactory<?>> emptyConstructor = connectorFactoryClass.getDeclaredConstructor();
             factory = emptyConstructor.newInstance();
         }
         return factory;
     }
 
     @Override
-    public EndpointConnectorFactory<?> getFactoryById(final String endpointPluginId) {
+    public BaseEndpointConnectorFactory<?> getFactoryById(final String endpointPluginId) {
         return getFactoryById(endpointPluginId, false);
     }
 
     @Override
-    public EndpointConnectorFactory<?> getFactoryById(String endpointPluginId, boolean includeNotDeployed) {
-        EndpointConnectorFactory<?> factory = factories.get(endpointPluginId);
+    public BaseEndpointConnectorFactory<?> getFactoryById(String endpointPluginId, boolean includeNotDeployed) {
+        BaseEndpointConnectorFactory<?> factory = factories.get(endpointPluginId);
         if (factory == null && includeNotDeployed) {
             return notDeployedPluginFactories.get(endpointPluginId);
         }

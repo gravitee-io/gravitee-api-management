@@ -16,7 +16,7 @@
 package io.gravitee.gateway.reactive.core.v4.endpoint;
 
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
+import io.gravitee.gateway.reactive.api.connector.endpoint.BaseEndpointConnector;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -27,7 +27,7 @@ public interface ManagedEndpoint {
 
     ManagedEndpointGroup getGroup();
 
-    <T extends EndpointConnector> T getConnector();
+    <T extends BaseEndpointConnector<?>> T getConnector();
 
     Status getStatus();
 
