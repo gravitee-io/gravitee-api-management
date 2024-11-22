@@ -28,7 +28,9 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
@@ -39,6 +41,9 @@ public class EnvironmentScoringFunctionsResource extends AbstractResource {
 
     @Context
     protected UriInfo uriInfo;
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Inject
     private ImportEnvironmentFunctionUseCase importEnvironmentFunctionUseCase;
@@ -66,5 +71,10 @@ public class EnvironmentScoringFunctionsResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var result = getEnvironmentFunctionsUseCase.execute(new GetEnvironmentFunctionsUseCase.Input(executionContext.getEnvironmentId()));
         return ScoringFunctionsResponse.builder().data(result.reports().stream().map(ScoringFunctionMapper.INSTANCE::map).toList()).build();
+    }
+
+    @Path("{functionId}")
+    public EnvironmentScoringFunctionResource getEnvironmentScoringFunctionResource() {
+        return resourceContext.getResource(EnvironmentScoringFunctionResource.class);
     }
 }

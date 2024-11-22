@@ -14,7 +14,7 @@ databaseChangeLog:
               - column: { name: payload, type: nclob, constraints: { nullable: true } }
 
         - createIndex:
-            indexName: idx_${gravitee_prefix}ref_id_ref_type
+            indexName: idx_${gravitee_prefix}ref_id_ref_type_scoring_functions
             tableName: ${gravitee_prefix}scoring_functions
             columns:
               - column:

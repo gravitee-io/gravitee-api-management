@@ -72,7 +72,7 @@ class ImportEnvironmentFunctionUseCaseTest {
     void should_create_function() {
         // Given
         ImportEnvironmentFunctionUseCase.Input input = new ImportEnvironmentFunctionUseCase.Input(
-            new ImportEnvironmentFunctionUseCase.NewFunction("name", "description", "payload"),
+            new ImportEnvironmentFunctionUseCase.NewFunction("name", "payload"),
             AUDIT_INFO
         );
 
@@ -86,7 +86,6 @@ class ImportEnvironmentFunctionUseCaseTest {
                     .builder()
                     .id("generated-id")
                     .name("name")
-                    .description("description")
                     .payload("payload")
                     .referenceId(ENVIRONMENT_ID)
                     .referenceType(ScoringFunction.ReferenceType.ENVIRONMENT)
@@ -99,7 +98,7 @@ class ImportEnvironmentFunctionUseCaseTest {
     void should_function_id() {
         // Given
         ImportEnvironmentFunctionUseCase.Input input = new ImportEnvironmentFunctionUseCase.Input(
-            new ImportEnvironmentFunctionUseCase.NewFunction("name", "description", "payload"),
+            new ImportEnvironmentFunctionUseCase.NewFunction("name", "payload"),
             AUDIT_INFO
         );
 
