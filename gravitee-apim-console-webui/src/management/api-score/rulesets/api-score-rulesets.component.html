@@ -17,36 +17,46 @@
 -->
 
 <div class="rulesets-page">
-  <h1 class="title">Rulesets</h1>
+  <h1 class="title">Rulesets & Functions</h1>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title class="mat-h3 card-title">Rulesets</mat-card-title>
+      <mat-card-subtitle class="mat-body subtitle"
+        >Rulesets let you define rules that governs how your APIs behaves and interacts.
+      </mat-card-subtitle>
+
+      <button mat-raised-button routerLink="import">Import</button>
+    </mat-card-header>
+
+    <div class="separator-hr"></div>
+
+    @if (rulesets$ | async; as rulesets) {
+      <mat-card-content class="rulesets">
+        @for (ruleset of rulesets.data; track ruleset.id) {
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title class="panel-title">
+                {{ ruleset.name }}
+              </mat-panel-title>
+              <mat-panel-description>
+                <span class="mat-body subtitle">{{ ruleset.description }}</span>
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+            <div class="separator-hr"></div>
+            <div class="content-header">
+              <h4 class="content-header__title">Details</h4>
+              <div class="content-header__actions">
+                <button mat-raised-button [routerLink]="ruleset.id + '/edit'">Edit</button>
+                <button mat-raised-button disabled>Delete</button>
+              </div>
+            </div>
+            <pre class="file-preview">{{ ruleset.payload }}</pre>
+          </mat-expansion-panel>
+        } @empty {
+          <gio-card-empty-state icon="search" title="No ruleset, yet" class="rulesets-empty"></gio-card-empty-state>
+        }
+      </mat-card-content>
+    }
+  </mat-card>
 </div>
-
-<mat-card>
-  <mat-card-header>
-    <mat-card-title>Rulesets</mat-card-title>
-    <mat-card-subtitle class="subtitle">Rulesets let you define rules that governs how your APIs behaves and interacts. </mat-card-subtitle>
-  </mat-card-header>
-
-  <div class="separator-hr"></div>
-
-  @if (rulesets$ | async; as rulesets) {
-    <mat-card-content class="rulesets">
-      @for (ruleset of rulesets.data; track ruleset.id) {
-        <mat-expansion-panel>
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              {{ ruleset.name }}
-            </mat-panel-title>
-            <mat-panel-description>
-              <span class="body-2 subtitle">{{ ruleset.description }}</span>
-            </mat-panel-description>
-          </mat-expansion-panel-header>
-          <div class="separator-hr"></div>
-          <h4>Raw file preview</h4>
-          <pre class="file-preview">{{ ruleset.payload }}</pre>
-        </mat-expansion-panel>
-      } @empty {
-        No rulesets
-      }
-    </mat-card-content>
-  }
-</mat-card>

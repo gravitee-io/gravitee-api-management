@@ -23,4 +23,7 @@ export class ApiScoreRulesetsHarness extends ComponentHarness {
   getMatExpansionPanelHarness = this.locatorForOptional(MatExpansionPanelHarness);
 
   getMatCardHarness = this.locatorForOptional(MatCardHarness);
+
+  // gio-card-empty-state // rulesets-empty
+  getRulesetsEmpty = this.locatorForOptional('.rulesets-empty');
 }

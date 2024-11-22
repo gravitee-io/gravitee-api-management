@@ -19,6 +19,8 @@ import { RouterModule, Routes } from '@angular/router';
 import { ApiScoreDashboardComponent } from './dashboard/api-score-dashboard.component';
 import { ApiScoreNavigationComponent } from './navigation/api-score-navigation.component';
 import { ApiScoreRulesetsComponent } from './rulesets/api-score-rulesets.component';
+import { ImportApiScoreRulesetComponent } from './rulesets/import/import-api-score-ruleset.component';
+import { EditApiScoreRulesetComponent } from './rulesets/edit/edit-api-score-ruleset.component';
 
 const routes: Routes = [
   {
@@ -29,6 +31,14 @@ const routes: Routes = [
       {
         path: '',
         component: ApiScoreDashboardComponent,
+      },
+      {
+        path: 'rulesets/import',
+        component: ImportApiScoreRulesetComponent,
+      },
+      {
+        path: 'rulesets/:id/edit',
+        component: EditApiScoreRulesetComponent,
       },
       {
         path: 'rulesets',

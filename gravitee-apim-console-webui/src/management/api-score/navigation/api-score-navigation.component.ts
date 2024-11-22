@@ -47,9 +47,9 @@ export class ApiScoreNavigationComponent {
     },
     {
       routerLink: 'rulesets',
-      displayName: 'Rulesets',
+      displayName: 'Rulesets & Functions',
       icon: 'shield-check',
-      routerLinkActiveOptions: { exact: true },
+      routerLinkActiveOptions: { exact: false },
       testId: 'rulesets-nav-item',
     },
   ];
