@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnDestroy, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
@@ -23,12 +23,12 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatOption } from '@angular/material/autocomplete';
 import { MatSelect } from '@angular/material/select';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 
 import { FiltersApplied } from './api-analytics-filters-bar.configuration';
 
 import { timeFrames, TimeRangeParams } from '../../../../../../shared/utils/timeFrameRanges';
-import { ApiAnalyticsV2Service, DefaultFilters } from '../../../../../../services-ngx/api-analytics-v2.service';
+import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analytics-v2.service';
 
 @Component({
   selector: 'api-analytics-filters-bar',
@@ -47,26 +47,29 @@ import { ApiAnalyticsV2Service, DefaultFilters } from '../../../../../../service
   templateUrl: './api-analytics-filters-bar.component.html',
   styleUrl: './api-analytics-filters-bar.component.scss',
 })
-export class ApiAnalyticsFiltersBarComponent implements OnInit {
-  private readonly defaultFilters = this.getDefaultFilters();
+export class ApiAnalyticsFiltersBarComponent implements OnInit, OnDestroy {
   protected readonly timeFrames = timeFrames;
   public formGroup: FormGroup;
-  public activeFilters: FiltersApplied = this.defaultFilters;
+  public activeFilters: FiltersApplied;
 
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly destroyRef: DestroyRef,
     private readonly apiAnalyticsV2Service: ApiAnalyticsV2Service,
     private readonly activatedRoute: ActivatedRoute,
-    private readonly router: Router,
   ) {}
 
   ngOnInit() {
+    this.initActiveFilters();
     this.initForm();
   }
 
+  ngOnDestroy() {
+    this.apiAnalyticsV2Service.setTimeRangeFilter(null);
+  }
+
   private initForm() {
-    this.formGroup = this.formBuilder.group(this.defaultFilters);
+    this.formGroup = this.formBuilder.group(this.activeFilters);
     this.formGroup.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((value) => {
       this.activeFilters = value;
       this.apiAnalyticsV2Service.setTimeRangeFilter(this.getPeriodTimeRangeParams());
@@ -81,17 +84,17 @@ export class ApiAnalyticsFiltersBarComponent implements OnInit {
     return timeFrames.find((timeFrame) => timeFrame.id === this.activeFilters.period)?.timeFrameRangesParams();
   }
 
-  private getDefaultFilters(): DefaultFilters {
+  private initActiveFilters() {
     const periodFromQueryParam = this.activatedRoute.snapshot.queryParams.period;
     const validPeriod = timeFrames.find((timeFrame) => timeFrame.id === periodFromQueryParam);
 
-    if (periodFromQueryParam && validPeriod) {
-      return { period: periodFromQueryParam };
+    if (validPeriod) {
+      this.activeFilters = { period: periodFromQueryParam };
+      this.apiAnalyticsV2Service.setTimeRangeFilter(this.getPeriodTimeRangeParams());
+      return;
     }
 
-    this.router.navigate(['../analytics'], {
-      relativeTo: this.activatedRoute,
-    });
-    return { period: '1d' };
+    this.activeFilters = this.apiAnalyticsV2Service.defaultFilters;
+    this.apiAnalyticsV2Service.setTimeRangeFilter(this.getPeriodTimeRangeParams());
   }
 }

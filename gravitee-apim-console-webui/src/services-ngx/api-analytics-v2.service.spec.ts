@@ -23,6 +23,7 @@ import { fakeAnalyticsRequestsCount } from '../entities/management-api-v2/analyt
 import { fakeAnalyticsAverageConnectionDuration } from '../entities/management-api-v2/analytics/analyticsAverageConnectionDuration.fixture';
 import { fakeAnalyticsAverageMessagesPerRequest } from '../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest.fixture';
 import { fakeAnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges.fixture';
+import { timeFrameRangesParams } from '../shared/utils/timeFrameRanges';
 
 describe('ApiAnalyticsV2Service', () => {
   let httpTestingController: HttpTestingController;
@@ -36,6 +37,7 @@ describe('ApiAnalyticsV2Service', () => {
 
     httpTestingController = TestBed.inject(HttpTestingController);
     service = TestBed.inject<ApiAnalyticsV2Service>(ApiAnalyticsV2Service);
+    service.setTimeRangeFilter(timeFrameRangesParams('1d'));
   });
 
   afterEach(() => {
