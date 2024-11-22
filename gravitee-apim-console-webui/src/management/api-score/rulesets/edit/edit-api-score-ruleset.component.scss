@@ -17,7 +17,7 @@
 @use 'sass:map';
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
-@use '../../../scss/gio-layout' as gio-layout;
+@use '../../../../scss/gio-layout' as gio-layout;
 
 $typography: map.get(gio.$mat-theme, typography);
 
@@ -25,43 +25,15 @@ $typography: map.get(gio.$mat-theme, typography);
   @include gio-layout.gio-responsive-content-container;
 }
 
-.rulesets-page {
+.edit-ruleset-page {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
 
   .title {
-    @include mat.m2-typography-level($typography, headline-6);
     margin: 0;
+    @include mat.m2-typography-level($typography, headline-6);
   }
-}
-
-::ng-deep {
-  mat-expansion-panel-header {
-    .mat-content {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-  }
-  .mat-expansion-panel-body {
-    padding: 0 16px 16px 16px !important;
-  }
-}
-
-.mat-expansion-panel-header {
-  padding: 16px;
-  height: unset;
-}
-
-.mat-expansion-panel-header.mat-expanded {
-  padding: 16px;
-  height: unset;
-}
-
-.mat-expansion-panel-header-title {
-  display: flex;
-  gap: 8px;
 }
 
 .card-title {
@@ -74,47 +46,30 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .separator-hr {
   background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
-  margin-bottom: 16px;
+  margin: 16px 0;
   height: 1px;
 }
 
-.gio-badge-neutral,
-.gio-badge-accent {
-  margin: 0;
+.form-field {
+  width: 100%;
 }
 
-.file-preview {
-  margin: 0;
-  max-height: 400px;
-  overflow: auto;
+textarea {
+  resize: none;
 }
 
-.rulesets {
+.hint {
+  color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+}
+
+.form {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 32px;
 }
 
-mat-card-header {
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.content-header {
+.form-actions {
+  margin: 16px 0;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-
-  &__title {
-    margin: 0;
-    display: flex;
-    align-items: center;
-  }
-
-  &__actions {
-    display: flex;
-    gap: 8px;
-  }
+  gap: 16px;
 }

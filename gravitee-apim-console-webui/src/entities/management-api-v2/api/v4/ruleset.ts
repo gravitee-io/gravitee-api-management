@@ -26,3 +26,14 @@ export interface ScoringRuleset {
   referenceId: string;
   referenceType: string;
 }
+
+export interface CreateRulesetRequestData {
+  name: string;
+  description: string;
+  payload: string;
+}
+
+export interface EditRulesetRequestData {
+  name: string;
+  description: string;
+}

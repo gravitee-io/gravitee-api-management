@@ -15,6 +15,7 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ErrorStateMatcher, ShowOnDirtyErrorStateMatcher } from '@angular/material/core';
 
 import { ApiScoreRoutingModule } from './api-score-routing.module';
 import { ApiScoreDashboardModule } from './dashboard/api-score-dashboard.module';
@@ -26,6 +27,6 @@ import { ApiScoringService } from '../../services-ngx/api-scoring.service';
 @NgModule({
   declarations: [],
   imports: [CommonModule, ApiScoreRoutingModule, ApiScoreDashboardModule, ApiScoreRulesetsModule, ApiScoreNavigationComponent],
-  providers: [ApiScoringService],
+  providers: [ApiScoringService, { provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher }],
 })
 export class ApiScoreModule {}

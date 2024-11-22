@@ -57,7 +57,7 @@ describe('ApiScoreNavigationComponent', () => {
     it('should have correct names', async () => {
       const navItems = await componentHarness.navItemsLocator();
       expect(await navItems[0].text()).toBe('Overview');
-      expect(await navItems[1].text()).toBe('Rulesets');
+      expect(await navItems[1].text()).toBe('Rulesets & Functions');
     });
   });
 });

@@ -18,7 +18,12 @@ import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 
 import { Constants } from '../entities/Constants';
-import { ScoringRulesetsResponse } from '../entities/management-api-v2/api/v4/ruleset';
+import {
+  CreateRulesetRequestData,
+  EditRulesetRequestData,
+  ScoringRuleset,
+  ScoringRulesetsResponse,
+} from '../entities/management-api-v2/api/v4/ruleset';
 
 @Injectable({
   providedIn: 'root',
@@ -32,5 +37,20 @@ export class RulesetV2Service {
   public listRulesets(): Observable<ScoringRulesetsResponse> {
     const url = `${this.constants.env.v2BaseURL}/scoring/rulesets`;
     return this.httpClient.get<ScoringRulesetsResponse>(url);
+  }
+
+  public getRuleset(id: string): Observable<ScoringRuleset> {
+    const url = `${this.constants.env.v2BaseURL}/scoring/rulesets/${id}`;
+    return this.httpClient.get<ScoringRuleset>(url);
+  }
+
+  public createRuleset(data: CreateRulesetRequestData) {
+    const url = `${this.constants.env.v2BaseURL}/scoring/rulesets`;
+    return this.httpClient.post(url, data);
+  }
+
+  public editRuleset(id: string, data: EditRulesetRequestData) {
+    const url = `${this.constants.env.v2BaseURL}/scoring/rulesets/${id}`;
+    return this.httpClient.put(url, data);
   }
 }

@@ -54,17 +54,17 @@ describe('ApiScoreRulesetsComponent', () => {
 
     expect(title).toEqual('Test ruleset name');
     expect(description).toEqual('Test ruleset description');
+
+    const matCardHarness = await componentHarness.getRulesetsEmpty();
+    expect(matCardHarness).toBeFalsy();
   });
 
   it('should display no ruleset info if backend returns empty list of rulesets', async () => {
     const emptyRulesetList = { data: [] };
     expectListRulesets(emptyRulesetList);
 
-    const matCardHarness = await componentHarness.getMatCardHarness();
-
-    const content = await matCardHarness.getText();
-
-    expect(content).toContain('No rulesets');
+    const matCardHarness = await componentHarness.getRulesetsEmpty();
+    expect(matCardHarness).toBeTruthy();
   });
 
   function expectListRulesets(res = fakeRulesetsList()) {

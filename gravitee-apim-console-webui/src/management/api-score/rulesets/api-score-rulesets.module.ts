@@ -18,13 +18,53 @@ import { NgModule } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, NgIf } from '@angular/common';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatIcon } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
+import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { ReactiveFormsModule } from '@angular/forms';
+import {
+  GioBannerModule,
+  GioCardEmptyStateModule,
+  GioFormFilePickerModule,
+  GioFormSelectionInlineModule,
+  GioLoaderModule,
+  GioSaveBarModule,
+} from '@gravitee/ui-particles-angular';
 
 import { ApiScoreRulesetsComponent } from './api-score-rulesets.component';
+import { ImportApiScoreRulesetComponent } from './import/import-api-score-ruleset.component';
+import { EditApiScoreRulesetComponent } from './edit/edit-api-score-ruleset.component';
+
+import { ApiImportFilePickerComponent } from '../../api/component/api-import-file-picker/api-import-file-picker.component';
 
 @NgModule({
-  declarations: [ApiScoreRulesetsComponent],
-  imports: [MatCardModule, MatButtonModule, MatExpansionModule, AsyncPipe],
-  exports: [ApiScoreRulesetsComponent],
+  declarations: [ApiScoreRulesetsComponent, ImportApiScoreRulesetComponent, EditApiScoreRulesetComponent],
+  imports: [
+    ReactiveFormsModule,
+    MatCardModule,
+    MatButtonModule,
+    MatMenuModule,
+    MatExpansionModule,
+    AsyncPipe,
+    MatIcon,
+    RouterLink,
+    MatError,
+    MatFormField,
+    MatHint,
+    MatInput,
+    MatLabel,
+    NgIf,
+    GioFormFilePickerModule,
+    GioFormSelectionInlineModule,
+    GioCardEmptyStateModule,
+    ApiImportFilePickerComponent,
+    GioBannerModule,
+    GioSaveBarModule,
+    GioLoaderModule,
+  ],
+  exports: [ApiScoreRulesetsComponent, ImportApiScoreRulesetComponent, EditApiScoreRulesetComponent],
 })
 export class ApiScoreRulesetsModule {}
