@@ -27,7 +27,7 @@ export class TestGatewayJob extends AbstractTestJob {
       'job-test-gateway',
       new commands.Run({
         name: `Run gateway tests`,
-        command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Dgateway-modules -Dskip.validation=true -T 2C`,
+        command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress --update-snapshots -Dgateway-modules -Dskip.validation=true -T 2C`,
       }),
       OpenJdkExecutor.create('medium'),
       ['gravitee-apim-gateway/gravitee-apim-gateway-coverage/target/site/jacoco-aggregate/'],
