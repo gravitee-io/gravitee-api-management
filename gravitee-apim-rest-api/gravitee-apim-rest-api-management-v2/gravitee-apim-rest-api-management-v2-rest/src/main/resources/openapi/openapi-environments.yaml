@@ -283,6 +283,49 @@ paths:
                     description: Ruleset deleted
                 default:
                     $ref: "#/components/responses/Error"
+    /scoring/functions:
+      post:
+        tags:
+          - Scoring
+          - Functions
+        summary: Create a new scoring function at environment level
+        operationId: createEnvironmentScoringFunction
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportScoringFunction"
+          required: true
+        responses:
+          "201":
+            description: Scoring functions created
+          default:
+            $ref: "#/components/responses/Error"
+      get:
+        tags:
+          - Scoring
+          - Functions
+        summary: Get all functions at environment level
+        operationId: getEnvironmentScoringFunctions
+        responses:
+          "200":
+            $ref: "#/components/responses/ScoringFunctionsResponse"
+          default:
+            $ref: "#/components/responses/Error"
+    /scoring/functions/{scoringFunctionId}:
+      delete:
+        tags:
+          - Scoring
+          - Functions
+        summary: Delete a scoring function
+        operationId: deleteEnvironmentScoringFunction
+        parameters:
+          - $ref: "#/components/parameters/scoringFunctionId"
+        responses:
+          "204":
+            description: Scoring function deleted
+          default:
+            $ref: "#/components/responses/Error"
 
 components:
     schemas:
@@ -546,6 +589,41 @@ components:
             type: string
             enum:
                 - ENVIRONMENT
+        ImportScoringFunction:
+          type: object
+          description: The scoring scoring function to import
+          properties:
+            name:
+              type: string
+              description: The name of scoring function
+            payload:
+              type: string
+              description: The scoring function payload
+        ScoringFunction:
+          type: object
+          description: A scoring ruleset
+          properties:
+            name:
+              type: string
+              pattern: '^[/]+\.js$'
+              description: The name of ruleset
+            payload:
+              type: string
+              description: The ruleset payload
+            createdAt:
+              type: string
+              format: date-time
+              description: The date at which the ruleset was created
+              example: 2020-01-01T00:00:00Z
+            referenceId:
+              type: string
+              description: The reference Id of ruleset
+            referenceType:
+              $ref: "#/components/schemas/ScoringFunctionReferenceType"
+        ScoringFunctionReferenceType:
+          type: string
+          enum:
+            - ENVIRONMENT
 
         Error:
             type: object
@@ -706,6 +784,13 @@ components:
             required: true
             schema:
                 type: string
+        scoringFunctionId:
+          name: scoringFunctionId
+          in: path
+          description: The unique ID of scoring function
+          required: true
+          schema:
+            type: string
     responses:
         SchemaFormResponse:
             description: Schema form of a plugin
@@ -781,6 +866,18 @@ components:
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/ScoringRuleset"
+        ScoringFunctionsResponse:
+          description: Scoring functions list
+          content:
+            application/json:
+              schema:
+                title: "ScoringFunctionsResponse"
+                properties:
+                  data:
+                    description: List of rulesets.
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ScoringFunction"
 
     securitySchemes:
         BasicAuth:

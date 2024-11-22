@@ -59,6 +59,7 @@ import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.RoleRepository;
+import io.gravitee.repository.management.api.ScoringFunctionRepository;
 import io.gravitee.repository.management.api.ScoringReportRepository;
 import io.gravitee.repository.management.api.ScoringRulesetRepository;
 import io.gravitee.repository.management.api.SharedPolicyGroupHistoryRepository;
@@ -277,6 +278,9 @@ public class DeleteEnvironmentCommandHandlerTest {
     private ScoringRulesetRepository scoringRulesetRepository;
 
     @Mock
+    private ScoringFunctionRepository scoringFunctionRepository;
+
+    @Mock
     private SearchEngineService searchEngineService;
 
     private DeleteEnvironmentCommandHandler cut;
@@ -368,6 +372,7 @@ public class DeleteEnvironmentCommandHandlerTest {
                 roleRepository,
                 scoringReportRepository,
                 scoringRulesetRepository,
+                scoringFunctionRepository,
                 sharedPolicyGroupRepository,
                 sharedPolicyGroupHistoryRepository,
                 subscriptionRepository,
