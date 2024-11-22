@@ -472,6 +472,24 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
     }
 
     @Override
+    public List<Flow> createAll(List<Flow> flows) throws TechnicalException {
+        var createdFlows = new ArrayList<Flow>();
+        for (Flow flow : flows) {
+            createdFlows.add(create(flow));
+        }
+        return createdFlows;
+    }
+
+    @Override
+    public List<Flow> updateAll(List<Flow> flows) throws TechnicalException {
+        var updatedFlows = new ArrayList<Flow>();
+        for (Flow flow : flows) {
+            updatedFlows.add(update(flow));
+        }
+        return updatedFlows;
+    }
+
+    @Override
     public void deleteAllById(Collection<String> ids) throws TechnicalException {
         LOGGER.debug("JdbcFlowRepository.deleteByIds({})", ids);
         try {
