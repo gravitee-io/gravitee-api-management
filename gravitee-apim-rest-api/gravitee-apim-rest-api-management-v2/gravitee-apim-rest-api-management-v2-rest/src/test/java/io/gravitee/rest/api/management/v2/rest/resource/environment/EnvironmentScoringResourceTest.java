@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ScoringReportFixture;
 import inmemory.InMemoryAlternative;
+import inmemory.ScoringFunctionCrudServiceInMemory;
 import inmemory.ScoringReportQueryServiceInMemory;
 import inmemory.ScoringRulesetCrudServiceInMemory;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
@@ -62,6 +63,9 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
     @Inject
     ScoringRulesetCrudServiceInMemory scoringRulesetCrudService;
 
+    @Inject
+    ScoringFunctionCrudServiceInMemory scoringFunctionCrudService;
+
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT;
@@ -88,7 +92,7 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
         UuidString.reset();
         GraviteeContext.cleanContext();
 
-        Stream.of(scoringReportQueryService, scoringRulesetCrudService).forEach(InMemoryAlternative::reset);
+        Stream.of(scoringReportQueryService, scoringRulesetCrudService, scoringFunctionCrudService).forEach(InMemoryAlternative::reset);
     }
 
     @Nested
