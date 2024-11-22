@@ -30,7 +30,9 @@ import io.gravitee.apim.core.json.GraviteeDefinitionSerializer;
 import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.apim.core.scoring.model.ScoreRequest;
 import io.gravitee.apim.core.scoring.model.ScoringAssetType;
+import io.gravitee.apim.core.scoring.model.ScoringFunction;
 import io.gravitee.apim.core.scoring.model.ScoringRuleset;
+import io.gravitee.apim.core.scoring.query_service.ScoringFunctionQueryService;
 import io.gravitee.apim.core.scoring.query_service.ScoringRulesetQueryService;
 import io.gravitee.apim.core.scoring.service_provider.ScoringProvider;
 import io.gravitee.common.utils.TimeProvider;
@@ -40,7 +42,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
-import java.util.Collections;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -54,6 +56,7 @@ public class ScoreApiRequestUseCase {
     private final ScoringProvider scoringProvider;
     private final AsyncJobCrudService asyncJobCrudService;
     private final ScoringRulesetQueryService scoringRulesetQueryService;
+    private final ScoringFunctionQueryService scoringFunctionQueryService;
 
     public Completable execute(Input input) {
         var pages$ = Flowable
@@ -67,6 +70,13 @@ public class ScoreApiRequestUseCase {
             .flatMap(Flowable::fromIterable)
             .map(r -> new ScoreRequest.CustomRuleset(r.payload()))
             .toList();
+        var customFunctions$ = Flowable
+            .fromCallable(() ->
+                scoringFunctionQueryService.findByReference(input.auditInfo.environmentId(), ScoringFunction.ReferenceType.ENVIRONMENT)
+            )
+            .flatMap(Flowable::fromIterable)
+            .map(r -> new ScoreRequest.Function(r.name(), r.payload()))
+            .toList();
 
         var export$ = Flowable
             .fromCallable(() -> apiExportDomainService.export(input.apiId, input.auditInfo))
@@ -79,17 +89,19 @@ public class ScoreApiRequestUseCase {
             .switchIfEmpty(Single.error(new ApiNotFoundException(input.apiId())))
             .flatMap(api -> Flowable.merge(pages$, export$).toList())
             .flatMap(assets ->
-                customRulesets$.map(customRulesets ->
-                    new ScoreRequest(
-                        UuidString.generateRandom(),
-                        input.auditInfo.organizationId(),
-                        input.auditInfo.environmentId(),
-                        input.apiId,
-                        assets,
-                        customRulesets,
-                        Collections.emptyList()
+                Single
+                    .zip(customRulesets$, customFunctions$, RulesetAndFunctions::new)
+                    .map(entry ->
+                        new ScoreRequest(
+                            UuidString.generateRandom(),
+                            input.auditInfo.organizationId(),
+                            input.auditInfo.environmentId(),
+                            input.apiId,
+                            assets,
+                            entry.rulesets(),
+                            entry.functions()
+                        )
                     )
-                )
             )
             .flatMapCompletable(request -> {
                 if (request.assets().isEmpty()) {
@@ -144,4 +156,6 @@ public class ScoreApiRequestUseCase {
     }
 
     public record Input(String apiId, AuditInfo auditInfo) {}
+
+    private record RulesetAndFunctions(List<ScoreRequest.CustomRuleset> rulesets, List<ScoreRequest.Function> functions) {}
 }

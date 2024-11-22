@@ -29,6 +29,7 @@ import inmemory.AsyncJobCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
+import inmemory.ScoringFunctionQueryServiceInMemory;
 import inmemory.ScoringProviderInMemory;
 import inmemory.ScoringRulesetQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
@@ -77,6 +78,7 @@ class ScoreApiRequestUseCaseTest {
     PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     ScoringProviderInMemory scoringProvider = new ScoringProviderInMemory();
     ScoringRulesetQueryServiceInMemory scoringRulesetQueryService = new ScoringRulesetQueryServiceInMemory();
+    ScoringFunctionQueryServiceInMemory scoringFunctionQueryService = new ScoringFunctionQueryServiceInMemory();
 
     ApiExportDomainService apiExportDomainService = mock(ApiExportDomainService.class);
 
@@ -104,7 +106,8 @@ class ScoreApiRequestUseCaseTest {
                 new GraviteeDefinitionJacksonJsonSerializer(),
                 scoringProvider,
                 asyncJobCrudService,
-                scoringRulesetQueryService
+                scoringRulesetQueryService,
+                scoringFunctionQueryService
             );
 
         when(apiExportDomainService.export("my-api", AUDIT_INFO))
@@ -118,7 +121,9 @@ class ScoreApiRequestUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream.of(apiCrudService, asyncJobCrudService, pageQueryService, scoringRulesetQueryService).forEach(InMemoryAlternative::reset);
+        Stream
+            .of(apiCrudService, asyncJobCrudService, pageQueryService, scoringRulesetQueryService, scoringFunctionQueryService)
+            .forEach(InMemoryAlternative::reset);
         scoringProvider.reset();
     }
 
