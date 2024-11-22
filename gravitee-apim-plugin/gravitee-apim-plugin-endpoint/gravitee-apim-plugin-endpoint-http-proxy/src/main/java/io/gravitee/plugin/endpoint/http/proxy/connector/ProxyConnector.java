@@ -15,7 +15,7 @@
  */
 package io.gravitee.plugin.endpoint.http.proxy.connector;
 
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.reactivex.rxjava3.core.Completable;
 
 /**
@@ -31,5 +31,5 @@ public interface ProxyConnector {
      * @param ctx
      * @return a {@link Completable} that completes once the connection has been opened
      */
-    Completable connect(final ExecutionContext ctx);
+    Completable connect(final HttpExecutionContext ctx);
 }
