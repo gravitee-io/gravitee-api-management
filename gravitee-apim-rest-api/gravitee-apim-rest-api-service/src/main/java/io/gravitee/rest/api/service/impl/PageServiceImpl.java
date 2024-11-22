@@ -120,6 +120,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     @Value("${documentation.markdown.sanitize:true}")
     private boolean markdownSanitize;
 
+    @Value("${documentation.audit.max-content-size:-1}")
+    private int maxContentSize;
+
     @Lazy
     @Autowired
     private PageRepository pageRepository;
@@ -911,13 +914,23 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
             //only one homepage is allowed
             onlyOneHomepage(page);
+
+            String content = createdPage.getContent();
+            if (content != null && !content.isEmpty()) {
+                if (maxContentSize > 0 && content.length() > maxContentSize) {
+                    content = content.substring(0, maxContentSize) + "...";
+                } else if (maxContentSize == 0) {
+                    content = null;
+                }
+            }
+
             createAuditLog(
                 executionContext,
                 PageReferenceType.API.equals(page.getReferenceType()) ? page.getReferenceId() : null,
                 PAGE_CREATED,
                 page.getCreatedAt(),
                 null,
-                page
+                createdPage.toBuilder().content(content).build()
             );
             PageEntity pageEntity = convert(createdPage);
             if (messages != null && messages.size() > 0) {

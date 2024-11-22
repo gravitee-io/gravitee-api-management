@@ -36,3 +36,8 @@ annotations:
       links:
         - name: Github Issue
           url: https://github.com/gravitee-io/issues/issues/10100
+    - kind: fixed
+      description: 'allow users to limit documentation content size in audit page when importing an API'
+      links:
+        - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/10117
