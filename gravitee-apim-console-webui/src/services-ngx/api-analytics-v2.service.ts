@@ -16,6 +16,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, switchMap } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import { AnalyticsRequestsCount } from '../entities/management-api-v2/analytics/analyticsRequestsCount';
@@ -24,7 +25,7 @@ import { AnalyticsAverageMessagesPerRequest } from '../entities/management-api-v
 import { AnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
 import { AnalyticsResponseStatusOvertime } from '../entities/management-api-v2/analytics/analyticsResponseStatusOvertime';
 import { AnalyticsResponseTimeOverTime } from '../entities/management-api-v2/analytics/analyticsResponseTimeOverTime';
-import { timeFrameRangesParams, TimeRangeParams } from '../shared/utils/timeFrameRanges';
+import { TimeRangeParams } from '../shared/utils/timeFrameRanges';
 
 export interface DefaultFilters {
   period: string;
@@ -35,8 +36,7 @@ export interface DefaultFilters {
 })
 export class ApiAnalyticsV2Service {
   public readonly defaultFilters: DefaultFilters = { period: '1d' };
-  public readonly defaultTimeRangeFilter: TimeRangeParams = timeFrameRangesParams(this.defaultFilters.period);
-  private timeRangeFilter$: BehaviorSubject<TimeRangeParams> = new BehaviorSubject<TimeRangeParams>(this.defaultTimeRangeFilter);
+  private timeRangeFilter$: BehaviorSubject<TimeRangeParams> = new BehaviorSubject<TimeRangeParams>(null);
 
   constructor(
     private readonly http: HttpClient,
@@ -52,6 +52,7 @@ export class ApiAnalyticsV2Service {
 
   getRequestsCount(apiId: string): Observable<AnalyticsRequestsCount> {
     return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
       switchMap(({ from, to }) => {
         const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/requests-count?from=${from}&to=${to}`;
         return this.http.get<AnalyticsRequestsCount>(url);
@@ -61,6 +62,7 @@ export class ApiAnalyticsV2Service {
 
   getAverageConnectionDuration(apiId: string): Observable<AnalyticsAverageConnectionDuration> {
     return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
       switchMap(({ from, to }) => {
         const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/average-connection-duration?from=${from}&to=${to}`;
         return this.http.get<AnalyticsAverageConnectionDuration>(url);
@@ -70,6 +72,7 @@ export class ApiAnalyticsV2Service {
 
   getAverageMessagesPerRequest(apiId: string): Observable<AnalyticsAverageMessagesPerRequest> {
     return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
       switchMap(({ from, to }) => {
         const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/average-messages-per-request?from=${from}&to=${to}`;
         return this.http.get<AnalyticsAverageMessagesPerRequest>(url);
@@ -79,6 +82,7 @@ export class ApiAnalyticsV2Service {
 
   getResponseStatusRanges(apiId: string): Observable<AnalyticsResponseStatusRanges> {
     return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
       switchMap(({ from, to }) => {
         const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-status-ranges?from=${from}&to=${to}`;
         return this.http.get<AnalyticsResponseStatusRanges>(url);
@@ -88,6 +92,7 @@ export class ApiAnalyticsV2Service {
 
   getResponseStatusOvertime(apiId: string): Observable<AnalyticsResponseStatusOvertime> {
     return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
       switchMap(({ from, to }) => {
         const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-status-overtime?from=${from}&to=${to}`;
         return this.http.get<AnalyticsResponseStatusOvertime>(url);
@@ -97,6 +102,7 @@ export class ApiAnalyticsV2Service {
 
   getResponseTimeOverTime(apiId: string): Observable<AnalyticsResponseTimeOverTime> {
     return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
       switchMap(({ from, to }) => {
         const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-time-over-time?from=${from}&to=${to}`;
         return this.http.get<AnalyticsResponseTimeOverTime>(url);

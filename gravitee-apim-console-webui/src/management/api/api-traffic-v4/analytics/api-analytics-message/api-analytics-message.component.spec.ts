@@ -386,7 +386,7 @@ describe('ApiAnalyticsMessageComponent', () => {
     ].forEach((testParams) => {
       it(`should display "${testParams.expected}" time range if query parameter is ${JSON.stringify(testParams.input)}`, async () => {
         await initComponent(testParams.input);
-        expectAllAnalyticsCall();
+        await expectAllAnalyticsCall();
 
         const filtersBar = await componentHarness.getFiltersBarHarness();
 
@@ -396,9 +396,10 @@ describe('ApiAnalyticsMessageComponent', () => {
       });
     });
 
-    function expectAllAnalyticsCall() {
+    async function expectAllAnalyticsCall() {
       expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
       expectGetEntrypoints();
+      expect(await componentHarness.isLoaderDisplayed()).toBeFalsy();
       expectApiAnalyticsRequestsCountGetReq(fakeAnalyticsRequestsCount());
       expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
       expectApiAnalyticsAverageMessagesPerRequestGetRequest(fakeAnalyticsAverageMessagesPerRequest());
