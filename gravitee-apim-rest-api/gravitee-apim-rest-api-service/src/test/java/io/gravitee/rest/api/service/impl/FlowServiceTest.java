@@ -176,11 +176,11 @@ public class FlowServiceTest {
         when(flowRepository.findByReference(FlowReferenceType.API, "api-id")).thenReturn(flows);
 
         io.gravitee.repository.management.model.flow.Flow updatedFlow = createRepoFlow(1);
-        when(flowRepository.update(any())).thenReturn(updatedFlow);
+        when(flowRepository.updateAll(any())).thenReturn(List.of(updatedFlow));
 
         io.gravitee.repository.management.model.flow.Flow createdFlow4 = createRepoFlow(4);
         io.gravitee.repository.management.model.flow.Flow createdFlow5 = createRepoFlow(5);
-        when(flowRepository.create(any())).thenReturn(createdFlow4, createdFlow5);
+        when(flowRepository.createAll(any())).thenReturn(List.of(createdFlow4, createdFlow5));
 
         List<Flow> savedFlows = new ArrayList<>();
         savedFlows.add(createFlow("flow-1"));
@@ -191,8 +191,8 @@ public class FlowServiceTest {
 
         verify(flowRepository, times(1)).delete("flow-0");
         verify(flowRepository, times(1)).delete("flow-2");
-        verify(flowRepository, times(1)).update(any());
-        verify(flowRepository, times(2)).create(any());
+        verify(flowRepository, times(1)).updateAll(any());
+        verify(flowRepository, times(1)).createAll(any());
         assertNotNull(byReference);
         assertEquals(3, byReference.size());
     }
@@ -203,7 +203,7 @@ public class FlowServiceTest {
 
         io.gravitee.repository.management.model.flow.Flow createdFlow1 = createRepoFlow(1);
         io.gravitee.repository.management.model.flow.Flow createdFlow2 = createRepoFlow(2);
-        when(flowRepository.create(any())).thenReturn(createdFlow1, createdFlow2);
+        when(flowRepository.createAll(any())).thenReturn(List.of(createdFlow1, createdFlow2));
 
         List<Flow> savedFlows = new ArrayList<>();
         savedFlows.add(createFlow("flow-1"));
@@ -212,8 +212,8 @@ public class FlowServiceTest {
         List<Flow> byReference = flowService.save(FlowReferenceType.API, "api-id", savedFlows);
 
         verify(flowRepository, never()).delete(any());
-        verify(flowRepository, never()).update(any());
-        verify(flowRepository, times(2)).create(any());
+        verify(flowRepository, never()).updateAll(any());
+        verify(flowRepository, times(1)).createAll(any());
         assertNotNull(byReference);
         assertEquals(2, byReference.size());
     }
