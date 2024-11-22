@@ -18,7 +18,7 @@ package io.gravitee.plugin.endpoint.http.proxy.client;
 import io.gravitee.apim.common.mapper.HttpClientOptionsMapper;
 import io.gravitee.apim.common.mapper.HttpProxyOptionsMapper;
 import io.gravitee.apim.common.mapper.SslOptionsMapper;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.vertx.client.http.VertxHttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
@@ -37,7 +37,7 @@ public class HttpClientFactory {
     private final AtomicBoolean httpClientCreated = new AtomicBoolean(false);
 
     public HttpClient getOrBuildHttpClient(
-        final ExecutionContext ctx,
+        final HttpExecutionContext ctx,
         final HttpProxyEndpointConnectorConfiguration configuration,
         final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
     ) {
@@ -53,7 +53,7 @@ public class HttpClientFactory {
     }
 
     protected VertxHttpClientFactory.VertxHttpClientFactoryBuilder buildHttpClient(
-        final ExecutionContext ctx,
+        final HttpExecutionContext ctx,
         final HttpProxyEndpointConnectorConfiguration configuration,
         final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
     ) {

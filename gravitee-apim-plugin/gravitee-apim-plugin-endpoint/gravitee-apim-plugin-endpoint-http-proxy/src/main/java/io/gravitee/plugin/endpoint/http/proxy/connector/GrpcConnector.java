@@ -16,7 +16,7 @@
 package io.gravitee.plugin.endpoint.http.proxy.connector;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.plugin.endpoint.http.proxy.client.GrpcHttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
@@ -41,7 +41,7 @@ public class GrpcConnector extends HttpConnector {
     }
 
     @Override
-    protected RequestOptions buildRequestOptions(final ExecutionContext ctx) {
+    protected RequestOptions buildRequestOptions(final HttpExecutionContext ctx) {
         return super
             .buildRequestOptions(ctx)
             .setMethod(HttpMethod.POST)
