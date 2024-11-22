@@ -471,6 +471,17 @@ data:
         #expire-after: 86400
         anonymize-on-delete:
           enabled: {{ .Values.api.user.anynomizeOnDelete }}
+
+    {{- if .Values.api.documentation }}
+    documentation:
+      {{- if .Values.api.documentation.audit }}
+      audit:
+        {{- if .Values.api.documentation.audit.maxContentSize }}
+        max-content-size: {{ .Values.api.documentation.audit.maxContentSize }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+
     # The portal URL used in emails
     {{- if .Values.api.portalURL }}
     portalURL: {{ .Values.api.portalURL }}
