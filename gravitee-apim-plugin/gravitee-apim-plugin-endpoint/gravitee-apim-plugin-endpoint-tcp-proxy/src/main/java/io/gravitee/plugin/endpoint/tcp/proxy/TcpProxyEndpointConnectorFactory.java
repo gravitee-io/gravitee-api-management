@@ -17,7 +17,7 @@ package io.gravitee.plugin.endpoint.tcp.proxy;
 
 import io.gravitee.gateway.reactive.api.ApiType;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.endpoint.BaseEndpointConnectorFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.plugin.endpoint.tcp.proxy.configuration.TcpProxyEndpointConnectorConfiguration;
@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @RequiredArgsConstructor
 @Slf4j
-public class TcpProxyEndpointConnectorFactory implements EndpointConnectorFactory<TcpProxyEndpointConnector> {
+public class TcpProxyEndpointConnectorFactory implements BaseEndpointConnectorFactory<TcpProxyEndpointConnector> {
 
     private final PluginConfigurationHelper connectorFactoryHelper;
 
