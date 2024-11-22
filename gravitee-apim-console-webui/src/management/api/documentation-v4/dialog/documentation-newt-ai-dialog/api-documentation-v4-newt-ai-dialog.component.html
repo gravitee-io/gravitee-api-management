@@ -23,51 +23,54 @@
   </button>
 </mat-card-title>
 
-<form [formGroup]="form" (ngSubmit)="onSubmit()" class="newt-ai-main-content">
-  <mat-dialog-content>
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <mat-dialog-content class="newt-ai-main-content">
     <gio-banner-info>
       <div>NewtAI specification generation is in tech preview</div>
     </gio-banner-info>
     @if (isAvailable()) {
-      <mat-list class="list-item">
-        <p>Are you ready to generate your specification with Newt?</p>
-        <mat-list-item>Here are the steps:</mat-list-item>
-        <mat-list-item
-          ><mat-icon svgIcon="gio:cursor-pointer"></mat-icon>&nbsp;Click on
-          <button type="button" mat-flat-button color="accent">
-            <mat-icon svgIcon="gio:magic-wand"></mat-icon>
-            Generate
-          </button>
-          to start the generation.
-        </mat-list-item>
-        <mat-list-item
-          ><mat-icon svgIcon="gio:bell"></mat-icon>&nbsp;Make a total of <b>1000</b> API calls and wait for the notification</mat-list-item
-        >
-        <mat-list-item
-          ><mat-icon svgIcon="gio:magic-wand"></mat-icon>Check or refresh the documentation pages to see your generated<br />
-          specification</mat-list-item
-        >
-      </mat-list>
+      <p>Are you ready to generate your specification with Newt?</p>
+      <p>Here are the steps:</p>
+      <div class="steps">
+        <div class="steps__step">
+          <mat-icon svgIcon="gio:cursor-pointer"></mat-icon><span>Click on <b>Generate</b> to start the generation</span>
+        </div>
+        <div class="steps__step">
+          <mat-icon svgIcon="gio:bell"></mat-icon><span>Make a total of 1000 API calls and wait for the notification</span>
+        </div>
+        <div class="steps__step">
+          <mat-icon svgIcon="gio:magic-wand"></mat-icon
+          ><span>Check or refresh the documentation pages to see your generated specification</span>
+        </div>
+      </div>
     } @else if (isStartedOrGenerating()) {
-      <mat-list class="list-item">
-        <p>Your specification is cooking!</p>
-        <mat-list-item>A little reminder:</mat-list-item>
-        <mat-list-item
-          ><mat-icon svgIcon="gio:bell"></mat-icon>&nbsp;Make a total of <b>1000</b> API calls and wait for the notification</mat-list-item
-        >
-        <mat-list-item
-          ><mat-icon svgIcon="gio:data-transfer-down"></mat-icon>&nbsp;Make heterogeneous calls, change the variables in the path,<br />parameters
-          and payloads so we can capture the best of your API</mat-list-item
-        >
-        <mat-list-item
-          ><mat-icon svgIcon="gio:magic-wand"></mat-icon>&nbsp;Check or refresh the documentation pages to see your generated<br />
-          specification</mat-list-item
-        >
-      </mat-list>
+      <p>Your specification is cooking!</p>
+
+      <p>A little reminder:</p>
+      <div class="steps">
+        <div class="steps__step">
+          <mat-icon svgIcon="gio:bell"></mat-icon>
+          <span>Make a total of <b>1000</b> API calls and wait for the notification</span>
+        </div>
+        <div class="steps__step">
+          <mat-icon svgIcon="gio:data-transfer-down"></mat-icon>
+          <span
+            >Make heterogeneous calls, change the variables in the path,<br />parameters and payloads so we can capture the best of your
+            API</span
+          >
+        </div>
+        <div class="steps__step">
+          <mat-icon svgIcon="gio:magic-wand"></mat-icon>
+          <span
+            >Check or refresh the documentation pages to see your generated<br />
+            specification</span
+          >
+        </div>
+      </div>
     }
   </mat-dialog-content>
 
-  <mat-dialog-actions class="actions">
+  <mat-dialog-actions class="actions" align="end">
     <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
     <button *ngIf="isAvailable()" mat-flat-button type="submit" color="accent">
       <mat-icon svgIcon="gio:magic-wand"></mat-icon>

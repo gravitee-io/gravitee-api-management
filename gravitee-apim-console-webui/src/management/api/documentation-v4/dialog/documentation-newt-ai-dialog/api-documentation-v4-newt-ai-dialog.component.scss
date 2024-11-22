@@ -11,16 +11,19 @@ $typography: map.get(gio.$mat-theme, typography);
 }
 
 .newt-ai-main-content {
-  display: flex;
-  flex-direction: column;
+  color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
 
-  mat-list > mat-list-item {
-    background: transparent;
-  }
-
-  .actions {
+  .steps {
     display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
+    padding: 0 16px;
+    flex-direction: column;
+    gap: 8px;
+
+    &__step {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+    }
   }
 }
