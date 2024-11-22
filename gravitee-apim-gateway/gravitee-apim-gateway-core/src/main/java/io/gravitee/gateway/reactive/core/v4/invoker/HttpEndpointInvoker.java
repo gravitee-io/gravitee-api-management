@@ -76,7 +76,10 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
             return ctx.interruptWith(new ExecutionFailure(HttpStatusCode.SERVICE_UNAVAILABLE_503).key(NO_ENDPOINT_FOUND_KEY));
         }
 
-        return connect(((EndpointConnector) endpointConnector), ((ExecutionContext) ctx));
+        if (endpointConnector instanceof EndpointConnector legacyEndpointConnector) {
+            return connect((legacyEndpointConnector), ((ExecutionContext) ctx));
+        }
+        return connect(endpointConnector, ctx);
     }
 
     private <T extends HttpEndpointConnector> T resolveConnector(final HttpExecutionContext ctx) {
@@ -109,7 +112,7 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
         final ManagedEndpoint managedEndpoint = endpointManager.next(endpointCriteria);
 
         if (managedEndpoint != null) {
-            EndpointConnector endpointConnector = managedEndpoint.getConnector();
+            HttpEndpointConnector endpointConnector = managedEndpoint.getConnector();
             ctx.setInternalAttribute(ATTR_INTERNAL_ENDPOINT_CONNECTOR_ID, endpointConnector.id());
             return (T) endpointConnector;
         }
@@ -117,8 +120,16 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
         return null;
     }
 
-    // Do not remove this signature until all connectors are migrated to HttpEndpointConnectors#connect(HttpExecutionContext ctx)
+    // Do not remove this method until all connectors are migrated to HttpEndpointConnectors#connect(HttpExecutionContext ctx)
     protected Completable connect(final EndpointConnector endpointConnector, final ExecutionContext ctx) {
+        return overrideMethodFromAttributes(ctx).andThen(endpointConnector.connect(ctx));
+    }
+
+    protected Completable connect(final HttpEndpointConnector endpointConnector, final HttpExecutionContext ctx) {
+        return overrideMethodFromAttributes(ctx).andThen(endpointConnector.connect(ctx));
+    }
+
+    private Completable overrideMethodFromAttributes(final HttpExecutionContext ctx) {
         final Object requestMethodAttribute = ctx.getAttribute(io.gravitee.gateway.api.ExecutionContext.ATTR_REQUEST_METHOD);
         if (requestMethodAttribute != null) {
             final HttpMethod httpMethod = computeHttpMethodFromAttribute(requestMethodAttribute);
@@ -132,7 +143,7 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
                 ctx.request().method(httpMethod);
             }
         }
-        return endpointConnector.connect(ctx);
+        return Completable.complete();
     }
 
     @SuppressWarnings("unchecked")

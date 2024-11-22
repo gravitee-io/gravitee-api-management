@@ -40,6 +40,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.List;
 import java.util.stream.Stream;
+import junit.framework.AssertionFailedError;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.InstanceOfAssertFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -91,8 +92,8 @@ class HttpEndpointInvokerTest {
 
     @Test
     void shouldConnectToEndpointConnector() {
-        final HttpEntrypointAsyncConnector HttpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(HttpEntrypointAsyncConnector);
+        final HttpEntrypointAsyncConnector httpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(httpEntrypointAsyncConnector);
         when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
         when(managedEndpoint.getConnector()).thenReturn(endpointConnector);
         when(endpointConnector.connect(ctx)).thenReturn(Completable.complete());
@@ -105,8 +106,8 @@ class HttpEndpointInvokerTest {
     @ParameterizedTest
     @ValueSource(strings = { "custom", "c_u/s$t*o-m" })
     void shouldConnectToNamedEndpointConnectorWithCustomEndpointAttribute(String endpointName) {
-        final HttpEntrypointAsyncConnector HttpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(HttpEntrypointAsyncConnector);
+        final HttpEntrypointAsyncConnector httpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(httpEntrypointAsyncConnector);
         when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn(endpointName + ":");
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue(anyString(), eq(String.class))).thenAnswer(i -> i.getArgument(0));
@@ -124,8 +125,8 @@ class HttpEndpointInvokerTest {
 
     @Test
     void shouldConnectToNamedEndpointConnectorWithCustomEndpointAttributeContainingColon() {
-        final HttpEntrypointAsyncConnector HttpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(HttpEntrypointAsyncConnector);
+        final HttpEntrypointAsyncConnector httpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(httpEntrypointAsyncConnector);
         when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("name:with:colon:");
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue(anyString(), eq(String.class))).thenAnswer(i -> i.getArgument(0));
@@ -143,8 +144,8 @@ class HttpEndpointInvokerTest {
 
     @Test
     void shouldConnectToNextEndpointConnectorWhenUrlEndpointAttributeIsDefined() {
-        final HttpEntrypointAsyncConnector HttpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(HttpEntrypointAsyncConnector);
+        final HttpEntrypointAsyncConnector httpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(httpEntrypointAsyncConnector);
         when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("http://api.gravitee.io/echo");
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue(anyString(), eq(String.class))).thenAnswer(i -> i.getArgument(0));
@@ -224,6 +225,7 @@ class HttpEndpointInvokerTest {
         when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(httpEntrypointAsyncConnector);
         when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
         when(managedEndpoint.getConnector()).thenReturn(endpointConnector);
+        when(endpointConnector.connect(any())).thenReturn(Completable.error(new AssertionFailedError("Should not be called")));
         when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn(null);
 
         // Here, return a random object from attribute and verify we end in error
