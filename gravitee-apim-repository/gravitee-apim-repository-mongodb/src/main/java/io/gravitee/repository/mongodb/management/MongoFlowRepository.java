@@ -122,6 +122,18 @@ public class MongoFlowRepository implements FlowRepository {
         return internalRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
     }
 
+    @Override
+    public List<Flow> createAll(List<Flow> flows) {
+        final List<FlowMongo> savedFlows = internalRepository.insert(flows.stream().map(this::map).collect(Collectors.toList()));
+        return savedFlows.stream().map(this::map).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Flow> updateAll(List<Flow> flows) {
+        final List<FlowMongo> savedFlows = internalRepository.saveAll(flows.stream().map(this::map).collect(Collectors.toList()));
+        return savedFlows.stream().map(this::map).collect(Collectors.toList());
+    }
+
     private FlowMongo map(Flow flow) {
         return mapper.map(flow);
     }

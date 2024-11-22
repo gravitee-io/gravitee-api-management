@@ -39,6 +39,7 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -157,18 +158,33 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
                 }
             }
 
-            List<Flow> savedFlows = new ArrayList<>();
-            io.gravitee.repository.management.model.flow.Flow dbFlow;
-            for (int order = 0; order < flows.size(); ++order) {
-                Flow flow = flows.get(order);
-                if (flow.getId() == null || !dbFlowsById.containsKey(flow.getId())) {
-                    dbFlow = flowRepository.create(flowConverter.toRepository(flow, flowReferenceType, referenceId, order));
-                } else {
-                    dbFlow = flowRepository.update(flowConverter.toRepositoryUpdate(dbFlowsById.get(flow.getId()), flow, order));
-                }
-                savedFlows.add(flowConverter.toDefinition(dbFlow));
+            List<io.gravitee.repository.management.model.flow.Flow> savedFlows = new ArrayList<>();
+            List<io.gravitee.repository.management.model.flow.Flow> toCreate = new ArrayList<>();
+            List<io.gravitee.repository.management.model.flow.Flow> toUpdate = new ArrayList<>();
+            IntStream
+                .range(0, flows.size())
+                .forEach(i -> {
+                    var flow = flows.get(i);
+                    if (flow.getId() == null || !dbFlowsById.containsKey(flow.getId())) {
+                        toCreate.add(flowConverter.toRepository(flow, flowReferenceType, referenceId, i));
+                    } else {
+                        toUpdate.add(flowConverter.toRepositoryUpdate(dbFlowsById.get(flow.getId()), flow, i));
+                    }
+                });
+
+            if (!toCreate.isEmpty()) {
+                savedFlows.addAll(flowRepository.createAll(toCreate));
             }
-            return savedFlows;
+
+            if (!toUpdate.isEmpty()) {
+                savedFlows.addAll(flowRepository.updateAll(toUpdate));
+            }
+
+            return savedFlows
+                .stream()
+                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
+                .map(flowConverter::toDefinition)
+                .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             final String error = "An error occurs while save flows";
             LOGGER.error(error, ex);
