@@ -120,6 +120,7 @@ public class PageService_ImportDirectoryTest {
         when(newPage.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
         when(newPage.getReferenceId()).thenReturn("envId");
         when(newPage.getVisibility()).thenReturn("PUBLIC");
+        when(newPage.toBuilder()).thenReturn(new Page().toBuilder());
         when(pageRepository.create(any())).thenReturn(newPage);
         when(graviteeDescriptorService.descriptorName()).thenReturn(".gravitee.json");
 
