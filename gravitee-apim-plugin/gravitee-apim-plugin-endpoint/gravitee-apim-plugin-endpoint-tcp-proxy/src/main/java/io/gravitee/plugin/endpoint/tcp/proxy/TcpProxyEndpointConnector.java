@@ -20,8 +20,8 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.reactive.api.ApiType;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
 import io.gravitee.gateway.reactive.api.connector.Connector;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.connector.endpoint.TcpEndpointConnector;
+import io.gravitee.gateway.reactive.api.context.tcp.TcpExecutionContext;
 import io.gravitee.gateway.reactive.tcp.VertxReadStreamUtil;
 import io.gravitee.plugin.endpoint.tcp.proxy.client.TcpClientFactory;
 import io.gravitee.plugin.endpoint.tcp.proxy.configuration.TcpProxyEndpointConnectorConfiguration;
@@ -33,7 +33,7 @@ import java.util.Set;
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class TcpProxyEndpointConnector extends AbstractService<Connector> implements EndpointConnector {
+public class TcpProxyEndpointConnector extends AbstractService<Connector> implements TcpEndpointConnector {
 
     private static final String ENDPOINT_ID = "tcp-proxy";
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SOCKET);
@@ -66,7 +66,7 @@ public class TcpProxyEndpointConnector extends AbstractService<Connector> implem
     }
 
     @Override
-    public Completable connect(ExecutionContext ctx) {
+    public Completable connect(TcpExecutionContext ctx) {
         return tcpClientFactory
             .getOrBuildTcpClient(ctx, configuration, sharedConfiguration)
             .rxConnect(this.configuration.getTcpTarget().getPort(), this.configuration.getTcpTarget().getHost())
