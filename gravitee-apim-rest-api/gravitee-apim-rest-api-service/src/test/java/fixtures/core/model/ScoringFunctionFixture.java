@@ -30,6 +30,8 @@ public class ScoringFunctionFixture {
             .id("function-id")
             .name("function-name")
             .payload("function-payload")
+            .referenceId("environment-id")
+            .referenceType(ScoringFunction.ReferenceType.ENVIRONMENT)
             .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()));
 
     public static ScoringFunction aFunction() {

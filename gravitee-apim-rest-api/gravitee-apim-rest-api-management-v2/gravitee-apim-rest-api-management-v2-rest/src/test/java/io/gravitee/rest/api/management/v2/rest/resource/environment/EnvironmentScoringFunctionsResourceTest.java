@@ -20,11 +20,13 @@ import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.doReturn;
 
+import fixtures.core.model.ScoringFunctionFixture;
 import inmemory.InMemoryAlternative;
 import inmemory.ScoringFunctionCrudServiceInMemory;
 import io.gravitee.apim.core.scoring.model.ScoringFunction;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.v2.rest.model.ImportScoringFunction;
+import io.gravitee.rest.api.management.v2.rest.model.ScoringFunctionsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -32,7 +34,11 @@ import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.List;
 import java.util.stream.Stream;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -104,6 +110,49 @@ class EnvironmentScoringFunctionsResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(HttpStatusCode.CREATED_201)
                 .hasHeader("Location", target.path("generated-id").getUri().toString());
+        }
+    }
+
+    @Nested
+    class ListEnvironmentFunctions {
+
+        @Test
+        void should_return_functions() {
+            // Given
+            scoringFunctionCrudService.initWith(
+                List.of(
+                    ScoringFunctionFixture.aFunction().toBuilder().id("function1").referenceId(ENVIRONMENT).build(),
+                    ScoringFunctionFixture.aFunction().toBuilder().id("function2").referenceId(ENVIRONMENT).build()
+                )
+            );
+
+            // When
+            var response = target.request().get();
+
+            // Then
+            assertThat(response)
+                .hasStatus(HttpStatusCode.OK_200)
+                .asEntity(ScoringFunctionsResponse.class)
+                .extracting(ScoringFunctionsResponse::getData)
+                .asInstanceOf(InstanceOfAssertFactories.LIST)
+                .containsExactly(
+                    io.gravitee.rest.api.management.v2.rest.model.ScoringFunction
+                        .builder()
+                        .name("function-name")
+                        .payload("function-payload")
+                        .referenceId(ENVIRONMENT)
+                        .referenceType(io.gravitee.rest.api.management.v2.rest.model.ScoringFunctionReferenceType.ENVIRONMENT)
+                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
+                        .build(),
+                    io.gravitee.rest.api.management.v2.rest.model.ScoringFunction
+                        .builder()
+                        .name("function-name")
+                        .payload("function-payload")
+                        .referenceId(ENVIRONMENT)
+                        .referenceType(io.gravitee.rest.api.management.v2.rest.model.ScoringFunctionReferenceType.ENVIRONMENT)
+                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
+                        .build()
+                );
         }
     }
 }
