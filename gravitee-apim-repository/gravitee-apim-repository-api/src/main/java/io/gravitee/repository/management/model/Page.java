@@ -27,7 +27,7 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class Page {
 
     public enum AuditEvent implements Audit.ApiAuditEvent {
