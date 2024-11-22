@@ -15,8 +15,8 @@
  */
 package io.gravitee.plugin.endpoint.internal;
 
+import io.gravitee.gateway.reactive.api.connector.endpoint.BaseEndpointConnectorFactory;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorConfiguration;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorFactory;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
@@ -26,7 +26,7 @@ import java.nio.file.Path;
 /**
  * @author GraviteeSource Team
  */
-class DefaultEndpointConnectorPlugin<T extends EndpointConnectorFactory<?>, U extends EndpointConnectorConfiguration>
+class DefaultEndpointConnectorPlugin<T extends BaseEndpointConnectorFactory<?>, U extends EndpointConnectorConfiguration>
     implements EndpointConnectorPlugin<T, U> {
 
     private final Plugin plugin;

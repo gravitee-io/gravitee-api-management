@@ -17,7 +17,7 @@ package io.gravitee.plugin.apiservice.healthcheck.common;
 
 import io.gravitee.alert.api.event.Event;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
+import io.gravitee.gateway.reactive.api.connector.endpoint.BaseEndpointConnector;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
 import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpointGroup;
@@ -169,7 +169,7 @@ public class HealthCheckManagedEndpoint implements ManagedEndpoint {
     }
 
     @Override
-    public <T extends EndpointConnector> T getConnector() {
+    public <T extends BaseEndpointConnector<?>> T getConnector() {
         return endpoint.getConnector();
     }
 

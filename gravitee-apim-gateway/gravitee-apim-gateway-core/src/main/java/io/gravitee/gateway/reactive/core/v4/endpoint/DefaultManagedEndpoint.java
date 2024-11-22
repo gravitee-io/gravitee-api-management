@@ -16,7 +16,7 @@
 package io.gravitee.gateway.reactive.core.v4.endpoint;
 
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
+import io.gravitee.gateway.reactive.api.connector.endpoint.BaseEndpointConnector;
 
 /**
  * Manage endpoint represents the endpoint definition and its associated instance of connector.
@@ -28,10 +28,10 @@ public class DefaultManagedEndpoint implements ManagedEndpoint {
 
     private final Endpoint definition;
     private final ManagedEndpointGroup group;
-    private final EndpointConnector connector;
+    private final BaseEndpointConnector connector;
     private Status status;
 
-    public DefaultManagedEndpoint(Endpoint definition, ManagedEndpointGroup group, EndpointConnector connector) {
+    public DefaultManagedEndpoint(Endpoint definition, ManagedEndpointGroup group, BaseEndpointConnector connector) {
         this.definition = definition;
         this.group = group;
         this.connector = connector;
@@ -49,7 +49,7 @@ public class DefaultManagedEndpoint implements ManagedEndpoint {
     }
 
     @Override
-    public <T extends EndpointConnector> T getConnector() {
+    public <T extends BaseEndpointConnector<?>> T getConnector() {
         return (T) connector;
     }
 
