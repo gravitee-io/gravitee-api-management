@@ -31,7 +31,7 @@ export class ApiDocumentationV4NewtAiDialogHarness extends ComponentHarness {
   }
 
   async getListItems(): Promise<string[]> {
-    const items = await this.locatorForAll('mat-list-item')();
+    const items = await this.locatorForAll('.steps__step')();
     return Promise.all(items.map((item) => item.text()));
   }
 }

@@ -78,7 +78,7 @@ describe('ApiDocumentationV4NewtAiDialogComponent', () => {
 
     it('should get list items', async () => {
       const items = await harness.getListItems();
-      expect(items.length).toBe(4);
+      expect(items.length).toBe(3);
     });
 
     it('should click generate button', async () => {
@@ -99,7 +99,7 @@ describe('ApiDocumentationV4NewtAiDialogComponent', () => {
 
     it('should get list items', async () => {
       const items = await harness.getListItems();
-      expect(items.length).toBe(4);
+      expect(items.length).toBe(3);
     });
 
     it('should click cancel button', async () => {
@@ -115,7 +115,7 @@ describe('ApiDocumentationV4NewtAiDialogComponent', () => {
 
     it('should get list items', async () => {
       const items = await harness.getListItems();
-      expect(items.length).toBe(4);
+      expect(items.length).toBe(3);
     });
 
     it('should click cancel button', async () => {
