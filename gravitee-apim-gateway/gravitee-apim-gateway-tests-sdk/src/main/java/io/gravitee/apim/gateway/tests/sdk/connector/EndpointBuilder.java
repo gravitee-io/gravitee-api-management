@@ -15,8 +15,8 @@
  */
 package io.gravitee.apim.gateway.tests.sdk.connector;
 
+import io.gravitee.gateway.reactive.api.connector.endpoint.BaseEndpointConnectorFactory;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorConfiguration;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorFactory;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import java.net.URL;
@@ -28,14 +28,14 @@ public class EndpointBuilder {
         throw new IllegalStateException("Utility class");
     }
 
-    public static <T extends EndpointConnectorFactory<?>, U extends EndpointConnectorConfiguration> EndpointConnectorPlugin<T, U> build(
+    public static <T extends BaseEndpointConnectorFactory<?>, U extends EndpointConnectorConfiguration> EndpointConnectorPlugin<T, U> build(
         String id,
         Class<T> endpointConnectorFactory
     ) {
         return build(id, endpointConnectorFactory, null);
     }
 
-    public static <T extends EndpointConnectorFactory<?>, U extends EndpointConnectorConfiguration> EndpointConnectorPlugin<T, U> build(
+    public static <T extends BaseEndpointConnectorFactory<?>, U extends EndpointConnectorConfiguration> EndpointConnectorPlugin<T, U> build(
         String id,
         Class<T> entrypointConnectorFactory,
         Class<U> entrypointConfiguration
