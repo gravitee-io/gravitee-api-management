@@ -90,7 +90,7 @@ public class ApisResource extends AbstractResource<Api, String> {
 
         List<Category> categoryList = categories
             .stream()
-            .peek(categoryEntity -> categoryEntity.setTotalApis(countByCategory.get(categoryEntity.getId())))
+            .peek(categoryEntity -> categoryEntity.setTotalApis(countByCategory.getOrDefault(categoryEntity.getId(), 0L)))
             .map(categoryEntity -> categoryMapper.convert(categoryEntity, uriInfo.getBaseUriBuilder()))
             .collect(Collectors.toList());
 
