@@ -24,6 +24,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
+<<<<<<< HEAD
 import inmemory.ApiAuthorizationDomainServiceInMemory;
 import inmemory.ApiCategoryOrderQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
@@ -32,6 +33,10 @@ import inmemory.ValidateResourceDomainServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.category.model.ApiCategoryOrder;
 import io.gravitee.apim.core.category.model.Category;
+=======
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+>>>>>>> c45d68edcc (fix: handle null values for total APIs in category mapping)
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.CategoryEntity;
@@ -40,10 +45,8 @@ import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.portal.rest.model.ApisResponse;
+import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
-import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
@@ -670,6 +673,40 @@ public class ApisResourceTest extends AbstractResourceTest {
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(1, apiResponse.getData().size());
         assertTrue(getmaxLabelsListSize(apiResponse) > 0);
+    }
+
+    @Test
+    public void shouldListCategoriesAndHandleMissingCategoryInCountMapGraceFully() throws JsonProcessingException {
+        CategoryEntity categoryEntity1 = CategoryEntity.builder().id("cat1").name("Category 1").key("key1").build();
+        CategoryEntity categoryEntity2 = CategoryEntity.builder().id("cat2").name("Category 2").key("key2").build();
+
+        Set<CategoryEntity> categories = Set.of(categoryEntity1, categoryEntity2);
+
+        when(filteringService.listCategories(any(), any(), any(), any())).thenReturn(categories);
+
+        doReturn(Map.of("cat1", 1L)).when(apiCategoryService).countApisPublishedGroupedByCategoriesForUser(USER_NAME);
+
+        Mockito.when(categoryMapper.convert(any(), any())).thenCallRealMethod();
+
+        final Response response = target("/categories").request().get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        Map<String, List<Category>> map = objectMapper.readValue(response.readEntity(String.class), new TypeReference<>() {});
+        List<Category> categoryList = map.get("data");
+
+        // Verify the returned data
+        assertNotNull(categoryList);
+        assertTrue(categoryList instanceof List<Category>);
+        assertEquals(2, categoryList.size());
+
+        // For key present in countByCategory map
+        assertEquals("key1", categoryList.get(0).getId());
+        assertEquals(1L, categoryList.get(0).getTotalApis(), 1L);
+
+        // For key not present in countByCategory map
+        assertEquals("key2", categoryList.get(1).getId());
+        assertEquals(0L, categoryList.get(1).getTotalApis(), 0L);
     }
 
     private int getmaxLabelsListSize(ApisResponse apiResponse) {

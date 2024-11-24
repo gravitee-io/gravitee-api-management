@@ -93,7 +93,11 @@ public class ApisResource extends AbstractResource<Api, String> {
 
         List<Category> categoryList = categories
             .stream()
+<<<<<<< HEAD
             .peek(categoryEntity -> categoryEntity.setTotalApis(countByCategory.applyAsLong(categoryEntity.getId())))
+=======
+            .peek(categoryEntity -> categoryEntity.setTotalApis(countByCategory.getOrDefault(categoryEntity.getId(), 0L)))
+>>>>>>> c45d68edcc (fix: handle null values for total APIs in category mapping)
             .map(categoryEntity -> categoryMapper.convert(categoryEntity, uriInfo.getBaseUriBuilder()))
             .collect(Collectors.toList());
 
