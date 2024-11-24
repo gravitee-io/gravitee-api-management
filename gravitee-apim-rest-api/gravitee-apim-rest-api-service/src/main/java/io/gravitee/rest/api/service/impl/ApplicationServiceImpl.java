@@ -234,6 +234,15 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Override
     public Set<ApplicationListItem> findByIds(final ExecutionContext executionContext, Collection<String> applicationIds) {
+        return findByIds(executionContext, applicationIds, true);
+    }
+
+    @Override
+    public Set<ApplicationListItem> findByIds(
+        final ExecutionContext executionContext,
+        Collection<String> applicationIds,
+        boolean onlyActive
+    ) {
         try {
             LOGGER.debug("Find application by IDs: {}", applicationIds);
 
@@ -241,9 +250,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 return Collections.emptySet();
             }
 
-            ApplicationCriteria.Builder criteriaBuilder = new ApplicationCriteria.Builder()
-                .ids(new HashSet<>(applicationIds))
-                .status(ApplicationStatus.ACTIVE);
+            ApplicationCriteria.Builder criteriaBuilder = new ApplicationCriteria.Builder().ids(new HashSet<>(applicationIds));
+
+            if (onlyActive) {
+                criteriaBuilder.status(ApplicationStatus.ACTIVE);
+            }
 
             if (executionContext.hasEnvironmentId()) {
                 criteriaBuilder.environmentIds(executionContext.getEnvironmentId());

@@ -45,6 +45,8 @@ public interface ApplicationService {
 
     Set<ApplicationListItem> findByIds(final ExecutionContext executionContext, Collection<String> applicationIds);
 
+    Set<ApplicationListItem> findByIds(final ExecutionContext executionContext, Collection<String> applicationIds, boolean onlyActive);
+
     default Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username) {
         return findByUser(executionContext, username, null);
     }

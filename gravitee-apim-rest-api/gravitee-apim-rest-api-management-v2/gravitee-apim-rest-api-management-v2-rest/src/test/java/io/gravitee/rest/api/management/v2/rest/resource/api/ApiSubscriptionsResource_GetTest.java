@@ -141,7 +141,8 @@ public class ApiSubscriptionsResource_GetTest extends ApiSubscriptionsResourceTe
         when(
             applicationService.findByIds(
                 eq(GraviteeContext.getExecutionContext()),
-                argThat(argument -> List.of(APPLICATION).containsAll(argument))
+                argThat(argument -> List.of(APPLICATION).containsAll(argument)),
+                eq(false)
             )
         )
             .thenReturn(Set.of(ApplicationFixtures.anApplicationListItem().toBuilder().id(APPLICATION).build()));
