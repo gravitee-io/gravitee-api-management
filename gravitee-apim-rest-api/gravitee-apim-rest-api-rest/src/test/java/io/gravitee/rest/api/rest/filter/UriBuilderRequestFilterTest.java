@@ -201,6 +201,39 @@ public class UriBuilderRequestFilterTest {
         verifyUriBuildersChangedPortTo(1234); // override with port in Host header but then override with Port header
     }
 
+    @Test
+    public void protoHeaderHostHeaderWithMultipleHostsCauseUriBuildersSchemeSetHostSetToOneHost() throws IOException {
+        givenHeaders("X-Forwarded-Proto", "https", "X-Forwarded-Host", "gravitee.io,gravitee.io");
+
+        filter.filter(containerRequestContext);
+
+        verifyUriBuildersChangedSchemeTo("https");
+        verifyUriBuildersChangedHostTo("gravitee.io"); // override with Host header
+        verifyUriBuildersChangedPortTo(PROTOCOL_DEFAULT_PORT); // override with port in Host header but then override with Port header
+    }
+
+    @Test
+    public void protoHeaderHostHeaderWithMultipleHostsAndPortCauseUriBuildersSchemeSetHostSetToOneHost() throws IOException {
+        givenHeaders("X-Forwarded-Proto", "https", "X-Forwarded-Host", "gravitee.io,gravitee.io:8443");
+
+        filter.filter(containerRequestContext);
+
+        verifyUriBuildersChangedSchemeTo("https");
+        verifyUriBuildersChangedHostTo("gravitee.io"); // override with Host header
+        verifyUriBuildersChangedPortTo(8443); // override with port in Host header but then override with Port header
+    }
+
+    @Test
+    public void protoHeaderHostHeaderWithMultipleHostsAndPortOverriddenCauseUriBuildersSchemeSetHostSetToOneHost() throws IOException {
+        givenHeaders("X-Forwarded-Proto", "https", "X-Forwarded-Host", "gravitee.io,gravitee.io:8443", "X-Forwarded-Port", "443");
+
+        filter.filter(containerRequestContext);
+
+        verifyUriBuildersChangedSchemeTo("https");
+        verifyUriBuildersChangedHostTo("gravitee.io"); // override with Host header
+        verifyUriBuildersChangedPortTo(443); // override with port in Host header but then override with Port header
+    }
+
     private void givenHeaders(String... headers) {
         MultivaluedHashMap<String, String> mockHeaders = new MultivaluedHashMap<>();
         for (int i = 0; i < headers.length / 2; i++) {
