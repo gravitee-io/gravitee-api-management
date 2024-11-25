@@ -18,7 +18,7 @@ package io.gravitee.plugin.endpoint.mock;
 import static io.gravitee.plugin.endpoint.mock.MockEndpointConnector.SUPPORTED_QOS;
 
 import io.gravitee.gateway.reactive.api.ConnectorMode;
-import io.gravitee.gateway.reactive.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.endpoint.async.HttpEndpointAsyncConnectorFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @AllArgsConstructor
-public class MockEndpointConnectorFactory implements EndpointAsyncConnectorFactory<MockEndpointConnector> {
+public class MockEndpointConnectorFactory implements HttpEndpointAsyncConnectorFactory<MockEndpointConnector> {
 
     private PluginConfigurationHelper pluginConfigurationHelper;
 
