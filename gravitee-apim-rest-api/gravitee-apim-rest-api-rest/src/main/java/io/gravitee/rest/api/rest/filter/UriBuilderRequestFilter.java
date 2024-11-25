@@ -57,15 +57,19 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
     private void processHostHeader(ContainerRequestContext ctx, UriBuilder baseBuilder, UriBuilder requestBuilder) {
         String hostHeaderValue = getFirstHeaderValueOrNull(ctx, HttpHeaders.X_FORWARDED_HOST);
         if (hostHeaderValue != null) {
-            if (hostHeaderValue.contains(":")) {
-                int lastColonIdx = hostHeaderValue.lastIndexOf(':');
-                String host = hostHeaderValue.substring(0, lastColonIdx);
-                int port = Integer.parseInt(hostHeaderValue.substring(lastColonIdx + 1));
+            // Split the header value in case of multiple entries (e.g., localhost,localhost)
+            String[] hosts = hostHeaderValue.split(",");
+            String effectiveHost = hosts[hosts.length - 1].trim(); // Use the last host in the chain
+
+            if (effectiveHost.contains(":")) {
+                int lastColonIdx = effectiveHost.lastIndexOf(':');
+                String host = effectiveHost.substring(0, lastColonIdx);
+                int port = Integer.parseInt(effectiveHost.substring(lastColonIdx + 1));
                 baseBuilder.host(host).port(port);
                 requestBuilder.host(host).port(port);
             } else {
-                baseBuilder.host(hostHeaderValue).port(NO_EXPLICIT_PORT);
-                requestBuilder.host(hostHeaderValue).port(NO_EXPLICIT_PORT);
+                baseBuilder.host(effectiveHost).port(NO_EXPLICIT_PORT);
+                requestBuilder.host(effectiveHost).port(NO_EXPLICIT_PORT);
             }
 
             ctx.setRequestUri(baseBuilder.build(), requestBuilder.build());
