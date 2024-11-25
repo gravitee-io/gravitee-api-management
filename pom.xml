@@ -27,7 +27,7 @@
 
     <groupId>io.gravitee.reporter</groupId>
     <artifactId>gravitee-reporter-elasticsearch</artifactId>
-    <version>5.5.0</version>
+    <version>5.5.1</version>
 
     <name>Gravitee.io APIM - Reporter - Elasticsearch</name>
 

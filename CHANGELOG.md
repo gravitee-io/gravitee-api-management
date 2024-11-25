@@ -1,3 +1,10 @@
+## [5.5.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.5.0...5.5.1) (2024-11-25)
+
+
+### Bug Fixes
+
+* use index state management policy id and rollover alias properties for ism ([cbe8105](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/cbe8105de34649fdb2cfc1da9a0cc21365cc66e4))
+
 # [5.5.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.4.0...5.5.0) (2024-11-07)
 
 
