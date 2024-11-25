@@ -22,6 +22,7 @@ import io.gravitee.apim.core.audit.model.ApplicationAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
+import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApiHookContext;
@@ -44,19 +45,22 @@ public class RejectSubscriptionDomainService {
     private final PlanCrudService planCrudService;
     private final TriggerNotificationDomainService triggerNotificationDomainService;
     private final UserCrudService userCrudService;
+    private final ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService;
 
     public RejectSubscriptionDomainService(
         SubscriptionCrudService subscriptionRepository,
         PlanCrudService planCrudService,
         AuditDomainService auditDomainService,
         TriggerNotificationDomainService triggerNotificationDomainService,
-        UserCrudService userCrudService
+        UserCrudService userCrudService,
+        ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService
     ) {
         this.subscriptionRepository = subscriptionRepository;
         this.planCrudService = planCrudService;
         this.triggerNotificationDomainService = triggerNotificationDomainService;
         this.auditDomainService = auditDomainService;
         this.userCrudService = userCrudService;
+        this.applicationPrimaryOwnerDomainService = applicationPrimaryOwnerDomainService;
     }
 
     public SubscriptionEntity reject(String subscriptionId, String reason, AuditInfo auditInfo) {
@@ -88,13 +92,19 @@ public class RejectSubscriptionDomainService {
 
         var additionalRecipients = subscriberEmail.map(List::of).orElse(Collections.emptyList());
 
+        var applicationPrimaryOwner = applicationPrimaryOwnerDomainService.getApplicationPrimaryOwner(
+            organizationId,
+            rejectedSubscriptionEntity.getApplicationId()
+        );
+
         triggerNotificationDomainService.triggerApiNotification(
             organizationId,
             new SubscriptionRejectedApiHookContext(
                 rejectedSubscriptionEntity.getApiId(),
                 rejectedSubscriptionEntity.getApplicationId(),
                 rejectedSubscriptionEntity.getPlanId(),
-                rejectedSubscriptionEntity.getId()
+                rejectedSubscriptionEntity.getId(),
+                applicationPrimaryOwner.id()
             )
         );
         triggerNotificationDomainService.triggerApplicationNotification(
@@ -103,7 +113,8 @@ public class RejectSubscriptionDomainService {
                 rejectedSubscriptionEntity.getApplicationId(),
                 rejectedSubscriptionEntity.getApiId(),
                 rejectedSubscriptionEntity.getPlanId(),
-                rejectedSubscriptionEntity.getId()
+                rejectedSubscriptionEntity.getId(),
+                applicationPrimaryOwner.id()
             ),
             additionalRecipients
         );

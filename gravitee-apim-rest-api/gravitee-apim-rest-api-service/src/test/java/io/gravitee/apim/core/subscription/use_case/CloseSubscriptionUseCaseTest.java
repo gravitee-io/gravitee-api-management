@@ -15,9 +15,11 @@
  */
 package io.gravitee.apim.core.subscription.use_case;
 
+import static fixtures.core.model.MembershipFixtures.anApplicationPrimaryOwnerUserMembership;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.ThrowableAssert.catchThrowable;
 
+import fixtures.ApplicationModelFixtures;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.ApiKeyFixtures;
 import fixtures.core.model.AuditInfoFixtures;
@@ -28,9 +30,12 @@ import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IntegrationAgentInMemory;
+import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
+import inmemory.RoleQueryServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory.ApplicationNotification;
@@ -42,6 +47,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
+import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApplicationHookContext;
 import io.gravitee.apim.core.plan.model.Plan;
@@ -49,10 +55,12 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase.Input;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import java.time.Instant;
@@ -77,7 +85,6 @@ class CloseSubscriptionUseCaseTest {
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
     private static final String SUBSCRIPTION_ID = "subscription-id";
     private static final String APPLICATION_ID = "application-id";
-    private static final String PLAN_ID = "plan-id";
 
     private final SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudServiceInMemory = new AuditCrudServiceInMemory();
@@ -87,6 +94,9 @@ class CloseSubscriptionUseCaseTest {
     private final ApiKeyCrudServiceInMemory apiKeyCrudService = new ApiKeyCrudServiceInMemory();
     private final PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     private final IntegrationAgentInMemory integrationAgent = new IntegrationAgentInMemory();
+    private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
+    private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     private CloseSubscriptionUseCase usecase;
 
     @BeforeEach
@@ -96,12 +106,20 @@ class CloseSubscriptionUseCaseTest {
         var userCrudService = new UserCrudServiceInMemory();
         var auditDomainService = new AuditDomainService(auditCrudServiceInMemory, userCrudService, new JacksonJsonDiffProcessor());
 
+        var applicationPrimaryOwnerDomainService = new ApplicationPrimaryOwnerDomainService(
+            groupQueryService,
+            membershipQueryService,
+            roleQueryService,
+            userCrudService
+        );
+
         var rejectSubscriptionDomainService = new RejectSubscriptionDomainService(
             subscriptionCrudService,
             planCrudService,
             auditDomainService,
             new TriggerNotificationDomainServiceInMemory(),
-            userCrudService
+            userCrudService,
+            applicationPrimaryOwnerDomainService
         );
         var revokeApiKeyDomainService = new RevokeApiKeyDomainService(
             apiKeyCrudService,
@@ -125,6 +143,22 @@ class CloseSubscriptionUseCaseTest {
                     integrationAgent
                 )
             );
+
+        membershipQueryService.initWith(List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)));
+        applicationCrudService.initWith(
+            List.of(
+                ApplicationModelFixtures
+                    .anApplicationEntity()
+                    .toBuilder()
+                    .id(APPLICATION_ID)
+                    .primaryOwner(PrimaryOwnerEntity.builder().id(USER_ID).displayName("Jane").build())
+                    .build()
+            )
+        );
+        roleQueryService.resetSystemRoles(ORGANIZATION_ID);
+        userCrudService.initWith(
+            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
+        );
     }
 
     @AfterEach

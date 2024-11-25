@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.integration.use_case;
 
+import static fixtures.core.model.MembershipFixtures.anApplicationPrimaryOwnerUserMembership;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.ApplicationModelFixtures;
@@ -62,6 +63,7 @@ import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
 import io.gravitee.apim.core.documentation.domain_service.DeleteApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.DeleteMembershipDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -99,6 +101,7 @@ class DeleteIngestedApisUseCaseTest {
     private static final String USER_ID = "user-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String MY_API = "my-api";
+    private static final String APPLICATION_ID = "application-id";
 
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory(planCrudService);
@@ -136,12 +139,19 @@ class DeleteIngestedApisUseCaseTest {
             auditDomainService,
             triggerNotificationDomainServiceInMemory
         );
+        var applicationPrimaryOwnerDomainService = new ApplicationPrimaryOwnerDomainService(
+            groupQueryServiceInMemory,
+            membershipQueryServiceInMemory,
+            roleQueryServiceInMemory,
+            userCrudService
+        );
         var rejectSubscriptionDomainService = new RejectSubscriptionDomainService(
             subscriptionCrudService,
             planCrudService,
             auditDomainService,
             triggerNotificationDomainServiceInMemory,
-            userCrudService
+            userCrudService,
+            applicationPrimaryOwnerDomainService
         );
         var closeSubscriptionDomainService = new CloseSubscriptionDomainService(
             subscriptionCrudService,
@@ -484,18 +494,7 @@ class DeleteIngestedApisUseCaseTest {
     }
 
     private void initializePrimaryOwnerData() {
-        roleQueryServiceInMemory.initWith(
-            List.of(
-                Role
-                    .builder()
-                    .id("role-id")
-                    .scope(Role.Scope.API)
-                    .referenceType(Role.ReferenceType.ORGANIZATION)
-                    .referenceId(ORGANIZATION_ID)
-                    .name("PRIMARY_OWNER")
-                    .build()
-            )
-        );
+        roleQueryServiceInMemory.resetSystemRoles(ORGANIZATION_ID);
         membershipCrudServiceInMemory.initWith(
             List.of(
                 Membership
@@ -506,10 +505,24 @@ class DeleteIngestedApisUseCaseTest {
                     .referenceType(Membership.ReferenceType.API)
                     .referenceId(MY_API)
                     .roleId("role-id")
+                    .build(),
+                anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)
+            )
+        );
+
+        applicationService.initWith(
+            List.of(
+                ApplicationModelFixtures
+                    .anApplicationEntity()
+                    .toBuilder()
+                    .id(APPLICATION_ID)
+                    .primaryOwner(io.gravitee.rest.api.model.PrimaryOwnerEntity.builder().id(USER_ID).displayName("Jane").build())
                     .build()
             )
         );
-        userCrudService.initWith(List.of(BaseUserEntity.builder().id("my-member-id").email("one_valid@email.com").build()));
+        userCrudService.initWith(
+            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
+        );
     }
 
     private Api givenExistingApi(Api api) {

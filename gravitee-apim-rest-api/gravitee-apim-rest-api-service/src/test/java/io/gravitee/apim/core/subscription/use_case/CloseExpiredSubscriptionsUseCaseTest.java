@@ -27,9 +27,13 @@ import inmemory.ApiQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.EnvironmentCrudServiceInMemory;
+import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IntegrationAgentInMemory;
+import inmemory.MembershipCrudServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
+import inmemory.RoleQueryServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
@@ -41,6 +45,8 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditEntity.AuditReferenceType;
 import io.gravitee.apim.core.environment.model.Environment;
+import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
@@ -70,6 +76,10 @@ class CloseExpiredSubscriptionsUseCaseTest {
     private final AuditCrudServiceInMemory auditCrudServiceInMemory = new AuditCrudServiceInMemory();
     private final ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
     private final PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
+    private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    private final MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
+    private final MembershipQueryService membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
+    private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
 
     private CloseExpiredSubscriptionsUseCase usecase;
 
@@ -81,12 +91,20 @@ class CloseExpiredSubscriptionsUseCaseTest {
         var userCrudService = new UserCrudServiceInMemory();
         var auditDomainService = new AuditDomainService(auditCrudServiceInMemory, userCrudService, new JacksonJsonDiffProcessor());
 
+        var applicationPrimaryOwnerDomainService = new ApplicationPrimaryOwnerDomainService(
+            groupQueryService,
+            membershipQueryService,
+            roleQueryService,
+            userCrudService
+        );
+
         var rejectSubscriptionDomainService = new RejectSubscriptionDomainService(
             subscriptionCrudService,
             planCrudService,
             auditDomainService,
             triggerNotificationService,
-            userCrudService
+            userCrudService,
+            applicationPrimaryOwnerDomainService
         );
 
         var apiKeyCrudService = new ApiKeyCrudServiceInMemory();

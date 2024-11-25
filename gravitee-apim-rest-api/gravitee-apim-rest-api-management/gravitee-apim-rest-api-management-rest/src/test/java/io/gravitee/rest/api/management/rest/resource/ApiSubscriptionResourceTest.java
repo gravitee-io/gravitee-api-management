@@ -30,6 +30,7 @@ import fixtures.core.model.PlanFixtures;
 import fixtures.core.model.SubscriptionFixtures;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
+import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.common.http.HttpStatusCode;
@@ -70,6 +71,9 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
     @Autowired
     RejectSubscriptionUseCase rejectSubscriptionUseCase;
 
+    @Autowired
+    ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService;
+
     private ApiKeyEntity fakeApiKeyEntity;
     private SubscriptionEntity fakeSubscriptionEntity;
     private UserEntity fakeUserEntity;
@@ -79,6 +83,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
     private static final String SUBSCRIPTION_ID = "subscriptionId";
     private static final String PLAN_ID = "my-plan";
     private static final String FAKE_KEY = "fakeKey";
+    private static final String APPLICATION_ID = "my-application";
 
     @Override
     protected String contextPath() {
@@ -93,6 +98,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         reset(planService);
         reset(applicationService);
         reset(parameterService);
+        reset(applicationPrimaryOwnerDomainService);
         fakeApiKeyEntity = new ApiKeyEntity();
         fakeApiKeyEntity.setKey(FAKE_KEY);
 
@@ -102,6 +108,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         fakeSubscriptionEntity.setApi(API_NAME);
 
         fakeUserEntity = new UserEntity();
+        fakeUserEntity.setId("user-id");
         fakeUserEntity.setFirstname("firstName");
         fakeUserEntity.setLastname("lastName");
 
@@ -109,18 +116,29 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         fakePlanEntity.setId(PLAN_ID);
         fakePlanEntity.setName("planName");
 
+        PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity(fakeUserEntity);
+
         fakeApplicationEntity = new ApplicationEntity();
         fakeApplicationEntity.setId("applicationId");
         fakeApplicationEntity.setName("applicationName");
         fakeApplicationEntity.setType("applicationType");
         fakeApplicationEntity.setDescription("applicationDescription");
         fakeApplicationEntity.setApiKeyMode(ApiKeyMode.UNSPECIFIED);
-        fakeApplicationEntity.setPrimaryOwner(new PrimaryOwnerEntity(fakeUserEntity));
+        fakeApplicationEntity.setPrimaryOwner(primaryOwner);
 
         when(userService.findById(eq(GraviteeContext.getExecutionContext()), any(), anyBoolean())).thenReturn(fakeUserEntity);
         when(planService.findById(any(), any())).thenReturn(fakePlanEntity);
         when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(fakeApplicationEntity);
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+        when(applicationPrimaryOwnerDomainService.getApplicationPrimaryOwner(any(), any()))
+            .thenReturn(
+                io.gravitee.apim.core.membership.model.PrimaryOwnerEntity
+                    .builder()
+                    .id(fakeUserEntity.getId())
+                    .displayName(fakeUserEntity.getDisplayName())
+                    .email(fakeUserEntity.getEmail())
+                    .build()
+            );
     }
 
     @Test
@@ -136,6 +154,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
                 .subscribedBy("subscriber")
                 .planId(plan.getId())
                 .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.PENDING)
+                .applicationId(APPLICATION_ID)
                 .build()
         );
         when(planSearchService.findById(any(), any())).thenReturn(PlanEntity.builder().id(plan.getId()).name(plan.getName()).build());
@@ -162,6 +181,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
                 .subscribedBy("subscriber")
                 .planId(plan.getId())
                 .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.PENDING)
+                .applicationId(APPLICATION_ID)
                 .build()
         );
         when(planSearchService.findById(any(), any())).thenReturn(PlanEntity.builder().id(plan.getId()).name(plan.getName()).build());
