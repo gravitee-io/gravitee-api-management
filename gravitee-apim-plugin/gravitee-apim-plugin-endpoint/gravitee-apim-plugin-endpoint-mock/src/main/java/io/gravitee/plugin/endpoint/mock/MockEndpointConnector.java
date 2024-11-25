@@ -18,36 +18,32 @@ package io.gravitee.plugin.endpoint.mock;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
-import io.gravitee.gateway.reactive.api.connector.endpoint.async.EndpointAsyncConnector;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.connector.endpoint.async.HttpEndpointAsyncConnector;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.message.DefaultMessage;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.gateway.reactive.api.qos.QosCapability;
-import io.gravitee.gateway.reactive.api.tracing.message.TracingMessage;
 import io.gravitee.gateway.reactive.api.tracing.message.TracingMessageAttribute;
 import io.gravitee.gateway.reactive.api.tracing.message.TracingMessageOperationType;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.CollectionUtils;
 
 /**
  * @author GraviteeSource Team
  */
 @AllArgsConstructor
 @Slf4j
-public class MockEndpointConnector extends EndpointAsyncConnector {
+public class MockEndpointConnector extends HttpEndpointAsyncConnector {
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
     static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.AUTO, Qos.AT_LEAST_ONCE, Qos.AT_MOST_ONCE);
@@ -80,7 +76,7 @@ public class MockEndpointConnector extends EndpointAsyncConnector {
     }
 
     @Override
-    public Completable subscribe(final ExecutionContext ctx) {
+    public Completable subscribe(final HttpExecutionContext ctx) {
         return Completable.fromRunnable(() -> {
             final Integer messagesLimitCount = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT);
             final Long messagesLimitDurationMs = ctx.getInternalAttribute(
@@ -98,7 +94,7 @@ public class MockEndpointConnector extends EndpointAsyncConnector {
     }
 
     @Override
-    public Completable publish(final ExecutionContext ctx) {
+    public Completable publish(final HttpExecutionContext ctx) {
         return Completable.defer(() ->
             ctx
                 .request()
