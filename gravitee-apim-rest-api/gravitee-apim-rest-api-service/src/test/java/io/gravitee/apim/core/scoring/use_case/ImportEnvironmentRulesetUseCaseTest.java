@@ -91,6 +91,7 @@ class ImportEnvironmentRulesetUseCaseTest {
                     .referenceId(ENVIRONMENT_ID)
                     .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .build()
             );
     }

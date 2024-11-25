@@ -39,6 +39,17 @@ public class ScoringRulesetCrudServiceInMemory implements ScoringRulesetCrudServ
     }
 
     @Override
+    public ScoringRuleset update(ScoringRuleset scoringRuleset) {
+        OptionalInt index = this.findIndex(this.storage, ruleset -> ruleset.id().equals(scoringRuleset.id()));
+        if (index.isPresent()) {
+            storage.set(index.getAsInt(), scoringRuleset);
+            return scoringRuleset;
+        }
+
+        throw new IllegalStateException("Scoring ruleset not found");
+    }
+
+    @Override
     public void delete(String id) {
         OptionalInt index = this.findIndex(this.storage, i -> i.id().equals(id));
         if (index.isPresent()) {

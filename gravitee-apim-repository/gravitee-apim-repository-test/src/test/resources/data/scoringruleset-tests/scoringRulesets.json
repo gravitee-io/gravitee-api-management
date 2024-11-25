@@ -6,7 +6,8 @@
         "name": "Ruleset 1",
         "description": "description 1",
         "payload": "payload 1",
-        "createdAt": 1470157767000
+        "createdAt": 1470157767000,
+        "updatedAt": 1470157767000
     },
     {
         "id": "ruleset2",
@@ -15,7 +16,8 @@
         "name": "Ruleset 2",
         "description": "description 2",
         "payload": "payload 2",
-        "createdAt": 1470157767000
+        "createdAt": 1470157767000,
+        "updatedAt": 1470157767000
     },
     {
         "id": "to-delete",
@@ -24,7 +26,8 @@
         "name": "Ruleset",
         "description": "description",
         "payload": "payload",
-        "createdAt": 1470157767000
+        "createdAt": 1470157767000,
+        "updatedAt": 1470157767000
     },
     {
         "id": "86adbd41-8a3f-45f3-b1ca-f980042db19d",
@@ -33,7 +36,8 @@
         "name": "Ruleset",
         "description": "description",
         "payload": "payload",
-        "createdAt": 1470157767000
+        "createdAt": 1470157767000,
+        "updatedAt": 1470157767000
     },
     {
         "id": "b8c2ef52-ebb5-4d0f-be1e-a41cc5579fc8",
@@ -42,6 +46,7 @@
         "name": "Ruleset",
         "description": "description",
         "payload": "payload",
-        "createdAt": 1470157767000
+        "createdAt": 1470157767000,
+        "updatedAt": 1470157767000
     }
 ]

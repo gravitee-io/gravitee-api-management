@@ -18,36 +18,34 @@ package io.gravitee.apim.core.scoring.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.scoring.crud_service.ScoringRulesetCrudService;
+import io.gravitee.apim.core.scoring.exception.RulesetNotFoundException;
 import io.gravitee.apim.core.scoring.model.ScoringRuleset;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.rest.api.service.common.UuidString;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @UseCase
-public class ImportEnvironmentRulesetUseCase {
+public class UpdateEnvironmentRulesetUseCase {
 
     private final ScoringRulesetCrudService scoringRulesetCrudService;
 
     public Output execute(Input input) {
-        var created = scoringRulesetCrudService.create(
-            new ScoringRuleset(
-                UuidString.generateRandom(),
-                input.newRuleset.name(),
-                input.newRuleset.description(),
-                input.auditInfo.environmentId(),
-                ScoringRuleset.ReferenceType.ENVIRONMENT,
-                input.newRuleset.payload(),
-                TimeProvider.now(),
-                TimeProvider.now()
-            )
-        );
-        return new Output(created.id());
+        var found = scoringRulesetCrudService
+            .findById(input.scoringRuleset.id())
+            .filter(ruleset -> ruleset.referenceId().equals(input.auditInfo.environmentId()))
+            .orElseThrow(() -> new RulesetNotFoundException(input.scoringRuleset.id()));
+
+        var rulesetToUpdate = found
+            .toBuilder()
+            .name(input.scoringRuleset.name())
+            .description(input.scoringRuleset.description())
+            .updatedAt(TimeProvider.now())
+            .build();
+
+        return new Output(scoringRulesetCrudService.update(rulesetToUpdate));
     }
 
-    public record Input(NewRuleset newRuleset, AuditInfo auditInfo) {}
+    public record Input(ScoringRuleset scoringRuleset, AuditInfo auditInfo) {}
 
-    public record NewRuleset(String name, String description, String payload) {}
-
-    public record Output(String rulesetId) {}
+    public record Output(ScoringRuleset scoringRuleset) {}
 }

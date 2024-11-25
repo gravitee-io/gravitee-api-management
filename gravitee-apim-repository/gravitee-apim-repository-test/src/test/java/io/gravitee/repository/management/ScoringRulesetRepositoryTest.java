@@ -21,13 +21,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.Integration;
 import io.gravitee.repository.management.model.ScoringRuleset;
 import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import org.assertj.core.api.Condition;
 import org.junit.Test;
 
@@ -121,11 +116,45 @@ public class ScoringRulesetRepositoryTest extends AbstractManagementRepositoryTe
             .referenceType("ENVIRONMENT")
             .referenceId("my-env")
             .createdAt(date)
+            .updatedAt(date)
             .payload("ruleset-payload")
             .build();
     }
 
     Condition<ScoringRuleset> haveId(String id) {
         return new Condition<>(e -> id.equals(e.getId()), "have the id " + id);
+    }
+
+    // update
+    @Test
+    public void should_update_ruleset() throws TechnicalException {
+        var id = "ruleset1";
+        var date = new Date(1_470_157_767_000L);
+        var updateDate = new Date(1_712_660_289L);
+
+        var ruleset = ScoringRuleset
+            .builder()
+            .id(id)
+            .name("updated-name")
+            .description("updated-description")
+            .referenceType("ENVIRONMENT")
+            .referenceId("my-env")
+            .createdAt(date)
+            .updatedAt(updateDate)
+            .payload("ruleset-payload")
+            .build();
+
+        var updatedRuleset = scoringRulesetRepository.update(ruleset);
+
+        assertThat(updatedRuleset).usingRecursiveComparison().isEqualTo(ruleset);
+    }
+
+    @Test
+    public void should_throw_exception_when_ruleset_to_update_not_found() {
+        var id = "not-existing-id";
+        var date = new Date(1_470_157_767_000L);
+        ScoringRuleset ruleset = aRuleset(id, date);
+
+        assertThatThrownBy(() -> scoringRulesetRepository.update(ruleset)).isInstanceOf(Exception.class);
     }
 }

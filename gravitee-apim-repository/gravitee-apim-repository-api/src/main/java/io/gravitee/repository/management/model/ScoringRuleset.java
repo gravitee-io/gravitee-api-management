@@ -41,5 +41,6 @@ public final class ScoringRuleset {
     private String referenceId;
     private String referenceType;
     private Date createdAt;
+    private Date updatedAt;
     private String payload;
 }

@@ -21,6 +21,7 @@ import java.util.Optional;
 public interface ScoringRulesetCrudService {
     ScoringRuleset create(ScoringRuleset ruleset);
     Optional<ScoringRuleset> findById(String id);
+    ScoringRuleset update(ScoringRuleset ruleset);
     void delete(String id);
     void deleteByReference(String referenceId, ScoringRuleset.ReferenceType referenceType);
 }

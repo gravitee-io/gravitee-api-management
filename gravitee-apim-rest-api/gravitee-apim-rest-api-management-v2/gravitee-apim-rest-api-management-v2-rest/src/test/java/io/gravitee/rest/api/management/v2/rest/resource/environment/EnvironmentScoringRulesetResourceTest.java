@@ -22,15 +22,20 @@ import fixtures.core.model.ScoringRulesetFixture;
 import inmemory.InMemoryAlternative;
 import inmemory.ScoringRulesetCrudServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.management.v2.rest.model.ScoringRuleset;
 import io.gravitee.rest.api.management.v2.rest.model.ScoringRulesetReferenceType;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateScoringRuleset;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Stream;
@@ -41,6 +46,7 @@ import org.junit.jupiter.api.Test;
 
 class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
 
+    private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
     private static final String ENVIRONMENT = "my-env";
 
     WebTarget rootTarget;
@@ -129,6 +135,66 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
 
             // Then
             assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
+        }
+    }
+
+    @Nested
+    class UpdateEnvironmentRuleset {
+
+        @Test
+        void should_update_a_ruleset() {
+            // Given
+            scoringRulesetCrudService.initWith(List.of(ScoringRulesetFixture.aRuleset().withReferenceId(ENVIRONMENT)));
+            UpdateScoringRuleset updateScoringPayload = UpdateScoringRuleset
+                .builder()
+                .name("updated-name")
+                .description("updated-description")
+                .build();
+            TimeProvider.overrideClock(Clock.fixed(INSTANT_NOW, ZoneId.systemDefault()));
+            //When
+            var response = rootTarget.path("ruleset-id").request().put(Entity.json(updateScoringPayload));
+
+            //Then
+            assertThat(response)
+                .hasStatus(HttpStatusCode.OK_200)
+                .asEntity(ScoringRuleset.class)
+                .isEqualTo(
+                    ScoringRuleset
+                        .builder()
+                        .id("ruleset-id")
+                        .name("updated-name")
+                        .description("updated-description")
+                        .payload("ruleset-payload")
+                        .referenceId("my-env")
+                        .referenceType(ScoringRulesetReferenceType.ENVIRONMENT)
+                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
+                        .updatedAt(INSTANT_NOW.atOffset(ZoneOffset.UTC))
+                        .build()
+                );
+        }
+
+        @Test
+        void should_return_400_when_missing_name_to_update() {
+            // Given
+            scoringRulesetCrudService.initWith(List.of(ScoringRulesetFixture.aRuleset().withReferenceId(ENVIRONMENT)));
+            UpdateScoringRuleset updateScoringPayload = UpdateScoringRuleset.builder().description("updated-description").build();
+            //When
+            var response = rootTarget.path("ruleset-id").request().put(Entity.json(updateScoringPayload));
+
+            //Then
+            assertThat(response).hasStatus(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_when_missing_body() {
+            // Given
+            scoringRulesetCrudService.initWith(List.of(ScoringRulesetFixture.aRuleset("ruleset-id").withReferenceId(ENVIRONMENT)));
+            UpdateScoringRuleset updateScoringPayload = UpdateScoringRuleset.builder().build();
+            //When
+            var response = rootTarget.path("ruleset-id").request().put(Entity.json(updateScoringPayload));
+
+            //Then
+            assertThat(response).hasStatus(HttpStatusCode.BAD_REQUEST_400);
         }
     }
 }

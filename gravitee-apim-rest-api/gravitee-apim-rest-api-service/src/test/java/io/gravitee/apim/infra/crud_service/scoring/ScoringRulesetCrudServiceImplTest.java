@@ -185,4 +185,37 @@ public class ScoringRulesetCrudServiceImplTest {
                 .hasMessage("Error when deleting Scoring Ruleset for [ENVIRONMENT:env-id]");
         }
     }
+
+    @Nested
+    class Update {
+
+        @Test
+        @SneakyThrows
+        void should_update_scoring_ruleset() {
+            // Given
+            var ruleset = ScoringRulesetFixture.aRuleset();
+            when(scoringRulesetRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            // When
+            var updated = service.update(ruleset);
+
+            // Then
+            assertThat(updated).isEqualTo(ruleset);
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            var ruleset = ScoringRulesetFixture.aRuleset();
+            when(scoringRulesetRepository.update(any())).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.update(ruleset));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("Error when updating Scoring Ruleset: ruleset-id");
+        }
+    }
 }

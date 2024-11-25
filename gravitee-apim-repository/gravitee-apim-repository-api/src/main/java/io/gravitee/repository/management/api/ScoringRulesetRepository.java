@@ -23,6 +23,7 @@ import java.util.Optional;
 public interface ScoringRulesetRepository {
     ScoringRuleset create(ScoringRuleset report) throws TechnicalException;
     Optional<ScoringRuleset> findById(String id) throws TechnicalException;
+    ScoringRuleset update(ScoringRuleset report) throws TechnicalException;
     List<ScoringRuleset> findAllByReferenceId(String referenceId, String referenceType) throws TechnicalException;
     void delete(String id) throws TechnicalException;
     List<String> deleteByReferenceId(String referenceId, String referenceType) throws TechnicalException;
