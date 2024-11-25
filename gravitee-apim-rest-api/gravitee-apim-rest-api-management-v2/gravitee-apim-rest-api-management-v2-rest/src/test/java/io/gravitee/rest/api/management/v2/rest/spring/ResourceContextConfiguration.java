@@ -59,6 +59,8 @@ import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.query_service.RoleQueryService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
@@ -627,5 +629,10 @@ public class ResourceContextConfiguration {
     @Bean
     public SubscriptionAdapter subscriptionAdapter() {
         return new SubscriptionAdapterImpl();
+    }
+
+    @Bean
+    public ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService() {
+        return mock(ApplicationPrimaryOwnerDomainService.class);
     }
 }

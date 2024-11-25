@@ -26,13 +26,18 @@ import static org.mockito.Mockito.when;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.model.ApiKeyMode;
+import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -73,6 +78,9 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
     @Autowired
     PlanCrudServiceInMemory planCrudService;
 
+    @Autowired
+    ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService;
+
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/apis/" + API_ID + "/subscriptions";
@@ -88,8 +96,22 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         environment.setId(ENVIRONMENT);
         environment.setOrganizationId(ORGANIZATION);
 
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId("user-id");
+        userEntity.setFirstname("firstName");
+        userEntity.setLastname("lastName");
+
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environment);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environment);
+        when(applicationPrimaryOwnerDomainService.getApplicationPrimaryOwner(any(), any()))
+            .thenReturn(
+                io.gravitee.apim.core.membership.model.PrimaryOwnerEntity
+                    .builder()
+                    .id(userEntity.getId())
+                    .displayName(userEntity.getDisplayName())
+                    .email(userEntity.getEmail())
+                    .build()
+            );
     }
 
     @Nested
