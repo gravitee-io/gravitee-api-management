@@ -17,14 +17,17 @@ package io.gravitee.apim.core.api.use_case;
 
 import static fixtures.ApplicationModelFixtures.anApplicationEntity;
 import static fixtures.core.model.ApiFixtures.aProxyApiV4;
+import static fixtures.core.model.MembershipFixtures.anApplicationPrimaryOwnerUserMembership;
 import static fixtures.core.model.SubscriptionFixtures.aSubscription;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -33,6 +36,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fixtures.ApplicationModelFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.PlanFixtures;
 import fixtures.definition.ApiDefinitionFixtures;
@@ -105,6 +109,7 @@ import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainServi
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
+import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.metadata.model.Metadata;
@@ -184,6 +189,7 @@ class ImportApiCRDUseCaseTest {
     private static final String GROUP_NAME = "developers";
     private static final String USER_ENTITY_SOURCE = "gravitee";
     private static final String USER_ENTITY_SOURCE_ID = "jane.doe@gravitee.io";
+    private static final String APPLICATION_ID = "my-application";
 
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, ACTOR_USER_ID);
 
@@ -265,6 +271,15 @@ class ImportApiCRDUseCaseTest {
             reorderPlanDomainService
         );
         var deletePlanDomainService = new DeletePlanDomainService(planCrudService, subscriptionQueryService, auditDomainService);
+        var membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
+
+        var applicationPrimaryOwnerDomainService = new ApplicationPrimaryOwnerDomainService(
+            groupQueryService,
+            membershipQueryService,
+            roleQueryService,
+            userCrudService
+        );
+
         var closeSubscriptionDomainService = new CloseSubscriptionDomainService(
             subscriptionCrudService,
             applicationCrudService,
@@ -274,7 +289,8 @@ class ImportApiCRDUseCaseTest {
                 subscriptionCrudService,
                 auditDomainService,
                 triggerNotificationDomainService,
-                new UserCrudServiceInMemory()
+                new UserCrudServiceInMemory(),
+                applicationPrimaryOwnerDomainService
             ),
             new RevokeApiKeyDomainService(
                 new ApiKeyCrudServiceInMemory(),
@@ -287,7 +303,6 @@ class ImportApiCRDUseCaseTest {
             new IntegrationAgentInMemory()
         );
         var metadataQueryService = new ApiMetadataQueryServiceInMemory(metadataCrudService);
-        var membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
         var apiPrimaryOwnerFactory = new ApiPrimaryOwnerFactory(
             groupQueryService,
             membershipQueryService,
@@ -412,6 +427,21 @@ class ImportApiCRDUseCaseTest {
             List.of(
                 Group.builder().id(GROUP_ID_1).build(),
                 Group.builder().id(GROUP_ID_2).environmentId(ENVIRONMENT_ID).name(GROUP_NAME).build()
+            )
+        );
+
+        membershipQueryService.initWith(
+            List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID).withId("member-id-2"))
+        );
+
+        applicationCrudService.initWith(
+            List.of(
+                ApplicationModelFixtures
+                    .anApplicationEntity()
+                    .toBuilder()
+                    .id(APPLICATION_ID)
+                    .primaryOwner(io.gravitee.rest.api.model.PrimaryOwnerEntity.builder().id(USER_ID).displayName("Jane").build())
+                    .build()
             )
         );
 

@@ -15,20 +15,26 @@
  */
 package io.gravitee.apim.infra.domain_service.subscription;
 
+import static fixtures.core.model.MembershipFixtures.anApiPrimaryOwnerUserMembership;
+import static fixtures.core.model.MembershipFixtures.anApplicationPrimaryOwnerUserMembership;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fixtures.ApplicationModelFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.GroupQueryServiceInMemory;
 import inmemory.IntegrationAgentInMemory;
+import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
+import inmemory.RoleQueryServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
@@ -37,6 +43,7 @@ import io.gravitee.apim.core.api_key.domain_service.GenerateApiKeyDomainService;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
@@ -44,10 +51,12 @@ import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomai
 import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -103,6 +112,15 @@ class SubscriptionCRDSpecDomainServiceImplTest {
     private final IntegrationAgentInMemory integrationAgent = new IntegrationAgentInMemory();
     private final ApiKeyQueryServiceInMemory apiKeyQueryService = new ApiKeyQueryServiceInMemory();
     private final SubscriptionAdapterImpl subscriptionAdapter = new SubscriptionAdapterImpl();
+    private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
+    private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
+    private final ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService = new ApplicationPrimaryOwnerDomainService(
+        groupQueryService,
+        membershipQueryService,
+        roleQueryService,
+        userCrudService
+    );
 
     private final SubscriptionService subscriptionService = Mockito.mock(SubscriptionService.class);
 
@@ -120,7 +138,7 @@ class SubscriptionCRDSpecDomainServiceImplTest {
             .thenReturn(subscriptionAdapter.map(subscriptionAdapter.fromSpec(SPEC)));
 
         subscriptionCrudService.initWith(
-            List.of(subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.PENDING).build())
+            List.of(subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.PENDING).subscribedBy(USER_ID).build())
         );
 
         apiCrudService.initWith(List.of(Api.builder().id(API_ID).build()));
@@ -131,6 +149,22 @@ class SubscriptionCRDSpecDomainServiceImplTest {
                 acceptSubscriptionDomainService(),
                 closeSubscriptionDomainService()
             );
+
+        membershipQueryService.initWith(List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)));
+        applicationCrudService.initWith(
+            List.of(
+                ApplicationModelFixtures
+                    .anApplicationEntity()
+                    .toBuilder()
+                    .id(APPLICATION_ID)
+                    .primaryOwner(PrimaryOwnerEntity.builder().id(USER_ID).displayName("Jane").build())
+                    .build()
+            )
+        );
+        roleQueryService.resetSystemRoles(ORGANIZATION_ID);
+        userCrudService.initWith(
+            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
+        );
     }
 
     @AfterEach
@@ -232,7 +266,13 @@ class SubscriptionCRDSpecDomainServiceImplTest {
     }
 
     private RejectSubscriptionDomainService rejectSubscriptionDomainService() {
-        return new RejectSubscriptionDomainService(subscriptionCrudService, auditDomainService(), notificationService, userCrudService);
+        return new RejectSubscriptionDomainService(
+            subscriptionCrudService,
+            auditDomainService(),
+            notificationService,
+            userCrudService,
+            applicationPrimaryOwnerDomainService
+        );
     }
 
     private AcceptSubscriptionDomainService acceptSubscriptionDomainService() {
@@ -245,7 +285,8 @@ class SubscriptionCRDSpecDomainServiceImplTest {
             generateApiKeyDomainService(),
             integrationAgent,
             notificationService,
-            userCrudService
+            userCrudService,
+            applicationPrimaryOwnerDomainService
         );
     }
 
