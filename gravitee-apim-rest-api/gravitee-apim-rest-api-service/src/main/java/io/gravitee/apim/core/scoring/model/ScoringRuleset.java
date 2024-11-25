@@ -27,7 +27,8 @@ public record ScoringRuleset(
     @With String referenceId,
     ReferenceType referenceType,
     String payload,
-    ZonedDateTime createdAt
+    ZonedDateTime createdAt,
+    ZonedDateTime updatedAt
 ) {
     public enum ReferenceType {
         ENVIRONMENT,

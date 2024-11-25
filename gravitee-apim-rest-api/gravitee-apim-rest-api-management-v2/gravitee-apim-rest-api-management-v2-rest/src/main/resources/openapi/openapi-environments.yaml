@@ -300,6 +300,29 @@ paths:
                                 $ref: "#/components/schemas/ScoringRuleset"
                 default:
                     $ref: "#/components/responses/Error"
+        put:
+            tags:
+                - Scoring
+                - Rulesets
+            summary: Update ruleset
+            operationId: updateEnvironmentRuleset
+            parameters:
+                - $ref: "#/components/parameters/rulesetId"
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateScoringRuleset"
+                required: true
+            responses:
+                "200":
+                    description: Ruleset updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ScoringRuleset"
+                default:
+                    $ref: "#/components/responses/Error"
     /scoring/functions:
       post:
         tags:
@@ -576,6 +599,17 @@ components:
                 payload:
                     type: string
                     description: The ruleset payload
+        UpdateScoringRuleset:
+            type: object
+            description: The scoring ruleset to update
+            properties:
+                name:
+                    type: string
+                    description: The name of ruleset
+                description:
+                    type: string
+                    description: The description of ruleset
+            required: ["name"]
         ScoringRuleset:
             type: object
             description: A scoring ruleset
@@ -596,6 +630,11 @@ components:
                     type: string
                     format: date-time
                     description: The date at which the ruleset was created
+                    example: 2020-01-01T00:00:00Z
+                updatedAt:
+                    type: string
+                    format: date-time
+                    description: The date at which the ruleset was updated
                     example: 2020-01-01T00:00:00Z
                 referenceId:
                     type: string

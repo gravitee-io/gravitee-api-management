@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class MongoScoringRulesetRepository implements ScoringRulesetRepository {
+class MongoScoringRulesetRepository implements ScoringRulesetRepository {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -52,6 +52,23 @@ public class MongoScoringRulesetRepository implements ScoringRulesetRepository {
         var result = internalRepository.findById(s).map(this::map);
         logger.debug("Find ruleset by id [{}] - Done", s);
         return result;
+    }
+
+    @Override
+    public ScoringRuleset update(ScoringRuleset scoringRuleset) throws TechnicalException {
+        if (scoringRuleset == null) {
+            throw new IllegalStateException("Scoring Ruleset must not be null");
+        }
+
+        return internalRepository
+            .findById(scoringRuleset.getId())
+            .map(found -> {
+                logger.debug("Update scoring ruleset [{}]", scoringRuleset.getId());
+                ScoringRuleset updatedScoringRuleset = map(internalRepository.save(map(scoringRuleset)));
+                logger.debug("Update scoring ruleset [{}] - Done", updatedScoringRuleset.getId());
+                return updatedScoringRuleset;
+            })
+            .orElseThrow(() -> new IllegalStateException(String.format("No scoring ruleset found with id [%s]", scoringRuleset.getId())));
     }
 
     @Override

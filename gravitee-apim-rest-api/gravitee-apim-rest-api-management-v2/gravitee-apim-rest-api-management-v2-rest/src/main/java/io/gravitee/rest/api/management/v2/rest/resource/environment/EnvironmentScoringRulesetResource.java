@@ -17,12 +17,17 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import io.gravitee.apim.core.scoring.use_case.DeleteEnvironmentRulesetUseCase;
 import io.gravitee.apim.core.scoring.use_case.GetEnvironmentRulesetUseCase;
+import io.gravitee.apim.core.scoring.use_case.UpdateEnvironmentRulesetUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ScoringRulesetMapper;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateScoringRuleset;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
@@ -36,6 +41,9 @@ public class EnvironmentScoringRulesetResource extends AbstractResource {
 
     @Inject
     private DeleteEnvironmentRulesetUseCase deleteEnvironmentRulesetUseCase;
+
+    @Inject
+    private UpdateEnvironmentRulesetUseCase updateEnvironmentRulesetUseCase;
 
     @Inject
     private GetEnvironmentRulesetUseCase getEnvironmentRulesetUseCase;
@@ -54,5 +62,15 @@ public class EnvironmentScoringRulesetResource extends AbstractResource {
             .scoringRuleset();
 
         return Response.ok(ScoringRulesetMapper.INSTANCE.map(ruleset)).build();
+    }
+
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateRuleset(@Valid UpdateScoringRuleset updateScoringRuleset) {
+        var rulesetToUpdate = ScoringRulesetMapper.INSTANCE.map(updateScoringRuleset).toBuilder().id(rulesetId).build();
+        var input = new UpdateEnvironmentRulesetUseCase.Input(rulesetToUpdate, getAuditInfo());
+        var updatedRuleset = updateEnvironmentRulesetUseCase.execute(input).scoringRuleset();
+        return Response.ok(ScoringRulesetMapper.INSTANCE.map(updatedRuleset)).build();
     }
 }
