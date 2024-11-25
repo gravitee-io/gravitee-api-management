@@ -16,6 +16,7 @@
 package io.gravitee.apim.gateway.tests.sdk.connector.fakes;
 
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.plugin.endpoint.mock.MockEndpointConnector;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
@@ -46,7 +47,7 @@ public class ConnectionLatencyMockEndpointConnector extends MockEndpointConnecto
     }
 
     @Override
-    public Completable connect(ExecutionContext ctx) {
+    public Completable connect(HttpExecutionContext ctx) {
         Long latency = Optional.ofNullable(latencyConfiguration.connectionLatencies.pollFirst()).orElse(0L);
         // Return the connection attempts counter as a header to simplify the assertions
         ctx.response().headers().set(MOCK_CONNECTION_ATTEMPTS, Integer.toString(connectAttempts.incrementAndGet()));
