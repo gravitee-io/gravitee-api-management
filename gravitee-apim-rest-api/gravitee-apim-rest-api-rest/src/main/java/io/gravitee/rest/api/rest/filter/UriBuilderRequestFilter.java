@@ -32,35 +32,62 @@ import java.util.List;
 @PreMatching
 public class UriBuilderRequestFilter implements ContainerRequestFilter {
 
+    private static final int NO_EXPLICIT_PORT = -1; // this resets explicit port in UriBuilder
+
     @Override
     public void filter(ContainerRequestContext ctx) throws IOException {
-        List<String> schemes = ctx.getHeaders().get(HttpHeaders.X_FORWARDED_PROTO);
         UriBuilder baseBuilder = ctx.getUriInfo().getBaseUriBuilder();
         UriBuilder requestBuilder = ctx.getUriInfo().getRequestUriBuilder();
 
-        if (schemes != null && !schemes.isEmpty()) {
-            String scheme = schemes.get(0);
-            baseBuilder.scheme(scheme);
-            requestBuilder.scheme(scheme);
+        // order matters as each process method may override values set by previous one(s)
+        processProtocolHeader(ctx, baseBuilder, requestBuilder);
+        processHostHeader(ctx, baseBuilder, requestBuilder);
+        processPortHeader(ctx, baseBuilder, requestBuilder);
+    }
 
+    private void processProtocolHeader(ContainerRequestContext ctx, UriBuilder baseBuilder, UriBuilder requestBuilder) {
+        String protoHeaderValue = getFirstHeaderValueOrNull(ctx, HttpHeaders.X_FORWARDED_PROTO);
+        if (protoHeaderValue != null) {
+            baseBuilder.scheme(protoHeaderValue);
+            requestBuilder.scheme(protoHeaderValue);
             ctx.setRequestUri(baseBuilder.build(), requestBuilder.build());
         }
+    }
 
-        List<String> hosts = ctx.getHeaders().get(HttpHeaders.X_FORWARDED_HOST);
-        if (hosts != null && !hosts.isEmpty()) {
-            String host = hosts.get(0);
-
-            if (host.contains(":")) {
-                // Forwarded host contains both host and port
-                String[] parts = host.split(":");
-                baseBuilder.host(parts[0]).port(Integer.parseInt(parts[1]));
-                requestBuilder.host(parts[0]).port(Integer.parseInt(parts[1]));
+    private void processHostHeader(ContainerRequestContext ctx, UriBuilder baseBuilder, UriBuilder requestBuilder) {
+        String hostHeaderValue = getFirstHeaderValueOrNull(ctx, HttpHeaders.X_FORWARDED_HOST);
+        if (hostHeaderValue != null) {
+            if (hostHeaderValue.contains(":")) {
+                int lastColonIdx = hostHeaderValue.lastIndexOf(':');
+                String host = hostHeaderValue.substring(0, lastColonIdx);
+                int port = Integer.parseInt(hostHeaderValue.substring(lastColonIdx + 1));
+                baseBuilder.host(host).port(port);
+                requestBuilder.host(host).port(port);
             } else {
-                baseBuilder.host(host);
-                requestBuilder.host(host);
+                baseBuilder.host(hostHeaderValue).port(NO_EXPLICIT_PORT);
+                requestBuilder.host(hostHeaderValue).port(NO_EXPLICIT_PORT);
             }
 
             ctx.setRequestUri(baseBuilder.build(), requestBuilder.build());
+        }
+    }
+
+    private void processPortHeader(ContainerRequestContext ctx, UriBuilder baseBuilder, UriBuilder requestBuilder) {
+        String portHeaderValue = getFirstHeaderValueOrNull(ctx, HttpHeaders.X_FORWARDED_PORT);
+        if (portHeaderValue != null) {
+            int port = Integer.parseInt(portHeaderValue);
+            baseBuilder.port(port);
+            requestBuilder.port(port);
+            ctx.setRequestUri(baseBuilder.build(), requestBuilder.build());
+        }
+    }
+
+    private String getFirstHeaderValueOrNull(ContainerRequestContext ctx, String headerName) {
+        List<String> headerValues = ctx.getHeaders().get(headerName);
+        if (headerValues != null && !headerValues.isEmpty()) {
+            return headerValues.get(0);
+        } else {
+            return null;
         }
     }
 }
