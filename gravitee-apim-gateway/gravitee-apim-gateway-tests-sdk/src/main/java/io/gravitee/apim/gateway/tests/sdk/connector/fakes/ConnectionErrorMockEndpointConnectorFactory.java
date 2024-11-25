@@ -16,7 +16,7 @@
 package io.gravitee.apim.gateway.tests.sdk.connector.fakes;
 
 import io.gravitee.gateway.reactive.api.ConnectorMode;
-import io.gravitee.gateway.reactive.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.endpoint.async.HttpEndpointAsyncConnectorFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
@@ -27,7 +27,8 @@ import java.util.Set;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ConnectionErrorMockEndpointConnectorFactory implements EndpointAsyncConnectorFactory<ConnectionErrorMockEndpointConnector> {
+public class ConnectionErrorMockEndpointConnectorFactory
+    implements HttpEndpointAsyncConnectorFactory<ConnectionErrorMockEndpointConnector> {
 
     private final PluginConfigurationHelper pluginConfigurationHelper;
 
