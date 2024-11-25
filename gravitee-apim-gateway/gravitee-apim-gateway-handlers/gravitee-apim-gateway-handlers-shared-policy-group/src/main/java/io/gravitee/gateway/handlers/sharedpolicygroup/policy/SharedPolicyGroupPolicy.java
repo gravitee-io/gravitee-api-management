@@ -17,11 +17,10 @@ package io.gravitee.gateway.handlers.sharedpolicygroup.policy;
 
 import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupReactor;
 import io.gravitee.gateway.handlers.sharedpolicygroup.registry.SharedPolicyGroupRegistry;
-import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
-import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
+import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Optional;
@@ -33,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author GraviteeSource Team
  */
 @Slf4j
-public class SharedPolicyGroupPolicy implements Policy {
+public class SharedPolicyGroupPolicy implements HttpPolicy {
 
     public static final String POLICY_ID = "shared-policy-group-policy";
 
@@ -51,16 +50,16 @@ public class SharedPolicyGroupPolicy implements Policy {
     }
 
     @Override
-    public Completable onRequest(HttpExecutionContext ctx) {
+    public Completable onRequest(HttpPlainExecutionContext ctx) {
         return getPolicyChain(ctx)
-            .map(policyChain -> policyChain.execute((ExecutionContext) ctx))
+            .map(policyChain -> policyChain.execute(ctx))
             .orElseGet(warnNotFoundAndComplete(ctx.getAttribute(ContextAttributes.ATTR_ENVIRONMENT)));
     }
 
     @Override
-    public Completable onResponse(HttpExecutionContext ctx) {
+    public Completable onResponse(HttpPlainExecutionContext ctx) {
         return getPolicyChain(ctx)
-            .map(policyChain -> policyChain.execute((ExecutionContext) ctx))
+            .map(policyChain -> policyChain.execute(ctx))
             .orElseGet(warnNotFoundAndComplete(ctx.getAttribute(ContextAttributes.ATTR_ENVIRONMENT)));
     }
 
@@ -75,7 +74,7 @@ public class SharedPolicyGroupPolicy implements Policy {
         };
     }
 
-    private Optional<HttpPolicyChain> getPolicyChain(HttpExecutionContext ctx) {
+    private Optional<HttpPolicyChain> getPolicyChain(BaseExecutionContext ctx) {
         final SharedPolicyGroupRegistry sharedPolicyGroupRegistry = ctx.getComponent(SharedPolicyGroupRegistry.class);
         return Optional
             .ofNullable(
