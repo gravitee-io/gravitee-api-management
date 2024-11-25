@@ -52,7 +52,7 @@ import org.mockito.MockitoAnnotations;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-class PermissionsFilterTest {
+public class PermissionsFilterTest {
 
     @InjectMocks
     protected PermissionsFilter permissionFilter;
