@@ -23,12 +23,20 @@ public class SubscriptionRejectedApiHookContext extends ApiHookContext {
     private final String applicationId;
     private final String planId;
     private final String subscriptionId;
+    private final String applicationPrimaryOwner;
 
-    public SubscriptionRejectedApiHookContext(String apiId, String applicationId, String planId, String subscriptionId) {
+    public SubscriptionRejectedApiHookContext(
+        String apiId,
+        String applicationId,
+        String planId,
+        String subscriptionId,
+        String applicationPrimaryOwner
+    ) {
         super(ApiHook.SUBSCRIPTION_REJECTED, apiId);
         this.applicationId = applicationId;
         this.planId = planId;
         this.subscriptionId = subscriptionId;
+        this.applicationPrimaryOwner = applicationPrimaryOwner;
     }
 
     @Override
@@ -39,7 +47,9 @@ public class SubscriptionRejectedApiHookContext extends ApiHookContext {
             HookContextEntry.PLAN_ID,
             planId,
             HookContextEntry.SUBSCRIPTION_ID,
-            subscriptionId
+            subscriptionId,
+            HookContextEntry.OWNER,
+            applicationPrimaryOwner
         );
     }
 }
