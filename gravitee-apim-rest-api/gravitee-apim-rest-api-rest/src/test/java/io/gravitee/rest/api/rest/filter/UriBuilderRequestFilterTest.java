@@ -47,7 +47,7 @@ import org.mockito.invocation.Invocation;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-class UriBuilderRequestFilterTest {
+public class UriBuilderRequestFilterTest {
 
     @InjectMocks
     protected UriBuilderRequestFilter filter;
