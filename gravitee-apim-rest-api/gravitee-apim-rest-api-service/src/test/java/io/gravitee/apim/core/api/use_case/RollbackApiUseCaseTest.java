@@ -300,7 +300,7 @@ class RollbackApiUseCaseTest {
                 api.setUpdatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()));
                 apiCrudService.update(api);
                 return ApiModelFixtures
-                    .aModelApiV4()
+                    .aModelHttpApiV4()
                     .toBuilder()
                     .id(existingApi.getId())
                     .updatedAt(Date.from(INSTANT_NOW.atZone(ZoneId.systemDefault()).toInstant()))
@@ -445,7 +445,7 @@ class RollbackApiUseCaseTest {
                 apiCrudService.update(api);
 
                 return ApiModelFixtures
-                    .aModelApiV4()
+                    .aModelHttpApiV4()
                     .toBuilder()
                     .id(existingApi.getId())
                     .updatedAt(Date.from(INSTANT_NOW.atZone(ZoneId.systemDefault()).toInstant()))

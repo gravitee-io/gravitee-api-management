@@ -62,7 +62,7 @@ public class ApiModelFixtures {
             .updatedAt(new Date())
             .flows(List.of(FlowModelFixtures.aModelFlowV2()));
 
-    private static final ApiEntity.ApiEntityBuilder BASE_MODEL_API_V4 = ApiEntity
+    private static final ApiEntity.ApiEntityBuilder BASE_MODEL_API_HTTP_V4 = ApiEntity
         .builder()
         .id("my-id")
         .crossId("my-cross-id")
@@ -118,15 +118,15 @@ public class ApiModelFixtures {
         return BASE_MODEL_API_V2.build();
     }
 
-    public static ApiEntity aModelApiV4() {
-        return BASE_MODEL_API_V4.build();
+    public static ApiEntity aModelHttpApiV4() {
+        return BASE_MODEL_API_HTTP_V4.build();
     }
 
     public static GenericApiEntity aGenericApiEntity(final io.gravitee.definition.model.DefinitionVersion definitionVersion) {
         return switch (definitionVersion) {
             case V1 -> aModelApiV1();
             case V2 -> aModelApiV2();
-            case V4 -> aModelApiV4();
+            case V4 -> aModelHttpApiV4();
             case FEDERATED -> BASE_MODEL_API_FEDERATED.build();
         };
     }
