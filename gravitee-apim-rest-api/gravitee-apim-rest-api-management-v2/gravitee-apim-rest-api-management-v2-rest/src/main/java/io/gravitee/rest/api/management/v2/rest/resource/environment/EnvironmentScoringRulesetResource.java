@@ -16,10 +16,15 @@
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import io.gravitee.apim.core.scoring.use_case.DeleteEnvironmentRulesetUseCase;
+import io.gravitee.apim.core.scoring.use_case.GetEnvironmentRulesetUseCase;
+import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.v2.rest.mapper.ScoringRulesetMapper;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,9 +37,22 @@ public class EnvironmentScoringRulesetResource extends AbstractResource {
     @Inject
     private DeleteEnvironmentRulesetUseCase deleteEnvironmentRulesetUseCase;
 
+    @Inject
+    private GetEnvironmentRulesetUseCase getEnvironmentRulesetUseCase;
+
     @DELETE
     public Response deleteRuleset() {
         deleteEnvironmentRulesetUseCase.execute(new DeleteEnvironmentRulesetUseCase.Input(rulesetId, getAuditInfo()));
         return Response.noContent().build();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getRulesetById(@PathParam("rulesetId") String rulesetId) {
+        var ruleset = getEnvironmentRulesetUseCase
+            .execute(new GetEnvironmentRulesetUseCase.Input(rulesetId, getAuditInfo()))
+            .scoringRuleset();
+
+        return Response.ok(ScoringRulesetMapper.INSTANCE.map(ruleset)).build();
     }
 }

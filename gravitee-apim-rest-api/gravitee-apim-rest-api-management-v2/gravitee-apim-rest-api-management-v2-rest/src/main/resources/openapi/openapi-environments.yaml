@@ -283,6 +283,23 @@ paths:
                     description: Ruleset deleted
                 default:
                     $ref: "#/components/responses/Error"
+        get:
+            tags:
+                - Scoring
+                - Rulesets
+            summary: Get a specific ruleset
+            operationId: getEnvironmentRuleset
+            parameters:
+                - $ref: "#/components/parameters/rulesetId"
+            responses:
+                "200":
+                    description: Scoring ruleset found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ScoringRuleset"
+                default:
+                    $ref: "#/components/responses/Error"
     /scoring/functions:
       post:
         tags:
