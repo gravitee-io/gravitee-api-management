@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plugin;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.model.Api;
@@ -69,6 +70,9 @@ public class ApiLicenseServiceImplTest {
     private io.gravitee.definition.model.v4.Api apiV4;
 
     @Mock
+    private io.gravitee.definition.model.v4.nativeapi.NativeApi nativeApiV4;
+
+    @Mock
     private io.gravitee.definition.model.Api apiV2;
 
     @Mock
@@ -84,13 +88,17 @@ public class ApiLicenseServiceImplTest {
         openMocks(this);
 
         when(apiSearchService.findRepositoryApiById(executionContext, API)).thenReturn(repositoryApi);
+        when(repositoryApi.getType()).thenReturn(ApiType.PROXY);
         when(repositoryApi.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
         when(repositoryApi.getDefinition()).thenReturn("dummy definition");
 
         when(objectMapper.readValue("dummy definition", io.gravitee.definition.model.v4.Api.class)).thenReturn(apiV4);
+        when(objectMapper.readValue("dummy definition", io.gravitee.definition.model.v4.nativeapi.NativeApi.class)).thenReturn(nativeApiV4);
         when(objectMapper.readValue("dummy definition", io.gravitee.definition.model.Api.class)).thenReturn(apiV2);
 
         when(apiV4.getPlugins()).thenReturn(List.of(new Plugin("apiV4-type", "apiV4-id"), new Plugin("another", "plugin")));
+        when(nativeApiV4.getPlugins())
+            .thenReturn(List.of(new Plugin("apiV4-kafka-type", "apiV4-kafka-id"), new Plugin("another", "plugin")));
         when(apiV2.getPlugins()).thenReturn(List.of(new Plugin("apiV2-type", "apiV2-id"), new Plugin("another", "plugin")));
 
         lenient().when(licenseManager.getPlatformLicense()).thenReturn(license);
@@ -101,6 +109,17 @@ public class ApiLicenseServiceImplTest {
     public void should_verify_v4_definition() throws Exception {
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
         var v4LicensePlugins = List.of(new LicenseManager.Plugin("apiV4-type", "apiV4-id"), new LicenseManager.Plugin("another", "plugin"));
+        verify(licenseManager, times(1)).validatePluginFeatures(eq(executionContext.getOrganizationId()), eq(v4LicensePlugins));
+    }
+
+    @Test
+    public void should_verify_v4_native_definition() throws Exception {
+        when(repositoryApi.getType()).thenReturn(ApiType.NATIVE);
+        assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
+        var v4LicensePlugins = List.of(
+            new LicenseManager.Plugin("apiV4-kafka-type", "apiV4-kafka-id"),
+            new LicenseManager.Plugin("another", "plugin")
+        );
         verify(licenseManager, times(1)).validatePluginFeatures(eq(executionContext.getOrganizationId()), eq(v4LicensePlugins));
     }
 
