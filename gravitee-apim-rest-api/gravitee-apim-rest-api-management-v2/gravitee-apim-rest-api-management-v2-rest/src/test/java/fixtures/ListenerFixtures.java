@@ -59,7 +59,7 @@ public class ListenerFixtures {
         .builder()
         // BaseListener
         .type(ListenerType.KAFKA)
-        .entrypoints(List.of(EntrypointFixtures.anEntrypointHttpV4()))
+        .entrypoints(List.of(EntrypointFixtures.anEntrypointNativeV4()))
         .servers(List.of("my-server1", "my-server2"));
 
     public static HttpListener aHttpListener() {
