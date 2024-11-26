@@ -119,7 +119,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
 
     @Test
     public void should_update_v4_api() {
-        ApiEntity apiEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).build();
+        ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
         UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
 
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
@@ -202,7 +202,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
 
     @Test
     public void should_return_bad_request_when_updating_v4_api_with_v2_defition() {
-        final ApiEntity apiEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).build();
+        final ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
         final UpdateApiV2 updateApiV2 = ApiFixtures.anUpdateApiV2();
 
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);

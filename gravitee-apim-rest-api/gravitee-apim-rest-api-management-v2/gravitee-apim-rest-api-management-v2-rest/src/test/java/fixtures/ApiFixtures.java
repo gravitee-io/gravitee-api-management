@@ -179,7 +179,7 @@ public class ApiFixtures {
         return ApiModelFixtures.aModelApiV2();
     }
 
-    public static ApiEntity aModelApiV4() {
-        return ApiModelFixtures.aModelApiV4();
+    public static ApiEntity aModelHttpApiV4() {
+        return ApiModelFixtures.aModelHttpApiV4();
     }
 }
