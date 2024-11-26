@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.model;
 
+import io.gravitee.apim.core.api.model.property.DynamicApiProperties;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -244,8 +245,8 @@ public class Api {
         if (definitionVersion != DefinitionVersion.V4) {
             return false;
         }
-        final ApiProperties apiProperties = new ApiProperties(this.apiDefinitionHttpV4.getProperties());
-        final ApiProperties.DynamicPropertiesResult properties = apiProperties.updateDynamicProperties(dynamicProperties);
+        final DynamicApiProperties apiProperties = new DynamicApiProperties(this.apiDefinitionHttpV4.getProperties());
+        final DynamicApiProperties.DynamicPropertiesResult properties = apiProperties.updateDynamicProperties(dynamicProperties);
 
         this.getApiDefinitionHttpV4().setProperties(properties.orderedProperties());
 
