@@ -28,7 +28,7 @@ import io.gravitee.gateway.reactive.api.context.TlsSession;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.api.ws.WebSocket;
 import io.gravitee.gateway.reactive.core.BufferFlow;
-import io.gravitee.gateway.reactive.core.DefaultTlsSession;
+import io.gravitee.gateway.reactive.core.HttpTlsSession;
 import io.gravitee.gateway.reactive.core.context.AbstractRequest;
 import io.gravitee.gateway.reactive.http.vertx.ws.VertxWebSocket;
 import io.reactivex.rxjava3.core.Flowable;
@@ -176,7 +176,7 @@ public class VertxHttpServerRequest extends AbstractRequest {
     @Override
     public TlsSession tlsSession() {
         if (tlsSession == null) {
-            tlsSession = new DefaultTlsSession(nativeRequest.sslSession(), headers, options.clientAuthHeaderName());
+            tlsSession = new HttpTlsSession(nativeRequest.sslSession(), headers, options.clientAuthHeaderName());
         }
         return tlsSession;
     }
