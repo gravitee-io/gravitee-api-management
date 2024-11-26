@@ -89,7 +89,7 @@ public class MongoFlowRepository implements FlowRepository {
 
     @Override
     public List<Flow> findByReference(FlowReferenceType referenceType, String referenceId) {
-        final List<FlowMongo> flows = internalRepository.findAll(referenceType.name(), referenceId);
+        final List<FlowMongo> flows = internalRepository.findByReference(referenceType.name(), referenceId);
         return flows.stream().map(this::map).collect(Collectors.toList());
     }
 
