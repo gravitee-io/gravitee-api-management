@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.model;
+package io.gravitee.apim.core.api.model.property;
 
 import static java.util.function.Function.identity;
 import static java.util.function.Predicate.not;
@@ -31,12 +31,12 @@ import java.util.stream.Stream;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiProperties {
+public class DynamicApiProperties {
 
     final Map<String, Property> currentPropertiesByKey;
     private final List<Property> currentUserDefinedProperties;
 
-    public ApiProperties(List<Property> currentProperties) {
+    public DynamicApiProperties(List<Property> currentProperties) {
         this.currentPropertiesByKey = currentProperties.stream().collect(Collectors.toMap(Property::getKey, identity()));
         this.currentUserDefinedProperties = currentProperties.stream().filter(not(Property::isDynamic)).toList();
     }
