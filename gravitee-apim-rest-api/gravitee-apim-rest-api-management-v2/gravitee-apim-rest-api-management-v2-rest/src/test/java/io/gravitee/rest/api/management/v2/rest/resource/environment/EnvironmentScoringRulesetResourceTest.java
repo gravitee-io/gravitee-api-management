@@ -22,12 +22,16 @@ import fixtures.core.model.ScoringRulesetFixture;
 import inmemory.InMemoryAlternative;
 import inmemory.ScoringRulesetCrudServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.management.v2.rest.model.ScoringRuleset;
+import io.gravitee.rest.api.management.v2.rest.model.ScoringRulesetReferenceType;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
@@ -85,6 +89,46 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
             // Then
             assertThat(response).hasStatus(HttpStatusCode.NO_CONTENT_204);
             assertThat(scoringRulesetCrudService.storage()).isEmpty();
+        }
+    }
+
+    @Nested
+    class GetEnvironmentRuleset {
+
+        @Test
+        void should_get_a_ruleset() {
+            // Given
+            scoringRulesetCrudService.initWith(List.of(ScoringRulesetFixture.aRuleset("ruleset-id").withReferenceId(ENVIRONMENT)));
+
+            // When
+            var response = rootTarget.path("ruleset-id").request().get();
+
+            // Then
+            assertThat(response)
+                .hasStatus(HttpStatusCode.OK_200)
+                .asEntity(ScoringRuleset.class)
+                .isEqualTo(
+                    ScoringRuleset
+                        .builder()
+                        .id("ruleset-id")
+                        .name("ruleset-name")
+                        .description("ruleset-description")
+                        .referenceId(ENVIRONMENT)
+                        .referenceType(ScoringRulesetReferenceType.ENVIRONMENT)
+                        .payload("payload-ruleset-id")
+                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
+                        .build()
+                );
+        }
+
+        @Test
+        void should_throw_error_when_ruleset_not_found() {
+            // Given
+            // When
+            var response = rootTarget.path("ruleset-id").request().get();
+
+            // Then
+            assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
         }
     }
 }
