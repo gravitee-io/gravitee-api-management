@@ -26,15 +26,11 @@ import io.gravitee.rest.api.service.search.query.Query;
  * @author GraviteeSource Team
  */
 public interface SearchEngineService {
-    default void index(ExecutionContext executionContext, Indexable source, boolean locally) {
-        index(executionContext, source, locally, true);
-    }
+    void index(ExecutionContext executionContext, Indexable source, boolean locally);
 
     void index(ExecutionContext executionContext, Indexable source, boolean locally, boolean commit);
 
-    default void delete(ExecutionContext executionContext, Indexable source) {
-        delete(executionContext, source, false);
-    }
+    void delete(ExecutionContext executionContext, Indexable source);
 
     void delete(ExecutionContext executionContext, Indexable source, boolean locally);
 
