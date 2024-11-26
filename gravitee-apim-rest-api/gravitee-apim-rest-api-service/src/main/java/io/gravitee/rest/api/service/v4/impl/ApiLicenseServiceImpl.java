@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plugin;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
@@ -53,8 +54,16 @@ public class ApiLicenseServiceImpl implements ApiLicenseService {
         List<Plugin> plugins;
         try {
             if (DefinitionVersion.V4.equals(repositoryApi.getDefinitionVersion())) {
-                var apiDefinition = objectMapper.readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.v4.Api.class);
-                plugins = apiDefinition.getPlugins();
+                if (repositoryApi.getType() == ApiType.NATIVE) {
+                    var apiDefinition = objectMapper.readValue(
+                        repositoryApi.getDefinition(),
+                        io.gravitee.definition.model.v4.nativeapi.NativeApi.class
+                    );
+                    plugins = apiDefinition.getPlugins();
+                } else {
+                    var apiDefinition = objectMapper.readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.v4.Api.class);
+                    plugins = apiDefinition.getPlugins();
+                }
             } else if (repositoryApi.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
                 var apiDefinition = objectMapper.readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.Api.class);
                 plugins = apiDefinition.getPlugins();
