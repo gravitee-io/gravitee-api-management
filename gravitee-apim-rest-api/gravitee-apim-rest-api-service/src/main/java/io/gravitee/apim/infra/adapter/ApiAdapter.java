@@ -65,6 +65,7 @@ public interface ApiAdapter {
     @Mapping(target = "analytics", source = "apiDefinitionHttpV4.analytics")
     @Mapping(target = "flowExecution", source = "apiDefinitionHttpV4.flowExecution")
     @Mapping(target = "flows", source = "apiDefinitionHttpV4.flows")
+    @Mapping(target = "failover", source = "apiDefinitionHttpV4.failover")
     NewApiEntity toNewApiEntity(Api source);
 
     @Mapping(target = "apiVersion", source = "version")

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.model;
 
+import io.gravitee.definition.model.v4.failover.Failover;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -67,6 +68,8 @@ public class ApiCRDSpec {
     private List<@Valid EndpointGroupV4> endpointGroups;
 
     private Analytics analytics;
+
+    private Failover failover;
 
     private List<@Valid Property> properties = new ArrayList<>();
 
