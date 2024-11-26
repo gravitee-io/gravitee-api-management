@@ -29,6 +29,7 @@ import static org.mockito.Mockito.when;
 
 import fixtures.ApiFixtures;
 import inmemory.InMemoryAlternative;
+import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -38,6 +39,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLifecycleState;
+import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
@@ -50,6 +52,7 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.time.Clock;
@@ -62,6 +65,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 public class ApiResource_UpdateApiTest extends ApiResourceTest {
+
+    @Inject
+    ValidateApiDomainService validateApiDomainService;
 
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
 
@@ -254,6 +260,64 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
             .asEntity(Api.class)
             .extracting(Api::getApiFederated)
             .extracting(ApiFederated::getName, ApiFederated::getDescription, ApiFederated::getApiVersion, ApiFederated::getLifecycleState)
+            .containsExactly(updatedName, updatedDescription, updatedVersion, updatedLifecycle);
+    }
+
+    @Test
+    public void should_update_native_v4_api() {
+        var updatedName = "updated-name";
+        var updatedDescription = "updated-description";
+        var updatedVersion = "2.0.0";
+        var updatedLifecycle = ApiLifecycleState.PUBLISHED;
+        TimeProvider.overrideClock(Clock.fixed(INSTANT_NOW, ZoneId.systemDefault()));
+        primaryOwnerInit();
+        var existingEntity = ApiFixtures.aModelNativeApiV4().withId(API);
+        var existingApi = fixtures.core.model.ApiFixtures.aNativeApi().toBuilder().id(API).build();
+
+        apiCrudService.initWith(List.of(existingApi));
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(existingEntity);
+
+        groupQueryServiceInMemory.initWith(
+            List.of(
+                Group
+                    .builder()
+                    .id("group1")
+                    .environmentId("environment-id")
+                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
+                    .build(),
+                Group.builder().id("group2").build()
+            )
+        );
+
+        var apiWithUpdatedFields = existingApi
+            .toBuilder()
+            .name(updatedName)
+            .description(updatedDescription)
+            .version(updatedVersion)
+            .apiLifecycleState(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED)
+            .visibility(io.gravitee.apim.core.api.model.Api.Visibility.PUBLIC)
+            .build();
+
+        when(validateApiDomainService.validateAndSanitizeForUpdate(eq(existingApi), any(), any(), any(), any()))
+            .thenReturn(apiWithUpdatedFields);
+
+        var updateApiV4 = ApiFixtures
+            .anUpdateApiV4()
+            .toBuilder()
+            .type(ApiType.NATIVE)
+            .name(updatedName)
+            .description(updatedDescription)
+            .apiVersion(updatedVersion)
+            .lifecycleState(updatedLifecycle)
+            .build();
+
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
+
+        assertThat(response)
+            .hasStatus(HttpStatusCode.OK_200)
+            .asEntity(Api.class)
+            .extracting(Api::getApiV4)
+            .extracting(ApiV4::getName, ApiV4::getDescription, ApiV4::getApiVersion, ApiV4::getLifecycleState)
             .containsExactly(updatedName, updatedDescription, updatedVersion, updatedLifecycle);
     }
 

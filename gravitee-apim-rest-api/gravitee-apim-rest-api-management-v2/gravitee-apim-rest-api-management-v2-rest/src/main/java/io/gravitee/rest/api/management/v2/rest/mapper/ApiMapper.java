@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.toMap;
 
 import io.gravitee.apim.core.api.model.NewHttpApi;
 import io.gravitee.apim.core.api.model.NewNativeApi;
+import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -243,6 +244,10 @@ public interface ApiMapper {
     @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
     @Mapping(target = "id", expression = "java(apiId)")
     UpdateApiEntity map(UpdateApiV4 updateApi, String apiId);
+
+    @Mapping(target = "listeners", qualifiedByName = "toNativeListeners")
+    @Mapping(target = "id", expression = "java(apiId)")
+    UpdateNativeApi mapToUpdateNativeApi(UpdateApiV4 api, String apiId);
 
     @Mapping(target = "id", expression = "java(apiId)")
     UpdateApiEntity map(UpdateApiFederated updateApi, String apiId);

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.rest.api.management.v2.rest.model.Property;
 import io.gravitee.rest.api.model.PropertiesEntity;
 import java.util.List;
@@ -35,6 +36,13 @@ public interface PropertiesMapper {
     Property map(io.gravitee.definition.model.v4.property.Property property);
 
     List<Property> map(List<io.gravitee.definition.model.v4.property.Property> property);
+
+    io.gravitee.definition.model.v4.property.Property mapToV4Definition(Property property);
+    List<io.gravitee.definition.model.v4.property.Property> mapToV4Definition(List<Property> property);
+
+    // UpdateNativeApi
+    EncryptableProperty mapToEncryptableProperty(Property property);
+    List<EncryptableProperty> mapToEncryptableProperties(List<Property> properties);
 
     // V2
     io.gravitee.rest.api.model.PropertyEntity mapToV2(Property property);

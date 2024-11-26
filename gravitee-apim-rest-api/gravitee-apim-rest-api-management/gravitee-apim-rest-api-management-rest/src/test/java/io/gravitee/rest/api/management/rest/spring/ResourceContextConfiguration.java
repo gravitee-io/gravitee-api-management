@@ -83,6 +83,7 @@ import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
 import io.gravitee.apim.infra.spring.CoreServiceSpringConfiguration;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -810,5 +811,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiExportDomainService apiExportDomainService() {
         return mock(ApiExportDomainService.class);
+    }
+
+    @Bean
+    public DataEncryptor dataEncryptor() {
+        return mock(DataEncryptor.class);
     }
 }

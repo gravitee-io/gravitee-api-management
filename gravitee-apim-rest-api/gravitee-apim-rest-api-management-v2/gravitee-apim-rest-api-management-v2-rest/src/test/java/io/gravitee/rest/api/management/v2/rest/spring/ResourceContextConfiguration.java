@@ -95,6 +95,7 @@ import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDSpecDom
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -633,5 +634,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiExportDomainService apiExportDomainService() {
         return mock(ApiExportDomainService.class);
+    }
+
+    @Bean
+    public DataEncryptor dataEncryptor() {
+        return mock(DataEncryptor.class);
     }
 }
