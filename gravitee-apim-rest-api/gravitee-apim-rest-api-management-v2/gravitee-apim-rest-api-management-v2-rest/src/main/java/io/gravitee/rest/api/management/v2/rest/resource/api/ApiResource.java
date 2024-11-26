@@ -19,10 +19,12 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
+import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.use_case.ExportCRDUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
+import io.gravitee.apim.core.api.use_case.UpdateNativeApiUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
@@ -45,6 +47,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiCRD;
 import io.gravitee.rest.api.management.v2.rest.model.ApiReview;
 import io.gravitee.rest.api.management.v2.rest.model.ApiRollback;
 import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
+import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
@@ -200,6 +203,9 @@ public class ApiResource extends AbstractResource {
     @Inject
     private GetApiDefinitionUseCase getApiDefinitionUseCase;
 
+    @Inject
+    UpdateNativeApiUseCase updateNativeApiUseCase;
+
     @Context
     protected UriInfo uriInfo;
 
@@ -279,7 +285,7 @@ public class ApiResource extends AbstractResource {
         if (definitionVersion == io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4) {
             final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false);
             evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
-            if (!(currentEntity instanceof ApiEntity)) {
+            if (!(currentEntity instanceof ApiEntity) && !(currentEntity instanceof NativeApiEntity)) {
                 return Response.status(Response.Status.BAD_REQUEST).entity(apiInvalid(apiId)).build();
             }
             updatedApi = updateApiV4(currentEntity, (UpdateApiV4) updateApi);
@@ -326,6 +332,33 @@ public class ApiResource extends AbstractResource {
     }
 
     private GenericApiEntity updateApiV4(GenericApiEntity currentEntity, UpdateApiV4 updateApiV4) {
+        if (updateApiV4.getType() == ApiType.NATIVE) {
+            return updateNativeApiV4((NativeApiEntity) currentEntity, updateApiV4);
+        }
+        return updateHttpApiV4(currentEntity, updateApiV4);
+    }
+
+    private NativeApiEntity updateNativeApiV4(NativeApiEntity currentEntity, UpdateApiV4 updateApiV4) {
+        UpdateNativeApi apiToUpdate = ApiMapper.INSTANCE.mapToUpdateNativeApi(updateApiV4, currentEntity.getId());
+
+        if (
+            !hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_GATEWAY_DEFINITION,
+                currentEntity.getId(),
+                RolePermissionAction.UPDATE
+            ) &&
+            !Objects.equals(currentEntity.getPrimaryOwner().getId(), getAuthenticatedUser()) &&
+            !isAdmin()
+        ) {
+            apiToUpdate.setListeners(currentEntity.getListeners());
+        }
+
+        var result = updateNativeApiUseCase.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, getAuditInfo()));
+        return ApiAdapter.INSTANCE.toNativeApiEntity(result.updatedApi());
+    }
+
+    private ApiEntity updateHttpApiV4(GenericApiEntity currentEntity, UpdateApiV4 updateApiV4) {
         UpdateApiEntity apiToUpdate = ApiMapper.INSTANCE.map(updateApiV4, currentEntity.getId());
         // Force listeners if user is not the primary_owner or an administrator
         if (

@@ -95,11 +95,13 @@ import inmemory.UpdateCategoryApiDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.ValidateResourceDomainServiceInMemory;
+import inmemory.WorkflowQueryServiceInMemory;
 import io.gravitee.apim.core.specgen.crud_service.ApiSpecGenCrudService;
 import io.gravitee.apim.core.specgen.query_service.ApiSpecGenQueryService;
 import io.gravitee.apim.core.specgen.service_provider.OasProvider;
 import io.gravitee.apim.core.specgen.service_provider.SpecGenNotificationProvider;
 import io.gravitee.apim.core.specgen.service_provider.SpecGenProvider;
+import io.gravitee.apim.core.workflow.query_service.WorkflowQueryService;
 import io.gravitee.apim.infra.query_service.audit.AuditEventQueryServiceImpl;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -518,5 +520,10 @@ public class InMemoryConfiguration {
     @Bean
     public ApiSpecGenCrudService apiSpecGenCrudService() {
         return new ApiSpecGenCrudServiceInMemory();
+    }
+
+    @Bean
+    public WorkflowQueryService workflowQueryService() {
+        return new WorkflowQueryServiceInMemory();
     }
 }

@@ -36,6 +36,7 @@ import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Visibility;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -181,5 +182,9 @@ public class ApiFixtures {
 
     public static ApiEntity aModelHttpApiV4() {
         return ApiModelFixtures.aModelHttpApiV4();
+    }
+
+    public static NativeApiEntity aModelNativeApiV4() {
+        return ApiModelFixtures.aModelNativeApiV4();
     }
 }
