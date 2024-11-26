@@ -115,6 +115,12 @@ public class SearchEngineServiceImpl implements SearchEngineService {
 
     @Async("indexerThreadPoolTaskExecutor")
     @Override
+    public void index(ExecutionContext executionContext, Indexable source, boolean locally) {
+        index(executionContext, source, locally, true);
+    }
+
+    @Async("indexerThreadPoolTaskExecutor")
+    @Override
     public void index(ExecutionContext executionContext, Indexable source, boolean locally, boolean commit) {
         indexLocally(source, commit);
 
@@ -126,6 +132,12 @@ public class SearchEngineServiceImpl implements SearchEngineService {
 
             sendCommands(executionContext, content);
         }
+    }
+
+    @Async("indexerThreadPoolTaskExecutor")
+    @Override
+    public void delete(ExecutionContext executionContext, Indexable source) {
+        delete(executionContext, source, false);
     }
 
     @Async("indexerThreadPoolTaskExecutor")
