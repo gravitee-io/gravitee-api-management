@@ -21,9 +21,9 @@ import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.gateway.reactive.api.connector.ConnectorFactory;
-import io.gravitee.gateway.reactive.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.endpoint.async.HttpEndpointAsyncConnectorFactory;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnectorFactory;
-import io.gravitee.gateway.reactive.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.async.HttpEntrypointAsyncConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePlugin;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
@@ -82,12 +82,7 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
             entity.setSupportedApiType(ApiType.fromLabel(connectorFactory.supportedApi().getLabel()));
         }
         if (connectorFactory.supportedApi() == io.gravitee.gateway.reactive.api.ApiType.MESSAGE) {
-            Set<io.gravitee.gateway.reactive.api.qos.Qos> supportedQos = null;
-            if (connectorFactory instanceof EntrypointAsyncConnectorFactory) {
-                supportedQos = ((EntrypointAsyncConnectorFactory) connectorFactory).supportedQos();
-            } else if (connectorFactory instanceof EndpointAsyncConnectorFactory) {
-                supportedQos = ((EndpointAsyncConnectorFactory) connectorFactory).supportedQos();
-            }
+            Set<io.gravitee.gateway.reactive.api.qos.Qos> supportedQos = extractSupportedQos(connectorFactory);
             if (supportedQos != null) {
                 entity.setSupportedQos(
                     supportedQos
@@ -134,6 +129,16 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
         }
 
         return entity;
+    }
+
+    private static Set<io.gravitee.gateway.reactive.api.qos.Qos> extractSupportedQos(ConnectorFactory<?> connectorFactory) {
+        Set<io.gravitee.gateway.reactive.api.qos.Qos> supportedQos = null;
+        if (connectorFactory instanceof HttpEntrypointAsyncConnectorFactory<?> httpEntrypointAsyncConnectorFactory) {
+            supportedQos = httpEntrypointAsyncConnectorFactory.supportedQos();
+        } else if (connectorFactory instanceof HttpEndpointAsyncConnectorFactory<?> httpEndpointAsyncConnectorFactory) {
+            supportedQos = httpEndpointAsyncConnectorFactory.supportedQos();
+        }
+        return supportedQos;
     }
 
     @Override
