@@ -17,7 +17,9 @@ package io.gravitee.rest.api.service.v4.mapper;
 
 import static org.mockito.Mockito.verify;
 
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.service.converter.PlanConverter;
@@ -48,21 +50,36 @@ public class GenericPlanMapperTest {
     @Mock
     private io.gravitee.rest.api.service.configuration.flow.FlowService flowService;
 
+    @Mock
+    private FlowCrudService flowCrudService;
+
     private GenericPlanMapper genericPlanMapper;
 
     @Before
     public void before() {
-        genericPlanMapper = new GenericPlanMapper(planMapper, flowServiceV4, planConverter, flowService);
+        genericPlanMapper = new GenericPlanMapper(planMapper, flowServiceV4, planConverter, flowService, flowCrudService);
     }
 
     @Test
     public void shouldCallV4PlanMapperWhenDefinitionVersionV4() {
         Api api = new Api();
         api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.MESSAGE);
 
         Plan plan = new Plan();
         genericPlanMapper.toGenericPlan(api, plan);
         verify(planMapper).toEntity(plan, List.of());
+    }
+
+    @Test
+    public void shouldCallV4PlanMapperWhenDefinitionVersionNativeV4() {
+        Api api = new Api();
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.NATIVE);
+
+        Plan plan = new Plan();
+        genericPlanMapper.toGenericPlan(api, plan);
+        verify(planMapper).toNativeEntity(plan, List.of());
     }
 
     @Test

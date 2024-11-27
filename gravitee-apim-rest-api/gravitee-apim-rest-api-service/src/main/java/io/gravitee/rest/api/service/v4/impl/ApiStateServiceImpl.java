@@ -288,10 +288,7 @@ public class ApiStateServiceImpl implements ApiStateService {
             api.setUpdatedAt(new Date());
             api.setLifecycleState(lifecycleState);
             Api updateApi = apiRepository.update(api);
-            ApiEntity apiEntity = apiMapper.toEntity(
-                updateApi,
-                primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId())
-            );
+
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
@@ -320,7 +317,10 @@ public class ApiStateServiceImpl implements ApiStateService {
                 return deployedApi;
             }
 
-            return apiEntity;
+            return genericApiMapper.toGenericApi(
+                updateApi,
+                primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId())
+            );
         } else {
             throw new ApiNotFoundException(apiId);
         }
