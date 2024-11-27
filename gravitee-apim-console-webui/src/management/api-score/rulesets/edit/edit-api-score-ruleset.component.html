@@ -75,6 +75,18 @@
         </form>
       </mat-card-content>
     </mat-card>
+
+    <mat-card class="danger-card">
+      <mat-card-content>
+        <h3 class="danger-card__title">Danger Zone</h3>
+        <div class="danger-card__actions">
+          <div class="danger-action">
+            <span>Delete this ruleset</span>
+            <button mat-button color="warn" (click)="delete()" data-testid="delete-ruleset-button">Delete ruleset</button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
   }
 
   <gio-save-bar *ngIf="form.dirty && form.valid" [form]="form" (resetClicked)="ngOnInit()" (submitted)="edit()"></gio-save-bar>

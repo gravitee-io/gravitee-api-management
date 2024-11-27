@@ -31,9 +31,11 @@
 
     <div class="separator-hr"></div>
 
-    @if (rulesets$ | async; as rulesets) {
+    @if (isLoading) {
+      <gio-loader></gio-loader>
+    } @else if (rulesets) {
       <mat-card-content class="rulesets">
-        @for (ruleset of rulesets.data; track ruleset.id) {
+        @for (ruleset of rulesets; track ruleset.id) {
           <mat-expansion-panel>
             <mat-expansion-panel-header>
               <mat-panel-title class="panel-title">
@@ -48,7 +50,7 @@
               <h4 class="content-header__title">Details</h4>
               <div class="content-header__actions">
                 <button mat-raised-button [routerLink]="ruleset.id + '/edit'">Edit</button>
-                <button mat-raised-button disabled>Delete</button>
+                <button mat-raised-button (click)="delete(ruleset.id)">Delete</button>
               </div>
             </div>
             <pre class="file-preview">{{ ruleset.payload }}</pre>

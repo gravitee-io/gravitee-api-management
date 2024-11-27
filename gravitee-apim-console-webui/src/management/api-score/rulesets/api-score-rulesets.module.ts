@@ -33,12 +33,14 @@ import {
   GioLoaderModule,
   GioSaveBarModule,
 } from '@gravitee/ui-particles-angular';
+import { MatTooltip } from '@angular/material/tooltip';
 
 import { ApiScoreRulesetsComponent } from './api-score-rulesets.component';
 import { ImportApiScoreRulesetComponent } from './import/import-api-score-ruleset.component';
 import { EditApiScoreRulesetComponent } from './edit/edit-api-score-ruleset.component';
 
 import { ApiImportFilePickerComponent } from '../../api/component/api-import-file-picker/api-import-file-picker.component';
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
   declarations: [ApiScoreRulesetsComponent, ImportApiScoreRulesetComponent, EditApiScoreRulesetComponent],
@@ -64,6 +66,8 @@ import { ApiImportFilePickerComponent } from '../../api/component/api-import-fil
     GioBannerModule,
     GioSaveBarModule,
     GioLoaderModule,
+    GioPermissionModule,
+    MatTooltip,
   ],
   exports: [ApiScoreRulesetsComponent, ImportApiScoreRulesetComponent, EditApiScoreRulesetComponent],
 })

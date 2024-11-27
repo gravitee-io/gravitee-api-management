@@ -53,4 +53,9 @@ export class RulesetV2Service {
     const url = `${this.constants.env.v2BaseURL}/scoring/rulesets/${id}`;
     return this.httpClient.put(url, data);
   }
+
+  public deleteRuleset(id: string) {
+    const url = `${this.constants.env.v2BaseURL}/scoring/rulesets/${id}`;
+    return this.httpClient.delete(url);
+  }
 }

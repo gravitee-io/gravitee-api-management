@@ -19,6 +19,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { BrowserAnimationsModule, NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
+import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 
 import { EditApiScoreRulesetComponent } from './edit-api-score-ruleset.component';
 import { EditApiScoreRulesetHarness } from './edit-api-score-ruleset.harness';
@@ -78,6 +79,21 @@ describe('EditApiScoreRulesetComponent', () => {
     expectGetRulesetRequest();
   });
 
+  it('should delete ruleset', async () => {
+    expectGetRulesetRequest();
+
+    const deleteButton = await componentHarness.deleteRulesetButton();
+    await deleteButton.click();
+
+    fixture.detectChanges();
+
+    const dialogHarness: GioConfirmDialogHarness =
+      await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+    await dialogHarness.confirm();
+
+    expectDeleteRulesetRequest();
+  });
+
   const expectGetRulesetRequest = (res: ScoringRuleset = fakeRuleset()) => {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/scoring/rulesets/${id}`;
     const req = httpTestingController.expectOne({ method: 'GET', url: url });
@@ -93,5 +109,11 @@ describe('EditApiScoreRulesetComponent', () => {
     expect(req.request.body.name).toEqual('Test ruleset name');
 
     req.flush(fakeRuleset());
+  };
+
+  const expectDeleteRulesetRequest = (res: ScoringRuleset = fakeRuleset()) => {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/scoring/rulesets/${id}`;
+    const req = httpTestingController.expectOne({ method: 'DELETE', url: url });
+    req.flush(res);
   };
 });
