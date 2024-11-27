@@ -174,12 +174,7 @@
     [apiId]="apiId"
   ></api-general-info-quality>
 
-  <api-general-info-danger-zone
-    *ngIf="apiType !== 'NATIVE'"
-    class="danger-zone"
-    [api]="api"
-    (reloadDetails)="ngOnInit()"
-  ></api-general-info-danger-zone>
+  <api-general-info-danger-zone class="danger-zone" [api]="api" (reloadDetails)="ngOnInit()"></api-general-info-danger-zone>
 
   <gio-save-bar
     [form]="parentForm"
