@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ScoringRulesetFixture;
+import io.gravitee.apim.core.scoring.model.ScoreRequest;
 import io.gravitee.apim.core.scoring.model.ScoringRuleset;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ScoringRulesetRepository;
@@ -88,9 +89,10 @@ public class ScoringRulesetCrudServiceImplTest {
         @SneakyThrows
         void should_find_a_ruleset_by_id() {
             // Given
-            var ruleset = ScoringRulesetFixture.aRuleset();
             when(scoringRulesetRepository.findById("ruleset-id"))
-                .thenReturn(Optional.of(fixtures.repository.ScoringRulesetFixture.aRuleset()));
+                .thenReturn(
+                    Optional.of(fixtures.repository.ScoringRulesetFixture.aGraviteeRuleset(ScoreRequest.Format.GRAVITEE_FEDERATED))
+                );
 
             // When
             var found = service.findById("ruleset-id");
@@ -107,6 +109,7 @@ public class ScoringRulesetCrudServiceImplTest {
                         .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                         .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
                         .referenceId("reference-id")
+                        .format(ScoringRuleset.Format.GRAVITEE_FEDERATED)
                         .build()
                 );
         }

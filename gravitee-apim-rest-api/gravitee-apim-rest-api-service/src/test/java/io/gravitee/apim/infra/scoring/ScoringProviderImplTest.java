@@ -140,7 +140,7 @@ class ScoringProviderImplTest {
                 List.of(
                     new ScoreRequest.AssetToScore("page-id", new ScoreRequest.AssetType(ScoringAssetType.SWAGGER), "echo-oas.json", "{}")
                 ),
-                List.of(new ScoreRequest.CustomRuleset("custom-ruleset-payload")),
+                List.of(new ScoreRequest.CustomRuleset(null, "custom-ruleset-payload")),
                 List.of()
             );
         }

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
+import io.gravitee.apim.core.scoring.model.ScoringRuleset;
 import io.gravitee.apim.core.scoring.use_case.GetEnvironmentRulesetsUseCase;
 import io.gravitee.apim.core.scoring.use_case.ImportEnvironmentRulesetUseCase;
 import io.gravitee.common.http.MediaType;
@@ -23,6 +24,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ImportScoringRuleset;
 import io.gravitee.rest.api.management.v2.rest.model.ScoringRulesetsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
@@ -55,9 +57,10 @@ public class EnvironmentScoringRulesetsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response importRuleset(@Valid ImportScoringRuleset request) {
+        ScoringRuleset.Format format = getFormat(request);
         var result = importEnvironmentRulesetUseCase.execute(
             new ImportEnvironmentRulesetUseCase.Input(
-                new ImportEnvironmentRulesetUseCase.NewRuleset(request.getName(), request.getDescription(), request.getPayload()),
+                new ImportEnvironmentRulesetUseCase.NewRuleset(request.getName(), request.getDescription(), format, request.getPayload()),
                 getAuditInfo()
             )
         );
@@ -76,5 +79,20 @@ public class EnvironmentScoringRulesetsResource extends AbstractResource {
     @Path("{rulesetId}")
     public EnvironmentScoringRulesetResource getEnvironmentScoringRulesetResource() {
         return resourceContext.getResource(EnvironmentScoringRulesetResource.class);
+    }
+
+    @Nullable
+    private static ScoringRuleset.Format getFormat(ImportScoringRuleset request) {
+        ScoringRuleset.Format format = null;
+        if (request.getFormat() != null) {
+            format =
+                switch (request.getFormat()) {
+                    case GRAVITEE_FEDERATED -> ScoringRuleset.Format.GRAVITEE_FEDERATED;
+                    case GRAVITEE_MESSAGE -> ScoringRuleset.Format.GRAVITEE_MESSAGE;
+                    case GRAVITEE_PROXY -> ScoringRuleset.Format.GRAVITEE_PROXY;
+                    default -> null;
+                };
+        }
+        return format;
     }
 }

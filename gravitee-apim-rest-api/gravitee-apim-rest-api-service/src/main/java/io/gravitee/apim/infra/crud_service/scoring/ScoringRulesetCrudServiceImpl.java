@@ -17,7 +17,6 @@ package io.gravitee.apim.infra.crud_service.scoring;
 
 import io.gravitee.apim.core.scoring.crud_service.ScoringRulesetCrudService;
 import io.gravitee.apim.core.scoring.model.ScoringRuleset;
-import io.gravitee.apim.infra.adapter.ScoringReportAdapter;
 import io.gravitee.apim.infra.adapter.ScoringRulesetAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ScoringRulesetRepository;

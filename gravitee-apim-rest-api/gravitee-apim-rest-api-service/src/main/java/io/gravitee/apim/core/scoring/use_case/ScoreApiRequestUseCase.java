@@ -65,7 +65,7 @@ public class ScoreApiRequestUseCase {
                 scoringRulesetQueryService.findByReference(input.auditInfo.environmentId(), ScoringRuleset.ReferenceType.ENVIRONMENT)
             )
             .flatMap(Flowable::fromIterable)
-            .map(r -> new ScoreRequest.CustomRuleset(r.payload()))
+            .map(r -> new ScoreRequest.CustomRuleset(map(r.format()), r.payload()))
             .toList();
 
         var export$ = Flowable
@@ -98,6 +98,17 @@ public class ScoreApiRequestUseCase {
                 var job = newScoringJob(request.jobId(), input.auditInfo, input.apiId);
                 return scoringProvider.requestScore(request).doOnComplete(() -> asyncJobCrudService.create(job));
             });
+    }
+
+    private ScoreRequest.Format map(ScoringRuleset.Format format) {
+        if (format == null) {
+            return null;
+        }
+        return switch (format) {
+            case GRAVITEE_PROXY -> ScoreRequest.Format.GRAVITEE_PROXY;
+            case GRAVITEE_MESSAGE -> ScoreRequest.Format.GRAVITEE_MESSAGE;
+            case GRAVITEE_FEDERATED -> ScoreRequest.Format.GRAVITEE_FEDERATED;
+        };
     }
 
     private ScoreRequest.AssetToScore assetToScore(Page page) {

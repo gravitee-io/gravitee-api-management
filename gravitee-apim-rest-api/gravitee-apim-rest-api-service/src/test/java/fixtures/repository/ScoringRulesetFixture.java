@@ -15,6 +15,7 @@
  */
 package fixtures.repository;
 
+import io.gravitee.apim.core.scoring.model.ScoreRequest;
 import io.gravitee.repository.management.model.ScoringRuleset;
 import java.time.Instant;
 import java.util.Date;
@@ -37,5 +38,9 @@ public class ScoringRulesetFixture {
 
     public static ScoringRuleset aRuleset() {
         return BASE.get().build();
+    }
+
+    public static ScoringRuleset aGraviteeRuleset(ScoreRequest.Format format) {
+        return BASE.get().format(format.name()).build();
     }
 }

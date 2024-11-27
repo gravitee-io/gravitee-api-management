@@ -38,6 +38,7 @@ public final class ScoringRuleset {
 
     private String name;
     private String description;
+    private String format;
     private String referenceId;
     private String referenceType;
     private Date createdAt;

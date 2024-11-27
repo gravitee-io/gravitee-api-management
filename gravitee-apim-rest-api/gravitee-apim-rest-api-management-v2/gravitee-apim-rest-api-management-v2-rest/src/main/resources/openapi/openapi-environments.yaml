@@ -596,6 +596,15 @@ components:
                 description:
                     type: string
                     description: The description of ruleset
+                format:
+                  type: string
+                  description: Specify which API description formats the ruleset is applicable to.
+                  nullable: true
+                  enum:
+                    - GRAVITEE_PROXY
+                    - GRAVITEE_MESSAGE
+                    - GRAVITEE_FEDERATED
+                    - null
                 payload:
                     type: string
                     description: The ruleset payload

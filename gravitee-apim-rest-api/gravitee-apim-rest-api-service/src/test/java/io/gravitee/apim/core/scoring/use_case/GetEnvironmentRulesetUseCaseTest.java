@@ -59,7 +59,9 @@ class GetEnvironmentRulesetUseCaseTest {
     void should_get_a_ruleset() {
         // Given
         var rulesetId = "ruleset-id";
-        givenExistingRulesets(ScoringRulesetFixture.aRuleset(rulesetId).withReferenceId(ENVIRONMENT_ID));
+        givenExistingRulesets(
+            ScoringRulesetFixture.aRuleset(rulesetId, ScoringRuleset.Format.GRAVITEE_PROXY).withReferenceId(ENVIRONMENT_ID)
+        );
 
         // When
         var result = useCase.execute(new GetEnvironmentRulesetUseCase.Input(rulesetId, AUDIT_INFO));
@@ -75,6 +77,7 @@ class GetEnvironmentRulesetUseCaseTest {
                     .referenceId(ENVIRONMENT_ID)
                     .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
                     .payload("payload-ruleset-id")
+                    .format(ScoringRuleset.Format.GRAVITEE_PROXY)
                     .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                     .build()
             );
@@ -96,7 +99,7 @@ class GetEnvironmentRulesetUseCaseTest {
     void should_throw_exception_when_ruleset_found_is_from_another_env() {
         // Given
         var rulesetId = "ruleset-id";
-        givenExistingRulesets(ScoringRulesetFixture.aRuleset(rulesetId).withReferenceId("other"));
+        givenExistingRulesets(ScoringRulesetFixture.aRuleset(rulesetId, ScoringRuleset.Format.GRAVITEE_PROXY).withReferenceId("other"));
 
         // When
         Throwable thrown = catchThrowable(() -> useCase.execute(new GetEnvironmentRulesetUseCase.Input(rulesetId, AUDIT_INFO)));

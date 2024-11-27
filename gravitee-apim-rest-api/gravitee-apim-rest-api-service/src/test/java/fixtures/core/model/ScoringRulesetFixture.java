@@ -42,4 +42,8 @@ public class ScoringRulesetFixture {
     public static ScoringRuleset aRuleset(String id) {
         return BASE.get().id(id).payload("payload-" + id).build();
     }
+
+    public static ScoringRuleset aRuleset(String id, ScoringRuleset.Format format) {
+        return BASE.get().id(id).format(format).payload("payload-" + id).build();
+    }
 }

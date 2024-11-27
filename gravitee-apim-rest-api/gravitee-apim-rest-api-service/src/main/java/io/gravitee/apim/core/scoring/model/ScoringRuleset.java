@@ -24,6 +24,7 @@ public record ScoringRuleset(
     String id,
     String name,
     String description,
+    Format format,
     @With String referenceId,
     ReferenceType referenceType,
     String payload,
@@ -32,5 +33,10 @@ public record ScoringRuleset(
 ) {
     public enum ReferenceType {
         ENVIRONMENT,
+    }
+    public enum Format {
+        GRAVITEE_PROXY,
+        GRAVITEE_MESSAGE,
+        GRAVITEE_FEDERATED,
     }
 }

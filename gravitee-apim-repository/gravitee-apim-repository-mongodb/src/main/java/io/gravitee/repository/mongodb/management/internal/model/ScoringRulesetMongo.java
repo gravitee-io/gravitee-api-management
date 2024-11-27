@@ -32,6 +32,7 @@ public class ScoringRulesetMongo extends Auditable {
 
     private String name;
     private String description;
+    private String format;
     private String payload;
     private String referenceId;
     private String referenceType;

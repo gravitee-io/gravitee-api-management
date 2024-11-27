@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.6.0_add_format_to_ruleset_table
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}scoring_rulesets
+            columns:
+              - column:
+                  name: format
+                  type: nvarchar(64)

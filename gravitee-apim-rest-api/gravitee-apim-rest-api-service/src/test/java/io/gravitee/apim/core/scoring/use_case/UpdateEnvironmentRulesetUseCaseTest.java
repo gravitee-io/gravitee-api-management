@@ -63,7 +63,9 @@ class UpdateEnvironmentRulesetUseCaseTest {
     void should_update_a_ruleset() {
         // Given
         var rulesetId = "ruleset-id";
-        givenExistingRulesets(ScoringRulesetFixture.aRuleset(rulesetId).withReferenceId(ENVIRONMENT_ID));
+        givenExistingRulesets(
+            ScoringRulesetFixture.aRuleset(rulesetId, ScoringRuleset.Format.GRAVITEE_PROXY).withReferenceId(ENVIRONMENT_ID)
+        );
         var rulesetToUpdate = ScoringRuleset.builder().id(rulesetId).name("updated-name").description("updated-description").build();
 
         // When
@@ -79,6 +81,7 @@ class UpdateEnvironmentRulesetUseCaseTest {
                     .description("updated-description")
                     .payload("payload-ruleset-id")
                     .referenceId("environment-id")
+                    .format(ScoringRuleset.Format.GRAVITEE_PROXY)
                     .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
                     .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                     .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))

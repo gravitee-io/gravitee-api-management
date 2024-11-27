@@ -17,6 +17,8 @@ package io.gravitee.apim.core.scoring.use_case;
 
 import static assertions.CoreAssertions.assertThat;
 import static fixtures.core.model.ApiFixtures.MY_API;
+import static io.gravitee.apim.core.scoring.model.ScoringRuleset.Format.GRAVITEE_FEDERATED;
+import static io.gravitee.apim.core.scoring.model.ScoringRuleset.Format.GRAVITEE_PROXY;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -69,8 +71,12 @@ class ScoreApiRequestUseCaseTest {
     private static final String USER_ID = "user-id";
 
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
-    private static final ScoringRuleset CUSTOM_RULESET_1 = ScoringRulesetFixture.aRuleset("ruleset1").withReferenceId(ENVIRONMENT_ID);
-    private static final ScoringRuleset CUSTOM_RULESET_2 = ScoringRulesetFixture.aRuleset("ruleset2").withReferenceId(ENVIRONMENT_ID);
+    private static final ScoringRuleset CUSTOM_RULESET_FEDERATED = ScoringRulesetFixture
+        .aRuleset("ruleset1", GRAVITEE_FEDERATED)
+        .withReferenceId(ENVIRONMENT_ID);
+    private static final ScoringRuleset CUSTOM_RULESET_PROXY = ScoringRulesetFixture
+        .aRuleset("ruleset2", GRAVITEE_PROXY)
+        .withReferenceId(ENVIRONMENT_ID);
 
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     AsyncJobCrudServiceInMemory asyncJobCrudService = new AsyncJobCrudServiceInMemory();
@@ -290,7 +296,7 @@ class ScoreApiRequestUseCaseTest {
     public void should_trigger_scoring_with_custom_rulesets() {
         // Given
         var api = givenExistingApi(ApiFixtures.aFederatedApi());
-        givenExistingRulesets(CUSTOM_RULESET_1, CUSTOM_RULESET_2);
+        givenExistingRulesets(CUSTOM_RULESET_FEDERATED, CUSTOM_RULESET_PROXY);
 
         // When
         scoreApiRequestUseCase
@@ -308,8 +314,8 @@ class ScoreApiRequestUseCaseTest {
                     .hasEnvironmentId(ENVIRONMENT_ID)
                     .hasApiId(api.getId())
                     .hasCustomRulesets(
-                        new ScoreRequest.CustomRuleset(CUSTOM_RULESET_1.payload()),
-                        new ScoreRequest.CustomRuleset(CUSTOM_RULESET_2.payload())
+                        new ScoreRequest.CustomRuleset(ScoreRequest.Format.GRAVITEE_FEDERATED, CUSTOM_RULESET_FEDERATED.payload()),
+                        new ScoreRequest.CustomRuleset(ScoreRequest.Format.GRAVITEE_PROXY, CUSTOM_RULESET_PROXY.payload())
                     );
             });
     }

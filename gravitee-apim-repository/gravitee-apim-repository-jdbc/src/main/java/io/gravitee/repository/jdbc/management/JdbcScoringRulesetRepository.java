@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ScoringRulesetRepository;
 import io.gravitee.repository.management.model.ScoringRuleset;
@@ -46,6 +45,7 @@ public class JdbcScoringRulesetRepository extends JdbcAbstractCrudRepository<Sco
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
+            .addColumn("format", Types.NVARCHAR, String.class)
             .addColumn("payload", Types.NCLOB, String.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, String.class)
@@ -55,13 +55,13 @@ public class JdbcScoringRulesetRepository extends JdbcAbstractCrudRepository<Sco
     }
 
     @Override
-    public List<ScoringRuleset> findAllByReferenceId(String referenceId, String referenceType) throws TechnicalException {
+    public List<ScoringRuleset> findAllByReferenceId(String referenceId, String referenceType) {
         var query = "select * from %s where reference_id = ? and reference_type = ?".formatted(this.tableName);
         return jdbcTemplate.query(query, getOrm().getRowMapper(), referenceId, referenceType);
     }
 
     @Override
-    public List<String> deleteByReferenceId(String referenceId, String referenceType) throws TechnicalException {
+    public List<String> deleteByReferenceId(String referenceId, String referenceType) {
         var rows = jdbcTemplate.queryForList(
             "select id from %s where reference_id = ? and reference_type = ?".formatted(this.tableName),
             String.class,
