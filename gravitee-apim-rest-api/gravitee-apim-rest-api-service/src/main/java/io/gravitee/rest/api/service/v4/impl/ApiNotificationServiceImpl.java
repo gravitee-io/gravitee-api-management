@@ -26,6 +26,7 @@ import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
@@ -50,32 +51,38 @@ public class ApiNotificationServiceImpl extends AbstractService implements ApiNo
     }
 
     @Override
+    @Async
     public void triggerUpdateNotification(final ExecutionContext executionContext, final Api api) {
         GenericApiEntity indexableApi = indexableApiMapper.toGenericApi(api, null);
         triggerUpdateNotification(executionContext, indexableApi);
     }
 
     @Override
+    @Async
     public void triggerUpdateNotification(final ExecutionContext executionContext, final GenericApiEntity indexableApi) {
         triggerNotification(executionContext, ApiHook.API_UPDATED, indexableApi);
     }
 
     @Override
+    @Async
     public void triggerDeprecatedNotification(final ExecutionContext executionContext, final GenericApiEntity indexableApi) {
         triggerNotification(executionContext, ApiHook.API_DEPRECATED, indexableApi);
     }
 
     @Override
+    @Async
     public void triggerDeployNotification(final ExecutionContext executionContext, final GenericApiEntity indexableApi) {
         triggerNotification(executionContext, ApiHook.API_DEPLOYED, indexableApi);
     }
 
     @Override
+    @Async
     public void triggerStartNotification(final ExecutionContext executionContext, final GenericApiEntity indexableApi) {
         triggerNotification(executionContext, ApiHook.API_STARTED, indexableApi);
     }
 
     @Override
+    @Async
     public void triggerStopNotification(final ExecutionContext executionContext, final GenericApiEntity indexableApi) {
         triggerNotification(executionContext, ApiHook.API_STOPPED, indexableApi);
     }
