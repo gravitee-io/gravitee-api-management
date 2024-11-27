@@ -223,9 +223,9 @@ public class Api {
             case V4 -> {
                 if (this.type == ApiType.NATIVE) {
                     apiDefinitionNativeV4.setPlans(plans.stream().map(Plan::getPlanDefinitionNativeV4).toList());
+                } else {
+                    apiDefinitionHttpV4.setPlans(plans.stream().map(Plan::getPlanDefinitionHttpV4).toList());
                 }
-
-                apiDefinitionHttpV4.setPlans(plans.stream().map(Plan::getPlanDefinitionHttpV4).toList());
             }
             case V1, V2 -> apiDefinition.setPlans(plans.stream().map(Plan::getPlanDefinitionV2).collect(Collectors.toList()));
             case FEDERATED -> {

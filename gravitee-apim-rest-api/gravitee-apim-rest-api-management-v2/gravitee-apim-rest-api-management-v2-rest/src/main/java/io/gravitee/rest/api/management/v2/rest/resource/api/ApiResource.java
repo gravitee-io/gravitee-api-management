@@ -440,7 +440,9 @@ public class ApiResource extends AbstractResource {
 
         var output = getApiDefinitionUseCase.execute(new GetApiDefinitionUseCase.Input(apiId));
         return switch (output.definitionVersion()) {
-            case V4 -> Response.ok(output.apiDefinitionV4()).build();
+            case V4 -> Response
+                .ok(output.apiDefinitionNativeV4() != null ? output.apiDefinitionNativeV4() : output.apiDefinitionHttpV4())
+                .build();
             case V2 -> Response.ok(output.apiDefinition()).build();
             default -> Response
                 .status(Response.Status.BAD_REQUEST)

@@ -33,8 +33,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -61,12 +61,12 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
 
     @Override
     public List<Flow> getApiV4Flows(String apiId) {
-        return getV4(FlowReferenceType.API, apiId);
+        return getHttpV4(FlowReferenceType.API, apiId);
     }
 
     @Override
     public List<Flow> getPlanV4Flows(String planId) {
-        return getV4(FlowReferenceType.PLAN, planId);
+        return getHttpV4(FlowReferenceType.PLAN, planId);
     }
 
     @Override
@@ -82,6 +82,21 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
     @Override
     public List<NativeFlow> saveNativeApiFlows(String apiId, List<NativeFlow> flows) {
         return FlowAdapter.INSTANCE.toNativeFlow(save(FlowReferenceType.API, apiId, flows));
+    }
+
+    @Override
+    public List<NativeFlow> saveNativePlanFlows(String planId, List<NativeFlow> flows) {
+        return FlowAdapter.INSTANCE.toNativeFlow(save(FlowReferenceType.PLAN, planId, flows));
+    }
+
+    @Override
+    public List<NativeFlow> getNativeApiFlows(String apiId) {
+        return getNativeV4(FlowReferenceType.API, apiId);
+    }
+
+    @Override
+    public List<NativeFlow> getNativePlanFlows(String planId) {
+        return getNativeV4(FlowReferenceType.PLAN, planId);
     }
 
     private List<io.gravitee.repository.management.model.flow.Flow> save(
@@ -150,15 +165,24 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
         }
     }
 
-    private List<Flow> getV4(FlowReferenceType flowReferenceType, String referenceId) {
+    private List<Flow> getHttpV4(FlowReferenceType flowReferenceType, String referenceId) {
+        return getRepositoryV4(flowReferenceType, referenceId).map(FlowAdapter.INSTANCE::toFlowV4).collect(Collectors.toList());
+    }
+
+    private List<NativeFlow> getNativeV4(FlowReferenceType flowReferenceType, String referenceId) {
+        return getRepositoryV4(flowReferenceType, referenceId).map(FlowAdapter.INSTANCE::toNativeFlow).collect(Collectors.toList());
+    }
+
+    private Stream<io.gravitee.repository.management.model.flow.Flow> getRepositoryV4(
+        FlowReferenceType flowReferenceType,
+        String referenceId
+    ) {
         try {
             log.debug("Get flows for reference {},{}", flowReferenceType, flowReferenceType);
             return flowRepository
                 .findByReference(flowReferenceType, referenceId)
                 .stream()
-                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
-                .map(FlowAdapter.INSTANCE::toFlowV4)
-                .collect(Collectors.toList());
+                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder));
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to get flows for " + flowReferenceType + ": " + referenceId;
             log.error(error, ex);

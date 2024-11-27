@@ -16,8 +16,10 @@
 package io.gravitee.apim.core.api.use_case;
 
 import static fixtures.core.model.ApiFixtures.aMessageApiV4;
+import static fixtures.core.model.ApiFixtures.aNativeApi;
 import static fixtures.core.model.ApiFixtures.aProxyApiV2;
 import static fixtures.core.model.PlanFixtures.aPlanHttpV4;
+import static fixtures.core.model.PlanFixtures.aPlanNativeV4;
 import static fixtures.core.model.PlanFixtures.aPlanV2;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -27,6 +29,7 @@ import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,7 +56,7 @@ class GetApiDefinitionUseCaseTest {
     }
 
     @Nested
-    class WithV4Api {
+    class WithHttpV4Api {
 
         private final Api API = aMessageApiV4().toBuilder().id(API_ID).environmentId(ENV_ID).build();
 
@@ -67,7 +70,7 @@ class GetApiDefinitionUseCaseTest {
 
             // Then
             assertNotNull(output);
-            assertEquals(API.getApiDefinitionHttpV4(), output.apiDefinitionV4());
+            assertEquals(API.getApiDefinitionHttpV4(), output.apiDefinitionHttpV4());
         }
 
         @Test
@@ -100,13 +103,70 @@ class GetApiDefinitionUseCaseTest {
 
             // Then
             assertNotNull(output);
-            assertEquals(API.getApiDefinitionHttpV4(), output.apiDefinitionV4());
-            assertEquals(flows, output.apiDefinitionV4().getFlows());
-            assertEquals(2, output.apiDefinitionV4().getPlans().size());
-            assertEquals(planFlows, output.apiDefinitionV4().getPlans().get(0).getFlows());
-            assertEquals(PlanStatus.PUBLISHED, output.apiDefinitionV4().getPlans().get(0).getStatus());
-            assertEquals(planFlows, output.apiDefinitionV4().getPlans().get(1).getFlows());
-            assertEquals(PlanStatus.DEPRECATED, output.apiDefinitionV4().getPlans().get(1).getStatus());
+            assertEquals(API.getApiDefinitionHttpV4(), output.apiDefinitionHttpV4());
+            assertEquals(flows, output.apiDefinitionHttpV4().getFlows());
+            assertEquals(2, output.apiDefinitionHttpV4().getPlans().size());
+            assertEquals(planFlows, output.apiDefinitionHttpV4().getPlans().get(0).getFlows());
+            assertEquals(PlanStatus.PUBLISHED, output.apiDefinitionHttpV4().getPlans().get(0).getStatus());
+            assertEquals(planFlows, output.apiDefinitionHttpV4().getPlans().get(1).getFlows());
+            assertEquals(PlanStatus.DEPRECATED, output.apiDefinitionHttpV4().getPlans().get(1).getStatus());
+        }
+    }
+
+    @Nested
+    class WithNativeV4Api {
+
+        private final Api API = aNativeApi().toBuilder().id(API_ID).environmentId(ENV_ID).build();
+
+        @Test
+        void should_return_api_definition_v4() {
+            // Given
+            apiCrudServiceInMemory.create(API);
+
+            // When
+            var output = getApiDefinitionUseCase.execute(new GetApiDefinitionUseCase.Input(API_ID));
+
+            // Then
+            assertNotNull(output);
+            assertEquals(API.getApiDefinitionNativeV4(), output.apiDefinitionNativeV4());
+        }
+
+        @Test
+        void should_return_api_definition_with_flows() {
+            // Given
+            //   Api flow
+            List<NativeFlow> flows = List.of(NativeFlow.builder().name("flow").build());
+            flowCrudServiceInMemory.saveNativeApiFlows(API_ID, flows);
+
+            //   Plan flow
+            var planPublished = aPlanNativeV4().setPlanId("plan-push-id").toBuilder().apiId(API_ID).build();
+            planPublished.setPlanStatus(PlanStatus.PUBLISHED);
+            var planDeprecated = aPlanNativeV4().setPlanId("plan-deprecate-id").toBuilder().apiId(API_ID).build();
+            planDeprecated.setPlanStatus(PlanStatus.DEPRECATED);
+            var planStaging = aPlanNativeV4().setPlanId("plan-staging-id").toBuilder().apiId(API_ID).build();
+            planStaging.setPlanStatus(PlanStatus.STAGING);
+            planQueryServiceInMemory.initWith(List.of(planPublished, planDeprecated, planStaging));
+
+            List<NativeFlow> planFlows = List.of(NativeFlow.builder().name("plan-flow").build());
+            flowCrudServiceInMemory.saveNativePlanFlows(planPublished.getId(), planFlows);
+            flowCrudServiceInMemory.saveNativePlanFlows(planDeprecated.getId(), planFlows);
+            flowCrudServiceInMemory.saveNativePlanFlows(planStaging.getId(), planFlows);
+
+            apiCrudServiceInMemory.create(API);
+
+            // When
+            var output = getApiDefinitionUseCase.execute(new GetApiDefinitionUseCase.Input(API_ID));
+
+            // Then
+            assertNotNull(output);
+            assertEquals(API.getApiDefinitionNativeV4(), output.apiDefinitionNativeV4());
+            assertNull(API.getApiDefinitionHttpV4());
+            assertEquals(flows, output.apiDefinitionNativeV4().getFlows());
+            assertEquals(2, output.apiDefinitionNativeV4().getPlans().size());
+            assertEquals(planFlows, output.apiDefinitionNativeV4().getPlans().get(0).getFlows());
+            assertEquals(PlanStatus.PUBLISHED, output.apiDefinitionNativeV4().getPlans().get(0).getStatus());
+            assertEquals(planFlows, output.apiDefinitionNativeV4().getPlans().get(1).getFlows());
+            assertEquals(PlanStatus.DEPRECATED, output.apiDefinitionNativeV4().getPlans().get(1).getStatus());
         }
     }
 
