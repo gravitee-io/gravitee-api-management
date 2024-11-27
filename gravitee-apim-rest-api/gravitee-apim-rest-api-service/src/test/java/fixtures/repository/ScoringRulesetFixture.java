@@ -31,6 +31,7 @@ public class ScoringRulesetFixture {
             .name("ruleset-name")
             .description("ruleset-description")
             .payload("ruleset-payload")
+            .format(ScoringRuleset.Format.GRAVITEE_PROXY)
             .referenceId("reference-id")
             .referenceType("ENVIRONMENT")
             .createdAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")));

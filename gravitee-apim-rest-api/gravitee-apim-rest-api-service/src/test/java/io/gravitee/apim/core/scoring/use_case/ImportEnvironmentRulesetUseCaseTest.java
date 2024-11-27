@@ -72,7 +72,7 @@ class ImportEnvironmentRulesetUseCaseTest {
     void should_create_ruleset() {
         // Given
         ImportEnvironmentRulesetUseCase.Input input = new ImportEnvironmentRulesetUseCase.Input(
-            new ImportEnvironmentRulesetUseCase.NewRuleset("name", "description", "payload"),
+            new ImportEnvironmentRulesetUseCase.NewRuleset("name", "description", "payload", ScoringRuleset.Format.GRAVITEE_PROXY),
             AUDIT_INFO
         );
 
@@ -87,6 +87,7 @@ class ImportEnvironmentRulesetUseCaseTest {
                     .id("generated-id")
                     .name("name")
                     .description("description")
+                    .format(ScoringRuleset.Format.GRAVITEE_PROXY)
                     .payload("payload")
                     .referenceId(ENVIRONMENT_ID)
                     .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
@@ -100,7 +101,7 @@ class ImportEnvironmentRulesetUseCaseTest {
     void should_ruleset_id() {
         // Given
         ImportEnvironmentRulesetUseCase.Input input = new ImportEnvironmentRulesetUseCase.Input(
-            new ImportEnvironmentRulesetUseCase.NewRuleset("name", "description", "payload"),
+            new ImportEnvironmentRulesetUseCase.NewRuleset("name", "description", "payload", ScoringRuleset.Format.GRAVITEE_PROXY),
             AUDIT_INFO
         );
 

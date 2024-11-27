@@ -76,6 +76,7 @@ public class ScoringRulesetQueryServiceImplTest {
                         .name("ruleset-name")
                         .description("ruleset-description")
                         .payload("ruleset-payload")
+                        .format(ScoringRuleset.Format.GRAVITEE_PROXY)
                         .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                         .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
                         .referenceId("ref-id")
