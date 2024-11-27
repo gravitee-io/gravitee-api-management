@@ -73,3 +73,24 @@ textarea {
   display: flex;
   gap: 16px;
 }
+
+.danger-card {
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
+
+  &__title {
+    color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+
+    .danger-action {
+      display: flex;
+      align-items: center;
+      flex-direction: row;
+      justify-content: space-between;
+      height: 48px;
+    }
+  }
+}

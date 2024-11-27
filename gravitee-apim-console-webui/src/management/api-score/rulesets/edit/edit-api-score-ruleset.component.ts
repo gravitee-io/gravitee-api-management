@@ -16,10 +16,11 @@
 
 import { Component, DestroyRef, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { switchMap } from 'rxjs/operators';
-import { ActivatedRoute } from '@angular/router';
+import { filter, switchMap } from 'rxjs/operators';
+import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { EMPTY } from 'rxjs';
+import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { MatDialog } from '@angular/material/dialog';
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { RulesetV2Service } from '../../../../services-ngx/ruleset-v2.service';
@@ -45,9 +46,12 @@ export class EditApiScoreRulesetComponent implements OnInit {
     private readonly rulesetV2Service: RulesetV2Service,
     private readonly activatedRoute: ActivatedRoute,
     private readonly destroyRef: DestroyRef,
+    private readonly matDialog: MatDialog,
+    private readonly router: Router,
   ) {}
 
   ngOnInit() {
+    this.isLoading = true;
     this.rulesetV2Service
       .getRuleset(this.activatedRoute.snapshot.params.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -58,10 +62,11 @@ export class EditApiScoreRulesetComponent implements OnInit {
             description: res.description,
           });
           this.filePreview = res.payload;
+          this.isLoading = false;
         },
         error: () => {
           this.snackBarService.error('Ruleset error');
-          return EMPTY;
+          this.isLoading = false;
         },
       });
   }
@@ -89,6 +94,42 @@ export class EditApiScoreRulesetComponent implements OnInit {
         error: () => {
           this.isLoading = false;
           this.snackBarService.error('Ruleset update error!');
+        },
+      });
+  }
+
+  public delete() {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: GIO_DIALOG_WIDTH.SMALL,
+        data: {
+          title: 'Delete this ruleset',
+          content: 'Please note that once your ruleset is deleted, it cannot be restored.',
+          confirmButton: 'Delete ruleset',
+        },
+        role: 'alertdialog',
+        id: 'deleteRulesetConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirm) => !!confirm),
+        switchMap(() => {
+          this.isLoading = true;
+          return this.rulesetV2Service.deleteRuleset(this.activatedRoute.snapshot.params.id);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.isLoading = false;
+          this.router.navigate(['../..'], {
+            relativeTo: this.activatedRoute,
+          });
+          this.snackBarService.success('Ruleset successfully deleted!');
+        },
+        error: () => {
+          this.isLoading = false;
+          this.snackBarService.error('Something went wrong!');
         },
       });
   }

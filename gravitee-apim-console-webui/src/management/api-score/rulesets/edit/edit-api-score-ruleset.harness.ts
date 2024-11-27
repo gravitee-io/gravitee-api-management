@@ -17,6 +17,7 @@
 import { AsyncFactoryFn, ComponentHarness } from '@angular/cdk/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class EditApiScoreRulesetHarness extends ComponentHarness {
   static readonly hostSelector: string = 'edit-api-score-ruleset';
@@ -38,4 +39,6 @@ export class EditApiScoreRulesetHarness extends ComponentHarness {
   }
 
   public saveBarLocator = this.locatorForOptional(GioSaveBarHarness);
+
+  public deleteRulesetButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid=delete-ruleset-button]' }));
 }
