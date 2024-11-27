@@ -15,8 +15,11 @@
  */
 package io.gravitee.gateway.reactive.reactor;
 
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_TRACING_ROOT_SPAN;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -25,6 +28,7 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -48,7 +52,9 @@ import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.opentelemetry.Span;
 import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
+import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.disposables.Disposable;
@@ -146,6 +152,8 @@ class DefaultHttpRequestDispatcherTest {
     private RequestClientAuthConfiguration requestClientAuthConfiguration;
 
     private DefaultHttpRequestDispatcher cut;
+    private NoOpTracer spyNoopTracer;
+    private TracingContext tracingContext;
 
     @BeforeEach
     public void init() {
@@ -181,6 +189,8 @@ class DefaultHttpRequestDispatcherTest {
         lenient().when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(0L);
         lenient().when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay()).thenReturn(10L);
 
+        spyNoopTracer = spy(new NoOpTracer());
+        tracingContext = new TracingContext(spyNoopTracer, true, false);
         cut =
             new DefaultHttpRequestDispatcher(
                 gatewayConfiguration,
@@ -191,7 +201,7 @@ class DefaultHttpRequestDispatcherTest {
                 responseProcessorChainFactory,
                 platformProcessorChainFactory,
                 notFoundProcessorChainFactory,
-                TracingContext.noop(),
+                tracingContext,
                 requestTimeoutConfiguration,
                 requestClientAuthConfiguration,
                 vertx
@@ -211,7 +221,7 @@ class DefaultHttpRequestDispatcherTest {
             when(httpAcceptorResolver.resolve(HOST, PATH, SERVER_ID)).thenReturn(handlerEntrypoint);
             when(handlerEntrypoint.path()).thenReturn(PATH);
             when(handlerEntrypoint.reactor()).thenReturn(apiReactor);
-            when(apiReactor.tracingContext()).thenReturn(TracingContext.noop());
+            when(apiReactor.tracingContext()).thenReturn(tracingContext);
         }
 
         @Test
@@ -233,6 +243,44 @@ class DefaultHttpRequestDispatcherTest {
             obs.assertError(RuntimeException.class);
             obs.assertError(t -> MOCK_ERROR_MESSAGE.equals(t.getMessage()));
         }
+
+        @Test
+        void shouldInitiateTracingV4EmulationRequest() {
+            when(
+                apiReactor.handle(
+                    argThat(ctx -> {
+                        assertThat(ctx.<Span>getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN)).isNotNull();
+                        return true;
+                    })
+                )
+            )
+                .thenReturn(Completable.complete());
+
+            cut.dispatch(rxRequest, SERVER_ID).test().assertComplete();
+            verify(spyNoopTracer).startRootSpanFrom(any(), any());
+            verify(spyNoopTracer, timeout(1000)).endWithResponseAndError(any(), any(), any(), eq((Throwable) null));
+        }
+
+        @Test
+        void shouldEndTracingSpanInErrorWhenExceptionOnV4EmulationRequest() {
+            when(
+                apiReactor.handle(
+                    argThat(ctx -> {
+                        assertThat(ctx.<Span>getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN)).isNotNull();
+                        return true;
+                    })
+                )
+            )
+                .thenReturn(Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE)));
+
+            cut
+                .dispatch(rxRequest, SERVER_ID)
+                .test()
+                .assertError(RuntimeException.class)
+                .assertError(t -> MOCK_ERROR_MESSAGE.equals(t.getMessage()));
+            verify(spyNoopTracer).startRootSpanFrom(any(), any());
+            verify(spyNoopTracer, timeout(1000)).endWithResponseAndError(any(), any(), any(), any(Throwable.class));
+        }
     }
 
     @Nested
@@ -245,7 +293,7 @@ class DefaultHttpRequestDispatcherTest {
         public void prepareV2ApiReactor() {
             when(httpAcceptorResolver.resolve(HOST, PATH, SERVER_ID)).thenReturn(handlerEntrypoint);
             when(handlerEntrypoint.reactor()).thenReturn(apiReactor);
-            when(apiReactor.tracingContext()).thenReturn(TracingContext.noop());
+            when(apiReactor.tracingContext()).thenReturn(tracingContext);
         }
 
         @Test
@@ -373,6 +421,41 @@ class DefaultHttpRequestDispatcherTest {
             obs.assertError(RuntimeException.class);
             obs.assertError(t -> MOCK_ERROR_MESSAGE.equals(t.getMessage()));
         }
+
+        @Test
+        void shouldInitiateTracingV3Request() {
+            when(response.ended()).thenReturn(true);
+
+            doAnswer(i -> {
+                    simulateEndHandlerCall(i);
+                    return null;
+                })
+                .when(apiReactor)
+                .handle(
+                    argThat(ctx -> {
+                        assertThat(ctx.getAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN)).isNotNull();
+                        return true;
+                    }),
+                    any(Handler.class)
+                );
+
+            cut.dispatch(rxRequest, SERVER_ID).test().assertComplete();
+            verify(spyNoopTracer).startRootSpanFrom(any(), any());
+            verify(spyNoopTracer, timeout(1000)).endWithResponse(any(), any(), any());
+        }
+
+        @Test
+        void shouldEndSpanInErrorWhenExceptionWithV3Request() {
+            doThrow(new RuntimeException(MOCK_ERROR_MESSAGE)).when(apiReactor).handle(any(ExecutionContext.class), any(Handler.class));
+
+            final TestObserver<Void> obs = cut.dispatch(rxRequest, SERVER_ID).test();
+
+            obs.assertError(RuntimeException.class);
+            obs.assertError(t -> MOCK_ERROR_MESSAGE.equals(t.getMessage()));
+
+            verify(spyNoopTracer).startRootSpanFrom(any(), any());
+            verify(spyNoopTracer, timeout(1000)).endWithResponseAndError(any(), any(), any(), any(Throwable.class));
+        }
     }
 
     @Nested
@@ -401,6 +484,16 @@ class DefaultHttpRequestDispatcherTest {
 
             verify(notFoundProcessorChainFactory).processorChain();
             verify(processorChain).execute(any(), any());
+        }
+
+        @Test
+        void shouldInitiateTracingWhenNotFoundAPI() {
+            ProcessorChain processorChain = spy(new ProcessorChain("id", List.of()));
+            when(notFoundProcessorChainFactory.processorChain()).thenReturn(processorChain);
+            when(httpAcceptorResolver.resolve(HOST, PATH, SERVER_ID)).thenReturn(null);
+            cut.dispatch(rxRequest, SERVER_ID).test().assertComplete();
+            verify(spyNoopTracer).startRootSpanFrom(any(), any());
+            verify(spyNoopTracer, timeout(1000)).endWithResponseAndError(any(), any(), any(), eq((Throwable) null));
         }
     }
 
