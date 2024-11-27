@@ -21,8 +21,10 @@ import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.gateway.reactive.api.connector.ConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
 import io.gravitee.gateway.reactive.api.connector.endpoint.async.HttpEndpointAsyncConnectorFactory;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.async.HttpEntrypointAsyncConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePlugin;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
@@ -137,6 +139,10 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
             supportedQos = httpEntrypointAsyncConnectorFactory.supportedQos();
         } else if (connectorFactory instanceof HttpEndpointAsyncConnectorFactory<?> httpEndpointAsyncConnectorFactory) {
             supportedQos = httpEndpointAsyncConnectorFactory.supportedQos();
+        } else if (connectorFactory instanceof EntrypointAsyncConnectorFactory<?> legacyEntrypointAsyncConnectorFactory) {
+            supportedQos = legacyEntrypointAsyncConnectorFactory.supportedQos();
+        } else if (connectorFactory instanceof EndpointAsyncConnectorFactory<?> legacyEndpointAsyncConnectorFactory) {
+            supportedQos = legacyEndpointAsyncConnectorFactory.supportedQos();
         }
         return supportedQos;
     }
