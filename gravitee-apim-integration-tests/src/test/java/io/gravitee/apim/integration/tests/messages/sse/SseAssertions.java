@@ -27,31 +27,31 @@ import java.util.Objects;
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
  */
-class SseAssertions {
+public class SseAssertions {
 
     private SseAssertions() {
         // no op
     }
 
-    static void assertRetry(Buffer chunk) {
+    public static void assertRetry(Buffer chunk) {
         final String[] splitMessage = chunk.toString().split("\n");
         assertThat(splitMessage).hasSize(1);
         assertThat(splitMessage[0]).startsWith("retry: ");
     }
 
-    static void assertOnMessage(Buffer chunk, String messageContent) {
+    public static void assertOnMessage(Buffer chunk, String messageContent) {
         final String[] splitMessage = chunk.toString().split("\n");
         assertThat(splitMessage).hasSize(2);
         assertMessageData(messageContent, splitMessage);
     }
 
-    static void assertOnMessage(Buffer chunk, long id, String messageContent) {
+    public static void assertOnMessage(Buffer chunk, long id, String messageContent) {
         final String[] splitMessage = chunk.toString().split("\n");
         assertThat(splitMessage).hasSize(3);
         assertMessageData(messageContent, id, splitMessage);
     }
 
-    static void assertOnMessage(Buffer chunk, long id, String messageContent, @NotNull String... expectedComments) {
+    public static void assertOnMessage(Buffer chunk, long id, String messageContent, @NotNull String... expectedComments) {
         Objects.requireNonNull(expectedComments);
         final String[] splitMessage = chunk.toString().split("\n");
         assertThat(splitMessage).hasSize(4 + expectedComments.length); // 3 message data + 1 sourceTimestamp + n expected comments
@@ -67,7 +67,7 @@ class SseAssertions {
         assertThat(actualComments).containsExactlyInAnyOrder(expectedComments);
     }
 
-    static void assertHeartbeat(Buffer chunk) {
+    public static void assertHeartbeat(Buffer chunk) {
         assertThat(chunk.toString()).isEqualTo(":\n\n");
     }
 
