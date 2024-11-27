@@ -77,6 +77,7 @@ class UpdateEnvironmentRulesetUseCaseTest {
                     .id("ruleset-id")
                     .name("updated-name")
                     .description("updated-description")
+                    .format(ScoringRuleset.Format.GRAVITEE_PROXY)
                     .payload("payload-ruleset-id")
                     .referenceId("environment-id")
                     .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)

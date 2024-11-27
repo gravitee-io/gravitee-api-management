@@ -35,6 +35,7 @@ public class ImportEnvironmentRulesetUseCase {
                 UuidString.generateRandom(),
                 input.newRuleset.name(),
                 input.newRuleset.description(),
+                input.newRuleset.format(),
                 input.auditInfo.environmentId(),
                 ScoringRuleset.ReferenceType.ENVIRONMENT,
                 input.newRuleset.payload(),
@@ -47,7 +48,7 @@ public class ImportEnvironmentRulesetUseCase {
 
     public record Input(NewRuleset newRuleset, AuditInfo auditInfo) {}
 
-    public record NewRuleset(String name, String description, String payload) {}
+    public record NewRuleset(String name, String description, String payload, ScoringRuleset.Format format) {}
 
     public record Output(String rulesetId) {}
 }

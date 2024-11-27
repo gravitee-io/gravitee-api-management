@@ -72,6 +72,7 @@ class GetEnvironmentRulesetUseCaseTest {
                     .id(rulesetId)
                     .name("ruleset-name")
                     .description("ruleset-description")
+                    .format(ScoringRuleset.Format.GRAVITEE_PROXY)
                     .referenceId(ENVIRONMENT_ID)
                     .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
                     .payload("payload-ruleset-id")

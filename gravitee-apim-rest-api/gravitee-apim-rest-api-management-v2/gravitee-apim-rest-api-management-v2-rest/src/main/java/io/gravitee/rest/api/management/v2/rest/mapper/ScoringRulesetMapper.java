@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.rest.api.management.v2.rest.model.ImportScoringRuleset;
 import io.gravitee.rest.api.management.v2.rest.model.ScoringRuleset;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateScoringRuleset;
 import org.mapstruct.Mapper;
@@ -30,4 +31,6 @@ public interface ScoringRulesetMapper {
     ScoringRuleset map(io.gravitee.apim.core.scoring.model.ScoringRuleset source);
 
     io.gravitee.apim.core.scoring.model.ScoringRuleset map(UpdateScoringRuleset updateScoringRuleset);
+
+    io.gravitee.apim.core.scoring.model.ScoringRuleset.Format map(ImportScoringRuleset.FormatEnum formatEnum);
 }

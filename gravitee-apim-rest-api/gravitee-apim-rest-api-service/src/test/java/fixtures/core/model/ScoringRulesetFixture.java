@@ -30,6 +30,7 @@ public class ScoringRulesetFixture {
             .id("ruleset-id")
             .name("ruleset-name")
             .description("ruleset-description")
+            .format(ScoringRuleset.Format.GRAVITEE_PROXY)
             .payload("ruleset-payload")
             .referenceId("environment-id")
             .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)

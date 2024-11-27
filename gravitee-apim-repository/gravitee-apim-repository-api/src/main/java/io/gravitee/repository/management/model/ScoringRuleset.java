@@ -38,9 +38,16 @@ public final class ScoringRuleset {
 
     private String name;
     private String description;
+    private Format format;
     private String referenceId;
     private String referenceType;
     private Date createdAt;
     private Date updatedAt;
     private String payload;
+
+    public enum Format {
+        GRAVITEE_FEDERATION,
+        GRAVITEE_MESSAGE,
+        GRAVITEE_PROXY,
+    }
 }

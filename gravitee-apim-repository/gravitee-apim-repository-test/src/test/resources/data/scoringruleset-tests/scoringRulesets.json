@@ -5,6 +5,7 @@
         "referenceType": "ENVIRONMENT",
         "name": "Ruleset 1",
         "description": "description 1",
+        "format": "GRAVITEE_FEDERATION",
         "payload": "payload 1",
         "createdAt": 1470157767000,
         "updatedAt": 1470157767000
@@ -15,6 +16,7 @@
         "referenceType": "ENVIRONMENT",
         "name": "Ruleset 2",
         "description": "description 2",
+        "format": "GRAVITEE_FEDERATION",
         "payload": "payload 2",
         "createdAt": 1470157767000,
         "updatedAt": 1470157767000
@@ -25,6 +27,7 @@
         "referenceType": "ENVIRONMENT",
         "name": "Ruleset",
         "description": "description",
+        "format": "GRAVITEE_MESSAGE",
         "payload": "payload",
         "createdAt": 1470157767000,
         "updatedAt": 1470157767000
@@ -35,6 +38,7 @@
         "referenceType": "ENVIRONMENT",
         "name": "Ruleset",
         "description": "description",
+        "format": "GRAVITEE_PROXY",
         "payload": "payload",
         "createdAt": 1470157767000,
         "updatedAt": 1470157767000
@@ -45,6 +49,7 @@
         "referenceType": "ENVIRONMENT",
         "name": "Ruleset",
         "description": "description",
+        "format": "GRAVITEE_PROXY",
         "payload": "payload",
         "createdAt": 1470157767000,
         "updatedAt": 1470157767000
