@@ -26,9 +26,9 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
+import io.gravitee.rest.api.model.BasePlanEntity;
 import io.gravitee.rest.api.model.DeploymentRequired;
 import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PropertiesEntity;
 import io.gravitee.rest.api.model.PropertyEntity;
 import io.gravitee.rest.api.model.Visibility;
@@ -38,13 +38,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.*;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.util.CollectionUtils;
+import lombok.ToString;
+import lombok.With;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -222,6 +224,39 @@ public class ApiCRDEntity {
             return properties.getProperties();
         }
         return Collections.emptyList();
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @SuperBuilder(toBuilder = true)
+    @Getter
+    @Setter
+    @With
+    @ToString(callSuper = true)
+    public static class PlanEntity extends BasePlanEntity {
+
+        @NotNull
+        private String id;
+
+        @DeploymentRequired
+        @JsonProperty(value = "flows", required = true)
+        @Builder.Default
+        private List<Flow> flows = new ArrayList<>();
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            PlanEntity that = (PlanEntity) o;
+
+            return Objects.equals(this.id, that.id);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(id);
+        }
     }
 
     @Setter
