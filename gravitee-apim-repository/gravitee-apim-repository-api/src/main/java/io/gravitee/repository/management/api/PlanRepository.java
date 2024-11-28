@@ -65,4 +65,6 @@ public interface PlanRepository extends CrudRepository<Plan, String> {
      * @throws TechnicalException
      */
     List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
+
+    boolean exists(String id) throws TechnicalException;
 }
