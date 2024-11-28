@@ -211,15 +211,10 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     @Override
     public PlanEntity createOrUpdatePlan(final ExecutionContext executionContext, PlanEntity planEntity) {
         PlanEntity resultPlanEntity;
-        try {
-            if (planEntity.getId() == null) {
-                resultPlanEntity = create(executionContext, planConverter.toNewPlanEntity(planEntity));
-            } else {
-                planSearchService.findById(executionContext, planEntity.getId());
-                resultPlanEntity = update(executionContext, planConverter.toUpdatePlanEntity(planEntity));
-            }
-        } catch (PlanNotFoundException npe) {
+        if (planEntity.getId() == null || !planSearchService.exists(planEntity.getId())) {
             resultPlanEntity = create(executionContext, planConverter.toNewPlanEntity(planEntity));
+        } else {
+            resultPlanEntity = update(executionContext, planConverter.toUpdatePlanEntity(planEntity));
         }
         return resultPlanEntity;
     }
