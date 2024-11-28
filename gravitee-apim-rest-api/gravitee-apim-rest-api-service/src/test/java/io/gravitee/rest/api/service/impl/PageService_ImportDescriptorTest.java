@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
@@ -31,6 +32,7 @@ import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import io.gravitee.rest.api.model.ImportPageEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageSourceEntity;
+import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.PageRevisionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -38,8 +40,12 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
+import io.gravitee.rest.api.service.swagger.OAIDescriptor;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.SneakyThrows;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -48,6 +54,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -134,5 +141,38 @@ public class PageService_ImportDescriptorTest {
         assertNotNull(pageEntities);
         assertEquals(8, pageEntities.size());
         verify(pageRevisionService, times(5)).create(any());
+    }
+
+    @Test
+    @SneakyThrows
+    public void shouldNotValidateSafeContent() {
+        ReflectionTestUtils.setField(pageService, "swaggerValidateSafeContent", false);
+        ExecutionContext executionContext = new ExecutionContext(GraviteeContext.getDefaultOrganization(), "envId");
+        OpenAPI openAPI = new OpenAPI();
+        openAPI.setInfo(new Info().title("My API").version("1.0.0").description("A description"));
+        openAPI.setServers(List.of());
+        OAIDescriptor descriptor = new OAIDescriptor(openAPI);
+        PageEntity pageEntity = PageEntity.builder().type(PageType.SWAGGER.name()).content(descriptor.toJson()).build();
+
+        var result = pageService.validateSafeContent(executionContext, pageEntity, "api-id");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @SneakyThrows
+    public void shouldValidateSafeContent() {
+        ReflectionTestUtils.setField(pageService, "swaggerValidateSafeContent", true);
+        ExecutionContext executionContext = new ExecutionContext(GraviteeContext.getDefaultOrganization(), "envId");
+
+        OpenAPI openAPI = new OpenAPI();
+        openAPI.setInfo(new Info().title("My API").version("1.0.0").description("A description"));
+        openAPI.setServers(List.of());
+        OAIDescriptor descriptor = new OAIDescriptor(openAPI);
+        PageEntity pageEntity = PageEntity.builder().type(PageType.SWAGGER.name()).content(descriptor.toJson()).build();
+
+        var result = pageService.validateSafeContent(executionContext, pageEntity, "api-id");
+
+        assertThat(result).contains("attribute paths is missing");
     }
 }
