@@ -113,5 +113,29 @@
         "updatedAt": 1486771600000,
         "revoked": false,
         "federated": true
+    },
+    {
+        "id": "key7",
+        "key": "12345678",
+        "subscriptions": ["sub7"],
+        "application": "app7",
+        "environmentId" : "env7",
+        "expireAt": 29919401755,
+        "createdAt": 1486771200000,
+        "updatedAt": 1486771600000,
+        "revoked": false,
+        "federated": false
+    },
+    {
+        "id": "key8",
+        "key": "12345678",
+        "subscriptions": ["sub8"],
+        "application": "app8",
+        "environmentId" : "env8",
+        "expireAt": 29919401755,
+        "createdAt": 1486771200000,
+        "updatedAt": 1486771600000,
+        "revoked": false,
+        "federated": false
     }
 ]
