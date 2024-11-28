@@ -34,6 +34,7 @@ public record ScoringRuleset(
     public enum ReferenceType {
         ENVIRONMENT,
     }
+
     public enum Format {
         GRAVITEE_FEDERATION,
         GRAVITEE_MESSAGE,

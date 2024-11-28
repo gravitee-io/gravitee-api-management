@@ -70,8 +70,10 @@ class ScoreApiRequestUseCaseTest {
     private static final String USER_ID = "user-id";
 
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
-    private static final ScoringRuleset CUSTOM_RULESET_1 = ScoringRulesetFixture.aRuleset("ruleset1").withReferenceId(ENVIRONMENT_ID);
-    private static final ScoringRuleset CUSTOM_RULESET_2 = ScoringRulesetFixture.aRuleset("ruleset2").withReferenceId(ENVIRONMENT_ID);
+    private static final ScoringRuleset CUSTOM_RULESET_1 = ScoringRulesetFixture
+        .aRuleset("ruleset1", ScoringRuleset.Format.GRAVITEE_FEDERATION)
+        .withReferenceId(ENVIRONMENT_ID);
+    private static final ScoringRuleset CUSTOM_RULESET_2 = ScoringRulesetFixture.aRuleset("ruleset2", null).withReferenceId(ENVIRONMENT_ID);
 
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     AsyncJobCrudServiceInMemory asyncJobCrudService = new AsyncJobCrudServiceInMemory();
@@ -313,7 +315,7 @@ class ScoreApiRequestUseCaseTest {
                     .hasEnvironmentId(ENVIRONMENT_ID)
                     .hasApiId(api.getId())
                     .hasCustomRulesets(
-                        new ScoreRequest.CustomRuleset(CUSTOM_RULESET_1.payload()),
+                        new ScoreRequest.CustomRuleset(CUSTOM_RULESET_1.payload(), ScoreRequest.Format.GRAVITEE_FEDERATED),
                         new ScoreRequest.CustomRuleset(CUSTOM_RULESET_2.payload())
                     );
             });

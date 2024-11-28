@@ -68,7 +68,7 @@ public class ScoreApiRequestUseCase {
                 scoringRulesetQueryService.findByReference(input.auditInfo.environmentId(), ScoringRuleset.ReferenceType.ENVIRONMENT)
             )
             .flatMap(Flowable::fromIterable)
-            .map(r -> new ScoreRequest.CustomRuleset(r.payload()))
+            .map(this::customRuleset)
             .toList();
         var customFunctions$ = Flowable
             .fromCallable(() ->
@@ -137,6 +137,22 @@ public class ScoreApiRequestUseCase {
             definition.getApi().getName(),
             graviteeDefinitionSerializer.serialize(definition)
         );
+    }
+
+    private ScoreRequest.CustomRuleset customRuleset(ScoringRuleset scoringRuleset) {
+        if (scoringRuleset.format() != null) {
+            return new ScoreRequest.CustomRuleset(scoringRuleset.payload(), format(scoringRuleset.format()));
+        }
+
+        return new ScoreRequest.CustomRuleset(scoringRuleset.payload());
+    }
+
+    private ScoreRequest.Format format(ScoringRuleset.Format format) {
+        return switch (format) {
+            case GRAVITEE_FEDERATION -> ScoreRequest.Format.GRAVITEE_FEDERATED;
+            case GRAVITEE_MESSAGE -> ScoreRequest.Format.GRAVITEE_MESSAGE;
+            case GRAVITEE_PROXY -> ScoreRequest.Format.GRAVITEE_PROXY;
+        };
     }
 
     public AsyncJob newScoringJob(String id, AuditInfo auditInfo, String apiId) {

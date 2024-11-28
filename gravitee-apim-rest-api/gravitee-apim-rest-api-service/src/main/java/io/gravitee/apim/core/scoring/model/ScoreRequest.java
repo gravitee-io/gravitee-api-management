@@ -38,7 +38,11 @@ public record ScoreRequest(
             this(type, null);
         }
     }
-    public record CustomRuleset(String content) {}
+    public record CustomRuleset(String content, Format format) {
+        public CustomRuleset(String content) {
+            this(content, null);
+        }
+    }
     public record Function(String filename, String content) {}
 
     public enum Format {
