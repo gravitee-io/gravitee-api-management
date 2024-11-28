@@ -44,6 +44,8 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
      */
     List<ApiKey> findByKey(String key) throws TechnicalException;
 
+    List<ApiKey> findByKeyAndEnvironmentId(String key, String environmentId) throws TechnicalException;
+
     /**
      * Give the API Key from the given key and api
      *
