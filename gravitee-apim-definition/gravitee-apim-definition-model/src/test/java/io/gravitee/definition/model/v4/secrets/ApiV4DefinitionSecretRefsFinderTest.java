@@ -22,6 +22,7 @@ import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.secrets.api.discovery.Definition;
 import io.gravitee.secrets.api.discovery.DefinitionDescriptor;
+import io.gravitee.secrets.api.discovery.DefinitionMetadata;
 import io.gravitee.secrets.api.discovery.DefinitionSecretRefsFinder;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,9 +59,9 @@ class ApiV4DefinitionSecretRefsFinderTest {
     void should_get_definition() {
         Api api = new Api();
         api.setId("foo");
-        assertThat(underTest.toDefinitionDescriptor(api, Map.of()))
+        assertThat(underTest.toDefinitionDescriptor(api, new DefinitionMetadata(null)))
             .isEqualTo(new DefinitionDescriptor(new Definition("api-v4", "foo"), Optional.empty()));
-        assertThat(underTest.toDefinitionDescriptor(api, Map.of("deployment_number", "42")))
+        assertThat(underTest.toDefinitionDescriptor(api, new DefinitionMetadata("42")))
             .isEqualTo(new DefinitionDescriptor(new Definition("api-v4", "foo"), Optional.of("42")));
     }
 
