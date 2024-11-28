@@ -8,9 +8,8 @@ tests:
       - notMatchRegex:
           path: data["gravitee.yml"]
           pattern: |
-            documentation:
-              audit:
-                max-content-size:
+            audit:
+              max-content-size:
 
   - it: should set documentation.audit.maxContentSize with size defined
     template: api/api-configmap.yaml
@@ -26,3 +25,46 @@ tests:
             documentation:
               audit:
                 max-content-size: 100
+
+  - it: should not set documentation.swagger.validateSafeContent with no value defined
+    template: api/api-configmap.yaml
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            swagger:
+              validate-safe-content:
+
+  - it: should set documentation.swagger.validateSafeContent with false value
+    template: api/api-configmap.yaml
+    set:
+      api:
+        documentation:
+          swagger:
+            validateSafeContent: false
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            documentation:
+              swagger:
+                validate-safe-content: false
+
+  - it: should set documentation.swagger.validateSafeContent and documentation.audit.maxContentSize
+    template: api/api-configmap.yaml
+    set:
+      api:
+        documentation:
+          swagger:
+            validateSafeContent: true
+          audit:
+            maxContentSize: 0
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            documentation:
+              swagger:
+                validate-safe-content: true
+              audit:
+                max-content-size: 0
