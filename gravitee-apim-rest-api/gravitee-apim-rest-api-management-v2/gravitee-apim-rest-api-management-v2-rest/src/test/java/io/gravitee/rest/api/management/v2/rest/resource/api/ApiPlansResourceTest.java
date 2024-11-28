@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static assertions.MAPIAssertions.assertThat;
+import static fixtures.core.model.ApiFixtures.aNativeApi;
 import static fixtures.core.model.ApiFixtures.aProxyApiV4;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
@@ -26,6 +27,7 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -460,12 +462,14 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            apiCrudServiceInMemory.initWith(List.of(aProxyApiV4().toBuilder().id(API).build()));
+            var proxyApi = aProxyApiV4().toBuilder().id(API).build();
+            apiCrudServiceInMemory.initWith(List.of(proxyApi));
         }
 
         @AfterEach
         void tearDown() {
             apiCrudServiceInMemory.reset();
+            reset(createPlanDomainService);
         }
 
         @Test
@@ -494,6 +498,50 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 });
 
             final CreatePlanV4 createPlanV4 = PlanFixtures.aCreatePlanHttpV4();
+            final Response response = target.request().post(Entity.json(createPlanV4));
+
+            assertThat(response)
+                .hasStatus(CREATED_201)
+                .asEntity(PlanV4.class)
+                .isEqualTo(
+                    PlanV4
+                        .builder()
+                        .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4)
+                        .id(planId)
+                        .crossId(createPlanV4.getCrossId())
+                        .apiId(API)
+                        .name(createPlanV4.getName())
+                        .description(createPlanV4.getDescription())
+                        .order(1)
+                        .commentRequired(createPlanV4.getCommentRequired())
+                        .commentMessage(createPlanV4.getCommentMessage())
+                        .generalConditions(createPlanV4.getGeneralConditions())
+                        .validation(createPlanV4.getValidation())
+                        .mode(PlanMode.STANDARD)
+                        .status(io.gravitee.rest.api.management.v2.rest.model.PlanStatus.STAGING)
+                        .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY).configuration(Map.of("nice", "config")).build())
+                        .selectionRule(createPlanV4.getSelectionRule())
+                        .characteristics(createPlanV4.getCharacteristics())
+                        .excludedGroups(createPlanV4.getExcludedGroups())
+                        .tags(List.of("tag1", "tag2"))
+                        .type(io.gravitee.rest.api.management.v2.rest.model.PlanType.API)
+                        .flows(createPlanV4.getFlows())
+                        .build()
+                );
+        }
+
+        @Test
+        public void should_create_native_v4_plan() {
+            var planId = "new-id";
+            when(createPlanDomainService.create(any(), any(), any(), any()))
+                .thenAnswer(invocation -> {
+                    io.gravitee.apim.core.plan.model.Plan plan = invocation.getArgument(0);
+                    return new PlanWithFlows(plan.setPlanId(planId), invocation.getArgument(1));
+                });
+
+            apiCrudServiceInMemory.initWith(List.of(aNativeApi().toBuilder().id(API).build()));
+
+            final CreatePlanV4 createPlanV4 = PlanFixtures.aCreatePlanNativeV4();
             final Response response = target.request().post(Entity.json(createPlanV4));
 
             assertThat(response)

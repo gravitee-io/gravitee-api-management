@@ -25,7 +25,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
+import fixtures.definition.FlowFixtures;
 import fixtures.definition.PlanFixtures;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
@@ -96,6 +98,7 @@ class CreatePlanDomainServiceTest {
     private static final Api HTTP_PROXY_API_V4 = aProxyApiV4().toBuilder().id(API_ID).build();
     private static final Api TCP_PROXY_API_V4 = aTcpApiV4().toBuilder().id(API_ID).build();
     private static final Api API_MESSAGE_V4 = aMessageApiV4().toBuilder().id(API_ID).build();
+    private static final Api API_NATIVE_V4 = ApiFixtures.aNativeApi().toBuilder().id(API_ID).build();
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
@@ -242,7 +245,11 @@ class CreatePlanDomainServiceTest {
         @MethodSource("plans")
         void should_throw_when_plan_tags_mismatch_with_tags_defined_in_api(Api api, Plan plan, List<Flow> flows) {
             // Given
-            api.getApiDefinitionHttpV4().setTags(Set.of());
+            if (api.isNative()) {
+                api.getApiDefinitionNativeV4().setTags(Set.of());
+            } else {
+                api.getApiDefinitionHttpV4().setTags(Set.of());
+            }
 
             // When
             var throwable = Assertions.catchThrowable(() -> service.create(plan, flows, api, AUDIT_INFO));
@@ -254,7 +261,7 @@ class CreatePlanDomainServiceTest {
         }
 
         @ParameterizedTest
-        @MethodSource("plans")
+        @MethodSource("httpPlans")
         void should_throw_when_flows_are_invalid(Api api, Plan plan) {
             // Given
             List<Flow> invalidFlows = List.of(
@@ -297,7 +304,7 @@ class CreatePlanDomainServiceTest {
         }
 
         @ParameterizedTest
-        @MethodSource("plans")
+        @MethodSource("httpPlans")
         void should_throw_when_flows_contains_overlapped_path_parameters(Api api, Plan plan) {
             // Given
             var selector1 = api.getType() == ApiType.PROXY
@@ -480,6 +487,42 @@ class CreatePlanDomainServiceTest {
                         .setPlanStatus(PlanStatus.STAGING)
                         .setPlanTags(Set.of(TAG)),
                     List.of(Flow.builder().name("flow").selectors(List.of(new ChannelSelector())).build())
+                ),
+                Arguments.of(
+                    API_NATIVE_V4,
+                    fixtures.core.model.PlanFixtures.NativeV4
+                        .aKeyless()
+                        .toBuilder()
+                        .apiId(API_ID)
+                        .build()
+                        .setPlanStatus(PlanStatus.STAGING)
+                        .setPlanTags(Set.of(TAG)),
+                    List.of(FlowFixtures.aNativeFlowV4().toBuilder().name("flow").build())
+                )
+            );
+        }
+
+        static Stream<Arguments> httpPlans() {
+            return Stream.of(
+                Arguments.of(
+                    HTTP_PROXY_API_V4,
+                    fixtures.core.model.PlanFixtures.HttpV4
+                        .anApiKey()
+                        .toBuilder()
+                        .apiId(API_ID)
+                        .build()
+                        .setPlanStatus(PlanStatus.STAGING)
+                        .setPlanTags(Set.of(TAG))
+                ),
+                Arguments.of(
+                    API_MESSAGE_V4,
+                    fixtures.core.model.PlanFixtures.HttpV4
+                        .aPushPlan()
+                        .toBuilder()
+                        .apiId(API_ID)
+                        .build()
+                        .setPlanStatus(PlanStatus.STAGING)
+                        .setPlanTags(Set.of(TAG))
                 )
             );
         }

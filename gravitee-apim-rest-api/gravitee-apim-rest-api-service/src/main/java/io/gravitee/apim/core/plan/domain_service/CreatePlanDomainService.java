@@ -29,8 +29,10 @@ import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.AbstractListener;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.sql.Date;
 import java.util.Collections;
@@ -61,7 +63,7 @@ public class CreatePlanDomainService {
         this.auditService = auditDomainService;
     }
 
-    public PlanWithFlows create(Plan plan, List<Flow> flows, Api api, AuditInfo auditInfo) {
+    public PlanWithFlows create(Plan plan, List<? extends AbstractFlow> flows, Api api, AuditInfo auditInfo) {
         return switch (api.getDefinitionVersion()) {
             case V4 -> createV4ApiPlan(plan, flows, api, auditInfo);
             case FEDERATED -> createFederatedApiPlan(plan, auditInfo);
@@ -69,22 +71,54 @@ public class CreatePlanDomainService {
         };
     }
 
-    private PlanWithFlows createV4ApiPlan(Plan plan, List<Flow> flows, Api api, AuditInfo auditInfo) {
+    private PlanWithFlows createV4ApiPlan(Plan plan, List<? extends AbstractFlow> flows, Api api, AuditInfo auditInfo) {
         if (api.isDeprecated()) {
             throw new ApiDeprecatedException(plan.getApiId());
         }
 
-        if (api.getApiDefinitionHttpV4().getListeners() != null) {
+        var listeners = api.getApiListeners();
+
+        if (!listeners.isEmpty()) {
             planValidatorDomainService.validatePlanSecurityAgainstEntrypoints(
                 plan.getPlanSecurity(),
-                api.getApiDefinitionHttpV4().getListeners().stream().map(Listener::getType).toList()
+                listeners.stream().map(AbstractListener::getType).toList()
             );
         }
 
         planValidatorDomainService.validatePlanSecurity(plan, auditInfo.organizationId(), auditInfo.environmentId());
-        planValidatorDomainService.validatePlanTagsAgainstApiTags(plan.getPlanDefinitionHttpV4().getTags(), api.getTags());
+        planValidatorDomainService.validatePlanTagsAgainstApiTags(plan.getTags(), api.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(plan);
 
+        if (api.isNative()) {
+            return createNativeV4ApiPlan(plan, (List<NativeFlow>) flows, api, auditInfo);
+        }
+
+        return createHttpV4ApiPlan(plan, (List<Flow>) flows, api, auditInfo);
+    }
+
+    private PlanWithFlows createNativeV4ApiPlan(Plan plan, List<NativeFlow> flows, Api api, AuditInfo auditInfo) {
+        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeNativeV4(flows);
+        var createdPlan = planCrudService.create(
+            plan
+                .toBuilder()
+                .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
+                .apiId(api.getId())
+                .apiType(api.getType())
+                .createdAt(TimeProvider.now())
+                .updatedAt(TimeProvider.now())
+                .needRedeployAt(Date.from(TimeProvider.instantNow()))
+                .publishedAt(plan.isPublished() ? TimeProvider.now() : null)
+                .build()
+        );
+
+        var createdFlows = flowCrudService.saveNativePlanFlows(createdPlan.getId(), sanitizedFlows);
+
+        createAuditLog(createdPlan, auditInfo);
+
+        return new PlanWithFlows(createdPlan, createdFlows);
+    }
+
+    private PlanWithFlows createHttpV4ApiPlan(Plan plan, List<Flow> flows, Api api, AuditInfo auditInfo) {
         var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows);
         flowValidationDomainService.validatePathParameters(
             api.getType(),
@@ -109,13 +143,13 @@ public class CreatePlanDomainService {
 
         createAuditLog(createdPlan, auditInfo);
 
-        return toPlanWithFlows(createdPlan, createdFlows);
+        return new PlanWithFlows(createdPlan, createdFlows);
     }
 
     private PlanWithFlows createFederatedApiPlan(Plan plan, AuditInfo auditInfo) {
         var createdPlan = planCrudService.create(plan);
         createAuditLog(createdPlan, auditInfo);
-        return toPlanWithFlows(plan, Collections.emptyList());
+        return new PlanWithFlows(createdPlan, Collections.emptyList());
     }
 
     private void createAuditLog(Plan createdPlan, AuditInfo auditInfo) {
@@ -132,33 +166,5 @@ public class CreatePlanDomainService {
                 .properties(Map.of(AuditProperties.PLAN, createdPlan.getId()))
                 .build()
         );
-    }
-
-    private PlanWithFlows toPlanWithFlows(Plan plan, List<Flow> flows) {
-        return PlanWithFlows
-            .builder()
-            .flows(flows)
-            .id(plan.getId())
-            .crossId(plan.getCrossId())
-            .name(plan.getName())
-            .description(plan.getDescription())
-            .createdAt(plan.getCreatedAt())
-            .updatedAt(plan.getUpdatedAt())
-            .publishedAt(plan.getPublishedAt())
-            .closedAt(plan.getClosedAt())
-            .needRedeployAt(plan.getNeedRedeployAt())
-            .validation(plan.getValidation())
-            .type(plan.getType())
-            .planDefinitionHttpV4(plan.getPlanDefinitionHttpV4())
-            .planDefinitionNativeV4(plan.getPlanDefinitionNativeV4())
-            .planDefinitionV2(plan.getPlanDefinitionV2())
-            .apiId(plan.getApiId())
-            .order(plan.getOrder())
-            .characteristics(plan.getCharacteristics())
-            .excludedGroups(plan.getExcludedGroups())
-            .commentRequired(plan.isCommentRequired())
-            .commentMessage(plan.getCommentMessage())
-            .generalConditions(plan.getGeneralConditions())
-            .build();
     }
 }

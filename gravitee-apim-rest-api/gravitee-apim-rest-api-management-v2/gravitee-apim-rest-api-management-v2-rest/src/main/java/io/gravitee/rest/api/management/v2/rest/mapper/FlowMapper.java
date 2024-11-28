@@ -15,9 +15,12 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.management.v2.rest.model.*;
+import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -126,4 +129,8 @@ public interface FlowMapper {
     StepV2 mapStep(io.gravitee.definition.model.flow.Step stepV2);
 
     FlowV2 map(io.gravitee.definition.model.flow.Flow flowV2);
+
+    default List<? extends AbstractFlow> map(@Valid List<FlowV4> flows, Api api) {
+        return api.isNative() ? mapToNativeV4(flows) : mapToHttpV4(flows);
+    }
 }
