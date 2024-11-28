@@ -494,4 +494,14 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(deleted).containsOnly("plan-deleted-1", "plan-deleted-2");
         assertEquals(0, planRepository.findAll().stream().filter(plan -> "ToBeDeleted".equals(plan.getEnvironmentId())).count());
     }
+
+    @Test
+    public void plan_should_exist() throws Exception {
+        assertTrue(planRepository.exists("my-plan"));
+    }
+
+    @Test
+    public void plan_should_not_exist() throws Exception {
+        assertFalse(planRepository.exists("unknown"));
+    }
 }

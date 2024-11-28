@@ -47,4 +47,9 @@ public class NoOpPlanRepository extends AbstractNoOpManagementRepository<Plan, S
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         return List.of();
     }
+
+    @Override
+    public boolean exists(String id) throws TechnicalException {
+        return false;
+    }
 }

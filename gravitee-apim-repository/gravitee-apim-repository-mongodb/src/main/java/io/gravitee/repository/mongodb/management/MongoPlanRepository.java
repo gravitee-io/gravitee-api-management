@@ -127,4 +127,16 @@ public class MongoPlanRepository implements PlanRepository {
             throw new TechnicalException("Failed to delete plan by environment", e);
         }
     }
+
+    @Override
+    public boolean exists(String id) throws TechnicalException {
+        LOGGER.debug("Checking if plan exists by id [{}]", id);
+
+        try {
+            return internalPlanRepository.existsById(id);
+        } catch (Exception e) {
+            LOGGER.error("Failed to check if plan exists by id [{}]", id, e);
+            throw new TechnicalException("Failed to determine if plan exists by id", e);
+        }
+    }
 }
