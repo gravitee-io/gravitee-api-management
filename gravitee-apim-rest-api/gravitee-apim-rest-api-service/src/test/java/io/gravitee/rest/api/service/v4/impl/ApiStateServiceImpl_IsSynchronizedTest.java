@@ -28,6 +28,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
@@ -203,7 +204,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
     }
 
     @Test
-    public void should_return_true_for_V4_API() throws JsonProcessingException {
+    public void should_return_true_for_V4_http_API() throws JsonProcessingException {
         io.gravitee.definition.model.v4.Api apiDefinition = io.gravitee.definition.model.v4.Api
             .builder()
             .id("apiId")
@@ -264,7 +265,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
     }
 
     @Test
-    public void should_return_false_for_V4_API() throws JsonProcessingException {
+    public void should_return_false_for_V4_http_API() throws JsonProcessingException {
         io.gravitee.definition.model.v4.Api apiDefinition = io.gravitee.definition.model.v4.Api
             .builder()
             .id("apiId")
@@ -303,6 +304,132 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         // Add Flows to make API not synchronized
         List<Flow> apiFlows = List.of(mock(Flow.class), mock(Flow.class));
+        apiEntity.setFlows(apiFlows);
+
+        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(isSynchronized).isFalse();
+
+        verify(eventLatestRepository, times(1))
+            .search(
+                EventCriteria
+                    .builder()
+                    .types(
+                        List.of(
+                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                        )
+                    )
+                    .properties(Map.of(Event.EventProperties.API_ID.getValue(), "apiId"))
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                1L
+            );
+        verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
+    }
+
+    @Test
+    public void should_return_true_for_V4_native_API() throws JsonProcessingException {
+        var apiDefinition = io.gravitee.definition.model.v4.nativeapi.NativeApi
+            .builder()
+            .id("apiId")
+            .name("Api name")
+            .definitionVersion(DefinitionVersion.V4)
+            .build();
+        Api api = new Api();
+        api.setId("apiId");
+        api.setName("Api name");
+        api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
+
+        Event event = new Event();
+        event.setType(io.gravitee.repository.management.model.EventType.PUBLISH_API);
+        event.setPayload(objectMapper.writeValueAsString(api));
+
+        when(
+            eventLatestRepository.search(
+                EventCriteria
+                    .builder()
+                    .types(
+                        List.of(
+                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                        )
+                    )
+                    .properties(Map.of(Event.EventProperties.API_ID.getValue(), "apiId"))
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                1L
+            )
+        )
+            .thenReturn(List.of(event));
+
+        var apiEntity = apiMapper.toNativeEntity(GraviteeContext.getExecutionContext(), api, null, false);
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(isSynchronized).isTrue();
+
+        verify(eventLatestRepository, times(1))
+            .search(
+                EventCriteria
+                    .builder()
+                    .types(
+                        List.of(
+                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                        )
+                    )
+                    .properties(Map.of(Event.EventProperties.API_ID.getValue(), "apiId"))
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                1L
+            );
+        verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
+    }
+
+    @Test
+    public void should_return_false_for_V4_API() throws JsonProcessingException {
+        var apiDefinition = io.gravitee.definition.model.v4.nativeapi.NativeApi
+            .builder()
+            .id("apiId")
+            .name("Api name")
+            .definitionVersion(DefinitionVersion.V4)
+            .build();
+        Api api = new Api();
+        api.setId("apiId");
+        api.setName("Api name");
+        api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
+
+        Event event = new Event();
+        event.setType(io.gravitee.repository.management.model.EventType.PUBLISH_API);
+        event.setPayload(objectMapper.writeValueAsString(api));
+
+        when(
+            eventLatestRepository.search(
+                EventCriteria
+                    .builder()
+                    .types(
+                        List.of(
+                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                        )
+                    )
+                    .properties(Map.of(Event.EventProperties.API_ID.getValue(), "apiId"))
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                1L
+            )
+        )
+            .thenReturn(List.of(event));
+
+        var apiEntity = apiMapper.toNativeEntity(GraviteeContext.getExecutionContext(), api, null, false);
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        // Add Flows to make API not synchronized
+        var apiFlows = List.of(mock(NativeFlow.class), mock(NativeFlow.class));
         apiEntity.setFlows(apiFlows);
 
         final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
