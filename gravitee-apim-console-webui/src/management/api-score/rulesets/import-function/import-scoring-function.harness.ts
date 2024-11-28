@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatExpansionPanelHarness } from '@angular/material/expansion/testing';
-import { MatCardHarness } from '@angular/material/card/testing';
+import { GioFormFilePickerInputHarness } from '@gravitee/ui-particles-angular';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
-export class ApiScoreRulesetsHarness extends ComponentHarness {
-  static hostSelector = 'app-api-score-rulesets';
+export class ImportScoringFunctionHarness extends ComponentHarness {
+  static readonly hostSelector = 'import-scoring-function';
 
-  getMatExpansionPanelHarness = this.locatorForOptional(MatExpansionPanelHarness);
+  private getFilePicker = this.locatorFor(GioFormFilePickerInputHarness);
 
-  getMatCardHarness = this.locatorForOptional(MatCardHarness);
+  public async pickFiles(files: File[]) {
+    return this.getFilePicker().then((filePicker) => filePicker.dropFiles(files));
+  }
 
-  getRulesetsEmpty = this.locatorForOptional('.rulesets-empty');
-
-  getFunctionsEmpty = this.locatorForOptional('.functions-empty');
+  locatorForSubmitImportButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid=import-button]' }));
 }

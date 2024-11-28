@@ -47,7 +47,7 @@ describe('FilePickerComponent', () => {
 
     await harness.dropFiles([new File([''], 'file.gif', { type: 'image/gif' })]);
 
-    expect(snackBarSpy).toHaveBeenCalledWith('Invalid file format. Supported file formats: yml, yaml, json, wsdl, xml');
+    expect(snackBarSpy).toHaveBeenCalledWith('Invalid file format. Supported file formats: yml, yaml, json, wsdl, xml, js');
   });
 
   it('should emit GRAVITEE file data', async () => {

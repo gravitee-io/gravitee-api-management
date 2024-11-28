@@ -50,13 +50,52 @@
               <h4 class="content-header__title">Details</h4>
               <div class="content-header__actions">
                 <button mat-raised-button [routerLink]="ruleset.id + '/edit'">Edit</button>
-                <button mat-raised-button (click)="delete(ruleset.id)">Delete</button>
+                <button mat-raised-button (click)="deleteRuleset(ruleset.id)">Delete</button>
               </div>
             </div>
             <pre class="file-preview">{{ ruleset.payload }}</pre>
           </mat-expansion-panel>
         } @empty {
           <gio-card-empty-state icon="search" title="No ruleset, yet" class="rulesets-empty"></gio-card-empty-state>
+        }
+      </mat-card-content>
+    }
+  </mat-card>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title class="mat-h3 card-title">Functions</mat-card-title>
+      <mat-card-subtitle class="mat-body subtitle"
+        >Custom functions let you define specific logic or operations that extend the rulesets.
+      </mat-card-subtitle>
+
+      <button mat-raised-button routerLink="import-function">Import</button>
+    </mat-card-header>
+
+    <div class="separator-hr"></div>
+
+    @if (isLoading) {
+      <gio-loader></gio-loader>
+    } @else if (functions) {
+      <mat-card-content class="rulesets">
+        @for (fun of functions; track fun.name) {
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title class="panel-title">
+                {{ fun.name }}
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <div class="separator-hr"></div>
+            <div class="content-header">
+              <h4 class="content-header__title">Details</h4>
+              <div class="content-header__actions">
+                <button mat-raised-button (click)="deleteFunction(fun.name)">Delete</button>
+              </div>
+            </div>
+            <pre class="file-preview">{{ fun.payload }}</pre>
+          </mat-expansion-panel>
+        } @empty {
+          <gio-card-empty-state icon="search" title="No custom function, yet" class="functions-empty"></gio-card-empty-state>
         }
       </mat-card-content>
     }

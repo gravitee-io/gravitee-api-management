@@ -37,3 +37,20 @@ export interface EditRulesetRequestData {
   name: string;
   description: string;
 }
+
+export interface ScoringFunctionsResponse {
+  data: ScoringFunction[];
+}
+
+export interface ScoringFunction {
+  name: string;
+  payload: string;
+  createdAt: string;
+  referenceId: string;
+  referenceType: string;
+}
+
+export interface CreateFunctionRequestData {
+  name: string;
+  payload: string;
+}
