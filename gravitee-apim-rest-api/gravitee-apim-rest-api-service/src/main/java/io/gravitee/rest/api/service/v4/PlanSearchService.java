@@ -39,4 +39,6 @@ public interface PlanSearchService {
     boolean anyPlanMismatchWithApi(List<String> planIds, String apiId);
 
     Map<String, Object> findByIdAsMap(String id) throws TechnicalException;
+
+    boolean exists(String planId);
 }

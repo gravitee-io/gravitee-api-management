@@ -380,4 +380,15 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             throw new TechnicalException(message, ex);
         }
     }
+
+    @Override
+    public boolean exists(String id) throws TechnicalException {
+        LOGGER.debug("JdbcPlanRepository.exists({})", id);
+        try {
+            return jdbcTemplate.queryForObject("select count(id) from " + tableName + " where id = ?", Integer.class, id) > 0;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to check if plan exists", ex);
+            throw new TechnicalException("Failed to check if plan exists", ex);
+        }
+    }
 }
