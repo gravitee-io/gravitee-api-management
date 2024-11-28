@@ -324,9 +324,9 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     public void findByCriteria_should_find_by_criteria_with_expire_at_before_dates() throws Exception {
         List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder().expireBefore(30019401755L).build());
 
-        assertEquals("found 2 API Keys", 2, apiKeys.size());
+        assertEquals("found 4 API Keys", 4, apiKeys.size());
 
-        List<String> expectedKeys = List.of("findByCriteria2", "findByCriteria1");
+        List<String> expectedKeys = List.of("findByCriteria2", "findByCriteria1", "12345678", "12345678");
         assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
     }
 
@@ -336,9 +336,16 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
             ApiKeyCriteria.builder().expireBefore(30019401755L).includeWithoutExpiration(true).build()
         );
 
-        assertEquals("found 4 API Keys", 4, apiKeys.size());
+        assertEquals("found 6 API Keys", 6, apiKeys.size());
 
-        List<String> expectedKeys = List.of("findByCriteria2", "the-key-of-api-key-7", "the-key-of-api-key-8", "findByCriteria1");
+        List<String> expectedKeys = List.of(
+            "findByCriteria2",
+            "the-key-of-api-key-7",
+            "the-key-of-api-key-8",
+            "findByCriteria1",
+            "12345678",
+            "12345678"
+        );
         assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
     }
 
@@ -406,7 +413,7 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     public void findAll_should_find_all_api_keys_even_with_no_subscription() throws TechnicalException {
         Set<ApiKey> apiKeys = apiKeyRepository.findAll();
 
-        assertThat(apiKeys).hasSize(11).extracting(ApiKey::getId).contains("id-of-apikey-8");
+        assertThat(apiKeys).hasSize(13).extracting(ApiKey::getId).contains("id-of-apikey-8");
     }
 
     @Test
@@ -457,6 +464,15 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     public void return_empty_if_apikey_does_not_exist() throws TechnicalException {
         Optional<ApiKey> updatedApiKey = apiKeyRepository.addSubscription("unknown_apikey_id", "newSubscription");
         assertTrue(updatedApiKey.isEmpty());
+    }
+
+    @Test
+    public void should_find_by_key_and_environment_id() throws TechnicalException {
+        List<ApiKey> apiKeys = apiKeyRepository.findByKeyAndEnvironmentId("12345678", "env7");
+
+        assertEquals(1, apiKeys.size());
+        assertEquals("env7", apiKeys.get(0).getEnvironmentId());
+        assertEquals("12345678", apiKeys.get(0).getKey());
     }
 
     @Test
