@@ -505,6 +505,8 @@ user:
 documentation:
   markdown:
     sanitize: true
+  swagger:
+    validate-safe-content: true # Validate safe content in Swagger descriptor. Default is true.
   audit:
     max-content-size: -1 # Max size of content in bytes to be stored in audit logs when importing an API. Default is -1 meaning their is no limit.
 
