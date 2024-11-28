@@ -235,6 +235,14 @@ public class Plan implements GenericPlanEntity {
         return getPlanStatus() == PlanStatus.PUBLISHED;
     }
 
+    public Set<String> getTags() {
+        return switch (definitionVersion) {
+            case V4 -> getPlanDefinitionV4().getTags();
+            case V1, V2 -> planDefinitionV2.getTags();
+            case FEDERATED -> Set.of();
+        };
+    }
+
     public Plan close() {
         if (isClosed()) {
             throw new ValidationDomainException("Plan " + id + " is already closed");

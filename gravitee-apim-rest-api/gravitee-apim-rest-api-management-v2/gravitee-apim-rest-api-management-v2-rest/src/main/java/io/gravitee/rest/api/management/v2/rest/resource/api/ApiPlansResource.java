@@ -162,7 +162,7 @@ public class ApiPlansResource extends AbstractResource {
 
         return new PlansResponse()
             .data(planMapper.convert(paginationData))
-            .pagination(PaginationInfo.computePaginationInfo((long) plans.size(), paginationData.size(), paginationParam))
+            .pagination(PaginationInfo.computePaginationInfo(plans.size(), paginationData.size(), paginationParam))
             .links(computePaginationLinks(plans.size(), paginationParam));
     }
 
@@ -175,11 +175,12 @@ public class ApiPlansResource extends AbstractResource {
             var planV4 = (CreatePlanV4) createPlan;
             var executionContext = GraviteeContext.getExecutionContext();
             var userDetails = getAuthenticatedUserDetails();
+
             var output = createPlanUseCase.execute(
                 new CreatePlanUseCase.Input(
                     apiId,
                     api -> planMapper.map(planV4, api),
-                    flowMapper.mapToHttpV4(planV4.getFlows()),
+                    api -> flowMapper.map(planV4.getFlows(), api),
                     AuditInfo
                         .builder()
                         .organizationId(executionContext.getOrganizationId())

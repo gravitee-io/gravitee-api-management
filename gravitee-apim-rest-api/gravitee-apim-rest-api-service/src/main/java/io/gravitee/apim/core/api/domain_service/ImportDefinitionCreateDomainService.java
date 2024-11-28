@@ -37,7 +37,6 @@ import io.gravitee.apim.core.metadata.model.MetadataId;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.ArrayList;
 import java.util.Date;
@@ -141,7 +140,7 @@ public class ImportDefinitionCreateDomainService {
             plans
                 .stream()
                 .map(plan -> plan.toBuilder().apiId(api.getId()).build())
-                .forEach(plan -> createPlanDomainService.create(plan, (List<Flow>) plan.getFlows(), api.toApi(), auditInfo));
+                .forEach(plan -> createPlanDomainService.create(plan, plan.getFlows(), api.toApi(), auditInfo));
         }
     }
 

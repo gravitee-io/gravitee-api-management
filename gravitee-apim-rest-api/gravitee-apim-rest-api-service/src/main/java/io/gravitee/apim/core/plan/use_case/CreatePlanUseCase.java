@@ -26,8 +26,7 @@ import io.gravitee.apim.core.plan.exception.PlanInvalidException;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.List;
 import java.util.function.Function;
@@ -46,11 +45,6 @@ public class CreatePlanUseCase {
             throw new PlanInvalidException("Can't manually create Federated Plan");
         }
 
-        // TODO Kafka Gateway: Implement native plan creation for native apis
-        if (api.getType() == ApiType.NATIVE) {
-            throw new PlanInvalidException("Plans for Native APIs are currently not supported");
-        }
-
         var plan = input.toPlan.apply(api);
 
         if (isMtls(api, plan) && api.getApiDefinitionHttpV4().isTcpProxy()) {
@@ -65,12 +59,9 @@ public class CreatePlanUseCase {
             plan.setPlanMode(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD);
         }
 
-        PlanWithFlows createdPlan = createPlanDomainService.create(
-            plan,
-            input.flows == null ? List.of() : input.flows,
-            api,
-            input.auditInfo
-        );
+        var flows = input.flowProvider.apply(api);
+
+        PlanWithFlows createdPlan = createPlanDomainService.create(plan, flows, api, input.auditInfo);
 
         return new Output(createdPlan.getId(), createdPlan);
     }
@@ -83,7 +74,12 @@ public class CreatePlanUseCase {
         );
     }
 
-    public record Input(String apiId, Function<Api, Plan> toPlan, List<Flow> flows, AuditInfo auditInfo) {}
+    public record Input(
+        String apiId,
+        Function<Api, Plan> toPlan,
+        Function<Api, List<? extends AbstractFlow>> flowProvider,
+        AuditInfo auditInfo
+    ) {}
 
     public record Output(String id, PlanWithFlows plan) {}
 }

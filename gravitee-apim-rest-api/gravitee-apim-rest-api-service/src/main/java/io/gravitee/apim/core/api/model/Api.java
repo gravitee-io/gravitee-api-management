@@ -20,11 +20,14 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.listener.AbstractListener;
+import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -233,6 +236,22 @@ public class Api {
             }
         }
         return this;
+    }
+
+    public List<? extends AbstractListener<? extends AbstractEntrypoint>> getApiListeners() {
+        if (definitionVersion != DefinitionVersion.V4) {
+            return Collections.emptyList();
+        }
+
+        if (type == ApiType.NATIVE) {
+            return Optional.ofNullable(apiDefinitionNativeV4.getListeners()).orElse(Collections.emptyList());
+        }
+
+        return Optional.ofNullable(apiDefinitionHttpV4.getListeners()).orElse(Collections.emptyList());
+    }
+
+    public boolean isNative() {
+        return type == ApiType.NATIVE;
     }
 
     /**

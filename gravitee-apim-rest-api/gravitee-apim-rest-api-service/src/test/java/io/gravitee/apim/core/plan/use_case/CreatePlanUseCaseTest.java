@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.PlanFixtures;
+import fixtures.definition.FlowFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
@@ -29,6 +30,7 @@ import inmemory.PageCrudServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.api.exception.NativeApiWithMultipleFlowsException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -42,6 +44,8 @@ import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase.Input;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
@@ -49,6 +53,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -67,6 +72,8 @@ class CreatePlanUseCaseTest {
     private static final String USER_ID = "user-id";
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
     private static final String GENERATED_ID = "generated-id";
+
+    private static final Function<Api, List<? extends AbstractFlow>> EMPTY_FLOW_PROVIDER = _api -> Collections.emptyList();
 
     PolicyValidationDomainService policyValidationDomainService = mock(PolicyValidationDomainService.class);
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
@@ -132,7 +139,7 @@ class CreatePlanUseCaseTest {
 
         // When
         var result = createPlanUseCase.execute(
-            new Input(api.getId(), _api -> PlanFixtures.HttpV4.aKeyless().toBuilder().id(null).build(), Collections.emptyList(), AUDIT_INFO)
+            new Input(api.getId(), _api -> PlanFixtures.HttpV4.aKeyless().toBuilder().id(null).build(), EMPTY_FLOW_PROVIDER, AUDIT_INFO)
         );
 
         // Then
@@ -154,7 +161,7 @@ class CreatePlanUseCaseTest {
         var input = new Input(
             api.getId(),
             _api -> PlanFixtures.HttpV4.anApiKey().toBuilder().id(null).build(),
-            Collections.emptyList(),
+            EMPTY_FLOW_PROVIDER,
             AUDIT_INFO
         );
 
@@ -173,12 +180,7 @@ class CreatePlanUseCaseTest {
         // When
         var throwable = Assertions.catchThrowable(() ->
             createPlanUseCase.execute(
-                new Input(
-                    api.getId(),
-                    _api -> PlanFixtures.HttpV4.anApiKey().toBuilder().id(null).build(),
-                    Collections.emptyList(),
-                    AUDIT_INFO
-                )
+                new Input(api.getId(), _api -> PlanFixtures.HttpV4.anApiKey().toBuilder().id(null).build(), EMPTY_FLOW_PROVIDER, AUDIT_INFO)
             )
         );
 
@@ -191,7 +193,7 @@ class CreatePlanUseCaseTest {
         // Given
         var api = givenExistingApi(ApiFixtures.aTcpApiV4());
         var mtlsPlan = PlanFixtures.HttpV4.anMtlsPlan().toBuilder().id(null).build();
-        var input = new Input(api.getId(), _api -> mtlsPlan, Collections.emptyList(), AUDIT_INFO);
+        var input = new Input(api.getId(), _api -> mtlsPlan, EMPTY_FLOW_PROVIDER, AUDIT_INFO);
 
         // When
         var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
@@ -205,7 +207,7 @@ class CreatePlanUseCaseTest {
         // Given
         var api = givenExistingApi(ApiFixtures.aProxyApiV4());
         var mtlsPlan = PlanFixtures.HttpV4.anMtlsPlan().toBuilder().id(null).build();
-        var input = new Input(api.getId(), _api -> mtlsPlan, Collections.emptyList(), AUDIT_INFO);
+        var input = new Input(api.getId(), _api -> mtlsPlan, EMPTY_FLOW_PROVIDER, AUDIT_INFO);
 
         // When
         var result = createPlanUseCase.execute(input);
@@ -223,7 +225,7 @@ class CreatePlanUseCaseTest {
         // Given
         var api = givenExistingApi(ApiFixtures.aProxyApiV4());
         var pushPlan = PlanFixtures.HttpV4.aPushPlan().toBuilder().id(null).build();
-        var input = new Input(api.getId(), _api -> pushPlan, Collections.emptyList(), AUDIT_INFO);
+        var input = new Input(api.getId(), _api -> pushPlan, EMPTY_FLOW_PROVIDER, AUDIT_INFO);
 
         // When
         var result = createPlanUseCase.execute(input);
@@ -235,27 +237,78 @@ class CreatePlanUseCaseTest {
     }
 
     @Test
-    void should_throw_exception_when_creating_native_plan() {
+    void should_create_native_plan() {
         // Given
         var api = givenExistingApi(ApiFixtures.aNativeApi());
+        var input = new Input(
+            api.getId(),
+            _api -> PlanFixtures.NativeV4.aKeyless().toBuilder().id(null).build(),
+            EMPTY_FLOW_PROVIDER,
+            AUDIT_INFO
+        );
 
         // When
-        var throwable = Assertions.catchThrowable(() ->
-            createPlanUseCase.execute(
-                new Input(
-                    api.getId(),
-                    _api -> PlanFixtures.NativeV4.anApiKey().toBuilder().id(null).build(),
-                    Collections.emptyList(),
-                    AUDIT_INFO
-                )
+        var result = createPlanUseCase.execute(input);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(GENERATED_ID);
+        assertThat(result.plan())
+            .extracting(
+                PlanWithFlows::getApiId,
+                createdPlan -> createdPlan.getPlanType().name(),
+                creadedPlan -> creadedPlan.getPlanMode().name()
             )
+            .containsExactly(api.getId(), Plan.PlanType.API.name(), PlanMode.STANDARD.name());
+    }
+
+    @Test
+    void should_create_native_plan_with_flow() {
+        // Given
+        var api = givenExistingApi(ApiFixtures.aNativeApi());
+        List<NativeFlow> flows = List.of(FlowFixtures.aNativeFlowV4());
+        var input = new Input(
+            api.getId(),
+            _api -> PlanFixtures.NativeV4.aKeyless().toBuilder().id(null).build(),
+            _api -> flows,
+            AUDIT_INFO
         );
+
+        // When
+        var result = createPlanUseCase.execute(input);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(GENERATED_ID);
+        assertThat(result.plan())
+            .extracting(
+                PlanWithFlows::getApiId,
+                createdPlan -> createdPlan.getPlanType().name(),
+                creadedPlan -> creadedPlan.getPlanMode().name()
+            )
+            .containsExactly(api.getId(), Plan.PlanType.API.name(), PlanMode.STANDARD.name());
+    }
+
+    @Test
+    void should_throw_when_native_plan_has_more_then_one_flow() {
+        // Given
+        var api = givenExistingApi(ApiFixtures.aNativeApi());
+        List<NativeFlow> flows = List.of(FlowFixtures.aNativeFlowV4(), FlowFixtures.aNativeFlowV4());
+        var input = new Input(
+            api.getId(),
+            _api -> PlanFixtures.NativeV4.aKeyless().toBuilder().id(null).build(),
+            _api -> flows,
+            AUDIT_INFO
+        );
+
+        // When
+        var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
 
         // Then
         Assertions
             .assertThat(throwable)
-            .isInstanceOf(PlanInvalidException.class)
-            .hasMessage("Plans for Native APIs are currently not supported");
+            .isInstanceOf(NativeApiWithMultipleFlowsException.class)
+            .hasMessage("Native APIs cannot have more than one flow");
     }
 
     private Api givenExistingApi(Api api) {
