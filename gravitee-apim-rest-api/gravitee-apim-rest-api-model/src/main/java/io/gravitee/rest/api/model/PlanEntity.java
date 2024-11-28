@@ -17,10 +17,8 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.flow.Flow;
-import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -44,9 +42,6 @@ import lombok.experimental.SuperBuilder;
 @ToString(callSuper = true)
 public class PlanEntity extends BasePlanEntity {
 
-    @NotNull
-    private String id;
-
     @DeploymentRequired
     @JsonProperty(value = "flows", required = true)
     @Builder.Default
@@ -59,11 +54,11 @@ public class PlanEntity extends BasePlanEntity {
 
         PlanEntity that = (PlanEntity) o;
 
-        return Objects.equals(this.id, that.id);
+        return getId().equals(that.getId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id);
+        return getId().hashCode();
     }
 }
