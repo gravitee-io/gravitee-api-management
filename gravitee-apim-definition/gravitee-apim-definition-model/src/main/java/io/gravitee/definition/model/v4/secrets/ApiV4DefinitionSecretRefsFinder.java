@@ -11,6 +11,7 @@ import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.secrets.api.discovery.Definition;
 import io.gravitee.secrets.api.discovery.DefinitionDescriptor;
+import io.gravitee.secrets.api.discovery.DefinitionMetadata;
 import io.gravitee.secrets.api.discovery.DefinitionSecretRefsFinder;
 import io.gravitee.secrets.api.discovery.DefinitionSecretRefsListener;
 import io.gravitee.secrets.api.discovery.SecretRefsLocation;
@@ -18,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -33,15 +33,12 @@ public class ApiV4DefinitionSecretRefsFinder implements DefinitionSecretRefsFind
 
     @Override
     public boolean canHandle(Object definition) {
-        return definition != null && Objects.equals(definition.getClass(), Api.class);
+        return definition != null && Api.class.isAssignableFrom(definition.getClass());
     }
 
     @Override
-    public DefinitionDescriptor toDefinitionDescriptor(Api definition, Map<String, String> metadata) {
-        return new DefinitionDescriptor(
-            new Definition("api-v4", definition.getId()),
-            Optional.ofNullable(metadata.get("deployment_number"))
-        );
+    public DefinitionDescriptor toDefinitionDescriptor(Api definition, DefinitionMetadata metadata) {
+        return new DefinitionDescriptor(new Definition("api-v4", definition.getId()), Optional.ofNullable(metadata.revision()));
     }
 
     @Override

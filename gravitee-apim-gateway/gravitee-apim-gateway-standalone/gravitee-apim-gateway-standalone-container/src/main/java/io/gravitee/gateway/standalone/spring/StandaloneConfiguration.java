@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.v4.secrets.ApiV4DefinitionSecretRefsFinder;
 import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.gateway.connector.spring.ConnectorConfiguration;
 import io.gravitee.gateway.dictionary.spring.DictionaryConfiguration;
@@ -41,9 +42,11 @@ import io.gravitee.gateway.standalone.vertx.VertxReactorConfiguration;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.NodeMetadataResolver;
 import io.gravitee.platform.repository.api.RepositoryScopeProvider;
+import io.gravitee.secrets.api.discovery.DefinitionSecretRefsFinder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -79,6 +82,7 @@ public class StandaloneConfiguration {
     }
 
     @Bean
+    @Primary
     public EventManager eventManager() {
         return new EventManagerImpl();
     }
@@ -111,5 +115,10 @@ public class StandaloneConfiguration {
     @Bean
     public NodeMetadataResolver nodeMetadataResolver() {
         return new GatewayNodeMetadataResolver();
+    }
+
+    @Bean
+    public DefinitionSecretRefsFinder<?> v4ApiDefinitionSecretRefsFinder() {
+        return new ApiV4DefinitionSecretRefsFinder();
     }
 }
