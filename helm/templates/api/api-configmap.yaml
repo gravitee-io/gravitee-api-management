@@ -474,9 +474,15 @@ data:
 
     {{- if .Values.api.documentation }}
     documentation:
+      {{- if .Values.api.documentation.swagger }}
+      swagger:
+        {{- if hasKey .Values.api.documentation.swagger "validateSafeContent" }}
+        validate-safe-content: {{ .Values.api.documentation.swagger.validateSafeContent }}
+        {{- end }}
+      {{- end }}
       {{- if .Values.api.documentation.audit }}
       audit:
-        {{- if .Values.api.documentation.audit.maxContentSize }}
+        {{- if hasKey .Values.api.documentation.audit "maxContentSize" }}
         max-content-size: {{ .Values.api.documentation.audit.maxContentSize }}
         {{- end }}
       {{- end }}
