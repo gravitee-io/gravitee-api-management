@@ -147,10 +147,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
           }
 
           this.isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-definition-u']) ||
-            this.isKubernetesOrigin ||
-            api.definitionVersion === 'V1' ||
-            this.apiType === 'NATIVE';
+            !this.permissionService.hasAnyMatching(['api-definition-u']) || this.isKubernetesOrigin || api.definitionVersion === 'V1';
 
           this.api = api;
 
