@@ -21,7 +21,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { filter, switchMap } from 'rxjs/operators';
 
 import { RulesetV2Service } from '../../../services-ngx/ruleset-v2.service';
-import { ScoringRuleset } from '../../../entities/management-api-v2/api/v4/ruleset';
+import { ScoringFunction, ScoringRuleset } from '../../../entities/management-api-v2/api/v4/ruleset';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 @Component({
@@ -31,6 +31,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 })
 export class ApiScoreRulesetsComponent implements OnInit {
   public rulesets: ScoringRuleset[];
+  public functions: ScoringFunction[];
   public isLoading = false;
 
   constructor(
@@ -51,13 +52,27 @@ export class ApiScoreRulesetsComponent implements OnInit {
           this.rulesets = res.data;
         },
         error: () => {
-          this.snackBarService.error('Something went wrong!');
+          this.snackBarService.error('Rulesets error!');
+          this.isLoading = false;
+        },
+      });
+
+    this.rulesetV2Service
+      .listFunctions()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.isLoading = false;
+          this.functions = res.data;
+        },
+        error: () => {
+          this.snackBarService.error('Functions error!');
           this.isLoading = false;
         },
       });
   }
 
-  public delete(id: string) {
+  public deleteRuleset(id: string) {
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
         width: GIO_DIALOG_WIDTH.SMALL,
@@ -85,6 +100,43 @@ export class ApiScoreRulesetsComponent implements OnInit {
         next: (res) => {
           this.rulesets = res.data;
           this.snackBarService.success('Ruleset successfully deleted!');
+          this.isLoading = false;
+        },
+        error: () => {
+          this.snackBarService.error('Something went wrong!');
+          this.isLoading = false;
+        },
+      });
+  }
+
+  public deleteFunction(id: string) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: GIO_DIALOG_WIDTH.SMALL,
+        data: {
+          title: 'Delete this function',
+          content: 'Please note that once your function is deleted, it cannot be restored.',
+          confirmButton: 'Delete function',
+        },
+        role: 'alertdialog',
+        id: 'deleteFunctionConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirm) => !!confirm),
+        switchMap(() => {
+          this.isLoading = true;
+          return this.rulesetV2Service.deleteFunction(id);
+        }),
+        switchMap(() => {
+          return this.rulesetV2Service.listFunctions();
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (res) => {
+          this.functions = res.data;
+          this.snackBarService.success('Function successfully deleted!');
           this.isLoading = false;
         },
         error: () => {

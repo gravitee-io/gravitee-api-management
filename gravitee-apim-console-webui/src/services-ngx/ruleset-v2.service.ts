@@ -19,8 +19,10 @@ import { HttpClient } from '@angular/common/http';
 
 import { Constants } from '../entities/Constants';
 import {
+  CreateFunctionRequestData,
   CreateRulesetRequestData,
   EditRulesetRequestData,
+  ScoringFunctionsResponse,
   ScoringRuleset,
   ScoringRulesetsResponse,
 } from '../entities/management-api-v2/api/v4/ruleset';
@@ -56,6 +58,21 @@ export class RulesetV2Service {
 
   public deleteRuleset(id: string) {
     const url = `${this.constants.env.v2BaseURL}/scoring/rulesets/${id}`;
+    return this.httpClient.delete(url);
+  }
+
+  public listFunctions(): Observable<ScoringFunctionsResponse> {
+    const url = `${this.constants.env.v2BaseURL}/scoring/functions`;
+    return this.httpClient.get<ScoringFunctionsResponse>(url);
+  }
+
+  public createFunction(data: CreateFunctionRequestData) {
+    const url = `${this.constants.env.v2BaseURL}/scoring/functions`;
+    return this.httpClient.post(url, data);
+  }
+
+  public deleteFunction(id: string) {
+    const url = `${this.constants.env.v2BaseURL}/scoring/functions/${id}`;
     return this.httpClient.delete(url);
   }
 }

@@ -21,6 +21,7 @@ import { ApiScoreNavigationComponent } from './navigation/api-score-navigation.c
 import { ApiScoreRulesetsComponent } from './rulesets/api-score-rulesets.component';
 import { ImportApiScoreRulesetComponent } from './rulesets/import/import-api-score-ruleset.component';
 import { EditApiScoreRulesetComponent } from './rulesets/edit/edit-api-score-ruleset.component';
+import { ImportScoringFunctionComponent } from './rulesets/import-function/import-scoring-function.component';
 
 const routes: Routes = [
   {
@@ -43,6 +44,10 @@ const routes: Routes = [
       {
         path: 'rulesets',
         component: ApiScoreRulesetsComponent,
+      },
+      {
+        path: 'rulesets/import-function',
+        component: ImportScoringFunctionComponent,
       },
     ],
   },

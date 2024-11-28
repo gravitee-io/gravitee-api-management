@@ -24,10 +24,10 @@ import { ApiScoreRulesetsHarness } from './api-score-rulesets.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { ApiScoreModule } from '../api-score.module';
-import { fakeRulesetsList } from '../../../entities/management-api-v2/api/v4/ruleset.fixture';
+import { fakeRulesetsList, fakeScoringFunction } from '../../../entities/management-api-v2/api/v4/ruleset.fixture';
+import { ScoringFunction } from '../../../entities/management-api-v2/api/v4/ruleset';
 
 describe('ApiScoreRulesetsComponent', () => {
-  let component: ApiScoreRulesetsComponent;
   let fixture: ComponentFixture<ApiScoreRulesetsComponent>;
   let httpTestingController: HttpTestingController;
   let componentHarness: ApiScoreRulesetsHarness;
@@ -38,15 +38,18 @@ describe('ApiScoreRulesetsComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApiScoreRulesetsComponent);
-    component = fixture.componentInstance;
     httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiScoreRulesetsHarness);
     fixture.detectChanges();
   });
 
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
   it('should display rulesets', async () => {
     expectListRulesets();
-    expect(component).toBeTruthy();
+    expectListFunctions();
 
     const matExpansionPanel = await componentHarness.getMatExpansionPanelHarness();
     const title = await matExpansionPanel.getTitle();
@@ -62,8 +65,18 @@ describe('ApiScoreRulesetsComponent', () => {
   it('should display no ruleset info if backend returns empty list of rulesets', async () => {
     const emptyRulesetList = { data: [] };
     expectListRulesets(emptyRulesetList);
+    expectListFunctions();
 
     const matCardHarness = await componentHarness.getRulesetsEmpty();
+    expect(matCardHarness).toBeTruthy();
+  });
+
+  it('should display no functions info if backend returns empty list of rulesets', async () => {
+    const emptyFunctionsRes = { data: [] };
+    expectListRulesets();
+    expectListFunctions(emptyFunctionsRes);
+
+    const matCardHarness = await componentHarness.getFunctionsEmpty();
     expect(matCardHarness).toBeTruthy();
   });
 
@@ -72,6 +85,12 @@ describe('ApiScoreRulesetsComponent', () => {
     const req = httpTestingController.expectOne((req) => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
+    req.flush(res);
+  }
+
+  function expectListFunctions(res: { data: ScoringFunction[] } = { data: [fakeScoringFunction()] }) {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/scoring/functions`;
+    const req = httpTestingController.expectOne({ method: 'GET', url: url });
     req.flush(res);
   }
 });

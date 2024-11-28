@@ -38,12 +38,13 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { ApiScoreRulesetsComponent } from './api-score-rulesets.component';
 import { ImportApiScoreRulesetComponent } from './import/import-api-score-ruleset.component';
 import { EditApiScoreRulesetComponent } from './edit/edit-api-score-ruleset.component';
+import { ImportScoringFunctionComponent } from './import-function/import-scoring-function.component';
 
 import { ApiImportFilePickerComponent } from '../../api/component/api-import-file-picker/api-import-file-picker.component';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
-  declarations: [ApiScoreRulesetsComponent, ImportApiScoreRulesetComponent, EditApiScoreRulesetComponent],
+  declarations: [ApiScoreRulesetsComponent, ImportApiScoreRulesetComponent, EditApiScoreRulesetComponent, ImportScoringFunctionComponent],
   imports: [
     ReactiveFormsModule,
     MatCardModule,
@@ -69,6 +70,6 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     GioPermissionModule,
     MatTooltip,
   ],
-  exports: [ApiScoreRulesetsComponent, ImportApiScoreRulesetComponent, EditApiScoreRulesetComponent],
+  exports: [ApiScoreRulesetsComponent, ImportApiScoreRulesetComponent, EditApiScoreRulesetComponent, ImportScoringFunctionComponent],
 })
 export class ApiScoreRulesetsModule {}
