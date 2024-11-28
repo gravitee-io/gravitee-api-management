@@ -166,6 +166,15 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
         return objectMapper.convertValue(plan, Map.class);
     }
 
+    @Override
+    public boolean exists(String planId) {
+        try {
+            return planRepository.exists(planId);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while trying to check if a plan exists", e);
+        }
+    }
+
     private GenericPlanEntity mapToGeneric(final Plan plan) {
         try {
             Optional<Api> apiOptional = apiRepository.findById(plan.getApi());
