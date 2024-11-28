@@ -67,12 +67,12 @@ public class ScoringProviderImpl implements ScoringProvider {
                                 a.assetName(),
                                 a.content(),
                                 detectContentType(a.content()),
-                                format(a.assetType())
+                                format(a.assetType().format())
                             )
                         )
                         .toList(),
                     null,
-                    request.customRulesets().stream().map(r -> new CustomRuleset(r.content())).toList(),
+                    request.customRulesets().stream().map(r -> new CustomRuleset(format(r.format()), r.content())).toList(),
                     request.customFunctions().stream().map(fct -> new CustomFunction(fct.filename(), fct.content())).toList()
                 )
             )
@@ -101,12 +101,12 @@ public class ScoringProviderImpl implements ScoringProvider {
         };
     }
 
-    private Format format(ScoreRequest.AssetType source) {
-        if (source.format() == null) {
+    private Format format(ScoreRequest.Format format) {
+        if (format == null) {
             return null;
         }
 
-        return switch (source.format()) {
+        return switch (format) {
             case GRAVITEE_PROXY -> Format.GRAVITEE_PROXY;
             case GRAVITEE_MESSAGE -> Format.GRAVITEE_MESSAGE;
             case GRAVITEE_FEDERATED -> Format.GRAVITEE_FEDERATED;
