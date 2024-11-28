@@ -116,6 +116,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     @Value("${documentation.markdown.sanitize:true}")
     private boolean markdownSanitize;
 
+    @Value("${documentation.swagger.validate-safe-content:true}")
+    private boolean swaggerValidateSafeContent;
+
     @Value("${documentation.audit.max-content-size:-1}")
     private int maxContentSize;
 
@@ -2512,7 +2515,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 if (!sanitizeInfos.isSafe()) {
                     throw new PageContentUnsafeException(sanitizeInfos.getRejectedMessage());
                 }
-            } else if (PageType.SWAGGER.name().equals(pageEntity.getType()) && pageEntity.getContent() != null) {
+            } else if (
+                swaggerValidateSafeContent && PageType.SWAGGER.name().equals(pageEntity.getType()) && pageEntity.getContent() != null
+            ) {
                 OAIDescriptor openApiDescriptor = new OAIParser().parse(pageEntity.getContent());
                 if (openApiDescriptor != null && openApiDescriptor.getMessages() != null) {
                     return openApiDescriptor.getMessages();
