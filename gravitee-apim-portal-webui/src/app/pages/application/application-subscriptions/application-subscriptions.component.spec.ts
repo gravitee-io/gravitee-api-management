@@ -86,6 +86,7 @@ describe('ApplicationSubscriptionsComponent', () => {
       application: application.id,
       plan: 'plan1',
       status: 'ACCEPTED',
+      origin: 'MANAGEMENT',
     };
 
     function mockSearch() {
@@ -282,6 +283,7 @@ describe('ApplicationSubscriptionsComponent', () => {
         application: 'application1',
         plan: 'plan1',
         status: 'ACCEPTED',
+        origin: 'MANAGEMENT',
       };
 
       httpTestingController.expectOne('http://localhost:8083/portal/environments/DEFAULT/applications/application1/subscribers?size=-1');
