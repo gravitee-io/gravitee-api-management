@@ -43,7 +43,7 @@ export class ApiV4MenuService implements ApiMenuService {
     const subMenuItems: MenuItem[] = [
       this.addConfigurationMenuEntry(),
       ...(this.constants.org.settings?.scoring?.enabled && api.type !== 'NATIVE' ? [this.addApiScoreMenuEntry()] : []),
-      ...(api.type !== 'NATIVE' ? [this.addEntrypointsMenuEntry(hasTcpListeners)] : []),
+      this.addEntrypointsMenuEntry(hasTcpListeners, api),
       this.addEndpointsMenuEntry(api, hasTcpListeners),
       ...(api.type !== 'NATIVE' ? [this.addPoliciesMenuEntry(hasTcpListeners)] : []),
       ...(api.type !== 'NATIVE' ? [this.addConsumersMenuEntry(hasTcpListeners)] : []),
@@ -131,7 +131,23 @@ export class ApiV4MenuService implements ApiMenuService {
     };
   }
 
-  private addEntrypointsMenuEntry(hasTcpListeners: boolean): MenuItem {
+  private addEntrypointsMenuEntry(hasTcpListeners: boolean, api: ApiV4): MenuItem {
+    const menuItem: MenuItem = {
+      displayName: 'Entrypoints',
+      icon: 'entrypoints',
+      header: {
+        title: 'Entrypoints',
+        subtitle: 'Define the protocol and configuration settings by which the API consumer accesses the Gateway API',
+      },
+    };
+
+    if (api.type === 'NATIVE') {
+      return {
+        ...menuItem,
+        routerLink: 'v4/entrypoints',
+      };
+    }
+
     const tabs: MenuItem[] = [
       {
         displayName: 'Entrypoints',
@@ -154,13 +170,8 @@ export class ApiV4MenuService implements ApiMenuService {
     }
 
     return {
-      displayName: 'Entrypoints',
-      icon: 'entrypoints',
+      ...menuItem,
       routerLink: '',
-      header: {
-        title: 'Entrypoints',
-        subtitle: 'Define the protocol and configuration settings by which the API consumer accesses the Gateway API',
-      },
       tabs: tabs,
     };
   }

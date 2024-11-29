@@ -48,6 +48,7 @@ import { GioFormQosModule } from '../component/gio-form-qos/gio-form-qos.module'
 import { GioLicenseBannerModule } from '../../../shared/components/gio-license-banner/gio-license-banner.module';
 import { GioFormListenersTcpHostsModule } from '../component/gio-form-listeners/gio-form-listeners-tcp-hosts/gio-form-listeners-tcp-hosts.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioFormListenersKafkaHostComponent } from '../component/gio-form-listeners/gio-form-listeners-kafka/gio-form-listeners-kafka-host.component';
 
 @NgModule({
   imports: [
@@ -80,6 +81,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     GioLicenseBannerModule,
     GioFormListenersTcpHostsModule,
     GioPermissionModule,
+    GioFormListenersKafkaHostComponent,
   ],
   declarations: [ApiEntrypointsV4GeneralComponent, ApiEntrypointsV4EditComponent, ApiEntrypointsV4AddDialogComponent],
 })
