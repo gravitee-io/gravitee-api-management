@@ -44,7 +44,7 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addConfigurationMenuEntry(),
       ...(this.constants.org.settings?.scoring?.enabled && api.type !== 'NATIVE' ? [this.addApiScoreMenuEntry()] : []),
       ...(api.type !== 'NATIVE' ? [this.addEntrypointsMenuEntry(hasTcpListeners)] : []),
-      ...(api.type !== 'NATIVE' ? [this.addEndpointsMenuEntry(api, hasTcpListeners)] : []),
+      this.addEndpointsMenuEntry(api, hasTcpListeners),
       ...(api.type !== 'NATIVE' ? [this.addPoliciesMenuEntry(hasTcpListeners)] : []),
       ...(api.type !== 'NATIVE' ? [this.addConsumersMenuEntry(hasTcpListeners)] : []),
       this.addDocumentationMenuEntry(api),
@@ -166,6 +166,23 @@ export class ApiV4MenuService implements ApiMenuService {
   }
 
   private addEndpointsMenuEntry(api: ApiV4, hasTcpListeners: boolean): MenuItem {
+    const menuItem: MenuItem = {
+      displayName: 'Endpoints',
+      icon: 'endpoints',
+      header: {
+        title: 'Endpoints',
+        subtitle:
+          'Define the protocol and configuration settings by which the Gateway API will fetch data from, or post data to, the backend API',
+      },
+    };
+
+    if (api.type === 'NATIVE') {
+      return {
+        ...menuItem,
+        routerLink: 'v4/endpoints',
+      };
+    }
+
     const tabs: MenuItem[] = [];
 
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
@@ -191,14 +208,8 @@ export class ApiV4MenuService implements ApiMenuService {
     }
 
     return {
-      displayName: 'Endpoints',
-      icon: 'endpoints',
+      ...menuItem,
       routerLink: tabs.length === 1 ? tabs[0].routerLink : '',
-      header: {
-        title: 'Endpoints',
-        subtitle:
-          'Define the protocol and configuration settings by which the Gateway API will fetch data from, or post data to, the backend API',
-      },
       tabs: tabs.length === 1 ? undefined : tabs,
     };
   }
