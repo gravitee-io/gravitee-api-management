@@ -23,4 +23,5 @@ public interface ScoringFunctionCrudService {
     Optional<ScoringFunction> findById(String id);
     void delete(String id);
     void deleteByReference(String referenceId, ScoringFunction.ReferenceType referenceType);
+    void deleteByReferenceAndName(String referenceId, ScoringFunction.ReferenceType referenceType, String name);
 }

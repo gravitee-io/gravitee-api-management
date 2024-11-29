@@ -18,7 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 import static assertions.MAPIAssertions.assertThat;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ScoringFunctionFixture;
 import inmemory.InMemoryAlternative;
@@ -63,8 +63,8 @@ class EnvironmentScoringFunctionsResourceTest extends AbstractResourceTest {
         target = rootTarget();
 
         EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
-        doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT);
-        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
+        when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
@@ -86,7 +86,7 @@ class EnvironmentScoringFunctionsResourceTest extends AbstractResourceTest {
         @Test
         void should_create_function() {
             // Given
-            var request = ImportScoringFunction.builder().name("function-name").payload("function-payload").build();
+            var request = ImportScoringFunction.builder().name("function-name.js").payload("function-payload").build();
 
             // When
             target.request().post(json(request));
@@ -94,14 +94,14 @@ class EnvironmentScoringFunctionsResourceTest extends AbstractResourceTest {
             // Then
             assertThat(scoringFunctionCrudService.storage())
                 .extracting(ScoringFunction::name, ScoringFunction::payload)
-                .containsExactly(tuple("function-name", "function-payload"));
+                .containsExactly(tuple("function-name.js", "function-payload"));
         }
 
         @Test
         void should_set_location_header_with_created_function_url() {
             // Given
             UuidString.overrideGenerator(() -> "generated-id");
-            var request = ImportScoringFunction.builder().name("function-name").payload("function-payload").build();
+            var request = ImportScoringFunction.builder().name("function-name.js").payload("function-payload").build();
 
             // When
             Response response = target.request().post(json(request));
@@ -110,6 +110,27 @@ class EnvironmentScoringFunctionsResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(HttpStatusCode.CREATED_201)
                 .hasHeader("Location", target.path("generated-id").getUri().toString());
+        }
+
+        @Test
+        void should_override_function_with_same_name() {
+            // Given
+            scoringFunctionCrudService.initWith(
+                List.of(
+                    ScoringFunctionFixture.aFunction().toBuilder().id("function1").name("function-name.js").referenceId(ENVIRONMENT).build()
+                )
+            );
+            var request2 = ImportScoringFunction.builder().name("function-name.js").payload("function-payload2").build();
+
+            // When
+            Response response = target.request().post(json(request2));
+
+            // Then
+            assertThat(response).hasStatus(HttpStatusCode.CREATED_201);
+            assertThat(scoringFunctionCrudService.storage())
+                .hasSize(1)
+                .extracting(ScoringFunction::name, ScoringFunction::payload)
+                .containsExactly(tuple("function-name.js", "function-payload2"));
         }
     }
 

@@ -29,6 +29,7 @@ public class ScoringFunctionCrudServiceInMemory implements ScoringFunctionCrudSe
 
     @Override
     public ScoringFunction create(ScoringFunction function) {
+        deleteByReferenceAndName(function.referenceId(), function.referenceType(), function.name());
         storage.add(function);
         return function;
     }
@@ -53,6 +54,13 @@ public class ScoringFunctionCrudServiceInMemory implements ScoringFunctionCrudSe
         if (index.isPresent()) {
             storage.remove(index.getAsInt());
         }
+    }
+
+    @Override
+    public void deleteByReferenceAndName(String referenceId, ScoringFunction.ReferenceType referenceType, String name) {
+        storage.removeIf(fct ->
+            name.equals(fct.name()) && referenceId.equals(fct.referenceId()) && referenceType.equals(fct.referenceType())
+        );
     }
 
     @Override

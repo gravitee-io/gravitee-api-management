@@ -40,7 +40,9 @@ public class ScoringFunctionCrudServiceImpl extends AbstractService implements S
     @Override
     public ScoringFunction create(ScoringFunction function) {
         try {
-            var created = scoringFunctionRepository.create(ScoringFunctionAdapter.INSTANCE.toRepository(function));
+            removeFunctionsWithSameNameAndType(function.name(), function.referenceId(), function.referenceType());
+            var newFctToSave = ScoringFunctionAdapter.INSTANCE.toRepository(function);
+            var created = scoringFunctionRepository.create(newFctToSave);
             return ScoringFunctionAdapter.INSTANCE.toEntity(created);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("Error when creating Scoring Function: " + function.id(), e);
@@ -75,5 +77,27 @@ public class ScoringFunctionCrudServiceImpl extends AbstractService implements S
                 e
             );
         }
+    }
+
+    @Override
+    public void deleteByReferenceAndName(String referenceId, ScoringFunction.ReferenceType referenceType, String name) {
+        try {
+            removeFunctionsWithSameNameAndType(name, referenceId, referenceType);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                "Error when deleting Scoring Function for [%s:%s]".formatted(referenceType, referenceId),
+                e
+            );
+        }
+    }
+
+    private void removeFunctionsWithSameNameAndType(String name, String reference, ScoringFunction.ReferenceType refType)
+        throws TechnicalException {
+        scoringFunctionRepository
+            .findAllByReferenceId(reference, refType.name())
+            .stream()
+            .filter(fct -> fct.getName().equals(name))
+            .map(io.gravitee.repository.management.model.ScoringFunction::getId)
+            .forEach(this::delete);
     }
 }

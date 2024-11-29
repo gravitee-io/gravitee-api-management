@@ -26,15 +26,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class EnvironmentScoringFunctionResource extends AbstractResource {
 
-    @PathParam("functionId")
-    String functionId;
+    @PathParam("functionName")
+    String functionName;
 
     @Inject
     private DeleteEnvironmentFunctionUseCase deleteEnvironmentFunctionUseCase;
 
     @DELETE
     public Response deleteFunction() {
-        deleteEnvironmentFunctionUseCase.execute(new DeleteEnvironmentFunctionUseCase.Input(functionId, getAuditInfo()));
+        deleteEnvironmentFunctionUseCase.execute(new DeleteEnvironmentFunctionUseCase.Input(functionName, getAuditInfo()));
         return Response.noContent().build();
     }
 }
