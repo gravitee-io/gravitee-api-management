@@ -17,6 +17,8 @@ package io.gravitee.gateway.reactive.handlers.api.v4;
 
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.el.TemplateVariableProvider;
+import io.gravitee.el.TemplateVariableProviderFactory;
+import io.gravitee.el.TemplateVariableScope;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
@@ -32,7 +34,6 @@ import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactableApi;
-import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.resource.internal.ResourceConfigurationFactoryImpl;
@@ -68,12 +69,6 @@ public abstract class AbstractReactorFactory<T extends ReactableApi<? extends Ab
         this.policyFactoryManager = policyFactoryManager;
         this.configuration = configuration;
     }
-
-    @Override
-    public abstract boolean support(Class<? extends Reactable> clazz);
-
-    @Override
-    public abstract boolean canCreate(T reactableApi);
 
     protected abstract void addExtraComponents(
         CustomComponentProvider componentProvider,
@@ -158,9 +153,14 @@ public abstract class AbstractReactorFactory<T extends ReactableApi<? extends Ab
     protected List<TemplateVariableProvider> commonTemplateVariableProviders(T reactableApi) {
         final List<TemplateVariableProvider> templateVariableProviders = new ArrayList<>();
         templateVariableProviders.add(new ApiTemplateVariableProvider(reactableApi));
-        templateVariableProviders.addAll(
-            applicationContext.getBean(ApiTemplateVariableProviderFactory.class).getTemplateVariableProviders()
-        );
+        List<TemplateVariableProvider> list = applicationContext
+            .getBeansOfType(TemplateVariableProviderFactory.class)
+            .values()
+            .stream()
+            .filter(factory -> factory.getTemplateVariableScope() == TemplateVariableScope.API)
+            .flatMap(factory -> factory.getTemplateVariableProviders().stream())
+            .toList();
+        templateVariableProviders.addAll(list);
 
         return templateVariableProviders;
     }
