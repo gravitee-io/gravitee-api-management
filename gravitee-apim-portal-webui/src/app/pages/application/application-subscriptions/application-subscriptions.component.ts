@@ -256,6 +256,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     return (
       subscription &&
       this.canDelete &&
+      subscription.origin !== 'KUBERNETES' &&
       [`${StatusEnum.ACCEPTED}`, `${StatusEnum.PAUSED}`, `${StatusEnum.PENDING}`].includes(subscription.status.toUpperCase())
     );
   }

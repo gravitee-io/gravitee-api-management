@@ -11,7 +11,7 @@
 import { Key } from './key';
 
 
-export interface Subscription { 
+export interface Subscription {
     /**
      * Unique identifier of a subscription.
      */
@@ -81,9 +81,11 @@ export interface Subscription {
      */
     failureCause?: string;
     /**
-     * Only returned with (*)/subscriptions/{subscriptionId}*. Need *include* query param to contain \'keys\'.  List of APIKeys of the subscription. 
+     * Only returned with (*)/subscriptions/{subscriptionId}*. Need *include* query param to contain \'keys\'.  List of APIKeys of the subscription.
      */
     keys?: Array<Key>;
+
+    origin: 'KUBERNETES'|'MANAGEMENT'
 }
 export namespace Subscription {
     export type StatusEnum = 'PENDING' | 'ACCEPTED' | 'CLOSED' | 'REJECTED' | 'PAUSED';
