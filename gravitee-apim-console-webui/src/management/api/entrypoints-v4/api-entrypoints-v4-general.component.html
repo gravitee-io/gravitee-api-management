@@ -61,13 +61,34 @@
         </div>
       </mat-card-content>
     </mat-card>
-    <mat-card *ngIf="apiExistingHosts?.length > 0">
+    <mat-card *ngIf="api.type !== 'NATIVE' && apiExistingHosts?.length > 0">
       <mat-card-content>
         <div class="entrypoints__host">
           <div class="entrypoints__host__title">
             <span class="mat-body-strong">Entrypoint hosts</span>
           </div>
           <gio-form-listeners-tcp-hosts [formControl]="hostsFormControl" [apiId]="apiId"></gio-form-listeners-tcp-hosts>
+        </div>
+        <div class="entrypoints__footer" *ngIf="canUpdate">
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+            [disabled]="formGroup.pristine || formGroup.invalid || dataSource.length === 0"
+          >
+            Save changes
+          </button>
+          <button mat-stroked-button type="button" (click)="onReset()" [disabled]="!formGroup.dirty">Reset</button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card *ngIf="api.type === 'NATIVE'">
+      <mat-card-content>
+        <div class="entrypoints__host">
+          <div class="entrypoints__host__title">
+            <span class="mat-body-strong">Entrypoint host</span>
+          </div>
+          <gio-form-listeners-kafka-host [formControl]="hostFormControl" [apiId]="apiId" />
         </div>
         <div class="entrypoints__footer" *ngIf="canUpdate">
           <button

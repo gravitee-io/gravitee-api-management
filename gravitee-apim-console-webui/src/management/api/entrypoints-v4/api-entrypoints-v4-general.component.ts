@@ -43,6 +43,8 @@ import {
   ConnectorVM,
   fromConnector,
   TcpListener,
+  KafkaHost,
+  KafkaListener,
 } from '../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../services-ngx/icon.service';
@@ -70,12 +72,14 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   public formGroup: UntypedFormGroup;
   public pathsFormControl: UntypedFormControl;
   public hostsFormControl: UntypedFormControl;
+  public hostFormControl: UntypedFormControl;
   public displayedColumns = ['type', 'qos', 'actions'];
   public dataSource: EntrypointVM[] = [];
   private allEntrypoints: ConnectorPlugin[];
   public enableVirtualHost = false;
   public apiExistingPaths: PathV4[] = [];
   public apiExistingHosts: TcpHost[] = [];
+  public apiExistingKafkaHost: KafkaHost = {};
   public domainRestrictions: string[] = [];
   public entrypointAvailableForAdd: ConnectorVM[] = [];
   public shouldUpgrade = false;
@@ -160,6 +164,16 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
     } else {
       this.apiExistingHosts = [];
       this.formGroup.removeControl('hosts');
+    }
+
+    const kafkaListener: KafkaListener = this.api.listeners.find((listener) => listener.type === 'KAFKA');
+    if (kafkaListener) {
+      this.apiExistingKafkaHost = { host: kafkaListener.host ?? '' };
+      this.hostFormControl = this.formBuilder.control({ value: this.apiExistingKafkaHost, disabled: !this.canUpdate }, Validators.required);
+      this.formGroup.addControl('host', this.hostFormControl);
+    } else {
+      this.apiExistingKafkaHost = {};
+      this.formGroup.removeControl('host');
     }
 
     const existingEntrypoints = flatten(this.api.listeners.map((l) => l.entrypoints)).map((e) => e.type);
@@ -277,19 +291,28 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
             hosts: formValue.hosts?.map((host) => host.host),
             entrypoints: currentTcpListener?.entrypoints,
           };
+
+          const currentKafkaListener = this.api.listeners.find((listener) => listener.type === 'KAFKA');
+          const updatedKafkaListener: KafkaListener = {
+            ...currentKafkaListener,
+            host: formValue.host?.host,
+            entrypoints: currentKafkaListener?.entrypoints,
+          };
+
           const updateApi: UpdateApiV4 = {
             ...(api as ApiV4),
             listeners: [
               updatedHttpListener,
               updatedTcpListener,
-              ...this.api.listeners.filter((listener) => listener.type !== 'HTTP' && listener.type !== 'TCP'),
+              updatedKafkaListener,
+              ...this.api.listeners.filter((listener) => listener.type !== 'HTTP' && listener.type !== 'TCP' && listener.type !== 'KAFKA'),
             ].filter((listener) => listener?.entrypoints?.length > 0),
           };
 
           return this.apiService.update(this.apiId, updateApi);
         }),
         tap(() => {
-          if (this.apiExistingHosts?.length > 0) {
+          if (this.apiExistingHosts?.length > 0 || !!this.apiExistingKafkaHost.host) {
             this.snackBarService.success('Host configuration successfully saved!');
           } else {
             this.snackBarService.success('Context-path configuration successfully saved!');
