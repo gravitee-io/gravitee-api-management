@@ -1548,6 +1548,19 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
+                <dependency>
+                    <groupId>io.gravitee.policy</groupId>
+                    <artifactId>gravitee-policy-transform-status-code</artifactId>
+                    <version>${gravitee-policy-transform-status-code.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
 
                 <!-- Reporters -->
                 <dependency>
