@@ -15,17 +15,17 @@
  */
 package io.gravitee.gateway.services.healthcheck.context;
 
+import io.gravitee.el.AbstractSpringFactoriesLoaderTemplateVariableProviderFactory;
 import io.gravitee.el.TemplateVariableScope;
-import io.gravitee.gateway.reactor.handler.context.TemplateVariableProviderFactory;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HealthCheckTemplateVariableProviderFactory extends TemplateVariableProviderFactory {
+public class HealthCheckTemplateVariableProviderFactory extends AbstractSpringFactoriesLoaderTemplateVariableProviderFactory {
 
     @Override
-    protected TemplateVariableScope getTemplateVariableScope() {
+    public TemplateVariableScope getTemplateVariableScope() {
         return TemplateVariableScope.HEALTH_CHECK;
     }
 }
