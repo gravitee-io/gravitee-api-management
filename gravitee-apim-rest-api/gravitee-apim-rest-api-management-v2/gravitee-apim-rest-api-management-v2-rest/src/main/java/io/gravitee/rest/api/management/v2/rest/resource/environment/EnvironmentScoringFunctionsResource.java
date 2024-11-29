@@ -73,7 +73,7 @@ public class EnvironmentScoringFunctionsResource extends AbstractResource {
         return ScoringFunctionsResponse.builder().data(result.reports().stream().map(ScoringFunctionMapper.INSTANCE::map).toList()).build();
     }
 
-    @Path("{functionId}")
+    @Path("{functionName}")
     public EnvironmentScoringFunctionResource getEnvironmentScoringFunctionResource() {
         return resourceContext.getResource(EnvironmentScoringFunctionResource.class);
     }

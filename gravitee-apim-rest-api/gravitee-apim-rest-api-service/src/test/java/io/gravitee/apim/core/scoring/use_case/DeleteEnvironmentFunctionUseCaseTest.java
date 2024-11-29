@@ -54,11 +54,11 @@ class DeleteEnvironmentFunctionUseCaseTest {
     @Test
     void should_delete_a_function() {
         // Given
-        var functionId = "function-id";
-        givenExistingFunctions(ScoringFunctionFixture.aFunction(functionId).withReferenceId(ENVIRONMENT_ID));
+        var fct = ScoringFunctionFixture.aFunction("function-id").withReferenceId(ENVIRONMENT_ID);
+        givenExistingFunctions(fct);
 
         // When
-        useCase.execute(new DeleteEnvironmentFunctionUseCase.Input(functionId, AUDIT_INFO));
+        useCase.execute(new DeleteEnvironmentFunctionUseCase.Input(fct.name(), AUDIT_INFO));
 
         // Then
         assertThat(scoringFunctionCrudService.storage()).isEmpty();

@@ -19,22 +19,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ScoringFunctionFixture;
 import io.gravitee.apim.core.scoring.model.ScoringFunction;
+import io.gravitee.apim.infra.adapter.ScoringFunctionAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ScoringFunctionRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Optional;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 public class ScoringFunctionCrudServiceImplTest {
 
@@ -51,12 +55,17 @@ public class ScoringFunctionCrudServiceImplTest {
     @Nested
     class Create {
 
-        @Test
+        @BeforeEach
         @SneakyThrows
+        void setUp() {
+            // happy path
+            lenient().when(scoringFunctionRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        }
+
+        @Test
         void should_create_scoring_function() {
             // Given
             var function = ScoringFunctionFixture.aFunction();
-            when(scoringFunctionRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             // When
             var created = service.create(function);
@@ -78,6 +87,24 @@ public class ScoringFunctionCrudServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalManagementException.class)
                 .hasMessage("Error when creating Scoring Function: function-id");
+        }
+
+        @Test
+        void should_override_if_already_exists() throws TechnicalException {
+            // Given
+            var function1 = ScoringFunctionFixture.aFunction("id1");
+            var function2 = ScoringFunctionFixture.aFunction("id2");
+            when(scoringFunctionRepository.findAllByReferenceId(any(), any()))
+                .thenReturn(List.of(ScoringFunctionAdapter.INSTANCE.toRepository(function1)));
+
+            // When
+            service.create(function2);
+
+            // Then
+            verify(scoringFunctionRepository).delete("id1");
+            var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.ScoringFunction.class);
+            verify(scoringFunctionRepository).create(captor.capture());
+            assertThat(captor.getValue().getId()).isEqualTo("id2");
         }
     }
 

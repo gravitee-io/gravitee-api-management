@@ -24,6 +24,7 @@ import assertions.RestApiAssertions;
 import fixtures.core.model.ScoringFunctionFixture;
 import inmemory.InMemoryAlternative;
 import inmemory.ScoringFunctionCrudServiceInMemory;
+import io.gravitee.apim.core.scoring.model.ScoringFunction;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -80,10 +81,11 @@ class EnvironmentScoringFunctionResourceTest extends AbstractResourceTest {
         @Test
         void should_delete_a_function() {
             // Given
-            scoringFunctionCrudService.initWith(List.of(ScoringFunctionFixture.aFunction("function-id").withReferenceId(ENVIRONMENT)));
+            var fct = ScoringFunctionFixture.aFunction("function-name.js").withReferenceId(ENVIRONMENT);
+            scoringFunctionCrudService.initWith(List.of(fct));
 
             // When
-            var response = rootTarget.path("function-id").request().delete();
+            var response = rootTarget.path(fct.name()).request().delete();
 
             // Then
             assertThat(response).hasStatus(HttpStatusCode.NO_CONTENT_204);

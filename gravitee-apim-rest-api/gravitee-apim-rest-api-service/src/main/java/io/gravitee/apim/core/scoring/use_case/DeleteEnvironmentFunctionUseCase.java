@@ -18,6 +18,7 @@ package io.gravitee.apim.core.scoring.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.scoring.crud_service.ScoringFunctionCrudService;
+import io.gravitee.apim.core.scoring.model.ScoringFunction;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -27,14 +28,12 @@ public class DeleteEnvironmentFunctionUseCase {
     private final ScoringFunctionCrudService scoringFunctionCrudService;
 
     public void execute(Input input) {
-        var found = scoringFunctionCrudService
-            .findById(input.functionId)
-            .filter(function -> function.referenceId().equals(input.auditInfo.environmentId()));
-
-        if (found.isPresent()) {
-            scoringFunctionCrudService.delete(input.functionId);
-        }
+        scoringFunctionCrudService.deleteByReferenceAndName(
+            input.auditInfo().environmentId(),
+            ScoringFunction.ReferenceType.ENVIRONMENT,
+            input.functionName
+        );
     }
 
-    public record Input(String functionId, AuditInfo auditInfo) {}
+    public record Input(String functionName, AuditInfo auditInfo) {}
 }
