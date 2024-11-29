@@ -111,6 +111,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             .addColumn("days_to_expiration_on_last_notification", Types.INTEGER, Integer.class)
             .addColumn("configuration", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, Subscription.Type.class)
+            .addColumn("origin", Types.NVARCHAR, String.class)
             .build();
     }
 

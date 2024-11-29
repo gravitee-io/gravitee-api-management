@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.6.0_add_subscription_origin
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}subscriptions
+            columns:
+              - column:
+                  name: origin
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true

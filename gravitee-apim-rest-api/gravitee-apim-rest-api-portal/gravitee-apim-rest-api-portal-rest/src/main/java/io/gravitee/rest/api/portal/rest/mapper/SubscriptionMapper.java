@@ -48,6 +48,7 @@ public class SubscriptionMapper {
         subscriptionItem.setReason(subscriptionEntity.getReason());
         subscriptionItem.setStatus(Subscription.StatusEnum.fromValue(subscriptionEntity.getStatus().name()));
         subscriptionItem.setSubscribedBy(subscriptionEntity.getSubscribedBy());
+        subscriptionItem.setOrigin(Subscription.OriginEnum.valueOf(subscriptionEntity.getOrigin()));
         return subscriptionItem;
     }
 

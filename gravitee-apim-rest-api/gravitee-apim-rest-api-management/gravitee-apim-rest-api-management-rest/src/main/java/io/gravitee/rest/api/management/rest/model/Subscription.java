@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
 import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.Date;
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -97,6 +98,8 @@ public class Subscription {
 
     @JsonProperty("failureCause")
     private String failureCause;
+
+    private OriginContext.Origin origin;
 
     @Override
     public boolean equals(Object o) {

@@ -19,6 +19,7 @@ import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -95,4 +96,8 @@ public interface SubscriptionMapper {
 
     @Mapping(source = "subscriptions", target = "subscriptions", qualifiedByName = "toBaseSubscriptionsList")
     ApiKey mapToApiKey(io.gravitee.apim.core.api_key.model.ApiKeyEntity apiKeyEntity);
+
+    default Subscription.OriginEnum mapOrigin(OriginContext.Origin origin) {
+        return OriginContext.Origin.KUBERNETES == origin ? Subscription.OriginEnum.KUBERNETES : Subscription.OriginEnum.MANAGEMENT;
+    }
 }
