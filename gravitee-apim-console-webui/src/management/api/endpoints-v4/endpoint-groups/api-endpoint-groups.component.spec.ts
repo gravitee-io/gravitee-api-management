@@ -99,6 +99,26 @@ describe('ApiEndpointGroupsComponent', () => {
     ],
   };
 
+  const kafkaGroup: EndpointGroupV4 = {
+    name: 'kafka-group',
+    type: 'native-kafka',
+    loadBalancer: { type: 'WEIGHTED_RANDOM' },
+    sharedConfiguration: {
+      shared: 'configuration',
+    },
+    endpoints: [
+      {
+        name: 'kafka endpoint',
+        type: 'native-kafka',
+        weight: 1,
+        inheritConfiguration: true,
+        configuration: {
+          bootstrapServers: 'localhost:9092',
+        },
+      },
+    ],
+  };
+
   let fixture: ComponentFixture<ApiEndpointGroupsComponent>;
   let httpTestingController: HttpTestingController;
   let rootLoader: HarnessLoader;
@@ -166,6 +186,28 @@ describe('ApiEndpointGroupsComponent', () => {
       expect(await warningFailoverBanner[0].getText()).toContain(
         'Failover is enabled but it is not supported for Kafka endpoints. Use the native Kafka Failover by providing multiple bootstrap servers.',
       );
+    });
+
+    it('should not allow to create another endpoint group for a NATIVE api', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        type: 'NATIVE',
+        endpointGroups: [kafkaGroup],
+      });
+      await initComponent(apiV4);
+
+      expect(await componentHarness.isAddEndpointGroupDisplayed()).toEqual(false);
+    });
+
+    it('should not allow to add another endpoint to a NATIVE api', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        type: 'NATIVE',
+        endpointGroups: [kafkaGroup],
+      });
+      await initComponent(apiV4);
+
+      expect(await componentHarness.isAddEndpointButtonVisible()).toEqual(false);
     });
   });
 
