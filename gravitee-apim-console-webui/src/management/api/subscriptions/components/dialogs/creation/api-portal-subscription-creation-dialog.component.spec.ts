@@ -493,9 +493,10 @@ describe('Subscription creation dialog', () => {
         expectApplicationsSearch('withClientId', [applicationWithClientId]);
         await harness.selectApplication(applicationWithClientId.name);
 
-        const apikeySubscription = {
+        const apikeySubscription: Partial<SubscriptionPage> = {
           security: PlanSecurityType.API_KEY,
           api: 'another-plan-id',
+          origin: 'MANAGEMENT',
         };
         expectSubscriptionsForApplication(applicationWithClientId.id, [apikeySubscription]);
 
@@ -570,9 +571,10 @@ describe('Subscription creation dialog', () => {
         expectApplicationsSearch('withClientId', [applicationWithClientId]);
         await harness.selectApplication(applicationWithClientId.name);
 
-        const apikeySubscription = {
+        const apikeySubscription: Partial<SubscriptionPage> = {
           security: PlanSecurityType.API_KEY,
           api: 'another-plan-id',
+          origin: 'MANAGEMENT',
         };
         expectSubscriptionsForApplication(applicationWithClientId.id, [apikeySubscription]);
 
@@ -834,7 +836,7 @@ describe('Subscription creation dialog', () => {
     fixture.detectChanges();
   }
 
-  const expectApiKeySubscriptionsGetRequest = (applicationId: string, subscriptions: SubscriptionPage[]) => {
+  const expectApiKeySubscriptionsGetRequest = (applicationId: string, subscriptions: Partial<SubscriptionPage>[]) => {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.baseURL}/applications/${applicationId}/subscriptions?page=1&size=20&status=ACCEPTED,PENDING,PAUSED&security_types=API_KEY`,

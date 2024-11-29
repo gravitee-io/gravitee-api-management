@@ -31,6 +31,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import {
   GioAvatarModule,
+  GioBannerModule,
   GioClipboardModule,
   GioFormJsonSchemaModule,
   GioFormTagsInputModule,
@@ -105,6 +106,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     GioLoaderModule,
     GioPermissionModule,
     GioTableWrapperModule,
+    GioBannerModule,
   ],
   providers: [DatePipe],
 })

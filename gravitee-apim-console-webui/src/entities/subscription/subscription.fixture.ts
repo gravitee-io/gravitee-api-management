@@ -37,6 +37,7 @@ export function fakeSubscriptionPage(
     created_at: date,
     updated_at: date,
     client_id: 'client_id',
+    origin: 'MANAGEMENT',
   };
 
   if (isFunction(modifier)) {
@@ -89,6 +90,7 @@ export function fakeSubscription(modifier?: Partial<Subscription> | ((baseApi: S
     created_at: date,
     updated_at: date,
     client_id: 'client_id',
+    origin: 'MANAGEMENT',
   };
 
   if (isFunction(modifier)) {

@@ -27,6 +27,12 @@
     </mat-card-header>
 
     <ng-container *ngIf="subscription">
+      <ng-container *ngIf="subscription?.origin === 'KUBERNETES'">
+        <div class="subscription___kubernetes-origin-message">
+          <mat-icon matTooltip="Kubernetes Origin" class="matt-icon__origin" svgIcon="gio:kubernetes"></mat-icon>
+          <p>This subscription was created by the Kubernetes Operator and cannot be managed through the console.</p>
+        </div>
+      </ng-container>
       <mat-card-content>
         <dl class="gio-description-list">
           <dt>ID</dt>
@@ -110,7 +116,10 @@
       </mat-card-content>
       <mat-card-actions>
         <ng-container
-          *ngIf="subscription?.status === 'PAUSED' || subscription?.status === 'ACCEPTED' || subscription?.status === 'PENDING'"
+          *ngIf="
+            (subscription?.status === 'PAUSED' || subscription?.status === 'ACCEPTED' || subscription?.status === 'PENDING') &&
+            subscription?.origin !== 'KUBERNETES'
+          "
         >
           <div class="subscription__footer" *gioPermission="{ anyOf: ['api-subscription-u'] }">
             <ng-container *ngIf="subscription.status === 'PAUSED' || subscription.status === 'ACCEPTED'; else pendingSubscription">
@@ -130,7 +139,7 @@
                 <mat-icon svgIcon="gio:calendar"></mat-icon>
                 Change end date
               </button>
-              <button mat-raised-button color="warn" (click)="closeSubscription()">
+              <button mat-raised-button color="warn" (click)="closeSubscription()" [disabled]="subscription.origin === 'KUBERNETES'">
                 <mat-icon svgIcon="gio:x-circle"></mat-icon>
                 Close
               </button>
