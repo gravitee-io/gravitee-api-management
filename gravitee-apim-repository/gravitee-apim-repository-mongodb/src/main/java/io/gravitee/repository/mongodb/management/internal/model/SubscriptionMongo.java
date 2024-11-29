@@ -138,4 +138,6 @@ public class SubscriptionMongo extends Auditable {
      * STANDARD, SUBSCRIPTION
      */
     private String type;
+
+    private String origin;
 }

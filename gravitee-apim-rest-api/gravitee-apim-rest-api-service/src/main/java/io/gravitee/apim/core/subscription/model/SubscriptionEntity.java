@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.subscription.model;
 
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.model.context.OriginContext;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -86,6 +87,9 @@ public class SubscriptionEntity {
 
     /** The failure cause when the PUSH subscription has failed. */
     private String failureCause;
+
+    @Builder.Default
+    private OriginContext.Origin origin = OriginContext.Origin.MANAGEMENT;
 
     /**
      * Consumer can start subscription only if its consumer status is {@link this#consumerStatus} is {@link ConsumerStatus#STOPPED} or {@link ConsumerStatus#STARTED}

@@ -4824,7 +4824,13 @@ components:
                           format: date-time
                           description: The datetime when the subscription was paused by the api consumer.
                           example: 2023-05-25T12:40:46.184Z
-
+                      origin:
+                          type: string
+                          example: KUBERNETES
+                          description: The origin of the subscription.
+                          enum:
+                            - KUBERNETES
+                            - MANAGEMENT
         SubscriptionStatus:
             type: string
             description: The status of the subscription manageable by the api publisher.

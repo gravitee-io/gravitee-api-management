@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -262,6 +263,7 @@ public class ApplicationSubscriptionResource extends AbstractResource {
         subscription.setClosedAt(subscriptionEntity.getClosedAt());
         subscription.setPausedAt(subscriptionEntity.getPausedAt());
         subscription.setConsumerPausedAt(subscriptionEntity.getConsumerPausedAt());
+        subscription.setOrigin(OriginContext.Origin.valueOf(subscriptionEntity.getOrigin()));
 
         return subscription;
     }

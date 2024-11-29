@@ -4458,6 +4458,12 @@ components:
                 failureCause:
                     description: The cause of the failure
                     type: string
+                origin:
+                  description: The origin of the subscription
+                  type: string
+                  enum:
+                    - KUBERNETES
+                    - MANAGEMENT
                 ###################
                 # may be included #
                 ###################

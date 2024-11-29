@@ -223,3 +223,5 @@ databaseChangeLog:
           - file: liquibase/changelogs/v4_6_0/03_add_updated_at_to_ruleset_table.yml
     - include:
           - file: liquibase/changelogs/v4_6_0/04_add_ruleset_format_to_ruleset_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_6_0/05_add_subscription_origin.yml

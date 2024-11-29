@@ -26,6 +26,7 @@ import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.context.OriginContext;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -126,6 +127,7 @@ public abstract class SubscriptionAdapter {
     @Mapping(target = "closedAt", ignore = true)
     @Mapping(target = "clientId", ignore = true)
     @Mapping(target = "clientCertificate", ignore = true)
+    @Mapping(target = "origin", constant = "KUBERNETES")
     public abstract SubscriptionEntity fromSpec(SubscriptionCRDSpec spec);
 
     @Mapping(target = "request", ignore = true)
