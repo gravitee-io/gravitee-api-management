@@ -89,19 +89,16 @@
         </mat-tab-group>
       </div>
 
-      <div class="endpoint-card__actions">
-        <a mat-stroked-button type="button" [routerLink]="'../'">Previous</a>
-        <button
-          mat-flat-button
-          aria-label="Validate my endpoints"
-          color="primary"
-          type="submit"
-          [disabled]="formGroup.invalid || !formGroup.dirty"
-          (click)="onSave()"
-        >
-          Validate my endpoints
-        </button>
-      </div>
+      <button
+        mat-flat-button
+        aria-label="Validate my endpoints"
+        color="primary"
+        type="submit"
+        [disabled]="formGroup.invalid || !formGroup.dirty"
+        (click)="onSave()"
+      >
+        Validate my endpoints
+      </button>
     </form>
   </mat-card-content>
 </mat-card>
