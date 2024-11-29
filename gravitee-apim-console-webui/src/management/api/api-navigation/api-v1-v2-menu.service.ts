@@ -60,7 +60,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
     ];
 
     const groupItems: MenuGroupItem[] = [
-      this.getPortalGroup(),
+      this.getPortalGroup(api.definitionVersion),
       this.getProxyGroup(api.definitionVersion),
       this.getBackendServicesGroup(),
       this.getAnalyticsGroup(),
@@ -71,7 +71,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
     return { subMenuItems, groupItems };
   }
 
-  private getPortalGroup(): MenuGroupItem {
+  private getPortalGroup(definitionVersion: DefinitionVersion): MenuGroupItem {
     const portalGroup: MenuGroupItem = {
       title: 'General',
       items: [
@@ -134,6 +134,14 @@ export class ApiV1V2MenuService implements ApiMenuService {
       };
 
       portalGroup.items.push(userAndGroupAccessMenuItems);
+    }
+
+    // Api Score
+    if (this.constants.org.settings?.scoring?.enabled && definitionVersion === 'V2') {
+      portalGroup.items.push({
+        displayName: 'API Score',
+        routerLink: 'api-score',
+      });
     }
 
     return portalGroup;
