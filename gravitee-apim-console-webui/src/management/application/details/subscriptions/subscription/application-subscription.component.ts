@@ -31,6 +31,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { combineLatest, BehaviorSubject, switchMap, Observable } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
+import { MatTooltip } from '@angular/material/tooltip';
 
 import { ApplicationService } from '../../../../../services-ngx/application.service';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
@@ -61,6 +62,7 @@ type PageVM = {
     GioPermissionModule,
     GioConfirmDialogModule,
     SubscriptionApiKeysComponent,
+    MatTooltip,
   ],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,

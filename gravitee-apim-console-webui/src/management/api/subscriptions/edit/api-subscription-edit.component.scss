@@ -17,6 +17,21 @@
     padding-top: 16px;
     gap: 8px;
   }
+
+  &___kubernetes-origin-message {
+    margin: 15px 0 0 15px;
+    display: flex;
+
+    .matt-icon__origin {
+      color: #326de6;
+      margin-right: 5px;
+    }
+
+    p {
+      margin-top: 1px;
+    }
+  }
+
   &__api-keys {
     &__subtitle {
       padding-bottom: 24px;

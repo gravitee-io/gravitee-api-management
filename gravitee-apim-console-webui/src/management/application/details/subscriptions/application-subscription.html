@@ -86,7 +86,9 @@
       <div
         class="md-actions gravitee-api-save-button"
         layout="row"
-        ng-if="$ctrl.subscription.status === 'ACCEPTED' || $ctrl.subscription.status === 'PENDING' || $ctrl.subscription.status === 'PAUSED'"
+        ng-if="(
+        $ctrl.subscription.status === 'ACCEPTED' || $ctrl.subscription.status === 'PENDING' || $ctrl.subscription.status === 'PAUSED'
+        ) && $ctrl.subscription.origin !== 'KUBERNETES'"
       >
         <md-button class="md-raised md-warn" ng-click="$ctrl.close()" permission permission-only="'application-subscription-d'">
           <ng-md-icon icon="not_interested" style="fill: white"></ng-md-icon>

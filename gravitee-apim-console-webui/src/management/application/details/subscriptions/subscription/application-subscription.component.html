@@ -24,6 +24,12 @@
     <mat-card-header>
       <mat-card-title>Subscription details</mat-card-title>
     </mat-card-header>
+    <ng-container *ngIf="pageVM.subscription.origin === 'KUBERNETES'">
+      <div class="kubernetes-origin-message">
+        <mat-icon matTooltip="Kubernetes Origin" class="matt-icon__origin" svgIcon="gio:kubernetes"></mat-icon>
+        <p>This subscription was created by the Kubernetes Operator and cannot be managed through the console.</p>
+      </div>
+    </ng-container>
     <mat-card-content>
       <dl class="gio-description-list">
         <dt>ID</dt>
@@ -83,7 +89,10 @@
       </dl>
     </mat-card-content>
 
-    @if (pageVM.subscription.status === 'ACCEPTED' || pageVM.subscription.status === 'PENDING' || pageVM.subscription.status === 'PAUSED') {
+    @if (
+      (pageVM.subscription.status === 'ACCEPTED' || pageVM.subscription.status === 'PENDING' || pageVM.subscription.status === 'PAUSED') &&
+      pageVM.subscription.origin !== 'KUBERNETES'
+    ) {
       <mat-card-actions *gioPermission="{ anyOf: ['application-subscription-d'] }">
         <button mat-raised-button color="warn" (click)="closeSubscription(pageVM.application, pageVM.subscription)">
           <mat-icon svgIcon="gio:x-circle"></mat-icon>

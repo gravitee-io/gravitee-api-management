@@ -21,6 +21,7 @@ import { BaseSubscription } from './baseSubscription';
 export function fakeSubscription(modifier?: Partial<Subscription> | ((baseApi: Subscription) => Subscription)): Subscription {
   const base: Subscription = {
     ...fakeBaseSubscription(),
+    origin: 'MANAGEMENT',
     api: {
       id: 'bee23b1e-34b1-4551-a23b-1e34b165516a',
       name: 'My API',

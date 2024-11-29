@@ -184,6 +184,7 @@
               mat-button
               color="warn"
               matTooltip="Close subscription"
+              [disabled]="element.origin === 'KUBERNETES'"
               (click)="closeSubscription(element)"
             >
               <mat-icon svgIcon="gio:x-circle"></mat-icon>

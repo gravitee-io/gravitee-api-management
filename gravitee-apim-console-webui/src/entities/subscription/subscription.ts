@@ -19,6 +19,8 @@ import { DefinitionVersion } from '../management-api-v2';
 
 export type SubscriptionStatus = 'PENDING' | 'REJECTED' | 'ACCEPTED' | 'CLOSED' | 'PAUSED' | 'RESUMED';
 
+export type SubscriptionOrigin = 'KUBERNETES' | 'MANAGEMENT';
+
 export interface SubscriptionPage {
   id?: string;
   api?: string;
@@ -38,6 +40,7 @@ export interface SubscriptionPage {
   paused_at?: Date;
   client_id?: string;
   security?: string;
+  origin: SubscriptionOrigin;
 }
 
 export interface Subscription {
@@ -59,6 +62,7 @@ export interface Subscription {
   paused_at?: Date;
   client_id?: string;
   security?: string;
+  origin: SubscriptionOrigin;
 }
 
 export interface SubscriptionApi {

@@ -89,4 +89,6 @@ export interface Subscription {
    * The datetime when the subscription was paused by the api consumer.
    */
   consumerPausedAt?: Date;
+
+  origin: 'KUBERNETES' | 'MANAGEMENT';
 }
