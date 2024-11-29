@@ -25,7 +25,7 @@ import { ApiScoreRulesetsHarness } from './api-score-rulesets.harness';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { ApiScoreModule } from '../api-score.module';
 import { fakeRulesetsList, fakeScoringFunction } from '../../../entities/management-api-v2/api/v4/ruleset.fixture';
-import { ScoringFunction } from '../../../entities/management-api-v2/api/v4/ruleset';
+import { ScoringFunction, RulesetFormat, ScoringRulesetsResponse } from '../../../entities/management-api-v2/api/v4/ruleset';
 
 describe('ApiScoreRulesetsComponent', () => {
   let fixture: ComponentFixture<ApiScoreRulesetsComponent>;
@@ -47,28 +47,39 @@ describe('ApiScoreRulesetsComponent', () => {
     httpTestingController.verify();
   });
 
-  it('should display rulesets', async () => {
-    expectListRulesets();
-    expectListFunctions();
+  [
+    { input: {}, expected: 'Test ruleset name OpenAPI - AsyncAPI' },
+    { input: { format: RulesetFormat.GRAVITEE_MESSAGE }, expected: 'Test ruleset name Gravitee Message API' },
+    { input: { format: RulesetFormat.GRAVITEE_PROXY }, expected: 'Test ruleset name Gravitee Proxy API' },
+  ].forEach((testParams) => {
+    it('should display rulesets for format: ' + testParams.input.format, async () => {
+      const rulesetResponse: ScoringRulesetsResponse = {
+        data: [
+          {
+            name: 'Test ruleset name',
+            description: 'Test ruleset description',
+            payload: 'Ruleset payload',
+            id: 'ruleset-id',
+            format: testParams.input.format,
+            createdAt: '2024-11-19T12:41:18.85Z',
+            referenceId: 'DEFAULT',
+            referenceType: 'ENVIRONMENT',
+          },
+        ],
+      };
+      expectListRulesets(fakeRulesetsList(rulesetResponse));
+      expectListFunctions();
 
-    const matExpansionPanel = await componentHarness.getMatExpansionPanelHarness();
-    const title = await matExpansionPanel.getTitle();
-    const description = await matExpansionPanel.getDescription();
+      const matExpansionPanel = await componentHarness.getMatExpansionPanelHarness();
+      const title = await matExpansionPanel.getTitle();
+      const description = await matExpansionPanel.getDescription();
 
-    expect(title).toEqual('Test ruleset name');
-    expect(description).toEqual('Test ruleset description');
+      expect(title).toEqual(testParams.expected);
+      expect(description).toEqual('Test ruleset description');
 
-    const matCardHarness = await componentHarness.getRulesetsEmpty();
-    expect(matCardHarness).toBeFalsy();
-  });
-
-  it('should display no ruleset info if backend returns empty list of rulesets', async () => {
-    const emptyRulesetList = { data: [] };
-    expectListRulesets(emptyRulesetList);
-    expectListFunctions();
-
-    const matCardHarness = await componentHarness.getRulesetsEmpty();
-    expect(matCardHarness).toBeTruthy();
+      const matCardHarness = await componentHarness.getRulesetsEmpty();
+      expect(matCardHarness).toBeFalsy();
+    });
   });
 
   it('should display no functions info if backend returns empty list of rulesets', async () => {

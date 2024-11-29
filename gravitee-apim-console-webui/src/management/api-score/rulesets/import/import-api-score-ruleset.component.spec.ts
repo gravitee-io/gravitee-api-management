@@ -24,7 +24,7 @@ import { ImportApiScoreRulesetHarness } from './import-api-score-ruleset.harness
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiScoreRulesetsModule } from '../api-score-rulesets.module';
-import { CreateRulesetRequestData } from '../../../../entities/management-api-v2/api/v4/ruleset';
+import { CreateRulesetRequestData, RulesetFormat } from '../../../../entities/management-api-v2/api/v4/ruleset';
 
 describe('NewRulesetComponent', () => {
   let fixture: ComponentFixture<ImportApiScoreRulesetComponent>;
@@ -52,7 +52,7 @@ describe('NewRulesetComponent', () => {
     expect(await importButton.isDisabled()).toEqual(true);
   });
 
-  it('should send request with values selected in form', async () => {
+  it('should send request with values selected in form for OpenAPI, Async API format', async () => {
     const definitionFormat = await componentHarness.locatorForDefinitionFormatRadioGroup();
     await definitionFormat.select('OpenAPI, Async API');
     expect(await definitionFormat.getSelectedValue()).toEqual('OpenAPI, Async API');
@@ -80,8 +80,50 @@ describe('NewRulesetComponent', () => {
     expectCreateRulesetRequest(data);
   });
 
+  [
+    { input: { selectedFormat: 'Gravitee Message API' }, expected: RulesetFormat.GRAVITEE_MESSAGE },
+    { input: { selectedFormat: 'Gravitee Proxy API' }, expected: RulesetFormat.GRAVITEE_PROXY },
+  ].forEach((testParams) => {
+    it('should send request with values selected in form for GraviteeAPI format: ' + testParams.input.selectedFormat, async () => {
+      const definitionFormat = await componentHarness.locatorForDefinitionFormatRadioGroup();
+      await definitionFormat.select('GraviteeAPI');
+      expect(await definitionFormat.getSelectedValue()).toEqual('GraviteeAPI');
+
+      const graviteeApiDefinitionFormat = await componentHarness.locatorForGraviteeApiDefinitionFormatRadioGroup();
+      await graviteeApiDefinitionFormat.select(testParams.input.selectedFormat);
+      expect(await graviteeApiDefinitionFormat.getSelectedValue()).toEqual(testParams.input.selectedFormat);
+
+      await componentHarness.setName('Test ruleset name');
+      await componentHarness.setDescription('Test description');
+
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.form.value.name).toEqual('Test ruleset name');
+      expect(fixture.componentInstance.form.value.description).toEqual('Test description');
+      expect(fixture.componentInstance.form.value.graviteeApiFormat).toEqual(testParams.input.selectedFormat);
+
+      await componentHarness.pickFiles([new File([JSON.stringify('test')], 'gravitee-api-definition.json', { type: 'application/json' })]);
+      const importButton = await componentHarness.locatorForSubmitImportButton();
+      expect(await importButton.isDisabled()).toEqual(false);
+
+      await importButton.click();
+
+      const data = {
+        description: 'Test description',
+        name: 'Test ruleset name',
+        payload: '"test"',
+        format: testParams.expected,
+      };
+
+      expectCreateRulesetRequest(data);
+    });
+  });
+
   function expectCreateRulesetRequest(data: CreateRulesetRequestData) {
-    const req = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.v2BaseURL}/scoring/rulesets` });
+    const req = httpTestingController.expectOne({
+      method: 'POST',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/scoring/rulesets`,
+    });
     expect(req.request.body).toBeTruthy();
     expect(req.request.body).toEqual(data);
     req.flush(null);

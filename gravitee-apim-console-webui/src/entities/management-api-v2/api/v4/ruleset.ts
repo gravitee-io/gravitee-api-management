@@ -21,6 +21,7 @@ export interface ScoringRuleset {
   id: string;
   name: string;
   description: string;
+  format?: RulesetFormat;
   payload: string;
   createdAt: string;
   referenceId: string;
@@ -31,11 +32,29 @@ export interface CreateRulesetRequestData {
   name: string;
   description: string;
   payload: string;
+  format?: RulesetFormat;
 }
 
 export interface EditRulesetRequestData {
   name: string;
   description: string;
+}
+
+export enum RulesetFormat {
+  GRAVITEE_FEDERATION = 'GRAVITEE_FEDERATION',
+  GRAVITEE_MESSAGE = 'GRAVITEE_MESSAGE',
+  GRAVITEE_PROXY = 'GRAVITEE_PROXY',
+}
+
+export function mapToRulesetFormat(formValue: string) {
+  switch (formValue) {
+    case 'Gravitee Proxy API':
+      return RulesetFormat.GRAVITEE_PROXY;
+    case 'Gravitee Message API':
+      return RulesetFormat.GRAVITEE_MESSAGE;
+    default:
+      return null;
+  }
 }
 
 export interface ScoringFunctionsResponse {

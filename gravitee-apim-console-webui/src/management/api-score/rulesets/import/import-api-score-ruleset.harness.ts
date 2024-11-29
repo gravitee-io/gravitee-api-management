@@ -25,6 +25,9 @@ export class ImportApiScoreRulesetHarness extends ComponentHarness {
   locatorForDefinitionFormatRadioGroup = this.locatorFor(
     GioFormSelectionInlineHarness.with({ selector: '[data-testid=definition-format-selection]' }),
   );
+  locatorForGraviteeApiDefinitionFormatRadioGroup = this.locatorFor(
+    GioFormSelectionInlineHarness.with({ selector: '[data-testid=gravitee-api-format-selection]' }),
+  );
 
   private nameInputLocator: AsyncFactoryFn<MatInputHarness> = this.locatorForOptional(
     MatInputHarness.with({ selector: '[data-testid=name-input]' }),
