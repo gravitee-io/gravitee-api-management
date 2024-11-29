@@ -27,12 +27,19 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}scoring_rulesets")
 public class ScoringRulesetMongo extends Auditable {
 
+    public enum Format {
+        GRAVITEE_FEDERATION,
+        GRAVITEE_MESSAGE,
+        GRAVITEE_PROXY,
+    }
+
     @Id
     private String id;
 
     private String name;
     private String description;
     private String payload;
+    private Format format;
     private String referenceId;
     private String referenceType;
 }
