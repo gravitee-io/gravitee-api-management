@@ -17,8 +17,6 @@ package io.gravitee.apim.gateway.tests.sdk.plugin;
 
 import io.gravitee.apim.plugin.reactor.ReactorPlugin;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
-import io.gravitee.node.api.secrets.SecretManagerConfiguration;
-import io.gravitee.node.api.secrets.SecretProviderFactory;
 import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import io.gravitee.plugin.connector.ConnectorPlugin;
 import io.gravitee.plugin.core.api.PluginManifest;
@@ -27,6 +25,8 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.reporter.api.Reporter;
+import io.gravitee.secrets.api.plugin.SecretManagerConfiguration;
+import io.gravitee.secrets.api.plugin.SecretProviderFactory;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;

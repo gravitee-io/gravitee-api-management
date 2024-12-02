@@ -267,7 +267,7 @@
         <gravitee-resource-cache-redis.version>3.0.0-alpha.1</gravitee-resource-cache-redis.version>
         <gravitee-resource-oauth2-provider-keycloak.version>2.1.0</gravitee-resource-oauth2-provider-keycloak.version>
         <gravitee-service-geoip.version>3.0.0</gravitee-service-geoip.version>
-        <gravitee-secretprovider-kubernetes.version>1.0.1</gravitee-secretprovider-kubernetes.version>
+        <gravitee-secretprovider-kubernetes.version>2.0.0-APIM-7497-api-secrets-SNAPSHOT</gravitee-secretprovider-kubernetes.version>
 
         <!-- Enterprise plugins -->
         <gravitee-entrypoint-http-get.version>2.0.0-alpha.2</gravitee-entrypoint-http-get.version>
@@ -285,7 +285,7 @@
         <gravitee-reactor-message.version>5.0.0-alpha.11</gravitee-reactor-message.version>
         <gravitee-reactor-native-kafka.version>1.0.0-alpha.29</gravitee-reactor-native-kafka.version>
         <gravitee-apim-repository-bridge.version>5.1.2</gravitee-apim-repository-bridge.version>
-        <gravitee-secretprovider-hc-vault.version>1.0.0</gravitee-secretprovider-hc-vault.version>
+        <gravitee-secretprovider-hc-vault.version>2.0.0-APIM-7497-api-secrets-SNAPSHOT</gravitee-secretprovider-hc-vault.version>
         <gravitee-policy-interops.version>1.1.2</gravitee-policy-interops.version>
 
         <gravitee-connectors-native-kafka.version>1.0.0-alpha.9</gravitee-connectors-native-kafka.version>
