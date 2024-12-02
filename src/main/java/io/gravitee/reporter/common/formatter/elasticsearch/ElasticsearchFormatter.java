@@ -446,6 +446,9 @@ public class ElasticsearchFormatter<T extends Reportable>
       if (esOptions.get("pipeline") != null) {
         data.put("pipeline", esOptions.get("pipeline"));
       }
+      if (esOptions.get("date") == null) {
+        data.put("date", sdf.format(reportable.timestamp()));
+      }
     } else {
       data.put("date", sdf.format(reportable.timestamp()));
     }
