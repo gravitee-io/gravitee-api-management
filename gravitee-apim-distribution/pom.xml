@@ -1703,7 +1703,6 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
-<<<<<<< HEAD
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-data-cache</artifactId>
@@ -1717,8 +1716,6 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
-=======
->>>>>>> 08e2bd0757 (feat: add Transform Status Code Policy (#10012))
 
                 <!-- Reporters -->
                 <dependency>
