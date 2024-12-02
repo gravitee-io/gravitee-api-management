@@ -122,7 +122,7 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
                 logger.warn("Email of the user {} is not valid", user.getId());
             } else {
                 // For security reasons, we remove the domain part of the email
-                doc.add(new StringField(FIELD_EMAIL, user.getEmail().substring(0, user.getEmail().indexOf('@')), Field.Store.NO));
+                doc.add(new StringField(FIELD_EMAIL, user.getEmail().substring(0, user.getEmail().indexOf('@')).toLowerCase(), Field.Store.NO));
             }
         }
 
