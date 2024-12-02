@@ -83,12 +83,6 @@ $typography: map.get(gio.$mat-theme, typography);
   margin: 0;
 }
 
-.file-preview {
-  margin: 0;
-  max-height: 400px;
-  overflow: auto;
-}
-
 .rulesets {
   display: flex;
   flex-direction: column;
@@ -105,7 +99,6 @@ mat-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
 
   &__title {
     margin: 0;
@@ -117,4 +110,8 @@ mat-card-header {
     display: flex;
     gap: 8px;
   }
+}
+
+.loader {
+  margin-bottom: 16px;
 }

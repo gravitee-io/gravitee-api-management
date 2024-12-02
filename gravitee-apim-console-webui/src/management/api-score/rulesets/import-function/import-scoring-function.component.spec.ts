@@ -23,7 +23,8 @@ import { ImportScoringFunctionHarness } from './import-scoring-function.harness'
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiScoreRulesetsModule } from '../api-score-rulesets.module';
-import { CreateFunctionRequestData } from '../../../../entities/management-api-v2/api/v4/ruleset';
+import { CreateFunctionRequestData, ScoringFunction } from '../../../../entities/management-api-v2/api/v4/ruleset';
+import { fakeScoringFunction } from '../../../../entities/management-api-v2/api/v4/ruleset.fixture';
 
 describe('ImportScoringFunctionComponent', () => {
   let componentHarness: ImportScoringFunctionHarness;
@@ -46,11 +47,13 @@ describe('ImportScoringFunctionComponent', () => {
   });
 
   it('should not send empty form', async () => {
+    expectGetFunctionsRequest();
     const importButton = await componentHarness.locatorForSubmitImportButton();
     expect(await importButton.isDisabled()).toEqual(true);
   });
 
   it('should send form', async () => {
+    expectGetFunctionsRequest();
     await componentHarness.pickFiles([new File([JSON.stringify('test')], 'testFile.js', { type: 'js' })]);
     const importButton = await componentHarness.locatorForSubmitImportButton();
     expect(await importButton.isDisabled()).toEqual(false);
@@ -71,5 +74,11 @@ describe('ImportScoringFunctionComponent', () => {
     expect(req.request.body).toEqual(data);
     req.flush(null);
     fixture.detectChanges();
+  }
+
+  function expectGetFunctionsRequest(res: { data: ScoringFunction[] } = { data: [fakeScoringFunction()] }) {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/scoring/functions`;
+    const req = httpTestingController.expectOne({ method: 'GET', url: url });
+    req.flush(res);
   }
 });

@@ -165,31 +165,6 @@ code {
   }
 }
 
-.editor {
-  padding: 0 16px 16px 4px;
-
-  &__copy-to-clipboard {
-    display: flex;
-    justify-content: end;
-    position: relative;
-    top: 18px;
-    font-size: 16px; // sets icon size
-  }
-
-  .line {
-    display: grid;
-    gap: 12px;
-    grid-template-columns: 30px auto;
-    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
-    @include gio.code-typography();
-
-    &__number {
-      display: flex;
-      justify-content: end;
-    }
-  }
-}
-
 .command {
   display: flex;
   justify-content: space-between;
