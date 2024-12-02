@@ -18,7 +18,6 @@
 
 <div class="edit-ruleset-page">
   <h1 class="title">Rulesets & Functions</h1>
-
   <div class="back-link">
     <a mat-button routerLink="../..">
       <mat-icon svgIcon="gio:arrow-left"></mat-icon>
@@ -28,7 +27,7 @@
 
   @if (isLoading) {
     <gio-loader></gio-loader>
-  } @else if (filePreview) {
+  } @else {
     <mat-card>
       <mat-card-header>
         <mat-card-title class="mat-h3 card-title">Edit Ruleset</mat-card-title>
@@ -88,6 +87,5 @@
       </mat-card-content>
     </mat-card>
   }
-
   <gio-save-bar *ngIf="form.dirty && form.valid" [form]="form" (resetClicked)="ngOnInit()" (submitted)="edit()"></gio-save-bar>
 </div>
