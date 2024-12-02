@@ -829,6 +829,19 @@
         </dependency>
         <dependency>
             <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-transform-status-code</artifactId>
+            <version>${gravitee-policy-transform-status-code.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-url-rewriting</artifactId>
             <version>${gravitee-policy-url-rewriting.version}</version>
             <type>zip</type>
@@ -1690,6 +1703,7 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
+<<<<<<< HEAD
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-data-cache</artifactId>
@@ -1703,6 +1717,8 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
+=======
+>>>>>>> 08e2bd0757 (feat: add Transform Status Code Policy (#10012))
 
                 <!-- Reporters -->
                 <dependency>

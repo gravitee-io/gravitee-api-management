@@ -224,6 +224,10 @@
         <gravitee-policy-transform-protobuf-json.version>1.2.7</gravitee-policy-transform-protobuf-json.version>
         <gravitee-policy-transformheaders.version>3.0.2</gravitee-policy-transformheaders.version>
         <gravitee-policy-transformqueryparams.version>1.9.0</gravitee-policy-transformqueryparams.version>
+<<<<<<< HEAD
+=======
+        <gravitee-policy-transform-status-code.version>1.0.0</gravitee-policy-transform-status-code.version>
+>>>>>>> 08e2bd0757 (feat: add Transform Status Code Policy (#10012))
         <gravitee-policy-url-rewriting.version>1.7.0</gravitee-policy-url-rewriting.version>
         <gravitee-policy-xml-json.version>2.0.1</gravitee-policy-xml-json.version>
         <gravitee-policy-xml-threat-protection.version>1.5.1</gravitee-policy-xml-threat-protection.version>
