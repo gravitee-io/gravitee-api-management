@@ -214,7 +214,7 @@
         <gravitee-policy-transform-avro-json.version>2.0.4</gravitee-policy-transform-avro-json.version>
         <gravitee-policy-transformheaders.version>3.0.2</gravitee-policy-transformheaders.version>
         <gravitee-policy-transformqueryparams.version>1.9.0</gravitee-policy-transformqueryparams.version>
-        <gravitee-policy-transform-status-code.version>1.0.0-alpha.1</gravitee-policy-transform-status-code.version>
+        <gravitee-policy-transform-status-code.version>1.0.0</gravitee-policy-transform-status-code.version>
         <gravitee-policy-url-rewriting.version>1.7.0</gravitee-policy-url-rewriting.version>
         <gravitee-policy-xml-json.version>2.0.1</gravitee-policy-xml-json.version>
         <gravitee-policy-xml-threat-protection.version>1.5.1</gravitee-policy-xml-threat-protection.version>
