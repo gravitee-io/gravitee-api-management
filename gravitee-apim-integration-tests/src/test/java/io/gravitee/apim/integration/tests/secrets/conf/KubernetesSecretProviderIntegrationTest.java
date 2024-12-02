@@ -28,8 +28,6 @@ import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuil
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.secrets.SecretProviderBuilder;
-import io.gravitee.node.api.secrets.SecretManagerConfiguration;
-import io.gravitee.node.api.secrets.SecretProviderFactory;
 import io.gravitee.node.container.spring.env.GraviteeYamlPropertySource;
 import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
@@ -39,6 +37,8 @@ import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFact
 import io.gravitee.secretprovider.kubernetes.KubernetesSecretProvider;
 import io.gravitee.secretprovider.kubernetes.KubernetesSecretProviderFactory;
 import io.gravitee.secretprovider.kubernetes.config.K8sConfig;
+import io.gravitee.secrets.api.plugin.SecretManagerConfiguration;
+import io.gravitee.secrets.api.plugin.SecretProviderFactory;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientOptions;
@@ -56,8 +56,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLHandshakeException;
-import org.junit.jupiter.api.*;
-import org.springframework.core.env.ConfigurableEnvironment;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
 import org.testcontainers.k3s.K3sContainer;
 
@@ -211,7 +215,8 @@ class KubernetesSecretProviderIntegrationTest {
         @Test
         void should_be_able_to_resolve_secret() {
             Environment environment = getBean(Environment.class);
-            assertThat(environment.getProperty("test")).isEqualTo(password1);
+            String property = environment.getProperty("test");
+            assertThat(property).isEqualTo(password1);
             assertThat(environment.getProperty("foo")).isEqualTo(password2);
         }
     }
