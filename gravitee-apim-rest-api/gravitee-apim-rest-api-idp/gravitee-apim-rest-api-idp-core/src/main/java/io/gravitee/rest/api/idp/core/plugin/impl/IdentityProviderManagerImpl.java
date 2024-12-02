@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.idp.core.plugin.impl;
 
 import io.gravitee.common.util.RelaxedPropertySource;
-import io.gravitee.node.api.secrets.model.Secret;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.core.api.PluginContextFactory;
 import io.gravitee.plugin.core.internal.AnnotationBasedPluginContextConfigurer;
@@ -26,7 +25,14 @@ import io.gravitee.rest.api.idp.api.identity.IdentityLookup;
 import io.gravitee.rest.api.idp.core.authentication.impl.CompositeIdentityManager;
 import io.gravitee.rest.api.idp.core.plugin.IdentityProviderDefinition;
 import io.gravitee.rest.api.idp.core.plugin.IdentityProviderManager;
-import java.util.*;
+import io.gravitee.secrets.api.core.Secret;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
