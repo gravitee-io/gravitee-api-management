@@ -26,6 +26,7 @@ import { IntegrationAgentComponent } from './integration-agent.component';
 
 import { IntegrationStatusComponent } from '../components/integration-status/integration-status.component';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { FilePreviewComponent } from '../../../shared/components/file-preview/file-preview.component';
 
 @NgModule({
   declarations: [IntegrationAgentComponent],
@@ -45,6 +46,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     GioPermissionModule,
 
     IntegrationStatusComponent,
+    FilePreviewComponent,
   ],
 })
 export class IntegrationAgentModule {}

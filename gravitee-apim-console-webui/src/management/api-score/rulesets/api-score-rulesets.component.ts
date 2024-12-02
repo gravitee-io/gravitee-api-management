@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, DestroyRef, OnInit } from '@angular/core';
+import { Component, DestroyRef, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
@@ -32,7 +32,8 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 export class ApiScoreRulesetsComponent implements OnInit {
   public rulesets: ScoringRuleset[];
   public functions: ScoringFunction[];
-  public isLoading = false;
+  public isLoadingRulesets = false;
+  public isLoadingFunctions = false;
 
   constructor(
     private readonly rulesetV2Service: RulesetV2Service,
@@ -41,19 +42,20 @@ export class ApiScoreRulesetsComponent implements OnInit {
     private readonly matDialog: MatDialog,
   ) {}
 
+  @ViewChild('container') container: ElementRef;
+
   ngOnInit(): void {
-    this.isLoading = true;
+    this.isLoadingRulesets = true;
     this.rulesetV2Service
       .listRulesets()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
-          this.isLoading = false;
+          this.isLoadingRulesets = false;
           this.rulesets = res.data;
         },
         error: () => {
           this.snackBarService.error('Rulesets error!');
-          this.isLoading = false;
         },
       });
 
@@ -62,12 +64,11 @@ export class ApiScoreRulesetsComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
-          this.isLoading = false;
+          this.isLoadingFunctions = false;
           this.functions = res.data;
         },
         error: () => {
           this.snackBarService.error('Functions error!');
-          this.isLoading = false;
         },
       });
   }
@@ -88,7 +89,7 @@ export class ApiScoreRulesetsComponent implements OnInit {
       .pipe(
         filter((confirm) => !!confirm),
         switchMap(() => {
-          this.isLoading = true;
+          this.isLoadingRulesets = true;
           return this.rulesetV2Service.deleteRuleset(id);
         }),
         switchMap(() => {
@@ -100,11 +101,10 @@ export class ApiScoreRulesetsComponent implements OnInit {
         next: (res) => {
           this.rulesets = res.data;
           this.snackBarService.success('Ruleset successfully deleted!');
-          this.isLoading = false;
+          this.isLoadingRulesets = false;
         },
         error: () => {
-          this.snackBarService.error('Something went wrong!');
-          this.isLoading = false;
+          this.snackBarService.error('Ruleset deletion error!');
         },
       });
   }
@@ -125,7 +125,7 @@ export class ApiScoreRulesetsComponent implements OnInit {
       .pipe(
         filter((confirm) => !!confirm),
         switchMap(() => {
-          this.isLoading = true;
+          this.isLoadingFunctions = true;
           return this.rulesetV2Service.deleteFunction(id);
         }),
         switchMap(() => {
@@ -137,11 +137,10 @@ export class ApiScoreRulesetsComponent implements OnInit {
         next: (res) => {
           this.functions = res.data;
           this.snackBarService.success('Function successfully deleted!');
-          this.isLoading = false;
+          this.isLoadingFunctions = false;
         },
         error: () => {
-          this.snackBarService.error('Something went wrong!');
-          this.isLoading = false;
+          this.snackBarService.error('Function deletion error!');
         },
       });
   }

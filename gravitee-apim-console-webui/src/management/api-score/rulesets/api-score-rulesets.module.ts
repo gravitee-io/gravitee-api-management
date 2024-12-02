@@ -43,6 +43,7 @@ import { RulesetFormatPipe } from './ruleset-format-mapper.pipe';
 
 import { ApiImportFilePickerComponent } from '../../api/component/api-import-file-picker/api-import-file-picker.component';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { FilePreviewComponent } from '../../../shared/components/file-preview/file-preview.component';
 
 @NgModule({
   declarations: [ApiScoreRulesetsComponent, ImportApiScoreRulesetComponent, EditApiScoreRulesetComponent, ImportScoringFunctionComponent],
@@ -71,6 +72,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     GioPermissionModule,
     MatTooltip,
     RulesetFormatPipe,
+    FilePreviewComponent,
   ],
   exports: [ApiScoreRulesetsComponent, ImportApiScoreRulesetComponent, EditApiScoreRulesetComponent, ImportScoringFunctionComponent],
 })

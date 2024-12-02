@@ -31,8 +31,10 @@
 
     <div class="separator-hr"></div>
 
-    @if (isLoading) {
-      <gio-loader></gio-loader>
+    @if (isLoadingRulesets) {
+      <div class="loader">
+        <gio-loader></gio-loader>
+      </div>
     } @else if (rulesets) {
       <mat-card-content class="rulesets">
         @for (ruleset of rulesets; track ruleset.id) {
@@ -54,7 +56,8 @@
                 <button mat-raised-button (click)="deleteRuleset(ruleset.id)">Delete</button>
               </div>
             </div>
-            <pre class="file-preview">{{ ruleset.payload }}</pre>
+
+            <file-preview [payload]="ruleset.payload"></file-preview>
           </mat-expansion-panel>
         } @empty {
           <gio-card-empty-state icon="search" title="No ruleset, yet" class="rulesets-empty"></gio-card-empty-state>
@@ -75,8 +78,10 @@
 
     <div class="separator-hr"></div>
 
-    @if (isLoading) {
-      <gio-loader></gio-loader>
+    @if (isLoadingFunctions) {
+      <div class="loader">
+        <gio-loader></gio-loader>
+      </div>
     } @else if (functions) {
       <mat-card-content class="rulesets">
         @for (fun of functions; track fun.name) {
@@ -93,7 +98,8 @@
                 <button mat-raised-button (click)="deleteFunction(fun.name)">Delete</button>
               </div>
             </div>
-            <pre class="file-preview">{{ fun.payload }}</pre>
+
+            <file-preview [payload]="fun.payload"></file-preview>
           </mat-expansion-panel>
         } @empty {
           <gio-card-empty-state icon="search" title="No custom function, yet" class="functions-empty"></gio-card-empty-state>
