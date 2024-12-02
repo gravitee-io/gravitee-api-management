@@ -66,7 +66,6 @@ export class EditApiScoreRulesetComponent implements OnInit {
         },
         error: () => {
           this.snackBarService.error('Ruleset error');
-          this.isLoading = false;
         },
       });
   }
@@ -92,7 +91,6 @@ export class EditApiScoreRulesetComponent implements OnInit {
           this.form.markAsPristine();
         },
         error: () => {
-          this.isLoading = false;
           this.snackBarService.error('Ruleset update error!');
         },
       });
@@ -128,8 +126,7 @@ export class EditApiScoreRulesetComponent implements OnInit {
           this.snackBarService.success('Ruleset successfully deleted!');
         },
         error: () => {
-          this.isLoading = false;
-          this.snackBarService.error('Something went wrong!');
+          this.snackBarService.error('Delete ruleset error!');
         },
       });
   }
