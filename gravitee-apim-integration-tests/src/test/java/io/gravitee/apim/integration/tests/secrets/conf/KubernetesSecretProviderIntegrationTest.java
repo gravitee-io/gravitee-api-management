@@ -37,6 +37,7 @@ import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFact
 import io.gravitee.secretprovider.kubernetes.KubernetesSecretProvider;
 import io.gravitee.secretprovider.kubernetes.KubernetesSecretProviderFactory;
 import io.gravitee.secretprovider.kubernetes.config.K8sConfig;
+import io.gravitee.secrets.api.errors.SecretManagerException;
 import io.gravitee.secrets.api.plugin.SecretManagerConfiguration;
 import io.gravitee.secrets.api.plugin.SecretProviderFactory;
 import io.reactivex.rxjava3.core.Completable;
@@ -554,8 +555,12 @@ class KubernetesSecretProviderIntegrationTest {
         @Test
         void should_fail_resolve_secret() {
             final Environment environment = getBean(Environment.class);
-            assertThatCode(() -> environment.getProperty("missing")).isInstanceOf(Exception.class);
-            assertThatCode(() -> environment.getProperty("missing2")).isInstanceOf(Exception.class);
+            assertThatCode(() -> environment.getProperty("missing"))
+                .isInstanceOf(SecretManagerException.class)
+                .hasMessageContaining("secret not found");
+            assertThatCode(() -> environment.getProperty("missing2"))
+                .isInstanceOf(SecretManagerException.class)
+                .hasMessageContaining("secret not found");
             assertThat(environment.getProperty("no_plugin")).isEqualTo("secret://foo/test:pass"); // not recognized as a secret does not return value
         }
     }
