@@ -16,20 +16,12 @@
 package io.gravitee.apim.integration.tests.grpc.v4;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.gateway.grpc.manualflowcontrol.HelloReply;
 import io.gravitee.gateway.grpc.manualflowcontrol.HelloRequest;
 import io.gravitee.gateway.grpc.manualflowcontrol.StreamingGreeterGrpc;
-import io.gravitee.gateway.grpc.manualflowcontrol.VertxStreamingGreeterGrpcClient;
 import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
-import io.grpc.stub.StreamObserver;
-import io.vertx.grpc.client.GrpcClientChannel;
-import io.vertx.grpcio.client.GrpcIoClientChannel;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
