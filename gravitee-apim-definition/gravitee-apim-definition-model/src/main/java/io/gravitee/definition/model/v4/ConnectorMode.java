@@ -27,17 +27,26 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum ConnectorMode {
+    CONNECT("connect"),
+    INTERACT("interact"),
     SUBSCRIBE("subscribe"),
     PUBLISH("publish"),
-    REQUEST_RESPONSE("request_response");
+    REQUEST_RESPONSE("request_response"),
+    SOCKET("socket");
 
     private static final Map<String, ConnectorMode> LABELS_MAP = Map.of(
+        CONNECT.label,
+        CONNECT,
+        INTERACT.label,
+        INTERACT,
         SUBSCRIBE.label,
         SUBSCRIBE,
         PUBLISH.label,
         PUBLISH,
         REQUEST_RESPONSE.label,
-        REQUEST_RESPONSE
+        REQUEST_RESPONSE,
+        SOCKET.label,
+        SOCKET
     );
 
     @JsonValue

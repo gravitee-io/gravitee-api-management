@@ -56,7 +56,7 @@ paths:
                             schema:
                                 type: array
                                 items:
-                                    $ref: "#/components/schemas/ConnectorPlugin"
+                                  $ref: "./openapi-plugins.yaml#/components/schemas/ConnectorPlugin"
                 default:
                     $ref: "#/components/responses/Error"
     /plugins/endpoints/{endpointId}:
@@ -78,7 +78,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/ConnectorPlugin"
+                                $ref: "./openapi-plugins.yaml#/components/schemas/ConnectorPlugin"
                 default:
                     $ref: "#/components/responses/Error"
     /plugins/endpoints/{endpointId}/documentation:
@@ -182,7 +182,7 @@ paths:
                             schema:
                                 type: array
                                 items:
-                                    $ref: "#/components/schemas/ConnectorPlugin"
+                                    $ref: "./openapi-plugins.yaml#/components/schemas/ConnectorPlugin"
                 default:
                     $ref: "#/components/responses/Error"
     /plugins/entrypoints/{entrypointId}:
@@ -204,7 +204,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/ConnectorPlugin"
+                                $ref: "./openapi-plugins.yaml#/components/schemas/ConnectorPlugin"
                 default:
                     $ref: "#/components/responses/Error"
     /plugins/entrypoints/{entrypointId}/documentation:
@@ -398,37 +398,6 @@ paths:
 
 components:
     schemas:
-        ConnectorPlugin:
-            type: object
-            allOf:
-                - $ref: "#/components/schemas/PlatformPlugin"
-                - type: object
-                  properties:
-                      supportedApiType:
-                          $ref: "#/components/schemas/ApiType"
-                      supportedModes:
-                          type: array
-                          items:
-                              $ref: "#/components/schemas/ConnectorMode"
-                          uniqueItems: true
-                      supportedQos:
-                          type: array
-                          items:
-                              $ref: "#/components/schemas/Qos"
-                          uniqueItems: true
-                      supportedListenerType:
-                          $ref: "#/components/schemas/ListenerType"
-                      availableFeatures:
-                          type: array
-                          items:
-                              $ref: "#/components/schemas/ConnectorFeature"
-                          uniqueItems: true
-                      schema:
-                          type: string
-                          description: The schema of the plugin.
-                      subscriptionSchema:
-                          type: string
-                          description: The subscription schema of the plugin.
         PlatformPlugin:
             type: object
             properties:
@@ -463,52 +432,6 @@ components:
                 deployed:
                     type: boolean
                     description: The deployment status of the plugin. This property is true if the plugin is deployed on the installation and the license allows to use it.
-        ApiType:
-            type: string
-            description: API's type.
-            example: MESSAGE
-            enum:
-                - MESSAGE
-                - PROXY
-#                  FIXME: Kafka Gateway - properly support it, it has just been added for mapstruct
-                - NATIVE
-        ListenerType:
-            type: string
-            description: Listener type.
-            example: HTTP
-            enum:
-                - HTTP
-                - SUBSCRIPTION
-                - TCP
-#                FIXME: Kafka Gateway: properly support it, it has just been added for mapstruct
-                - KAFKA
-        ConnectorFeature:
-            type: string
-            description: A feature used by a connector
-            example: LIMIT
-            enum:
-                - LIMIT
-                - RESUME
-                - DLQ
-                - CORS
-        ConnectorMode:
-            type: string
-            description: A mode used by a connector
-            example: SUBSCRIBE
-            enum:
-                - SUBSCRIBE
-                - PUBLISH
-                - REQUEST_RESPONSE
-        Qos:
-            type: string
-            description: Type of the quality of service.
-            example: NONE
-            default: AUTO
-            enum:
-                - NONE
-                - AUTO
-                - AT_MOST_ONCE
-                - AT_LEAST_ONCE
         MoreInformation:
             type: object
             properties:
