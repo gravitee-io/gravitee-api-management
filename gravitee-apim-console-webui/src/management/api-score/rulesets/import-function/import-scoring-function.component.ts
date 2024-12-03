@@ -38,6 +38,7 @@ export class ImportScoringFunctionComponent implements OnInit {
 
   public form: FormGroup = this.formBuilder.group({
     name: ['', [Validators.required, Validators.maxLength(50), Validators.pattern(/^[^/]+\.js$/)]],
+    fileContent: ['', Validators.required],
   });
 
   constructor(
@@ -79,8 +80,14 @@ export class ImportScoringFunctionComponent implements OnInit {
     this.importFileContent = importFileContent;
     this.form.patchValue({
       name: importFile?.name || '',
+      fileContent: importFileContent || '',
     });
+
     this.form.updateValueAndValidity();
+
+    if (importFileContent !== undefined && this.form.get('fileContent').hasError('required')) {
+      this.snackBarService.error('The file can not be empty');
+    }
 
     if (this.form.get('name').hasError('pattern')) {
       this.snackBarService.error('File name should fulfill ^[^/]+\\.js$ pattern');

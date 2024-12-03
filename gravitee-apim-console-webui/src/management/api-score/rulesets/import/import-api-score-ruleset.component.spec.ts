@@ -25,15 +25,27 @@ import { ImportApiScoreRulesetHarness } from './import-api-score-ruleset.harness
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiScoreRulesetsModule } from '../api-score-rulesets.module';
 import { CreateRulesetRequestData, RulesetFormat } from '../../../../entities/management-api-v2/api/v4/ruleset';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 describe('NewRulesetComponent', () => {
   let fixture: ComponentFixture<ImportApiScoreRulesetComponent>;
   let componentHarness: ImportApiScoreRulesetHarness;
   let httpTestingController: HttpTestingController;
 
+  const fakeSnackBarService = {
+    error: jest.fn(),
+    success: jest.fn(),
+  };
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [GioTestingModule, ApiScoreRulesetsModule, BrowserAnimationsModule, NoopAnimationsModule],
+      providers: [
+        {
+          provide: SnackBarService,
+          useValue: fakeSnackBarService,
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ImportApiScoreRulesetComponent);
@@ -78,6 +90,22 @@ describe('NewRulesetComponent', () => {
     };
 
     expectCreateRulesetRequest(data);
+  });
+
+  it('should not send empty file', async () => {
+    const definitionFormat = await componentHarness.locatorForDefinitionFormatRadioGroup();
+    await definitionFormat.select('OpenAPI, Async API');
+
+    await componentHarness.setName('Name');
+    await componentHarness.setDescription('Description');
+
+    fixture.detectChanges();
+
+    await componentHarness.pickFiles([new File([], 'emptyFile.yaml', { type: 'application/yaml' })]);
+    const importButton = await componentHarness.locatorForSubmitImportButton();
+    expect(await importButton.isDisabled()).toEqual(true);
+
+    expect(fakeSnackBarService.error).toHaveBeenCalledWith('The file can not be empty');
   });
 
   [

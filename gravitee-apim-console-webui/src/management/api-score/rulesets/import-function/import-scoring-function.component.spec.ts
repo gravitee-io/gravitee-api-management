@@ -25,15 +25,27 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing'
 import { ApiScoreRulesetsModule } from '../api-score-rulesets.module';
 import { CreateFunctionRequestData, ScoringFunction } from '../../../../entities/management-api-v2/api/v4/ruleset';
 import { fakeScoringFunction } from '../../../../entities/management-api-v2/api/v4/ruleset.fixture';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 describe('ImportScoringFunctionComponent', () => {
   let componentHarness: ImportScoringFunctionHarness;
   let fixture: ComponentFixture<ImportScoringFunctionComponent>;
   let httpTestingController: HttpTestingController;
 
+  const fakeSnackBarService = {
+    error: jest.fn(),
+    success: jest.fn(),
+  };
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [GioTestingModule, ApiScoreRulesetsModule, BrowserAnimationsModule, NoopAnimationsModule],
+      providers: [
+        {
+          provide: SnackBarService,
+          useValue: fakeSnackBarService,
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ImportScoringFunctionComponent);
@@ -66,6 +78,15 @@ describe('ImportScoringFunctionComponent', () => {
     };
 
     expectCreateFunctionRequest(data);
+  });
+
+  it('should not allow send empty file', async () => {
+    expectGetFunctionsRequest();
+    await componentHarness.pickFiles([new File([], 'testFile.js', { type: 'js' })]);
+    const importButton = await componentHarness.locatorForSubmitImportButton();
+
+    expect(await importButton.isDisabled()).toEqual(true);
+    expect(fakeSnackBarService.error).toHaveBeenCalledWith('The file can not be empty');
   });
 
   function expectCreateFunctionRequest(data: CreateFunctionRequestData) {
