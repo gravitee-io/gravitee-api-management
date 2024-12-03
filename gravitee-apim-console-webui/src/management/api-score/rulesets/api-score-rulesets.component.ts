@@ -32,8 +32,8 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 export class ApiScoreRulesetsComponent implements OnInit {
   public rulesets: ScoringRuleset[];
   public functions: ScoringFunction[];
-  public isLoadingRulesets = false;
-  public isLoadingFunctions = false;
+  public isLoadingRulesets = true;
+  public isLoadingFunctions = true;
 
   constructor(
     private readonly rulesetV2Service: RulesetV2Service,
@@ -45,7 +45,6 @@ export class ApiScoreRulesetsComponent implements OnInit {
   @ViewChild('container') container: ElementRef;
 
   ngOnInit(): void {
-    this.isLoadingRulesets = true;
     this.rulesetV2Service
       .listRulesets()
       .pipe(takeUntilDestroyed(this.destroyRef))

@@ -30,13 +30,14 @@ import { CreateRulesetRequestData, mapToRulesetFormat } from '../../../../entiti
 })
 export class ImportApiScoreRulesetComponent implements OnInit {
   protected importType: string;
-  private importFileContent: string;
+  public isLoading = false;
+
   public form: FormGroup = this.formBuilder.group({
     definitionFormat: ['', [Validators.required]],
     name: ['', [Validators.required, Validators.maxLength(50), Validators.minLength(1)]],
     description: ['', Validators.maxLength(250)],
+    fileContent: ['', Validators.required],
   });
-  public isLoading = false;
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -71,8 +72,14 @@ export class ImportApiScoreRulesetComponent implements OnInit {
 
   protected onImportFile({ importFileContent, importType }: { importFileContent: string; importType: string }) {
     this.importType = importType;
-    this.importFileContent = importFileContent;
+    this.form.patchValue({
+      fileContent: importFileContent || '',
+    });
     this.form.updateValueAndValidity();
+
+    if (importFileContent !== undefined && this.form.get('fileContent').hasError('required')) {
+      this.snackBarService.error('The file can not be empty');
+    }
   }
 
   public importRuleset() {
@@ -81,7 +88,7 @@ export class ImportApiScoreRulesetComponent implements OnInit {
     let data: CreateRulesetRequestData = {
       name: this.form.value.name,
       description: this.form.value.description,
-      payload: this.importFileContent,
+      payload: this.form.value.fileContent,
     };
 
     if (this.graviteeApiFormat?.value) {
