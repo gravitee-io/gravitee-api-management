@@ -48,7 +48,7 @@ export class ApiV4MenuService implements ApiMenuService {
       ...(api.type !== 'NATIVE' ? [this.addPoliciesMenuEntry(hasTcpListeners)] : []),
       ...(api.type !== 'NATIVE' ? [this.addConsumersMenuEntry(hasTcpListeners)] : []),
       this.addDocumentationMenuEntry(api),
-      ...(api.type !== 'NATIVE' ? [this.addDeploymentMenuEntry()] : []),
+      this.addDeploymentMenuEntry(),
       ...(api.type !== 'NATIVE' ? [this.addApiTrafficMenuEntry(hasTcpListeners)] : []),
       ...(api.type !== 'NATIVE' ? [this.addApiRuntimeAlertsMenuEntry()] : []),
     ].filter((entry) => entry != null && !entry.tabs?.every((tab) => tab.routerLink === 'DISABLED'));

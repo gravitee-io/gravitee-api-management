@@ -15,21 +15,6 @@
     limitations under the License.
 
 -->
-<!--&lt;!&ndash;-->
-
-<!--    Copyright (C) 2015 The Gravitee team (http://gravitee.io)-->
-
-<!--    Licensed under the Apache License, Version 2.0 (the "License");-->
-<!--    you may not use this file except in compliance with the License.-->
-<!--    You may obtain a copy of the License at-->
-
-<!--            http://www.apache.org/licenses/LICENSE-2.0-->
-
-<!--    Unless required by applicable law or agreed to in writing, software-->
-<!--    distributed under the License is distributed on an "AS IS" BASIS,-->
-<!--    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.-->
-<!--    See the License for the specific language governing permissions and-->
-<!--    limitations under the License.-->
 
 <span mat-dialog-title>Version {{ data.version }}</span>
 
@@ -62,14 +47,16 @@
 </mat-dialog-content>
 
 <mat-dialog-actions class="actions">
-  <button
-    *gioPermission="{ anyOf: ['api-definition-u'] }"
-    mat-stroked-button
-    aria-label="Button to rollback"
-    [matTooltip]="'Rollback to version ' + this.data.version"
-    [mat-dialog-close]="{ rollbackTo: this.data.eventId }"
-  >
-    <mat-icon svgIcon="gio:rotate-ccw"></mat-icon> Rollback
-  </button>
+  @if (!data.hideRollback) {
+    <button
+      *gioPermission="{ anyOf: ['api-definition-u'] }"
+      mat-stroked-button
+      aria-label="Button to rollback"
+      [matTooltip]="'Rollback to version ' + this.data.version"
+      [mat-dialog-close]="{ rollbackTo: this.data.eventId }"
+    >
+      <mat-icon svgIcon="gio:rotate-ccw"></mat-icon> Rollback
+    </button>
+  }
   <button mat-raised-button mat-dialog-close color="primary">Close</button>
 </mat-dialog-actions>

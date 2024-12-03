@@ -16,7 +16,7 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
-import { DatePipe, NgIf } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { GioClipboardModule, GioIconsModule, GioMonacoEditorModule, MonacoEditorLanguageConfig } from '@gravitee/ui-particles-angular';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { ReactiveFormsModule, UntypedFormControl } from '@angular/forms';
@@ -32,6 +32,7 @@ export interface ApiHistoryV4DeploymentInfoDialogData {
   createdAt?: Date;
   label?: string;
   user?: string;
+  hideRollback?: boolean;
   apiDefinition: string;
 }
 
@@ -43,7 +44,6 @@ export type ApiHistoryV4DeploymentInfoDialogResult = null | { rollbackTo: string
   styleUrls: ['./api-history-v4-deployment-info-dialog.component.scss'],
   standalone: true,
   imports: [
-    NgIf,
     ReactiveFormsModule,
     MatDialogModule,
     MatButtonModule,
