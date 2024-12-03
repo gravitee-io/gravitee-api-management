@@ -215,8 +215,7 @@ class KubernetesSecretProviderIntegrationTest {
         @Test
         void should_be_able_to_resolve_secret() {
             Environment environment = getBean(Environment.class);
-            String property = environment.getProperty("test");
-            assertThat(property).isEqualTo(password1);
+            assertThat(environment.getProperty("test")).isEqualTo(password1);
             assertThat(environment.getProperty("foo")).isEqualTo(password2);
         }
     }
