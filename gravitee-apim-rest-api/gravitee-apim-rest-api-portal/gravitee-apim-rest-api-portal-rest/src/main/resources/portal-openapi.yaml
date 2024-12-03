@@ -3909,6 +3909,7 @@ components:
                 - HTTP
                 - TCP
                 - SUBSCRIPTION
+                - KAFKA
         ApiInformation:
             properties:
                 name:

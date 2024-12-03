@@ -21,6 +21,8 @@ import io.gravitee.rest.api.model.ApiModel;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiModel;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -119,6 +121,35 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
             apiModelEntity.setExecutionMode(apiEntity.getExecutionMode());
             apiModelEntity.setPaths(apiEntity.getPaths());
             apiModelEntity.setProxy(apiEntity.getProxy());
+
+            apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, apiModelEntity));
+            return apiModelEntity;
+        } else if (
+            genericApiEntity.getDefinitionVersion() == DefinitionVersion.V4 && genericApiEntity instanceof NativeApiEntity apiEntity
+        ) {
+            var apiModelEntity = new NativeApiModel();
+            apiModelEntity.setId(apiEntity.getId());
+            apiModelEntity.setDefinitionVersion(apiEntity.getDefinitionVersion());
+            apiModelEntity.setName(apiEntity.getName());
+            apiModelEntity.setDescription(apiEntity.getDescription());
+            apiModelEntity.setCreatedAt(apiEntity.getCreatedAt());
+            apiModelEntity.setDeployedAt(apiEntity.getDeployedAt());
+            apiModelEntity.setUpdatedAt(apiEntity.getUpdatedAt());
+            apiModelEntity.setGroups(apiEntity.getGroups());
+            apiModelEntity.setVisibility(apiEntity.getVisibility());
+            apiModelEntity.setCategories(apiEntity.getCategories());
+            apiModelEntity.setApiVersion(apiEntity.getApiVersion());
+            apiModelEntity.setState(apiEntity.getState());
+            apiModelEntity.setTags(apiEntity.getTags());
+            apiModelEntity.setPicture(apiEntity.getPicture());
+            apiModelEntity.setPrimaryOwner(apiEntity.getPrimaryOwner());
+            apiModelEntity.setProperties(apiEntity.getProperties());
+            apiModelEntity.setLifecycleState(apiEntity.getLifecycleState());
+            apiModelEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
+
+            apiModelEntity.setServices(apiEntity.getServices());
+            apiModelEntity.setListeners(apiEntity.getListeners());
+            apiModelEntity.setEndpointGroups(apiEntity.getEndpointGroups());
 
             apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, apiModelEntity));
             return apiModelEntity;
