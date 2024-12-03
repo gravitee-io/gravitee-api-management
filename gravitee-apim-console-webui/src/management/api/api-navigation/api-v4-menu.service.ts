@@ -45,7 +45,7 @@ export class ApiV4MenuService implements ApiMenuService {
       ...(this.constants.org.settings?.scoring?.enabled && api.type !== 'NATIVE' ? [this.addApiScoreMenuEntry()] : []),
       this.addEntrypointsMenuEntry(hasTcpListeners, api),
       this.addEndpointsMenuEntry(api, hasTcpListeners),
-      ...(api.type !== 'NATIVE' ? [this.addPoliciesMenuEntry(hasTcpListeners)] : []),
+      this.addPoliciesMenuEntry(hasTcpListeners),
       ...(api.type !== 'NATIVE' ? [this.addConsumersMenuEntry(hasTcpListeners)] : []),
       this.addDocumentationMenuEntry(api),
       this.addDeploymentMenuEntry(),
