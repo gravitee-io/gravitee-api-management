@@ -48,7 +48,7 @@
         <grpc-java.version>1.50.2</grpc-java.version>
 
         <!-- Gravitee dependencies version -->
-        <gravitee-bom.version>8.1.16</gravitee-bom.version>
+        <gravitee-bom.version>8.1.19</gravitee-bom.version>
         <gravitee-alert-api.version>2.0.0</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>3.4.0</gravitee-cockpit-api.version>
         <gravitee-cloud-initializer.version>2.0.2</gravitee-cloud-initializer.version>
