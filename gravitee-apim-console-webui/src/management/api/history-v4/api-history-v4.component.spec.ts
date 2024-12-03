@@ -67,6 +67,7 @@ describe('ApiHistoryV4Component', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
   });
 
   afterEach(() => {
@@ -75,9 +76,7 @@ describe('ApiHistoryV4Component', () => {
 
   describe('Events table', () => {
     beforeEach(() => {
-      fixture.detectChanges();
       expectApiGetRequest(fakeApiV4({ id: API_ID, deploymentState: 'DEPLOYED' }));
-      fixture.detectChanges();
     });
 
     it('should display events', async () => {
@@ -164,46 +163,109 @@ describe('ApiHistoryV4Component', () => {
   });
 
   describe('Rollback', () => {
-    beforeEach(() => {
-      fixture.detectChanges();
-      expectApiGetRequest(fakeApiV4({ id: API_ID, deploymentState: 'NEED_REDEPLOY' }));
-      fixture.detectChanges();
+    describe('Message API', () => {
+      it('should rollback an API', async () => {
+        expectApiGetRequest(fakeApiV4({ id: API_ID, deploymentState: 'NEED_REDEPLOY', type: 'MESSAGE' }));
+        expectApiEventsListRequest(
+          undefined,
+          undefined,
+          fakeEventsResponse({
+            data: [fakeEvent({ type: 'PUBLISH_API', properties: { DEPLOYMENT_NUMBER: '1' } })],
+          }),
+        );
+        fixture.detectChanges();
+
+        const compareCurrentButton = await loader.getHarness(
+          MatButtonHarness.with({ selector: '[aria-label="Button to compare with current version to be deployed"]' }),
+        );
+        await compareCurrentButton.click();
+        expectDeploymentCurrentGetRequest();
+
+        const rollbackButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to rollback to 1"]' }));
+        await rollbackButton.click();
+
+        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        await confirmDialog.confirm();
+
+        httpTestingController.expectOne({
+          method: 'POST',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/_rollback`,
+        });
+      });
     });
+    describe('Native API', () => {
+      beforeEach(() => {
+        expectApiGetRequest(fakeApiV4({ id: API_ID, deploymentState: 'NEED_REDEPLOY', type: 'NATIVE' }));
+        expectApiEventsListRequest(
+          undefined,
+          undefined,
+          fakeEventsResponse({
+            data: [
+              fakeEvent({
+                id: '2',
+                type: 'PUBLISH_API',
+                properties: { DEPLOYMENT_NUMBER: '2' },
+                payload: JSON.stringify({ definition: JSON.stringify({ name: 'Foo' }) }),
+              }),
+              fakeEvent({
+                id: '1',
+                type: 'PUBLISH_API',
+                properties: { DEPLOYMENT_NUMBER: '1' },
+                payload: JSON.stringify({ definition: JSON.stringify({ name: 'Bar' }) }),
+              }),
+            ],
+          }),
+        );
+      });
 
-    it('should rollback an API', async () => {
-      expectApiEventsListRequest(
-        undefined,
-        undefined,
-        fakeEventsResponse({
-          data: [fakeEvent({ type: 'PUBLISH_API', properties: { DEPLOYMENT_NUMBER: '1' } })],
-        }),
-      );
-      fixture.detectChanges();
+      it('should not allow rollback when comparing with deployed version', async () => {
+        const compareCurrentButton = await loader.getHarness(
+          MatButtonHarness.with({ selector: '[aria-label="Button to compare with current version to be deployed"]' }),
+        );
+        await compareCurrentButton.click();
+        expectDeploymentCurrentGetRequest();
 
-      const compareCurrentButton = await loader.getHarness(
-        MatButtonHarness.with({ selector: '[aria-label="Button to compare with current version to be deployed"]' }),
-      );
-      await compareCurrentButton.click();
-      expectDeploymentCurrentGetRequest();
+        fixture.detectChanges();
+        expect(await rootLoader.hasHarness(MatButtonHarness.with({ selector: '[aria-label="Button to rollback to 1"]' }))).toEqual(false);
+      });
 
-      const rollbackButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to rollback to 1"]' }));
-      await rollbackButton.click();
+      it('should not allow rollback when comparing two versions', async () => {
+        const table = await loader.getHarness(MatTableHarness.with({ selector: '#deploymentsTable' }));
+        const rows = await table.getRows();
+        await (await (await rows[0].getCells({ columnName: 'checkbox' }))[0].getHarness(MatCheckboxHarness)).check();
+        await (await (await rows[1].getCells({ columnName: 'checkbox' }))[0].getHarness(MatCheckboxHarness)).check();
 
-      const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
-      await confirmDialog.confirm();
+        const dialog = await rootLoader.getHarness(MatDialogHarness);
+        expect(await dialog.getActionsText()).toEqual('Close');
+      });
 
-      httpTestingController.expectOne({
-        method: 'POST',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/_rollback`,
+      it('should not allow rollback when viewing version to be deployed', async () => {
+        const viewToDeployButton = await loader.getHarness(MatButtonHarness.with({ text: /View version to be deployed/ }));
+        await viewToDeployButton.click();
+        expectDeploymentCurrentGetRequest();
+
+        const dialog = await rootLoader.getHarness(MatDialogHarness);
+        expect(await dialog.getActionsText()).toEqual('Close');
+      });
+
+      it('should not allow rollback when viewing version details', async () => {
+        const table = await loader.getHarness(MatTableHarness.with({ selector: '#deploymentsTable' }));
+        const rows = await table.getRows();
+        await (
+          await (
+            await rows[0].getCells({ columnName: 'action' })
+          )[0].getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to show version"]' }))
+        ).click();
+
+        const dialog = await rootLoader.getHarness(MatDialogHarness);
+        expect(await dialog.getActionsText()).toEqual('Close');
       });
     });
   });
 
   describe('Compare with version to be deployed', () => {
     beforeEach(() => {
-      fixture.detectChanges();
       expectApiGetRequest(fakeApiV4({ id: API_ID, deploymentState: 'NEED_REDEPLOY' }));
-      fixture.detectChanges();
       expectApiEventsListRequest(
         undefined,
         undefined,
@@ -223,6 +285,7 @@ describe('ApiHistoryV4Component', () => {
       const dialog = await rootLoader.getHarness(MatDialogHarness);
       expect(dialog).toBeTruthy();
       expect(await dialog.getTitleText()).toEqual('Comparing version 1 with version to be deployed');
+      expect(await dialog.getActionsText()).toContain('Rollback');
 
       const diffHarness = await dialog.getHarness(GioDiffHarness);
       expect(await diffHarness.hasNoDiffToDisplay()).toEqual(false);
@@ -231,9 +294,7 @@ describe('ApiHistoryV4Component', () => {
 
   describe('Compare two versions', () => {
     beforeEach(() => {
-      fixture.detectChanges();
       expectApiGetRequest(fakeApiV4({ id: API_ID, deploymentState: 'NEED_REDEPLOY' }));
-      fixture.detectChanges();
       expectApiEventsListRequest(
         undefined,
         undefined,
@@ -265,6 +326,7 @@ describe('ApiHistoryV4Component', () => {
       const dialog = await rootLoader.getHarness(MatDialogHarness);
       expect(dialog).toBeTruthy();
       expect(await dialog.getTitleText()).toEqual('Comparing version 2 with version 1');
+      expect(await dialog.getActionsText()).toContain('Rollback');
 
       const diffHarness = await dialog.getHarness(GioDiffHarness);
       expect(await diffHarness.hasNoDiffToDisplay()).toEqual(false);
@@ -273,9 +335,7 @@ describe('ApiHistoryV4Component', () => {
 
   describe('View version to be deployed', () => {
     beforeEach(() => {
-      fixture.detectChanges();
       expectApiGetRequest(fakeApiV4({ id: API_ID, deploymentState: 'NEED_REDEPLOY' }));
-      fixture.detectChanges();
       expectApiEventsListRequest(
         undefined,
         undefined,
@@ -293,14 +353,13 @@ describe('ApiHistoryV4Component', () => {
       const dialog = await rootLoader.getHarness(MatDialogHarness);
       expect(dialog).toBeTruthy();
       expect(await dialog.getTitleText()).toEqual('Version to be deployed');
+      expect(await dialog.getActionsText()).toContain('Rollback');
     });
   });
 
   describe('View version details', () => {
     beforeEach(() => {
-      fixture.detectChanges();
       expectApiGetRequest(fakeApiV4({ id: API_ID, deploymentState: 'DEPLOYED' }));
-      fixture.detectChanges();
       expectApiEventsListRequest(
         undefined,
         undefined,
@@ -322,6 +381,7 @@ describe('ApiHistoryV4Component', () => {
       const dialog = await rootLoader.getHarness(MatDialogHarness);
       expect(dialog).toBeTruthy();
       expect(await dialog.getTitleText()).toEqual('Version 1');
+      expect(await dialog.getActionsText()).toContain('Rollback');
 
       const contentText = await dialog.getContentText();
       expect(contentText).toContain('sample-label');
@@ -332,6 +392,7 @@ describe('ApiHistoryV4Component', () => {
 
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+    fixture.detectChanges();
   }
 
   function expectApiEventsListRequest(
@@ -345,6 +406,7 @@ describe('ApiHistoryV4Component', () => {
       }${filters.to ? '&to=' + filters.to : ''}${filters.types ? '&types=' + filters.types : ''}`,
     );
     req.flush(response);
+    fixture.detectChanges();
   }
 
   function expectDeploymentCurrentGetRequest() {
