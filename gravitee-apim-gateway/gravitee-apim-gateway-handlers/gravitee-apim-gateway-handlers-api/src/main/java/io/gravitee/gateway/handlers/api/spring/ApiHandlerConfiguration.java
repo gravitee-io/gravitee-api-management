@@ -151,7 +151,7 @@ public class ApiHandlerConfiguration {
 
     @Bean
     public ApiTemplateVariableProviderFactory apiTemplateVariableProviderFactory() {
-        return new ApiTemplateVariableProviderFactory();
+        return new ApiTemplateVariableProviderFactory(applicationContext);
     }
 
     @Bean

@@ -20,6 +20,8 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.el.TemplateVariableProvider;
+import io.gravitee.el.TemplateVariableProviderFactory;
+import io.gravitee.el.TemplateVariableScope;
 import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.endpoint.resolver.EndpointResolver;
 import io.gravitee.gateway.api.service.SubscriptionService;
@@ -72,7 +74,6 @@ import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
-import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.gateway.reactor.handler.context.DefaultV3ExecutionContextFactory;
 import io.gravitee.gateway.reactor.handler.context.V3ExecutionContextFactory;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
@@ -402,7 +403,13 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         templateVariableProviders.add(new ApiTemplateVariableProvider(api));
         templateVariableProviders.add(referenceRegister);
         templateVariableProviders.addAll(
-            applicationContext.getBean(ApiTemplateVariableProviderFactory.class).getTemplateVariableProviders()
+            applicationContext
+                .getBeansOfType(TemplateVariableProviderFactory.class)
+                .values()
+                .stream()
+                .filter(factory -> factory.getTemplateVariableScope() == TemplateVariableScope.API)
+                .flatMap(factory -> factory.getTemplateVariableProviders().stream())
+                .toList()
         );
         return templateVariableProviders;
     }
