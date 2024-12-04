@@ -338,8 +338,8 @@ public class ApiPlansResource extends AbstractResource {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
-        if (planEntity instanceof PlanEntity) {
-            return Response.ok(planMapper.map(planServiceV4.deprecate(executionContext, planId))).build();
+        if (planEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4) {
+            return Response.ok(planMapper.mapToPlanV4(planServiceV4.deprecate(executionContext, planId))).build();
         }
 
         return Response.ok(planMapper.map(planServiceV2.deprecate(executionContext, planId))).build();

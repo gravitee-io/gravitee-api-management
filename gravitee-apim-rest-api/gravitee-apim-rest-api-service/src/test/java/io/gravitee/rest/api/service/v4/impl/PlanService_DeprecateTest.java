@@ -16,10 +16,15 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fixtures.definition.FlowFixtures;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
@@ -34,6 +39,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
+import java.util.List;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,6 +77,9 @@ public class PlanService_DeprecateTest {
 
     @Mock
     private FlowService flowService;
+
+    @Mock
+    private FlowCrudService flowCrudService;
 
     @Test(expected = PlanAlreadyDeprecatedException.class)
     public void shouldNotDepreciateBecauseAlreadyDepreciated() throws TechnicalException {
@@ -111,6 +120,26 @@ public class PlanService_DeprecateTest {
         planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID, true);
 
         verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.DEPRECATED).build());
+    }
+
+    @Test
+    public void shouldDepreciateNativePlanWithStagingAndAllowStaging() throws TechnicalException {
+        var plan = Plan
+            .builder()
+            .status(Plan.Status.STAGING)
+            .type(Plan.PlanType.API)
+            .validation(Plan.PlanValidationType.AUTO)
+            .api(API_ID)
+            .apiType(ApiType.NATIVE)
+            .build();
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
+
+        planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID, true);
+
+        verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.DEPRECATED).build());
+        verify(flowCrudService, times(1)).getNativePlanFlows(any());
+        verify(flowService, never()).findByReference(any(), any());
     }
 
     @Test(expected = PlanNotYetPublishedException.class)

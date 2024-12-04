@@ -42,9 +42,9 @@ public interface PlanService {
 
     GenericPlanEntity publish(final ExecutionContext executionContext, final String plan);
 
-    PlanEntity deprecate(final ExecutionContext executionContext, final String plan);
+    GenericPlanEntity deprecate(final ExecutionContext executionContext, final String plan);
 
-    PlanEntity deprecate(final ExecutionContext executionContext, final String plan, final boolean allowStaging);
+    GenericPlanEntity deprecate(final ExecutionContext executionContext, final String plan, final boolean allowStaging);
 
     PlansConfigurationEntity getConfiguration();
 
