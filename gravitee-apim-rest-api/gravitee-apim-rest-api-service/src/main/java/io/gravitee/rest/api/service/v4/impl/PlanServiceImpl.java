@@ -616,12 +616,12 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     }
 
     @Override
-    public PlanEntity deprecate(final ExecutionContext executionContext, String planId) {
+    public GenericPlanEntity deprecate(final ExecutionContext executionContext, String planId) {
         return deprecate(executionContext, planId, false);
     }
 
     @Override
-    public PlanEntity deprecate(final ExecutionContext executionContext, String planId, boolean allowStaging) {
+    public GenericPlanEntity deprecate(final ExecutionContext executionContext, String planId, boolean allowStaging) {
         try {
             logger.debug("Deprecate plan {}", planId);
 
@@ -653,7 +653,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 plan
             );
 
-            return mapToEntity(plan);
+            return mapToGenericEntity(plan);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to deprecate plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to deprecate plan: %s", planId), ex);
