@@ -1096,6 +1096,21 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        public void should_return_plan_when_v4_native_plan_closed() {
+            var planEntity = PlanFixtures.aNativePlanEntityV4().toBuilder().id(PLAN).apiId(API).build();
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
+            when(planServiceV4.close(GraviteeContext.getExecutionContext(), PLAN))
+                .thenReturn(planEntity.toBuilder().status(PlanStatus.CLOSED).build());
+
+            final Response response = target.request().post(Entity.json(null));
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(PlanV4.class)
+                .extracting(PlanV4::getId, PlanV4::getStatus)
+                .containsExactly(PLAN, io.gravitee.rest.api.management.v2.rest.model.PlanStatus.CLOSED);
+        }
+
+        @Test
         public void should_return_plan_when_v2_plan_closed() {
             final io.gravitee.rest.api.model.PlanEntity planEntity = PlanFixtures.aPlanEntityV2().toBuilder().id(PLAN).api(API).build();
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
