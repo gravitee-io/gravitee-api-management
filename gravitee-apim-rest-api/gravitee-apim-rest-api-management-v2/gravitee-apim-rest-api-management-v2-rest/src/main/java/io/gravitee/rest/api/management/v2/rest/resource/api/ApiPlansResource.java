@@ -21,6 +21,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase;
 import io.gravitee.apim.core.plan.use_case.UpdateFederatedPlanUseCase;
+import io.gravitee.apim.core.plan.use_case.UpdatePlanUseCase;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.http.MediaType;
@@ -48,7 +49,6 @@ import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
-import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -90,6 +90,9 @@ public class ApiPlansResource extends AbstractResource {
 
     @Inject
     private CreatePlanUseCase createPlanUseCase;
+
+    @Inject
+    private UpdatePlanUseCase updatePlanUseCase;
 
     @Inject
     private io.gravitee.rest.api.service.PlanService planServiceV2;
@@ -245,10 +248,33 @@ public class ApiPlansResource extends AbstractResource {
         return switch (updatePlan.getDefinitionVersion()) {
             case V4 -> {
                 if (planEntity instanceof PlanEntity) {
-                    final UpdatePlanEntity updatePlanEntity = planMapper.map((UpdatePlanV4) updatePlan);
+                    var updatePlanV4 = (UpdatePlanV4) updatePlan;
+                    var userDetails = getAuthenticatedUserDetails();
+                    var updatePlanEntity = planMapper.map(updatePlanV4);
                     updatePlanEntity.setId(planId);
-                    PlanEntity responseEntity = planServiceV4.update(executionContext, updatePlanEntity);
-                    yield Response.ok(planMapper.map(responseEntity)).build();
+
+                    var output = updatePlanUseCase.execute(
+                        new UpdatePlanUseCase.Input(
+                            updatePlanEntity,
+                            api -> flowMapper.map(updatePlanV4.getFlows(), api),
+                            apiId,
+                            AuditInfo
+                                .builder()
+                                .organizationId(executionContext.getOrganizationId())
+                                .environmentId(executionContext.getEnvironmentId())
+                                .actor(
+                                    AuditActor
+                                        .builder()
+                                        .userId(userDetails.getUsername())
+                                        .userSource(userDetails.getSource())
+                                        .userSourceId(userDetails.getSourceId())
+                                        .build()
+                                )
+                                .build()
+                        )
+                    );
+
+                    yield Response.ok(planMapper.map(output.updated())).build();
                 } else {
                     yield Response.status(Response.Status.BAD_REQUEST).entity(planInvalid(planId)).build();
                 }
