@@ -575,6 +575,48 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        public void should_create_v4_plan_accepting_null_as_flow_list() {
+            var planId = "new-id";
+            when(createPlanDomainService.create(any(), any(), any(), any()))
+                .thenAnswer(invocation -> {
+                    io.gravitee.apim.core.plan.model.Plan plan = invocation.getArgument(0);
+                    return new PlanWithFlows(plan.setPlanId(planId), invocation.getArgument(1));
+                });
+
+            final CreatePlanV4 createPlanV4 = PlanFixtures.aCreatePlanHttpV4().toBuilder().flows(null).build();
+            final Response response = target.request().post(Entity.json(createPlanV4));
+
+            assertThat(response)
+                .hasStatus(CREATED_201)
+                .asEntity(PlanV4.class)
+                .isEqualTo(
+                    PlanV4
+                        .builder()
+                        .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4)
+                        .id(planId)
+                        .crossId(createPlanV4.getCrossId())
+                        .apiId(API)
+                        .name(createPlanV4.getName())
+                        .description(createPlanV4.getDescription())
+                        .order(1)
+                        .commentRequired(createPlanV4.getCommentRequired())
+                        .commentMessage(createPlanV4.getCommentMessage())
+                        .generalConditions(createPlanV4.getGeneralConditions())
+                        .validation(createPlanV4.getValidation())
+                        .mode(PlanMode.STANDARD)
+                        .status(io.gravitee.rest.api.management.v2.rest.model.PlanStatus.STAGING)
+                        .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY).configuration(Map.of("nice", "config")).build())
+                        .selectionRule(createPlanV4.getSelectionRule())
+                        .characteristics(createPlanV4.getCharacteristics())
+                        .excludedGroups(createPlanV4.getExcludedGroups())
+                        .tags(List.of("tag1", "tag2"))
+                        .type(io.gravitee.rest.api.management.v2.rest.model.PlanType.API)
+                        .flows(Collections.emptyList())
+                        .build()
+                );
+        }
+
+        @Test
         public void should_create_v2_plan() {
             when(planServiceV2.create(eq(GraviteeContext.getExecutionContext()), any(io.gravitee.rest.api.model.NewPlanEntity.class)))
                 .thenAnswer(invocation -> {

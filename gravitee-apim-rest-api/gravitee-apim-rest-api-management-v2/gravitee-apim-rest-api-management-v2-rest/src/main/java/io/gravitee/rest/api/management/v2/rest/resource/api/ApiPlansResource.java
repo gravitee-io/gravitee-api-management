@@ -15,7 +15,9 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
+import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparingInt;
+import static java.util.Optional.ofNullable;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -180,7 +182,7 @@ public class ApiPlansResource extends AbstractResource {
                 new CreatePlanUseCase.Input(
                     apiId,
                     api -> planMapper.map(planV4, api),
-                    api -> flowMapper.map(planV4.getFlows(), api),
+                    api -> ofNullable(flowMapper.map(planV4.getFlows(), api)).orElse(emptyList()),
                     AuditInfo
                         .builder()
                         .organizationId(executionContext.getOrganizationId())
