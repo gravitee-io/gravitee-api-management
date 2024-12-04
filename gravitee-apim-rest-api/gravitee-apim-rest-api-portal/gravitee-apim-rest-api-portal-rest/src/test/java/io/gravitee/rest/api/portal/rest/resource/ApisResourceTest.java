@@ -39,14 +39,7 @@ import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
@@ -541,7 +534,9 @@ public class ApisResourceTest extends AbstractResourceTest {
         CategoryEntity categoryEntity1 = CategoryEntity.builder().id("cat1").name("Category 1").key("key1").build();
         CategoryEntity categoryEntity2 = CategoryEntity.builder().id("cat2").name("Category 2").key("key2").build();
 
-        Set<CategoryEntity> categories = Set.of(categoryEntity1, categoryEntity2);
+        Set<CategoryEntity> categories = new LinkedHashSet<>();
+        categories.add(categoryEntity1);
+        categories.add(categoryEntity2);
 
         when(filteringService.listCategories(any(), any(), any(), any())).thenReturn(categories);
 
