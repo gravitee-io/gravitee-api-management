@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.policy;
 import io.gravitee.gateway.policy.PolicyManifest;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A manager of Policy factories. It allows to select a particular policy factory depending on specific criteria tested against the {@link PolicyManifest}.
@@ -49,6 +50,23 @@ public class PolicyFactoryManager {
     public PolicyFactoryManager(Class<? extends PolicyFactory> defaultPolicyFactoryClass, Set<PolicyFactory> policyFactories) {
         this.defaultPolicyFactoryClass = defaultPolicyFactoryClass;
         this.policyFactories = policyFactories;
+        defaultPolicyFactory = extractDefaultPolicyFactory(policyFactories);
+    }
+
+    /**
+     * Build the manager with a set of {@link PolicyFactory} and select {@param HttpFactoryPolicy} as fall back factory, you can exclude a PolicyFactory class thanks to {@param excludedPolicyFactoryClass}
+     * {@param defaultPolicyFactoryClass} the class that will operate as the default policy factory
+     * {@param excludedPolicyFactoryClass} the class to exclude from the {@param policiesFactories}. This one is particularly useful in the case of the Debug Mode, where we want to exclude the {@link HttpPolicyFactory} from the Spring injected list of {@link PolicyFactory}
+     * {@param policyFactories}
+     */
+    public PolicyFactoryManager(
+        Class<? extends PolicyFactory> debugPolicyFactoryClass,
+        Class<? extends PolicyFactory> excludedPolicyFactoryClass,
+        Set<PolicyFactory> policyFactories
+    ) {
+        this.defaultPolicyFactoryClass = debugPolicyFactoryClass;
+        this.policyFactories =
+            policyFactories.stream().filter(factory -> !factory.getClass().equals(excludedPolicyFactoryClass)).collect(Collectors.toSet());
         defaultPolicyFactory = extractDefaultPolicyFactory(policyFactories);
     }
 
