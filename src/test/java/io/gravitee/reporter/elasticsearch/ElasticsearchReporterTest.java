@@ -19,8 +19,10 @@ import static io.gravitee.reporter.api.http.SecurityType.API_KEY;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.common.templating.FreeMarkerComponent;
+import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.reporter.api.Reportable;
+import io.gravitee.node.api.Node;
 import io.gravitee.reporter.api.common.Request;
 import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.health.EndpointStatus;
@@ -31,6 +33,9 @@ import io.gravitee.reporter.api.monitor.JvmInfo;
 import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.api.monitor.OsInfo;
 import io.gravitee.reporter.api.monitor.ProcessInfo;
+import io.gravitee.reporter.elasticsearch.config.PipelineConfiguration;
+import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
@@ -66,8 +71,14 @@ public class ElasticsearchReporterTest {
     public static class TestConfig {
 
         @Bean
-        public ElasticsearchReporter reporter() {
-            return new ElasticsearchReporter();
+        public ElasticsearchReporter reporter(
+            final Node node,
+            final Client client,
+            final ReporterConfiguration reporterConfiguration,
+            final PipelineConfiguration pipelineConfiguration,
+            final FreeMarkerComponent freeMarkerComponent
+        ) {
+            return new ElasticsearchReporter(node, reporterConfiguration, pipelineConfiguration, freeMarkerComponent, client);
         }
     }
 
@@ -84,7 +95,7 @@ public class ElasticsearchReporterTest {
         this.reporter.stop();
 
         // reset it
-        RxJavaPlugins.setComputationSchedulerHandler(null);
+        RxJavaPlugins.reset();
     }
 
     @Test
@@ -114,9 +125,9 @@ public class ElasticsearchReporterTest {
         requestMetrics.setSecurityToken("apiKey");
 
         // bulk of three line
-        TestObserver metrics1 = reporter.rxReport(requestMetrics).test();
-        TestObserver metrics2 = reporter.rxReport(requestMetrics).test();
-        TestObserver metrics3 = reporter.rxReport(requestMetrics).test();
+        TestObserver<Void> metrics1 = Completable.fromRunnable(() -> reporter.report(requestMetrics)).test();
+        TestObserver<Void> metrics2 = Completable.fromRunnable(() -> reporter.report(requestMetrics)).test();
+        TestObserver<Void> metrics3 = Completable.fromRunnable(() -> reporter.report(requestMetrics)).test();
 
         // advance time manually
         testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
@@ -170,7 +181,7 @@ public class ElasticsearchReporterTest {
         endpointHealthStatus.setState(3);
         endpointHealthStatus.setResponseTime(175);
 
-        TestObserver<Reportable> metrics1 = reporter.rxReport(endpointHealthStatus).test();
+        TestObserver<Void> metrics1 = Completable.fromRunnable(() -> reporter.report(endpointHealthStatus)).test();
 
         // advance time manually
         testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
@@ -239,7 +250,7 @@ public class ElasticsearchReporterTest {
             .process(processInfo)
             .build();
 
-        TestObserver metrics1 = reporter.rxReport(monitor).test();
+        TestObserver<Void> metrics1 = Completable.fromRunnable(() -> reporter.report(monitor)).test();
 
         // advance time manually
         testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
@@ -290,7 +301,7 @@ public class ElasticsearchReporterTest {
         log.setProxyResponse(proxyResp);
         log.setClientResponse(clientResp);
 
-        TestObserver logObs = reporter.rxReport(log).test();
+        TestObserver<Void> logObs = Completable.fromRunnable(() -> reporter.report(log)).test();
 
         // advance time manually
         testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
@@ -301,7 +312,7 @@ public class ElasticsearchReporterTest {
 
     @Test
     void reportTest() throws InterruptedException {
-        TestObserver metrics1 = reporter.rxReport(mockRequestMetrics()).test();
+        TestObserver<Void> metrics1 = Completable.fromRunnable(() -> reporter.report(mockRequestMetrics())).test();
 
         // advance time manually
         testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);

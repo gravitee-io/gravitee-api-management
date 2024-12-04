@@ -16,56 +16,57 @@
 package io.gravitee.reporter.elasticsearch;
 
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.common.templating.FreeMarkerComponent;
 import io.gravitee.elasticsearch.client.Client;
-import io.gravitee.elasticsearch.version.ElasticsearchInfo;
+import io.gravitee.node.api.Node;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.Reporter;
 import io.gravitee.reporter.common.MetricsType;
+import io.gravitee.reporter.common.bulk.BulkProcessor;
+import io.gravitee.reporter.common.bulk.backpressure.BulkDropper;
+import io.gravitee.reporter.common.bulk.compressor.NoneBulkCompressor;
+import io.gravitee.reporter.common.formatter.FormatterFactory;
+import io.gravitee.reporter.common.formatter.FormatterFactoryConfiguration;
+import io.gravitee.reporter.common.formatter.Type;
+import io.gravitee.reporter.elasticsearch.bulk.ElasticBulkSender;
+import io.gravitee.reporter.elasticsearch.bulk.ElasticBulkTransformer;
+import io.gravitee.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
-import io.gravitee.reporter.elasticsearch.indexer.Indexer;
+import io.gravitee.reporter.elasticsearch.factory.BeanFactory;
+import io.gravitee.reporter.elasticsearch.factory.BeanFactoryBuilder;
+import io.gravitee.reporter.elasticsearch.indexer.IndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.mapping.IndexPreparer;
-import io.reactivex.rxjava3.core.BackpressureStrategy;
-import io.reactivex.rxjava3.core.CompletableObserver;
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.core.Single;
-import io.reactivex.rxjava3.disposables.Disposable;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@RequiredArgsConstructor
+@Slf4j
 public class ElasticsearchReporter extends AbstractService<Reporter> implements Reporter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ElasticsearchReporter.class);
-
-    @Autowired
-    private Client client;
-
-    @Autowired
-    private ReporterConfiguration configuration;
-
-    /**
-     * Indexer is settled in a lazy way as soon as the ES version has been discovered.
-     */
-    private Indexer indexer;
+    private final Node node;
+    private final ReporterConfiguration reporterConfiguration;
+    private final PipelineConfiguration pipelineConfiguration;
+    private final FreeMarkerComponent freeMarkerComponent;
+    private final Client client;
 
     private final Set<Class<? extends Reportable>> acceptableReportables = new HashSet<>();
+    private BulkProcessor bulkProcessor;
 
     @Override
     protected void doStart() throws Exception {
-        if (configuration.isEnabled()) {
+        if (reporterConfiguration.isEnabled()) {
             super.doStart();
-            LOGGER.info("Starting Elastic reporter engine...");
+            log.info("Starting Elastic reporter engine...");
 
-            var beanRegister = new BeanRegister(applicationContext);
-            if (!beanRegister.registerBeans(retrieveElasticSearchInfo(), configuration)) {
-                LOGGER.info("Starting Elastic reporter engine... ERROR");
+            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
+            if (beanFactory == null) {
+                log.info("Starting Elastic reporter engine... ERROR");
                 return;
             }
 
@@ -74,41 +75,46 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
                 acceptableReportables.add(type.getClazz());
             }
 
-            IndexPreparer preparer = applicationContext.getBean(IndexPreparer.class);
+            IndexPreparer preparer = beanFactory.createIndexPreparer(
+                reporterConfiguration,
+                pipelineConfiguration,
+                freeMarkerComponent,
+                client
+            );
             preparer
                 .prepare()
-                .doOnComplete(() -> LOGGER.info("Starting Elastic reporter engine... DONE"))
-                .subscribe(
-                    new CompletableObserver() {
-                        @Override
-                        public void onSubscribe(Disposable d) {}
+                .doOnComplete(() -> {
+                    log.debug("Index mapping template successfully defined");
+                    log.info("Starting Elastic reporter engine... DONE");
+                })
+                .doOnError(throwable -> {
+                    log.warn("An error occurs while creating index mapping template", throwable);
+                    log.error("Starting Elastic reporter engine... ERROR");
+                })
+                .subscribe();
 
-                        @Override
-                        public void onComplete() {
-                            LOGGER.info("Index mapping template successfully defined");
-                        }
-
-                        @Override
-                        public void onError(Throwable t) {
-                            LOGGER.error("An error occurs while creating index mapping template", t);
-                        }
-                    }
+            FormatterFactoryConfiguration formatterFactoryConfiguration = beanFactory.createFormatterFactoryConfiguration();
+            bulkProcessor =
+                new BulkProcessor(
+                    new ElasticBulkSender(client),
+                    reporterConfiguration.getBulkConfiguration(),
+                    new ElasticBulkTransformer(
+                        new FormatterFactory(node, formatterFactoryConfiguration).getFormatter(Type.ELASTICSEARCH),
+                        pipelineConfiguration,
+                        beanFactory.createIndexNameGenerator(reporterConfiguration)
+                    ),
+                    new NoneBulkCompressor(),
+                    new BulkDropper()
                 );
-
-            indexer = applicationContext.getBean(Indexer.class);
+            bulkProcessor.start();
         }
     }
 
     @Override
     public void report(Reportable reportable) {
-        if (configuration.isEnabled()) {
-            indexer.index(reportable);
+        if (reporterConfiguration.isEnabled()) {
+            bulkProcessor.process(reportable);
         }
-    }
-
-    Single<Reportable> rxReport(Reportable reportable) {
-        indexer.index(reportable);
-        return Single.just(reportable);
     }
 
     @Override
@@ -118,20 +124,9 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
 
     @Override
     protected void doStop() throws Exception {
-        if (configuration.isEnabled()) {
+        if (reporterConfiguration.isEnabled()) {
             super.doStop();
-            LOGGER.info("Stopping Elastic reporter engine... DONE");
+            log.info("Stopping Elastic reporter engine... DONE");
         }
-    }
-
-    private ElasticsearchInfo retrieveElasticSearchInfo() {
-        // Wait for a connection to ES and retry each 5 seconds
-        Single<ElasticsearchInfo> elasticsearchInfoSingle = client
-            .getInfo()
-            .retryWhen(error ->
-                error.flatMap(throwable -> Observable.just(new Object()).delay(5, TimeUnit.SECONDS).toFlowable(BackpressureStrategy.LATEST))
-            );
-        elasticsearchInfoSingle.subscribe();
-        return elasticsearchInfoSingle.blockingGet();
     }
 }

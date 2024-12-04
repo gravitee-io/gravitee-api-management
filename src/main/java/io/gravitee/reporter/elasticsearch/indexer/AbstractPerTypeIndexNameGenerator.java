@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.reporter.elasticsearch.indexer.name;
+package io.gravitee.reporter.elasticsearch.indexer;
 
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.reporter.api.Reportable;
@@ -21,12 +21,17 @@ import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
 import io.gravitee.reporter.api.monitor.Monitor;
+import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import java.time.Instant;
 
 /**
  * @author GraviteeSource Team
  */
 public abstract class AbstractPerTypeIndexNameGenerator extends AbstractIndexNameGenerator {
+
+    public AbstractPerTypeIndexNameGenerator(final ReporterConfiguration configuration) {
+        super(configuration);
+    }
 
     public abstract String generate(String type, Instant timestamp);
 

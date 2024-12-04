@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.reporter.elasticsearch.indexer.name;
+package io.gravitee.reporter.elasticsearch.indexer;
 
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@RequiredArgsConstructor
 public abstract class AbstractIndexNameGenerator implements IndexNameGenerator {
 
-    @Autowired
-    protected ReporterConfiguration configuration;
+    protected final ReporterConfiguration configuration;
 
     protected final DateTimeFormatter sdf;
 
-    protected AbstractIndexNameGenerator() {
+    protected AbstractIndexNameGenerator(final ReporterConfiguration configuration) {
+        this.configuration = configuration;
         this.sdf = java.time.format.DateTimeFormatter.ofPattern("yyyy.MM.dd").withZone(ZoneId.systemDefault());
     }
 }

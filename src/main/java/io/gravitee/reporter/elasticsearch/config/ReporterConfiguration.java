@@ -19,6 +19,7 @@ import static java.lang.String.format;
 
 import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.elasticsearch.config.Endpoint;
+import io.gravitee.reporter.common.bulk.BulkConfiguration;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -228,6 +229,10 @@ public class ReporterConfiguration {
 
     public void setEndpoints(List<Endpoint> endpoints) {
         this.endpoints = endpoints;
+    }
+
+    public BulkConfiguration getBulkConfiguration() {
+        return new BulkConfiguration(bulkActions, flushInterval, null, null, null, null, null);
     }
 
     public Integer getBulkActions() {

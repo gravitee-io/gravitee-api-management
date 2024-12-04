@@ -13,32 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.reporter.elasticsearch.indexer.es7;
+package io.gravitee.reporter.elasticsearch.factory;
 
-import io.gravitee.node.api.Node;
+import io.gravitee.common.templating.FreeMarkerComponent;
+import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.reporter.common.formatter.FormatterFactoryConfiguration;
 import io.gravitee.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
-import io.gravitee.reporter.elasticsearch.indexer.BulkIndexer;
-import io.gravitee.reporter.elasticsearch.indexer.name.IndexNameGenerator;
+import io.gravitee.reporter.elasticsearch.indexer.IndexNameGenerator;
+import io.gravitee.reporter.elasticsearch.mapping.IndexPreparer;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ES7BulkIndexer extends BulkIndexer {
+public interface BeanFactory {
+    IndexNameGenerator createIndexNameGenerator(final ReporterConfiguration configuration);
 
-    protected ES7BulkIndexer(
-        ReporterConfiguration configuration,
-        PipelineConfiguration pipelineConfiguration,
-        IndexNameGenerator indexNameGenerator,
-        Node node
-    ) {
-        super(configuration, pipelineConfiguration, indexNameGenerator, node);
-    }
+    FormatterFactoryConfiguration createFormatterFactoryConfiguration();
 
-    @Override
-    protected FormatterFactoryConfiguration formatterFactoryConfiguration() {
-        return FormatterFactoryConfiguration.builder().elasticSearchVersion(7).build();
-    }
+    IndexPreparer createIndexPreparer(
+        final ReporterConfiguration configuration,
+        final PipelineConfiguration pipelineConfiguration,
+        final FreeMarkerComponent freeMarkerComponent,
+        final Client client
+    );
 }

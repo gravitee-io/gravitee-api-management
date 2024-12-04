@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.reporter.elasticsearch.indexer.name;
+package io.gravitee.reporter.elasticsearch.indexer;
 
-import java.time.Instant;
-import javax.annotation.PostConstruct;
+import io.gravitee.reporter.api.Reportable;
+import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 
 /**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PerTypeAndDateIndexNameGenerator extends AbstractPerTypeIndexNameGenerator {
+public class MultiTypeIndexNameGenerator extends AbstractIndexNameGenerator {
 
-    private String indexNameTemplate;
+    private final String indexNameTemplate;
 
-    @PostConstruct
-    public void initialize() {
-        indexNameTemplate = configuration.getIndexName() + "-%s-%s";
+    public MultiTypeIndexNameGenerator(final ReporterConfiguration configuration) {
+        super(configuration);
+        this.indexNameTemplate = configuration.getIndexName() + "-%s";
     }
 
     @Override
-    public String generate(String type, Instant timestamp) {
-        return String.format(indexNameTemplate, type, sdf.format(timestamp));
+    public String generate(Reportable reportable) {
+        return String.format(indexNameTemplate, sdf.format(reportable.timestamp()));
     }
 }

@@ -13,26 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.reporter.elasticsearch.mapping;
+package io.gravitee.reporter.elasticsearch.indexer;
 
-import io.gravitee.elasticsearch.utils.Type;
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.CompletableSource;
-import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.functions.Function;
+import io.gravitee.reporter.api.Reportable;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class PerTypeIndexPreparer extends AbstractIndexPreparer {
-
-    protected Completable indexMapping() {
-        return Completable.merge(Flowable.fromArray(Type.TYPES).map(indexTypeMapper()));
-    }
-
+public interface IndexNameGenerator {
     /**
-     * Index mapping for a single {@link Type}.
+     * Create the ES index name given the timestamp inside the metric.
+     * @param reportable the metric
+     * @return the ES index name
      */
-    protected abstract Function<Type, CompletableSource> indexTypeMapper();
+    String generate(Reportable reportable);
 }
