@@ -30,6 +30,7 @@
       [api]="$any(api)"
       [isTcpApi]="hasTcpListeners"
       [isFederated]="api.definitionVersion === 'FEDERATED'"
+      [isNative]="isNative"
       [planMenuItem]="planMenuItem"
       [planStatus]="currentPlanStatus"
     ></api-plan-form>

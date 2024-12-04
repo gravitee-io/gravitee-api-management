@@ -23,7 +23,7 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiPlanFormComponent, PlanFormValue } from '../../component/plan/api-plan-form.component';
 import { AVAILABLE_PLANS_FOR_MENU, PlanFormType, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
-import { Api, CreatePlanV2, CreatePlanV4, Plan, PlanStatus } from '../../../../entities/management-api-v2';
+import { Api, ApiV4, CreatePlanV2, CreatePlanV4, Plan, PlanStatus } from '../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 import { isApiV4 } from '../../../../util';
@@ -48,6 +48,7 @@ export class ApiPlanEditComponent implements OnInit, OnDestroy {
   private apiPlanForm: ApiPlanFormComponent;
   public currentPlanStatus: PlanStatus;
   public hasTcpListeners;
+  public isNative: boolean = false;
 
   constructor(
     private readonly router: Router,
@@ -68,10 +69,13 @@ export class ApiPlanEditComponent implements OnInit, OnDestroy {
         tap((api) => {
           this.api = api;
           this.hasTcpListeners = isApiV4(api) && api.listeners.find((listener) => listener.type === 'TCP') != null;
+          this.isNative = (this.api as ApiV4).type === 'NATIVE';
+          const editingANativeApi = this.isNative && this.mode === 'edit';
           this.isReadOnly =
             !this.permissionService.hasAnyMatching(['api-plan-u']) ||
             this.api.definitionContext?.origin === 'KUBERNETES' ||
-            this.api.definitionVersion === 'V1';
+            this.api.definitionVersion === 'V1' ||
+            editingANativeApi;
         }),
         switchMap(() =>
           this.mode === 'edit'
