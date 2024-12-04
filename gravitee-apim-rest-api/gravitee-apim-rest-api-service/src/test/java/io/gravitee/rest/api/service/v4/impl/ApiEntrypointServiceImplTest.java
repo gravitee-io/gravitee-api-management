@@ -29,11 +29,13 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.model.EntrypointEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.service.EntrypointService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -383,5 +385,164 @@ class ApiEntrypointServiceImplTest {
 
         assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://tag-entrypoint/path");
+    }
+
+    @Test
+    void shouldReturnEntrypointForV4NativeApiWithoutTags() {
+        var apiEntity = new NativeApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+
+        var kafkaListener = new KafkaListener();
+        kafkaListener.setHost("kafka-host");
+        kafkaListener.setPort(9092);
+        apiEntity.setListeners(List.of(kafkaListener));
+
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+
+        var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(apiEntrypoints).hasSize(1);
+        assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("kafka-host");
+        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("kafka-host:9092");
+    }
+
+    @Test
+    void shouldReturnEntrypointForV4NativeApiWithMatchingTags() {
+        var apiEntity = new NativeApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setTags(Set.of("tag"));
+
+        var kafkaListener = new KafkaListener();
+        kafkaListener.setHost("kafka-host");
+        kafkaListener.setPort(9092);
+        apiEntity.setListeners(List.of(kafkaListener));
+
+        var entrypointEntity = new EntrypointEntity();
+        entrypointEntity.setTags(new String[] { "tag" });
+        entrypointEntity.setValue("kafka-entrypoint");
+        when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
+
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+
+        var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(apiEntrypoints).hasSize(1);
+        assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("kafka-host");
+        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("kafka-host:9092");
+    }
+
+    @Test
+    void shouldReturnDefaultEntrypointForV4NativeApiWithUnmatchingTags() {
+        var apiEntity = new NativeApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setTags(Set.of("tag"));
+
+        var kafkaListener = new KafkaListener();
+        kafkaListener.setHost("kafka-host");
+        kafkaListener.setPort(9092);
+        apiEntity.setListeners(List.of(kafkaListener));
+
+        var entrypointEntity = new EntrypointEntity();
+        entrypointEntity.setTags(new String[] { "unmatched-tag" });
+        entrypointEntity.setValue("kafka-entrypoint");
+        when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
+
+        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+            .thenReturn("kafka://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+
+        var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(apiEntrypoints).hasSize(1);
+        assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("kafka-host");
+        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("kafka-host:9092");
+    }
+
+    @Test
+    void shouldReturnMultipleEntrypointsForV4NativeApiWithMultipleKafkaListeners() {
+        // Arrange
+        var apiEntity = new NativeApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+
+        var kafkaListener1 = new KafkaListener();
+        kafkaListener1.setHost("kafka-host1");
+        kafkaListener1.setPort(9092);
+
+        var kafkaListener2 = new KafkaListener();
+        kafkaListener2.setHost("kafka-host2");
+        kafkaListener2.setPort(9093);
+
+        apiEntity.setListeners(List.of(kafkaListener1, kafkaListener2));
+
+        var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(apiEntrypoints).hasSize(2);
+        assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("kafka-host1");
+        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("kafka-host1:9092");
+        assertThat(apiEntrypoints.get(1).getHost()).isEqualTo("kafka-host2");
+        assertThat(apiEntrypoints.get(1).getTarget()).isEqualTo("kafka-host2:9092");
+    }
+
+    @Test
+    void shouldReturnEntrypointForV4NativeApiWithNullPort() {
+        var apiEntity = new NativeApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+
+        var kafkaListener = new KafkaListener();
+        kafkaListener.setHost("kafka-host");
+        kafkaListener.setPort(null);
+        apiEntity.setListeners(List.of(kafkaListener));
+
+        var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(apiEntrypoints).hasSize(1);
+        assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("kafka-host");
+        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("kafka-host:9092");
+    }
+
+    @Test
+    void shouldAssignTagsToEntrypointForV4NativeApi() {
+        var apiEntity = new NativeApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setTags(Set.of("tag1", "tag2"));
+
+        var kafkaListener = new KafkaListener();
+        kafkaListener.setHost("kafka-host");
+        kafkaListener.setPort(9092);
+        apiEntity.setListeners(List.of(kafkaListener));
+
+        var entrypointEntity = new EntrypointEntity();
+        entrypointEntity.setTags(new String[] { "tag1", "tag2" });
+        entrypointEntity.setValue("kafka-entrypoint");
+        when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
+
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+
+        var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(apiEntrypoints).hasSize(1);
+        var entrypoint = apiEntrypoints.get(0);
+        assertThat(entrypoint.getHost()).isEqualTo("kafka-host");
+        assertThat(entrypoint.getTarget()).isEqualTo("kafka-host:9092");
+        assertThat(entrypoint.getTags()).containsExactlyInAnyOrder("tag1", "tag2");
+    }
+
+    @Test
+    void shouldNotIncludeTagsWhenTagEntrypointsIsNull() {
+        var apiEntity = new NativeApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+
+        var kafkaListener = new KafkaListener();
+        kafkaListener.setHost("kafka-host");
+        kafkaListener.setPort(9092);
+        apiEntity.setListeners(List.of(kafkaListener));
+
+        var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(apiEntrypoints).hasSize(1);
+        var entrypoint = apiEntrypoints.get(0);
+        assertThat(entrypoint.getHost()).isEqualTo("kafka-host");
+        assertThat(entrypoint.getTarget()).isEqualTo("kafka-host:9092");
+        assertThat(entrypoint.getTags()).isNull();
     }
 }
