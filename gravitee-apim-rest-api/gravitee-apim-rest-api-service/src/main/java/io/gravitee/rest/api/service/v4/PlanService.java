@@ -40,7 +40,7 @@ public interface PlanService {
 
     void delete(final ExecutionContext executionContext, final String plan);
 
-    PlanEntity publish(final ExecutionContext executionContext, final String plan);
+    GenericPlanEntity publish(final ExecutionContext executionContext, final String plan);
 
     PlanEntity deprecate(final ExecutionContext executionContext, final String plan);
 

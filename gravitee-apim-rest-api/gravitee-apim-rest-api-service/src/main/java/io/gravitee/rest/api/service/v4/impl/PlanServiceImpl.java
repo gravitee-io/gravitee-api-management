@@ -548,7 +548,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     }
 
     @Override
-    public PlanEntity publish(final ExecutionContext executionContext, String planId) {
+    public GenericPlanEntity publish(final ExecutionContext executionContext, String planId) {
         try {
             logger.debug("Publish plan {}", planId);
 
@@ -608,7 +608,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 plan
             );
 
-            return mapToEntity(plan);
+            return mapToGenericEntity(plan);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to publish plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to publish plan: %s", planId), ex);
@@ -722,6 +722,14 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     private PlanEntity mapToEntity(final Plan plan) {
         List<Flow> flows = flowService.findByReference(FlowReferenceType.PLAN, plan.getId());
         return planMapper.toEntity(plan, flows);
+    }
+
+    private GenericPlanEntity mapToGenericEntity(final Plan plan) {
+        if (plan.getApiType() == ApiType.NATIVE) {
+            var flows = flowCrudService.getNativePlanFlows(plan.getId());
+            return planMapper.toNativeEntity(plan, flows);
+        }
+        return mapToEntity(plan);
     }
 
     private void assertPlanSecurityIsAllowed(final ExecutionContext executionContext, String securityType) {
