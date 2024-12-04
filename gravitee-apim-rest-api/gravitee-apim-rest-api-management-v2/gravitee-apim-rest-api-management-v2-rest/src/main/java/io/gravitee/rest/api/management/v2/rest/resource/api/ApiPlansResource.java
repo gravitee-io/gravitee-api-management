@@ -44,6 +44,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
@@ -318,8 +319,8 @@ public class ApiPlansResource extends AbstractResource {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
-        if (planEntity instanceof PlanEntity) {
-            return Response.ok(planMapper.map(planServiceV4.publish(executionContext, planId))).build();
+        if (planEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4) {
+            return Response.ok(planMapper.mapToPlanV4(planServiceV4.publish(executionContext, planId))).build();
         }
 
         return Response.ok(planMapper.map(planServiceV2.publish(executionContext, planId))).build();

@@ -21,6 +21,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV4;
@@ -65,6 +66,15 @@ public interface PlanMapper {
     @Mapping(target = "security.type", qualifiedByName = "mapToPlanSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
     PlanV4 map(NativePlanEntity planEntity);
+
+    default PlanV4 mapToPlanV4(GenericPlanEntity planEntity) {
+        if (planEntity instanceof NativePlanEntity nativePlanEntity) {
+            return map(nativePlanEntity);
+        } else if (planEntity instanceof PlanEntity httpPlanEntity) {
+            return map(httpPlanEntity);
+        }
+        return null;
+    }
 
     @Mapping(target = "security.type", qualifiedByName = "mapToPlanSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")

@@ -16,11 +16,16 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fixtures.definition.FlowFixtures;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
@@ -40,6 +45,7 @@ import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -84,6 +90,9 @@ public class PlanService_PublishTest {
 
     @Mock
     private FlowService flowService;
+
+    @Mock
+    private FlowCrudService flowCrudService;
 
     @Test(expected = PlanAlreadyPublishedException.class)
     public void shouldNotPublishBecauseAlreadyPublished() throws TechnicalException {
@@ -182,6 +191,27 @@ public class PlanService_PublishTest {
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.PUBLISHED).build());
+    }
+
+    @Test
+    public void shouldPublishAndUpdateNativePlan() throws TechnicalException {
+        var plan = Plan
+            .builder()
+            .status(Plan.Status.STAGING)
+            .type(Plan.PlanType.API)
+            .apiType(ApiType.NATIVE)
+            .validation(Plan.PlanValidationType.AUTO)
+            .api(API_ID)
+            .build();
+
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
+
+        planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
+
+        verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.PUBLISHED).build());
+        verify(flowCrudService, times(1)).getNativePlanFlows(any());
+        verify(flowService, never()).findByReference(any(), any());
     }
 
     @Test
