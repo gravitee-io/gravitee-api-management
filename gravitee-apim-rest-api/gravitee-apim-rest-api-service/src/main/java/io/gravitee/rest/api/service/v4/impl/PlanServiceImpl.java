@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -520,7 +521,11 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             }
 
             // Delete plan and his flows
-            flowCrudService.savePlanFlows(planId, null);
+            if (plan.getApiType() == ApiType.NATIVE) {
+                flowCrudService.saveNativePlanFlows(planId, null);
+            } else {
+                flowCrudService.savePlanFlows(planId, null);
+            }
             planRepository.delete(planId);
 
             // Audit

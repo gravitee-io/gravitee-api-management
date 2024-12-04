@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
@@ -145,5 +146,19 @@ public class PlanService_DeleteTest {
 
         verify(planRepository, times(1)).delete(PLAN_ID);
         verify(flowCrudService, times(1)).savePlanFlows(PLAN_ID, null);
+    }
+
+    @Test
+    public void shouldDeleteNativePlanAndFlows() throws TechnicalException {
+        when(plan.getApiType()).thenReturn(ApiType.NATIVE);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(Collections.emptySet());
+        when(plan.getApi()).thenReturn(API_ID);
+        when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
+
+        planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
+
+        verify(planRepository, times(1)).delete(PLAN_ID);
+        verify(flowCrudService, times(1)).saveNativePlanFlows(PLAN_ID, null);
     }
 }

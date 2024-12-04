@@ -1042,6 +1042,17 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        public void should_return_no_content_when_native_v4_plan_deleted() {
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN))
+                .thenReturn(PlanFixtures.aNativePlanEntityV4().toBuilder().id(PLAN).apiId(API).build());
+
+            final Response response = target.request().delete();
+
+            assertThat(response).hasStatus(NO_CONTENT_204);
+            verify(planServiceV4, times(1)).delete(GraviteeContext.getExecutionContext(), PLAN);
+        }
+
+        @Test
         public void should_return_no_content_when_v2_plan_deleted() {
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN))
                 .thenReturn(PlanFixtures.aPlanEntityV2().toBuilder().id(PLAN).api(API).build());
