@@ -25,6 +25,7 @@ import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvalu
 import io.gravitee.gateway.debug.handlers.api.DebugApiReactorHandlerFactory;
 import io.gravitee.gateway.debug.organization.event.DebugOrganizationEventListener;
 import io.gravitee.gateway.debug.organization.reactor.DebugOrganizationReactorFactory;
+import io.gravitee.gateway.debug.policy.impl.DebugPolicyFactory;
 import io.gravitee.gateway.debug.policy.impl.PolicyDebugDecoratorFactoryCreator;
 import io.gravitee.gateway.debug.reactor.DebugReactor;
 import io.gravitee.gateway.debug.reactor.processor.DebugResponseProcessorChainFactory;
@@ -293,12 +294,12 @@ public class DebugConfiguration {
 
     @Bean
     public PolicyFactoryManager debugPolicyFactoryManager(Set<PolicyFactory> policyFactories) {
-        return new PolicyFactoryManager(policyFactories);
+        return new PolicyFactoryManager(DebugPolicyFactory.class, HttpPolicyFactory.class, policyFactories);
     }
 
     @Bean
     public PolicyFactory debugPolicyFactory(final PolicyPluginFactory policyPluginFactory) {
-        return new HttpPolicyFactory(configuration, policyPluginFactory, new DebugExpressionLanguageConditionFilter());
+        return new DebugPolicyFactory(configuration, policyPluginFactory, new DebugExpressionLanguageConditionFilter());
     }
 
     @Bean
