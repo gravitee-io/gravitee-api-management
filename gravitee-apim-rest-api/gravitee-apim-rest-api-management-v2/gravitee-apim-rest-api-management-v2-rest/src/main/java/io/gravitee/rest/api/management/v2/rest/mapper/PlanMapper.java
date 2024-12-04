@@ -35,6 +35,7 @@ import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV4;
+import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
@@ -60,6 +61,10 @@ public interface PlanMapper {
     @Mapping(target = "security.type", qualifiedByName = "mapToPlanSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
     PlanV4 map(PlanEntity planEntity);
+
+    @Mapping(target = "security.type", qualifiedByName = "mapToPlanSecurityType")
+    @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    PlanV4 map(NativePlanEntity planEntity);
 
     @Mapping(target = "security.type", qualifiedByName = "mapToPlanSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
@@ -107,6 +112,8 @@ public interface PlanMapper {
                 return new Plan(this.map((PlanEntity) entity));
             }
             return new Plan(this.mapFederated((PlanEntity) entity));
+        } else if (entity instanceof NativePlanEntity nativePlanEntity) {
+            return new Plan(this.map(nativePlanEntity));
         } else {
             return new Plan(this.map((io.gravitee.rest.api.model.PlanEntity) entity));
         }

@@ -28,6 +28,7 @@ import io.gravitee.rest.api.management.v2.rest.model.UpdateGenericPlanSecurity;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV4;
+import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import java.util.Date;
 import java.util.List;
@@ -194,6 +195,10 @@ public class PlanFixtures {
 
     public static PlanEntity aPlanEntityV4() {
         return PlanModelFixtures.aPlanEntityV4();
+    }
+
+    public static NativePlanEntity aNativePlanEntityV4() {
+        return PlanModelFixtures.aNativePlanEntityV4();
     }
 
     public static io.gravitee.rest.api.model.PlanEntity aPlanEntityV2() {

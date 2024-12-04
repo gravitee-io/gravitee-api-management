@@ -215,6 +215,40 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        public void should_return_list_if_no_params_specified_native_v4() {
+            var plan1 = PlanFixtures.aNativePlanEntityV4().toBuilder().id("plan-1").order(3).build();
+            var plan2 = PlanFixtures.aNativePlanEntityV4().toBuilder().id("plan-3").order(1).build();
+
+            var planQuery = PlanQuery.builder().apiId(API).securityType(new ArrayList<>()).status(List.of(PlanStatus.PUBLISHED)).build();
+            when(planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true)))
+                .thenReturn(List.of(plan1, plan2));
+
+            final Response response = target.request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(PlansResponse.class)
+                .isEqualTo(
+                    PlansResponse
+                        .builder()
+                        .pagination(Pagination.builder().page(1).perPage(10).pageItemsCount(2).totalCount(2L).pageCount(1).build())
+                        .data(
+                            Stream
+                                .of(plan2, plan1)
+                                .map(PlanMapper.INSTANCE::map)
+                                .map(p -> {
+                                    var plan = new Plan();
+                                    plan.setActualInstance(p);
+                                    return plan;
+                                })
+                                .toList()
+                        )
+                        .links(Links.builder().self(target.getUri().toString()).build())
+                        .build()
+                );
+        }
+
+        @Test
         public void should_return_list_with_params_specified_v2() {
             io.gravitee.rest.api.model.PlanEntity plan1 = PlanFixtures
                 .aPlanEntityV2()
@@ -708,6 +742,16 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         @Test
         public void should_return_v4_plan() {
             final PlanEntity planEntity = PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).apiId(API).build();
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
+
+            final Response response = target.request().get();
+
+            assertThat(response).hasStatus(OK_200).asEntity(PlanV4.class).isEqualTo(PlanMapper.INSTANCE.map(planEntity));
+        }
+
+        @Test
+        public void should_return_native_v4_plan() {
+            var planEntity = PlanFixtures.aNativePlanEntityV4().toBuilder().id(PLAN).apiId(API).build();
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
 
             final Response response = target.request().get();
