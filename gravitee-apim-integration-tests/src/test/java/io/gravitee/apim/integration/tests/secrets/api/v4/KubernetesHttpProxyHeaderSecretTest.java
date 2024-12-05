@@ -1,7 +1,9 @@
 package io.gravitee.apim.integration.tests.secrets.api.v4;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -118,7 +120,6 @@ public class KubernetesHttpProxyHeaderSecretTest {
 
     @Nested
     @GatewayTest
-    @DeployApi("/apis/v4/http/secrets/api-static-ref.json")
     class StaticSecretRef extends AbstractKubernetesApiTest {
 
         private final String apiKey = UUID.randomUUID().toString();
@@ -129,7 +130,27 @@ public class KubernetesHttpProxyHeaderSecretTest {
         }
 
         @Test
-        void should_call_api_with_k8s_api_key(HttpClient httpClient) {
+        @DeployApi("/apis/v4/http/secrets/api-static-ref.json")
+        void should_call_api_with_k8s_api_key_from_static_ref(HttpClient httpClient) {
+            callAndAssert(httpClient);
+        }
+
+        /*
+        @Test
+        @DeployApi("/apis/v4/http/secrets/api-el-key-ref.json")
+        void should_call_api_with_k8s_api_key_from_static_ref_and_el_key(HttpClient httpClient) {
+            callAndAssert(httpClient);
+        }
+
+        @Test
+        @DeployApi("/apis/v4/http/secrets/api-el-ref.json")
+        void should_call_api_with_k8s_api_key_el_ref(HttpClient httpClient) {
+            callAndAssert(httpClient);
+        }
+*/
+        private void callAndAssert(HttpClient httpClient) {
+            wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
+
             httpClient
                 .rxRequest(HttpMethod.GET, "/test")
                 .flatMap(HttpClientRequest::rxSend)
@@ -142,7 +163,7 @@ public class KubernetesHttpProxyHeaderSecretTest {
                 .awaitDone(10, TimeUnit.SECONDS)
                 .assertComplete();
 
-            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/test")).withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
+            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")).withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
         }
     }
 }
