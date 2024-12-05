@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.3.0...1.4.0) (2024-12-05)
+
+
+### Features
+
+* create shared BulkProcessor for reporting ([887c294](https://github.com/gravitee-io/gravitee-reporter-common/commit/887c2943ca585c780f5888b4013788150bc0eb76))
+
 # [1.3.0](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.2.2...1.3.0) (2024-07-10)
 
 
