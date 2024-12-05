@@ -311,6 +311,37 @@ class CreatePlanUseCaseTest {
             .hasMessage("Native APIs cannot have more than one flow");
     }
 
+    @Test
+    void should_throw_when_creating_mtls_plan_for_native_api() {
+        // Given
+        var api = givenExistingApi(ApiFixtures.aNativeApi());
+        var mtlsPlan = PlanFixtures.HttpV4.anMtlsPlan().toBuilder().id(null).build();
+        var input = new Input(api.getId(), _api -> mtlsPlan, EMPTY_FLOW_PROVIDER, AUDIT_INFO);
+
+        // When
+        var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
+
+        // Then
+        Assertions.assertThat(throwable).isInstanceOf(UnauthorizedPlanSecurityTypeException.class);
+    }
+
+    @Test
+    void should_throw_when_creating_push_plan_for_native_api() {
+        // Given
+        var api = givenExistingApi(ApiFixtures.aNativeApi());
+        var pushPlan = PlanFixtures.HttpV4.aPushPlan().toBuilder().id(null).build();
+        var input = new Input(api.getId(), _api -> pushPlan, EMPTY_FLOW_PROVIDER, AUDIT_INFO);
+
+        // When
+        var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
+
+        // Then
+        Assertions
+            .assertThat(throwable)
+            .isInstanceOf(PlanInvalidException.class)
+            .hasMessage("Plan mode 'Push' is forbidden for Native APIs");
+    }
+
     private Api givenExistingApi(Api api) {
         apiCrudService.initWith(List.of(api));
         return api;

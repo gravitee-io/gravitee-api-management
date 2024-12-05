@@ -85,7 +85,7 @@ public class CreatePlanDomainService {
             );
         }
 
-        planValidatorDomainService.validatePlanSecurity(plan, auditInfo.organizationId(), auditInfo.environmentId());
+        planValidatorDomainService.validatePlanSecurity(plan, auditInfo.organizationId(), auditInfo.environmentId(), api.getType());
         planValidatorDomainService.validatePlanTagsAgainstApiTags(plan.getTags(), api.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(plan);
 

@@ -105,7 +105,7 @@ public class UpdatePlanDomainService {
             throw new ValidationDomainException("Invalid status for plan '" + planToUpdate.getName() + "'");
         }
 
-        planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId());
+        planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), api.getType());
         planValidatorDomainService.validatePlanTagsAgainstApiTags(planToUpdate.getPlanDefinitionV4().getTags(), api.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
 

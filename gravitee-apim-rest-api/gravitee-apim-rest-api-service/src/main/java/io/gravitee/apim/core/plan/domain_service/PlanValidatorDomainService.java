@@ -27,6 +27,7 @@ import io.gravitee.apim.core.plan.exception.PlanInvalidException;
 import io.gravitee.apim.core.plan.exception.UnauthorizedPlanSecurityTypeException;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -56,7 +57,7 @@ public class PlanValidatorDomainService {
         this.pageCrudService = pageCrudService;
     }
 
-    public void validatePlanSecurity(Plan plan, String currentOrganizationId, String currentEnvironmentId) {
+    public void validatePlanSecurity(Plan plan, String currentOrganizationId, String currentEnvironmentId, ApiType apiType) {
         var planMode = plan.getPlanMode();
         var security = plan.getPlanSecurity();
         if (planMode.equals(PlanMode.STANDARD)) {
@@ -67,8 +68,14 @@ public class PlanValidatorDomainService {
             policyValidationDomainService.validateAndSanitizeConfiguration(security.getType(), security.getConfiguration());
         }
 
-        if (planMode.equals(PlanMode.PUSH) && security != null) {
-            throw new PlanInvalidException("Security type is forbidden for plan with 'Push' mode");
+        if (planMode.equals(PlanMode.PUSH)) {
+            if (security != null) {
+                throw new PlanInvalidException("Security type is forbidden for plan with 'Push' mode");
+            }
+
+            if (ApiType.NATIVE.equals(apiType)) {
+                throw new PlanInvalidException("Plan mode 'Push' is forbidden for Native APIs");
+            }
         }
     }
 
@@ -123,6 +130,14 @@ public class PlanValidatorDomainService {
                 PlanSecurityType.KEY_LESS.getLabel().equals(planSecurity.getType()) ||
                 PlanSecurityType.MTLS.getLabel().equals(planSecurity.getType())
             )
+        ) {
+            throw new UnauthorizedPlanSecurityTypeException(planSecurity.getType());
+        }
+
+        if (
+            listenerTypes.contains(ListenerType.KAFKA) &&
+            planSecurity != null &&
+            PlanSecurityType.MTLS.getLabel().equals(planSecurity.getType())
         ) {
             throw new UnauthorizedPlanSecurityTypeException(planSecurity.getType());
         }

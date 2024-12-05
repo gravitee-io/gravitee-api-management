@@ -81,6 +81,7 @@ public class PlanFixtures {
                 .id("apikey")
                 .name("API Key")
                 .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4())
+                .apiType(ApiType.MESSAGE)
                 .build();
         }
 
@@ -90,6 +91,7 @@ public class PlanFixtures {
                 .id("push")
                 .name("Push Plan")
                 .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.aPushPlan())
+                .apiType(ApiType.MESSAGE)
                 .build();
         }
 
@@ -100,6 +102,7 @@ public class PlanFixtures {
                 .name("mTLS Plan")
                 .definitionVersion(DefinitionVersion.V4)
                 .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.anMtlsPlanV4())
+                .apiType(ApiType.PROXY)
                 .build();
         }
     }
