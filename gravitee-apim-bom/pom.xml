@@ -204,6 +204,14 @@
             </dependency>
 
             <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
                 <groupId>io.gravitee.plugin</groupId>
                 <artifactId>gravitee-plugin</artifactId>
                 <version>${gravitee-plugin.version}</version>
@@ -612,14 +620,6 @@
                 <groupId>org.javassist</groupId>
                 <artifactId>javassist</artifactId>
                 <version>${javassist.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.testcontainers</groupId>
-                <artifactId>testcontainers-bom</artifactId>
-                <version>${testcontainers.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
             </dependency>
 
             <dependency>
