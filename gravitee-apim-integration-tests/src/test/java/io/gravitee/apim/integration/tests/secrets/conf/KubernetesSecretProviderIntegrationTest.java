@@ -28,6 +28,7 @@ import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuil
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.secrets.SecretProviderBuilder;
+import io.gravitee.apim.integration.tests.secrets.KubernetesHelper;
 import io.gravitee.node.container.spring.env.GraviteeYamlPropertySource;
 import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
@@ -301,7 +302,7 @@ class KubernetesSecretProviderIntegrationTest {
 
         @Override
         protected void configureHttpClient(HttpClientOptions options) {
-            options.setSsl(true).setVerifyHost(false).setPemTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)));
+            options.setSsl(true).setVerifyHost(false).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)));
         }
 
         @Override
@@ -328,6 +329,51 @@ class KubernetesSecretProviderIntegrationTest {
 
     @Nested
     @GatewayTest
+    class TLSWithDefaultKeyMapAndLateSecretArrival extends AbstractKubernetesTest {
+
+        @Override
+        boolean useSystemProperties() {
+            return true;
+        }
+
+        @Override
+        void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
+            configurationBuilder
+                .httpSecured(true)
+                .httpSslKeystoreType("pem")
+                .httpSslSecret("secret://kubernetes/tls-test?resolveBeforeWatch=false");
+        }
+
+        @Override
+        protected void configureHttpClient(HttpClientOptions options) {
+            options.setSsl(true).setVerifyHost(false).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)));
+        }
+
+        @Override
+        public void createSecrets() throws IOException, InterruptedException {
+            KubernetesHelper.createSecret(k3sServer, "default", "tls-test", Map.of("tls.crt", CERT, "tls.key", KEY), true);
+        }
+
+        @Test
+        void should_be_able_to_call_on_https(HttpClient httpClient) {
+            httpClient
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .doOnError(Throwable::printStackTrace)
+                .retry(10) // retry several time so the watch returns something
+                .flatMap(response -> {
+                    // just asserting we get a response (hence no SSL errors), no need for an API.
+                    assertThat(response.statusCode()).isEqualTo(404);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete();
+        }
+    }
+
+    @Nested
+    @GatewayTest
     class TLSWithCustomKeyMapAndNamespace extends AbstractKubernetesTest {
 
         @Override
@@ -340,7 +386,7 @@ class KubernetesSecretProviderIntegrationTest {
 
         @Override
         protected void configureHttpClient(HttpClientOptions options) {
-            options.setSsl(true).setVerifyHost(false).setPemTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)));
+            options.setSsl(true).setVerifyHost(false).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)));
         }
 
         @Override
@@ -467,7 +513,7 @@ class KubernetesSecretProviderIntegrationTest {
 
         @Override
         protected void configureHttpClient(HttpClientOptions options) {
-            options.setSsl(true).setVerifyHost(false).setPemTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)));
+            options.setSsl(true).setVerifyHost(false).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)));
         }
 
         @Override
@@ -511,7 +557,7 @@ class KubernetesSecretProviderIntegrationTest {
                         .setDefaultHost("localhost")
                         .setSsl(true)
                         .setVerifyHost(false)
-                        .setPemTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)))
+                        .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)))
                 );
 
             await()
