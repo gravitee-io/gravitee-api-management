@@ -16,6 +16,7 @@
 package io.gravitee.apim.gateway.tests.sdk.plugin;
 
 import io.gravitee.apim.plugin.reactor.ReactorPlugin;
+import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import io.gravitee.plugin.connector.ConnectorPlugin;
@@ -187,4 +188,20 @@ public interface PluginRegister {
     ) throws Exception {
         Objects.requireNonNull(secretProviderPlugins);
     }
+
+    /**
+     * Override this method to register a service plugin to be used by the gateway.
+     * For example:
+     * <pre>
+     *    {@code
+     *     @Override
+     *     public void configureServices(Set<Class<AbstractService<?>>> services)  {
+     *         super.configureServices(services);
+     *         services.add(new MyService());
+     *     }
+     *     }
+     * </pre>
+     * @param services is the map containing resvices to deploy
+     */
+    default void configureServices(Set<Class<? extends AbstractService<?>>> services) {}
 }

@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.integration.tests.secrets.conf;
+package io.gravitee.apim.integration.tests.secrets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.time.Duration;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.images.builder.Transferable;
@@ -36,7 +38,7 @@ public class KubernetesHelper {
 
     public static final DockerImageName K3S_SERVER_DOCKER_IMAGE = DockerImageName.parse("rancher/k3s:v1.28.1-k3s1");
 
-    static K3sContainer getK3sServer() {
+    public static K3sContainer getK3sServer() {
         K3sContainer k3sContainer = new K3sContainer(K3S_SERVER_DOCKER_IMAGE);
         String k3sHost = k3sContainer.getHost();
 
@@ -46,18 +48,18 @@ public class KubernetesHelper {
             .waitingFor(Wait.forLogMessage(".*Node controller sync successful.*", 1).withStartupTimeout(Duration.ofMinutes(2)));
     }
 
-    static void createNamespace(K3sContainer k3sContainer, String name) throws IOException, InterruptedException {
+    public static void createNamespace(K3sContainer k3sContainer, String name) throws IOException, InterruptedException {
         Container.ExecResult execResult = k3sContainer.execInContainer("kubectl", "create", "namespace", name);
         assertThat(execResult.getExitCode()).isZero();
         assertThat(execResult.getStdout()).contains("namespace/%s created".formatted(name));
     }
 
-    static void createSecret(K3sContainer k3sContainer, String namespace, String name, Map<String, String> data)
+    public static void createSecret(K3sContainer k3sContainer, String namespace, String name, Map<String, String> data)
         throws IOException, InterruptedException {
         createSecret(k3sContainer, namespace, name, data, false);
     }
 
-    static void createSecret(K3sContainer k3sContainer, String namespace, String name, Map<String, String> data, boolean isTLS)
+    public static void createSecret(K3sContainer k3sContainer, String namespace, String name, Map<String, String> data, boolean isTLS)
         throws IOException, InterruptedException {
         List<String> args = new ArrayList<>(List.of("kubectl", "create", "secret", isTLS ? "tls" : "generic", name, "-n", namespace));
         if (isTLS) {
