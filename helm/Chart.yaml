@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.4.15
-appVersion: 4.4.15
+version: 4.4.16
+appVersion: 4.4.16
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -23,14 +23,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: |
-    - kind: fixed
-      description: 'allow users to overwrite the Elasticsearch or Opensearch rollover alias property name'
-      links:
-        - name: Github Issue
-          url: https://github.com/gravitee-io/issues/issues/10100
-    - kind: fixed
-      description: 'allow users to limit documentation content size in audit page when importing an API'
-      links:
-        - name: Github Issue
-          url: https://github.com/gravitee-io/issues/issues/10117
+  artifacthub.io/changes: 
