@@ -1,3 +1,10 @@
+# [5.6.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.5.1...5.6.0) (2024-12-05)
+
+
+### Features
+
+* use new common BulkProcessor ([91e8587](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/91e8587f0b2bf3ad54f54ab127b6920561c5bcbd))
+
 ## [5.5.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.5.0...5.5.1) (2024-11-25)
 
 
