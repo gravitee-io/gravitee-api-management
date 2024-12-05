@@ -23,6 +23,7 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DESCRIPTION;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DESCRIPTION_LOWERCASE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DESCRIPTION_SPLIT;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_HOSTS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ID;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_LABELS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_LABELS_LOWERCASE;
@@ -243,6 +244,55 @@ public class IndexableApiDocumentTransformerTest {
                 .assertThat(result.getFields(FIELD_CATEGORIES_SPLIT))
                 .extracting(IndexableField::stringValue)
                 .contains("Category1", "Category2");
+        });
+    }
+
+    @Test
+    void should_transform_a_native_api() {
+        // Given
+        var indexable = new IndexableApi(
+            ApiFixtures.aNativeApi().toBuilder().id(API_ID).description("A Description").labels(List.of("Label1, Label2")).build(),
+            PRIMARY_OWNER,
+            Map.of(),
+            Set.of("Category1", "Category2")
+        );
+
+        // When
+        var result = cut.transform(indexable);
+
+        // Then
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result.getField(FIELD_ID).stringValue()).isEqualTo(API_ID);
+            softly.assertThat(result.getField(FIELD_TYPE).stringValue()).isEqualTo("api");
+            softly.assertThat(result.getField(FIELD_DEFINITION_VERSION).stringValue()).isEqualTo("4.0.0");
+            softly.assertThat(result.getField(FIELD_REFERENCE_TYPE).stringValue()).isEqualTo("ENVIRONMENT");
+            softly.assertThat(result.getField(FIELD_REFERENCE_ID).stringValue()).isEqualTo("environment-id");
+            // Name
+            softly.assertThat(result.getField(FIELD_NAME).stringValue()).isEqualTo("My Api");
+            softly.assertThat(result.getField(FIELD_NAME_LOWERCASE).stringValue()).isEqualTo("my api");
+            softly.assertThat(result.getField(FIELD_NAME_SPLIT).stringValue()).isEqualTo("My Api");
+            // Description
+            softly.assertThat(result.getField(FIELD_DESCRIPTION).stringValue()).isEqualTo("A Description");
+            softly.assertThat(result.getField(FIELD_DESCRIPTION_LOWERCASE).stringValue()).isEqualTo("a description");
+            softly.assertThat(result.getField(FIELD_DESCRIPTION_SPLIT).stringValue()).isEqualTo("A Description");
+            // Primary Owner
+            softly.assertThat(result.getField(FIELD_OWNER).stringValue()).isEqualTo("John Doe");
+            softly.assertThat(result.getField(FIELD_OWNER_LOWERCASE).stringValue()).isEqualTo("john doe");
+            softly.assertThat(result.getField(FIELD_OWNER_MAIL).stringValue()).isEqualTo("john.doe@gravitee.io");
+            // Labels
+            softly.assertThat(result.getField(FIELD_LABELS).stringValue()).isEqualTo("Label1, Label2");
+            softly.assertThat(result.getField(FIELD_LABELS_LOWERCASE).stringValue()).isEqualTo("label1, label2");
+            softly.assertThat(result.getField(FIELD_LABELS_SPLIT).stringValue()).isEqualTo("Label1, Label2");
+            // Categories
+            softly
+                .assertThat(result.getFields(FIELD_CATEGORIES))
+                .extracting(IndexableField::stringValue)
+                .contains("Category1", "Category2");
+            softly
+                .assertThat(result.getFields(FIELD_CATEGORIES_SPLIT))
+                .extracting(IndexableField::stringValue)
+                .contains("Category1", "Category2");
+            softly.assertThat(result.getFields(FIELD_HOSTS)).extracting(IndexableField::stringValue).contains("native.kafka");
         });
     }
 }
