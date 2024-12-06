@@ -97,7 +97,7 @@ public class CockpitAccessServiceImpl implements CockpitAccessService {
     }
 
     private void validateHost(String value) {
-        String toValidate = value.replaceAll("[{}]", "").replaceAll(":\\d*", "");
+        String toValidate = value.replaceAll("[{}]", "").replaceAll(":\\d*", "").replaceAll("/.*", "");
         if (!isValidDomainName(toValidate)) {
             throw new InvalidAccessPointException("Installation access point '%s' is malformed.".formatted(value));
         }
