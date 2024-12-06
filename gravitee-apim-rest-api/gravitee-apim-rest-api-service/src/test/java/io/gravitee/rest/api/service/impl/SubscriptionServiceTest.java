@@ -64,6 +64,7 @@ import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.ApiKey;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.ApiKeyEntity;
@@ -1703,7 +1704,9 @@ public class SubscriptionServiceTest {
         assertFalse(metadata.toMap().isEmpty());
 
         assertNotNull(metadata);
-        Mockito.verify(applicationService, times(1)).findByIds(eq(GraviteeContext.getExecutionContext()), eq(Set.of(APPLICATION_ID)));
+        Mockito
+            .verify(applicationService, times(1))
+            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(Set.of(APPLICATION_ID)), ApplicationStatus.ACTIVE);
         Mockito
             .verify(apiSearchService, times(1))
             .findGenericByEnvironmentAndIdIn(eq(GraviteeContext.getExecutionContext()), eq(Set.of(API_ID)));
@@ -1730,7 +1733,9 @@ public class SubscriptionServiceTest {
         Metadata metadata = subscriptionService.getMetadata(GraviteeContext.getExecutionContext(), query);
 
         assertNotNull(metadata);
-        Mockito.verify(applicationService, times(0)).findByIds(eq(GraviteeContext.getExecutionContext()), eq(Set.of(APPLICATION_ID)));
+        Mockito
+            .verify(applicationService, times(0))
+            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(Set.of(APPLICATION_ID)), ApplicationStatus.ACTIVE);
         Mockito
             .verify(apiSearchService, times(0))
             .findGenericByEnvironmentAndIdIn(eq(GraviteeContext.getExecutionContext()), eq(Set.of(API_ID)));
@@ -1759,7 +1764,9 @@ public class SubscriptionServiceTest {
         assertFalse(metadata.toMap().isEmpty());
 
         assertNotNull(metadata);
-        Mockito.verify(applicationService, times(0)).findByIds(eq(GraviteeContext.getExecutionContext()), eq(Set.of(APPLICATION_ID)));
+        Mockito
+            .verify(applicationService, times(0))
+            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(Set.of(APPLICATION_ID)), ApplicationStatus.ACTIVE);
         Mockito
             .verify(apiSearchService, times(1))
             .findGenericByEnvironmentAndIdIn(eq(GraviteeContext.getExecutionContext()), eq(Set.of(API_ID)));
