@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.*;
@@ -322,7 +323,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
 
         // get all indirect members
         List<String> applicationsGroups = applicationService
-            .findByIds(context, applicationIds)
+            .findByIdsAndStatus(context, applicationIds, ApplicationStatus.ACTIVE)
             .stream()
             .filter(application -> application.getGroups() != null)
             .flatMap((ApplicationListItem applicationListItem) -> applicationListItem.getGroups().stream())
