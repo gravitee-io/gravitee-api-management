@@ -34,6 +34,8 @@ import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.json.JsonDiffProcessor;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
@@ -46,6 +48,7 @@ import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService
 import io.gravitee.apim.infra.domain_service.plan.PlanSynchronizationLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
@@ -56,8 +59,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -67,6 +73,10 @@ class UpdatePlanUseCaseTest {
 
     public static final String API_ID = "api-id";
     public static final String PLAN_ID = "plan-id";
+    public static final String DEPRECATED_PLAN_ID = "deprecated-plan-id";
+    public static final String DEPRECATED_PLAN_API_ID = "deprecated-plan-api-id";
+    public static final String STAGING_PLAN_ID = "staging-plan-id";
+    public static final String STAGING_PLAN_API_ID = "staging-plan-api-id";
     private final ObjectMapper objectMapper = new ObjectMapper();
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
@@ -105,23 +115,37 @@ class UpdatePlanUseCaseTest {
 
     UpdatePlanUseCase updatePlanUseCase = new UpdatePlanUseCase(updatePlanDomainService, planCrudService, apiCrudService);
 
-    @ParameterizedTest
-    @MethodSource("minMaxPlans")
-    void should_update_plan(UpdatePlanEntity updatePlan) {
-        // Given
+    @BeforeEach
+    void setUp() {
         var plan = PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_ID).apiId(API_ID).order(1).build();
-        var anotherPlan = plan.toBuilder().id("another-plan-id").order(2).build();
-        List<Plan> allPlans = List.of(plan, anotherPlan);
+        var anotherPlan = PlanFixtures.aPlanHttpV4().toBuilder().id("another-plan-id").apiId(API_ID).order(2).build();
+        var deprecatedPlan = PlanFixtures.aPlanHttpV4().toBuilder().id(DEPRECATED_PLAN_ID).apiId(DEPRECATED_PLAN_API_ID).order(1).build();
+        deprecatedPlan.getPlanDefinitionV4().setStatus(PlanStatus.DEPRECATED);
+        var stagingPlan = PlanFixtures.aPlanHttpV4().toBuilder().id(STAGING_PLAN_ID).apiId(STAGING_PLAN_API_ID).order(1).build();
+        stagingPlan.getPlanDefinitionV4().setStatus(PlanStatus.STAGING);
+        List<Plan> allPlans = List.of(plan, anotherPlan, deprecatedPlan, stagingPlan);
         planCrudService.initWith(allPlans);
         planQueryService.initWith(allPlans);
-        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build()));
+        apiCrudService.initWith(
+            List.of(
+                ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build(),
+                ApiFixtures.aProxyApiV4().toBuilder().id(DEPRECATED_PLAN_API_ID).build(),
+                ApiFixtures.aProxyApiV4().toBuilder().id(STAGING_PLAN_API_ID).build()
+            )
+        );
+
         parametersQueryService.initWith(
             List.of(
                 Parameter.builder().key(Key.PLAN_SECURITY_KEYLESS_ENABLED.key()).value("true").build(),
                 Parameter.builder().key(Key.PLAN_SECURITY_APIKEY_ENABLED.key()).value("true").build()
             )
         );
+    }
 
+    @ParameterizedTest
+    @MethodSource("minMaxPlans")
+    void should_update_plan(UpdatePlanEntity updatePlan) {
+        // Given
         var input = new UpdatePlanUseCase.Input(
             updatePlan,
             _api -> Collections.singletonList(FlowFixtures.aProxyFlowV4()),
@@ -168,6 +192,104 @@ class UpdatePlanUseCaseTest {
                 updatePlan.getTags(),
                 updatePlan.getSelectionRule()
             );
+    }
+
+    @Nested
+    class GeneralConditionsPage {
+
+        @Test
+        void should_update_with_published_page() {
+            // Given
+            var page = Page.builder().id("page-id").published(true).build();
+            pageCrudService.initWith(List.of(page));
+
+            var input = new UpdatePlanUseCase.Input(
+                planMinimal().toBuilder().generalConditions("page-id").build(),
+                _api -> Collections.singletonList(FlowFixtures.aProxyFlowV4()),
+                API_ID,
+                new AuditInfo("user-id", "user-name", AuditActor.builder().build())
+            );
+
+            // When
+            var output = updatePlanUseCase.execute(input);
+
+            // Then
+            assertThat(output)
+                .isNotNull()
+                .extracting(UpdatePlanUseCase.Output::updated)
+                .extracting(PlanWithFlows::getId, PlanWithFlows::getGeneralConditions)
+                .containsExactly(PLAN_ID, "page-id");
+        }
+
+        @Test
+        void should_update_staging_plan_with_unpublished_page() {
+            // Given
+            var page = Page.builder().id("page-id").published(false).build();
+            pageCrudService.initWith(List.of(page));
+
+            var input = new UpdatePlanUseCase.Input(
+                planMinimal().toBuilder().id(STAGING_PLAN_ID).generalConditions("page-id").build(),
+                _api -> Collections.singletonList(FlowFixtures.aProxyFlowV4()),
+                STAGING_PLAN_API_ID,
+                new AuditInfo("user-id", "user-name", AuditActor.builder().build())
+            );
+
+            // When
+            var output = updatePlanUseCase.execute(input);
+
+            // Then
+            assertThat(output)
+                .isNotNull()
+                .extracting(UpdatePlanUseCase.Output::updated)
+                .extracting(PlanWithFlows::getId, PlanWithFlows::getGeneralConditions)
+                .containsExactly(STAGING_PLAN_ID, "page-id");
+        }
+
+        @Test
+        void should_reject_with_unpublished_page_and_published_plan() {
+            // Given
+            var page = Page.builder().id("page-id").published(false).build();
+            pageCrudService.initWith(List.of(page));
+
+            var input = new UpdatePlanUseCase.Input(
+                planMinimal().toBuilder().generalConditions("page-id").build(),
+                _api -> Collections.singletonList(FlowFixtures.aProxyFlowV4()),
+                API_ID,
+                new AuditInfo("user-id", "user-name", AuditActor.builder().build())
+            );
+
+            // When
+            var exception = org.junit.jupiter.api.Assertions.assertThrows(
+                ValidationDomainException.class,
+                () -> updatePlanUseCase.execute(input)
+            );
+
+            // Then
+            assertThat(exception).hasMessage("Plan references a non published page as general conditions");
+        }
+
+        @Test
+        void should_reject_with_unpublished_page_and_deprecated_plan() {
+            // Given
+            var page = Page.builder().id("page-id").published(false).build();
+            pageCrudService.initWith(List.of(page));
+
+            var input = new UpdatePlanUseCase.Input(
+                planMinimal().toBuilder().id(DEPRECATED_PLAN_ID).generalConditions("page-id").build(),
+                _api -> Collections.singletonList(FlowFixtures.aProxyFlowV4()),
+                DEPRECATED_PLAN_API_ID,
+                new AuditInfo("user-id", "user-name", AuditActor.builder().build())
+            );
+
+            // When
+            var exception = org.junit.jupiter.api.Assertions.assertThrows(
+                ValidationDomainException.class,
+                () -> updatePlanUseCase.execute(input)
+            );
+
+            // Then
+            assertThat(exception).hasMessage("Plan references a non published page as general conditions");
+        }
     }
 
     static Stream<Arguments> minMaxPlans() {
