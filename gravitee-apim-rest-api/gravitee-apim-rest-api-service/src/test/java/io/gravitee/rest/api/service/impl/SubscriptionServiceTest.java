@@ -1674,7 +1674,7 @@ public class SubscriptionServiceTest {
         assertNotNull(metadata);
         Mockito
             .verify(applicationService, times(1))
-            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(Set.of(APPLICATION_ID)), ApplicationStatus.ACTIVE);
+            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(Set.of(APPLICATION_ID)), eq(ApplicationStatus.ACTIVE));
         Mockito
             .verify(apiSearchService, times(1))
             .findGenericByEnvironmentAndIdIn(eq(GraviteeContext.getExecutionContext()), eq(Set.of(API_ID)));
@@ -1703,7 +1703,7 @@ public class SubscriptionServiceTest {
         assertNotNull(metadata);
         Mockito
             .verify(applicationService, times(0))
-            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(Set.of(APPLICATION_ID)), ApplicationStatus.ACTIVE);
+            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(Set.of(APPLICATION_ID)), eq(ApplicationStatus.ACTIVE));
         Mockito
             .verify(apiSearchService, times(0))
             .findGenericByEnvironmentAndIdIn(eq(GraviteeContext.getExecutionContext()), eq(Set.of(API_ID)));
@@ -1734,7 +1734,7 @@ public class SubscriptionServiceTest {
         assertNotNull(metadata);
         Mockito
             .verify(applicationService, times(0))
-            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(Set.of(APPLICATION_ID)), ApplicationStatus.ACTIVE);
+            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(Set.of(APPLICATION_ID)), eq(ApplicationStatus.ACTIVE));
         Mockito
             .verify(apiSearchService, times(1))
             .findGenericByEnvironmentAndIdIn(eq(GraviteeContext.getExecutionContext()), eq(Set.of(API_ID)));
