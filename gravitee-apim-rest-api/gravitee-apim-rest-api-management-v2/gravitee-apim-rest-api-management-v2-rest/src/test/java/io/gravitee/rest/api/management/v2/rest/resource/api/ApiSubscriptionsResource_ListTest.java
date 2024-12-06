@@ -33,7 +33,6 @@ import fixtures.ApplicationFixtures;
 import fixtures.PlanFixtures;
 import fixtures.SubscriptionFixtures;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
@@ -212,10 +211,9 @@ public class ApiSubscriptionsResource_ListTest extends AbstractApiSubscriptionsR
                 )
             );
         when(
-            applicationService.findByIdsAndStatus(
+            applicationService.findByIds(
                 eq(GraviteeContext.getExecutionContext()),
-                argThat(argument -> List.of("application-1", "application-2").containsAll(argument)),
-                ApplicationStatus.ACTIVE
+                argThat(argument -> List.of("application-1", "application-2").containsAll(argument))
             )
         )
             .thenReturn(

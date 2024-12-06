@@ -73,14 +73,14 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
             .findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any());
         doReturn(new HashSet<>(Arrays.asList(applicationA, applicationB)))
             .when(applicationService)
-            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(Arrays.asList("A", "B")), ApplicationStatus.ACTIVE);
+            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(Arrays.asList("A", "B")), eq(ApplicationStatus.ACTIVE));
         doReturn(new HashSet<>(Arrays.asList(applicationB, applicationA)))
             .when(applicationService)
-            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(Arrays.asList("B", "A")), ApplicationStatus.ACTIVE);
+            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(Arrays.asList("B", "A")), eq(ApplicationStatus.ACTIVE));
 
         doReturn(new HashSet<>(Arrays.asList(applicationB)))
             .when(applicationService)
-            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(List.of("B")), ApplicationStatus.ACTIVE);
+            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(List.of("B")), eq(ApplicationStatus.ACTIVE));
 
         doReturn(new Application().id("A").name("A"))
             .when(applicationMapper)
@@ -149,7 +149,11 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
             .findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(sort));
         doReturn(mockApplications)
             .when(applicationService)
-            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(Arrays.asList("A", "B", "C", "D")), ApplicationStatus.ACTIVE);
+            .findByIdsAndStatus(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Arrays.asList("A", "B", "C", "D")),
+                eq(ApplicationStatus.ACTIVE)
+            );
 
         doReturn(new Application().id("A").name("A"))
             .when(applicationMapper)
