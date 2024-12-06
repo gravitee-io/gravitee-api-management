@@ -21,7 +21,6 @@ import static java.util.stream.Collectors.groupingBy;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.api.search.Order;
-import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
@@ -243,11 +242,7 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
             return Collections.emptyList();
         }
 
-        Set<ApplicationListItem> applicationListItems = applicationService.findByIdsAndStatus(
-            executionContext,
-            pageContent,
-            ApplicationStatus.ACTIVE
-        );
+        Set<ApplicationListItem> applicationListItems = applicationService.findByIds(executionContext, pageContent);
         Comparator<String> orderingComparator = Comparator.comparingInt(pageContent::indexOf);
 
         return applicationListItems

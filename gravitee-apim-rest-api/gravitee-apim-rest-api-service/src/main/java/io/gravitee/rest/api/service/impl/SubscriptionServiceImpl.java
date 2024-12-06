@@ -1595,11 +1595,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             .map(withApplications -> {
                 Set<String> appIds = subscriptions.stream().map(SubscriptionEntity::getApplication).collect(toSet());
                 return applicationService
-                    .findByIdsAndStatus(
-                        new ExecutionContext(query.getOrganization(), query.getEnvironment()),
-                        appIds,
-                        ApplicationStatus.ACTIVE
-                    )
+                    .findByIds(new ExecutionContext(query.getOrganization(), query.getEnvironment()), appIds)
                     .stream()
                     .collect(toMap(ApplicationListItem::getId, Function.identity()));
             });
