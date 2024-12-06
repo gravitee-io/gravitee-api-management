@@ -43,8 +43,6 @@ import java.util.Set;
 public interface ApplicationService {
     ApplicationEntity findById(final ExecutionContext executionContext, String applicationId);
 
-    Set<ApplicationListItem> findByIds(final ExecutionContext executionContext, Collection<String> applicationIds);
-
     Set<ApplicationListItem> findByIdsAndStatus(
         final ExecutionContext executionContext,
         Collection<String> applicationIds,
