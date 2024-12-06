@@ -28,7 +28,7 @@ import io.gravitee.alert.api.trigger.Dampening;
 import io.gravitee.alert.api.trigger.Trigger;
 import io.gravitee.common.event.Event;
 import io.gravitee.notifier.api.Notification;
-import io.gravitee.repository.management.api.AlertTriggerRepository;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
@@ -51,7 +51,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -320,7 +319,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
 
         // get recipients for each application
         final Map<String, List<String>> recipientsByApplicationId = applicationService
-            .findByIds(executionContext, new ArrayList<>(applicationIds))
+            .findByIdsAndStatus(executionContext, new ArrayList<>(applicationIds), ApplicationStatus.ACTIVE)
             .stream()
             .collect(
                 Collectors.toMap(
