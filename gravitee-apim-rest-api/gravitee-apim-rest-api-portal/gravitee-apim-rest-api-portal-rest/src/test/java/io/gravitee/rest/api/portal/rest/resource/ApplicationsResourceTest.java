@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
@@ -72,14 +73,14 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
             .findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any());
         doReturn(new HashSet<>(Arrays.asList(applicationA, applicationB)))
             .when(applicationService)
-            .findByIds(eq(GraviteeContext.getExecutionContext()), eq(Arrays.asList("A", "B")));
+            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(Arrays.asList("A", "B")), ApplicationStatus.ACTIVE);
         doReturn(new HashSet<>(Arrays.asList(applicationB, applicationA)))
             .when(applicationService)
-            .findByIds(eq(GraviteeContext.getExecutionContext()), eq(Arrays.asList("B", "A")));
+            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(Arrays.asList("B", "A")), ApplicationStatus.ACTIVE);
 
         doReturn(new HashSet<>(Arrays.asList(applicationB)))
             .when(applicationService)
-            .findByIds(eq(GraviteeContext.getExecutionContext()), eq(List.of("B")));
+            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(List.of("B")), ApplicationStatus.ACTIVE);
 
         doReturn(new Application().id("A").name("A"))
             .when(applicationMapper)
@@ -148,7 +149,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
             .findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(sort));
         doReturn(mockApplications)
             .when(applicationService)
-            .findByIds(eq(GraviteeContext.getExecutionContext()), eq(Arrays.asList("A", "B", "C", "D")));
+            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(Arrays.asList("A", "B", "C", "D")), ApplicationStatus.ACTIVE);
 
         doReturn(new Application().id("A").name("A"))
             .when(applicationMapper)
