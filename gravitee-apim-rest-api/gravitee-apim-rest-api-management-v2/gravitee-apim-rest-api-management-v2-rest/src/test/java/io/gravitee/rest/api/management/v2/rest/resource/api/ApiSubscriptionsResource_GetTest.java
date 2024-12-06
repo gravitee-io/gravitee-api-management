@@ -31,6 +31,7 @@ import fixtures.ApplicationFixtures;
 import fixtures.PlanFixtures;
 import fixtures.SubscriptionFixtures;
 import fixtures.UserFixtures;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.Subscription;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -139,9 +140,10 @@ public class ApiSubscriptionsResource_GetTest extends ApiSubscriptionsResourceTe
             .thenReturn(Set.of(PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).build()));
 
         when(
-            applicationService.findByIds(
+            applicationService.findByIdsAndStatus(
                 eq(GraviteeContext.getExecutionContext()),
-                argThat(argument -> List.of(APPLICATION).containsAll(argument))
+                argThat(argument -> List.of(APPLICATION).containsAll(argument)),
+                ApplicationStatus.ACTIVE
             )
         )
             .thenReturn(Set.of(ApplicationFixtures.anApplicationListItem().toBuilder().id(APPLICATION).build()));
