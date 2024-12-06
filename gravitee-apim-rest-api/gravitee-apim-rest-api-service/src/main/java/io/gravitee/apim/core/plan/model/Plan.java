@@ -194,6 +194,22 @@ public class Plan implements GenericPlanEntity {
         return this;
     }
 
+    public Set<String> getPlanTags() {
+        return switch (definitionVersion) {
+            case V4 -> getPlanDefinitionV4().getTags();
+            case V1, V2 -> planDefinitionV2.getTags();
+            case FEDERATED -> Set.of();
+        };
+    }
+
+    public String getSelectionRule() {
+        return switch (definitionVersion) {
+            case V4 -> getPlanDefinitionV4().getSelectionRule();
+            case V1, V2 -> planDefinitionV2.getSelectionRule();
+            case FEDERATED -> "";
+        };
+    }
+
     @Override
     public io.gravitee.rest.api.model.v4.plan.PlanValidationType getPlanValidation() {
         return io.gravitee.rest.api.model.v4.plan.PlanValidationType.valueOf(validation.name());

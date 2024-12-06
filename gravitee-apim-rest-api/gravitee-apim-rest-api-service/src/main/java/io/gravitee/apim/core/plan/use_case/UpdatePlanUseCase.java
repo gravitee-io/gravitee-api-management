@@ -74,6 +74,7 @@ public class UpdatePlanUseCase {
             .generalConditions(updatePlan.getGeneralConditions())
             .excludedGroups(updatePlan.getExcludedGroups())
             .characteristics(updatePlan.getCharacteristics())
+            .order(updatePlan.getOrder())
             .build();
 
         newPlan.setPlanTags(updatePlan.getTags());
@@ -81,7 +82,9 @@ public class UpdatePlanUseCase {
         planDefinitionV4.setSelectionRule(updatePlan.getSelectionRule());
         planDefinitionV4.setSecurity(updatePlan.getSecurity());
 
-        if (Objects.equals(newPlan.getPlanSecurity().getType(), PlanSecurityType.KEY_LESS.getLabel())) {
+        if (
+            newPlan.getPlanSecurity() != null && Objects.equals(newPlan.getPlanSecurity().getType(), PlanSecurityType.KEY_LESS.getLabel())
+        ) {
             newPlan.setValidation(Plan.PlanValidationType.AUTO);
         } else {
             newPlan.setValidation(Plan.PlanValidationType.valueOf(updatePlan.getValidation().name()));
