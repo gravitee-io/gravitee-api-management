@@ -140,10 +140,9 @@ public class ApiSubscriptionsResource_GetTest extends ApiSubscriptionsResourceTe
             .thenReturn(Set.of(PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).build()));
 
         when(
-            applicationService.findByIdsAndStatus(
+            applicationService.findByIds(
                 eq(GraviteeContext.getExecutionContext()),
-                argThat(argument -> List.of(APPLICATION).containsAll(argument)),
-                ApplicationStatus.ACTIVE
+                argThat(argument -> List.of(APPLICATION).containsAll(argument))
             )
         )
             .thenReturn(Set.of(ApplicationFixtures.anApplicationListItem().toBuilder().id(APPLICATION).build()));

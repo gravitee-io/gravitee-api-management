@@ -212,10 +212,9 @@ public class ApiSubscriptionsResource_ListTest extends ApiSubscriptionsResourceT
                 )
             );
         when(
-            applicationService.findByIdsAndStatus(
+            applicationService.findByIds(
                 eq(GraviteeContext.getExecutionContext()),
-                argThat(argument -> List.of("application-1", "application-2").containsAll(argument)),
-                ApplicationStatus.ACTIVE
+                argThat(argument -> List.of("application-1", "application-2").containsAll(argument))
             )
         )
             .thenReturn(

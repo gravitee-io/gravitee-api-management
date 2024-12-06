@@ -497,7 +497,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
                 .map(subscription -> (subscription.getApplication()).getId())
                 .collect(Collectors.toSet());
             final Collection<BaseApplication> applications = applicationMapper.mapToBaseApplicationList(
-                applicationService.findByIdsAndStatus(executionContext, applicationIds, ApplicationStatus.ACTIVE)
+                applicationService.findByIds(executionContext, applicationIds)
             );
             applications.forEach(application ->
                 subscriptions
