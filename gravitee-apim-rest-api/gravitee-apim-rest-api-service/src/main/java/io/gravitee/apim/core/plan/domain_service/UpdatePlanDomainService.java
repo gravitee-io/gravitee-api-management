@@ -30,7 +30,9 @@ import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.Date;
 import java.util.List;
@@ -68,7 +70,13 @@ public class UpdatePlanDomainService {
         this.reorderPlanDomainService = reorderPlanDomainService;
     }
 
-    public Plan update(Plan planToUpdate, List<Flow> flows, Map<String, PlanStatus> existingPlanStatuses, Api api, AuditInfo auditInfo) {
+    public Plan update(
+        Plan planToUpdate,
+        List<? extends AbstractFlow> flows,
+        Map<String, PlanStatus> existingPlanStatuses,
+        Api api,
+        AuditInfo auditInfo
+    ) {
         return switch (planToUpdate.getDefinitionVersion()) {
             case V4 -> {
                 if (existingPlanStatuses == null) {
@@ -92,7 +100,7 @@ public class UpdatePlanDomainService {
      */
     private Plan updateV4ApiPlan(
         Plan planToUpdate,
-        List<Flow> flows,
+        List<? extends AbstractFlow> flows,
         Map<String, PlanStatus> existingPlanStatuses,
         Api api,
         AuditInfo auditInfo
@@ -109,16 +117,27 @@ public class UpdatePlanDomainService {
         planValidatorDomainService.validatePlanTagsAgainstApiTags(planToUpdate.getPlanDefinitionV4().getTags(), api.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
 
-        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows);
-        flowValidationDomainService.validatePathParameters(
-            api.getType(),
-            api.getApiDefinitionHttpV4().getFlows().stream(),
-            sanitizedFlows.stream()
-        );
+        List<? extends AbstractFlow> sanitizedFlows;
+
+        if (api.isNative()) {
+            sanitizedFlows = flowValidationDomainService.validateAndSanitizeNativeV4((List<NativeFlow>) flows);
+        } else {
+            sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), (List<Flow>) flows);
+            flowValidationDomainService.validatePathParameters(
+                api.getType(),
+                api.getApiDefinitionHttpV4().getFlows().stream(),
+                ((List<Flow>) sanitizedFlows).stream()
+            );
+        }
 
         var existingPlan = planCrudService.getById(planToUpdate.getId());
         var toUpdate = existingPlan.update(planToUpdate);
-        if (!planSynchronizationService.checkSynchronized(existingPlan, List.of(), toUpdate, sanitizedFlows)) {
+
+        boolean isInSync = api.isNative()
+            ? planSynchronizationService.checkSynchronizedNative(existingPlan, List.of(), toUpdate, (List<NativeFlow>) sanitizedFlows)
+            : planSynchronizationService.checkSynchronized(existingPlan, List.of(), toUpdate, (List<Flow>) sanitizedFlows);
+
+        if (!isInSync) {
             toUpdate.setNeedRedeployAt(Date.from(toUpdate.getUpdatedAt().toInstant()));
         }
 
@@ -129,7 +148,11 @@ public class UpdatePlanDomainService {
             updated = planCrudService.update(toUpdate);
         }
 
-        flowCrudService.savePlanFlows(updated.getId(), sanitizedFlows);
+        if (api.isNative()) {
+            flowCrudService.saveNativePlanFlows(updated.getId(), (List<NativeFlow>) sanitizedFlows);
+        } else {
+            flowCrudService.savePlanFlows(updated.getId(), (List<Flow>) sanitizedFlows);
+        }
         createAuditLog(existingPlan, updated, auditInfo);
 
         return updated;

@@ -64,6 +64,7 @@ import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDo
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
+import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
@@ -645,5 +646,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService() {
         return mock(ApplicationPrimaryOwnerDomainService.class);
+    }
+
+    @Bean
+    public UpdatePlanDomainService updatePlanDomainService() {
+        return mock(UpdatePlanDomainService.class);
     }
 }

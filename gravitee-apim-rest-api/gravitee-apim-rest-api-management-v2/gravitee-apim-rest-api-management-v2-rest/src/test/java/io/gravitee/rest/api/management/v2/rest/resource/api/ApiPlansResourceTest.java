@@ -35,8 +35,10 @@ import static org.mockito.Mockito.when;
 
 import fixtures.PlanFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.PlanCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.common.http.HttpMethod;
@@ -66,7 +68,6 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
-import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
@@ -106,6 +107,12 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
     @Autowired
     private SubscriptionQueryServiceInMemory subscriptionQueryService;
 
+    @Autowired
+    private UpdatePlanDomainService updatePlanDomainService;
+
+    @Autowired
+    private PlanCrudServiceInMemory planCrudServiceInMemory;
+
     WebTarget target;
 
     @Override
@@ -132,7 +139,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        Mockito.reset(planServiceV4, planServiceV2, apiSearchServiceV4, planSearchService);
+        Mockito.reset(planServiceV4, planServiceV2, apiSearchServiceV4, planSearchService, updatePlanDomainService);
     }
 
     @Nested
@@ -831,28 +838,19 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_update_v4_plan() {
+            planCrudServiceInMemory.initWith(
+                List.of(fixtures.core.model.PlanFixtures.aPlanHttpV4().toBuilder().apiId(API).id(PLAN).build())
+            );
+            apiCrudServiceInMemory.initWith(List.of(fixtures.core.model.ApiFixtures.aProxyApiV4().toBuilder().id(API).build()));
+
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN))
                 .thenReturn(PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).apiId(API).build());
-            when(planServiceV4.update(eq(GraviteeContext.getExecutionContext()), any(UpdatePlanEntity.class)))
+            when(updatePlanDomainService.update(any(), any(), any(), any(), any()))
                 .thenAnswer(invocation -> {
-                    final UpdatePlanEntity updated = invocation.getArgument(1);
-                    return PlanEntity
-                        .builder()
-                        .id(updated.getId())
-                        .crossId(updated.getCrossId())
-                        .name(updated.getName())
-                        .description(updated.getDescription())
-                        .validation(updated.getValidation())
-                        .characteristics(updated.getCharacteristics())
-                        .order(updated.getOrder())
-                        .excludedGroups(updated.getExcludedGroups())
-                        .security(updated.getSecurity())
-                        .commentRequired(updated.isCommentRequired())
-                        .commentMessage(updated.getCommentMessage())
-                        .tags(updated.getTags())
-                        .selectionRule(updated.getSelectionRule())
-                        .flows(updated.getFlows())
-                        .build();
+                    io.gravitee.apim.core.plan.model.Plan updated = invocation.getArgument(0);
+                    updated.setUpdatedAt(null);
+                    updated.setCreatedAt(null);
+                    return updated;
                 });
 
             final UpdatePlanV4 updatePlanV4 = PlanFixtures.anUpdatePlanV4();
@@ -865,6 +863,11 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                     PlanV4
                         .builder()
                         .id(PLAN)
+                        .apiId(API)
+                        .status(io.gravitee.rest.api.management.v2.rest.model.PlanStatus.PUBLISHED)
+                        .type(io.gravitee.rest.api.management.v2.rest.model.PlanType.API)
+                        .generalConditions("General conditions")
+                        .mode(PlanMode.STANDARD)
                         .definitionVersion(DefinitionVersion.V4)
                         .name(updatePlanV4.getName())
                         .crossId(updatePlanV4.getCrossId())

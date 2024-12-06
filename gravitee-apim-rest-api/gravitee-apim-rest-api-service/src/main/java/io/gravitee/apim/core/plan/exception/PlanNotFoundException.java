@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.plan.domain_service;
+package io.gravitee.apim.core.plan.exception;
 
-import io.gravitee.apim.core.plan.model.Plan;
-import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
-import java.util.List;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 
-public interface PlanSynchronizationService {
-    boolean checkSynchronized(Plan oldPlan, List<Flow> oldFlows, Plan newPlan, List<Flow> newFlows);
+public class PlanNotFoundException extends ValidationDomainException {
 
-    boolean checkSynchronizedNative(Plan oldPlan, List<NativeFlow> of, Plan newPlan, List<NativeFlow> newFlows);
+    public PlanNotFoundException(String planId) {
+        super("Plan [" + planId + "] can not be found");
+    }
 }
