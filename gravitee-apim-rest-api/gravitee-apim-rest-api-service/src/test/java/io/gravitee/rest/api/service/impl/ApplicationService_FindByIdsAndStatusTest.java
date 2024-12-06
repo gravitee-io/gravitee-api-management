@@ -53,7 +53,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ApplicationService_FindByIdsTest {
+public class ApplicationService_FindByIdsAndStatusTest {
 
     private static final List<String> APPLICATION_IDS = Arrays.asList("id-app-1", "id-app-2");
 
@@ -114,7 +114,7 @@ public class ApplicationService_FindByIdsTest {
     }
 
     @Test
-    public void shouldFindByIds() throws TechnicalException {
+    public void shouldFindByIdsAndStatus() throws TechnicalException {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         ApplicationCriteria criteria = new ApplicationCriteria.Builder()
             .ids(Sets.newHashSet(APPLICATION_IDS))
@@ -124,14 +124,18 @@ public class ApplicationService_FindByIdsTest {
         doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
         doReturn(2).when(primaryOwners).size();
 
-        final Set<ApplicationListItem> applications = applicationService.findByIds(executionContext, APPLICATION_IDS);
+        final Set<ApplicationListItem> applications = applicationService.findByIdsAndStatus(
+            executionContext,
+            APPLICATION_IDS,
+            ApplicationStatus.ACTIVE
+        );
 
         assertNotNull(applications);
         assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
     }
 
     @Test
-    public void shouldFindByIdsWithDuplicatedIds() throws TechnicalException {
+    public void shouldFindByIdsAndStatusWithDuplicatedIdsAndStatus() throws TechnicalException {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         ApplicationCriteria criteria = new ApplicationCriteria.Builder()
             .ids(Sets.newHashSet(APPLICATION_IDS))
@@ -142,9 +146,10 @@ public class ApplicationService_FindByIdsTest {
         doReturn(new Page<>(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
         doReturn(2).when(primaryOwners).size();
 
-        final Set<ApplicationListItem> applications = applicationService.findByIds(
+        final Set<ApplicationListItem> applications = applicationService.findByIdsAndStatus(
             executionContext,
-            List.of("id-app-1", "id-app-1", "id-app-2")
+            List.of("id-app-1", "id-app-1", "id-app-2"),
+            ApplicationStatus.ACTIVE
         );
 
         assertNotNull(applications);
@@ -152,7 +157,7 @@ public class ApplicationService_FindByIdsTest {
     }
 
     @Test
-    public void shouldFindByIdsWithNoEnvironmentCriteria() throws TechnicalException {
+    public void shouldFindByIdsAndStatusWithNoEnvironmentCriteria() throws TechnicalException {
         ExecutionContext executionContext = new ExecutionContext("DEFAULT", null);
         ApplicationCriteria criteria = new ApplicationCriteria.Builder()
             .ids(Sets.newHashSet(APPLICATION_IDS))
@@ -161,17 +166,25 @@ public class ApplicationService_FindByIdsTest {
         doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
         doReturn(2).when(primaryOwners).size();
 
-        final Set<ApplicationListItem> applications = applicationService.findByIds(executionContext, APPLICATION_IDS);
+        final Set<ApplicationListItem> applications = applicationService.findByIdsAndStatus(
+            executionContext,
+            APPLICATION_IDS,
+            ApplicationStatus.ACTIVE
+        );
 
         assertNotNull(applications);
         assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
     }
 
     @Test
-    public void shouldFindByIdsWithEmptySet() throws TechnicalException {
+    public void shouldFindByIdsAndStatusWithEmptySet() throws TechnicalException {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
-        final Set<ApplicationListItem> applications = applicationService.findByIds(executionContext, Collections.emptySet());
+        final Set<ApplicationListItem> applications = applicationService.findByIdsAndStatus(
+            executionContext,
+            Collections.emptySet(),
+            ApplicationStatus.ACTIVE
+        );
 
         assertNotNull(applications);
         assertTrue(applications.isEmpty());
@@ -188,7 +201,11 @@ public class ApplicationService_FindByIdsTest {
             .build();
         doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
 
-        final Set<ApplicationListItem> applications = applicationService.findByIds(GraviteeContext.getExecutionContext(), APPLICATION_IDS);
+        final Set<ApplicationListItem> applications = applicationService.findByIdsAndStatus(
+            GraviteeContext.getExecutionContext(),
+            APPLICATION_IDS,
+            ApplicationStatus.ACTIVE
+        );
 
         assertNotNull(applications);
         assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
@@ -197,6 +214,6 @@ public class ApplicationService_FindByIdsTest {
     @Test(expected = TechnicalManagementException.class)
     public void shouldThrowTechnicalManagementException() throws TechnicalException {
         when(applicationRepository.search(any(), any())).thenThrow(new TechnicalException());
-        applicationService.findByIds(GraviteeContext.getExecutionContext(), APPLICATION_IDS);
+        applicationService.findByIdsAndStatus(GraviteeContext.getExecutionContext(), APPLICATION_IDS, ApplicationStatus.ACTIVE);
     }
 }

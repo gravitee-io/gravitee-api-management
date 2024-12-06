@@ -249,7 +249,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationListItem> findByIds(final ExecutionContext executionContext, Collection<String> applicationIds) {
+    public Set<ApplicationListItem> findByIdsAndStatus(
+        final ExecutionContext executionContext,
+        Collection<String> applicationIds,
+        ApplicationStatus applicationStatus
+    ) {
         try {
             LOGGER.debug("Find application by IDs: {}", applicationIds);
 
