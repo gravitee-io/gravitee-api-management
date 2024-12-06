@@ -16,6 +16,9 @@
 package io.gravitee.apim.core.plan.use_case;
 
 import static assertions.CoreAssertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fakes.FakePolicyValidationDomainService;
@@ -44,7 +47,6 @@ import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
-import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.infra.domain_service.plan.PlanSynchronizationLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -53,6 +55,7 @@ import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import java.util.Collections;
 import java.util.List;
@@ -81,7 +84,7 @@ class UpdatePlanUseCaseTest {
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
-    PolicyValidationDomainService policyValidationDomainService = new FakePolicyValidationDomainService();
+    FakePolicyValidationDomainService policyValidationDomainService = mock(FakePolicyValidationDomainService.class);
     EntrypointPluginQueryServiceInMemory entrypointConnectorPluginService = new EntrypointPluginQueryServiceInMemory();
     FlowValidationDomainService flowValidationDomainService = new FlowValidationDomainService(
         policyValidationDomainService,
@@ -194,6 +197,45 @@ class UpdatePlanUseCaseTest {
             );
     }
 
+    @Test
+    void should_reject_when_tag_mismatch() {
+        // Given
+        var input = new UpdatePlanUseCase.Input(
+            planMinimal().toBuilder().tags(Set.of("tag2", "tag3")).build(),
+            _api -> Collections.singletonList(FlowFixtures.aProxyFlowV4()),
+            API_ID,
+            new AuditInfo("user-id", "user-name", AuditActor.builder().build())
+        );
+
+        // When
+        var exception = org.junit.jupiter.api.Assertions.assertThrows(
+            ValidationDomainException.class,
+            () -> updatePlanUseCase.execute(input)
+        );
+
+        // Then
+        assertThat(exception).hasMessage("Plan tags mismatch the tags defined by the API");
+    }
+
+    @Test
+    void should_reject_with_invalid_security() {
+        // Given
+        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
+            .thenThrow(new InvalidDataException("Invalid configuration for policy " + "api-key"));
+        var input = new UpdatePlanUseCase.Input(
+            planMinimal().toBuilder().security(PlanSecurity.builder().type("api-key").build()).build(),
+            _api -> Collections.singletonList(FlowFixtures.aProxyFlowV4()),
+            API_ID,
+            new AuditInfo("user-id", "user-name", AuditActor.builder().build())
+        );
+
+        // When
+        var exception = org.junit.jupiter.api.Assertions.assertThrows(InvalidDataException.class, () -> updatePlanUseCase.execute(input));
+
+        // Then
+        assertThat(exception).hasMessage("Invalid configuration for policy api-key");
+    }
+
     @Nested
     class GeneralConditionsPage {
 
@@ -298,6 +340,8 @@ class UpdatePlanUseCaseTest {
         @Test
         void should_update_with_flow() {
             // Given
+            when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(1));
             var input = new UpdatePlanUseCase.Input(
                 planMinimal(),
                 _api -> Collections.singletonList(FlowFixtures.aProxyFlowV4()),
