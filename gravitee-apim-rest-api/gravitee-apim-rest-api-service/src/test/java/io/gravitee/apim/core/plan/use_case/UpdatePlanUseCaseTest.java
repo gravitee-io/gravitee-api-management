@@ -292,6 +292,52 @@ class UpdatePlanUseCaseTest {
         }
     }
 
+    @Nested
+    class Flows {
+
+        @Test
+        void should_update_with_flow() {
+            // Given
+            var input = new UpdatePlanUseCase.Input(
+                planMinimal(),
+                _api -> Collections.singletonList(FlowFixtures.aProxyFlowV4()),
+                API_ID,
+                new AuditInfo("user-id", "user-name", AuditActor.builder().build())
+            );
+
+            // When
+            var output = updatePlanUseCase.execute(input);
+
+            // Then
+            assertThat(output)
+                .isNotNull()
+                .extracting(UpdatePlanUseCase.Output::updated)
+                .extracting(PlanWithFlows::getId, PlanWithFlows::getFlows)
+                .containsExactly(PLAN_ID, List.of(FlowFixtures.aProxyFlowV4()));
+        }
+
+        @Test
+        void should_update_without_flows() {
+            // Given
+            var input = new UpdatePlanUseCase.Input(
+                planMinimal(),
+                _api -> Collections.emptyList(),
+                API_ID,
+                new AuditInfo("user-id", "user-name", AuditActor.builder().build())
+            );
+
+            // When
+            var output = updatePlanUseCase.execute(input);
+
+            // Then
+            assertThat(output)
+                .isNotNull()
+                .extracting(UpdatePlanUseCase.Output::updated)
+                .extracting(PlanWithFlows::getId, PlanWithFlows::getFlows)
+                .containsExactly(PLAN_ID, Collections.emptyList());
+        }
+    }
+
     static Stream<Arguments> minMaxPlans() {
         var minPlan = planMinimal();
 
