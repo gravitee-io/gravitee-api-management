@@ -19,7 +19,6 @@ import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.ACCEPTED_202;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.mockito.ArgumentMatchers.eq;
 
 import assertions.MAPIAssertions;
 import fixtures.core.model.ApiFixtures;
@@ -34,6 +33,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiScoringAsset;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringAssetType;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringDiagnostic;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringDiagnosticRange;
+import io.gravitee.rest.api.management.v2.rest.model.ApiScoringError;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringPosition;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringSeverity;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringSummary;
@@ -131,7 +131,7 @@ public class ApiScoringResourceTest extends ApiResourceTest {
         }
 
         @Test
-        void should_return_200_response() {
+        void should_return_200_response_with_diagnostics_asset() {
             apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).build()));
             pageCrudService.initWith(List.of(PageFixtures.aPage().toBuilder().referenceId(API).build()));
             scoringReportQueryService.initWith(List.of(ScoringReportFixture.aScoringReport().toBuilder().apiId(API).build()));
@@ -171,8 +171,54 @@ public class ApiScoringResourceTest extends ApiResourceTest {
                                                 .build()
                                         )
                                     )
+                                    .errors(List.of())
                                     .build(),
-                                ApiScoringAsset.builder().type(ApiScoringAssetType.GRAVITEE_DEFINITION).diagnostics(List.of()).build()
+                                ApiScoringAsset
+                                    .builder()
+                                    .type(ApiScoringAssetType.GRAVITEE_DEFINITION)
+                                    .diagnostics(List.of())
+                                    .errors(List.of())
+                                    .build()
+                            )
+                        )
+                        .build()
+                );
+        }
+
+        @Test
+        void should_return_200_response_with_errors_asset() {
+            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).build()));
+            pageCrudService.initWith(List.of(PageFixtures.aPage().toBuilder().referenceId(API).build()));
+            scoringReportQueryService.initWith(List.of(ScoringReportFixture.anErrorAssertScoringReport().toBuilder().apiId(API).build()));
+
+            final Response response = latestReportTarget.request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiScoring.class)
+                .isEqualTo(
+                    ApiScoring
+                        .builder()
+                        .summary(ApiScoringSummary.builder().score(0.9).all(1).errors(0).hints(0).infos(0).warnings(1).build())
+                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
+                        .assets(
+                            List.of(
+                                ApiScoringAsset
+                                    .builder()
+                                    .name("parent")
+                                    .type(ApiScoringAssetType.SWAGGER)
+                                    .diagnostics(List.of())
+                                    .errors(
+                                        List.of(
+                                            ApiScoringError
+                                                .builder()
+                                                .code("some-error-code")
+                                                .path(List.of("path", "to", "the", "property"))
+                                                .build()
+                                        )
+                                    )
+                                    .build()
                             )
                         )
                         .build()

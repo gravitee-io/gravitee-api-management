@@ -88,9 +88,10 @@ public class ScoringReportQueryServiceImplTest {
                                         "Operation must have \"operationId\".",
                                         "paths./echo.options"
                                     )
-                                )
+                                ),
+                                List.of()
                             ),
-                            new ScoringReport.Asset("asset2", ScoringAssetType.GRAVITEE_DEFINITION, List.of())
+                            new ScoringReport.Asset("asset2", ScoringAssetType.GRAVITEE_DEFINITION, List.of(), List.of())
                         )
                     )
                 );
@@ -245,9 +246,10 @@ public class ScoringReportQueryServiceImplTest {
                                 "Operation must have \"operationId\".",
                                 "paths./echo.options"
                             )
-                        )
+                        ),
+                        List.of()
                     ),
-                    new io.gravitee.repository.management.model.ScoringReport.Asset("asset2", "GRAVITEE_DEFINITION", List.of())
+                    new io.gravitee.repository.management.model.ScoringReport.Asset("asset2", "GRAVITEE_DEFINITION", List.of(), List.of())
                 )
             )
             .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
