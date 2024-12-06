@@ -23,6 +23,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.management.v2.rest.mapper.*;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
@@ -496,7 +497,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
                 .map(subscription -> (subscription.getApplication()).getId())
                 .collect(Collectors.toSet());
             final Collection<BaseApplication> applications = applicationMapper.mapToBaseApplicationList(
-                applicationService.findByIds(executionContext, applicationIds)
+                applicationService.findByIdsAndStatus(executionContext, applicationIds, ApplicationStatus.ACTIVE)
             );
             applications.forEach(application ->
                 subscriptions
