@@ -93,6 +93,7 @@ public class ApiKeyServiceTest {
     private static final String API_KEY = "ef02ecd0-71bb-11e5-9d70-feff819cdc9f";
     private static final String SUBSCRIPTION_ID = "subscription-1";
     private static final String CUSTOM_API_KEY = "an-api-key";
+    private static final String ENVIRONMENT_ID = "DEFAULT";
 
     @InjectMocks
     private ApiKeyService apiKeyService = new ApiKeyServiceImpl();
@@ -258,7 +259,7 @@ public class ApiKeyServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotGenerateBecauseTechnicalException() throws TechnicalException {
-        when(apiKeyRepository.findByKey(any())).thenThrow(TechnicalManagementException.class);
+        when(apiKeyRepository.findByKeyAndEnvironmentId(any(), any())).thenThrow(TechnicalManagementException.class);
         apiKeyService.generate(GraviteeContext.getExecutionContext(), application, subscription, "a-custom-key");
     }
 
@@ -285,7 +286,7 @@ public class ApiKeyServiceTest {
         application.setId(APPLICATION_ID);
 
         when(subscriptionService.findByIdIn(List.of(conflictingSubscription.getId()))).thenReturn(Set.of(conflictingSubscription));
-        when(apiKeyRepository.findByKey("alreadyExistingApiKey")).thenReturn(List.of(conflictingKey));
+        when(apiKeyRepository.findByKeyAndEnvironmentId("alreadyExistingApiKey", ENVIRONMENT_ID)).thenReturn(List.of(conflictingKey));
         when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), anyString())).thenReturn(application);
 
         apiKeyService.generate(GraviteeContext.getExecutionContext(), application, subscription, "alreadyExistingApiKey");
@@ -625,7 +626,7 @@ public class ApiKeyServiceTest {
         plan.setSecurity(PlanSecurityType.API_KEY);
 
         when(applicationService.findById(any(), eq(conflictingApplicationId))).thenReturn(conflictingApplication);
-        when(apiKeyRepository.findByKey("alreadyExistingApiKey")).thenReturn(List.of(conflictingKey));
+        when(apiKeyRepository.findByKeyAndEnvironmentId("alreadyExistingApiKey", ENVIRONMENT_ID)).thenReturn(List.of(conflictingKey));
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(plan);
 
         apiKeyService.renew(GraviteeContext.getExecutionContext(), subscription, "alreadyExistingApiKey");
@@ -819,7 +820,7 @@ public class ApiKeyServiceTest {
         subscriptionQuery.setApi(apiId);
         subscriptionQuery.setApplication(applicationId);
 
-        when(apiKeyRepository.findByKey(apiKeyToCreate)).thenReturn(Collections.emptyList());
+        when(apiKeyRepository.findByKeyAndEnvironmentId(apiKeyToCreate, ENVIRONMENT_ID)).thenReturn(Collections.emptyList());
 
         boolean canCreate = apiKeyService.canCreate(GraviteeContext.getExecutionContext(), apiKeyToCreate, apiId, applicationId);
 
@@ -847,7 +848,7 @@ public class ApiKeyServiceTest {
 
         when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(applicationId))).thenReturn(application);
         when(subscriptionService.findByIdIn(List.of("subscription-1"))).thenReturn(Set.of(subscriptionEntity));
-        when(apiKeyRepository.findByKey(apiKeyToCreate)).thenReturn(List.of(existingApiKey));
+        when(apiKeyRepository.findByKeyAndEnvironmentId(apiKeyToCreate, ENVIRONMENT_ID)).thenReturn(List.of(existingApiKey));
 
         boolean canCreate = apiKeyService.canCreate(GraviteeContext.getExecutionContext(), apiKeyToCreate, apiId, applicationId);
 
@@ -876,7 +877,7 @@ public class ApiKeyServiceTest {
         existingApiKey.setApplication(applicationId);
         existingApiKey.setKey(apiKeyToCreate);
 
-        when(apiKeyRepository.findByKey(apiKeyToCreate)).thenReturn(List.of(existingApiKey));
+        when(apiKeyRepository.findByKeyAndEnvironmentId(apiKeyToCreate, ENVIRONMENT_ID)).thenReturn(List.of(existingApiKey));
         when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(applicationId))).thenReturn(application);
         when(subscriptionService.findByIdIn(argThat(subscriptionIds::containsAll))).thenReturn(subscriptions);
 
@@ -910,7 +911,7 @@ public class ApiKeyServiceTest {
         when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(conflictingApplicationId)))
             .thenReturn(conflictingApplication);
         when(subscriptionService.findByIdIn(argThat(subscriptionIds::containsAll))).thenReturn(Set.of(subscriptionEntity));
-        when(apiKeyRepository.findByKey(apiKeyToCreate)).thenReturn(List.of(existingApiKey));
+        when(apiKeyRepository.findByKeyAndEnvironmentId(apiKeyToCreate, ENVIRONMENT_ID)).thenReturn(List.of(existingApiKey));
 
         boolean canCreate = apiKeyService.canCreate(GraviteeContext.getExecutionContext(), apiKeyToCreate, apiId, applicationId);
 
@@ -922,7 +923,7 @@ public class ApiKeyServiceTest {
         String apiKeyToCreate = "apikey-i-want-to-create";
         String apiId = "my-api-id";
         String applicationId = "my-application-id";
-        when(apiKeyRepository.findByKey(apiKeyToCreate)).thenThrow(TechnicalManagementException.class);
+        when(apiKeyRepository.findByKeyAndEnvironmentId(apiKeyToCreate, ENVIRONMENT_ID)).thenThrow(TechnicalManagementException.class);
         apiKeyService.canCreate(GraviteeContext.getExecutionContext(), apiKeyToCreate, apiId, applicationId);
     }
 

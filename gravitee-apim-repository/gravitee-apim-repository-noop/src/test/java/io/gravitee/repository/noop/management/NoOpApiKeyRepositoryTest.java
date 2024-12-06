@@ -54,6 +54,14 @@ public class NoOpApiKeyRepositoryTest extends AbstractNoOpRepositoryTest {
     }
 
     @Test
+    public void findByKeyAndEnvironmentId() throws TechnicalException {
+        List<ApiKey> apiKeys = cut.findByKeyAndEnvironmentId("test_key", "environment_id");
+
+        assertNotNull(apiKeys);
+        assertEquals(0, apiKeys.size());
+    }
+
+    @Test
     public void findByKeyAndApi() throws TechnicalException {
         Optional<ApiKey> apiKey = cut.findByKeyAndApi("test_id", "test_key");
         assertTrue(apiKey.isEmpty());
