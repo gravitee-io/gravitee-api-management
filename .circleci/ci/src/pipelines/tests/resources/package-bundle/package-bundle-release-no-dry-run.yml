@@ -34,7 +34,7 @@ commands:
 jobs:
   job-package-bundle:
     docker:
-      - image: cimg/openjdk:17.0.8-node
+      - image: cimg/openjdk:21.0.5-node
     resource_class: medium
     steps:
       - keeper/env-export:
