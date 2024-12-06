@@ -50,6 +50,8 @@ public final class JdbcScoringRow {
     private String rule;
     private String message;
     private String path;
+    private String errorCode;
+    private RowType rowType;
 
     private ScoringReport.Summary summary;
 
@@ -60,5 +62,11 @@ public final class JdbcScoringRow {
         this.pageId = pageId;
         this.type = type;
         this.createdAt = createdAt;
+        this.rowType = RowType.DIAGNOSTIC;
+    }
+
+    public enum RowType {
+        ERROR,
+        DIAGNOSTIC,
     }
 }

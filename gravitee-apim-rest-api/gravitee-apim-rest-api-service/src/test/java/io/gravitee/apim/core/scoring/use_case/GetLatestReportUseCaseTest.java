@@ -73,7 +73,14 @@ class GetLatestReportUseCaseTest {
                 "Hint rule message",
                 "paths./hint"
             )
-        )
+        ),
+        List.of()
+    );
+    private static final ScoringReport.Asset VALIDATION_ERROR_ASSET = new ScoringReport.Asset(
+        PAGE_ID,
+        ScoringAssetType.ASYNCAPI,
+        List.of(),
+        List.of(new ScoringReport.ScoringError("ruleset-validation-error", List.of("path", "to", "invalid", "element")))
     );
 
     ScoringReportQueryServiceInMemory scoringReportQueryService = new ScoringReportQueryServiceInMemory();
@@ -109,7 +116,7 @@ class GetLatestReportUseCaseTest {
                     REPORT_ID,
                     API_ID,
                     CREATED_AT,
-                    List.of(new ScoringReportView.AssetView(PAGE_NAME, ASSET.type(), ASSET.diagnostics())),
+                    List.of(new ScoringReportView.AssetView(PAGE_NAME, ASSET.type(), ASSET.diagnostics(), ASSET.errors())),
                     new ScoringReportView.Summary(0.84D, 4L, 1L, 1L, 1L, 1L)
                 )
             );
@@ -143,8 +150,38 @@ class GetLatestReportUseCaseTest {
                     REPORT_ID,
                     API_ID,
                     CREATED_AT,
-                    List.of(new ScoringReportView.AssetView(null, ASSET.type(), ASSET.diagnostics())),
+                    List.of(new ScoringReportView.AssetView(null, ASSET.type(), ASSET.diagnostics(), ASSET.errors())),
                     new ScoringReportView.Summary(0.84D, 4L, 1L, 1L, 1L, 1L)
+                )
+            );
+    }
+
+    @Test
+    void should_return_report_containing_scoring_validation_errors() {
+        // Given
+        givenExistingScoringReports(aScoringErrorReport());
+
+        // When
+        var report = useCase.execute(new GetLatestReportUseCase.Input(API_ID));
+
+        // Then
+        Assertions
+            .assertThat(report)
+            .extracting(GetLatestReportUseCase.Output::report)
+            .isEqualTo(
+                new ScoringReportView(
+                    REPORT_ID,
+                    API_ID,
+                    CREATED_AT,
+                    List.of(
+                        new ScoringReportView.AssetView(
+                            null,
+                            VALIDATION_ERROR_ASSET.type(),
+                            VALIDATION_ERROR_ASSET.diagnostics(),
+                            VALIDATION_ERROR_ASSET.errors()
+                        )
+                    ),
+                    new ScoringReportView.Summary(0D, 0L, 0L, 0L, 0L)
                 )
             );
     }
@@ -158,6 +195,18 @@ class GetLatestReportUseCaseTest {
             .createdAt(CREATED_AT)
             .summary(new ScoringReport.Summary(0.84D, 1L, 1L, 1L, 1L))
             .assets(List.of(ASSET))
+            .build();
+    }
+
+    private static ScoringReport aScoringErrorReport() {
+        return ScoringReportFixture
+            .aScoringReport()
+            .toBuilder()
+            .id(REPORT_ID)
+            .apiId(API_ID)
+            .createdAt(CREATED_AT)
+            .summary(new ScoringReport.Summary(0D, 0L, 0L, 0L, 0L))
+            .assets(List.of(VALIDATION_ERROR_ASSET))
             .build();
     }
 

@@ -7260,6 +7260,10 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/ApiScoringDiagnostic"
+                errors:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ApiScoringError"
         ApiScoringAssetType:
             type: string
             description: The type of the asset.
@@ -7292,6 +7296,18 @@ components:
                     type: string
                     description: A string that indicates the location within the analyzed document where the rule was triggered. It shows the "path" in the document structure to the issue.
                     example: "paths./my-api.get"
+        ApiScoringError:
+            type: object
+            properties:
+                code:
+                    type: string
+                    description: code of the api scoring validation error
+                    example: "undefined-function"
+                path:
+                    type: array
+                    description: Path to the specific place in document where problem occurred
+                    items:
+                        type: string
         ApiScoringSeverity:
             type: string
             description: An enum representing the severity level of the rule violation.
