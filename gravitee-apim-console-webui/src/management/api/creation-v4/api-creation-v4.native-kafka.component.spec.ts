@@ -164,7 +164,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
     it('should create the API', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API name', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('KAFKA');
-      await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig(nativeKafkaEntrypoint, [], [], 'kafka-host');
+      await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig(nativeKafkaEntrypoint);
       await stepperHelper.fillAndValidateStep3_2_EndpointsConfig(nativeKafkaEndpoint);
       await stepperHelper.validateStep4_1_SecurityPlansList();
 
