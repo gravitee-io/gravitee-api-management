@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, discardPeriodicTasks, fakeAsync, TestBed } from '@angular/core/testing';
+import { ComponentFixture, discardPeriodicTasks, fakeAsync, flush, TestBed } from "@angular/core/testing";
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
@@ -162,7 +162,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
 
   describe('API Creation', () => {
     it('should create the API', fakeAsync(async () => {
-      await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
+      await stepperHelper.fillAndValidateStep1_ApiDetails('API name', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('KAFKA');
       await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig(nativeKafkaEntrypoint, [], [], 'kafka-host');
       await stepperHelper.fillAndValidateStep3_2_EndpointsConfig(nativeKafkaEndpoint);
@@ -185,6 +185,11 @@ describe('ApiCreationV4Component - Native Kafka', () => {
 
       const step4Summary = await step5Harness.getStepSummaryTextContent(4);
       expect(step4Summary).toContain('Default Keyless (UNSECURED)' + 'KEY_LESS');
+
+      await step5Harness.clickCreateMyApiButton();
+      httpExpects.expectCallsForApiCreation('api-id');
+
+      flush();
     }));
   });
 });
