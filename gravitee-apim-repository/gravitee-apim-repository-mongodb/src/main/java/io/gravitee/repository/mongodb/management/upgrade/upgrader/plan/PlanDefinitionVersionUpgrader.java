@@ -23,6 +23,8 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.dashboards.DashboardTypeUpgrader;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import org.bson.Document;
 import org.springframework.stereotype.Component;
 
@@ -32,15 +34,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class PlanDefinitionVersionUpgrader extends MongoUpgrader {
 
+    private static final int UPGRADER_BATCH_SIZE = 1000;
     public static final int PLAN_DEFINITION_VERSION_UPGRADER_ORDER = DashboardTypeUpgrader.DASHBOARD_TYPE_UPGRADER_ORDER + 1;
 
     @Override
     public String version() {
-        return "v1";
+        return "v2";
     }
 
     @Override
     public boolean upgrade() {
+        Set<Boolean> upgradeStatus = new HashSet<>();
         var query = new Document("definitionVersion", DefinitionVersion.V4.name());
         var projection = Projections.fields(Projections.include("_id", "definitionVersion"));
 
@@ -58,7 +62,13 @@ public class PlanDefinitionVersionUpgrader extends MongoUpgrader {
             });
 
         if (!bulkActions.isEmpty()) {
-            return this.getCollection("plans").bulkWrite(bulkActions).wasAcknowledged();
+            for (int i = 0; i < bulkActions.size(); i += UPGRADER_BATCH_SIZE) {
+                // Get the end index for the sublist, ensuring it doesn't go out of bounds
+                int end = Math.min(i + UPGRADER_BATCH_SIZE, bulkActions.size());
+                var batchActions = bulkActions.subList(i, end);
+                upgradeStatus.add(this.getCollection("plans").bulkWrite(batchActions).wasAcknowledged());
+            }
+            return upgradeStatus.stream().allMatch(Boolean.TRUE::equals);
         }
         return true;
     }
