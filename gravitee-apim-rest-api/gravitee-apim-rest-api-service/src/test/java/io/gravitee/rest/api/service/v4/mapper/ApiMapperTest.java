@@ -110,7 +110,11 @@ public class ApiMapperTest {
         io.gravitee.definition.model.v4.Api apiDefinition = new io.gravitee.definition.model.v4.Api();
         apiDefinition.setDefinitionVersion(DefinitionVersion.V4);
         apiDefinition.setListeners(List.of(new HttpListener()));
-        apiDefinition.setEndpointGroups(List.of(new EndpointGroup()));
+
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setType("http-proxy");
+
+        apiDefinition.setEndpointGroups(List.of(endpointGroup));
         apiDefinition.setServices(new ApiServices());
         apiDefinition.setResources(List.of(new Resource()));
         apiDefinition.setProperties(List.of(new Property("key", "value")));
@@ -493,7 +497,11 @@ public class ApiMapperTest {
         var apiDefinition = new io.gravitee.definition.model.v4.nativeapi.NativeApi();
         apiDefinition.setDefinitionVersion(DefinitionVersion.V4);
         apiDefinition.setListeners(List.of(new KafkaListener()));
-        apiDefinition.setEndpointGroups(List.of(new NativeEndpointGroup()));
+
+        NativeEndpointGroup nativeEndpointGroup = new NativeEndpointGroup();
+        nativeEndpointGroup.setType("native-kafka");
+
+        apiDefinition.setEndpointGroups(List.of(nativeEndpointGroup));
         apiDefinition.setServices(new NativeApiServices());
         apiDefinition.setResources(List.of(new Resource()));
         apiDefinition.setProperties(List.of(new Property("key", "value")));

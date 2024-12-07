@@ -15,11 +15,23 @@
  */
 package io.gravitee.definition.model.v4.listener;
 
+import static io.gravitee.definition.model.v4.listener.Listener.HTTP_LABEL;
+import static io.gravitee.definition.model.v4.listener.Listener.SUBSCRIPTION_LABEL;
+import static io.gravitee.definition.model.v4.listener.Listener.TCP_LABEL;
+import static io.gravitee.definition.model.v4.nativeapi.NativeListener.KAFKA_LABEL;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
+import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.definition.model.v4.nativeapi.NativeEntrypoint;
+import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -39,6 +51,19 @@ import lombok.experimental.SuperBuilder;
 @ToString
 @EqualsAndHashCode
 @SuperBuilder(toBuilder = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type", visible = true)
+@JsonSubTypes(
+    {
+        @JsonSubTypes.Type(value = HttpListener.class, name = "HTTP"),
+        @JsonSubTypes.Type(value = HttpListener.class, name = HTTP_LABEL),
+        @JsonSubTypes.Type(value = SubscriptionListener.class, name = "SUBSCRIPTION"),
+        @JsonSubTypes.Type(value = SubscriptionListener.class, name = SUBSCRIPTION_LABEL),
+        @JsonSubTypes.Type(value = TcpListener.class, name = "TCP"),
+        @JsonSubTypes.Type(value = TcpListener.class, name = TCP_LABEL),
+        @JsonSubTypes.Type(value = KafkaListener.class, name = "KAFKA"),
+        @JsonSubTypes.Type(value = KafkaListener.class, name = KAFKA_LABEL),
+    }
+)
 public class AbstractListener<E extends AbstractEntrypoint> implements Serializable {
 
     @JsonProperty(required = true)

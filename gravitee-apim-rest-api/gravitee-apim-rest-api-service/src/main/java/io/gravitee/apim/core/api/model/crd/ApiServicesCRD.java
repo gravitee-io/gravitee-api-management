@@ -13,28 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.v4.listener.entrypoint;
+package io.gravitee.apim.core.api.model.crd;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.v4.service.Service;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 /**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode(callSuper = true)
-@Schema(name = "EntrypointV4")
-@SuperBuilder(toBuilder = true)
-public class Entrypoint extends AbstractEntrypoint {
+public class ApiServicesCRD {
 
-    @Builder.Default
-    private Qos qos = Qos.AUTO;
-
-    private Dlq dlq;
+    @JsonProperty("dynamicProperty")
+    private Service dynamicProperty;
 }

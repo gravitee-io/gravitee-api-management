@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.model.v4.nativeapi;
 
-import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.model.DeploymentRequired;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;

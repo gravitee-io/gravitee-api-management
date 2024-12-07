@@ -22,9 +22,11 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.federation.FederatedPlan;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -71,6 +73,11 @@ public interface PlanAdapter {
     @Mapping(target = "security", source = "planSecurity")
     @Mapping(target = "mode", source = "planMode")
     PlanEntity toEntityV4(Plan plan);
+
+    @Mapping(target = "status", source = "planStatus")
+    @Mapping(target = "security", source = "planSecurity")
+    @Mapping(target = "mode", source = "planMode")
+    NativePlanEntity toNativePlanEntityV4(Plan plan);
 
     @Mapping(target = "api", source = "apiId")
     @Mapping(target = "status", source = "planStatus")

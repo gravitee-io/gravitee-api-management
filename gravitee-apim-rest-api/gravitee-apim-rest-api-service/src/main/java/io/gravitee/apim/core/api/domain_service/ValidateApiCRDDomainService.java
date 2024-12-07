@@ -55,17 +55,17 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
         var errors = new ArrayList<Error>();
         var sanitizedBuilder = input.spec().toBuilder();
 
+        if (!input.spec.isNative()) {
+            validateAndSanitizeHttpV4ForCreation(input, sanitizedBuilder, errors);
+        } else {
+            validateAndSanitizeNativeV4ForCreation(input, sanitizedBuilder, errors);
+        }
+
         categoryIdsValidator
             .validateAndSanitize(
                 new ValidateCategoryIdsDomainService.Input(input.auditInfo().environmentId(), input.spec().getCategories())
             )
             .peek(sanitized -> sanitizedBuilder.categories(sanitized.idOrKeys()), errors::addAll);
-
-        apiPathValidator
-            .validateAndSanitize(
-                new VerifyApiPathDomainService.Input(input.auditInfo.environmentId(), input.spec.getId(), input.spec.getPaths())
-            )
-            .peek(sanitized -> sanitizedBuilder.paths(sanitized.paths()), errors::addAll);
 
         membersValidator
             .validateAndSanitize(
@@ -98,4 +98,18 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
 
         return Validator.Result.ofBoth(new ValidateApiCRDDomainService.Input(input.auditInfo(), sanitizedBuilder.build()), errors);
     }
+
+    private void validateAndSanitizeHttpV4ForCreation(Input input, ApiCRDSpec.ApiCRDSpecBuilder sanitizedBuilder, ArrayList<Error> errors) {
+        apiPathValidator
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(input.auditInfo.environmentId(), input.spec.getId(), input.spec.getPaths())
+            )
+            .peek(sanitized -> sanitizedBuilder.paths(sanitized.paths()), errors::addAll);
+    }
+
+    private void validateAndSanitizeNativeV4ForCreation(
+        Input input,
+        ApiCRDSpec.ApiCRDSpecBuilder sanitizedBuilder,
+        ArrayList<Error> errors
+    ) {}
 }
