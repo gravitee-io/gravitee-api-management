@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.util.stream.Collectors.groupingBy;
 
 import io.gravitee.common.data.domain.Page;
@@ -34,6 +33,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -48,7 +48,7 @@ import org.springframework.stereotype.Repository;
 
 @Slf4j
 @Repository
-public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow> implements ScoringReportRepository {
+class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow> implements ScoringReportRepository {
 
     private final String SCORING_REPORT_SUMMARY;
 
@@ -87,7 +87,11 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
             .stream()
             .flatMap(a -> {
                 var pageId = a.pageId() == null ? "" : a.pageId();
-                if (a.diagnostics().isEmpty()) {
+                if (!a.diagnostics().isEmpty()) {
+                    return a.diagnostics().stream().map(diagnostic -> buildDiagnosticScoringRow(report, a.type(), diagnostic, pageId));
+                } else if (!a.errors().isEmpty()) {
+                    return a.errors().stream().map(error -> buildErrorScoringRow(report, a.type(), error, pageId));
+                } else {
                     return Stream.of(
                         new JdbcScoringRow(
                             report.getId(),
@@ -99,27 +103,6 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
                         )
                     );
                 }
-                return a
-                    .diagnostics()
-                    .stream()
-                    .map(d ->
-                        JdbcScoringRow
-                            .builder()
-                            .reportId(report.getId())
-                            .apiId(report.getApiId())
-                            .environmentId(report.getEnvironmentId())
-                            .pageId(pageId)
-                            .type(a.type())
-                            .severity(d.severity())
-                            .startLine(d.range().start().line())
-                            .startCharacter(d.range().start().character())
-                            .endLine(d.range().end().line())
-                            .endCharacter(d.range().end().character())
-                            .rule(d.rule())
-                            .message(d.message())
-                            .path(d.path())
-                            .build()
-                    );
             })
             .toList();
 
@@ -129,6 +112,50 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
         }
 
         return findByReportId(report.getId()).orElse(null);
+    }
+
+    private static JdbcScoringRow buildDiagnosticScoringRow(
+        ScoringReport report,
+        String assetType,
+        ScoringReport.Diagnostic diagnostic,
+        String pageId
+    ) {
+        return JdbcScoringRow
+            .builder()
+            .reportId(report.getId())
+            .apiId(report.getApiId())
+            .environmentId(report.getEnvironmentId())
+            .pageId(pageId)
+            .type(assetType)
+            .severity(diagnostic.severity())
+            .startLine(diagnostic.range().start().line())
+            .startCharacter(diagnostic.range().start().character())
+            .endLine(diagnostic.range().end().line())
+            .endCharacter(diagnostic.range().end().character())
+            .rule(diagnostic.rule())
+            .message(diagnostic.message())
+            .path(diagnostic.path())
+            .rowType(JdbcScoringRow.RowType.DIAGNOSTIC)
+            .build();
+    }
+
+    private static JdbcScoringRow buildErrorScoringRow(
+        ScoringReport report,
+        String assetType,
+        ScoringReport.ScoringError error,
+        String pageId
+    ) {
+        return JdbcScoringRow
+            .builder()
+            .reportId(report.getId())
+            .apiId(report.getApiId())
+            .environmentId(report.getEnvironmentId())
+            .pageId(pageId)
+            .type(assetType)
+            .errorCode(error.code())
+            .path(error.path().toString())
+            .rowType(JdbcScoringRow.RowType.ERROR)
+            .build();
     }
 
     @Override
@@ -266,6 +293,8 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
             .addColumn("rule", Types.NVARCHAR, String.class)
             .addColumn("message", Types.NVARCHAR, String.class)
             .addColumn("path", Types.NVARCHAR, String.class)
+            .addColumn("error_code", Types.NVARCHAR, String.class)
+            .addColumn("row_type", Types.NVARCHAR, JdbcScoringRow.RowType.class)
             .build();
     }
 
@@ -324,6 +353,7 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
                 var diagnostics = entry
                     .getValue()
                     .stream()
+                    .filter(row -> row.getRowType() == JdbcScoringRow.RowType.DIAGNOSTIC)
                     .filter(row -> row.getSeverity() != null)
                     .map(row ->
                         new ScoringReport.Diagnostic(
@@ -338,8 +368,19 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
                         )
                     )
                     .toList();
+                var errors = entry
+                    .getValue()
+                    .stream()
+                    .filter(row -> row.getRowType() == JdbcScoringRow.RowType.ERROR)
+                    .map(row ->
+                        new ScoringReport.ScoringError(
+                            row.getErrorCode(),
+                            Arrays.asList(row.getPath().substring(1, row.getPath().length() - 1).split(", "))
+                        )
+                    )
+                    .toList();
 
-                return new ScoringReport.Asset(pageId, entry.getValue().get(0).getType(), diagnostics);
+                return new ScoringReport.Asset(pageId, entry.getValue().get(0).getType(), diagnostics, errors);
             })
             .toList();
 

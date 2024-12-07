@@ -18,10 +18,8 @@ package io.gravitee.apim.core.scoring.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.scoring.model.ScoringReport;
 import io.gravitee.apim.core.scoring.model.ScoringReportView;
 import io.gravitee.apim.core.scoring.query_service.ScoringReportQueryService;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -43,7 +41,7 @@ public class GetLatestReportUseCase {
             .stream()
             .map(asset -> {
                 var pageName = pageCrudService.findById(asset.pageId()).map(Page::getName).orElse(null);
-                return new ScoringReportView.AssetView(pageName, asset.type(), asset.diagnostics());
+                return new ScoringReportView.AssetView(pageName, asset.type(), asset.diagnostics(), asset.errors());
             })
             .toList();
 

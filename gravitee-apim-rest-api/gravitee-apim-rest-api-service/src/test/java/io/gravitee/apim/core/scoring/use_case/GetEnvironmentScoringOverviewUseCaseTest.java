@@ -74,7 +74,15 @@ class GetEnvironmentScoringOverviewUseCaseTest {
                 "Hint rule message",
                 "paths./hint"
             )
-        )
+        ),
+        List.of()
+    );
+
+    private static final ScoringReport.Asset VALIDATION_ERROR_ASSET = new ScoringReport.Asset(
+        PAGE_ID,
+        ScoringAssetType.SWAGGER,
+        List.of(),
+        List.of(new ScoringReport.ScoringError("ruleset-validation-error", List.of("path", "to", "invalid", "element")))
     );
 
     ScoringReportQueryServiceInMemory scoringReportQueryService = new ScoringReportQueryServiceInMemory();
@@ -98,6 +106,24 @@ class GetEnvironmentScoringOverviewUseCaseTest {
             aReport().toBuilder().apiId(API_ID_1).environmentId(ENVIRONMENT_1).build(),
             aReport().toBuilder().apiId(API_ID_2).environmentId(ENVIRONMENT_1).build(),
             aReport().toBuilder().apiId(API_ID_3).environmentId(ENVIRONMENT_2).build()
+        );
+
+        // When
+        var report = useCase.execute(new GetEnvironmentScoringOverviewUseCase.Input(ENVIRONMENT_1));
+
+        // Then
+        Assertions
+            .assertThat(report)
+            .extracting(GetEnvironmentScoringOverviewUseCase.Output::overview)
+            .isEqualTo(new EnvironmentOverview(ENVIRONMENT_1, 0.84D, 2L, 2L, 2L, 2L));
+    }
+
+    @Test
+    void should_return_environment_summary_and_ignore_validation_error_asset() {
+        // Given
+        givenExistingScoringReports(
+            aReport().toBuilder().apiId(API_ID_1).environmentId(ENVIRONMENT_1).assets(List.of(ASSET, VALIDATION_ERROR_ASSET)).build(),
+            aReport().toBuilder().apiId(API_ID_2).environmentId(ENVIRONMENT_1).build()
         );
 
         // When

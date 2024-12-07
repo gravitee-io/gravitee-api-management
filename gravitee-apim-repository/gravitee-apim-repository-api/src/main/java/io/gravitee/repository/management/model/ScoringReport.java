@@ -49,11 +49,13 @@ public final class ScoringReport {
 
     public record Summary(Double score, Long errors, Long warnings, Long infos, Long hints) {}
 
-    public record Asset(String pageId, String type, List<Diagnostic> diagnostics) {}
+    public record Asset(String pageId, String type, List<Diagnostic> diagnostics, List<ScoringError> errors) {}
 
     public record Diagnostic(String severity, Range range, String rule, String message, String path) {}
 
     public record Range(Position start, Position end) {}
 
     public record Position(int line, int character) {}
+
+    public record ScoringError(String code, List<String> path) {}
 }
