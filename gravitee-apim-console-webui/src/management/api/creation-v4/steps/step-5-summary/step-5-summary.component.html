@@ -125,9 +125,7 @@
             </div>
             <ng-template #elseBlock> No plans are selected. </ng-template>
           </div>
-          <div *ngIf="apiType !== 'NATIVE'">
-            <button mat-stroked-button (click)="onChangeStepInfo('Security')">Change</button>
-          </div>
+          <button mat-stroked-button (click)="onChangeStepInfo('Security')">Change</button>
         </div>
       </div>
       <div *ngIf="shouldUpgrade">
