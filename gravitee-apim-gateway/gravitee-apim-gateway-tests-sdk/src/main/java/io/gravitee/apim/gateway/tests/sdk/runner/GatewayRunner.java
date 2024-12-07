@@ -36,10 +36,12 @@ import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.gateway.tests.sdk.protocolhandlers.grpc.Handler;
 import io.gravitee.apim.gateway.tests.sdk.reporter.FakeReporter;
 import io.gravitee.apim.gateway.tests.sdk.secrets.SecretProviderException;
+import io.gravitee.apim.gateway.tests.sdk.service.ServiceBuilder;
 import io.gravitee.apim.plugin.reactor.ReactorPlugin;
 import io.gravitee.apim.plugin.reactor.ReactorPluginManager;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.event.impl.SimpleEvent;
+import io.gravitee.common.service.AbstractService;
 import io.gravitee.connector.http.HttpConnectorFactory;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
@@ -57,9 +59,8 @@ import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
-import io.gravitee.node.api.secrets.SecretManagerConfiguration;
-import io.gravitee.node.api.secrets.SecretProviderFactory;
 import io.gravitee.node.container.spring.env.GraviteeYamlPropertySource;
+import io.gravitee.node.plugins.service.ServiceManager;
 import io.gravitee.node.reporter.ReporterManager;
 import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import io.gravitee.node.secrets.plugins.SecretProviderPluginManager;
@@ -68,6 +69,7 @@ import io.gravitee.plugin.connector.ConnectorPluginManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginEvent;
 import io.gravitee.plugin.core.api.PluginManifest;
+import io.gravitee.plugin.core.internal.PluginContextFactoryImpl;
 import io.gravitee.plugin.core.internal.PluginEventListener;
 import io.gravitee.plugin.core.internal.PluginFactory;
 import io.gravitee.plugin.core.internal.PluginImpl;
@@ -79,14 +81,32 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.reporter.api.Reporter;
+import io.gravitee.secrets.api.plugin.SecretManagerConfiguration;
+import io.gravitee.secrets.api.plugin.SecretProviderFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.*;
+import java.net.JarURLConnection;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLDecoder;
+import java.net.URLStreamHandler;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
@@ -207,6 +227,7 @@ public class GatewayRunner {
             testInstance.setUndeploySharedPolicyGroupCallback(this::undeploySharedPolicyGroupFromTest);
 
             // register plugins
+
             registerReactors(gatewayContainer);
 
             registerReporters(gatewayContainer);
@@ -220,6 +241,8 @@ public class GatewayRunner {
             registerPolicies(gatewayContainer);
 
             registerResources(gatewayContainer);
+
+            registerServices(gatewayContainer);
 
             // start Gateway
             vertxContainer = startServer(gatewayContainer);
@@ -723,6 +746,21 @@ public class GatewayRunner {
             throw new SecretProviderException(e);
         }
         secretProviderFactories.forEach(pluginManager::register);
+    }
+
+    @SneakyThrows
+    private void registerServices(GatewayTestContainer container) {
+        ServiceManager serviceManager = container.applicationContext().getBean(ServiceManager.class);
+        PluginContextFactoryImpl pluginContextFactory = new PluginContextFactoryImpl();
+        pluginContextFactory.setApplicationContext(container.applicationContext());
+        Set<Class<? extends AbstractService<?>>> services = new HashSet<>();
+        testInstance.configureServices(services);
+        services.forEach(serviceClass -> {
+            ApplicationContext context = pluginContextFactory.create(ServiceBuilder.build(serviceClass));
+            AbstractService<?> service = context.getBean(serviceClass);
+            serviceManager.register(service);
+        });
+        serviceManager.start();
     }
 
     private void registerReactors(GatewayTestContainer container) {
