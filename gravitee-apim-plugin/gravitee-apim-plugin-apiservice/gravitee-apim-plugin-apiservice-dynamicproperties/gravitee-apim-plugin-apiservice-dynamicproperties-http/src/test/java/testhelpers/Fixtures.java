@@ -19,7 +19,10 @@ import static io.gravitee.apim.plugin.apiservice.dynamicproperties.http.HttpDyna
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.plugin.apiservice.dynamicproperties.http.HttpDynamicPropertiesServiceConfiguration;
+import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
+import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.node.api.configuration.Configuration;
@@ -50,13 +53,30 @@ public class Fixtures {
             .build();
     }
 
+    public static NativeApi nativeApiWithDynamicPropertiesEnabled() {
+        return NativeApi
+            .builder()
+            .id(MY_API)
+            .services(
+                NativeApiServices
+                    .builder()
+                    .dynamicProperty(Service.builder().enabled(true).type(HTTP_DYNAMIC_PROPERTIES_TYPE).build())
+                    .build()
+            )
+            .build();
+    }
+
     @SneakyThrows
     public static void configureDynamicPropertiesForApi(
         HttpDynamicPropertiesServiceConfiguration configuration,
-        Api api,
+        AbstractApi api,
         ObjectMapper objectMapper
     ) {
-        api.getServices().getDynamicProperty().setConfiguration(objectMapper.writeValueAsString(configuration));
+        if (api instanceof Api asHttpApi) {
+            asHttpApi.getServices().getDynamicProperty().setConfiguration(objectMapper.writeValueAsString(configuration));
+        } else if (api instanceof NativeApi asNativeApi) {
+            asNativeApi.getServices().getDynamicProperty().setConfiguration(objectMapper.writeValueAsString(configuration));
+        }
     }
 
     public static Configuration emptyNodeConfiguration() {

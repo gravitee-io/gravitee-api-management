@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.rest.api.common.apiservices;
 
-import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.gateway.reactive.api.apiservice.ApiService;
 import io.reactivex.rxjava3.core.Completable;
 
@@ -24,5 +24,5 @@ import io.reactivex.rxjava3.core.Completable;
  * @author GraviteeSource Team
  */
 public interface ManagementApiService extends ApiService {
-    Completable update(Api api);
+    Completable update(AbstractApi api);
 }

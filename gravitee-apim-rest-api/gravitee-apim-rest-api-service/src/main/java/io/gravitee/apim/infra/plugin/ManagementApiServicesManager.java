@@ -22,6 +22,7 @@ import io.gravitee.apim.rest.api.common.apiservices.ManagementApiService;
 import io.gravitee.apim.rest.api.common.apiservices.ManagementApiServiceFactory;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Collection;
@@ -71,8 +72,9 @@ public class ManagementApiServicesManager extends AbstractService {
             .stream()
             .map(managementApiServiceFactory ->
                 managementApiServiceFactory.createService(
-                    // FIXME: Kafka Gateway - Manage properly NativeApi definition
-                    new DefaultManagementDeploymentContext(api.getApiDefinitionHttpV4(), applicationContext)
+                    api.getType() == ApiType.NATIVE
+                        ? new DefaultManagementDeploymentContext(api.getApiDefinitionNativeV4(), applicationContext)
+                        : new DefaultManagementDeploymentContext(api.getApiDefinitionHttpV4(), applicationContext)
                 )
             )
             .filter(Objects::nonNull)

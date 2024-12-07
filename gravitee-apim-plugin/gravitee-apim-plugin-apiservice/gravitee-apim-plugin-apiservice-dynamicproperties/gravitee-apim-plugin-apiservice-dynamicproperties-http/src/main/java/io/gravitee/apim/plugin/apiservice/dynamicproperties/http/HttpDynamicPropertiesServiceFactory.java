@@ -18,6 +18,7 @@ package io.gravitee.apim.plugin.apiservice.dynamicproperties.http;
 import io.gravitee.apim.plugin.apiservice.dynamicproperties.http.helper.HttpDynamicPropertiesHelper;
 import io.gravitee.apim.rest.api.common.apiservices.DefaultManagementDeploymentContext;
 import io.gravitee.apim.rest.api.common.apiservices.ManagementApiServiceFactory;
+import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.Api;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +33,7 @@ public class HttpDynamicPropertiesServiceFactory implements ManagementApiService
 
     @Override
     public HttpDynamicPropertiesService createService(DefaultManagementDeploymentContext deploymentContext) {
-        final Api api = deploymentContext.getComponent(Api.class);
+        final AbstractApi api = deploymentContext.getComponent(AbstractApi.class);
 
         if (HttpDynamicPropertiesHelper.canHandle(api)) {
             return new HttpDynamicPropertiesService(deploymentContext);

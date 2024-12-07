@@ -26,7 +26,9 @@ import io.gravitee.common.cron.CronTrigger;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.URIUtils;
+import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.gateway.reactive.api.exception.PluginConfigurationException;
@@ -70,7 +72,8 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
     private final ClusterManager clusterManager;
     private final EventManager eventManager;
     private HttpDynamicPropertiesServiceConfiguration configuration;
-    private Api api;
+    private AbstractApi api;
+    private Service dynamicPropertyService;
     private HttpClient httpClient;
     private JoltMapper joltMapper;
 
@@ -82,7 +85,8 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
 
     public HttpDynamicPropertiesService(ManagementDeploymentContext deploymentContext) {
         this.deploymentContext = deploymentContext;
-        this.api = deploymentContext.getComponent(Api.class);
+        this.api = deploymentContext.getComponent(AbstractApi.class);
+        this.dynamicPropertyService = extractDynamicPropertyService(this.api);
         this.clusterManager = deploymentContext.getComponent(ClusterManager.class);
         this.eventManager = deploymentContext.getComponent(EventManager.class);
         this.pluginConfigurationHelper = deploymentContext.getComponent(PluginConfigurationHelper.class);
@@ -107,7 +111,7 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
             this.configuration =
                 pluginConfigurationHelper.readConfiguration(
                     HttpDynamicPropertiesServiceConfiguration.class,
-                    api.getServices().getDynamicProperty().getConfiguration()
+                    this.dynamicPropertyService.getConfiguration()
                 );
         } catch (PluginConfigurationException e) {
             return Completable.error(
@@ -131,13 +135,14 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
     }
 
     @Override
-    public Completable update(Api updatedApi) {
+    public Completable update(AbstractApi updatedApi) {
         log.debug("Restarting dynamic properties service for api: {}", updatedApi.getId());
 
         final Disposable currentJob = scheduledJob.get();
-        final Service currentDynamicPropertiesService = api.getServices().getDynamicProperty().toBuilder().build();
-        final Service updatedDynamicPropertiesService = updatedApi.getServices().getDynamicProperty().toBuilder().build();
+        final Service currentDynamicPropertiesService = this.dynamicPropertyService.toBuilder().build();
+        final Service updatedDynamicPropertiesService = extractDynamicPropertyService(updatedApi).toBuilder().build();
         this.api = updatedApi;
+        this.dynamicPropertyService = updatedDynamicPropertiesService;
         if ((currentJob == null || currentJob.isDisposed()) && updatedDynamicPropertiesService.isEnabled()) {
             // Start dynamic properties for the updated api
             return start();
@@ -234,6 +239,14 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
      */
     private void disposeExistingJob() {
         Optional.ofNullable(scheduledJob.get()).ifPresent(Disposable::dispose);
+    }
+
+    private static Service extractDynamicPropertyService(AbstractApi api) {
+        if (api instanceof Api asHttpApi) {
+            return asHttpApi.getServices().getDynamicProperty();
+        }
+        var asNativeApi = (NativeApi) api;
+        return asNativeApi.getServices().getDynamicProperty();
     }
 
     @VisibleForTesting

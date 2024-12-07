@@ -15,7 +15,9 @@
  */
 package io.gravitee.apim.rest.api.common.apiservices;
 
+import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nonnull;
@@ -33,6 +35,13 @@ public class DefaultManagementDeploymentContext implements ManagementDeploymentC
     public DefaultManagementDeploymentContext(@Nonnull Api apiDefinitionV4, @Nonnull ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
         components.put(Api.class, apiDefinitionV4);
+        components.put(AbstractApi.class, apiDefinitionV4);
+    }
+
+    public DefaultManagementDeploymentContext(@Nonnull NativeApi apiDefinitionV4, @Nonnull ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+        components.put(NativeApi.class, apiDefinitionV4);
+        components.put(AbstractApi.class, apiDefinitionV4);
     }
 
     @Override

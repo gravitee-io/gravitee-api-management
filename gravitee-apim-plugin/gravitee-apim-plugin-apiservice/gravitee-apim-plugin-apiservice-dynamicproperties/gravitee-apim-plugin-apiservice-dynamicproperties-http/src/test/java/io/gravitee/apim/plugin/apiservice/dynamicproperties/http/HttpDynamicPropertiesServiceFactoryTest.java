@@ -21,6 +21,8 @@ import static org.mockito.Mockito.mock;
 
 import io.gravitee.apim.rest.api.common.apiservices.DefaultManagementDeploymentContext;
 import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
+import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -44,12 +46,24 @@ class HttpDynamicPropertiesServiceFactoryTest {
     }
 
     @Test
-    void should_return_service_when_service_can_be_handled() {
+    void should_return_service_when_service_can_be_handled_for_http_api() {
         final ApiServices services = new ApiServices();
         services.setDynamicProperty(Service.builder().enabled(true).type(HTTP_DYNAMIC_PROPERTIES_TYPE).build());
         assertThat(
             cut.createService(
                 new DefaultManagementDeploymentContext(Api.builder().services(services).build(), mock(ApplicationContext.class))
+            )
+        )
+            .isInstanceOf(HttpDynamicPropertiesService.class);
+    }
+
+    @Test
+    void should_return_service_when_service_can_be_handled_for_native_api() {
+        final NativeApiServices services = new NativeApiServices();
+        services.setDynamicProperty(Service.builder().enabled(true).type(HTTP_DYNAMIC_PROPERTIES_TYPE).build());
+        assertThat(
+            cut.createService(
+                new DefaultManagementDeploymentContext(NativeApi.builder().services(services).build(), mock(ApplicationContext.class))
             )
         )
             .isInstanceOf(HttpDynamicPropertiesService.class);

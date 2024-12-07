@@ -47,7 +47,9 @@ import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.node.api.cluster.ClusterManager;
@@ -243,8 +245,70 @@ class HttpDynamicPropertiesServiceTest {
     class ServiceStarted {
 
         @Test
-        void should_publish_computed_dynamic_properties() {
+        void should_publish_computed_dynamic_properties_for_http_api() {
             Api api = Fixtures.apiWithDynamicPropertiesEnabled();
+            final HttpDynamicPropertiesServiceConfiguration configuration = HttpDynamicPropertiesServiceConfiguration
+                .builder()
+                .schedule("*/5 * * * * *")
+                .url(String.format("http://localhost:%d/propertiesBackend", wiremock.getPort()))
+                .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
+                .method(HttpMethod.GET)
+                .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
+                .build();
+            Fixtures.configureDynamicPropertiesForApi(configuration, api, objectMapper);
+            final HttpDynamicPropertiesService cut = buildServiceFor(api);
+
+            wiremock.stubFor(
+                get("/propertiesBackend")
+                    .willReturn(
+                        ok(
+                            Fixtures.backendResponseForProperties(
+                                List.of(
+                                    new Fixtures.BackendProperty("key1", "initial val 1"),
+                                    new Fixtures.BackendProperty("key2", "initial val 2")
+                                ),
+                                objectMapper
+                            )
+                        )
+                    )
+            );
+
+            var eventObs = TestEventListener.with(eventManager).completeAfter(1).test();
+
+            // Start the service
+            cut.start().test().assertComplete().assertNoErrors();
+
+            // Wait for the first http call
+            testScheduler.advanceTimeBy(5_000, TimeUnit.MILLISECONDS);
+
+            ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
+
+            eventObs
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueCount(1)
+                .assertValue(propertyEvent -> {
+                    Assertions.PropertyEventAssertions
+                        .assertThatEvent(propertyEvent)
+                        .contains(
+                            List.of(
+                                Property.builder().key("key1").value("initial val 1").dynamic(true).encrypted(false).build(),
+                                Property.builder().key("key2").value("initial val 2").dynamic(true).encrypted(false).build()
+                            )
+                        );
+                    return true;
+                })
+                .assertComplete();
+
+            wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
+
+            cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+
+            ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
+        }
+
+        @Test
+        void should_publish_computed_dynamic_properties_for_native_api() {
+            NativeApi api = Fixtures.nativeApiWithDynamicPropertiesEnabled();
             final HttpDynamicPropertiesServiceConfiguration configuration = HttpDynamicPropertiesServiceConfiguration
                 .builder()
                 .schedule("*/5 * * * * *")
@@ -854,7 +918,12 @@ class HttpDynamicPropertiesServiceTest {
         cut.cronTrigger = new CronTrigger(configuration.getSchedule());
     }
 
-    private HttpDynamicPropertiesService buildServiceFor(Api api) {
-        return new HttpDynamicPropertiesService(new DefaultManagementDeploymentContext(api, applicationContext));
+    private HttpDynamicPropertiesService buildServiceFor(AbstractApi api) {
+        if (api instanceof Api asHttpApi) {
+            return new HttpDynamicPropertiesService(new DefaultManagementDeploymentContext(asHttpApi, applicationContext));
+        } else if (api instanceof NativeApi asNativeApi) {
+            return new HttpDynamicPropertiesService(new DefaultManagementDeploymentContext(asNativeApi, applicationContext));
+        }
+        return null;
     }
 }
