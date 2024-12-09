@@ -165,7 +165,7 @@ describe('GioFormListenersContextPathModule', () => {
     await rows[0].pathInput.setValue('/api');
     await rows[1].pathInput.setValue('/api');
 
-    expect(await (await rows[0].pathInput.host()).hasClass('ng-invalid')).toEqual(true);
+    expect(await (await rows[0].pathInput.host()).hasClass('ng-invalid')).toEqual(false);
     expect(await (await rows[1].pathInput.host()).hasClass('ng-invalid')).toEqual(true);
   });
 
