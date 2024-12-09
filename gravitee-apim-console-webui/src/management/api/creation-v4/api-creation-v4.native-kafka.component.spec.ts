@@ -159,15 +159,16 @@ describe('ApiCreationV4Component - Native Kafka', () => {
       }),
     );
   });
+
   describe('API Creation', () => {
     it('should create the API', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API name', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('KAFKA');
       await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig(nativeKafkaEntrypoint);
       await stepperHelper.fillAndValidateStep3_2_EndpointsConfig(nativeKafkaEndpoint);
+      await stepperHelper.validateStep4_1_SecurityPlansList();
 
       discardPeriodicTasks();
-
       const step5Harness = await harnessLoader.getHarness(Step5SummaryHarness);
       const step1Summary = await step5Harness.getStepSummaryTextContent(1);
       expect(step1Summary).toContain('API name:' + 'API');
@@ -183,11 +184,10 @@ describe('ApiCreationV4Component - Native Kafka', () => {
       expect(step3Summary).toContain('Endpoints' + 'Endpoints: ' + 'Native Kafka Endpoint');
 
       const step4Summary = await step5Harness.getStepSummaryTextContent(4);
-      expect(step4Summary).toContain('No plans are selected.');
+      expect(step4Summary).toContain('Default Keyless (UNSECURED)' + 'KEY_LESS');
 
       await step5Harness.clickCreateMyApiButton();
-      httpExpects.expectCallsForApiCreation('api-id');
-
+      httpExpects.expectCallsForNativeApiDeployment('api-id', 'plan-id');
       flush();
     }));
   });
