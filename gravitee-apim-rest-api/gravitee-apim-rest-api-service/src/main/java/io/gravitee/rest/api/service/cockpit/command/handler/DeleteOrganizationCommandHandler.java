@@ -17,9 +17,7 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.apim.core.access_point.model.AccessPoint;
-import io.gravitee.apim.core.media.model.Media;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
-import io.gravitee.cockpit.api.command.v1.environment.DeleteEnvironmentReply;
 import io.gravitee.cockpit.api.command.v1.organization.DeleteOrganizationCommand;
 import io.gravitee.cockpit.api.command.v1.organization.DeleteOrganizationReply;
 import io.gravitee.exchange.api.command.CommandHandler;
@@ -55,7 +53,6 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
     private final CommandRepository commandRepository;
     private final CustomUserFieldsRepository customUserFieldsRepository;
     private final EnvironmentService environmentService;
-    private final EventService eventService;
     private final FlowRepository flowRepository;
     private final IdentityProviderActivationRepository identityProviderActivationRepository;
     private final IdentityProviderActivationService identityProviderActivationService;
@@ -95,7 +92,6 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         @Lazy UserRepository userRepository,
         AccessPointCrudService accessPointService,
         EnvironmentService environmentService,
-        EventService eventService,
         IdentityProviderActivationService identityProviderActivationService,
         OrganizationService organizationService,
         SearchEngineService searchEngineService
@@ -106,7 +102,6 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         this.commandRepository = commandRepository;
         this.customUserFieldsRepository = customUserFieldsRepository;
         this.environmentService = environmentService;
-        this.eventService = eventService;
         this.flowRepository = flowRepository;
         this.identityProviderActivationRepository = identityProviderActivationRepository;
         this.identityProviderActivationService = identityProviderActivationService;
@@ -190,7 +185,6 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
             executionContext.getOrganizationId(),
             MembershipReferenceType.ORGANIZATION
         );
-        eventService.deleteOrUpdateEventsByOrganization(executionContext.getOrganizationId());
         userRepository
             .deleteByOrganizationId(organization.getId())
             .forEach(userId -> {
