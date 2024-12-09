@@ -176,8 +176,6 @@ public class PlanMapperTest {
         assertEquals(updatePlanV4.getExcludedGroups(), updatePlanEntity.getExcludedGroups());
         assertEquals(updatePlanV4.getValidation().name(), updatePlanEntity.getValidation().name());
         assertEquals(updatePlanV4.getSelectionRule(), updatePlanEntity.getSelectionRule());
-
-        assertEquals(updatePlanEntity.getFlows().size(), updatePlanV4.getFlows().size()); // Flow mapping is tested in FlowMapperTest
     }
 
     @Test
