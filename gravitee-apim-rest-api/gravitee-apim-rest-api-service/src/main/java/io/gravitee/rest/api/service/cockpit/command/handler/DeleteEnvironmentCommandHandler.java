@@ -89,7 +89,6 @@ import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivat
 import io.gravitee.rest.api.service.AlertService;
 import io.gravitee.rest.api.service.ApplicationAlertService;
 import io.gravitee.rest.api.service.EnvironmentService;
-import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
@@ -125,7 +124,6 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final DictionaryRepository dictionaryRepository;
     private final DictionaryService dictionaryService;
     private final EnvironmentService environmentService;
-    private final EventService eventService;
     private final FlowRepository flowRepository;
     private final GenericNotificationConfigRepository genericNotificationConfigRepository;
     private final GroupRepository groupRepository;
@@ -203,7 +201,6 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         ApplicationAlertService applicationAlertService,
         DictionaryService dictionaryService,
         EnvironmentService environmentService,
-        EventService eventService,
         IdentityProviderActivationService identityProviderActivationService,
         SearchEngineService searchEngineService
     ) {
@@ -226,7 +223,6 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.dictionaryRepository = dictionaryRepository;
         this.dictionaryService = dictionaryService;
         this.environmentService = environmentService;
-        this.eventService = eventService;
         this.flowRepository = flowRepository;
         this.genericNotificationConfigRepository = genericNotificationConfigRepository;
         this.groupRepository = groupRepository;
@@ -352,7 +348,6 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         categoryRepository.deleteByEnvironmentId(environment.getId());
         dashboardRepository.deleteByReferenceIdAndReferenceType(environment.getId(), DashboardReferenceType.ENVIRONMENT);
         dictionaryRepository.deleteByEnvironmentId(environment.getId());
-        eventService.deleteOrUpdateEventsByEnvironment(environment.getId());
         scoringRulesetRepository.deleteByReferenceId(environment.getId(), ScoringRuleset.ReferenceType.ENVIRONMENT.name());
         scoringFunctionRepository.deleteByReferenceId(environment.getId(), ScoringRuleset.ReferenceType.ENVIRONMENT.name());
 
@@ -380,7 +375,6 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
             .deleteByEnvironmentId(executionContext.getEnvironmentId())
             .forEach(apiId -> {
                 alertService.findByReference(AlertReferenceType.API, apiId).forEach(alert -> alertService.delete(alert.getId(), apiId));
-                eventService.deleteApiEvents(apiId);
                 searchEngineService.delete(executionContext, ApiEntity.builder().id(apiId).build());
                 deletePages(executionContext, PageReferenceType.API, apiId);
 
