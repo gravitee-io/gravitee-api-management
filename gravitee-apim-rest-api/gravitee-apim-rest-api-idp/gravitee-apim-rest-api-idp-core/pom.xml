@@ -32,6 +32,10 @@
     <artifactId>gravitee-apim-rest-api-idp-core</artifactId>
     <name>Gravitee.io APIM - Management API - Identity Providers - Core</name>
 
+    <properties>
+        <gravitee-secret-api.version>1.0.0-APIM-7497-api-secrets-SNAPSHOT</gravitee-secret-api.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>io.gravitee.apim.rest.api.idp</groupId>
@@ -59,6 +63,11 @@
         <dependency>
             <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.secret</groupId>
+            <artifactId>gravitee-secret-api</artifactId>
+            <version>${gravitee-secret-api.version}</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>

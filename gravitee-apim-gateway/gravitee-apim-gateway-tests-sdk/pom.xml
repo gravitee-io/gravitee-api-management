@@ -198,6 +198,12 @@
             <artifactId>gravitee-common</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>io.gravitee.secret</groupId>
+            <artifactId>gravitee-secret-api</artifactId>
+            <version>${gravitee-secret-api.version}</version>
+        </dependency>
+
         <!-- Jackson-->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

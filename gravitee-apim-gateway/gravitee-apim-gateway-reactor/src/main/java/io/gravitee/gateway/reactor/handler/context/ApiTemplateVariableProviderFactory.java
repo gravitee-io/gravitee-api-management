@@ -15,16 +15,22 @@
  */
 package io.gravitee.gateway.reactor.handler.context;
 
+import io.gravitee.el.AbstractSpringFactoriesLoaderTemplateVariableProviderFactory;
 import io.gravitee.el.TemplateVariableScope;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiTemplateVariableProviderFactory extends TemplateVariableProviderFactory {
+public class ApiTemplateVariableProviderFactory extends AbstractSpringFactoriesLoaderTemplateVariableProviderFactory {
+
+    public ApiTemplateVariableProviderFactory(ApplicationContext applicationContext) {
+        super(applicationContext);
+    }
 
     @Override
-    protected TemplateVariableScope getTemplateVariableScope() {
+    public TemplateVariableScope getTemplateVariableScope() {
         return TemplateVariableScope.API;
     }
 }
