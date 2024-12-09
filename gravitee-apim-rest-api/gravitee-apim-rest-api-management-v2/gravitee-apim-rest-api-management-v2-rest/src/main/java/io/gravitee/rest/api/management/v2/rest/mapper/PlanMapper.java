@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.plan.model.PlanUpdates;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -244,6 +245,9 @@ public interface PlanMapper {
         }
         return FlowMapper.INSTANCE.mapFromHttpV4((List<Flow>) source.getFlows());
     }
+
+    @Mapping(target = "securityConfiguration", source = "security.configuration", qualifiedByName = "serializeConfiguration")
+    PlanUpdates mapToPlanUpdates(UpdatePlanV4 updatePlanV4);
 
     default List<? extends AbstractFlow> mapApiCRDPlanFlows(PlanCRD plan, String apiType) {
         if (CollectionUtils.isEmpty(plan.getFlows())) {

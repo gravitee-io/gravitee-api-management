@@ -183,6 +183,7 @@ public class PlanMapperTest {
         assertEquals(result.getGeneralConditions(), actual.getGeneralConditions());
         assertEquals(result.getTags(), actual.getTags());
         assertEquals(result.getSelectionRule(), actual.getSelectionRule());
+        assertSame(result.getFlows(), actual.getFlows());
     }
 
     @Test
@@ -203,6 +204,7 @@ public class PlanMapperTest {
         assertEquals(result.getGeneralConditions(), actual.getGeneralConditions());
         assertEquals(result.getTags(), actual.getTags());
         assertEquals(result.getSelectionRule(), actual.getSelectionRule());
+        assertEquals(result.getFlows(), actual.getFlows());
     }
 
     @Test

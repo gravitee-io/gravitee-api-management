@@ -788,6 +788,12 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             target = rootTarget(PLAN);
         }
 
+        @AfterEach
+        void tearDown() {
+            planCrudServiceInMemory.reset();
+            apiCrudServiceInMemory.reset();
+        }
+
         @Test
         public void should_return_404_if_not_found() {
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenThrow(new PlanNotFoundException(PLAN));
@@ -877,7 +883,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                         .characteristics(updatePlanV4.getCharacteristics())
                         .order(updatePlanV4.getOrder())
                         .excludedGroups(updatePlanV4.getExcludedGroups())
-                        .security(PlanSecurity.builder().configuration(Map.of("nice", "config")).build())
+                        .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS).configuration(Map.of("nice", "config")).build())
                         .commentRequired(false)
                         .commentMessage(updatePlanV4.getCommentMessage())
                         .tags(updatePlanV4.getTags())

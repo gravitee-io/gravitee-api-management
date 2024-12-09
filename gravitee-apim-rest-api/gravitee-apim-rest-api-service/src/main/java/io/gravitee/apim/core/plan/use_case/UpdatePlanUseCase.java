@@ -22,11 +22,10 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.plan.model.PlanUpdates;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -50,7 +49,7 @@ public class UpdatePlanUseCase {
             throw new PlanNotFoundException(input.planToUpdate.getId());
         }
 
-        var updatedEntity = update(planEntity, input.planToUpdate);
+        var updatedEntity = input.planToUpdate.applyTo(planEntity);
 
         var api = apiCrudService.get(input.apiId);
         List<? extends AbstractFlow> flows = input.flowProvider.apply(api);
@@ -60,32 +59,9 @@ public class UpdatePlanUseCase {
         return new Output(new PlanWithFlows(updated, flows));
     }
 
-    private Plan update(Plan oldPlan, UpdatePlanEntity updatePlan) {
-        Plan newPlan = oldPlan
-            .toBuilder()
-            .name(updatePlan.getName())
-            .crossId(updatePlan.getCrossId() != null ? updatePlan.getCrossId() : oldPlan.getCrossId())
-            .description(updatePlan.getDescription())
-            .updatedAt(ZonedDateTime.now())
-            .commentRequired(updatePlan.isCommentRequired())
-            .commentMessage(updatePlan.getCommentMessage())
-            .generalConditions(updatePlan.getGeneralConditions())
-            .excludedGroups(updatePlan.getExcludedGroups())
-            .characteristics(updatePlan.getCharacteristics())
-            .order(updatePlan.getOrder())
-            .build();
-
-        newPlan.setPlanTags(updatePlan.getTags());
-        var planDefinitionV4 = newPlan.getPlanDefinitionV4();
-        planDefinitionV4.setSelectionRule(updatePlan.getSelectionRule());
-        planDefinitionV4.getSecurity().setConfiguration(updatePlan.getSecurity().getConfiguration());
-
-        return newPlan;
-    }
-
     @Builder
     public record Input(
-        UpdatePlanEntity planToUpdate,
+        PlanUpdates planToUpdate,
         Function<Api, List<? extends AbstractFlow>> flowProvider,
         String apiId,
         AuditInfo auditInfo

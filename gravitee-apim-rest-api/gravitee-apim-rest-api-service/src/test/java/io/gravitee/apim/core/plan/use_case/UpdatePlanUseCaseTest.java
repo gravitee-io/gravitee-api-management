@@ -46,15 +46,13 @@ import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.plan.model.PlanUpdates;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.apim.infra.domain_service.plan.PlanSynchronizationLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
-import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
-import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import java.util.Collections;
@@ -147,7 +145,7 @@ class UpdatePlanUseCaseTest {
 
     @ParameterizedTest
     @MethodSource("minMaxPlans")
-    void should_update_plan(UpdatePlanEntity updatePlan) {
+    void should_update_plan(PlanUpdates updatePlan) {
         // Given
         var input = new UpdatePlanUseCase.Input(
             updatePlan,
@@ -168,9 +166,8 @@ class UpdatePlanUseCaseTest {
                 PlanWithFlows::getCrossId,
                 PlanWithFlows::getName,
                 PlanWithFlows::getDescription,
-                PlanWithFlows::getValidation,
                 PlanWithFlows::getOrder,
-                PlanWithFlows::getPlanSecurity,
+                planWithFlows -> planWithFlows.getPlanSecurity().getConfiguration(),
                 PlanWithFlows::getCharacteristics,
                 PlanWithFlows::getExcludedGroups,
                 PlanWithFlows::isCommentRequired,
@@ -184,9 +181,8 @@ class UpdatePlanUseCaseTest {
                 "my-plan-crossId",
                 updatePlan.getName(),
                 updatePlan.getDescription(),
-                Plan.PlanValidationType.valueOf(updatePlan.getValidation().name().toUpperCase()),
                 updatePlan.getOrder(),
-                updatePlan.getSecurity(),
+                updatePlan.getSecurityConfiguration(),
                 updatePlan.getCharacteristics(),
                 updatePlan.getExcludedGroups(),
                 updatePlan.isCommentRequired(),
@@ -223,7 +219,7 @@ class UpdatePlanUseCaseTest {
         when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
             .thenThrow(new InvalidDataException("Invalid configuration for policy " + "api-key"));
         var input = new UpdatePlanUseCase.Input(
-            planMinimal().toBuilder().security(PlanSecurity.builder().type("api-key").build()).build(),
+            planMinimal().toBuilder().securityConfiguration("anything").build(),
             _api -> Collections.singletonList(FlowFixtures.aProxyFlowV4()),
             API_ID,
             new AuditInfo("user-id", "user-name", AuditActor.builder().build())
@@ -385,35 +381,29 @@ class UpdatePlanUseCaseTest {
     static Stream<Arguments> minMaxPlans() {
         var minPlan = planMinimal();
 
-        var maxPlan = new UpdatePlanEntity();
-        maxPlan.setId(PLAN_ID);
-        maxPlan.setCrossId("my-plan-crossId");
-        maxPlan.setName("plan-name-changed");
-        maxPlan.setDescription("plan-description-changed");
-        maxPlan.setValidation(PlanValidationType.AUTO);
-        maxPlan.setOrder(2);
-
-        maxPlan.setCharacteristics(List.of("characteristic1", "characteristic2"));
-        maxPlan.setExcludedGroups(List.of("group1", "group2"));
-        maxPlan.setSecurity(PlanSecurity.builder().type("key-less").build());
-        maxPlan.setCommentRequired(true);
-        maxPlan.setCommentMessage("comment-message");
-        maxPlan.setGeneralConditions("general-conditions");
-        maxPlan.setTags(Set.of("tag1", "tag2"));
-        maxPlan.setSelectionRule("selection-rule");
+        var maxPlan = planMinimal()
+            .toBuilder()
+            .characteristics(List.of("characteristic1", "characteristic2"))
+            .excludedGroups(List.of("group1", "group2"))
+            .securityConfiguration(null)
+            .commentRequired(true)
+            .commentMessage("comment-message")
+            .generalConditions("general-conditions")
+            .tags(Set.of("tag1", "tag2"))
+            .selectionRule("selection-rule")
+            .build();
 
         return Stream.of(Arguments.of(minPlan), Arguments.of(maxPlan));
     }
 
-    private static @NotNull UpdatePlanEntity planMinimal() {
-        var minPlan = new UpdatePlanEntity();
-        minPlan.setId(PLAN_ID);
-        minPlan.setCrossId("my-plan-crossId");
-        minPlan.setName("plan-name-changed");
-        minPlan.setDescription("plan-description-changed");
-        minPlan.setValidation(PlanValidationType.AUTO);
-        minPlan.setOrder(2);
-        minPlan.setSecurity(PlanSecurity.builder().type("key-less").build());
-        return minPlan;
+    private static @NotNull PlanUpdates planMinimal() {
+        return PlanUpdates
+            .builder()
+            .id(PLAN_ID)
+            .crossId("my-plan-crossId")
+            .name("plan-name-changed")
+            .description("plan-description-changed")
+            .order(2)
+            .build();
     }
 }
