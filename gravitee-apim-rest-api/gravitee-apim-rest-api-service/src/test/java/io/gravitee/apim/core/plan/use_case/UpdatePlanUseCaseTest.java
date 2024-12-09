@@ -78,6 +78,8 @@ class UpdatePlanUseCaseTest {
     public static final String DEPRECATED_PLAN_API_ID = "deprecated-plan-api-id";
     public static final String STAGING_PLAN_ID = "staging-plan-id";
     public static final String STAGING_PLAN_API_ID = "staging-plan-api-id";
+    public static final String NATIVE_PLAN_ID = "native-plan-id";
+    public static final String NATIVE_API_ID = "native-api-id";
     private final ObjectMapper objectMapper = new ObjectMapper();
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
@@ -124,14 +126,16 @@ class UpdatePlanUseCaseTest {
         deprecatedPlan.getPlanDefinitionV4().setStatus(PlanStatus.DEPRECATED);
         var stagingPlan = PlanFixtures.aPlanHttpV4().toBuilder().id(STAGING_PLAN_ID).apiId(STAGING_PLAN_API_ID).order(1).build();
         stagingPlan.getPlanDefinitionV4().setStatus(PlanStatus.STAGING);
-        List<Plan> allPlans = List.of(plan, anotherPlan, deprecatedPlan, stagingPlan);
+        var nativePlan = PlanFixtures.aPlanNativeV4().toBuilder().id(NATIVE_PLAN_ID).apiId(NATIVE_API_ID).order(3).build();
+        List<Plan> allPlans = List.of(plan, anotherPlan, deprecatedPlan, stagingPlan, nativePlan);
         planCrudService.initWith(allPlans);
         planQueryService.initWith(allPlans);
         apiCrudService.initWith(
             List.of(
                 ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build(),
                 ApiFixtures.aProxyApiV4().toBuilder().id(DEPRECATED_PLAN_API_ID).build(),
-                ApiFixtures.aProxyApiV4().toBuilder().id(STAGING_PLAN_API_ID).build()
+                ApiFixtures.aProxyApiV4().toBuilder().id(STAGING_PLAN_API_ID).build(),
+                ApiFixtures.aNativeApi().toBuilder().id(NATIVE_API_ID).build()
             )
         );
 
@@ -178,6 +182,56 @@ class UpdatePlanUseCaseTest {
             )
             .containsExactly(
                 PLAN_ID,
+                "my-plan-crossId",
+                updatePlan.getName(),
+                updatePlan.getDescription(),
+                updatePlan.getOrder(),
+                updatePlan.getSecurityConfiguration(),
+                updatePlan.getCharacteristics(),
+                updatePlan.getExcludedGroups(),
+                updatePlan.isCommentRequired(),
+                updatePlan.getCommentMessage(),
+                updatePlan.getGeneralConditions(),
+                updatePlan.getTags(),
+                updatePlan.getSelectionRule()
+            );
+    }
+
+    @Test
+    void should_update_native_plan() {
+        // Given
+        PlanUpdates updatePlan = fullPlan().toBuilder().id(NATIVE_PLAN_ID).order(1).build();
+        var input = new UpdatePlanUseCase.Input(
+            updatePlan,
+            _api -> Collections.singletonList(FlowFixtures.aNativeFlowV4()),
+            NATIVE_API_ID,
+            new AuditInfo("user-id", "user-name", AuditActor.builder().build())
+        );
+
+        // When
+        var output = updatePlanUseCase.execute(input);
+
+        // Then
+        assertThat(output)
+            .isNotNull()
+            .extracting(UpdatePlanUseCase.Output::updated)
+            .extracting(
+                PlanWithFlows::getId,
+                PlanWithFlows::getCrossId,
+                PlanWithFlows::getName,
+                PlanWithFlows::getDescription,
+                PlanWithFlows::getOrder,
+                planWithFlows -> planWithFlows.getPlanSecurity().getConfiguration(),
+                PlanWithFlows::getCharacteristics,
+                PlanWithFlows::getExcludedGroups,
+                PlanWithFlows::isCommentRequired,
+                PlanWithFlows::getCommentMessage,
+                PlanWithFlows::getGeneralConditions,
+                PlanWithFlows::getPlanTags,
+                PlanWithFlows::getSelectionRule
+            )
+            .containsExactly(
+                NATIVE_PLAN_ID,
                 "my-plan-crossId",
                 updatePlan.getName(),
                 updatePlan.getDescription(),
@@ -381,7 +435,13 @@ class UpdatePlanUseCaseTest {
     static Stream<Arguments> minMaxPlans() {
         var minPlan = planMinimal();
 
-        var maxPlan = planMinimal()
+        var maxPlan = fullPlan();
+
+        return Stream.of(Arguments.of(minPlan), Arguments.of(maxPlan));
+    }
+
+    private static PlanUpdates fullPlan() {
+        return planMinimal()
             .toBuilder()
             .characteristics(List.of("characteristic1", "characteristic2"))
             .excludedGroups(List.of("group1", "group2"))
@@ -392,8 +452,6 @@ class UpdatePlanUseCaseTest {
             .tags(Set.of("tag1", "tag2"))
             .selectionRule("selection-rule")
             .build();
-
-        return Stream.of(Arguments.of(minPlan), Arguments.of(maxPlan));
     }
 
     private static @NotNull PlanUpdates planMinimal() {
