@@ -81,7 +81,15 @@ class GetEnvironmentReportsUseCaseTest {
                 "Hint rule message",
                 "paths./hint"
             )
-        )
+        ),
+        List.of()
+    );
+
+    private static final ScoringReport.Asset VALIDATION_ERROR_ASSET = new ScoringReport.Asset(
+        PAGE_ID,
+        ScoringAssetType.ASYNCAPI,
+        List.of(),
+        List.of(new ScoringReport.ScoringError("ruleset-validation-error", List.of("path", "to", "invalid", "element")))
     );
 
     ScoringReportQueryServiceInMemory scoringReportQueryService = new ScoringReportQueryServiceInMemory();
@@ -119,6 +127,28 @@ class GetEnvironmentReportsUseCaseTest {
                 ),
                 new EnvironmentApiScoringReport(
                     new EnvironmentApiScoringReport.Api(API_ID_2, "api-name", UPDATED_AT),
+                    new EnvironmentApiScoringReport.Summary(REPORT_ID, CREATED_AT, 0.84D, 1L, 1L, 1L, 1L)
+                )
+            );
+    }
+
+    @Test
+    void should_ignore_assets_with_validation_errors() {
+        //Given
+        givenExistingScoringReports(aReport().withApiId(API_ID_1).toBuilder().assets(List.of(ASSET, VALIDATION_ERROR_ASSET)).build());
+
+        // When
+        var report = useCase.execute(new GetEnvironmentReportsUseCase.Input(ENVIRONMENT_1));
+
+        // Then
+        Assertions
+            .assertThat(report)
+            .extracting(GetEnvironmentReportsUseCase.Output::reports)
+            .extracting(Page::getContent)
+            .asInstanceOf(InstanceOfAssertFactories.LIST)
+            .contains(
+                new EnvironmentApiScoringReport(
+                    new EnvironmentApiScoringReport.Api(API_ID_1, "api-name", UPDATED_AT),
                     new EnvironmentApiScoringReport.Summary(REPORT_ID, CREATED_AT, 0.84D, 1L, 1L, 1L, 1L)
                 )
             );

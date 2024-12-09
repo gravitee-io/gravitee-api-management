@@ -46,14 +46,31 @@ public class ScoringReportFixture {
                                 "Operation must have \"operationId\".",
                                 "paths./echo.options"
                             )
-                        )
+                        ),
+                        List.of()
                     ),
-                    new ScoringReport.Asset(null, ScoringAssetType.GRAVITEE_DEFINITION, List.of())
+                    new ScoringReport.Asset(null, ScoringAssetType.GRAVITEE_DEFINITION, List.of(), List.of())
                 )
             )
             .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()));
 
     public static ScoringReport aScoringReport() {
         return BASE.get().build();
+    }
+
+    public static ScoringReport anErrorAssertScoringReport() {
+        return BASE
+            .get()
+            .assets(
+                List.of(
+                    new ScoringReport.Asset(
+                        "page-id",
+                        ScoringAssetType.SWAGGER,
+                        List.of(),
+                        List.of(new ScoringReport.ScoringError("some-error-code", List.of("path", "to", "the", "property")))
+                    )
+                )
+            )
+            .build();
     }
 }

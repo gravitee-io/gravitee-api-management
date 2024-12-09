@@ -72,27 +72,30 @@ public class SaveScoringResponseUseCase {
 
     private ScoringReport.Summary processSummary(List<ScoringReport.Asset> assets) {
         var assetsSummary = new ArrayList<ScoringReport.Summary>();
-        for (var asset : assets) {
-            var counters = asset
-                .diagnostics()
-                .stream()
-                .collect(Collectors.groupingBy(ScoringReport.Diagnostic::severity, Collectors.counting()));
+        assets
+            .stream()
+            .filter(asset -> asset.errors().isEmpty())
+            .forEach(asset -> {
+                var counters = asset
+                    .diagnostics()
+                    .stream()
+                    .collect(Collectors.groupingBy(ScoringReport.Diagnostic::severity, Collectors.counting()));
 
-            var nbErrors = counters.getOrDefault(ScoringReport.Severity.ERROR, 0L);
-            var nbWarnings = counters.getOrDefault(ScoringReport.Severity.WARN, 0L);
-            var nbInfos = counters.getOrDefault(ScoringReport.Severity.INFO, 0L);
-            var nbHints = counters.getOrDefault(ScoringReport.Severity.HINT, 0L);
+                var nbErrors = counters.getOrDefault(ScoringReport.Severity.ERROR, 0L);
+                var nbWarnings = counters.getOrDefault(ScoringReport.Severity.WARN, 0L);
+                var nbInfos = counters.getOrDefault(ScoringReport.Severity.INFO, 0L);
+                var nbHints = counters.getOrDefault(ScoringReport.Severity.HINT, 0L);
 
-            assetsSummary.add(
-                new ScoringReport.Summary(
-                    scoreComputingDomainService.computeScore(nbErrors, nbWarnings, nbInfos, nbHints),
-                    nbErrors,
-                    nbWarnings,
-                    nbInfos,
-                    nbHints
-                )
-            );
-        }
+                assetsSummary.add(
+                    new ScoringReport.Summary(
+                        scoreComputingDomainService.computeScore(nbErrors, nbWarnings, nbInfos, nbHints),
+                        nbErrors,
+                        nbWarnings,
+                        nbInfos,
+                        nbHints
+                    )
+                );
+            });
 
         var averageScore = BigDecimal
             .valueOf(
