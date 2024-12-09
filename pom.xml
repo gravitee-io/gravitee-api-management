@@ -288,6 +288,7 @@
         <gravitee-policy-interops.version>1.1.2</gravitee-policy-interops.version>
 
         <gravitee-connectors-native-kafka.version>1.0.0-alpha.7</gravitee-connectors-native-kafka.version>
+        <gravitee-policy-kafka-quota.version>1.0.0-alpha.2</gravitee-policy-kafka-quota.version>
     </properties>
 
     <scm>
