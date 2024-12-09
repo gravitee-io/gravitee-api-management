@@ -247,7 +247,7 @@ public interface PlanMapper {
 
     default List<? extends AbstractFlow> mapApiCRDPlanFlows(PlanCRD plan, String apiType) {
         if (CollectionUtils.isEmpty(plan.getFlows())) {
-            return null;
+            return List.of();
         }
 
         if (ApiType.NATIVE.name().equalsIgnoreCase(apiType)) {
