@@ -273,7 +273,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             } else {
                 planSearchService.findById(executionContext, planEntity.getId());
                 // No need to validate again the path param in this case
-                resultPlanEntity = update(executionContext, planMapper.toUpdatePlanEntity(planEntity), planEntity.getFlows());
+                resultPlanEntity = update(executionContext, planMapper.toUpdatePlanEntity(planEntity));
             }
         } catch (PlanNotFoundException npe) {
             // No need to validate again the path param in this case
@@ -282,7 +282,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
         return resultPlanEntity;
     }
 
-    private PlanEntity update(final ExecutionContext executionContext, UpdatePlanEntity updatePlan, List<Flow> flows) {
+    private PlanEntity update(final ExecutionContext executionContext, UpdatePlanEntity updatePlan) {
         try {
             logger.debug("Update plan {}", updatePlan.getName());
 
@@ -295,7 +295,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 );
             }
 
-            if (flows == null) {
+            if (updatePlan.getFlows() == null) {
                 throw new PlanFlowRequiredException(updatePlan.getId());
             }
 
@@ -355,7 +355,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             final var apiId = newPlan.getApi();
             Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
             validateTags(newPlan.getTags(), api);
-            var sanitizedFlows = flowValidationService.validateAndSanitize(api.getType(), flows);
+            updatePlan.setFlows(flowValidationService.validateAndSanitize(api.getType(), updatePlan.getFlows()));
 
             // if order change, reorder all pages
             if (newPlan.getOrder() != updatePlan.getOrder()) {
@@ -365,7 +365,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             } else {
                 PlanEntity oldPlanEntity = mapToEntity(oldPlan);
 
-                flowCrudService.savePlanFlows(updatePlan.getId(), sanitizedFlows);
+                flowCrudService.savePlanFlows(updatePlan.getId(), updatePlan.getFlows());
                 PlanEntity newPlanEntity = mapToEntity(newPlan);
 
                 if (

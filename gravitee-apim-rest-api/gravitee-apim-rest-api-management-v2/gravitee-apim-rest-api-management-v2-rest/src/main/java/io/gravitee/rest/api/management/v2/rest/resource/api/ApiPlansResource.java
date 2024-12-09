@@ -250,7 +250,7 @@ public class ApiPlansResource extends AbstractResource {
                 if (planEntity instanceof BasePlanEntity) {
                     var updatePlanV4 = (UpdatePlanV4) updatePlan;
                     var userDetails = getAuthenticatedUserDetails();
-                    var updatePlanEntity = planMapper.map(updatePlanV4);
+                    var updatePlanEntity = planMapper.mapToPlanUpdates(updatePlanV4);
                     updatePlanEntity.setId(planId);
 
                     var output = updatePlanUseCase.execute(
