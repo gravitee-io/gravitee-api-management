@@ -118,37 +118,16 @@ public class KubernetesHttpProxyHeaderSecretTest {
         }
     }
 
-    @Nested
-    @GatewayTest
-    class StaticSecretRef extends AbstractKubernetesApiTest {
+    abstract static class AbstractApiKeyStaticSecretRefTest extends AbstractKubernetesApiTest {
 
-        private final String apiKey = UUID.randomUUID().toString();
+        protected final String apiKey = UUID.randomUUID().toString();
 
         @Override
         void createSecrets() throws IOException, InterruptedException {
             KubernetesHelper.createSecret(k3sServer, "default", "test", Map.of("api-key", this.apiKey));
         }
 
-        @Test
-        @DeployApi("/apis/v4/http/secrets/api-static-ref.json")
-        void should_call_api_with_k8s_api_key_from_static_ref(HttpClient httpClient) {
-            callAndAssert(httpClient);
-        }
-
-        /*
-        @Test
-        @DeployApi("/apis/v4/http/secrets/api-el-key-ref.json")
-        void should_call_api_with_k8s_api_key_from_static_ref_and_el_key(HttpClient httpClient) {
-            callAndAssert(httpClient);
-        }
-
-        @Test
-        @DeployApi("/apis/v4/http/secrets/api-el-ref.json")
-        void should_call_api_with_k8s_api_key_el_ref(HttpClient httpClient) {
-            callAndAssert(httpClient);
-        }
-*/
-        private void callAndAssert(HttpClient httpClient) {
+        protected void callAndAssert(HttpClient httpClient) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
             httpClient
@@ -164,6 +143,39 @@ public class KubernetesHttpProxyHeaderSecretTest {
                 .assertComplete();
 
             wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")).withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
+        }
+    }
+
+    @Nested
+    @GatewayTest
+    class StaticSecretRef extends AbstractApiKeyStaticSecretRefTest {
+
+        @Test
+        @DeployApi("/apis/v4/http/secrets/api-static-ref.json")
+        void should_call_api_with_k8s_api_key_from_static_ref(HttpClient httpClient) {
+            callAndAssert(httpClient);
+        }
+    }
+
+    @Nested
+    @GatewayTest
+    class StaticSecretRefELKey extends AbstractApiKeyStaticSecretRefTest {
+
+        @Test
+        @DeployApi("/apis/v4/http/secrets/api-el-key-ref.json")
+        void should_call_api_with_k8s_api_key_from_static_ref_and_el_key(HttpClient httpClient) {
+            callAndAssert(httpClient);
+        }
+    }
+
+    @Nested
+    @GatewayTest
+    class StaticSecretRefELURI extends AbstractApiKeyStaticSecretRefTest {
+
+        @Test
+        @DeployApi("/apis/v4/http/secrets/api-el-ref.json")
+        void should_call_api_with_k8s_api_key_el_ref(HttpClient httpClient) {
+            callAndAssert(httpClient);
         }
     }
 }
