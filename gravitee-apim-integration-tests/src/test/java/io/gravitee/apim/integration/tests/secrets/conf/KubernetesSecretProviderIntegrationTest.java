@@ -360,7 +360,7 @@ class KubernetesSecretProviderIntegrationTest {
                 .rxRequest(HttpMethod.GET, "/test")
                 .flatMap(HttpClientRequest::rxSend)
                 .doOnError(Throwable::printStackTrace)
-                .retry(10) // retry several time so the watch returns something
+                .retry()
                 .flatMap(response -> {
                     // just asserting we get a response (hence no SSL errors), no need for an API.
                     assertThat(response.statusCode()).isEqualTo(404);
