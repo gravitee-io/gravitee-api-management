@@ -45,7 +45,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
+import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
@@ -247,7 +247,7 @@ public class ApiPlansResource extends AbstractResource {
 
         return switch (updatePlan.getDefinitionVersion()) {
             case V4 -> {
-                if (planEntity instanceof PlanEntity) {
+                if (planEntity instanceof BasePlanEntity) {
                     var updatePlanV4 = (UpdatePlanV4) updatePlan;
                     var userDetails = getAuthenticatedUserDetails();
                     var updatePlanEntity = planMapper.map(updatePlanV4);

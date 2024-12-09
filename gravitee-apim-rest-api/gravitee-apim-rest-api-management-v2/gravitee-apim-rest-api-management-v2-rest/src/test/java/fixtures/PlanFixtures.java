@@ -117,6 +117,22 @@ public class PlanFixtures {
         .security(BASE_UPDATE_PLAN_SECURITY.build())
         .flows(List.of(FlowFixtures.aFlowHttpV4()));
 
+    private static final UpdatePlanV4.UpdatePlanV4Builder BASE_UPDATE_NATIVE_PLAN_V4 = UpdatePlanV4
+        .builder()
+        .name("My plan")
+        .description("Description")
+        .order(1)
+        .characteristics(List.of("characteristic1", "characteristic2"))
+        .commentMessage("Comment message")
+        .crossId("my-plan-crossId")
+        .generalConditions("General conditions")
+        .tags(List.of("tag1", "tag2"))
+        .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+        .validation(PlanValidation.AUTO)
+        .selectionRule("{#request.attribute['selectionRule'] != null}")
+        .security(BASE_UPDATE_PLAN_SECURITY.build())
+        .flows(List.of(FlowFixtures.aFlowNativeV4()));
+
     private static final UpdatePlanFederated.UpdatePlanFederatedBuilder BASE_UPDATE_PLAN_FEDERATED = UpdatePlanFederated
         .builder()
         .name("My plan")
@@ -183,6 +199,10 @@ public class PlanFixtures {
 
     public static UpdatePlanV4 anUpdatePlanV4() {
         return BASE_UPDATE_PLAN_V4.build();
+    }
+
+    public static UpdatePlanV4 anUpdatePlanNativeV4() {
+        return BASE_UPDATE_NATIVE_PLAN_V4.build();
     }
 
     public static UpdatePlanV2 anUpdatePlanV2() {

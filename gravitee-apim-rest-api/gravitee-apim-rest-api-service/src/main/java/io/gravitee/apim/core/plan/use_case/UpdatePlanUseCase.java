@@ -24,13 +24,11 @@ import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -80,15 +78,7 @@ public class UpdatePlanUseCase {
         newPlan.setPlanTags(updatePlan.getTags());
         var planDefinitionV4 = newPlan.getPlanDefinitionV4();
         planDefinitionV4.setSelectionRule(updatePlan.getSelectionRule());
-        planDefinitionV4.setSecurity(updatePlan.getSecurity());
-
-        if (
-            newPlan.getPlanSecurity() != null && Objects.equals(newPlan.getPlanSecurity().getType(), PlanSecurityType.KEY_LESS.getLabel())
-        ) {
-            newPlan.setValidation(Plan.PlanValidationType.AUTO);
-        } else {
-            newPlan.setValidation(Plan.PlanValidationType.valueOf(updatePlan.getValidation().name()));
-        }
+        planDefinitionV4.getSecurity().setConfiguration(updatePlan.getSecurity().getConfiguration());
 
         return newPlan;
     }
