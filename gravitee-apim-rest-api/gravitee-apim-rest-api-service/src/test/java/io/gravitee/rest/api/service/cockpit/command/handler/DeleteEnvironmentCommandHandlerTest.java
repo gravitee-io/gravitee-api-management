@@ -96,7 +96,6 @@ import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivat
 import io.gravitee.rest.api.service.AlertService;
 import io.gravitee.rest.api.service.ApplicationAlertService;
 import io.gravitee.rest.api.service.EnvironmentService;
-import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
@@ -251,9 +250,6 @@ public class DeleteEnvironmentCommandHandlerTest {
     private ApiStateService apiStateService;
 
     @Mock
-    private EventService eventService;
-
-    @Mock
     private AccessPointCrudService accessPointService;
 
     @Mock
@@ -384,7 +380,6 @@ public class DeleteEnvironmentCommandHandlerTest {
                 applicationAlertService,
                 dictionaryService,
                 environmentService,
-                eventService,
                 identityProviderActivationService,
                 searchEngineService
             );
@@ -454,7 +449,6 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(categoryRepository).deleteByEnvironmentId(ENV_ID);
         verify(dashboardRepository).deleteByReferenceIdAndReferenceType(ENV_ID, DashboardReferenceType.ENVIRONMENT);
         verify(dictionaryRepository).deleteByEnvironmentId(ENV_ID);
-        verify(eventService).deleteOrUpdateEventsByEnvironment(ENV_ID);
         verify(portalNotificationConfigRepository).deleteByReferenceIdAndReferenceType(ENV_ID, NotificationReferenceType.ENVIRONMENT);
         verify(genericNotificationConfigRepository).deleteByReferenceIdAndReferenceType(ENV_ID, NotificationReferenceType.ENVIRONMENT);
         verify(sharedPolicyGroupRepository).deleteByEnvironmentId(ENV_ID);
@@ -499,7 +493,6 @@ public class DeleteEnvironmentCommandHandlerTest {
     private void verifyDeleteApi(ExecutionContext executionContext, String apiId) throws TechnicalException {
         verify(membershipRepository).deleteByReferenceIdAndReferenceType(apiId, MembershipReferenceType.API);
         verify(genericNotificationConfigRepository).deleteByReferenceIdAndReferenceType(apiId, NotificationReferenceType.API);
-        verify(eventService).deleteApiEvents(apiId);
         verify(searchEngineService).delete(executionContext, ApiEntity.builder().id(apiId).build());
         verifyDeletePages(executionContext, PageReferenceType.API, apiId);
         verify(portalNotificationConfigRepository).deleteByReferenceIdAndReferenceType(apiId, NotificationReferenceType.API);
