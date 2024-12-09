@@ -888,6 +888,57 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        public void should_update_native_v4_plan() {
+            planCrudServiceInMemory.initWith(
+                List.of(fixtures.core.model.PlanFixtures.aPlanNativeV4().toBuilder().apiId(API).id(PLAN).build())
+            );
+            apiCrudServiceInMemory.initWith(List.of(fixtures.core.model.ApiFixtures.aNativeApi().toBuilder().id(API).build()));
+
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN))
+                .thenReturn(PlanFixtures.aNativePlanEntityV4().toBuilder().id(PLAN).apiId(API).build());
+            when(updatePlanDomainService.update(any(), any(), any(), any(), any()))
+                .thenAnswer(invocation -> {
+                    io.gravitee.apim.core.plan.model.Plan updated = invocation.getArgument(0);
+                    updated.setUpdatedAt(null);
+                    updated.setCreatedAt(null);
+                    return updated;
+                });
+
+            final UpdatePlanV4 updatePlanV4 = PlanFixtures.anUpdatePlanNativeV4();
+            final Response response = target.request().put(Entity.json(updatePlanV4));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(PlanV4.class)
+                .isEqualTo(
+                    PlanV4
+                        .builder()
+                        .id(PLAN)
+                        .apiId(API)
+                        .status(io.gravitee.rest.api.management.v2.rest.model.PlanStatus.PUBLISHED)
+                        .type(io.gravitee.rest.api.management.v2.rest.model.PlanType.API)
+                        .generalConditions("General conditions")
+                        .mode(PlanMode.STANDARD)
+                        .definitionVersion(DefinitionVersion.V4)
+                        .name(updatePlanV4.getName())
+                        .crossId(updatePlanV4.getCrossId())
+                        .name(updatePlanV4.getName())
+                        .description(updatePlanV4.getDescription())
+                        .validation(updatePlanV4.getValidation())
+                        .characteristics(updatePlanV4.getCharacteristics())
+                        .order(updatePlanV4.getOrder())
+                        .excludedGroups(updatePlanV4.getExcludedGroups())
+                        .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS).configuration(Map.of("nice", "config")).build())
+                        .commentRequired(false)
+                        .commentMessage(updatePlanV4.getCommentMessage())
+                        .tags(updatePlanV4.getTags())
+                        .selectionRule(updatePlanV4.getSelectionRule())
+                        .flows(updatePlanV4.getFlows())
+                        .build()
+                );
+        }
+
+        @Test
         public void should_return_bad_request_when_setting_definition_to_v2_on_v4_plan() {
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN))
                 .thenReturn(PlanFixtures.aPlanEntityV2().toBuilder().id(PLAN).api(API).build());

@@ -390,12 +390,12 @@ class UpdatePlanUseCaseTest {
         maxPlan.setCrossId("my-plan-crossId");
         maxPlan.setName("plan-name-changed");
         maxPlan.setDescription("plan-description-changed");
-        maxPlan.setValidation(PlanValidationType.MANUAL);
+        maxPlan.setValidation(PlanValidationType.AUTO);
         maxPlan.setOrder(2);
 
         maxPlan.setCharacteristics(List.of("characteristic1", "characteristic2"));
         maxPlan.setExcludedGroups(List.of("group1", "group2"));
-        maxPlan.setSecurity(PlanSecurity.builder().type("api-key").build());
+        maxPlan.setSecurity(PlanSecurity.builder().type("key-less").build());
         maxPlan.setCommentRequired(true);
         maxPlan.setCommentMessage("comment-message");
         maxPlan.setGeneralConditions("general-conditions");
@@ -411,9 +411,9 @@ class UpdatePlanUseCaseTest {
         minPlan.setCrossId("my-plan-crossId");
         minPlan.setName("plan-name-changed");
         minPlan.setDescription("plan-description-changed");
-        minPlan.setValidation(PlanValidationType.MANUAL);
+        minPlan.setValidation(PlanValidationType.AUTO);
         minPlan.setOrder(2);
-        minPlan.setSecurity(PlanSecurity.builder().type("api-key").build());
+        minPlan.setSecurity(PlanSecurity.builder().type("key-less").build());
         return minPlan;
     }
 }
