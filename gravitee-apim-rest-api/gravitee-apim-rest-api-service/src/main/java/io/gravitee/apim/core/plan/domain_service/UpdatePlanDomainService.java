@@ -34,7 +34,6 @@ import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
