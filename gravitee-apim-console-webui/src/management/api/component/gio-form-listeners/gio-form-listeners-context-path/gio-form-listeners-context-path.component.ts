@@ -191,11 +191,15 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
   private listenersValidator(): ValidatorFn {
     return (listenerFormArrayControl: FormArray): ValidationErrors | null => {
       const listenerFormArrayControls = listenerFormArrayControl.controls;
-      const listenerValues = listenerFormArrayControls.map((listener) => listener.value);
+      const listenerValues: string[] = listenerFormArrayControls.map((listener) => listener.value?.path);
 
+      if (new Set(listenerValues).size !== listenerValues.length) {
+        return { contextPath: 'Duplicated context path not allowed' };
+      }
+      const pathListenerValues = listenerFormArrayControls.map((listener) => listener.value);
       const errors = listenerFormArrayControls
         .reduce((acc, listenerControl, index) => {
-          const validationError = this.validateListenerControl(listenerControl, listenerValues, index);
+          const validationError = this.validateListenerControl(listenerControl, pathListenerValues, index);
           if (validationError) {
             acc[`${index}`] = validationError;
           }
