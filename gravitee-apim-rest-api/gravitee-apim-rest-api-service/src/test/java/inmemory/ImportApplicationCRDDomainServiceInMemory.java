@@ -107,6 +107,7 @@ public class ImportApplicationCRDDomainServiceInMemory
         bae.setDescription(newApplicationEntity.getDescription());
         bae.setType(newApplicationEntity.getType());
         bae.setOrigin(Origin.KUBERNETES);
+        bae.setDisableMembershipNotifications(newApplicationEntity.isDisableMembershipNotifications());
 
         return bae;
     }
@@ -117,6 +118,7 @@ public class ImportApplicationCRDDomainServiceInMemory
         bae.setDescription(updateApplicationEntity.getDescription());
         bae.setType(updateApplicationEntity.getType());
         bae.setOrigin(Origin.KUBERNETES);
+        bae.setDisableMembershipNotifications(updateApplicationEntity.isDisableMembershipNotifications());
 
         return bae;
     }
