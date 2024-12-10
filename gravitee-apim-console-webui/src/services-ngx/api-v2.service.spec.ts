@@ -225,7 +225,10 @@ describe('ApiV2Service', () => {
         method: 'GET',
       });
 
-      req.flush(null);
+      const fakeBlob = new Blob([]);
+      fakeBlob.text = async () => JSON.stringify(fakeApi);
+
+      req.flush(fakeBlob);
     });
   });
 
