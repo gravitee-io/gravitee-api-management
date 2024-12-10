@@ -176,6 +176,9 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
             groupValidationService.validateAndSanitize(toBeUpdatedApi.getGroups(), toBeUpdatedApi.getEnvironmentId(), primaryOwner)
         );
 
+        // Validate categories
+        toBeUpdatedApi.setCategories(categoryDomainService.toCategoryId(toBeUpdatedApi, environmentId));
+
         // Lifecycle state
         toBeUpdatedApi.setApiLifecycleState(
             apiLifecycleStateDomainService.validateAndSanitizeForUpdate(
