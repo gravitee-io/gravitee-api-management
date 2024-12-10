@@ -40,6 +40,7 @@ import { ApplicationService } from '../../../../../services/application.service'
 import { PermissionsService } from '../../../../../services/permissions.service';
 import { PlanService } from '../../../../../services/plan.service';
 import { SubscriptionService } from '../../../../../services/subscription.service';
+import {ApiType} from "../../../../../entities/api/api";
 
 interface SubscriptionDetailsVM {
   result?: SubscriptionDetailsData;
@@ -56,6 +57,7 @@ interface SubscriptionDetailsData {
   entrypointUrl?: string;
   clientId?: string;
   clientSecret?: string;
+  apiType?: ApiType;
 }
 
 @Component({
@@ -127,6 +129,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
           planSecurity: plan.securityType,
           planUsageConfiguration: plan.usageConfiguration,
           subscriptionStatus: subscription.status,
+          apiType: api.type,
         };
 
         if (subscription.status === 'ACCEPTED') {
