@@ -96,7 +96,7 @@ export class ApiHealthCheckComponent implements OnInit, OnDestroy {
 
   updateEndpointsHealthCheckConfig(groups: Proxy['groups']) {
     groups.forEach((group) => {
-      group.endpoints.forEach((endpoint) => {
+      group.endpoints?.forEach((endpoint) => {
         // If healthcheck is disabled, set inherit to false
         if (
           (endpoint.healthCheck?.inherit === undefined || endpoint.healthCheck?.inherit === true) &&
