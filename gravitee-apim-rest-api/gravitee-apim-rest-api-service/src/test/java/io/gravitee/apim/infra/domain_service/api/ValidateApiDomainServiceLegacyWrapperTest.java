@@ -246,6 +246,8 @@ class ValidateApiDomainServiceLegacyWrapperTest {
 
             doAnswer(invocation -> Set.of("sanitized")).when(groupValidationService).validateAndSanitize(any(), any(), any());
 
+            doAnswer(invocationOnMock -> Set.of("sanitized")).when(categoryDomainService).toCategoryId(any(), any());
+
             doAnswer(invocation ->
                     List.of(KafkaListener.builder().entrypoints(List.of(NativeEntrypoint.builder().type("sanitized").build())).build())
                 )
@@ -285,7 +287,8 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 .hasType(ApiType.NATIVE)
                 .hasDescription("sanitized")
                 .hasOnlyGroups(Set.of("sanitized"))
-                .hasOnlyTags(Set.of("sanitized"));
+                .hasOnlyTags(Set.of("sanitized"))
+                .hasOnlyCategories(Set.of("sanitized"));
 
             SoftAssertions.assertSoftly(soft -> {
                 soft
