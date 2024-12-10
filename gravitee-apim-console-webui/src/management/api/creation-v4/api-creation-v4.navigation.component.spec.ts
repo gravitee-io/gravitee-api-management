@@ -1391,7 +1391,7 @@ describe('ApiCreationV4Component - Navigation', () => {
       it('should go to confirmation page after clicking Deploy my API', async () => {
         await step5Harness.clickDeployMyApiButton();
 
-        httpExpects.expectCallsForApiDeployment(API_ID, PLAN_ID);
+        httpExpects.expectCallsForApiDeployment(API_ID, PLAN_ID, 'Update name');
 
         expect(routerNavigateSpy).toHaveBeenCalledWith(['.', 'my-api'], expect.anything());
       });
@@ -1415,13 +1415,7 @@ describe('ApiCreationV4Component - Navigation', () => {
       it('should go to confirmation page after clicking Save API & Ask for review', async () => {
         await step5Harness.clickCreateAndAskForReviewMyApiButton();
 
-        httpExpects.expectCallsForApiAndPlanCreation(API_ID, PLAN_ID);
-
-        const publishPlansRequest = httpTestingController.expectOne({
-          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_ID}/_publish`,
-          method: 'POST',
-        });
-        publishPlansRequest.flush({});
+        httpExpects.expectCallsForApiAndPlanCreation(API_ID, PLAN_ID, 'Update name');
 
         const askRequest = httpTestingController.expectOne({
           url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/reviews/_ask`,

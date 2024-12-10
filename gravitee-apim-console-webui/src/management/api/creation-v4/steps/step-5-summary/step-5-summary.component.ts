@@ -43,8 +43,6 @@ export class Step5SummaryComponent implements OnInit {
   public isOEM$: Observable<boolean>;
   public hasReviewEnabled = this.constants.env?.settings?.apiReview?.enabled ?? false;
 
-  public apiType: ApiCreationPayload['type'];
-
   constructor(
     private readonly stepService: ApiCreationStepService,
     public readonly licenseService: GioLicenseService,
@@ -53,7 +51,6 @@ export class Step5SummaryComponent implements OnInit {
 
   ngOnInit(): void {
     this.currentStepPayload = this.stepService.payload;
-    this.apiType = this.currentStepPayload.type;
 
     this.paths = this.currentStepPayload.paths?.map((path) => path.path);
     this.hosts = this.currentStepPayload.hosts?.map((host) => host.host);
