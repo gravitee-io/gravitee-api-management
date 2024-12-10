@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.getField;
 
 import io.gravitee.el.TemplateVariableProvider;
+import io.gravitee.el.TemplateVariableProviderFactory;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.endpoint.ref.impl.DefaultReferenceRegister;
 import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContextFactory;
@@ -29,8 +30,8 @@ import io.gravitee.gateway.handlers.api.context.ApiTemplateVariableProvider;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.gateway.reactor.handler.context.V3ExecutionContextFactory;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -55,10 +56,9 @@ public class DebugApiContextHandlerFactoryTest {
 
     @Test
     public void building_v3ExecutionContextFactory_should_put_ApiTemplateVariableProvider_in_context() {
-        when(applicationContext.getBean(ApiTemplateVariableProviderFactory.class))
-            .thenReturn(mock(ApiTemplateVariableProviderFactory.class));
-        when(applicationContext.getBean(ApiTemplateVariableProviderFactory.class).getTemplateVariableProviders())
-            .thenReturn(new ArrayList<>());
+        ApiTemplateVariableProviderFactory apiTemplateVariableProviderFactory = mock(ApiTemplateVariableProviderFactory.class);
+        when(applicationContext.getBeansOfType(TemplateVariableProviderFactory.class))
+            .thenReturn(Map.of(ApiTemplateVariableProviderFactory.class.getName(), apiTemplateVariableProviderFactory));
 
         V3ExecutionContextFactory executionContextFactory = debugApiContextHandlerFactory.v3ExecutionContextFactory(
             mock(Api.class),
