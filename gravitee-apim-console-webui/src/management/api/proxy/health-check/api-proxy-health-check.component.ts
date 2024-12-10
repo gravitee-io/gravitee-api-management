@@ -75,7 +75,12 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
         onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {
           const apiHealthCheck = ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(this.healthCheckForm, false);
-          this.updateEndpointsHealthCheckConfig(api.proxy?.groups);
+          try {
+            this.updateEndpointsHealthCheckConfig(api.proxy?.groups);
+          } catch (error) {
+            this.snackBarService.error('Failed to update configuration. Please ensure endpoint groups are properly defined.');
+            return EMPTY;
+          }
 
           return this.apiService.update(api.id, {
             ...api,
@@ -102,7 +107,7 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
 
   updateEndpointsHealthCheckConfig(groups: Proxy['groups']) {
     groups.forEach((group) => {
-      group.endpoints.forEach((endpoint) => {
+      group.endpoints?.forEach((endpoint) => {
         // If healthcheck is disabled, set inherit to false
         if (
           (endpoint.healthCheck?.inherit === undefined || endpoint.healthCheck?.inherit === true) &&
