@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>22.2.4</version>
+        <version>23.0.0-archi-425-SNAPSHOT</version>
     </parent>
 
     <groupId>io.gravitee.apim</groupId>
