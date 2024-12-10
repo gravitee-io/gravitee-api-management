@@ -25,6 +25,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
@@ -253,7 +254,10 @@ public class MessageService_GetRecipientIdsTest {
         ApplicationListItem appListItem = new ApplicationListItem();
         appListItem.setId(app.getId());
         appListItem.setGroups(app.getGroups());
-        when(mockApplicationService.findByIds(GraviteeContext.getExecutionContext(), List.of(app.getId()))).thenReturn(Set.of(appListItem));
+        when(
+            mockApplicationService.findByIdsAndStatus(GraviteeContext.getExecutionContext(), List.of(app.getId()), ApplicationStatus.ACTIVE)
+        )
+            .thenReturn(Set.of(appListItem));
 
         MembershipEntity membershipGroup = new MembershipEntity();
         membershipGroup.setId("membership-group-id");
