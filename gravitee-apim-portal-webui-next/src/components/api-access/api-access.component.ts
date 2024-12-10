@@ -20,6 +20,7 @@ import { PlanSecurityEnum } from '../../entities/plan/plan';
 import { SubscriptionStatusEnum } from '../../entities/subscription/subscription';
 import { ConfigService } from '../../services/config.service';
 import { CopyCodeComponent } from '../copy-code/copy-code.component';
+import {ApiType} from "../../entities/api/api";
 
 @Component({
   selector: 'app-api-access',
@@ -39,6 +40,9 @@ export class ApiAccessComponent implements OnInit {
   apiKey?: string;
 
   @Input()
+  apiType?: ApiType;
+
+  @Input()
   entrypointUrl?: string;
 
   @Input()
@@ -48,6 +52,42 @@ export class ApiAccessComponent implements OnInit {
   clientSecret?: string;
 
   curlCmd: string = '';
+
+//   oauthbearer: string = ```security.protocol=SASL_SSL
+//
+// sasl.mechanism=OAUTHBEARER
+// sasl.login.callback.handler.class=org.apache.kafka.common.security.oauthbearer.secured.OAuthBearerLoginCallbackHandler
+// sasl.login.connect.timeout.ms=15000
+// sasl.oauthbearer.token.endpoint.url=https://am.gateway.master.gravitee.dev/test-jh/oauth/token
+// sasl.jaas.config=org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \\
+//   clientId="kafka-client" \\
+//   clientSecret="kafka-secret";
+//
+// # Configure your truststore if you self-sign certificates
+// # ssl.truststore.location=/path/to.truststore.jks
+// # ssl.truststore.password=<your_truststore_password>```;
+
+  kafkaClientConfiguration = {
+    oAuthBearer: "security.protocol=SASL_SSL\n" +
+      "sasl.mechanism=OAUTHBEARER\n" +
+      "\n" +
+      "sasl.mechanism=OAUTHBEARER\n" +
+      "sasl.login.callback.handler.class=org.apache.kafka.common.security.oauthbearer.secured.OAuthBearerLoginCallbackHandler\n" +
+      "sasl.login.connect.timeout.ms=15000\n" +
+      "sasl.oauthbearer.token.endpoint.url=<token-introspection-url>\n" +
+      "sasl.jaas.config=org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \\\n" +
+      "  clientId=\"<your-client-id>\" \\\n" +
+      "  clientSecret=\"<your-client-secret>\";\n" +
+      "\n" +
+      "# Configure your truststore if using self-sign certificates\n" +
+      "# ssl.truststore.location=/path/to.truststore.jks\n" +
+    "# ssl.truststore.password=<your_truststore_password>",
+    apiKey: {
+      plain: "blah",
+      scram256: "bloop",
+      scram512: "beep"
+    }
+  }
 
   constructor(private configService: ConfigService) {}
 

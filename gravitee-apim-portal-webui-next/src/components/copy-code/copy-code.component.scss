@@ -35,8 +35,11 @@
     gap: 4px;
 
     &__code {
+      display: block;
+      white-space: pre-wrap;
       flex: 1 1 100%;
       overflow-wrap: anywhere;
+      line-height: 1.5em;
     }
   }
 }

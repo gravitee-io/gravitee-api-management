@@ -23,9 +23,12 @@ import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.ApiLinks;
+import io.gravitee.rest.api.portal.rest.model.ApiType;
 import io.gravitee.rest.api.portal.rest.model.DefinitionVersion;
 import io.gravitee.rest.api.portal.rest.model.ListenerType;
 import io.gravitee.rest.api.portal.rest.model.RatingSummary;
@@ -70,6 +73,7 @@ public class ApiMapper {
             apiItem.setDefinitionVersion(DefinitionVersion.valueOf(api.getDefinitionVersion().name()));
         }
         apiItem.setDescription(api.getDescription());
+        apiItem.setType(computeApiType(api));
 
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(executionContext, api);
         if (apiEntrypoints != null) {
@@ -159,5 +163,15 @@ public class ApiMapper {
         apiLinks.setPicture(basePath + "/picture?" + hash);
         apiLinks.setBackground(basePath + "/background?" + hash);
         return apiLinks;
+    }
+
+    private static ApiType computeApiType(GenericApiEntity api) {
+        if (api instanceof ApiEntity asHttpApiEntity) {
+            return ApiType.fromValue(asHttpApiEntity.getType().name());
+        }
+        if (api instanceof NativeApiEntity asNativeApiEntity) {
+            return ApiType.fromValue(asNativeApiEntity.getType().name());
+        }
+        return null;
     }
 }
