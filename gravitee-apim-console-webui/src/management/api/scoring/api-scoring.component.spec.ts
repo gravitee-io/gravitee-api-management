@@ -31,8 +31,13 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeApiFederated } from '../../../entities/management-api-v2';
 import { AsyncJob, fakeAsyncJob } from '../../../entities/async-job';
 import { fakePaginatedResult } from '../../../entities/paginatedResult';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 describe('ApiScoringComponent', () => {
+  const fakeSnackBarService = {
+    error: jest.fn(),
+  };
+
   const API_ID = 'api-id';
 
   let fixture: ComponentFixture<ApiScoringComponent>;
@@ -52,6 +57,10 @@ describe('ApiScoringComponent', () => {
             },
           },
         },
+        {
+          provide: SnackBarService,
+          useValue: fakeSnackBarService,
+        },
       ],
     })
       .overrideProvider(InteractivityChecker, {
@@ -68,6 +77,10 @@ describe('ApiScoringComponent', () => {
 
     fixture.detectChanges();
   };
+
+  afterEach(() => {
+    httpTestingController.verify();
+  });
 
   describe('initialize', () => {
     it('should display loading panel while loading', fakeAsync(async () => {
@@ -96,6 +109,36 @@ describe('ApiScoringComponent', () => {
       expectApiScoreGetRequest(API_ID);
 
       expect(await componentHarness.getSummaryText()).toEqual(['All (1)', 'Errors (0)', 'Warnings (1)', 'Infos (0)', 'Hints (0)']);
+    }));
+
+    it('should show snackbar with evaluation errors if any exist', fakeAsync(async () => {
+      const apiScoringWithEvaluationErrors = fakeApiScoring({
+        assets: [
+          {
+            name: 'Asset name',
+            diagnostics: [],
+            type: ScoringAssetType.GRAVITEE_DEFINITION,
+            errors: [
+              {
+                code: 'undefined-function',
+                path: ['rules', 'api-key-security-scheme', 'then', 'function'],
+              },
+            ],
+          },
+        ],
+      });
+      const expectedErrorMessage = `Errors occurred while scoring this API:
+
+Asset: Asset name
+Code: undefined-function
+Path: rules,api-key-security-scheme,then,function`;
+
+      await init();
+      tick(1);
+      expectAsyncJobGetRequest(API_ID, []);
+      expectApiGetRequest(API_ID);
+      expectApiScoreGetRequest(API_ID, apiScoringWithEvaluationErrors);
+      expect(fakeSnackBarService.error).toHaveBeenCalledWith(expectedErrorMessage);
     }));
   });
 
