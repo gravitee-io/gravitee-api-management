@@ -55,6 +55,7 @@ export interface ScoringAsset {
   name: string;
   type: ScoringAssetType;
   diagnostics: ScoringDiagnostic[];
+  errors?: ScoringError[];
 }
 
 export interface ScoringDiagnostic {
@@ -65,4 +66,9 @@ export interface ScoringDiagnostic {
     end: { line: number; character: number };
   };
   path: string;
+}
+
+export interface ScoringError {
+  code: string;
+  path: string[];
 }
