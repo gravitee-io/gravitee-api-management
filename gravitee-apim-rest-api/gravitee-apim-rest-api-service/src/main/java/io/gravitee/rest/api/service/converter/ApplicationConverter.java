@@ -70,6 +70,8 @@ public class ApplicationConverter {
         application.setMetadata(toMetadata(newApplicationEntity.getSettings()));
         application.setApiKeyMode(toModelApiKeyMode(newApplicationEntity.getApiKeyMode()));
         application.setOrigin(newApplicationEntity.getOrigin());
+        application.setDisableMembershipNotifications(newApplicationEntity.isDisableMembershipNotifications());
+
         return application;
     }
 

@@ -78,6 +78,9 @@ public class NewApplicationEntity {
     @Schema(description = "The origin used for creating this application.")
     private Origin origin = Origin.MANAGEMENT;
 
+    @JsonProperty("disable_membership_notifications")
+    private boolean disableMembershipNotifications;
+
     public String getDescription() {
         return description;
     }
@@ -164,6 +167,14 @@ public class NewApplicationEntity {
 
     public void setOrigin(Origin origin) {
         this.origin = origin;
+    }
+
+    public boolean isDisableMembershipNotifications() {
+        return disableMembershipNotifications;
+    }
+
+    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
+        this.disableMembershipNotifications = disableMembershipNotifications;
     }
 
     @Override
