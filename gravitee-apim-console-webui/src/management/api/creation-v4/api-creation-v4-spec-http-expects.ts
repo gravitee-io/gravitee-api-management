@@ -114,7 +114,7 @@ export class ApiCreationV4SpecHttpExpects {
     });
   }
 
-  expectCallsForApiAndPlanCreation(apiId: string, planId: string) {
+  expectCallsForApiAndPlanCreation(apiId: string, planId: string, planName: string = 'Default Keyless (UNSECURED)') {
     this.expectCallsForApiCreation(apiId);
 
     const createPlansRequest = this.httpTestingController.expectOne({
@@ -124,26 +124,16 @@ export class ApiCreationV4SpecHttpExpects {
     expect(createPlansRequest.request.body).toEqual(
       expect.objectContaining({
         definitionVersion: 'V4',
-        name: 'Update name',
+        name: planName,
       }),
     );
     createPlansRequest.flush(fakePlanV4({ apiId: apiId, id: planId }));
-  }
 
-  expectCallsForNativeApiAndPlanCreation(apiId: string, planId: string) {
-    this.expectCallsForApiCreation(apiId);
-
-    const createPlansRequest = this.httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/plans`,
+    const publishPlansRequest = this.httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/plans/${planId}/_publish`,
       method: 'POST',
     });
-    expect(createPlansRequest.request.body).toEqual(
-      expect.objectContaining({
-        definitionVersion: 'V4',
-        name: 'Default Keyless (UNSECURED)',
-      }),
-    );
-    createPlansRequest.flush(fakePlanV4({ apiId: apiId, id: planId }));
+    publishPlansRequest.flush({});
   }
 
   expectCallsForApiCreation(apiId: string) {
@@ -158,30 +148,14 @@ export class ApiCreationV4SpecHttpExpects {
     createApiRequest.flush(fakeApiV4({ id: apiId }));
   }
 
-  expectCallsForApiDeployment(apiId: string, planId: string) {
-    this.expectCallsForApiAndPlanCreation(apiId, planId);
-
-    const publishPlansRequest = this.httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/plans/${planId}/_publish`,
-      method: 'POST',
-    });
-    publishPlansRequest.flush({});
+  expectCallsForApiDeployment(apiId: string, planId: string, planName?: string) {
+    this.expectCallsForApiAndPlanCreation(apiId, planId, planName);
 
     const startApiRequest = this.httpTestingController.expectOne({
       url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_start`,
       method: 'POST',
     });
     startApiRequest.flush(fakeApiV4({ id: apiId }));
-  }
-
-  expectCallsForNativeApiDeployment(apiId: string, planId: string) {
-    this.expectCallsForNativeApiAndPlanCreation(apiId, planId);
-
-    const publishPlansRequest = this.httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/plans/${planId}/_publish`,
-      method: 'POST',
-    });
-    publishPlansRequest.flush({});
   }
 
   expectVerifyHosts(hosts: string[], times = 1) {
