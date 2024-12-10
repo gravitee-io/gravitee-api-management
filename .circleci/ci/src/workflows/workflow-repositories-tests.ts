@@ -83,7 +83,7 @@ export class RepositoriesTestsWorkflow {
         requires: [buildJobName],
         matrix: {
           engineType: ['elasticsearch'],
-          engineVersion: ['7.17.15', '8.11.1'],
+          engineVersion: ['7.17.15', '8.16.1'],
         },
       }),
       new workflow.WorkflowJob(opensearchTestContainerJob, {
