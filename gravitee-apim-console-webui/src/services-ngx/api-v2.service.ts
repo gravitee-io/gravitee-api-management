@@ -15,7 +15,7 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, mergeMap, Observable, of } from "rxjs";
 import { distinctUntilChanged, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 
@@ -31,11 +31,12 @@ import {
   DuplicateApiOptions,
   UpdateApi,
 } from '../entities/management-api-v2';
-import { ApiTransferOwnership } from '../entities/management-api-v2/api/apiTransferOwnership';
+import { ApiTransferOwnership } from "../entities/management-api-v2";
 import { PathToVerify, VerifyApiPathResponse } from '../entities/management-api-v2/api/verifyApiPath';
 import { VerifyApiHostsResponse } from '../entities/management-api-v2/api/verifyApiHosts';
-import { VerifyApiDeployResponse } from '../entities/management-api-v2/api/verifyApiDeploy';
+import { VerifyApiDeployResponse } from "../entities/management-api-v2";
 import { ImportSwaggerDescriptor } from '../entities/management-api-v2/api/v4/importSwaggerDescriptor';
+import { fromPromise } from "rxjs/internal/observable/innerFrom";
 
 export interface HostValidatorParams {
   currentHost?: string;
@@ -116,7 +117,14 @@ export class ApiV2Service {
       params: {
         ...(options?.excludeAdditionalData ? { excludeAdditionalData: options.excludeAdditionalData.join(',') } : {}),
       },
-    });
+    }).pipe(
+      mergeMap((blob) => fromPromise(blob.text())),
+      map((content) => {
+        return new Blob([JSON.stringify(JSON.parse(content), undefined, 2)], {
+          type: 'application/json'
+        });
+      })
+    );
   }
 
   import(importApi: any): Observable<ApiV4> {
