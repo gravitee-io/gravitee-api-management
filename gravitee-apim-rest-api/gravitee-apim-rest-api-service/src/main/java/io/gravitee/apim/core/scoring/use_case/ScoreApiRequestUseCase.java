@@ -122,6 +122,10 @@ public class ScoreApiRequestUseCase {
     }
 
     private ScoreRequest.AssetToScore assetToScore(GraviteeDefinition definition) throws JsonProcessingException {
+        if (definition.getApi().getEndpointGroups() != null) {
+            // remove shared configuration because this produce some errors in scoring (invalid reference: APIM-7877)
+            definition.getApi().getEndpointGroups().forEach(endpoint -> endpoint.setSharedConfiguration((String) null));
+        }
         return new ScoreRequest.AssetToScore(
             definition.getApi().getId(),
             new ScoreRequest.AssetType(
