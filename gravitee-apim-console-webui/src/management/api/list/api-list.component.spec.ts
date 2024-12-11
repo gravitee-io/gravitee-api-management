@@ -439,7 +439,7 @@ describe('ApisListComponent', () => {
 
         const { rowCells } = await computeApisTableCells();
         expect(rowCells).toEqual([
-          ['', '🪐 Planets (1.0)', 'V4 - Native Kafka Gravitee', '', 'kafka-host:1000', '', '', '', 'admin', 'public', 'edit'],
+          ['', '🪐 Planets (1.0)', 'V4 - Kafka Gravitee', '', 'kafka-host:1000', '', '', '', 'admin', 'public', 'edit'],
         ]);
         expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
       }));

@@ -243,7 +243,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
         return { label: this.titleCasePipe.transform(api.definitionVersion) };
       case 'V4':
         if ((api as ApiV4).type === 'NATIVE') {
-          return { label: `${api.definitionVersion} - ${this.titleCasePipe.transform((api as ApiV4).type)}${this.getLabelType(api)}` };
+          return { label: `${api.definitionVersion} -${this.getLabelType(api)}` };
         }
         return { label: `${api.definitionVersion} -${this.getLabelType(api)} ${this.titleCasePipe.transform((api as ApiV4).type)}` };
       case 'FEDERATED':
