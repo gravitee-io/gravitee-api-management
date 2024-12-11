@@ -115,11 +115,11 @@ export class ApiScoringComponent implements OnInit {
 
           if (!this.pendingScoreRequest) {
             this.stopPolling$.next();
-          }
 
-          const evaluationErrors = this.getEvaluationErrors(apiScoring);
-          if (evaluationErrors.length) {
-            this.snackBarService.error(this.formatEvaluationErrors(evaluationErrors));
+            const evaluationErrors = this.getEvaluationErrors(apiScoring);
+            if (evaluationErrors.length) {
+              this.snackBarService.error(this.formatEvaluationErrors(evaluationErrors));
+            }
           }
         },
         error: (e) => {
