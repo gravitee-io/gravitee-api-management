@@ -38,8 +38,14 @@ public abstract class WeightedLoadBalancer extends AbstractLoadBalancerStrategy 
 
         int position = 0;
         for (ManagedEndpoint managedEndpoint : endpoints) {
-            computedDistribution.add(new WeightDistributions.WeightDistribution(position++, managedEndpoint.getDefinition().getWeight()));
+            computedDistribution.add(new WeightDistributions.WeightDistribution(position++, computeWeight(managedEndpoint)));
         }
         weightDistributions.set(new WeightDistributions(computedDistribution));
+    }
+
+    private int computeWeight(final ManagedEndpoint managedEndpoint) {
+        // has been implemented to protect the load balancer behavior as the initial weight cannot be 0 or lower
+        int weight = managedEndpoint.getDefinition().getWeight();
+        return weight > 0 ? weight : 1;
     }
 }
