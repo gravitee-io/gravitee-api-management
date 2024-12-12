@@ -30,6 +30,7 @@ import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.async_job.crud_service.AsyncJobCrudService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.documentation.domain_service.ClearIngestedApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
@@ -82,6 +83,7 @@ public class IngestFederatedApisUseCase {
     private final ApiMetadataDomainService apiMetadataDomainService;
     private final ApiIndexerDomainService apiIndexerDomainService;
     private final HomepageDomainService homepageDomainService;
+    private final ClearIngestedApiDocumentationDomainService clearIngestedApiDocumentationDomainService;
 
     public Completable execute(Input input) {
         log.info("Ingesting {} federated APIs [jobId={}]", input.apisToIngest().size(), input.ingestJobId);
@@ -174,6 +176,8 @@ public class IngestFederatedApisUseCase {
                         )
                 );
 
+            var ingestedPagesNames = integrationApi.pages().stream().map(IntegrationApi.Page::filename).toList();
+            clearIngestedApiDocumentationDomainService.clearIngestedPagesOf(federatedApi.getId(), ingestedPagesNames, bulk.auditInfo());
             var existingPages = pageQueryService
                 .searchByApiId(federatedApi.getId())
                 .stream()
@@ -240,6 +244,7 @@ public class IngestFederatedApisUseCase {
             .configuration(Map.of("tryIt", "true", "viewer", "Swagger"))
             .createdAt(now)
             .updatedAt(now)
+            .ingested(true)
             .build();
     }
 
@@ -258,6 +263,7 @@ public class IngestFederatedApisUseCase {
             .homepage(true)
             .createdAt(now)
             .updatedAt(now)
+            .ingested(true)
             .build();
     }
 

@@ -72,6 +72,7 @@ import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.audit.model.event.MembershipAuditEvent;
 import io.gravitee.apim.core.audit.model.event.PageAuditEvent;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
+import io.gravitee.apim.core.documentation.domain_service.ClearIngestedApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
@@ -307,6 +308,12 @@ class IngestFederatedApisUseCaseTest {
 
         var homepageDomainService = new HomepageDomainService(pageQueryServiceInMemory, pageCrudService);
 
+        var clearIngestedApiDocumentationDomainService = new ClearIngestedApiDocumentationDomainService(
+            pageCrudService,
+            auditDomainService,
+            indexer,
+            pageQueryServiceInMemory
+        );
         useCase =
             new IngestFederatedApisUseCase(
                 asyncJobCrudService,
@@ -324,7 +331,8 @@ class IngestFederatedApisUseCaseTest {
                 triggerNotificationDomainService,
                 apiMetadataDomainService,
                 apiIndexerDomainService,
-                homepageDomainService
+                homepageDomainService,
+                clearIngestedApiDocumentationDomainService
             );
 
         enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode.USER);
@@ -1178,6 +1186,7 @@ class IngestFederatedApisUseCaseTest {
                 .homepage(true)
                 .published(true)
                 .configuration(Map.of("tryIt", "true", "viewer", "Swagger"))
+                .ingested(true)
                 .build();
 
             //Then
@@ -1253,6 +1262,7 @@ class IngestFederatedApisUseCaseTest {
                 .homepage(true)
                 .published(true)
                 .configuration(Map.of("tryIt", "true", "viewer", "Swagger"))
+                .ingested(true)
                 .build();
 
             // Then
@@ -1290,6 +1300,7 @@ class IngestFederatedApisUseCaseTest {
                 .content("some async Doc")
                 .homepage(true)
                 .published(true)
+                .ingested(true)
                 .build();
 
             // Then
@@ -1401,6 +1412,7 @@ class IngestFederatedApisUseCaseTest {
                 .homepage(true)
                 .published(true)
                 .configuration(Map.of("tryIt", "true", "viewer", "Swagger"))
+                .ingested(true)
                 .build();
 
             //Then
@@ -1466,10 +1478,62 @@ class IngestFederatedApisUseCaseTest {
                 .content("some updated async Doc")
                 .homepage(true)
                 .published(true)
+                .ingested(true)
                 .build();
 
             // Then
             assertThat(pageCrudService.storage()).contains(expectedPage);
+        }
+
+        @Test
+        void should_remove_page_not_exists_anymore() {
+            //Given
+            var apiToIngest =
+                (
+                    IntegrationApiFixtures
+                        .anIntegrationApiForIntegration(INTEGRATION_ID)
+                        .toBuilder()
+                        .uniqueId("uid-1")
+                        .pages(List.of())
+                        .build()
+                );
+            givenExistingApi(
+                ApiFixtures
+                    .aFederatedApi()
+                    .toBuilder()
+                    .id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1")
+                    .name("An alien API")
+                    .description("my description")
+                    .version("1.1.1")
+                    .build()
+            );
+            givenExistingPage(
+                Page
+                    .builder()
+                    .id("generated-id")
+                    .name("MyPageOne.json")
+                    .referenceId("environment-idintegration-iduid-1")
+                    .referenceType(Page.ReferenceType.API)
+                    .type(Page.Type.ASYNCAPI)
+                    .visibility(Page.Visibility.PRIVATE)
+                    .createdAt(Date.from(INSTANT_NOW))
+                    .updatedAt(Date.from(INSTANT_NOW))
+                    .content("some async Doc")
+                    .homepage(true)
+                    .published(true)
+                    .ingested(true)
+                    .build()
+            );
+            TimeProvider.overrideClock(Clock.fixed(UPDATE_TIME, ZoneId.systemDefault()));
+
+            // When
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
+
+            // Then
+            assertThat(pageCrudService.storage()).isEmpty();
         }
 
         @Test
@@ -1654,6 +1718,7 @@ class IngestFederatedApisUseCaseTest {
                 .homepage(true)
                 .published(true)
                 .configuration(Map.of("tryIt", "true", "viewer", "Swagger"))
+                .ingested(true)
                 .build();
 
             //Then

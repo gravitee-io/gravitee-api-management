@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.6.0_07_add_ingested_mark_page
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}pages
+            columns:
+              - column:
+                  name: ingested
+                  type: boolean

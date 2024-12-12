@@ -25,9 +25,11 @@ import lombok.*;
  */
 @Getter
 @Setter
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Page {
 
     public enum AuditEvent implements Audit.ApiAuditEvent {
@@ -37,6 +39,7 @@ public class Page {
         PAGE_PUBLISHED,
     }
 
+    @EqualsAndHashCode.Include
     private String id;
 
     /**
@@ -45,8 +48,12 @@ public class Page {
      */
     private String crossId;
 
+    @EqualsAndHashCode.Include
     private String referenceId;
+
+    @EqualsAndHashCode.Include
     private PageReferenceType referenceType;
+
     private String name;
     private String type;
     private String content;
@@ -65,78 +72,5 @@ public class Page {
     private Map<String, String> metadata;
     private Boolean useAutoFetch; // use Boolean to avoid default value of primitive type
     private List<PageMedia> attachedMedia;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Page page = (Page) o;
-        return Objects.equals(id, page.id) && Objects.equals(referenceId, page.referenceId) && referenceType == page.referenceType;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, referenceId, referenceType);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "Page{" +
-            "id='" +
-            id +
-            '\'' +
-            ", crossId='" +
-            crossId +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", referenceType=" +
-            referenceType +
-            ", name='" +
-            name +
-            '\'' +
-            ", type='" +
-            type +
-            '\'' +
-            ", content='" +
-            content +
-            '\'' +
-            ", lastContributor='" +
-            lastContributor +
-            '\'' +
-            ", order=" +
-            order +
-            ", published=" +
-            published +
-            ", visibility='" +
-            visibility +
-            '\'' +
-            ", source=" +
-            source +
-            ", configuration=" +
-            configuration +
-            ", homepage=" +
-            homepage +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            ", parentId='" +
-            parentId +
-            '\'' +
-            ", excludedAccessControls=" +
-            excludedAccessControls +
-            ", accessControls=" +
-            accessControls +
-            ", metadata=" +
-            metadata +
-            ", useAutoFetch=" +
-            useAutoFetch +
-            ", attachedMedia=" +
-            attachedMedia +
-            '}'
-        );
-    }
+    private boolean ingested;
 }
