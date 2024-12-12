@@ -141,6 +141,7 @@ public class EndpointGroupsValidationServiceImplTest {
         Endpoint validatedEndpoint = endpoints.get(0);
         assertThat(validatedEndpoint.getName()).isEqualTo("endpoint");
         assertThat(validatedEndpoint.getType()).isEqualTo("http");
+        assertThat(validatedEndpoint.getWeight()).isEqualTo(1);
         assertThat(validatedEndpointGroup.getServices()).isNotNull();
         assertThat(validatedEndpointGroup.getSharedConfiguration()).isNull();
         assertThat(validatedEndpointGroup.getLoadBalancer()).isNotNull();
@@ -177,6 +178,7 @@ public class EndpointGroupsValidationServiceImplTest {
         Endpoint validatedEndpoint = endpoints.get(0);
         assertThat(validatedEndpoint.getName()).isEqualTo("endpoint");
         assertThat(validatedEndpoint.getType()).isEqualTo("http");
+        assertThat(validatedEndpoint.getWeight()).isEqualTo(1);
         assertThat(validatedEndpointGroup.getServices())
             .isNotNull()
             .matches(svc -> svc.getHealthCheck().getConfiguration().equals(FIXED_HC_CONFIG));
@@ -429,6 +431,21 @@ public class EndpointGroupsValidationServiceImplTest {
         endpointGroup.setEndpoints(List.of(endpoint));
         assertThatExceptionOfType(EndpointGroupTypeMismatchInvalidException.class)
             .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup)));
+    }
+
+    @Test
+    public void shouldReturnDefaultWeightWithWrongEndpointWeight() {
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("name");
+        endpointGroup.setType("http");
+        Endpoint endpoint = new Endpoint();
+        endpoint.setName("endpoint");
+        endpoint.setType("http");
+        endpoint.setWeight(0);
+        endpointGroup.setEndpoints(List.of(endpoint));
+        List<EndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup));
+
+        assertThat(endpointGroups.get(0).getEndpoints().get(0).getWeight()).isEqualTo(1);
     }
 
     @Test(expected = EndpointMissingException.class)

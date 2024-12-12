@@ -69,6 +69,9 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
         final JsonNode weightNode = node.get("weight");
         if (weightNode != null) {
             int weight = weightNode.asInt(Endpoint.DEFAULT_WEIGHT);
+            if (weight <= 0) {
+                weight = Endpoint.DEFAULT_WEIGHT;
+            }
             endpoint.setWeight(weight);
         } else {
             endpoint.setWeight(Endpoint.DEFAULT_WEIGHT);
