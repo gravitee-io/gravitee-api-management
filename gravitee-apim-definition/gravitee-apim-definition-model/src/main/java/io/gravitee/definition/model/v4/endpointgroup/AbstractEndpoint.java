@@ -54,7 +54,7 @@ import lombok.experimental.SuperBuilder;
 public class AbstractEndpoint implements Serializable {
 
     private static final long serialVersionUID = 7139083731513897591L;
-    private static final int DEFAULT_WEIGHT = 1;
+    public static final int DEFAULT_WEIGHT = 1;
 
     @NotBlank
     private String name;
