@@ -20,10 +20,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { AsyncPipe, NgIf } from '@angular/common';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatIcon } from '@angular/material/icon';
+import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
-import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
-import { MatInput } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { ReactiveFormsModule } from '@angular/forms';
 import {
   GioBannerModule,
@@ -33,7 +33,7 @@ import {
   GioLoaderModule,
   GioSaveBarModule,
 } from '@gravitee/ui-particles-angular';
-import { MatTooltip } from '@angular/material/tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ApiScoreRulesetsComponent } from './api-score-rulesets.component';
 import { ImportApiScoreRulesetComponent } from './import/import-api-score-ruleset.component';
@@ -49,30 +49,31 @@ import { FilePreviewComponent } from '../../../shared/components/file-preview/fi
   declarations: [ApiScoreRulesetsComponent, ImportApiScoreRulesetComponent, EditApiScoreRulesetComponent, ImportScoringFunctionComponent],
   imports: [
     ReactiveFormsModule,
+    RouterLink,
+    AsyncPipe,
+    NgIf,
+
     MatCardModule,
     MatButtonModule,
     MatMenuModule,
     MatExpansionModule,
-    AsyncPipe,
-    MatIcon,
-    RouterLink,
-    MatError,
-    MatFormField,
-    MatHint,
-    MatInput,
-    MatLabel,
-    NgIf,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatTooltipModule,
+
     GioFormFilePickerModule,
     GioFormSelectionInlineModule,
     GioCardEmptyStateModule,
-    ApiImportFilePickerComponent,
     GioBannerModule,
     GioSaveBarModule,
     GioLoaderModule,
     GioPermissionModule,
-    MatTooltip,
-    RulesetFormatPipe,
+
     FilePreviewComponent,
+    ApiImportFilePickerComponent,
+
+    RulesetFormatPipe,
   ],
   exports: [ApiScoreRulesetsComponent, ImportApiScoreRulesetComponent, EditApiScoreRulesetComponent, ImportScoringFunctionComponent],
 })
