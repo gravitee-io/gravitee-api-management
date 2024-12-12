@@ -24,10 +24,12 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
 import io.gravitee.rest.api.portal.rest.model.PeriodTimeUnit;
 import io.gravitee.rest.api.portal.rest.model.Plan;
 import io.gravitee.rest.api.portal.rest.model.Plan.SecurityEnum;
@@ -558,6 +560,26 @@ public class PlanMapperTest {
         assertNotNull(responsePlan.getUsageConfiguration());
         var rateLimit = responsePlan.getUsageConfiguration().getRateLimit();
         assertNull(rateLimit);
+    }
+
+    @Test
+    public void shouldMapNoRateLimitOrQuotaForNativePlan() {
+        var nativePlanEntity = NativePlanEntity
+            .builder()
+            .id("native-plan-id")
+            .name("native-plan-name")
+            .validation(io.gravitee.rest.api.model.v4.plan.PlanValidationType.AUTO)
+            .status(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED)
+            .security(io.gravitee.definition.model.v4.plan.PlanSecurity.builder().type(PlanSecurityType.API_KEY.name()).build())
+            .mode(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD)
+            .build();
+
+        var responsePlan = planMapper.convert(nativePlanEntity, aV4Api);
+
+        assertNotNull(responsePlan);
+        assertNotNull(responsePlan.getUsageConfiguration());
+        assertNull(responsePlan.getUsageConfiguration().getRateLimit());
+        assertNull(responsePlan.getUsageConfiguration().getQuota());
     }
 
     private void preparePlanEntityV2() {
