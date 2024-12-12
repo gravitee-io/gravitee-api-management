@@ -45,6 +45,23 @@ class WeightedRoundRobinLoadBalancerTest {
     }
 
     @Test
+    void should_return_endpoint_even_with_invalid_configured_weight() {
+        List<ManagedEndpoint> endpoints = new ArrayList<>();
+        Endpoint endpoint1 = new Endpoint();
+        endpoint1.setWeight(0);
+        ManagedEndpoint managedEndpoint1 = new DefaultManagedEndpoint(
+            endpoint1,
+            new DefaultManagedEndpointGroup(new EndpointGroup()),
+            mock(EndpointConnector.class)
+        );
+        endpoints.add(managedEndpoint1);
+        WeightedRoundRobinLoadBalancer cut = new WeightedRoundRobinLoadBalancer(endpoints);
+        // 1
+        ManagedEndpoint next = cut.next();
+        assertThat(next).isEqualTo(managedEndpoint1); // 1 > 0
+    }
+
+    @Test
     void should_return_endpoints_in_order() {
         List<ManagedEndpoint> endpoints = new ArrayList<>();
         Endpoint endpoint1 = new Endpoint();
