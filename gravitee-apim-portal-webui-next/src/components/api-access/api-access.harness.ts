@@ -40,9 +40,14 @@ export class ApiAccessHarness extends ComponentHarness {
     return await this.locateCopyCodeByTitle('Client Secret').then(res => res.getText());
   }
 
+  public async getPlainConfig(): Promise<string> {
+    return await this.locateCopyCodeById('native-kafka-api-key-plain-properties').then(res => res.getText());
+  }
+
   public async toggleClientSecretVisibility(): Promise<void> {
     return await this.locateCopyCodeByTitle('Client Secret').then(res => res.changePasswordVisibility());
   }
 
   protected locateCopyCodeByTitle = (title: string) => this.locatorFor(CopyCodeHarness.with({ selector: `[title="${title}"]` }))();
+  protected locateCopyCodeById = (id: string) => this.locatorFor(CopyCodeHarness.with({ selector: `#${id}` }))();
 }
