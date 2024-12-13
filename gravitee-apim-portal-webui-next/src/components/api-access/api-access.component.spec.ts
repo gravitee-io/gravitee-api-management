@@ -17,6 +17,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { Injectable } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatTabGroupHarness } from '@angular/material/tabs/testing';
 import { By } from '@angular/platform-browser';
 
 import { ApiAccessComponent } from './api-access.component';
@@ -70,43 +71,127 @@ describe('ApiAccessComponent', () => {
   });
 
   describe('Accepted', () => {
-    describe('API Key', () => {
-      it('should show api key, base url and command line', async () => {
-        component.planSecurity = 'API_KEY';
-        component.subscriptionStatus = 'ACCEPTED';
+    describe('HTTP API', () => {
+      describe('API Key', () => {
+        it('should show api key, base url and command line', async () => {
+          component.planSecurity = 'API_KEY';
+          component.subscriptionStatus = 'ACCEPTED';
+          component.entrypointUrl = 'my-entrypoint-url';
+          component.apiKey = 'api-key';
+
+          fixture.detectChanges();
+          expect(await apiKeyShown()).toBeTruthy();
+          expect(await baseUrlShown()).toBeTruthy();
+          expect(await commandLineShown()).toBeTruthy();
+        });
+      });
+      describe('OAuth2', () => {
+        it('should show client id and secret', async () => {
+          component.planSecurity = 'OAUTH2';
+          component.subscriptionStatus = 'ACCEPTED';
+          component.clientId = 'my-client-id';
+          component.clientSecret = 'my-client-secret';
+
+          fixture.detectChanges();
+          expect(await clientIdShown()).toBeTruthy();
+          expect(await clientSecretShown()).toBeTruthy();
+          expect(await baseUrlShown()).toBeFalsy();
+        });
+      });
+      describe('JWT', () => {
+        it('should show client id and secret', async () => {
+          component.planSecurity = 'JWT';
+          component.subscriptionStatus = 'ACCEPTED';
+          component.clientId = 'my-client-id';
+          component.clientSecret = 'my-client-secret';
+
+          fixture.detectChanges();
+          expect(await clientIdShown()).toBeTruthy();
+          expect(await clientSecretShown()).toBeTruthy();
+          expect(await baseUrlShown()).toBeFalsy();
+        });
+      });
+    });
+    describe('Native API', () => {
+      beforeEach(() => {
+        component.apiType = 'NATIVE';
         component.entrypointUrl = 'my-entrypoint-url';
-        component.apiKey = 'api-key';
-
-        fixture.detectChanges();
-        expect(await apiKeyShown()).toBeTruthy();
-        expect(await baseUrlShown()).toBeTruthy();
-        expect(await commandLineShown()).toBeTruthy();
-      });
-    });
-    describe('OAuth2', () => {
-      it('should show client id and secret', async () => {
-        component.planSecurity = 'OAUTH2';
         component.subscriptionStatus = 'ACCEPTED';
-        component.clientId = 'my-client-id';
-        component.clientSecret = 'my-client-secret';
-
-        fixture.detectChanges();
-        expect(await clientIdShown()).toBeTruthy();
-        expect(await clientSecretShown()).toBeTruthy();
-        expect(await baseUrlShown()).toBeFalsy();
       });
-    });
-    describe('JWT', () => {
-      it('should show client id and secret', async () => {
-        component.planSecurity = 'JWT';
-        component.subscriptionStatus = 'ACCEPTED';
-        component.clientId = 'my-client-id';
-        component.clientSecret = 'my-client-secret';
+      describe('API Key', () => {
+        it('should show api key, config, producer and consumer calls', async () => {
+          component.planSecurity = 'API_KEY';
+          component.apiKey = 'api-key';
+          component.apiKeyConfigUsername = 'hash-username';
 
-        fixture.detectChanges();
-        expect(await clientIdShown()).toBeTruthy();
-        expect(await clientSecretShown()).toBeTruthy();
-        expect(await baseUrlShown()).toBeFalsy();
+          fixture.detectChanges();
+          expect(await apiKeyShown()).toBeTruthy();
+          expect(await baseUrlShown()).toBeFalsy();
+          expect(await commandLineShown()).toBeFalsy();
+          expect(await plainConfigurationShown()).toBeTruthy();
+          expect(await scram256ConfigurationShown()).toBeFalsy();
+          expect(await scram512ConfigurationShown()).toBeFalsy();
+
+          const plainConfiguration = await getPlainConfiguration();
+          const plainConfigurationContent = await plainConfiguration?.host().then(host => host.text());
+          expect(plainConfigurationContent).toContain(component.apiKey);
+          expect(plainConfigurationContent).toContain(component.apiKeyConfigUsername);
+
+          const configTabs = await getApiKeyPropertiesConfiguration();
+          expect(await configTabs.getTabs().then(tabs => tabs.length)).toEqual(3);
+          await configTabs.selectTab({ label: 'SCRAM-256' });
+
+          expect(await plainConfigurationShown()).toBeFalsy();
+          expect(await scram256ConfigurationShown()).toBeTruthy();
+          expect(await scram512ConfigurationShown()).toBeFalsy();
+
+          await configTabs.selectTab({ label: 'SCRAM-512' });
+
+          expect(await plainConfigurationShown()).toBeFalsy();
+          expect(await scram256ConfigurationShown()).toBeFalsy();
+          expect(await scram512ConfigurationShown()).toBeTruthy();
+
+          const commandExamples = await getCommandExamples();
+          expect(await commandExamples.getTabs().then(tabs => tabs.length)).toEqual(2);
+          expect(await producerCommandShown()).toBeTruthy();
+          expect(await consumerCommandShown()).toBeFalsy();
+
+          await commandExamples.selectTab({ label: 'Consumer' });
+          expect(await producerCommandShown()).toBeFalsy();
+          expect(await consumerCommandShown()).toBeTruthy();
+        });
+      });
+      describe('OAuth2', () => {
+        it('should show client id and secret', async () => {
+          component.planSecurity = 'OAUTH2';
+          component.clientId = 'my-client-id';
+          component.clientSecret = 'my-client-secret';
+
+          fixture.detectChanges();
+          expect(await clientIdShown()).toBeTruthy();
+          expect(await clientSecretShown()).toBeTruthy();
+          expect(await baseUrlShown()).toBeFalsy();
+
+          expect(await getCommandExamples()).toBeTruthy();
+          expect(await producerCommandShown()).toBeTruthy();
+          expect(await consumerCommandShown()).toBeFalsy();
+        });
+      });
+      describe('JWT', () => {
+        it('should show client id and secret', async () => {
+          component.planSecurity = 'JWT';
+          component.clientId = 'my-client-id';
+          component.clientSecret = 'my-client-secret';
+
+          fixture.detectChanges();
+          expect(await clientIdShown()).toBeTruthy();
+          expect(await clientSecretShown()).toBeTruthy();
+          expect(await baseUrlShown()).toBeFalsy();
+
+          expect(await getCommandExamples()).toBeTruthy();
+          expect(await producerCommandShown()).toBeTruthy();
+          expect(await consumerCommandShown()).toBeFalsy();
+        });
       });
     });
   });
@@ -157,25 +242,52 @@ describe('ApiAccessComponent', () => {
   });
 
   async function apiKeyShown() {
-    return !!(await getCopyCodeHarnessOrNull('API Key'));
+    return !!(await getCopyCodeHarnessOrNullByTitle('API Key'));
   }
   async function baseUrlShown() {
-    return !!(await getCopyCodeHarnessOrNull('Base URL'));
+    return !!(await getCopyCodeHarnessOrNullByTitle('Base URL'));
   }
   async function commandLineShown() {
-    return !!(await getCopyCodeHarnessOrNull('Command Line'));
+    return !!(await getCopyCodeHarnessOrNullByTitle('Command Line'));
   }
   async function clientIdShown() {
-    return !!(await getCopyCodeHarnessOrNull('Client ID'));
+    return !!(await getCopyCodeHarnessOrNullByTitle('Client ID'));
   }
   async function clientSecretShown() {
-    return !!(await getCopyCodeHarnessOrNull('Client Secret'));
+    return !!(await getCopyCodeHarnessOrNullByTitle('Client Secret'));
+  }
+  async function getApiKeyPropertiesConfiguration() {
+    return await harnessLoader.getHarness(MatTabGroupHarness.with({ selector: '[aria-label="API Key connect properties"]' }));
+  }
+  async function getPlainConfiguration() {
+    return await getCopyCodeHarnessOrNullById('native-kafka-api-key-plain-properties');
+  }
+  async function plainConfigurationShown() {
+    return !!(await getCopyCodeHarnessOrNullById('native-kafka-api-key-plain-properties'));
+  }
+  async function scram256ConfigurationShown() {
+    return !!(await getCopyCodeHarnessOrNullById('native-kafka-api-key-scram-256-properties'));
+  }
+  async function scram512ConfigurationShown() {
+    return !!(await getCopyCodeHarnessOrNullById('native-kafka-api-key-scram-512-properties'));
+  }
+  async function getCommandExamples() {
+    return await harnessLoader.getHarness(MatTabGroupHarness.with({ selector: '[aria-label="Example commands"]' }));
+  }
+  async function producerCommandShown() {
+    return !!(await getCopyCodeHarnessOrNullById('native-kafka-producer'));
+  }
+  async function consumerCommandShown() {
+    return !!(await getCopyCodeHarnessOrNullById('native-kafka-consumer'));
   }
   async function expectMessageTextContains(expectedMessage: string) {
     expect(fixture.debugElement.query(By.css('.api-access__message')).nativeElement.innerHTML).toContain(expectedMessage);
   }
 
-  async function getCopyCodeHarnessOrNull(title: string): Promise<CopyCodeHarness | null> {
+  async function getCopyCodeHarnessOrNullByTitle(title: string): Promise<CopyCodeHarness | null> {
     return await harnessLoader.getHarnessOrNull(CopyCodeHarness.with({ selector: `[title="${title}"]` }));
+  }
+  async function getCopyCodeHarnessOrNullById(id: string): Promise<CopyCodeHarness | null> {
+    return await harnessLoader.getHarnessOrNull(CopyCodeHarness.with({ selector: `#${id}` }));
   }
 });
