@@ -163,6 +163,75 @@ data:
       haproxy: {{ toYaml .Values.gateway.haproxy | nindent 8 }}
       {{- end }}
     {{- end }}
+    {{- if hasKey .Values.gateway "kafka" }}
+    kafka:
+      enabled: {{ .Values.gateway.kafka.enabled }}
+      {{- if hasKey .Values.gateway.kafka "brokerHostPrefix" }}
+      brokerHostPrefix: {{ .Values.gateway.kafka.brokerHostPrefix }}
+      {{- end}}
+      {{- if hasKey .Values.gateway.kafka "port" }}
+      port: {{ .Values.gateway.kafka.port }}
+      {{- end}}
+      {{- if hasKey .Values.gateway.kafka "host" }}
+      host: {{ .Values.gateway.kafka.host }}
+      {{- end}}
+      {{- if hasKey .Values.gateway.kafka "idleTimeout" }}
+      idleTimeout: {{ .Values.gateway.kafka.idleTimeout }}
+      {{- end}}
+      {{- if hasKey .Values.gateway.kafka "tcpKeepAlive" }}
+      tcpKeepAlive: {{ .Values.gateway.kafka.tcpKeepAlive }}
+      {{- end}}
+      {{- if hasKey .Values.gateway.kafka "instances" }}
+      instances: {{ .Values.gateway.kafka.instances }}
+      {{- end}}
+      {{- if hasKey .Values.gateway.kafka "requestTimeout" }}
+      requestTimeout: {{ .Values.gateway.kafka.requestTimeout }}
+      {{- end}}
+      {{- if .Values.gateway.kafka.ssl }}
+      ssl:
+        {{- if hasKey .Values.gateway.kafka.ssl "clientAuth" }}
+        clientAuth: {{ .Values.gateway.kafka.ssl.clientAuth }}
+        {{- end}}
+        {{- if hasKey .Values.gateway.kafka.ssl "tlsProtocols" }}
+        tlsProtocols: {{ .Values.gateway.kafka.ssl.tlsProtocols }}
+        {{- end}}
+        {{- if hasKey .Values.gateway.kafka.ssl "tlsCiphers" }}
+        tlsProtocols: {{ .Values.gateway.kafka.ssl.tlsCiphers }}
+        {{- end}}
+        {{- if .Values.gateway.kafka.ssl.keystore }}
+        keystore:
+          {{- if .Values.gateway.kafka.ssl.keystore.type }}
+          type: {{ .Values.gateway.kafka.ssl.keystore.type }}
+          {{- end }}
+          {{- if .Values.gateway.kafka.ssl.keystore.path }}
+          path: {{ .Values.gateway.kafka.ssl.keystore.path }}
+          {{- end }}
+          {{- if .Values.gateway.kafka.ssl.keystore.password }}
+          password: {{ .Values.gateway.kafka.ssl.keystore.password | quote }}
+          {{- end }}
+          {{- if .Values.gateway.kafka.ssl.keystore.kubernetes }}
+          kubernetes: {{ .Values.gateway.kafka.ssl.keystore.kubernetes }}
+          {{- end }}
+          {{- if hasKey .Values.gateway.kafka.ssl.keystore "watch" }}
+          watch: {{ .Values.gateway.kafka.ssl.keystore.watch }}
+          {{- end }}
+          {{- if hasKey .Values.gateway.kafka.ssl.keystore "secret" }}
+          secret: {{ .Values.gateway.kafka.ssl.keystore.secret }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.gateway.kafka.ssl.truststore }}
+        truststore:
+          {{- if .Values.gateway.kafka.ssl.truststore.type }}
+          type: {{ .Values.gateway.kafka.ssl.truststore.type }}
+          {{- end }}
+          path: {{ .Values.gateway.kafka.ssl.truststore.path }}
+          password: {{ .Values.gateway.kafka.ssl.truststore.password | quote }}
+        {{- end }}
+        {{- if hasKey .Values.gateway.kafka.ssl "openssl" }}
+        openssl: {{ .Values.gateway.kafka.ssl.openssl }}
+        {{- end}}
+      {{- end }}
+    {{- end }}
     management:
     {{- if .Values.gateway.dbLess }}
       type: {{ "none" }}
