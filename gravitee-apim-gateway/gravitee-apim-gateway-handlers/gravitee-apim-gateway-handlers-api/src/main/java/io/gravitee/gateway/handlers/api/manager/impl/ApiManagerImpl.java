@@ -258,7 +258,7 @@ public class ApiManagerImpl implements ApiManager {
         if (!plans.isEmpty()) {
             log.debug("Deploying {} plan(s) for {}:", plans.size(), api);
             for (String plan : plans) {
-                log.info("\t- {}", plan);
+                log.debug("\t- {}", plan);
             }
             eventManager.publishEvent(
                 SecretDiscoveryEventType.DISCOVER,
