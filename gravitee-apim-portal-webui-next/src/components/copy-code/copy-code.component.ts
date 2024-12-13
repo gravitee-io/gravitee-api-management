@@ -40,5 +40,7 @@ export class CopyCodeComponent {
 
   hidePassword = signal(true);
 
-  passwordContent: Signal<string> = computed(() => (this.hidePassword() ? this.text.replaceAll(/./g, '*') : this.text));
+  passwordContent: Signal<string> = computed(() =>
+    this.hidePassword() && this.mode === 'PASSWORD' ? this.text.replaceAll(/./g, '*') : this.text,
+  );
 }

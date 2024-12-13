@@ -34,9 +34,14 @@
     background-color: m3-adapter.$surface-variant;
     gap: 4px;
 
-    &__code {
-      flex: 1 1 100%;
-      overflow-wrap: anywhere;
+    &__container {
+      flex-grow: 1;
+      overflow-x: auto;
+
+      &__code {
+        max-width: 0;
+        line-height: 1.5em;
+      }
     }
   }
 }
