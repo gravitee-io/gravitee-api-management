@@ -24,6 +24,7 @@ export function fakeApi(modifier?: Partial<Api> | ((baseApi: Api) => Api)): Api 
     name: '\uD83E\uDE90 Planets',
     version: '1.0',
     definitionVersion: 'V4',
+    type: 'PROXY',
     description: 'The whole universe in your hand.',
     _public: true,
     running: true,
