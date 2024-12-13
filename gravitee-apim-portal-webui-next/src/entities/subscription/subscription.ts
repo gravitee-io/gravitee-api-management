@@ -40,6 +40,7 @@ export const SubscriptionStatusEnum = {
 export interface SubscriptionDataKeys {
   key?: string;
   id?: string;
+  hash?: string;
   application: {
     id: string;
     name: string;
