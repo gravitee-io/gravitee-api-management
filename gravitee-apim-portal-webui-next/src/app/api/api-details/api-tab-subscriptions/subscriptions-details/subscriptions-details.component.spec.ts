@@ -174,6 +174,34 @@ describe('SubscriptionsDetailsComponent', () => {
     });
   });
 
+  describe('subscription accepted for Native API', () => {
+    const PLAN_ID = 'plan-id';
+    const APP_ID = 'app-id';
+    const APP_NAME = 'app-name';
+    const API_KEY = 'my-api-key';
+    const API_KEY_HASH = 'api-key-hash';
+
+    beforeEach(() => {
+      const subscription = fakeSubscription({ status: 'ACCEPTED', api: API_ID, plan: PLAN_ID });
+      const subscriptionWithKeys = {
+        ...subscription,
+        keys: [{ key: API_KEY, id: '1', hash: API_KEY_HASH, application: { id: APP_ID, name: APP_NAME } }],
+      };
+      expectSubscriptionWithKeys(subscriptionWithKeys);
+      expectGetApiPermissions();
+      expectApplicationsList(fakeApplication({ id: APP_ID, name: APP_NAME }));
+      expectGetApi(fakeApi({ id: API_ID, entrypoints: ['https://gw/entrypoint'], type: 'NATIVE' }));
+      expectPlansList(fakePlansResponse({ data: [fakePlan({ id: PLAN_ID, security: 'API_KEY' })] }));
+      fixture.detectChanges();
+    });
+
+    it('should show API Key hash as username', async () => {
+      const apiAccess = await harnessLoader.getHarness(ApiAccessHarness);
+      expect(await apiAccess.getPlainConfig()).toContain(`username="${API_KEY_HASH}"`);
+      expect(await apiAccess.getPlainConfig()).toContain(`password="${API_KEY}"`);
+    });
+  });
+
   describe('When user does not have API Plan READ permission', () => {
     it('should still show API Key plan information', async () => {
       const PLAN_ID = 'plan-id';
