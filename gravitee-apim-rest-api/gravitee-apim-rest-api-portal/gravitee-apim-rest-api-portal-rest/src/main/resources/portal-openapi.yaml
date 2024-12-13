@@ -3827,6 +3827,8 @@ components:
                 description:
                     description: Description of the API.
                     type: string
+                type:
+                    $ref: "#/components/schemas/ApiType"
                 draft:
                     type: boolean
                     description: Whether or not the API is in draft.
@@ -3910,6 +3912,14 @@ components:
                 - TCP
                 - SUBSCRIPTION
                 - KAFKA
+        ApiType:
+            description: Type of V4 APIs.
+            type: string
+            example: PROXY
+            enum:
+                - PROXY
+                - MESSAGE
+                - NATIVE
         ApiInformation:
             properties:
                 name:
