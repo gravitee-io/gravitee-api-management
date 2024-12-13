@@ -999,6 +999,20 @@ public class ApiKeyServiceTest {
         assertEquals("api-key-1-id", apiKeyEntity.getId());
     }
 
+    @Test
+    public void findByKeyAndApi_should_hash_key() throws TechnicalException {
+        ApiKey apiKey = new ApiKey();
+        apiKey.setId("api-key-1-id");
+        apiKey.setKey("not-hashed");
+        when(apiKeyRepository.findByKeyAndApi("apiKey", "apiId")).thenReturn(Optional.of(apiKey));
+
+        ApiKeyEntity apiKeyEntity = apiKeyService.findByKeyAndApi(GraviteeContext.getExecutionContext(), "apiKey", "apiId");
+        assertNotNull(apiKeyEntity);
+        assertEquals("api-key-1-id", apiKeyEntity.getId());
+        assertEquals("not-hashed", apiKeyEntity.getKey());
+        assertEquals("803cd1142626848853291b8b5e894041", apiKeyEntity.getHash());
+    }
+
     @Test(expected = InvalidApplicationApiKeyModeException.class)
     public void renew_for_application_should_throw_exception_if_not_shared_apikey_mode() {
         ApplicationEntity application = new ApplicationEntity();

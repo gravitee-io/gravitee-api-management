@@ -78,6 +78,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.util.DigestUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -656,6 +657,11 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         apiKeyEntity.setApplication(applicationService.findById(executionContext, apiKey.getApplication()));
 
         apiKeyEntity.setDaysToExpirationOnLastNotification(apiKey.getDaysToExpirationOnLastNotification());
+
+        if (apiKey.getKey() != null) {
+            // Hash the API Key as used for authentication in the Kafka Gateway
+            apiKeyEntity.setHash(DigestUtils.md5DigestAsHex(apiKey.getKey().getBytes()));
+        }
 
         return apiKeyEntity;
     }

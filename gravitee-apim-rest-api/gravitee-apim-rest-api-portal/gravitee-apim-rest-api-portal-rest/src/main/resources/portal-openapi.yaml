@@ -5561,6 +5561,9 @@ components:
                 expire_at:
                     type: string
                     format: date-time
+                hash:
+                  type: string
+                  description: The MD5 hash of the API Key
         AlertType:
             type: string
             enum:
