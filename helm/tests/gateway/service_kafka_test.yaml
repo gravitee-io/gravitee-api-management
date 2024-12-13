@@ -1,0 +1,36 @@
+suite: Test API Gateway default Service
+templates:
+  - "gateway/gateway-service.yaml"
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Enable Kafka service
+    template: gateway/gateway-service.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+    asserts:
+      - contains:
+          path: spec.ports
+          content:
+            name: gateway-kafka
+            port: 9092
+            protocol: TCP
+            targetPort: 9092
+  - it: Disable Kafka service
+    template: gateway/gateway-service.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+        services:
+          kafka:
+            enabled: false
+    asserts:
+      - notContains:
+          path: spec.ports
+          content:
+            name: gateway-kafka
+            port: 9092
+            protocol: TCP
+            targetPort: 9092

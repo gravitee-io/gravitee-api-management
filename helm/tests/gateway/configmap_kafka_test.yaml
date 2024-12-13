@@ -1,0 +1,72 @@
+suite: Test Management API configmap with tracining enabled
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Disabled Kafka
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: false
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: false
+  - it: Enable Kafka and set common values
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          brokerHostPrefix: fox-
+          port: 9042
+          host: 42.42.42.42
+          idleTimeout: 42
+          tcpKeepAlive: 42
+          instances: 42
+          requestTimeout: 42
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: true
+              brokerHostPrefix: fox-
+              port: 9042
+              host: 42.42.42.42
+              idleTimeout: 42
+              tcpKeepAlive: 42
+              instances: 42
+              requestTimeout: 42
+  - it: Enable Kafka and set ssl values
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          ssl:
+            keystore:
+              type: jks
+              path: /keystore
+              password: password-key
+            truststore:
+              type: pem
+              path: /truststore
+              password: password-trust
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: true
+              ssl:
+                keystore:
+                  type: jks
+                  path: /keystore
+                  password: "password-key"
+                truststore:
+                  type: pem
+                  path: /truststore
+                  password: "password-trust"
