@@ -1,0 +1,79 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="native-kafka-api-access__section">
+  <div class="m3-title-medium" i18n="@@nativeKafkaApiAccessLocalEnvironment">Local Environment</div>
+  <div class="m3-body-medium" i18n="@@nativeKafkaApiAccessDownloadKafka">
+    Download and set-up a Kafka Client in order to interact with the API.
+  </div>
+  <div class="m3-body-medium native-kafka-api-access__learn-more" i18n="@@nativeKafkaApiAccessLearnMoreAboutKafka">
+    You can learn more about using Kafka from the official Kafka documentation.
+    <a class="external-link" href="https://kafka.apache.org/quickstart" target="_blank"><mat-icon>open_in_new</mat-icon></a>
+  </div>
+</div>
+
+<div class="native-kafka-api-access__section">
+  <div class="m3-title-medium" i18n="@@nativeKafkaApiAccessReviewProperties">Review Kafka Properties</div>
+  <div class="m3-body-medium" i18n="@@nativeKafkaApiAccessCreatePropertiesFile">
+    Create a file <code>{{ configurationFileName }}</code> to be used when calling the API.
+  </div>
+  @if (planSecurity() === 'OAUTH2' || planSecurity() === 'JWT') {
+    <app-copy-code id="native-kafka-oauthbearer-properties" [text]="oAuthBearerConfig()" />
+  } @else if (planSecurity() === 'API_KEY') {
+    <div class="m3-body-medium" i18n="@@nativeKafkaApiAccessChooseSASLMechanism">
+      Choose one of the following SASL mechanisms for your security.
+    </div>
+
+    <mat-tab-group aria-label="API Key connect properties">
+      <mat-tab label="PLAIN">
+        <div class="native-kafka-api-access__api-key__tab-container">
+          <app-copy-code id="native-kafka-api-key-plain-properties" [text]="plainConfig()" />
+        </div>
+      </mat-tab>
+      <mat-tab label="SCRAM-256">
+        <div class="native-kafka-api-access__tab-container">
+          <app-copy-code id="native-kafka-api-key-scram-256-properties" [text]="scram256Config()" />
+        </div>
+      </mat-tab>
+      <mat-tab label="SCRAM-512">
+        <div class="native-kafka-api-access__tab-container">
+          <app-copy-code id="native-kafka-api-key-scram-512-properties" [text]="scram512Config()" />
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  }
+</div>
+
+<div class="native-kafka-api-access__section">
+  <div class="m3-title-medium" i18n="@@nativeKafkaApiAccessCallingTheApi">Calling the API</div>
+  <div class="m3-body-medium" i18n="@@nativeKafkaApiAccessUseCommandsToCall">
+    Use the following commands as examples for calling the API.
+  </div>
+
+  <mat-tab-group aria-label="Example commands">
+    <mat-tab label="Producer">
+      <div class="native-kafka-api-access__tab-container">
+        <app-copy-code id="native-kafka-producer" [text]="producerCommand()" />
+      </div>
+    </mat-tab>
+    <mat-tab label="Consumer">
+      <div class="native-kafka-api-access__tab-container">
+        <app-copy-code id="native-kafka-consumer" [text]="consumerCommand()" />
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>
