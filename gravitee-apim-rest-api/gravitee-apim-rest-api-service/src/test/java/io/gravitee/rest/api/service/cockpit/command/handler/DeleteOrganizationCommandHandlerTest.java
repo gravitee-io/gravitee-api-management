@@ -63,7 +63,6 @@ import io.gravitee.rest.api.model.TokenReferenceType;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.service.EnvironmentService;
-import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
@@ -144,9 +143,6 @@ public class DeleteOrganizationCommandHandlerTest {
     private EnvironmentService environmentService;
 
     @Mock
-    private EventService eventService;
-
-    @Mock
     private MembershipRepository membershipRepository;
 
     @Mock
@@ -194,7 +190,6 @@ public class DeleteOrganizationCommandHandlerTest {
                 userRepository,
                 accessPointService,
                 environmentService,
-                eventService,
                 identityProviderActivationService,
                 organizationService,
                 searchEngineService
@@ -288,7 +283,6 @@ public class DeleteOrganizationCommandHandlerTest {
         verify(tagRepository).deleteByReferenceIdAndReferenceType(ORG_ID, TagReferenceType.ORGANIZATION);
         verify(licenseRepository).delete(ORG_ID, License.ReferenceType.ORGANIZATION);
         verify(mediaRepository).deleteByOrganization(ORG_ID);
-        verify(eventService).deleteOrUpdateEventsByOrganization(ORG_ID);
         verify(organizationService).delete(executionContext.getOrganizationId());
     }
 
