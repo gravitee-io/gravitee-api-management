@@ -143,6 +143,10 @@
                 <mat-icon svgIcon="gio:x-circle"></mat-icon>
                 Close
               </button>
+              <button mat-stroked-button (click)="resumeFailureSubscription()" *ngIf="subscription.consumerStatus === 'FAILURE'">
+                <mat-icon svgIcon="gio:play-circle"></mat-icon>
+                Resume from failure
+              </button>
             </ng-container>
             <ng-template #pendingSubscription>
               <button mat-raised-button color="primary" (click)="validateSubscription()">Validate subscription</button>
