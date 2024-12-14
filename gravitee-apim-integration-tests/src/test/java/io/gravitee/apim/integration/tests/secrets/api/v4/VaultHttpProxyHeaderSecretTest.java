@@ -22,7 +22,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.graviteesource.secretprovider.hcvault.HCVaultSecretProvider;
+import com.graviteesource.secretprovider.hcvault.HCVaultSecretProviderFactory;
+import com.graviteesource.secretprovider.hcvault.config.manager.VaultConfig;
 import com.graviteesource.service.secrets.SecretsService;
+import io.github.jopenlibs.vault.Vault;
+import io.github.jopenlibs.vault.VaultException;
+import io.github.jopenlibs.vault.response.LogicalResponse;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
@@ -30,66 +36,105 @@ import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuil
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.secrets.SecretProviderBuilder;
-import io.gravitee.apim.integration.tests.secrets.KubernetesHelper;
+import io.gravitee.apim.integration.tests.secrets.SecuredVaultContainer;
+import io.gravitee.apim.integration.tests.secrets.conf.SSLUtils;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
-import io.gravitee.secretprovider.kubernetes.KubernetesSecretProvider;
-import io.gravitee.secretprovider.kubernetes.KubernetesSecretProviderFactory;
-import io.gravitee.secretprovider.kubernetes.config.K8sConfig;
 import io.gravitee.secrets.api.plugin.SecretManagerConfiguration;
 import io.gravitee.secrets.api.plugin.SecretProviderFactory;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.k3s.K3sContainer;
 
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-public class KubernetesHttpProxyHeaderSecretTest {
+public class VaultHttpProxyHeaderSecretTest {
 
-    abstract static class AbstractKubernetesApiTest extends AbstractGatewayTest {
+    static SecuredVaultContainer vaultContainer;
+    static Vault rootVault;
 
-        Path kubeConfigFile;
-        K3sContainer k3sServer;
+    @AfterAll
+    static void cleanup() {
+        vaultContainer.close();
+    }
 
-        @AfterEach
-        void cleanup() throws IOException {
-            k3sServer.close();
-            Files.delete(kubeConfigFile);
-        }
+    @BeforeAll
+    static void createVaultContainer() throws IOException, InterruptedException, VaultException {
+        vaultContainer = new SecuredVaultContainer();
+        vaultContainer.start();
+        vaultContainer.initAndUnsealVault();
+        vaultContainer.loginAndLoadTestPolicy();
+        vaultContainer.setEngineVersions();
+        vaultContainer.setupUserPassAuth();
+        SSLUtils.SSLPairs clientCertAndKey = SSLUtils.createPairs();
+        vaultContainer.setupCertAuth(clientCertAndKey.cert());
+        rootVault = vaultContainer.getRootVault();
+    }
+
+    static void addPlugin(
+        Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
+    ) {
+        secretProviderPlugins.add(
+            SecretProviderBuilder.build(HCVaultSecretProvider.PLUGIN_ID, HCVaultSecretProviderFactory.class, VaultConfig.class)
+        );
+    }
+
+    abstract static class AbstractVaultApiTest extends AbstractGatewayTest {
+
+        final Set<String> createSecrets = new HashSet<>();
 
         @Override
         public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
-            try {
-                kubeConfigFile =
-                    Files.createTempDirectory(KubernetesHttpProxyHeaderSecretTest.class.getSimpleName()).resolve("kube_config.yml");
-                configurationBuilder.setYamlProperty("api.secrets.providers[0].plugin", "kubernetes");
-                configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.enabled", true);
-                configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.kubeConfigFile", kubeConfigFile.toString());
+            configurationBuilder.setYamlProperty("api.secrets.providers[0].plugin", "vault");
+            configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.enabled", true);
+            vaultInstanceConfig(vaultContainer).forEach(configurationBuilder::setYamlProperty);
+            authConfig().forEach(configurationBuilder::setYamlProperty);
+        }
 
-                setupAdditionalProperties(configurationBuilder);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        Map<String, Object> vaultInstanceConfig(SecuredVaultContainer vaultContainer) {
+            return Map.of(
+                "api.secrets.providers[0].configuration.host",
+                vaultContainer.getHost(),
+                "api.secrets.providers[0].configuration.port",
+                vaultContainer.getPort(),
+                "api.secrets.providers[0].configuration.ssl.enabled",
+                true,
+                "api.secrets.providers[0].configuration.ssl.format",
+                "pemfile",
+                "api.secrets.providers[0].configuration.ssl.file",
+                SecuredVaultContainer.CERT_PEMFILE
+            );
+        }
+
+        protected Map<String, Object> authConfig() {
+            return Map.of(
+                "api.secrets.providers[0].configuration.auth.method",
+                "userpass",
+                "api.secrets.providers[0].configuration.auth.config.username",
+                SecuredVaultContainer.USER_ID,
+                "api.secrets.providers[0].configuration.auth.config.password",
+                SecuredVaultContainer.PASSWORD
+            );
         }
 
         @Override
@@ -106,10 +151,7 @@ public class KubernetesHttpProxyHeaderSecretTest {
         public void configureSecretProviders(
             Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
         ) throws Exception {
-            secretProviderPlugins.add(
-                SecretProviderBuilder.build(KubernetesSecretProvider.PLUGIN_ID, KubernetesSecretProviderFactory.class, K8sConfig.class)
-            );
-            startK3s();
+            addPlugin(secretProviderPlugins);
             createSecrets();
         }
 
@@ -119,27 +161,29 @@ public class KubernetesHttpProxyHeaderSecretTest {
             services.add(SecretsService.class);
         }
 
-        abstract void createSecrets() throws IOException, InterruptedException;
+        abstract void createSecrets() throws IOException, InterruptedException, VaultException;
 
-        final void startK3s() throws IOException {
-            k3sServer = KubernetesHelper.getK3sServer();
-            k3sServer.start();
-            // write config so the secret provider can pick it up
-            Files.writeString(kubeConfigFile, k3sServer.getKubeConfigYaml());
+        final void writeSecret(String path, Map<String, Object> data) throws VaultException {
+            LogicalResponse write = rootVault.logical().write(path, data);
+            assertThat(write.getRestResponse().getStatus()).isLessThan(300);
+            createSecrets.add(path);
         }
 
-        protected void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
-            // no op by default
+        @AfterEach
+        final void cleanSecrets() throws VaultException {
+            for (String path : createSecrets) {
+                rootVault.logical().delete(path);
+            }
         }
     }
 
-    abstract static class AbstractApiKeyStaticSecretRefTest extends AbstractKubernetesApiTest {
+    abstract static class AbstractApiKeyStaticSecretRefTest extends AbstractVaultApiTest {
 
         protected final String apiKey = UUID.randomUUID().toString();
 
         @Override
-        void createSecrets() throws IOException, InterruptedException {
-            KubernetesHelper.createSecret(k3sServer, "default", "test", Map.of("api-key", this.apiKey));
+        void createSecrets() throws VaultException {
+            writeSecret("secret/test", Map.of("api-key", apiKey));
         }
 
         protected void callAndAssert(HttpClient httpClient) {
@@ -166,7 +210,7 @@ public class KubernetesHttpProxyHeaderSecretTest {
     class StaticSecretRef extends AbstractApiKeyStaticSecretRefTest {
 
         @Test
-        @DeployApi("/apis/v4/http/secrets/k8s/api-static-ref.json")
+        @DeployApi("/apis/v4/http/secrets/vault/api-static-ref.json")
         void should_call_api_with_k8s_api_key_from_static_ref(HttpClient httpClient) {
             callAndAssert(httpClient);
         }
@@ -177,7 +221,7 @@ public class KubernetesHttpProxyHeaderSecretTest {
     class StaticSecretRefELKey extends AbstractApiKeyStaticSecretRefTest {
 
         @Test
-        @DeployApi("/apis/v4/http/secrets/k8s/api-el-key-ref.json")
+        @DeployApi("/apis/v4/http/secrets/vault/api-el-key-ref.json")
         void should_call_api_with_k8s_api_key_from_static_ref_and_el_key(HttpClient httpClient) {
             callAndAssert(httpClient);
         }
@@ -188,7 +232,7 @@ public class KubernetesHttpProxyHeaderSecretTest {
     class StaticSecretRefELURI extends AbstractApiKeyStaticSecretRefTest {
 
         @Test
-        @DeployApi("/apis/v4/http/secrets/k8s/api-el-ref.json")
+        @DeployApi("/apis/v4/http/secrets/vault/api-el-ref.json")
         void should_call_api_with_k8s_api_key_el_ref(HttpClient httpClient) {
             callAndAssert(httpClient);
         }

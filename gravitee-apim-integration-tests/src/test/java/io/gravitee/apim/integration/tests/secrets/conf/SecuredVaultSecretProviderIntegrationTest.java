@@ -17,7 +17,7 @@ package io.gravitee.apim.integration.tests.secrets.conf;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static io.gravitee.apim.integration.tests.secrets.conf.SecuredVaultContainer.TEST_POLICY_NAME;
+import static io.gravitee.apim.integration.tests.secrets.SecuredVaultContainer.TEST_POLICY_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
@@ -36,6 +36,7 @@ import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuil
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.secrets.SecretProviderBuilder;
+import io.gravitee.apim.integration.tests.secrets.SecuredVaultContainer;
 import io.gravitee.node.container.spring.env.GraviteeYamlPropertySource;
 import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
@@ -126,7 +127,7 @@ class SecuredVaultSecretProviderIntegrationTest {
                     authConfig(vaultContainer).forEach(configurationBuilder::setYamlProperty);
                 }
                 setupAdditionalProperties(configurationBuilder);
-            } catch (IOException | InterruptedException | VaultException e) {
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
@@ -150,8 +151,7 @@ class SecuredVaultSecretProviderIntegrationTest {
             );
         }
 
-        protected Map<String, Object> authConfig(SecuredVaultContainer vaultContainer)
-            throws IOException, InterruptedException, VaultException {
+        protected Map<String, Object> authConfig(SecuredVaultContainer vaultContainer) throws Exception {
             return Map.of(
                 "secrets.vault.auth.method",
                 "userpass",
@@ -288,10 +288,7 @@ class SecuredVaultSecretProviderIntegrationTest {
 
         @Override
         protected void configureHttpClient(HttpClientOptions options) {
-            options
-                .setSsl(true)
-                .setVerifyHost(false)
-                .setPemTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(sslPairs.cert())));
+            options.setSsl(true).setVerifyHost(false).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(sslPairs.cert())));
         }
 
         @Test
@@ -369,10 +366,7 @@ class SecuredVaultSecretProviderIntegrationTest {
 
         @Override
         protected void configureHttpClient(HttpClientOptions options) {
-            options
-                .setSsl(true)
-                .setVerifyHost(false)
-                .setPemTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(sslPairs.cert())));
+            options.setSsl(true).setVerifyHost(false).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(sslPairs.cert())));
         }
 
         @Override
@@ -417,7 +411,7 @@ class SecuredVaultSecretProviderIntegrationTest {
                         .setDefaultHost("localhost")
                         .setSsl(true)
                         .setVerifyHost(false)
-                        .setPemTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(sslPairs.cert())))
+                        .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(sslPairs.cert())))
                 );
 
             await()

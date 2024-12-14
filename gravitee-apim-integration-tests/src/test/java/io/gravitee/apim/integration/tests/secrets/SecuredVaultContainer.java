@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.integration.tests.secrets.conf;
+package io.gravitee.apim.integration.tests.secrets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,32 +42,31 @@ import org.testcontainers.lifecycle.TestLifecycleAware;
  *
  */
 @Slf4j
-class SecuredVaultContainer extends GenericContainer<SecuredVaultContainer> implements TestLifecycleAware {
+public class SecuredVaultContainer extends GenericContainer<SecuredVaultContainer> implements TestLifecycleAware {
 
-    static final String USER_ID = "fake_user";
-    static final String PASSWORD = "fake_password";
-    static final int MAX_RETRIES = 5;
-    static final int RETRY_MILLIS = 1000;
-    static final String TEST_POLICY_NAME = "tester_pol";
+    public static final String USER_ID = "fake_user";
+    public static final String PASSWORD = "fake_password";
+    public static final int MAX_RETRIES = 5;
+    public static final int RETRY_MILLIS = 1000;
+    public static final String TEST_POLICY_NAME = "tester_pol";
 
-    static final String CURRENT_WORKING_DIRECTORY = "target" + File.separator + "vault";
-    static final String SSL_DIRECTORY = CURRENT_WORKING_DIRECTORY + File.separator + "ssl";
-    static final String CERT_PEMFILE = SSL_DIRECTORY + File.separator + "root-cert.pem";
+    public static final String CURRENT_WORKING_DIRECTORY = "target" + File.separator + "vault";
+    public static final String SSL_DIRECTORY = CURRENT_WORKING_DIRECTORY + File.separator + "ssl";
+    public static final String CERT_PEMFILE = SSL_DIRECTORY + File.separator + "root-cert.pem";
 
-    static final String CLIENT_CERT_PEMFILE = SSL_DIRECTORY + File.separator + "client-cert.pem";
-    static final String TESTROLE = "testrole";
-    static final String HASHICORP_VAULT_IMAGE = "hashicorp/vault:1.13.3";
+    public static final String CLIENT_CERT_PEMFILE = SSL_DIRECTORY + File.separator + "client-cert.pem";
+    public static final String TESTROLE = "testrole";
+    public static final String HASHICORP_VAULT_IMAGE = "hashicorp/vault:1.13.3";
 
-    final String CONTAINER_STARTUP_SCRIPT = "/vault/config/startup.sh";
-    final String CONTAINER_CONFIG_FILE = "/vault/config/config.json";
-    final String CONTAINER_OPENSSL_CONFIG_FILE = "/vault/config/libressl.conf";
-    final String CONTAINER_SSL_DIRECTORY = "/vault/config/ssl";
-    final String CONTAINER_CERT_PEMFILE = CONTAINER_SSL_DIRECTORY + "/vault-cert.pem";
-    final String CONTAINER_CLIENT_CERT_PEMFILE = CONTAINER_SSL_DIRECTORY + "/client-cert.pem";
-    final String TEST_POLICY_FILE = "/home/vault/testPolicy.hcl";
+    public static final String CONTAINER_STARTUP_SCRIPT = "/vault/config/startup.sh";
+    public static final String CONTAINER_CONFIG_FILE = "/vault/config/config.json";
+    public static final String CONTAINER_OPENSSL_CONFIG_FILE = "/vault/config/libressl.conf";
+    public static final String CONTAINER_SSL_DIRECTORY = "/vault/config/ssl";
+    public static final String CONTAINER_CERT_PEMFILE = CONTAINER_SSL_DIRECTORY + "/vault-cert.pem";
+    public static final String CONTAINER_CLIENT_CERT_PEMFILE = CONTAINER_SSL_DIRECTORY + "/client-cert.pem";
+    public static final String TEST_POLICY_FILE = "/home/vault/testPolicy.hcl";
 
     private String rootToken;
-    private String unsealKey;
 
     public SecuredVaultContainer() {
         super(HASHICORP_VAULT_IMAGE);
@@ -81,7 +80,7 @@ class SecuredVaultContainer extends GenericContainer<SecuredVaultContainer> impl
             // policy to bind to various auth
             .withClasspathResourceMapping("/vault/testPolicy.hcl", TEST_POLICY_FILE, BindMode.READ_ONLY)
             .withFileSystemBind(SSL_DIRECTORY, CONTAINER_SSL_DIRECTORY, BindMode.READ_WRITE)
-            .withCreateContainerCmdModifier(command -> command.withCapAdd(Capability.IPC_LOCK))
+            .withCreateContainerCmdModifier(command -> command.getHostConfig().withCapAdd(Capability.IPC_LOCK))
             .withExposedPorts(8200, 8280)
             .withCommand("/bin/sh " + CONTAINER_STARTUP_SCRIPT)
             .withLogConsumer(new Slf4jLogConsumer(log))
@@ -107,7 +106,7 @@ class SecuredVaultContainer extends GenericContainer<SecuredVaultContainer> impl
 
         final String stdout = initResult.getStdout().replaceAll("\\r?\\n", "");
         JsonObject initJson = Json.parse(stdout).asObject();
-        this.unsealKey = initJson.get("unseal_keys_b64").asArray().get(0).asString();
+        String unsealKey = initJson.get("unseal_keys_b64").asArray().get(0).asString();
         this.rootToken = initJson.get("root_token").asString();
 
         System.out.println("Root token: " + rootToken);
@@ -137,7 +136,7 @@ class SecuredVaultContainer extends GenericContainer<SecuredVaultContainer> impl
      * Prepares the Vault server for testing of the AppRole auth backend (i.e. mounts the backend
      * and populates test data).
      */
-    public void setupAppRoleAuth() throws IOException, InterruptedException, VaultException {
+    public void setupAppRoleAuth() throws IOException, InterruptedException {
         runCommand("vault", "auth", "enable", "-ca-cert=" + CONTAINER_CERT_PEMFILE, "approle");
         runCommand(
             "vault",
