@@ -1532,6 +1532,19 @@
                     </exclusions>
                 </dependency>
                 <dependency>
+                    <groupId>com.graviteesource.service</groupId>
+                    <artifactId>gravitee-service-secrets</artifactId>
+                    <version>${gravitee-service-secrets.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
                     <groupId>io.gravitee.secretprovider</groupId>
                     <artifactId>gravitee-secret-provider-kubernetes</artifactId>
                     <version>${gravitee-secretprovider-kubernetes.version}</version>
@@ -1868,6 +1881,21 @@
                     <groupId>io.gravitee.node</groupId>
                     <artifactId>gravitee-node-cluster-plugin-hazelcast</artifactId>
                     <version>${gravitee-node.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+
+                <!-- Secret providers -->
+                <dependency>
+                    <groupId>com.graviteesource.secretprovider</groupId>
+                    <artifactId>gravitee-secret-provider-aws</artifactId>
+                    <version>${gravitee-secretprovider-aws.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>

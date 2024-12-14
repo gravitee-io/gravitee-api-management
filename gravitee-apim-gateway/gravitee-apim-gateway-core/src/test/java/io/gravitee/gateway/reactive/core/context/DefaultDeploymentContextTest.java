@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.reactive.core.context;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -24,7 +24,6 @@ import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
-import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,7 +76,7 @@ class DefaultDeploymentContextTest {
         final TemplateEngine templateEngine = cut.getTemplateEngine();
 
         for (int i = 0; i < 10; i++) {
-            assertEquals(templateEngine, cut.getTemplateEngine());
+            assertSame(templateEngine, cut.getTemplateEngine());
         }
     }
 }

@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.handlers.api.v4;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -31,6 +32,8 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.el.TemplateVariableProvider;
+import io.gravitee.el.TemplateVariableProviderFactory;
+import io.gravitee.el.TemplateVariableScope;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
@@ -40,8 +43,6 @@ import io.gravitee.gateway.policy.impl.PolicyLoader;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.handlers.api.ApiPolicyManager;
 import io.gravitee.gateway.reactive.handlers.api.el.ApiTemplateVariableProvider;
-import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
@@ -64,6 +65,7 @@ import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.resource.api.ResourceManager;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -80,7 +82,7 @@ import org.springframework.core.env.StandardEnvironment;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-public class DefaultApiReactorFactoryTest {
+class DefaultApiReactorFactoryTest {
 
     @Mock
     ConfigurableApplicationContext applicationContext;
@@ -112,13 +114,7 @@ public class DefaultApiReactorFactoryTest {
     OrganizationManager organizationManager;
 
     @Mock
-    ApiProcessorChainFactory apiProcessorChainFactory;
-
-    @Mock
     io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory;
-
-    @Mock
-    FlowResolverFactory v4FlowResolverFactory;
 
     @Mock
     RequestTimeoutConfiguration requestTimeoutConfiguration;
@@ -147,7 +143,7 @@ public class DefaultApiReactorFactoryTest {
     private OpenTelemetryFactory openTelemetryFactory;
 
     @BeforeEach
-    public void init() {
+    void init() {
         lenient().when(applicationContext.getBeanFactory()).thenReturn(applicationContextListable);
         lenient().when(policyFactoryManager.get(any())).thenReturn(policyFactory);
         cut =
@@ -181,7 +177,7 @@ public class DefaultApiReactorFactoryTest {
         }
 
         @Test
-        public void should_create_api_with_http_listener() {
+        void should_create_api_with_http_listener() {
             when(definition.getListeners()).thenReturn(Collections.singletonList(new HttpListener()));
 
             boolean create = cut.canCreate(anApi());
@@ -189,7 +185,7 @@ public class DefaultApiReactorFactoryTest {
         }
 
         @Test
-        public void should_not_create_api_with_subscription_listener() {
+        void should_not_create_api_with_subscription_listener() {
             when(definition.getListeners()).thenReturn(Collections.singletonList(new SubscriptionListener()));
 
             boolean create = cut.canCreate(anApi());
@@ -197,19 +193,19 @@ public class DefaultApiReactorFactoryTest {
         }
 
         @Test
-        public void should_not_create_api_with_definition_v2() {
+        void should_not_create_api_with_definition_v2() {
             boolean create = cut.canCreate(anApiV2());
             assertFalse(create);
         }
 
         @Test
-        public void should_not_create_api_if_disabled() {
+        void should_not_create_api_if_disabled() {
             ReactorHandler handler = cut.create(aDisabledApi());
             assertNull(handler);
         }
 
         @Test
-        public void should_not_create_api_with_no_listener() {
+        void should_not_create_api_with_no_listener() {
             when(definition.getListeners()).thenReturn(Collections.emptyList());
 
             boolean create = cut.canCreate(anApi());
@@ -217,7 +213,7 @@ public class DefaultApiReactorFactoryTest {
         }
 
         @Test
-        public void should_not_create_api_with_no_http_or_subscription_listener() {
+        void should_not_create_api_with_no_http_or_subscription_listener() {
             when(definition.getListeners()).thenReturn(Collections.singletonList(new TcpListener()));
 
             boolean create = cut.canCreate(anApi());
@@ -264,7 +260,7 @@ public class DefaultApiReactorFactoryTest {
             assertThat(componentProvider)
                 .isInstanceOf(CompositeComponentProvider.class)
                 .extracting("componentProviders")
-                .asList()
+                .asInstanceOf(LIST)
                 .contains(globalComponentProvider);
 
             assertThat(componentProvider.getComponent(Api.class)).isSameAs(api);
@@ -318,22 +314,21 @@ public class DefaultApiReactorFactoryTest {
         }
 
         private List<TemplateVariableProvider> registerApiTemplateVariableProvider(List<TemplateVariableProvider> providers) {
-            var apiTemplateVariableProviderFactory = mock(ApiTemplateVariableProviderFactory.class);
+            TemplateVariableProviderFactory apiTemplateVariableProviderFactory = mock(ApiTemplateVariableProviderFactory.class);
             when(apiTemplateVariableProviderFactory.getTemplateVariableProviders()).thenReturn(providers);
+            when(apiTemplateVariableProviderFactory.getTemplateVariableScope()).thenReturn(TemplateVariableScope.API);
             lenient()
-                .when(applicationContext.getBean(ApiTemplateVariableProviderFactory.class))
-                .thenReturn(apiTemplateVariableProviderFactory);
+                .when(applicationContext.getBeansOfType(TemplateVariableProviderFactory.class))
+                .thenReturn(Map.of("apiTemplateVariableProviderFactory", apiTemplateVariableProviderFactory));
             return providers;
         }
 
         private ComponentProvider registerGlobalComponentProvider() {
-            var globalComponentProvider = mock(ComponentProvider.class);
             lenient().when(applicationContext.getBean(ComponentProvider.class)).thenReturn(globalComponentProvider);
             return globalComponentProvider;
         }
 
         private ConfigurablePluginManager<?> registerResourcePluginManager() {
-            var resourcePluginManager = mock(ConfigurablePluginManager.class);
             lenient()
                 .when(
                     applicationContextListable.getBeanNamesForType(
@@ -346,7 +341,6 @@ public class DefaultApiReactorFactoryTest {
         }
 
         private ConfigurablePluginManager<?> registerPolicyPluginManager() {
-            var policyPluginManager = mock(ConfigurablePluginManager.class);
             lenient()
                 .when(
                     applicationContextListable.getBeanNamesForType(

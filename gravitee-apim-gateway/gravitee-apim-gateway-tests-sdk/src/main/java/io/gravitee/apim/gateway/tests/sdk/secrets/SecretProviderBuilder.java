@@ -15,11 +15,11 @@
  */
 package io.gravitee.apim.gateway.tests.sdk.secrets;
 
-import io.gravitee.node.api.secrets.SecretManagerConfiguration;
-import io.gravitee.node.api.secrets.SecretProviderFactory;
 import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import io.gravitee.node.secrets.plugins.internal.DefaultSecretProviderPlugin;
 import io.gravitee.plugin.core.api.PluginManifest;
+import io.gravitee.secrets.api.plugin.SecretManagerConfiguration;
+import io.gravitee.secrets.api.plugin.SecretProviderFactory;
 import java.net.URL;
 import java.nio.file.Path;
 import lombok.AccessLevel;

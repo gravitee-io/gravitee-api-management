@@ -22,6 +22,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -31,17 +32,26 @@ public abstract class ReactableApi<T> implements Reactable, Serializable {
 
     protected T definition;
 
+    @Setter
     private boolean enabled = true;
 
+    @Setter
     private Date deployedAt;
 
+    @Setter
     private String environmentId;
 
+    @Setter
     private String environmentHrid;
 
+    @Setter
     private String organizationId;
 
+    @Setter
     private String organizationHrid;
+
+    @Setter
+    private String revision;
 
     private DefinitionContext definitionContext = new DefinitionContext();
 
@@ -58,10 +68,6 @@ public abstract class ReactableApi<T> implements Reactable, Serializable {
         return enabled;
     }
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
     @Override
     public boolean enabled() {
         return isEnabled();
@@ -71,48 +77,28 @@ public abstract class ReactableApi<T> implements Reactable, Serializable {
         return deployedAt;
     }
 
-    public void setDeployedAt(Date deployedAt) {
-        this.deployedAt = deployedAt;
-    }
-
     public String getEnvironmentId() {
         return environmentId;
-    }
-
-    public void setEnvironmentId(String environmentId) {
-        this.environmentId = environmentId;
     }
 
     public String getEnvironmentHrid() {
         return environmentHrid;
     }
 
-    public void setEnvironmentHrid(String environmentHrid) {
-        this.environmentHrid = environmentHrid;
-    }
-
     public String getOrganizationId() {
         return organizationId;
-    }
-
-    public void setOrganizationId(String organizationId) {
-        this.organizationId = organizationId;
     }
 
     public String getOrganizationHrid() {
         return organizationHrid;
     }
 
-    public void setOrganizationHrid(String organizationHrid) {
-        this.organizationHrid = organizationHrid;
-    }
-
     public DefinitionContext getDefinitionContext() {
         return definitionContext;
     }
 
-    public void setDefinitionContext(DefinitionContext definitionContext) {
-        this.definitionContext = definitionContext;
+    public String getRevision() {
+        return revision;
     }
 
     public T getDefinition() {

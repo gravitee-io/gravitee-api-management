@@ -52,16 +52,17 @@
         <gravitee-cockpit-api.version>3.7.0</gravitee-cockpit-api.version>
         <gravitee-cloud-initializer.version>2.1.0</gravitee-cloud-initializer.version>
         <gravitee-spec-gen-api.version>1.1.0</gravitee-spec-gen-api.version>
-        <gravitee-common.version>4.5.1</gravitee-common.version>
+        <gravitee-common.version>4.6.0</gravitee-common.version>
+        <gravitee-secret-api.version>1.0.0-alpha.3</gravitee-secret-api.version>
         <gravitee-connector-api.version>1.1.5</gravitee-connector-api.version>
         <gravitee-exchange.version>1.8.2</gravitee-exchange.version>
-        <gravitee-expression-language.version>4.0.0-alpha.2</gravitee-expression-language.version>
+        <gravitee-expression-language.version>4.0.0-alpha.3</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>2.1.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>3.9.0-alpha.25</gravitee-gateway-api.version>
         <gravitee-integration-api.version>4.1.0</gravitee-integration-api.version>
         <gravitee-json-validation.version>2.0.1</gravitee-json-validation.version>
         <gravitee-kubernetes.version>3.4.1</gravitee-kubernetes.version>
-        <gravitee-node.version>7.0.0-alpha.8</gravitee-node.version>
+        <gravitee-node.version>7.0.0-alpha.11</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
         <gravitee-platform-repository-api.version>1.4.0</gravitee-platform-repository-api.version>
         <gravitee-plugin.version>4.3.1</gravitee-plugin.version>
@@ -266,7 +267,7 @@
         <gravitee-resource-cache-redis.version>3.0.0-alpha.1</gravitee-resource-cache-redis.version>
         <gravitee-resource-oauth2-provider-keycloak.version>2.1.0</gravitee-resource-oauth2-provider-keycloak.version>
         <gravitee-service-geoip.version>3.0.0</gravitee-service-geoip.version>
-        <gravitee-secretprovider-kubernetes.version>1.0.1</gravitee-secretprovider-kubernetes.version>
+        <gravitee-secretprovider-kubernetes.version>2.0.0-alpha.2</gravitee-secretprovider-kubernetes.version>
 
         <!-- Enterprise plugins -->
         <gravitee-entrypoint-http-get.version>2.0.0-alpha.2</gravitee-entrypoint-http-get.version>
@@ -284,7 +285,9 @@
         <gravitee-reactor-message.version>5.0.0-alpha.11</gravitee-reactor-message.version>
         <gravitee-reactor-native-kafka.version>1.0.0-alpha.29</gravitee-reactor-native-kafka.version>
         <gravitee-apim-repository-bridge.version>5.1.2</gravitee-apim-repository-bridge.version>
-        <gravitee-secretprovider-hc-vault.version>1.0.0</gravitee-secretprovider-hc-vault.version>
+        <gravitee-secretprovider-hc-vault.version>2.0.0-alpha.4</gravitee-secretprovider-hc-vault.version>
+        <gravitee-secretprovider-aws.version>2.0.0-alpha.2</gravitee-secretprovider-aws.version>
+        <gravitee-service-secrets.version>1.0.0-alpha.4</gravitee-service-secrets.version>
         <gravitee-policy-interops.version>1.1.2</gravitee-policy-interops.version>
 
         <gravitee-connectors-native-kafka.version>1.0.0-alpha.9</gravitee-connectors-native-kafka.version>

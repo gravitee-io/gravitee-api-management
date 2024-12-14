@@ -15,20 +15,35 @@
  */
 package io.gravitee.apim.integration.tests.secrets.conf;
 
-import static io.gravitee.apim.integration.tests.secrets.conf.SecuredVaultContainer.CERT_PEMFILE;
-import static io.gravitee.apim.integration.tests.secrets.conf.SecuredVaultContainer.PASSWORD;
+import static io.gravitee.apim.integration.tests.secrets.SecuredVaultContainer.CERT_PEMFILE;
+import static io.gravitee.apim.integration.tests.secrets.SecuredVaultContainer.PASSWORD;
 
-import java.io.*;
+import java.io.FileReader;
+import java.io.IOException;
 import java.math.BigInteger;
-import java.security.*;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.Security;
+import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Date;
+import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x509.*;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
@@ -48,9 +63,10 @@ import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
  * Static utility methods for generating client-side SSL certs and keys, for tests that use Vault's
  * TLS Certificate auth backend.  Right now, all such code is isolated to `AuthBackendCertTests`.
  */
+@Slf4j
 public class SSLUtils {
 
-    record SSLPairs(String cert, String privateKey, KeyStore keyStore, KeyStore clientStore) {}
+    public record SSLPairs(String cert, String privateKey, KeyStore keyStore, KeyStore clientStore) {}
 
     private SSLUtils() {}
 
@@ -145,7 +161,7 @@ public class SSLUtils {
         try {
             certificateBuilder.addExtension(Extension.subjectAlternativeName, false, subjectAltNames);
         } catch (CertIOException e) {
-            e.printStackTrace();
+            log.warn("cert error", e);
             return null;
         }
 
@@ -158,7 +174,7 @@ public class SSLUtils {
             final ContentSigner signer = signerBuilder.build(keyp);
             x509CertificateHolder = certificateBuilder.build(signer);
         } catch (IOException | OperatorCreationException e) {
-            e.printStackTrace();
+            log.warn("cert error", e);
             return null;
         }
 
@@ -168,7 +184,7 @@ public class SSLUtils {
             certificate.checkValidity(new Date());
             certificate.verify(keyPair.getPublic());
         } catch (CertificateException | SignatureException | InvalidKeyException | NoSuchAlgorithmException | NoSuchProviderException e) {
-            e.printStackTrace();
+            log.warn("cert error", e);
             return null;
         }
 

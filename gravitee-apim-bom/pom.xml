@@ -108,6 +108,12 @@
             </dependency>
 
             <dependency>
+                <groupId>io.gravitee.secret</groupId>
+                <artifactId>gravitee-secret-api</artifactId>
+                <version>${gravitee-secret-api.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>io.gravitee.fetcher</groupId>
                 <artifactId>gravitee-fetcher-api</artifactId>
                 <version>${gravitee-fetcher-api.version}</version>
