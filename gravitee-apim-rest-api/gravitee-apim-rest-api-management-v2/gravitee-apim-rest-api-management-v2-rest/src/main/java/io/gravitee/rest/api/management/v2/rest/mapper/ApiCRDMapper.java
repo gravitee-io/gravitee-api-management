@@ -15,12 +15,19 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.utils.CollectionUtils;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
+import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLifecycleState;
+import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
 import io.gravitee.rest.api.management.v2.rest.model.Listener;
 import io.gravitee.rest.api.management.v2.rest.model.PageCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -47,6 +54,8 @@ public interface ApiCRDMapper {
     ApiCRDMapper INSTANCE = Mappers.getMapper(ApiCRDMapper.class);
 
     @Mapping(target = "lifecycleState", qualifiedByName = "mapLifecycleState")
+    @Mapping(target = "listeners", expression = "java(mapApiCRDListeners(coreSpec))")
+    @Mapping(target = "endpointGroups", expression = "java(mapApiCRDEndpointGroups(coreSpec))")
     ApiCRDSpec map(io.gravitee.apim.core.api.model.crd.ApiCRDSpec coreSpec);
 
     @Mapping(target = "security.type", qualifiedByName = "mapSecurityType")
@@ -66,5 +75,31 @@ public interface ApiCRDMapper {
     @Named("mapLifecycleState")
     default ApiLifecycleState mapLifecycleState(String lifecycleState) {
         return ApiLifecycleState.PUBLISHED.name().equals(lifecycleState) ? ApiLifecycleState.PUBLISHED : ApiLifecycleState.UNPUBLISHED;
+    }
+
+    default List<Listener> mapApiCRDListeners(io.gravitee.apim.core.api.model.crd.ApiCRDSpec spec) {
+        if (CollectionUtils.isEmpty(spec.getListeners())) {
+            return List.of();
+        }
+
+        if (ApiType.NATIVE.name().equalsIgnoreCase(spec.getType())) {
+            return ListenerMapper.INSTANCE.mapFromNativeListenerV4List((List<NativeListener>) spec.getListeners());
+        } else {
+            return ListenerMapper.INSTANCE.mapFromListenerEntityV4List(
+                (List<io.gravitee.definition.model.v4.listener.Listener>) spec.getListeners()
+            );
+        }
+    }
+
+    default List<EndpointGroupV4> mapApiCRDEndpointGroups(io.gravitee.apim.core.api.model.crd.ApiCRDSpec spec) {
+        if (CollectionUtils.isEmpty(spec.getEndpointGroups())) {
+            return List.of();
+        }
+
+        if (ApiType.NATIVE.name().equalsIgnoreCase(spec.getType())) {
+            return EndpointMapper.INSTANCE.mapEndpointGroupNativeV4((List<NativeEndpointGroup>) spec.getEndpointGroups());
+        } else {
+            return EndpointMapper.INSTANCE.mapEndpointGroupHttpV4((List<EndpointGroup>) spec.getEndpointGroups());
+        }
     }
 }

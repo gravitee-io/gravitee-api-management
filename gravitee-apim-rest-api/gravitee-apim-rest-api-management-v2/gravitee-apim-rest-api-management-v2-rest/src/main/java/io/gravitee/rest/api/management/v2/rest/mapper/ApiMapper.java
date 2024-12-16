@@ -25,7 +25,11 @@ import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.v4.listener.AbstractListener;
+import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLinks;
@@ -231,6 +235,8 @@ public interface ApiMapper {
 
     @Mapping(target = "plans", expression = "java(mapPlanCRD(crd))")
     @Mapping(target = "flows", expression = "java(mapApiCRDFlows(crd))")
+    @Mapping(target = "listeners", expression = "java(mapApiCRDListeners(crd))")
+    @Mapping(target = "endpointGroups", expression = "java(mapApiCRDEndpointGroups(crd))")
     ApiCRDSpec map(io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec crd);
 
     @Mapping(target = "source.configuration", qualifiedByName = "serializeConfiguration")
@@ -312,6 +318,34 @@ public interface ApiMapper {
             return FlowMapper.INSTANCE.mapToNativeV4(spec.getFlows());
         } else {
             return FlowMapper.INSTANCE.mapToHttpV4(spec.getFlows());
+        }
+    }
+
+    default List<? extends AbstractListener<? extends AbstractEntrypoint>> mapApiCRDListeners(
+        io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec spec
+    ) {
+        if (CollectionUtils.isEmpty(spec.getListeners())) {
+            return List.of();
+        }
+
+        if (ApiType.NATIVE.name().equalsIgnoreCase(spec.getType().name())) {
+            return ListenerMapper.INSTANCE.mapToNativeListenerV4List(spec.getListeners());
+        } else {
+            return ListenerMapper.INSTANCE.mapToListenerEntityV4List(spec.getListeners());
+        }
+    }
+
+    default List<? extends AbstractEndpointGroup<? extends AbstractEndpoint>> mapApiCRDEndpointGroups(
+        io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec spec
+    ) {
+        if (CollectionUtils.isEmpty(spec.getEndpointGroups())) {
+            return List.of();
+        }
+
+        if (ApiType.NATIVE.name().equalsIgnoreCase(spec.getType().name())) {
+            return EndpointMapper.INSTANCE.mapEndpointGroupsNativeV4(spec.getEndpointGroups());
+        } else {
+            return EndpointMapper.INSTANCE.mapEndpointGroupsHttpV4(spec.getEndpointGroups());
         }
     }
 

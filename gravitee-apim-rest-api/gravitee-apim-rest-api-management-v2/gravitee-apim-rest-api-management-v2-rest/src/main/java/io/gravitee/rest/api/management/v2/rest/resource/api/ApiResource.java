@@ -20,7 +20,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
-import io.gravitee.apim.core.api.use_case.ExportCRDUseCase;
+import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
@@ -195,7 +195,7 @@ public class ApiResource extends AbstractResource {
     UpdateFederatedApiUseCase updateFederatedApiUseCase;
 
     @Inject
-    ExportCRDUseCase exportCRDUseCase;
+    ExportApiCRDUseCase exportApiCRDUseCase;
 
     @Inject
     private RollbackApiUseCase rollbackApiUseCase;
@@ -504,7 +504,7 @@ public class ApiResource extends AbstractResource {
     public Response exportApiCRD(@PathParam("apiId") String apiId) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
-        var input = new ExportCRDUseCase.Input(
+        var input = new ExportApiCRDUseCase.Input(
             apiId,
             AuditInfo
                 .builder()
@@ -520,7 +520,7 @@ public class ApiResource extends AbstractResource {
                 )
                 .build()
         );
-        var output = exportCRDUseCase.execute(input);
+        var output = exportApiCRDUseCase.execute(input);
         var spec = ApiCRDMapper.INSTANCE.map(output.spec());
         return Response.ok(new ApiCRD(spec)).build();
     }

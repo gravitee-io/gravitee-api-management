@@ -28,13 +28,13 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class ExportCRDUseCaseTest {
+class ExportApiCRDUseCaseTest {
 
-    private final ExportCRDUseCase useCase = new ExportCRDUseCase(new ApiCRDExportDomainServiceInMemory());
+    private final ExportApiCRDUseCase useCase = new ExportApiCRDUseCase(new ApiCRDExportDomainServiceInMemory());
 
     @Test
     void should_export_as_a_crd() {
-        var input = new ExportCRDUseCase.Input(ApiCRDFixtures.API_ID, AuditInfo.builder().build());
+        var input = new ExportApiCRDUseCase.Input(ApiCRDFixtures.API_ID, AuditInfo.builder().build());
         var output = useCase.execute(input);
         var spec = output.spec();
         SoftAssertions.assertSoftly(soft -> {

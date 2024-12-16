@@ -18,12 +18,8 @@ package io.gravitee.rest.api.management.v2.rest.model;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
-import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
-import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
-import io.gravitee.definition.model.v4.listener.AbstractListener;
-import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -75,11 +71,11 @@ public class ApiCRDSpec {
 
     private Set<String> tags = new HashSet<>();
 
-    private List<@Valid ? extends AbstractListener<? extends AbstractEntrypoint>> listeners;
+    private List<@Valid Listener> listeners;
 
     @NotNull
     @Size(min = 1)
-    private List<@Valid ? extends AbstractEndpointGroup<? extends AbstractEndpoint>> endpointGroups;
+    private List<@Valid EndpointGroupV4> endpointGroups;
 
     private Analytics analytics;
 
@@ -121,7 +117,7 @@ public class ApiCRDSpec {
 
     private Map<String, PageCRD> pages;
 
-    public DefinitionVersion getDefinitionVersion() {
-        return DefinitionVersion.V4;
+    public String getDefinitionVersion() {
+        return DefinitionVersion.V4.name();
     }
 }
