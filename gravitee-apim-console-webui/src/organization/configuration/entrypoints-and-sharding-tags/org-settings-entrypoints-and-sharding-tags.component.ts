@@ -21,8 +21,8 @@ import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
 
-import { OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData } from './org-settings-add-tag-dialog.component';
-import { OrgSettingAddMappingDialogComponent, OrgSettingAddMappingDialogData } from './org-settings-add-mapping-dialog.component';
+import { OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData } from './dialog/org-settings-add-tag-dialog.component';
+import { OrgSettingAddMappingDialogComponent, OrgSettingAddMappingDialogData } from './dialog/org-settings-add-mapping-dialog.component';
 
 import { Entrypoint } from '../../../entities/entrypoint/entrypoint';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
@@ -52,11 +52,11 @@ type EntrypointTableDS = {
   tagsName: string[];
 }[];
 @Component({
-  selector: 'org-settings-tags',
-  templateUrl: './org-settings-tags.component.html',
-  styleUrls: ['./org-settings-tags.component.scss'],
+  selector: 'org-settings-entrypoints-and-sharding-tags',
+  templateUrl: './org-settings-entrypoints-and-sharding-tags.component.html',
+  styleUrls: ['./org-settings-entrypoints-and-sharding-tags.component.scss'],
 })
-export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
+export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, OnDestroy {
   isLoading = true;
 
   providedConfigurationMessage = 'Configuration provided by the system';

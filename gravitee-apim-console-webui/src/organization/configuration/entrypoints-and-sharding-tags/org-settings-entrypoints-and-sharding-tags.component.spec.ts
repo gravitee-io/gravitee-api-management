@@ -27,7 +27,7 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 
-import { OrgSettingsTagsComponent } from './org-settings-tags.component';
+import { OrgSettingsEntrypointsAndShardingTagsComponent } from './org-settings-entrypoints-and-sharding-tags.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
@@ -43,8 +43,8 @@ import { GioTestingPermissionProvider } from '../../../shared/components/gio-per
 import { Environment } from '../../../entities/environment/environment';
 import { fakeEnvironment } from '../../../entities/environment/environment.fixture';
 
-describe('OrgSettingsTagsComponent', () => {
-  let fixture: ComponentFixture<OrgSettingsTagsComponent>;
+describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
+  let fixture: ComponentFixture<OrgSettingsEntrypointsAndShardingTagsComponent>;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
@@ -78,7 +78,7 @@ describe('OrgSettingsTagsComponent', () => {
       },
     });
     httpTestingController = TestBed.inject(HttpTestingController);
-    fixture = TestBed.createComponent(OrgSettingsTagsComponent);
+    fixture = TestBed.createComponent(OrgSettingsEntrypointsAndShardingTagsComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     fixture.detectChanges();

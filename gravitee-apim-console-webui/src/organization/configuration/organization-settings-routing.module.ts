@@ -28,7 +28,7 @@ import { OrgSettingsUserDetailComponent } from './user/detail/org-settings-user-
 import { OrgSettingsPlatformPoliciesComponent } from './policies/org-settings-platform-policies.component';
 import { OrgSettingsTenantsComponent } from './tenants/org-settings-tenants.component';
 import { OrgSettingsRolesComponent } from './roles/org-settings-roles.component';
-import { OrgSettingsTagsComponent } from './tags/org-settings-tags.component';
+import { OrgSettingsEntrypointsAndShardingTagsComponent } from './entrypoints-and-sharding-tags/org-settings-entrypoints-and-sharding-tags.component';
 import { OrgSettingsRoleMembersComponent } from './roles/org-settings-role-members.component';
 import { OrgSettingsRoleComponent } from './roles/role/org-settings-role.component';
 import { OrgSettingsAuditComponent } from './audit/org-settings-audit.component';
@@ -181,8 +181,8 @@ const organizationRoutes: Routes = [
         },
       },
       {
-        path: 'tags',
-        component: OrgSettingsTagsComponent,
+        path: 'entrypoints-and-sharding-tags',
+        component: OrgSettingsEntrypointsAndShardingTagsComponent,
         data: {
           docs: {
             page: 'management-configuration-sharding-tags',

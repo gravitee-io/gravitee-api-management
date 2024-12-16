@@ -18,8 +18,8 @@ import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { shareReplay } from 'rxjs/operators';
 
-import { Tag } from '../../../entities/tag/tag';
-import { GroupService } from '../../../services-ngx/group.service';
+import { Tag } from '../../../../entities/tag/tag';
+import { GroupService } from '../../../../services-ngx/group.service';
 
 export type OrgSettingAddTagDialogData = {
   tag?: Tag;

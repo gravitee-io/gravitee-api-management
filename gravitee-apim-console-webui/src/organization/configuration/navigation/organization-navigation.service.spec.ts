@@ -52,7 +52,7 @@ describe('OrganizationNavigationService', () => {
           'Settings',
           'Users',
           'Roles',
-          'Sharding tags',
+          'Entrypoints & Sharding Tags',
           'Tenants',
           'Policies',
           'Templates',
