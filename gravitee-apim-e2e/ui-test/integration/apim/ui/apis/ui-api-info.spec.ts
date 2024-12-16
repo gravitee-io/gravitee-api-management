@@ -217,10 +217,10 @@ describe('API Info Page functionality', () => {
     cy.visit(`/#!/DEFAULT/apis/${v4dangerzoneApi.id}`);
     cy.getByDataTestId('api_info_dangerzone_make_public', { timeout: 60000 }).click();
     cy.getByDataTestId('confirm-dialog').click();
-    cy.contains('The API has been made Public with success.');
+    cy.contains('The API has been made public with success.');
     cy.getByDataTestId('api_info_dangerzone_make_private').click();
     cy.getByDataTestId('confirm-dialog').click();
-    cy.contains('The API has been made Private with success.');
+    cy.contains('The API has been made private with success.');
   });
 
   it('Danger Zone - Deprecate the API', () => {
