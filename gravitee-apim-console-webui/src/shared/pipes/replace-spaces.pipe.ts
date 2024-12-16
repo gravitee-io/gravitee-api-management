@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Pipe, PipeTransform } from '@angular/core';
 
-import { Component, Input } from '@angular/core';
-import { GioClipboardModule } from '@gravitee/ui-particles-angular';
-
-import { ReplaceSpacesPipe } from '../../pipes/replace-spaces.pipe';
-
-@Component({
-  selector: 'file-preview',
+@Pipe({
+  name: 'replaceSpaces',
   standalone: true,
-  imports: [GioClipboardModule, ReplaceSpacesPipe],
-  templateUrl: './file-preview.component.html',
-  styleUrl: './file-preview.component.scss',
 })
-export class FilePreviewComponent {
-  @Input() payload: string;
+export class ReplaceSpacesPipe implements PipeTransform {
+  transform(line: string): string {
+    // Transform spaces if there are more than occurrence next to each other.
+    return line.replace(/\s{2,}/g, (match) => '\xa0'.repeat(match.length));
+  }
 }

@@ -23,7 +23,7 @@
       @for (line of payload.split('\n'); track line + i; let i = $index) {
         <div class="line">
           <span class="line__number">{{ i + 1 }}</span>
-          <span class="line__code">{{ line.replaceAll(' ', '&nbsp;') }}</span>
+          <span class="line__code">{{ line | replaceSpaces }}</span>
         </div>
       }
     </div>
