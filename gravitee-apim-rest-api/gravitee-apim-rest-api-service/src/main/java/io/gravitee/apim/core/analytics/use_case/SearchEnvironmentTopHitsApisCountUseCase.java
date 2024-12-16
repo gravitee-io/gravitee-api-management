@@ -53,7 +53,7 @@ public class SearchEnvironmentTopHitsApisCountUseCase {
             .searchTopHitsApis(input.executionContext(), input.parameters().withApiIds(v4ApiIds))
             .map(topHitsApis -> sortByCountAndUpdateTopHitsWithApiNames(v4Apis, topHitsApis))
             .map(Output::new)
-            .orElse(new Output());
+            .orElse(new Output(TopHitsApis.builder().data(List.of()).build()));
     }
 
     private Map<String, Api> getAllV4ApisForEnv(String envId) {
@@ -81,13 +81,5 @@ public class SearchEnvironmentTopHitsApisCountUseCase {
     @Builder
     public record Input(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {}
 
-    public record Output(Optional<TopHitsApis> topHitsApis) {
-        Output(TopHitsApis topHitsApis) {
-            this(Optional.of(topHitsApis));
-        }
-
-        Output() {
-            this(TopHitsApis.builder().build());
-        }
-    }
+    public record Output(TopHitsApis topHitsApis) {}
 }
