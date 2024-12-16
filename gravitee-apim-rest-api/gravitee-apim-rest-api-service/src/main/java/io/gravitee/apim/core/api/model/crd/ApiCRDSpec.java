@@ -44,7 +44,6 @@ import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
-import io.gravitee.definition.model.v4.service.AbstractApiServices;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.rest.api.model.context.OriginContext;
 import jakarta.validation.Valid;

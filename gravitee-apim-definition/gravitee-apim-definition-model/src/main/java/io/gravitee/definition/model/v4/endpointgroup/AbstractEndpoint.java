@@ -19,18 +19,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DatabindContext;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
-import io.gravitee.definition.model.AbstractTypeIdResolver;
 import io.gravitee.definition.model.Plugin;
-import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -49,8 +41,6 @@ import lombok.experimental.SuperBuilder;
 @Setter
 @ToString
 @EqualsAndHashCode
-@JsonTypeInfo(use = JsonTypeInfo.Id.CUSTOM, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type", visible = true)
-@JsonTypeIdResolver(AbstractEndpoint.EndpointResolver.class)
 public class AbstractEndpoint implements Serializable {
 
     private static final long serialVersionUID = 7139083731513897591L;
@@ -105,17 +95,5 @@ public class AbstractEndpoint implements Serializable {
     @JsonIgnore
     public List<Plugin> getPlugins() {
         return List.of(new Plugin("endpoint-connector", type));
-    }
-
-    public static class EndpointResolver extends AbstractTypeIdResolver {
-
-        @Override
-        public JavaType typeFromId(DatabindContext context, String id) throws IOException {
-            if (id.startsWith("native-")) {
-                return context.getTypeFactory().constructType(new TypeReference<NativeEndpoint>() {});
-            } else {
-                return context.getTypeFactory().constructType(new TypeReference<Endpoint>() {});
-            }
-        }
     }
 }

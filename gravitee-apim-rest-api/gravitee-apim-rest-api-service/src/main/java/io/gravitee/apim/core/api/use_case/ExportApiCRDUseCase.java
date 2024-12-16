@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
  */
 @UseCase
 @RequiredArgsConstructor
-public class ExportCRDUseCase {
+public class ExportApiCRDUseCase {
 
     private final ApiCRDExportDomainService exportDomainService;
 
