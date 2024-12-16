@@ -307,6 +307,10 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
         ApiKey apiKey = generateForApplication(subscription.getApplication(), customApiKey);
         apiKey.setSubscriptions(List.of(subscription.getId()));
+<<<<<<< HEAD
+=======
+        apiKey.setEnvironmentId(executionContext.getEnvironmentId());
+>>>>>>> 90b54960fe (fix(console): searching for custom key by and environment_id)
 
         // By default, the API Key will expire when subscription is closed
         apiKey.setExpireAt(subscription.getEndingAt());
@@ -404,6 +408,21 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         try {
             LOGGER.debug("Find API Keys by key");
             return apiKeyRepository.findByKey(apiKey).stream().map(apiKey1 -> convert(executionContext, apiKey1)).collect(toList());
+        } catch (TechnicalException e) {
+            LOGGER.error("An error occurs while finding API Keys", e);
+            throw new TechnicalManagementException("An error occurs while finding API Keys", e);
+        }
+    }
+
+    @Override
+    public List<ApiKeyEntity> findByKeyAndEnvironmentId(ExecutionContext executionContext, String apiKey) {
+        try {
+            LOGGER.debug("Find API Keys by key and environment id");
+            return apiKeyRepository
+                .findByKeyAndEnvironmentId(apiKey, executionContext.getEnvironmentId())
+                .stream()
+                .map(apiKey1 -> convert(executionContext, apiKey1))
+                .collect(toList());
         } catch (TechnicalException e) {
             LOGGER.error("An error occurs while finding API Keys", e);
             throw new TechnicalManagementException("An error occurs while finding API Keys", e);
@@ -520,7 +539,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     public boolean canCreate(ExecutionContext executionContext, String apiKey, String apiId, String applicationId) {
         LOGGER.debug("Check if an API Key can be created for api {} and application {}", apiId, applicationId);
 
-        return findByKey(executionContext, apiKey).stream().noneMatch(existingKey -> isConflictingKey(existingKey, apiId, applicationId));
+        return findByKeyAndEnvironmentId(executionContext, apiKey)
+            .stream()
+            .noneMatch(existingKey -> isConflictingKey(existingKey, apiId, applicationId));
     }
 
     private boolean isConflictingKey(ApiKeyEntity existingKey, String apiId, String applicationId) {
