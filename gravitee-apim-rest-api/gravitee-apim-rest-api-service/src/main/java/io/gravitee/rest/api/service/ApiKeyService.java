@@ -43,6 +43,8 @@ public interface ApiKeyService {
 
     ApiKeyEntity reactivate(ExecutionContext executionContext, ApiKeyEntity apiKeyEntity);
 
+    List<ApiKeyEntity> findByKeyAndEnvironmentId(ExecutionContext executionContext, String apiKey);
+
     List<ApiKeyEntity> findBySubscription(ExecutionContext executionContext, String subscription);
 
     List<ApiKeyEntity> findByKey(ExecutionContext executionContext, String apiKey);
