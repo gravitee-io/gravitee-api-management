@@ -166,6 +166,21 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                         .build()
                 );
         }
+
+        @Test
+        void should_return_200_with_empty_list_if_no_apis_found() {
+            apiQueryService.initWith(List.of());
+            analyticsQueryService.topHitsApis = TopHitsApis.builder().data(List.of()).build();
+
+            //When
+
+            Response response = statusRangeTarget.queryParam("from", FROM).queryParam("to", TO).request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(EnvironmentAnalyticsTopHitsApisResponse.class)
+                .isEqualTo(EnvironmentAnalyticsTopHitsApisResponse.builder().data(List.of()).build());
+        }
     }
 
     @Nested
