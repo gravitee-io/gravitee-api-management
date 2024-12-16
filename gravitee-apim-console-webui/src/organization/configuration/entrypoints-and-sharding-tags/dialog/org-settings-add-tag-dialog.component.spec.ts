@@ -25,11 +25,11 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData } from './org-settings-add-tag-dialog.component';
 
-import { OrganizationSettingsModule } from '../organization-settings.module';
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import { fakeGroup } from '../../../entities/group/group.fixture';
-import { Group } from '../../../entities/group/group';
-import { fakeTag } from '../../../entities/tag/tag.fixture';
+import { OrganizationSettingsModule } from '../../organization-settings.module';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
+import { fakeGroup } from '../../../../entities/group/group.fixture';
+import { Group } from '../../../../entities/group/group';
+import { fakeTag } from '../../../../entities/tag/tag.fixture';
 
 describe('OrgSettingAddTagDialogComponent', () => {
   let component: OrgSettingAddTagDialogComponent;

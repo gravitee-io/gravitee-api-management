@@ -18,8 +18,8 @@ import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { shareReplay } from 'rxjs/operators';
 
-import { Entrypoint } from '../../../entities/entrypoint/entrypoint';
-import { TagService } from '../../../services-ngx/tag.service';
+import { Entrypoint } from '../../../../entities/entrypoint/entrypoint';
+import { TagService } from '../../../../services-ngx/tag.service';
 
 export type OrgSettingAddMappingDialogData = {
   entrypoint?: Entrypoint;

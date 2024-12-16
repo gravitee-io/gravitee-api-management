@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -51,6 +52,15 @@ public class Portal {
     @Min(1025)
     @Max(65535)
     private Integer tcpPort;
+
+    @ParameterKey(Key.PORTAL_KAFKA_DOMAIN)
+    @Size(max = 192)
+    private String kafkaDomain;
+
+    @ParameterKey(Key.PORTAL_KAFKA_PORT)
+    @Min(1025)
+    @Max(65535)
+    private Integer kafkaPort;
 
     private PortalApis apis;
     private PortalAnalytics analytics;

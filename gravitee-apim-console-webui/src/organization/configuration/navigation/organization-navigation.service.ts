@@ -110,8 +110,8 @@ export class OrganizationNavigationService {
   private appendGatewayItems(): GroupItem {
     const items = this.filterMenuByPermission([
       {
-        displayName: 'Sharding tags',
-        routerLink: 'tags',
+        displayName: 'Entrypoints & Sharding Tags',
+        routerLink: 'entrypoints-and-sharding-tags',
         permissions: ['organization-tag-r'],
       },
       {
