@@ -125,9 +125,12 @@ describe('ApiAccessComponent', () => {
           component.apiKeyConfigUsername = 'hash-username';
 
           fixture.detectChanges();
-          expect(await apiKeyShown()).toBeTruthy();
+          expect(await apiKeyShown()).toBeFalsy();
           expect(await baseUrlShown()).toBeFalsy();
           expect(await commandLineShown()).toBeFalsy();
+
+          expect(await apiKeyUsernameShown()).toBeTruthy();
+          expect(await apiKeyPasswordShown()).toBeTruthy();
           expect(await plainConfigurationShown()).toBeTruthy();
           expect(await scram256ConfigurationShown()).toBeFalsy();
           expect(await scram512ConfigurationShown()).toBeFalsy();
@@ -243,6 +246,12 @@ describe('ApiAccessComponent', () => {
 
   async function apiKeyShown() {
     return !!(await getCopyCodeHarnessOrNullByTitle('API Key'));
+  }
+  async function apiKeyUsernameShown() {
+    return !!(await getCopyCodeHarnessOrNullByTitle('Username'));
+  }
+  async function apiKeyPasswordShown() {
+    return !!(await getCopyCodeHarnessOrNullByTitle('Password'));
   }
   async function baseUrlShown() {
     return !!(await getCopyCodeHarnessOrNullByTitle('Base URL'));

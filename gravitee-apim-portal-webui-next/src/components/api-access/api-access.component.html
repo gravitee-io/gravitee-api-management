@@ -21,9 +21,7 @@
       <div class="m3-title-medium api-access__header" i18n="@@subscriptionDetailsApiAccessHeader">API access</div>
     </mat-card-header>
     <mat-card-content class="api-access__copy-code-content">
-      @if (planSecurity === 'API_KEY') {
-        <app-copy-code id="api-key" class="test-1" title="API Key" [text]="apiKey ?? ''" />
-      } @else if (planSecurity === 'OAUTH2' || planSecurity === 'JWT') {
+      @if (planSecurity === 'OAUTH2' || planSecurity === 'JWT') {
         <app-copy-code id="client-id" title="Client ID" [text]="clientId ?? ''" />
 
         @if (!!clientSecret) {
@@ -39,6 +37,9 @@
           [apiKeyConfigUsername]="apiKeyConfigUsername ?? ''"
           [clientId]="clientId ?? ''" />
       } @else if (planSecurity === 'KEY_LESS' || planSecurity === 'API_KEY') {
+        @if (planSecurity === 'API_KEY') {
+          <app-copy-code id="api-key" class="test-1" title="API Key" [text]="apiKey ?? ''" />
+        }
         <app-copy-code id="base-url" title="Base URL" [text]="entrypointUrl ?? ''" />
         <app-copy-code id="command-line" title="Command Line" [text]="curlCmd" />
       }
