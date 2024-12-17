@@ -91,6 +91,149 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       prepareTestTagsComponent();
     });
 
+    describe('Configuration', () => {
+      beforeEach(() => {
+        expectTagsListRequest([fakeTag({ restricted_groups: ['group-a'] })]);
+        expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+        expectEntrypointsListRequest([fakeEntrypoint()]);
+      });
+
+      it('should edit default configuration', async () => {
+        expectPortalSettingsGetRequest(
+          fakePortalSettings({
+            portal: {
+              entrypoint: 'https://api.company.com',
+              tcpPort: 4082,
+              kafkaDomain: 'kafka.domain.com',
+              kafkaPort: 9092,
+            },
+          }),
+        );
+        const entrypointInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=entrypoint]' }));
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+        await entrypointInput.setValue('https://my-new-api.company.com');
+
+        const tcpPortInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=tcpPort]' }));
+        expect(await tcpPortInput.getValue()).toEqual('4082');
+        await tcpPortInput.setValue('8888');
+
+        const kafkaDomainInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=kafkaDomain]' }));
+        await kafkaDomainInput.setValue('kafka-gateway.company.com');
+
+        const kafkaPortInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=kafkaPort]' }));
+        expect(await kafkaPortInput.getValue()).toEqual('9092');
+        await kafkaPortInput.setValue('1600');
+
+        expect(await saveBar.isVisible()).toBeTruthy();
+        await saveBar.clickSubmit();
+
+        expectPortalSettingsSaveRequest(
+          fakePortalSettings({
+            portal: {
+              entrypoint: 'https://my-new-api.company.com',
+              tcpPort: 8888,
+              kafkaDomain: 'kafka-gateway.company.com',
+              kafkaPort: 1600,
+            },
+          }),
+        );
+      });
+
+      it('should lock default configuration inputs', async () => {
+        expectPortalSettingsGetRequest(
+          fakePortalSettings({
+            portal: {
+              entrypoint: 'https://api.company.com',
+              tcpPort: 4082,
+              kafkaDomain: 'kafka.domain.com',
+              kafkaPort: 9092,
+            },
+            metadata: { readonly: ['portal.entrypoint', 'portal.tcpPort', 'portal.kafkaDomain', 'portal.kafkaPort'] },
+          }),
+        );
+
+        const entrypointInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=entrypoint]' }));
+
+        expect(await entrypointInput.getValue()).toEqual('https://api.company.com');
+        expect(await entrypointInput.isDisabled()).toEqual(true);
+
+        const tcpPortInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=tcpPort]' }));
+
+        expect(await tcpPortInput.getValue()).toEqual('4082');
+        expect(await tcpPortInput.isDisabled()).toEqual(true);
+
+        const kafkaDomainInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=kafkaDomain]' }));
+
+        expect(await kafkaDomainInput.getValue()).toEqual('kafka.domain.com');
+        expect(await kafkaDomainInput.isDisabled()).toEqual(true);
+
+        const kafkaPortInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=kafkaPort]' }));
+
+        expect(await kafkaPortInput.getValue()).toEqual('9092');
+        expect(await kafkaPortInput.isDisabled()).toEqual(true);
+      });
+
+      it.each([
+        '!invalid',
+        'in valid',
+        'too-long-string.ertmkcowxvhpzjaqfiptpddcmmcfqfkwha.xergowgbqkwrsajowkjjqjxmshzibwraekfv.lmdozkplwxxvrfjlwvpebcmzskivwezndfcjgpmld.zilqrkgamlbczjemrkhtsylfpkumhbpnk.qrcxgoeggadkewfbqpjnatmsrjflrqjhryzth',
+        'sarzahlltkxeevpajsnncxgvqfqmnmfmvvtnzalgrwqvltvllqvvttneeylokkso.too-long-segment',
+        'https://my-domain.org',
+      ])('should have invalid Kafka Domain', async (value: string) => {
+        expectPortalSettingsGetRequest(
+          fakePortalSettings({
+            portal: {
+              entrypoint: 'https://api.company.com',
+              tcpPort: 4082,
+              kafkaDomain: '',
+              kafkaPort: 9092,
+            },
+          }),
+        );
+
+        const kafkaDomainInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=kafkaDomain]' }));
+        await kafkaDomainInput.setValue('kafka.domain.com');
+
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+
+        await kafkaDomainInput.setValue(value);
+
+        expect(await saveBar.isSubmitButtonInvalid()).toEqual(true);
+      });
+
+      it.each([
+        'valid',
+        'nice-domain.dev',
+        'long-string.ertmkcowxvhpzjaqfiptpddcmmcfqfkwha.xergowgbqkwrsajowkjjqjxmshzibwraekfv.lmdozkplwxxvrfjlwvpebcmzskivwezndfcjgpmld.zilqrkgamlbczjemrkhtsylfpkumhbpnk',
+        'sarzahlltkxeevpajsnncxgvqfqmnmfmvvtnzalgrwqvltvllqvvttneeylokks.long-segment',
+        '',
+        undefined,
+      ])('should have valid Kafka Domain', async (value: string) => {
+        expectPortalSettingsGetRequest(
+          fakePortalSettings({
+            portal: {
+              entrypoint: 'https://api.company.com',
+              tcpPort: 4082,
+              kafkaDomain: '',
+              kafkaPort: 9092,
+            },
+          }),
+        );
+
+        const kafkaDomainInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=kafkaDomain]' }));
+        await kafkaDomainInput.setValue('kafka.domain.com');
+
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+
+        await kafkaDomainInput.setValue(value);
+
+        expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      });
+    });
+
     it('should display tags table', async () => {
       expectTagsListRequest([fakeTag({ restricted_groups: ['group-a'] })]);
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
@@ -107,7 +250,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       expect(headerCells).toEqual([
         {
           description: 'Description',
-          id: 'Id',
+          id: 'ID',
           name: 'Name',
           restrictedGroupsName: 'Restricted groups',
           actions: '',
@@ -122,66 +265,6 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
           actions: 'editdelete',
         },
       ]);
-    });
-
-    it('should edit default configuration', async () => {
-      expectTagsListRequest([fakeTag({ restricted_groups: ['group-a'] })]);
-      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-      expectPortalSettingsGetRequest(
-        fakePortalSettings({
-          portal: {
-            entrypoint: 'https://api.company.com',
-            tcpPort: 4082,
-          },
-        }),
-      );
-      expectEntrypointsListRequest([fakeEntrypoint()]);
-
-      const entrypointInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=entrypoint]' }));
-      const saveBar = await loader.getHarness(GioSaveBarHarness);
-
-      await entrypointInput.setValue('https://my-new-api.company.com');
-
-      const tcpPortInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=tcpPort]' }));
-      expect(await tcpPortInput.getValue()).toEqual('4082');
-      await tcpPortInput.setValue('8888');
-
-      expect(await saveBar.isVisible()).toBeTruthy();
-      await saveBar.clickSubmit();
-
-      expectPortalSettingsSaveRequest(
-        fakePortalSettings({
-          portal: {
-            entrypoint: 'https://my-new-api.company.com',
-            tcpPort: 8888,
-          },
-        }),
-      );
-    });
-
-    it('should lock default configuration entrypoint and tcp port input', async () => {
-      expectTagsListRequest([fakeTag({ restricted_groups: ['group-a'] })]);
-      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-      expectPortalSettingsGetRequest(
-        fakePortalSettings({
-          portal: {
-            entrypoint: 'https://api.company.com',
-            tcpPort: 4082,
-          },
-          metadata: { readonly: ['portal.entrypoint', 'portal.tcpPort'] },
-        }),
-      );
-      expectEntrypointsListRequest([fakeEntrypoint()]);
-
-      const entrypointInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=entrypoint]' }));
-
-      expect(await entrypointInput.getValue()).toEqual('https://api.company.com');
-      expect(await entrypointInput.isDisabled()).toEqual(true);
-
-      const tcpPortInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=tcpPort]' }));
-
-      expect(await tcpPortInput.getValue()).toEqual('4082');
-      expect(await tcpPortInput.isDisabled()).toEqual(true);
     });
 
     it('should display entrypoint mappings table', async () => {

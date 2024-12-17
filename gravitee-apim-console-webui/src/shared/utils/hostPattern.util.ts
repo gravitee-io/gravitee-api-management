@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FormControl, ValidationErrors, ValidatorFn } from '@angular/forms';
-import { isEmpty } from 'lodash';
-
-import { HOST_PATTERN_REGEX } from '../../utils';
-
-export const hostSyncValidator: ValidatorFn = (formControl: FormControl): ValidationErrors | null => {
-  const host = formControl.value || '';
-  if (isEmpty(host.trim())) {
-    return { required: 'Host is required.' };
-  }
-  if (host.length > 255) {
-    return { max: 'Max length is 255 characters' };
-  }
-  if (!HOST_PATTERN_REGEX.test(host)) {
-    return { format: 'Host is not valid' };
-  }
-  return null;
-};
+/**
+ * According to {@link https://www.rfc-editor.org/rfc/rfc1123} and {@link https://www.rfc-editor.org/rfc/rfc952}
+ * - hostname label can contain lowercase, uppercase and digits characters.
+ * - hostname label can contain dash or underscores, but not starts or ends with these characters
+ * - each hostname label must have a max length of 63 characters
+ */
+export const HOST_PATTERN_REGEX = new RegExp(
+  /^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-_]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-_]{0,61}[a-zA-Z0-9]))*$/,
+);

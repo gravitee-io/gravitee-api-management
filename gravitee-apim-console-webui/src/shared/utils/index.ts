@@ -18,3 +18,4 @@ export * from './http.util';
 export * from './simple-validator';
 export * from './propertiesParser';
 export * from './bitfield';
+export * from './hostPattern.util';
