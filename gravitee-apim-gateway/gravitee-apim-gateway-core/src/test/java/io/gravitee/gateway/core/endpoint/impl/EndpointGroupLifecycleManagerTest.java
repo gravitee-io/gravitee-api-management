@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.endpoint.impl;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -38,15 +38,17 @@ import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
 import io.gravitee.node.api.configuration.Configuration;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
 public class EndpointGroupLifecycleManagerTest {
 
     private EndpointGroupLifecycleManager endpointLifecycleManager;
@@ -66,10 +68,10 @@ public class EndpointGroupLifecycleManagerTest {
     @Mock
     private ReferenceRegister referenceRegister;
 
-    @Mock
+    @Mock(strictness = Mock.Strictness.LENIENT)
     private ConnectorFactory connectorFactory;
 
-    @Mock
+    @Mock(strictness = Mock.Strictness.LENIENT)
     private ConnectorRegistry connectorRegistry;
 
     @Mock
@@ -81,22 +83,20 @@ public class EndpointGroupLifecycleManagerTest {
     @Mock
     private Configuration configuration;
 
-    @Before
+    @BeforeEach
     public void setUp() throws JsonProcessingException {
-        MockitoAnnotations.initMocks(this);
-
         when(connectorFactory.create(anyString(), anyString(), any(ConnectorBuilder.class))).thenReturn(connector);
         when(connectorRegistry.getConnector(any())).thenReturn(connectorFactory);
 
         JsonNode node = mock(ObjectNode.class);
-        when(node.has(anyString())).thenReturn(false);
-        when(mapper.readTree(anyString())).thenReturn(node);
+        lenient().when(node.has(anyString())).thenReturn(false);
+        lenient().when(mapper.readTree(anyString())).thenReturn(node);
 
         endpointLifecycleManager =
             new EndpointGroupLifecycleManager(api, group, endpointFactory, referenceRegister, connectorRegistry, configuration, mapper);
 
-        when(api.getProxy()).thenReturn(proxy);
-        when(proxy.getGroups()).thenReturn(Collections.singleton(group));
+        lenient().when(api.getProxy()).thenReturn(proxy);
+        lenient().when(proxy.getGroups()).thenReturn(Collections.singleton(group));
     }
 
     @Test
@@ -106,7 +106,7 @@ public class EndpointGroupLifecycleManagerTest {
         verify(endpointFactory, never())
             .create(any(io.gravitee.definition.model.Endpoint.class), any(io.gravitee.connector.api.Connector.class));
 
-        assertTrue(endpointLifecycleManager.endpoints().isEmpty());
+        assertThat(endpointLifecycleManager.endpoints()).isEmpty();
     }
 
     @Test
@@ -125,7 +125,7 @@ public class EndpointGroupLifecycleManagerTest {
         verify(endpointFactory, atLeast(1))
             .create(any(io.gravitee.definition.model.Endpoint.class), any(io.gravitee.connector.api.Connector.class));
 
-        assertTrue(endpointLifecycleManager.endpoints().isEmpty());
+        assertThat(endpointLifecycleManager.endpoints()).isEmpty();
     }
 
     @Test
@@ -150,15 +150,14 @@ public class EndpointGroupLifecycleManagerTest {
 
         Endpoint httpClientEndpoint = endpointLifecycleManager.get("endpoint");
 
-        assertNotNull(httpClientEndpoint);
+        assertThat(httpClientEndpoint).isNotNull();
 
         verify(endpointFactory, times(1)).create(eq(endpoint), any(io.gravitee.connector.api.Connector.class));
         verify(httpClientEndpoint.connector(), times(1)).start();
 
-        assertEquals(httpClientEndpoint, endpointLifecycleManager.get("endpoint"));
-        assertNull(endpointLifecycleManager.get("unknown"));
-
-        assertFalse(endpointLifecycleManager.endpoints().isEmpty());
+        assertThat(endpointLifecycleManager.get("endpoint")).isEqualTo(httpClientEndpoint);
+        assertThat(endpointLifecycleManager.get("unknown")).isNull();
+        assertThat(endpointLifecycleManager.endpoints()).isNotEmpty();
     }
 
     @Test
@@ -184,9 +183,9 @@ public class EndpointGroupLifecycleManagerTest {
 
         Endpoint httpClientEndpoint = endpointLifecycleManager.get("endpoint");
 
-        assertNotNull(httpClientEndpoint);
-        assertEquals(httpClientEndpoint, endpointLifecycleManager.get("endpoint"));
-        assertEquals("http://localhost:8080", httpClientEndpoint.target());
+        assertThat(httpClientEndpoint).isNotNull();
+        assertThat(endpointLifecycleManager.get("endpoint")).isEqualTo(httpClientEndpoint);
+        assertThat(httpClientEndpoint.target()).isEqualTo("http://localhost:8080");
 
         verify(endpointFactory, times(1)).create(eq(endpoint), any(io.gravitee.connector.api.Connector.class));
         verify(httpClientEndpoint.connector(), times(1)).start();
@@ -212,7 +211,7 @@ public class EndpointGroupLifecycleManagerTest {
 
         endpointLifecycleManager.start();
 
-        assertFalse(endpointLifecycleManager.endpoints().isEmpty());
+        assertThat(endpointLifecycleManager.endpoints()).isNotEmpty();
 
         Endpoint httpClientEndpoint = endpointLifecycleManager.get("endpoint");
 
@@ -222,7 +221,7 @@ public class EndpointGroupLifecycleManagerTest {
         // Verify that the HTTP client is correctly stopped
         verify(httpClientEndpoint.connector(), times(1)).stop();
 
-        assertTrue(endpointLifecycleManager.endpoints().isEmpty());
+        assertThat(endpointLifecycleManager.endpoints()).isEmpty();
     }
 
     @Test
@@ -241,7 +240,7 @@ public class EndpointGroupLifecycleManagerTest {
         Connector connector = mock(Connector.class);
         when(registeredEndpoint.connector()).thenReturn(connector);
         when(connector.start()).thenThrow(EndpointException.class);
-        when(registeredEndpoint.name()).thenReturn("endpoint");
+        lenient().when(registeredEndpoint.name()).thenReturn("endpoint");
 
         when(endpointFactory.create(any(), any(io.gravitee.connector.api.Connector.class))).thenReturn(registeredEndpoint);
 
@@ -249,13 +248,12 @@ public class EndpointGroupLifecycleManagerTest {
 
         Endpoint httpClientEndpoint = endpointLifecycleManager.get("endpoint");
 
-        assertNull(httpClientEndpoint);
+        assertThat(httpClientEndpoint).isNull();
 
         verify(endpointFactory, times(1)).create(eq(endpoint), any(io.gravitee.connector.api.Connector.class));
         verify(connector, times(1)).start();
 
-        assertNull(endpointLifecycleManager.get("endpoint"));
-
-        assertTrue(endpointLifecycleManager.endpoints().isEmpty());
+        assertThat(endpointLifecycleManager.get("endpoint")).isNull();
+        assertThat(endpointLifecycleManager.endpoints()).isEmpty();
     }
 }

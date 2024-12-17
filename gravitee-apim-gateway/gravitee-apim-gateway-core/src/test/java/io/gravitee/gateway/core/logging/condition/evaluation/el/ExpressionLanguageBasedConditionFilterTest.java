@@ -15,22 +15,23 @@
  */
 package io.gravitee.gateway.core.logging.condition.evaluation.el;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.logging.condition.el.ExpressionLanguageBasedConditionEvaluator;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ExpressionLanguageBasedConditionFilterTest {
 
     @Mock
@@ -38,9 +39,9 @@ public class ExpressionLanguageBasedConditionFilterTest {
 
     private final TemplateEngine templateEngine = TemplateEngine.templateEngine();
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        when(context.getTemplateEngine()).thenReturn(templateEngine);
+        lenient().when(context.getTemplateEngine()).thenReturn(templateEngine);
     }
 
     @Test
@@ -49,7 +50,7 @@ public class ExpressionLanguageBasedConditionFilterTest {
         Request request = mock(Request.class);
         boolean evaluate = evaluator.evaluate(context, request);
 
-        assertTrue(evaluate);
+        assertThat(evaluate).isTrue();
     }
 
     @Test
@@ -58,24 +59,16 @@ public class ExpressionLanguageBasedConditionFilterTest {
         Request request = mock(Request.class);
         boolean evaluate = evaluator.evaluate(context, request);
 
-        assertTrue(evaluate);
+        assertThat(evaluate).isTrue();
     }
 
-    @Test
-    public void shouldEvalFalseWithFalse() {
-        ExpressionLanguageBasedConditionEvaluator evaluator = new ExpressionLanguageBasedConditionEvaluator("false");
+    @ParameterizedTest
+    @ValueSource(strings = { "foo bar", "false" })
+    public void shouldEvalFalse(String input) {
+        ExpressionLanguageBasedConditionEvaluator evaluator = new ExpressionLanguageBasedConditionEvaluator(input);
         Request request = mock(Request.class);
         boolean evaluate = evaluator.evaluate(context, request);
 
-        assertFalse(evaluate);
-    }
-
-    @Test
-    public void shouldEvalFalseWithParseException() {
-        ExpressionLanguageBasedConditionEvaluator evaluator = new ExpressionLanguageBasedConditionEvaluator("foo bar");
-        Request request = mock(Request.class);
-        boolean evaluate = evaluator.evaluate(context, request);
-
-        assertFalse(evaluate);
+        assertThat(evaluate).isFalse();
     }
 }
