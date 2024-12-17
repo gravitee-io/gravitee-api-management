@@ -26,6 +26,17 @@
   </div>
 </div>
 
+@if (planSecurity() === 'API_KEY') {
+  <div class="native-kafka-api-access__section">
+    <div class="m3-title-medium" i18n="@@nativeKafkaApiAccessAuthentication">Authentication</div>
+    <div class="m3-body-medium" i18n="@@nativeKafkaApiAccessApiKeyHash">
+      Use the MD5 hash of the API Key as the username and the API Key as the password.
+    </div>
+    <app-copy-code id="native-kafka-api-key-username" title="Username" [text]="apiKeyConfigUsername()" />
+    <app-copy-code id="native-kafka-api-key-password" title="Password" [text]="apiKey()" />
+  </div>
+}
+
 <div class="native-kafka-api-access__section">
   <div class="m3-title-medium" i18n="@@nativeKafkaApiAccessReviewProperties">Review Kafka Properties</div>
   <div class="m3-body-medium" i18n="@@nativeKafkaApiAccessCreatePropertiesFile">
