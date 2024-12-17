@@ -154,6 +154,10 @@ describe('ApiProxyHealthCheckComponent', () => {
               { name: 'endpoint2-without-healthcheck', type: 'http' },
             ],
           },
+          {
+            name: 'empty-endpoint-group', // should be able to handle empty endpoint group
+            endpoints: [],
+          },
         ],
       },
     });
@@ -203,6 +207,10 @@ describe('ApiProxyHealthCheckComponent', () => {
           { name: 'endpoint2-with-healthcheck-activated', healthCheck: { inherit: true }, type: 'http' },
           { name: 'endpoint2-without-healthcheck', healthCheck: { inherit: true }, type: 'http' },
         ],
+      },
+      {
+        name: 'empty-endpoint-group', // empty endpoint group
+        endpoints: [],
       },
     ]);
   });
