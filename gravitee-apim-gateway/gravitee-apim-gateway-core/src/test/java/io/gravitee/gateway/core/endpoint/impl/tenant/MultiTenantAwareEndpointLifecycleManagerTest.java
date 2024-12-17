@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.endpoint.impl.tenant;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -37,8 +37,8 @@ import io.gravitee.gateway.core.endpoint.lifecycle.impl.tenant.MultiTenantAwareE
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
 import io.gravitee.node.api.configuration.Configuration;
 import java.util.Collections;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -82,7 +82,7 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
     @Mock
     private Configuration configuration;
 
-    @Before
+    @BeforeEach
     public void setUp() throws JsonProcessingException {
         MockitoAnnotations.initMocks(this);
 
@@ -120,7 +120,7 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
         verify(endpointFactory, never())
             .create(any(io.gravitee.definition.model.Endpoint.class), any(io.gravitee.connector.api.Connector.class));
 
-        assertTrue(endpointLifecycleManager.endpoints().isEmpty());
+        assertThat(endpointLifecycleManager.endpoints()).isEmpty();
     }
 
     @Test
@@ -137,7 +137,7 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
         verify(endpointFactory, atLeastOnce())
             .create(any(io.gravitee.definition.model.Endpoint.class), any(io.gravitee.connector.api.Connector.class));
 
-        assertTrue(endpointLifecycleManager.endpoints().isEmpty());
+        assertThat(endpointLifecycleManager.endpoints()).isEmpty();
     }
 
     @Test
@@ -162,14 +162,14 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
 
         Endpoint httpClientEndpoint = endpointLifecycleManager.get("endpoint");
 
-        assertNotNull(httpClientEndpoint);
+        assertThat(httpClientEndpoint).isNotNull();
 
         verify(endpointFactory, times(1)).create(eq(endpoint), any(io.gravitee.connector.api.Connector.class));
         verify(httpClientEndpoint.connector(), times(1)).start();
 
-        assertEquals(httpClientEndpoint, endpointLifecycleManager.get("endpoint"));
-        assertNull(endpointLifecycleManager.get("unknown"));
-        assertFalse(endpointLifecycleManager.endpoints().isEmpty());
+        assertThat(endpointLifecycleManager.get("endpoint")).isEqualTo(httpClientEndpoint);
+        assertThat(endpointLifecycleManager.get("unknown")).isNull();
+        assertThat(endpointLifecycleManager.endpoints()).isNotEmpty();
     }
 
     @Test
@@ -193,13 +193,13 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
 
         Endpoint httpClientEndpoint = endpointLifecycleManager.get("endpoint");
 
-        assertNotNull(httpClientEndpoint);
+        assertThat(httpClientEndpoint).isNotNull();
 
         verify(endpointFactory, times(1)).create(eq(endpoint), any(io.gravitee.connector.api.Connector.class));
         verify(httpClientEndpoint.connector(), times(1)).start();
 
-        assertEquals(httpClientEndpoint, endpointLifecycleManager.get("endpoint"));
-        assertNull(endpointLifecycleManager.get("unknown"));
-        assertFalse(endpointLifecycleManager.endpoints().isEmpty());
+        assertThat(endpointLifecycleManager.get("endpoint")).isEqualTo(httpClientEndpoint);
+        assertThat(endpointLifecycleManager.get("unknown")).isNull();
+        assertThat(endpointLifecycleManager.endpoints()).isNotEmpty();
     }
 }

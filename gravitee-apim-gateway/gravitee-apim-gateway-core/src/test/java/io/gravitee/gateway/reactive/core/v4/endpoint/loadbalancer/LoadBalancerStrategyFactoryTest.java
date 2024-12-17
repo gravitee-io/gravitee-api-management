@@ -16,7 +16,6 @@
 package io.gravitee.gateway.reactive.core.v4.endpoint.loadbalancer;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType;
 import java.util.List;
