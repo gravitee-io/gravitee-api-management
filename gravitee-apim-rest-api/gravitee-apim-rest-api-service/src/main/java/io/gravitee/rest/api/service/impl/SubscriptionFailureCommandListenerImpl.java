@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.command.CommandEntity;
 import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.service.SubscriptionCommandListener;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.event.CommandEvent;
 import java.util.Optional;
 import org.slf4j.Logger;
