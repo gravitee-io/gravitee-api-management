@@ -86,7 +86,16 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
 
         addJsonObject(params, PARAM_OWNER, content, "owner", PrimaryOwnerEntity.class, PrimaryOwnerNotificationTemplateData.class);
 
-        addJsonObject(params, PARAM_PLAN, content, "plan", PlanEntity.class, PlanNotificationTemplateData.class);
+        addJsonObject(
+            params,
+            PARAM_PLAN,
+            content,
+            "plan",
+            PlanEntity.class,
+            io.gravitee.rest.api.model.v4.plan.PlanEntity.class,
+            PlanNotificationTemplateData.class,
+            BasePlanEntity.class
+        );
 
         addJsonObject(
             params,
@@ -150,6 +159,16 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
             jsonObject.put("username", notificationData.getDisplayName());
         } else if (dataType == PlanEntity.class) {
             PlanEntity plan = (PlanEntity) object;
+            jsonObject.put("id", plan.getId());
+            jsonObject.put("name", plan.getName());
+            jsonObject.put("security", plan.getSecurity());
+        } else if (dataType == io.gravitee.rest.api.model.v4.plan.PlanEntity.class) {
+            io.gravitee.rest.api.model.v4.plan.PlanEntity plan = (io.gravitee.rest.api.model.v4.plan.PlanEntity) object;
+            jsonObject.put("id", plan.getId());
+            jsonObject.put("name", plan.getName());
+            jsonObject.put("security", plan.getSecurity());
+        } else if (dataType == BasePlanEntity.class) {
+            BasePlanEntity plan = (BasePlanEntity) object;
             jsonObject.put("id", plan.getId());
             jsonObject.put("name", plan.getName());
             jsonObject.put("security", plan.getSecurity());
