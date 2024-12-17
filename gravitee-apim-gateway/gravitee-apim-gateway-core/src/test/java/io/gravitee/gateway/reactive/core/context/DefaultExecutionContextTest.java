@@ -396,7 +396,7 @@ class DefaultExecutionContextTest {
                 "[\"a\", 123456789123456789123456789123456789, \"c\"]",
                 List.of("a", "123456789123456789123456789123456789", "c")
             ),
-            Arguments.arguments("[\"a\", 123456789123456789.123456789123456789, \"c\"]", List.of("a", "1.23456789123456784E17", "c")),
+            Arguments.arguments("[\"a\", 123456789123456789.123456789123456789, \"c\"]", List.of("a", "1.2345678912345678E17", "c")),
             Arguments.arguments("[\"a\", true, \"c\"]", List.of("a", "true", "c")),
             Arguments.arguments(List.of("a", "b", "c"), List.of("a", "b", "c")),
             Arguments.arguments(new ArrayList<>(List.of(1, 2, 3)), List.of(1, 2, 3)),

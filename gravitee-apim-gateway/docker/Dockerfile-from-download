@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-FROM graviteeio/java:17-alpine-3.18
+FROM graviteeio/java:21
 LABEL maintainer="contact@graviteesource.com"
 
 ARG GRAVITEEIO_VERSION=0
@@ -34,8 +34,7 @@ RUN apk update \
     && rm -rf /tmp/* \
     && chgrp -R graviteeio ${GRAVITEEIO_HOME} \
     && chmod -R g=u ${GRAVITEEIO_HOME} \
-    && apkArch="$(apk --print-arch)" \
-    && ln -s /lib/libc.musl-${apkArch}.so.1 /lib/ld-linux-${apkArch/_/-}.so.2
+    && if [ $(apk --print-arch) = "aarch64" ]; then ln -s /lib/libc.musl-aarch64.so.1 /lib/ld-linux-aarch64.so.2; fi
 
 WORKDIR ${GRAVITEEIO_HOME}
 EXPOSE 8082
