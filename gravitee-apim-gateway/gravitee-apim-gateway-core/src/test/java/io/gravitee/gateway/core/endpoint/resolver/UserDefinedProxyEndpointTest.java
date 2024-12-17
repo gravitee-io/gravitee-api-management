@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.endpoint.resolver;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -23,8 +24,7 @@ import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,53 +34,41 @@ public class UserDefinedProxyEndpointTest {
 
     @Test
     public void shouldCreateProxyRequest_withQueryParamsFromTarget() {
-        MultiValueMap<String, String> expectedParameters = new LinkedMultiValueMap<>();
-        expectedParameters.add("endpointParam", "v");
-
-        ProxyRequest proxyRequest = new UserDefinedProxyEndpoint(mock(Endpoint.class), "http://host:8080/test?endpointParam=v")
+        String queryParamKey = "endpointParam";
+        ProxyRequest proxyRequest = new UserDefinedProxyEndpoint(
+            mock(Endpoint.class),
+            "http://host:8080/test?%s=v".formatted(queryParamKey)
+        )
             .createProxyRequest(mock(Request.class));
 
-        Assert.assertNotNull(proxyRequest);
-        Assert.assertNotNull(proxyRequest.parameters());
-
-        expectedParameters.forEach((paramKey, paramValue) -> Assert.assertTrue(proxyRequest.parameters().containsKey(paramKey)));
+        assertThat(proxyRequest.parameters()).containsKeys(queryParamKey);
     }
 
     @Test
     public void shouldCreateProxyRequest_withQueryParamsFromRequest() {
-        MultiValueMap<String, String> expectedParameters = new LinkedMultiValueMap<>();
-        expectedParameters.add("dynroutParam", "v");
-
+        String queryParamKey = "dynroutParam";
         Request request = mock(Request.class);
         MultiValueMap<String, String> requestQueryParameters = new LinkedMultiValueMap<>();
-        requestQueryParameters.add("dynroutParam", "v");
+        requestQueryParameters.add(queryParamKey, "v");
         when(request.parameters()).thenReturn(requestQueryParameters);
 
         ProxyRequest proxyRequest = new UserDefinedProxyEndpoint(mock(Endpoint.class), "http://host:8080/test").createProxyRequest(request);
 
-        Assert.assertNotNull(proxyRequest);
-        Assert.assertNotNull(proxyRequest.parameters());
-
-        expectedParameters.forEach((paramKey, paramValue) -> Assert.assertTrue(proxyRequest.parameters().containsKey(paramKey)));
+        assertThat(proxyRequest.parameters()).containsKeys(queryParamKey);
     }
 
     @Test
     public void shouldCreateProxyRequest_withQueryParamsFromRequestAndTarget() {
-        MultiValueMap<String, String> expectedParameters = new LinkedMultiValueMap<>();
-        expectedParameters.add("dynroutParam", "v");
-        expectedParameters.add("endpointParam", "v");
-
+        String queryParamKey = "dynroutParam";
+        String urlParamKey = "endpointParam";
         Request request = mock(Request.class);
         MultiValueMap<String, String> requestQueryParameters = new LinkedMultiValueMap<>();
-        requestQueryParameters.add("dynroutParam", "v");
+        requestQueryParameters.add(queryParamKey, "v");
         when(request.parameters()).thenReturn(requestQueryParameters);
 
-        ProxyRequest proxyRequest = new UserDefinedProxyEndpoint(mock(Endpoint.class), "http://host:8080/test?endpointParam=v")
+        var proxyRequest = new UserDefinedProxyEndpoint(mock(Endpoint.class), "http://host:8080/test?%s=v".formatted(urlParamKey))
             .createProxyRequest(request);
 
-        Assert.assertNotNull(proxyRequest);
-        Assert.assertNotNull(proxyRequest.parameters());
-
-        expectedParameters.forEach((paramKey, paramValue) -> Assert.assertTrue(proxyRequest.parameters().containsKey(paramKey)));
+        assertThat(proxyRequest.parameters()).containsKeys(queryParamKey, urlParamKey);
     }
 }

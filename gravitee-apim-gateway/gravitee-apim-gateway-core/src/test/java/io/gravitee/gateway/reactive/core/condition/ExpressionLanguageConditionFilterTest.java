@@ -23,7 +23,6 @@ import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
-import io.reactivex.rxjava3.observers.TestObserver;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -51,7 +50,7 @@ class ExpressionLanguageConditionFilterTest {
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.eval(EXPRESSION, Boolean.class)).thenReturn(Maybe.just(true));
 
-        final TestObserver<ConditionSupplier> obs = cut.filter(ctx, conditionSupplier).test();
+        final var obs = cut.filter(ctx, conditionSupplier).test();
 
         obs.assertResult(conditionSupplier);
     }
@@ -60,7 +59,7 @@ class ExpressionLanguageConditionFilterTest {
     void shouldNotFilterWhenEmptyCondition() {
         final ConditionSupplier conditionSupplier = () -> "";
 
-        final TestObserver<ConditionSupplier> obs = cut.filter(ctx, conditionSupplier).test();
+        final var obs = cut.filter(ctx, conditionSupplier).test();
 
         obs.assertResult(conditionSupplier);
     }
@@ -68,7 +67,7 @@ class ExpressionLanguageConditionFilterTest {
     @Test
     void shouldNotFilterWhenNullCondition() {
         final ConditionSupplier conditionSupplier = () -> null;
-        final TestObserver<ConditionSupplier> obs = cut.filter(ctx, conditionSupplier).test();
+        final var obs = cut.filter(ctx, conditionSupplier).test();
 
         obs.assertResult(conditionSupplier);
     }
@@ -79,7 +78,7 @@ class ExpressionLanguageConditionFilterTest {
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.eval(EXPRESSION, Boolean.class)).thenReturn(Maybe.just(false));
 
-        final TestObserver<ConditionSupplier> obs = cut.filter(ctx, conditionSupplier).test();
+        final var obs = cut.filter(ctx, conditionSupplier).test();
 
         obs.assertResult();
         obs.assertNoValues();

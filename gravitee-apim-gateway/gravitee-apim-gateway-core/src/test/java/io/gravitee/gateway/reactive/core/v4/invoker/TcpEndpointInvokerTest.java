@@ -59,7 +59,6 @@ class TcpEndpointInvokerTest {
 
     @Test
     void should_not_connect_to_endpoint_connector_not_resolved() {
-        final TcpEntrypointConnector tcpEntrypointConnector = mock(TcpEntrypointConnector.class);
         when(endpointManager.next()).thenReturn(null);
         cut
             .invoke(ctx)
@@ -73,8 +72,6 @@ class TcpEndpointInvokerTest {
 
     @Test
     void should_connect_to_endpoint_connector() {
-        final TcpEntrypointConnector tcpEntrypointConnector = mock(TcpEntrypointConnector.class);
-
         final ManagedEndpoint managedEndpoint = mock(ManagedEndpoint.class);
         when(endpointManager.next()).thenReturn(managedEndpoint);
         final TcpEndpointConnector endpoint = mock(TcpEndpointConnector.class);
