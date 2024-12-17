@@ -952,10 +952,16 @@ gateway:
     requestTimeout: 30000
     requestTimeoutGraceDelay: 30
 
-  # Gateway Kafka server
+# # Gateway Kafka server
 #  kafka:
 #    enabled: false
-#    brokerHostPrefix: broker- # default is broker-
+#    routingMode: host # default is host. Only host is supported for now.
+#    # Routing Host Mode
+#    routingHostMode:
+#      brokerPrefix: broker- # default is broker-
+#      # The default domain where the Kafka APIs are exposed. ex: `myapi` will be exposed as `myapi.mycompany.org`
+#      defaultDomain: mycompany.org # Should set according to the public wildcard DNS/Certificate. Default is empty
+#      defaultPort: 9092 # Default public port for Kafka APIs. Default is 9092
 #    port: 9092
 #    host: 0.0.0.0
 #    idleTimeout: 0
