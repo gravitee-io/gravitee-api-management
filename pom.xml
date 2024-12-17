@@ -47,7 +47,7 @@
         <protobuf-java.version>4.28.2</protobuf-java.version>
         <grpc-java.version>1.65.0</grpc-java.version>
         <!-- Gravitee dependencies version -->
-        <gravitee-bom.version>8.1.19</gravitee-bom.version>
+        <gravitee-bom.version>8.2.0</gravitee-bom.version>
         <gravitee-alert-api.version>2.0.0</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>3.7.0</gravitee-cockpit-api.version>
         <gravitee-cloud-initializer.version>2.1.0</gravitee-cloud-initializer.version>
@@ -62,7 +62,7 @@
         <gravitee-integration-api.version>4.1.0</gravitee-integration-api.version>
         <gravitee-json-validation.version>2.0.1</gravitee-json-validation.version>
         <gravitee-kubernetes.version>3.4.1</gravitee-kubernetes.version>
-        <gravitee-node.version>7.0.0-alpha.12</gravitee-node.version>
+        <gravitee-node.version>7.0.0-alpha.13</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
         <gravitee-platform-repository-api.version>1.4.0</gravitee-platform-repository-api.version>
         <gravitee-plugin.version>4.3.1</gravitee-plugin.version>
@@ -141,7 +141,6 @@
         <swagger-core.version>2.2.22</swagger-core.version>
         <swagger-jaxrs2.version>2.2.22</swagger-jaxrs2.version>
         <swagger-parser.version>2.1.22</swagger-parser.version>
-        <testcontainers.version>1.19.8</testcontainers.version>
         <wiremock.version>3.8.0</wiremock.version>
         <wsdl4j.version>1.6.3</wsdl4j.version>
         <xmlbeans.version>5.2.1</xmlbeans.version>
