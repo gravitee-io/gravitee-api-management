@@ -290,7 +290,7 @@
         <gravitee-service-secrets.version>1.0.0-alpha.4</gravitee-service-secrets.version>
         <gravitee-policy-interops.version>1.1.2</gravitee-policy-interops.version>
 
-        <gravitee-connectors-native-kafka.version>1.0.0-alpha.9</gravitee-connectors-native-kafka.version>
+        <gravitee-connectors-native-kafka.version>1.0.0-alpha.10</gravitee-connectors-native-kafka.version>
         <gravitee-policy-kafka-quota.version>1.0.0-alpha.2</gravitee-policy-kafka-quota.version>
     </properties>
 
