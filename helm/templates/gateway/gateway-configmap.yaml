@@ -166,8 +166,20 @@ data:
     {{- if hasKey .Values.gateway "kafka" }}
     kafka:
       enabled: {{ .Values.gateway.kafka.enabled }}
-      {{- if hasKey .Values.gateway.kafka "brokerHostPrefix" }}
-      brokerHostPrefix: {{ .Values.gateway.kafka.brokerHostPrefix }}
+      {{- if hasKey .Values.gateway.kafka "routingMode" }}
+      routingMode: {{ .Values.gateway.kafka.routingMode }}
+      {{- end}}
+      {{- if hasKey .Values.gateway.kafka "routingHostMode" }}
+      routingHostMode:
+        {{- if hasKey .Values.gateway.kafka.routingHostMode "brokerPrefix" }}
+        brokerPrefix: {{ .Values.gateway.kafka.routingHostMode.brokerPrefix }}
+        {{- end}}
+        {{- if hasKey .Values.gateway.kafka.routingHostMode "defaultDomain" }}
+        defaultDomain: {{ .Values.gateway.kafka.routingHostMode.defaultDomain }}
+        {{- end}}
+        {{- if hasKey .Values.gateway.kafka.routingHostMode "defaultPort" }}
+        defaultPort: {{ .Values.gateway.kafka.routingHostMode.defaultPort }}
+        {{- end}}
       {{- end}}
       {{- if hasKey .Values.gateway.kafka "port" }}
       port: {{ .Values.gateway.kafka.port }}

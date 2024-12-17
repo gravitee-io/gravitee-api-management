@@ -20,7 +20,11 @@ tests:
       gateway:
         kafka:
           enabled: true
-          brokerHostPrefix: fox-
+          routingMode: host
+          routingHostMode:
+            brokerPrefix: fox-
+            defaultDomain: gravitee.io
+            defaultPort: 42
           port: 9042
           host: 42.42.42.42
           idleTimeout: 42
@@ -33,7 +37,11 @@ tests:
           pattern: |
             kafka:
               enabled: true
-              brokerHostPrefix: fox-
+              routingMode: host
+              routingHostMode:
+                brokerPrefix: fox-
+                defaultDomain: gravitee.io
+                defaultPort: 42
               port: 9042
               host: 42.42.42.42
               idleTimeout: 42
