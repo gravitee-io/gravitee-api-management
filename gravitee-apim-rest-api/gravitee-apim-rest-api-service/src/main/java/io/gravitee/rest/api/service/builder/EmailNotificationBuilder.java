@@ -102,6 +102,7 @@ public class EmailNotificationBuilder {
             "Subscription for ${api.name} with plan ${plan.name} has been resumed"
         ),
         API_SUBSCRIPTION_REJECTED(ApiHook.SUBSCRIPTION_REJECTED, "subscriptionRejected.html", "Subscription rejected"),
+        API_SUBSCRIPTION_FAILED(ApiHook.SUBSCRIPTION_FAILED, "subscriptionFailed.html", "Subscription failed"),
         API_SUBSCRIPTION_TRANSFERRED(
             ApiHook.SUBSCRIPTION_TRANSFERRED,
             "subscriptionTransferred.html",
@@ -148,6 +149,11 @@ public class EmailNotificationBuilder {
             ApplicationHook.SUBSCRIPTION_REJECTED,
             "subscriptionRejected.html",
             "Your subscription to ${api.name} with plan ${plan.name} has been rejected"
+        ),
+        APPLICATION_SUBSCRIPTION_FAILED(
+            ApplicationHook.SUBSCRIPTION_FAILED,
+            "subscriptionFailed.html",
+            "Your subscription to ${api.name} with plan ${plan.name} has failed"
         ),
         APPLICATION_SUBSCRIPTION_TRANSFERRED(
             ApplicationHook.SUBSCRIPTION_TRANSFERRED,
