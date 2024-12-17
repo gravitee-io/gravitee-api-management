@@ -317,9 +317,9 @@ class DefaultApiReactorFactoryTest {
             TemplateVariableProviderFactory apiTemplateVariableProviderFactory = mock(ApiTemplateVariableProviderFactory.class);
             when(apiTemplateVariableProviderFactory.getTemplateVariableProviders()).thenReturn(providers);
             when(apiTemplateVariableProviderFactory.getTemplateVariableScope()).thenReturn(TemplateVariableScope.API);
-            lenient()
-                .when(applicationContext.getBeansOfType(TemplateVariableProviderFactory.class))
-                .thenReturn(Map.of("apiTemplateVariableProviderFactory", apiTemplateVariableProviderFactory));
+            String[] providersName = { "apiTemplateVariableProviderFactory" };
+            lenient().when(applicationContext.getBeanNamesForType(TemplateVariableProviderFactory.class)).thenReturn(providersName);
+            lenient().when(applicationContext.getBean("apiTemplateVariableProviderFactory")).thenReturn(apiTemplateVariableProviderFactory);
             return providers;
         }
 
