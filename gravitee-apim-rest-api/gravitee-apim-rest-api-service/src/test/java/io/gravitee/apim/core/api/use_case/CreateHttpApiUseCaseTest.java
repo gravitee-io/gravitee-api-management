@@ -424,6 +424,7 @@ class CreateHttpApiUseCaseTest {
                             "REVIEW_OK",
                             "SUBSCRIPTION_ACCEPTED",
                             "SUBSCRIPTION_CLOSED",
+                            "SUBSCRIPTION_FAILED",
                             "SUBSCRIPTION_NEW",
                             "SUBSCRIPTION_PAUSED",
                             "SUBSCRIPTION_REJECTED",

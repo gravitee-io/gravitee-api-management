@@ -62,6 +62,7 @@ import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
@@ -90,6 +91,7 @@ import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.PageService;
@@ -228,6 +230,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private EnvironmentService environmentService;
 
     @Override
     public SubscriptionEntity findById(String subscriptionId) {
@@ -891,6 +896,23 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setFailureCause(failureCause);
 
             subscription = subscriptionRepository.update(subscription);
+
+            // send notification to subscriber
+            EnvironmentEntity environmentEntity = environmentService.findById(subscription.getEnvironmentId());
+            ExecutionContext executionContext = new ExecutionContext(environmentEntity.getOrganizationId(), environmentEntity.getId());
+            final ApplicationEntity application = applicationService.findById(executionContext, subscription.getApplication());
+            final GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
+            String apiId = genericPlanEntity.getApiId();
+            final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
+            final PrimaryOwnerEntity owner = application.getPrimaryOwner();
+            final Map<String, Object> params = new NotificationParamsBuilder()
+                .owner(owner)
+                .api(genericApiModel)
+                .plan(genericPlanEntity)
+                .application(application)
+                .build();
+            notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_FAILED, apiId, params);
+            notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_FAILED, application.getId(), params);
 
             return convert(subscription);
         } catch (TechnicalException ex) {
