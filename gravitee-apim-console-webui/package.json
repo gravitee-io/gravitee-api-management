@@ -52,7 +52,7 @@
     "angular-ui-validate": "1.2.3",
     "asciidoctor": "3.0.4",
     "asciidoctor-highlight.js": "0.4.0",
-    "codemirror": "5.65.17",
+    "codemirror": "5.65.18",
     "codemirror-asciidoc": "1.0.4",
     "diff": "3.5.0",
     "diff2html": "3.4.48",
