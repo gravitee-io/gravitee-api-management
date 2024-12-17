@@ -96,7 +96,8 @@ ${this.trustStoreConfig}`,
 
   private trustStoreConfig =
     '\n' +
-    '# Configure your truststore if using self-sign certificates\n' +
+    '# Configure your truststore if you are using a certificate\n' +
+    '# not automatically trusted by your installation\n' +
     '# ssl.truststore.location={{ PATH_TO_TRUSTSTORE_JKS }}\n' +
     '# ssl.truststore.password={{ TRUSTSTORE_PASSWORD }}';
 }
