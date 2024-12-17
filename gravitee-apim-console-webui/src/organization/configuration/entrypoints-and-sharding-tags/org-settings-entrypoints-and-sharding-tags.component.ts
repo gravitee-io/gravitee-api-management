@@ -37,6 +37,7 @@ import { gioTableFilterCollection } from '../../../shared/components/gio-table-w
 import { ApimFeature } from '../../../shared/components/gio-license/gio-license-data';
 import { EnvironmentService } from '../../../services-ngx/environment.service';
 import { Environment } from '../../../entities/environment/environment';
+import { HOST_PATTERN_REGEX } from '../../../shared/utils';
 
 type TagTableDS = {
   id: string;
@@ -140,7 +141,21 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
                   value: portalSettings.portal.tcpPort,
                   disabled: PortalSettingsService.isReadonly(portalSettings, 'portal.tcpPort'),
                 },
-                [tcpPortValidator],
+                [portValidator],
+              ),
+              kafkaDomain: new UntypedFormControl(
+                {
+                  value: portalSettings.portal.kafkaDomain,
+                  disabled: PortalSettingsService.isReadonly(portalSettings, 'portal.kafkaDomain'),
+                },
+                [kafkaDomainValidator],
+              ),
+              kafkaPort: new UntypedFormControl(
+                {
+                  value: portalSettings.portal.kafkaPort,
+                  disabled: PortalSettingsService.isReadonly(portalSettings, 'portal.kafkaPort'),
+                },
+                [portValidator],
               ),
             });
             return acc;
@@ -198,6 +213,8 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
           ...portalSettings.portal,
           entrypoint: portalSettingsFormGroup.get('entrypoint').value,
           tcpPort: portalSettingsFormGroup.get('tcpPort').value,
+          kafkaDomain: portalSettingsFormGroup.get('kafkaDomain').value,
+          kafkaPort: portalSettingsFormGroup.get('kafkaPort').value,
         },
       };
 
@@ -421,7 +438,21 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
       .subscribe(() => this.ngOnInit());
   }
 }
-const tcpPortValidator: ValidatorFn = (control: UntypedFormControl): ValidationErrors | null => {
+const portValidator: ValidatorFn = (control: UntypedFormControl): ValidationErrors | null => {
   const tcpPort = control.value;
-  return tcpPort < 1025 || tcpPort > 65535 ? { invalidTcpPort: true } : null;
+  return tcpPort < 1025 || tcpPort > 65535 ? { invalidPort: true } : null;
+};
+
+const kafkaDomainValidator: ValidatorFn = (control: UntypedFormControl): ValidationErrors | null => {
+  const kafkaDomain: string = control.value;
+  if (kafkaDomain?.length) {
+    // Max length of URL (255) - reserved characters for host prefix (63) - "." to separate host prefix and domain (1) = 191 max characters
+    if (kafkaDomain.length > 191) {
+      return { maxLength: true };
+    }
+    if (!HOST_PATTERN_REGEX.test(kafkaDomain)) {
+      return { format: true };
+    }
+  }
+  return null;
 };

@@ -11,14 +11,49 @@ $foreground: map.get(gio.$mat-theme, foreground);
 }
 
 .org-settings-tags {
+  display: flex;
+  flex-flow: column;
+  gap: 24px;
+
+  &__configuration {
+    padding-top: 16px;
+
+    &__container {
+      display: flex;
+      flex-direction: column;
+    }
+
+    &__entrypoint,
+    &__tcp,
+    &__kafka__domain {
+      width: 66%;
+    }
+
+    &__kafka {
+      display: flex;
+      gap: 16px;
+
+      &__port {
+        flex: 1;
+      }
+
+      mat-form-field {
+        height: max-content;
+      }
+    }
+
+    &__icon {
+      color: mat.m2-get-color-from-palette($foreground, disabled);
+    }
+  }
+
   &__tags-card {
     &__headerRightBtn {
       margin: auto 0 auto auto;
     }
-    margin-bottom: 16px;
 
-    .mat-column-actions {
-      width: 128px;
+    gio-banner {
+      margin-top: 16px;
     }
   }
 
@@ -27,15 +62,14 @@ $foreground: map.get(gio.$mat-theme, foreground);
       margin: auto 0 auto auto;
     }
     &__content {
-      margin-top: 16px;
       display: flex;
       flex-direction: column;
       &__env {
-        margin-bottom: 8px;
+        padding-top: 16px;
 
         &__config {
           display: flex;
-          flex-direction: row;
+          flex-direction: column;
           gap: 16px;
 
           &__form-field-entrypoint {
@@ -51,13 +85,9 @@ $foreground: map.get(gio.$mat-theme, foreground);
         }
       }
     }
-
-    .mat-column-actions {
-      width: 128px;
-    }
-
-    & + & {
-      margin-top: 16px;
-    }
   }
+}
+
+.mat-column-actions {
+  width: 128px;
 }

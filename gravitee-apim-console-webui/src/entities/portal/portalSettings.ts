@@ -84,6 +84,8 @@ export interface PortalSettingsPortal {
     };
   };
   entrypoint?: string;
+  kafkaDomain?: string;
+  kafkaPort?: number;
   rating?: {
     enabled: boolean;
     comment: {
