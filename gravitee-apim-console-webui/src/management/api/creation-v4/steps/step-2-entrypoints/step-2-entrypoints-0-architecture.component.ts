@@ -41,11 +41,13 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
 
   public form: UntypedFormGroup;
 
-  public shouldUpgrade$: Observable<boolean>;
+  public isMissingMessageReactor$: Observable<boolean>;
   public license$: Observable<License>;
   public isOEM$: Observable<boolean>;
+  public isMissingNativeKafkaReactor$: Observable<boolean>;
 
-  private licenseOptions = { feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_TRY_MESSAGE };
+  private messageLicenseOptions = { feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_TRY_MESSAGE };
+  private nativeKafkaLicenseOptions = { feature: ApimFeature.APIM_NATIVE_KAFKA_REACTOR, context: UTMTags.API_CREATION_TRY_MESSAGE };
 
   constructor(
     private readonly formBuilder: UntypedFormBuilder,
@@ -65,7 +67,9 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
 
     this.initialValue = this.form.getRawValue();
 
-    this.shouldUpgrade$ = this.licenseService.isMissingFeature$(this.licenseOptions.feature);
+    this.isMissingMessageReactor$ = this.licenseService.isMissingFeature$(this.messageLicenseOptions.feature);
+    this.isMissingNativeKafkaReactor$ = this.licenseService.isMissingFeature$(this.nativeKafkaLicenseOptions.feature);
+
     this.license$ = this.licenseService.getLicense$();
     this.isOEM$ = this.licenseService.isOEM$();
   }
@@ -201,6 +205,6 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   }
 
   public onRequestUpgrade() {
-    this.licenseService.openDialog(this.licenseOptions);
+    this.licenseService.openDialog(this.messageLicenseOptions);
   }
 }

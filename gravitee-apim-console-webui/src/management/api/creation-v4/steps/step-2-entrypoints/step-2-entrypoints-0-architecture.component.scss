@@ -19,4 +19,8 @@ $typography: map.get(gio.$mat-theme, typography);
   &__kafka-title {
     gap: 4px;
   }
+
+  &__kafka-description {
+    margin: 0;
+  }
 }
