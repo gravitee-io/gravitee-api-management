@@ -25,6 +25,7 @@ import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 import { Step4Security1PlansComponent } from '../step-4-security/step-4-security-1-plans.component';
+import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 
 @Component({
   selector: 'step-3-endpoints-2-config',
@@ -42,6 +43,8 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
   public license$: Observable<License>;
   public isOEM$: Observable<boolean>;
 
+  private apiType: ApiCreationPayload['type'];
+
   constructor(
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly stepService: ApiCreationStepService,
@@ -50,6 +53,7 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
+    this.apiType = currentStepPayload.type;
 
     forkJoin(
       currentStepPayload.selectedEndpoints.reduce((map: Record<string, Observable<[GioJsonSchema, GioJsonSchema]>>, { id }) => {
@@ -117,6 +121,16 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
   }
 
   public onRequestUpgrade() {
-    this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_MESSAGE_ENDPOINT_CONFIG });
+    if (this.apiType === 'NATIVE') {
+      this.licenseService.openDialog({
+        feature: ApimFeature.APIM_NATIVE_KAFKA_REACTOR,
+        context: UTMTags.API_CREATION_NATIVE_KAFKA_ENDPOINT_CONFIG,
+      });
+    } else {
+      this.licenseService.openDialog({
+        feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
+        context: UTMTags.API_CREATION_MESSAGE_ENDPOINT_CONFIG,
+      });
+    }
   }
 }
