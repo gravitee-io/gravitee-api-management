@@ -201,9 +201,16 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   }
 
   onRequestUpgrade() {
-    this.licenseService.openDialog({
-      feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
-      context: UTMTags.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG,
-    });
+    if (this.apiType === 'NATIVE') {
+      this.licenseService.openDialog({
+        feature: ApimFeature.APIM_NATIVE_KAFKA_REACTOR,
+        context: UTMTags.API_CREATION_NATIVE_KAFKA_ENTRYPOINT_CONFIG,
+      });
+    } else {
+      this.licenseService.openDialog({
+        feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
+        context: UTMTags.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG,
+      });
+    }
   }
 }

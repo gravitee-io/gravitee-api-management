@@ -47,8 +47,10 @@ export enum UTMTags {
   API_CREATION_TRY_MESSAGE = 'api_creation_try_message',
   API_CREATION_MESSAGE_ENTRYPOINT = 'api_creation_message_entrypoint',
   API_CREATION_MESSAGE_ENTRYPOINT_CONFIG = 'api_creation_message_entrypoint_config',
+  API_CREATION_NATIVE_KAFKA_ENTRYPOINT_CONFIG = 'api_creation_native_kafka_entrypoint_config',
   API_CREATION_MESSAGE_ENDPOINT = 'api_creation_message_endpoint',
   API_CREATION_MESSAGE_ENDPOINT_CONFIG = 'api_creation_message_endpoint_config',
+  API_CREATION_NATIVE_KAFKA_ENDPOINT_CONFIG = 'api_creation_native_kafka_endpoint_config',
   API_CREATION_MESSAGE_SUMMARY = 'api_creation_message_summary',
 }
 
