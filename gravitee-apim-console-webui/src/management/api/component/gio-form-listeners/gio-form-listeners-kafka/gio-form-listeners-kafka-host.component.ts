@@ -112,7 +112,7 @@ export class GioFormListenersKafkaHostComponent implements OnInit, ControlValueA
 
   ngOnInit(): void {
     this.hostFormControl.addValidators(kafkaHostPrefixSyncValidator(this.kafkaDomain));
-    this.hostFormControl.addAsyncValidators(hostAsyncValidator(this.apiV2Service, this.apiId));
+    this.hostFormControl.addAsyncValidators(hostAsyncValidator(this.apiV2Service, this.apiId, 'KAFKA'));
 
     this.entrypointDomainAndHost = `${this.kafkaDomain?.length ? '.' + this.kafkaDomain : ''}:${this.kafkaPort}`;
 
