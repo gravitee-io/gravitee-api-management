@@ -109,13 +109,14 @@ class VerifyApiHostsDomainServiceTest {
     @ParameterizedTest
     @ValueSource(
         strings = {
-            "ThisIsALongHostNameWithMoreThan63CharactersWhichIsNotValidInOurCase",
-            "host.ThisIsALongHostNameWithMoreThan63CharactersWhichIsNotValidInOurCase.gravitee",
+            "thisisalonghostnamewithmorethan63charactereswhichisnotvalidinourcase",
+            "host.thisisalonghostnamewithmorethan63charactereswhichisnotvalidinourcase.gravitee",
             "-simple-host",
             "simple-host-",
             "simple-host-.host",
             "_simple-host",
             "simple-host_",
+            "MiXed-C4s3.example.c0m",
         }
     )
     void should_throw_invalid_exception_when_not_matching_rfc_pattern(String host) {
@@ -142,7 +143,7 @@ class VerifyApiHostsDomainServiceTest {
             "tcp.2.example.com",
             "tcp-hyphen.example.com",
             "tcp_underscore.example.com",
-            "MiXed-C4s3.example.c0m"
+            "mixed-c4s3.example.c0m"
         );
 
         // when
