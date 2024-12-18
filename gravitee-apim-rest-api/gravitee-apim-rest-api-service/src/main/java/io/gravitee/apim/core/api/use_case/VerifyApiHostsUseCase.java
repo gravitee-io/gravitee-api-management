@@ -17,7 +17,7 @@ package io.gravitee.apim.core.api.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.definition.model.v4.listener.ListenerType;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
@@ -28,13 +28,13 @@ public class VerifyApiHostsUseCase {
     private final VerifyApiHostsDomainService verifyApiHostsDomainService;
 
     public Output execute(Input input) {
-        if (verifyApiHostsDomainService.checkApiHosts(input.environmentId(), input.apiId(), input.hosts())) {
+        if (verifyApiHostsDomainService.checkApiHosts(input.environmentId(), input.apiId(), input.hosts(), input.listenerType())) {
             return new Output(input.hosts());
         }
         return null;
     }
 
-    public record Input(String environmentId, String apiId, List<String> hosts) {}
+    public record Input(String environmentId, String apiId, ListenerType listenerType, List<String> hosts) {}
 
     public record Output(List<String> hosts) {}
 }

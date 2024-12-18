@@ -685,7 +685,8 @@ class ListenerValidationServiceImplTest {
 
         @Test
         void should_throw_error_when_tcp_listener_hosts_are_not_valid() {
-            when(verifyApiHostsDomainService.checkApiHosts(any(), any(), any())).thenThrow(new InvalidHostException("invalid hosts"));
+            when(verifyApiHostsDomainService.checkApiHosts(any(), any(), any(), any()))
+                .thenThrow(new InvalidHostException("invalid hosts"));
 
             assertThatExceptionOfType(InvalidHostException.class)
                 .isThrownBy(() ->
@@ -769,7 +770,8 @@ class ListenerValidationServiceImplTest {
 
         @Test
         void should_throw_error_when_kafka_listener_host_is_not_valid() {
-            when(verifyApiHostsDomainService.checkApiHosts(any(), any(), any())).thenThrow(new InvalidHostException("invalid hosts"));
+            when(verifyApiHostsDomainService.checkApiHosts(any(), any(), any(), any()))
+                .thenThrow(new InvalidHostException("invalid hosts"));
 
             assertThatExceptionOfType(InvalidHostException.class)
                 .isThrownBy(() ->

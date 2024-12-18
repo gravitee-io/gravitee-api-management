@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
@@ -47,6 +48,8 @@ public interface ListenerMapper {
     SubscriptionListener map(io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener listener);
     TcpListener map(io.gravitee.rest.api.management.v2.rest.model.TcpListener listener);
     KafkaListener map(io.gravitee.rest.api.management.v2.rest.model.KafkaListener listener);
+
+    ListenerType map(io.gravitee.rest.api.management.v2.rest.model.ListenerType listenerType);
 
     @Named("toPathMappingsPattern")
     default Map<String, Pattern> toPathMappingsPattern(List<String> pathMappings) {

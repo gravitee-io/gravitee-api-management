@@ -244,11 +244,11 @@ paths:
                 - $ref: "#/components/parameters/envIdParam"
             tags:
                 - APIs
-            summary: Verify TCP API hosts
+            summary: Verify TCP and Kafka API hosts
             description: |-
-                Verify hosts before creating or updating a TCP API.<br>
+                Verify hosts before creating or updating a TCP or Kafka API.<br>
                 This will check it is not already used by other APIs in the environment.<br>
-                The result will indicate if the hists are OK, and give the reason of the failure if they are not.
+                The result will indicate if the hosts are OK, and give the reason of the failure if they are not.
             operationId: verifyHosts
             requestBody:
                 content:
@@ -5471,6 +5471,8 @@ components:
             properties:
                 apiId:
                     type: string
+                listenerType:
+                  $ref: "#/components/schemas/ListenerType"
                 hosts:
                     type: array
                     example:

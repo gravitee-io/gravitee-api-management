@@ -25,6 +25,7 @@ import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import java.util.HashSet;
@@ -52,9 +53,12 @@ public class VerifyApiHostsDomainService {
         "^([a-z0-9]|[a-z0-9][a-z0-9\\-_]{0,61}[a-z0-9])(\\.([a-z0-9]|[a-z0-9][a-z0-9\\-_]{0,61}[a-z0-9]))*$"
     );
 
+    // Kafka host must have a first segment that is less than 50 characters
+    private static final Pattern FIRST_SEGMENT_LENGTH_INVALID_PATTERN = Pattern.compile("^[^.]{50,}");
+
     private final ApiQueryService apiQueryService;
 
-    public boolean checkApiHosts(String environmentId, String apiId, List<String> hosts) {
+    public boolean checkApiHosts(String environmentId, String apiId, List<String> hosts, ListenerType listenerType) {
         checkHostsListIsNotEmpty(hosts);
 
         checkHostsAreNotBlank(hosts);
@@ -67,7 +71,17 @@ public class VerifyApiHostsDomainService {
 
         checkHostsAreAvailable(environmentId, apiId, hosts);
 
+        checkHostFirstSegment(hosts, listenerType);
+
         return true;
+    }
+
+    private static void checkHostFirstSegment(List<String> hosts, ListenerType listenerType) {
+        if (ListenerType.KAFKA.equals(listenerType)) {
+            if (hosts.stream().anyMatch(host -> FIRST_SEGMENT_LENGTH_INVALID_PATTERN.matcher(host).lookingAt())) {
+                throw new InvalidHostException("The first segment must be less than 50 characters.");
+            }
+        }
     }
 
     private static void checkHostsListIsNotEmpty(List<String> hosts) {
@@ -127,6 +141,7 @@ public class VerifyApiHostsDomainService {
                 )
             )
             .flatMap(this::extractHostsFromListeners)
+            .map(String::toLowerCase)
             .collect(Collectors.toSet());
     }
 
