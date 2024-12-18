@@ -44,6 +44,10 @@ export class ApiProxyGroupEndpointConfigurationComponent {
       configuration.disable({ emitEvent: false });
     });
 
+    if (isReadonly) {
+      configuration.disable({ emitEvent: false });
+    }
+
     return new UntypedFormGroup({
       inherit,
       configuration,

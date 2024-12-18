@@ -186,6 +186,10 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
       serviceDiscovery: this.serviceDiscoveryForm,
     });
 
+    if (this.isReadOnly) {
+      this.groupForm.disable({ emitEvent: false });
+    }
+
     this.initialGroupFormValue = this.groupForm.getRawValue();
   }
 }
