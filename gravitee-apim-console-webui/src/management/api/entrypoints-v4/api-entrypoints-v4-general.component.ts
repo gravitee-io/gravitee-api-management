@@ -16,7 +16,7 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
-import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import {
   GIO_DIALOG_WIDTH,
   GioConfirmDialogComponent,
@@ -53,6 +53,8 @@ import { GioPermissionService } from '../../../shared/components/gio-permission/
 import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 import { RestrictedDomainService } from '../../../services-ngx/restricted-domain.service';
 import { TcpHost } from '../../../entities/management-api-v2/api/v4/tcpHost';
+import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
+import { PortalSettingsPortal } from '../../../entities/portal/portalSettings';
 
 type EntrypointVM = {
   id: string;
@@ -68,6 +70,7 @@ type EntrypointVM = {
 export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public apiId: string;
+  public envId: string;
   public api: ApiV4;
   public formGroup: UntypedFormGroup;
   public pathsFormControl: UntypedFormControl;
@@ -87,6 +90,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   public isOEM$: Observable<boolean>;
   public isReadOnly = false;
   public canUpdate = false;
+  public portalSettings$: Observable<PortalSettingsPortal>;
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
@@ -99,12 +103,16 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
     private readonly permissionService: GioPermissionService,
     private readonly changeDetector: ChangeDetectorRef,
     private readonly licenseService: GioLicenseService,
+    private readonly portalSettingsService: PortalSettingsService,
   ) {
     this.apiId = this.activatedRoute.snapshot.params.apiId;
+    this.envId = this.activatedRoute.snapshot.params.envHrid;
   }
 
   ngOnInit(): void {
     this.canUpdate = this.permissionService.hasAnyMatching(['api-definition-u']);
+
+    this.portalSettings$ = this.portalSettingsService.getByEnvironmentId(this.envId).pipe(map(({ portal }) => portal));
 
     forkJoin([
       this.restrictedDomainService.get(),

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, ElementRef, forwardRef, inject, Input, OnInit } from '@angular/core';
+import { Component, computed, DestroyRef, ElementRef, forwardRef, inject, Input, OnInit, Signal } from '@angular/core';
 import {
   AsyncValidator,
   ControlValueAccessor,
@@ -25,7 +25,6 @@ import {
   NG_VALUE_ACCESSOR,
   ReactiveFormsModule,
   ValidationErrors,
-  Validators,
 } from '@angular/forms';
 import { isEmpty } from 'lodash';
 import { filter, map, observeOn, startWith, take, tap } from 'rxjs/operators';
@@ -34,15 +33,15 @@ import { asyncScheduler, Observable } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioClipboardModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 
 import { KafkaHost } from '../../../../../entities/management-api-v2';
 import { hostAsyncValidator } from '../../../../../shared/validators/host/host-async-validator.directive';
-import { hostSyncValidator } from '../../../../../shared/validators/host/host-sync-validator.directive';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { kafkaHostPrefixSyncValidator } from '../../../../../shared/validators/host/kafka-host-prefix-sync-validator.directive';
 
 export type KafkaHostData = KafkaHost;
 
@@ -50,7 +49,16 @@ export type KafkaHostData = KafkaHost;
   selector: 'gio-form-listeners-kafka-host',
   templateUrl: './gio-form-listeners-kafka-host.component.html',
   styleUrls: ['../gio-form-listeners.common.scss', './gio-form-listeners-kafka-host.component.scss'],
-  imports: [MatInputModule, MatFormFieldModule, ReactiveFormsModule, MatIconModule, GioIconsModule, MatButtonModule, MatTooltipModule],
+  imports: [
+    MatInputModule,
+    MatFormFieldModule,
+    ReactiveFormsModule,
+    MatIconModule,
+    GioIconsModule,
+    MatButtonModule,
+    MatTooltipModule,
+    GioClipboardModule,
+  ],
   standalone: true,
   providers: [
     {
@@ -67,7 +75,13 @@ export type KafkaHostData = KafkaHost;
 })
 export class GioFormListenersKafkaHostComponent implements OnInit, ControlValueAccessor, AsyncValidator {
   @Input()
+  public kafkaPort: number;
+
+  @Input()
   public apiId?: string;
+
+  @Input()
+  public kafkaDomain?: string;
 
   public host: KafkaHost;
 
@@ -76,7 +90,11 @@ export class GioFormListenersKafkaHostComponent implements OnInit, ControlValueA
   public mainForm: FormGroup<{ host: FormControl<string> }>;
   public isDisabled = false;
 
+  public entrypointDomainAndHost: string;
+  public entrypointCopyValue$ = computed(() => `${this.hostValue$()}${this.entrypointDomainAndHost}`);
+
   private destroyRef = inject(DestroyRef);
+  private readonly hostValue$: Signal<string>;
 
   protected _onChange: (_listener: KafkaHostData) => void = () => ({});
 
@@ -87,13 +105,16 @@ export class GioFormListenersKafkaHostComponent implements OnInit, ControlValueA
     private readonly elRef: ElementRef,
     private readonly apiV2Service: ApiV2Service,
     private readonly fb: FormBuilder,
-  ) {}
+  ) {
+    this.hostFormControl = this.fb.control('');
+    this.hostValue$ = toSignal(this.hostFormControl.valueChanges);
+  }
 
   ngOnInit(): void {
-    this.hostFormControl = this.fb.control('', {
-      validators: [hostSyncValidator, Validators.required],
-      asyncValidators: [hostAsyncValidator(this.apiV2Service, this.apiId)],
-    });
+    this.hostFormControl.addValidators(kafkaHostPrefixSyncValidator(this.kafkaDomain));
+    this.hostFormControl.addAsyncValidators(hostAsyncValidator(this.apiV2Service, this.apiId));
+
+    this.entrypointDomainAndHost = `${this.kafkaDomain?.length ? '.' + this.kafkaDomain : ''}:${this.kafkaPort}`;
 
     this.mainForm = this.fb.group({
       host: this.hostFormControl,
