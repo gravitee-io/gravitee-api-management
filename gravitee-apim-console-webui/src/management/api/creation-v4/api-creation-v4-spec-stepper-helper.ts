@@ -134,6 +134,7 @@ export class ApiCreationV4SpecStepperHelper {
       await entrypointsConfig.fillPaths(...paths);
       this.httpExpects.expectVerifyContextPath();
     } else if (entrypoints.some((entrypoint) => entrypoint.supportedListenerType === 'KAFKA')) {
+      this.httpExpects.expectApiGetPortalSettings();
       await entrypointsConfig.fillHost(host);
       this.httpExpects.expectVerifyHosts([host]);
     }

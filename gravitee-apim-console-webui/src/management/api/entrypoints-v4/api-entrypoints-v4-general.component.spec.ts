@@ -52,6 +52,7 @@ const ENTRYPOINTS: Partial<ConnectorPlugin>[] = [
 ];
 
 describe('ApiProxyV4EntrypointsComponent', () => {
+  const ENV_ID = 'DEFAULT';
   const API_ID = 'apiId';
   let fixture: ComponentFixture<ApiEntrypointsV4GeneralComponent>;
   let loader: HarnessLoader;
@@ -85,7 +86,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
       providers: [
-        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, envHrid: ENV_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: permissions },
         {
           provide: 'LicenseConfiguration',
@@ -190,7 +191,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     beforeEach(async () => {
-      await createComponent(RESTRICTED_DOMAINS, API, false);
+      await createComponent(RESTRICTED_DOMAINS, API, true);
     });
 
     afterEach(() => {
@@ -890,7 +891,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   }
 
   function expectGetPortalSettings(): void {
-    const settings: PortalSettings = { portal: { entrypoint: 'localhost' } };
+    const settings: PortalSettings = { portal: { entrypoint: 'localhost', kafkaDomain: 'kafka.domain', kafkaPort: 9092 } };
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/settings`, method: 'GET' }).flush(settings);
   }
 

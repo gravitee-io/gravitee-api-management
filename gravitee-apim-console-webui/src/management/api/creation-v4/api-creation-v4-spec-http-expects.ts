@@ -37,6 +37,8 @@ export class ApiCreationV4SpecHttpExpects {
     const settings: PortalSettings = {
       portal: {
         entrypoint: 'entrypoint',
+        kafkaDomain: 'kafka.domain',
+        kafkaPort: 9092,
       },
     };
     this.httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/settings`, method: 'GET' }).flush(settings);

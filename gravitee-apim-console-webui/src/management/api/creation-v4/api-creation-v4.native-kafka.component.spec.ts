@@ -22,6 +22,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { set } from 'lodash';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiCreationV4Component } from './api-creation-v4.component';
 import { ApiCreationV4Module } from './api-creation-v4.module';
@@ -94,6 +95,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
           provide: 'LicenseConfiguration',
           useValue: LICENSE_CONFIGURATION_TESTING,
         },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { envHrid: 'DEFAULT' } } } },
       ],
       imports: [NoopAnimationsModule, ApiCreationV4Module, GioTestingModule, MatIconTestingModule],
     })
@@ -128,6 +130,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
 
       httpExpects.expectRestrictedDomainsGetRequest([]);
       httpExpects.expectSchemaGetRequest(nativeKafkaEntrypoint);
+      httpExpects.expectApiGetPortalSettings();
 
       const entrypointsConfig = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
       expect(await entrypointsConfig.hasKafkaListenersForm()).toEqual(true);
@@ -150,6 +153,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
 
         httpExpects.expectRestrictedDomainsGetRequest([]);
         httpExpects.expectSchemaGetRequest(nativeKafkaEntrypoint);
+        httpExpects.expectApiGetPortalSettings();
 
         await entrypointsConfig.fillHost(contextPath);
         httpExpects.expectVerifyContextPath();

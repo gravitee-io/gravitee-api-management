@@ -21,34 +21,44 @@
     <tr>
       <th class="gio-form-listeners__table__row__th">
         <div class="gio-form-listeners__table__title">
-          Host
-          <mat-icon class="gio-form-listeners__table__title__icon" matTooltip="The host to run the server on." svgIcon="gio:info" />
+          Host Prefix
+          <mat-icon class="gio-form-listeners__table__title__icon" matTooltip="The host prefix to identify your API." svgIcon="gio:info" />
         </div>
         <div class="gio-form-listeners__table__subtitle">
-          Can contain an uppercase letter, number, dot, dash or underscore. Total maximum length is 63 chars.
+          Can contain a lowercase letter, number, dot, dash or underscore. Each host label segment must be less than 64 characters, except
+          the first label segment which must be less than 50 characters.
         </div>
       </th>
     </tr>
   </thead>
   <tbody>
-    <tr class="gio-form-listeners__table__row kafka-configuration">
-      <div class="gio-form-listeners__table__row__td kafka-configuration__host">
-        <mat-form-field class="gio-form-listeners__table__field">
-          <mat-label>Host</mat-label>
-          <input type="text" matInput formControlName="host" placeholder="Host" />
-          @if (hostFormControl.hasError('required')) {
-            <mat-error> Host is required </mat-error>
-          }
-          @if (hostFormControl.hasError('listeners')) {
-            <mat-error> {{ hostFormControl.getError('listeners') }}</mat-error>
-          }
-          @if (hostFormControl.hasError('max')) {
-            <mat-error> {{ hostFormControl.getError('max') }}</mat-error>
-          }
-          @if (hostFormControl.hasError('format')) {
-            <mat-error> {{ hostFormControl.getError('format') }}</mat-error>
-          }
-        </mat-form-field>
+    <tr class="gio-form-listeners__table__row">
+      <div class="kafka-configuration">
+        <div class="kafka-configuration__host">
+          <mat-form-field class="gio-form-listeners__table__field">
+            <mat-label>Host prefix</mat-label>
+            <input type="text" matInput formControlName="host" placeholder="Host" />
+            @if (hostFormControl.hasError('required')) {
+              <mat-error> Host is required </mat-error>
+            }
+            @if (hostFormControl.hasError('listeners')) {
+              <mat-error> {{ hostFormControl.getError('listeners') }}</mat-error>
+            }
+            @if (hostFormControl.hasError('max')) {
+              <mat-error> {{ hostFormControl.getError('max') }}</mat-error>
+            }
+            @if (hostFormControl.hasError('format')) {
+              <mat-error> {{ hostFormControl.getError('format') }}</mat-error>
+            }
+            @if (hostFormControl.hasError('firstSegment')) {
+              <mat-error> {{ hostFormControl.getError('firstSegment') }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="kafka-configuration__domain">
+          <div class="mat-subtitle-2">{{ entrypointDomainAndHost }}</div>
+          <gio-clipboard-copy-icon matSuffix [contentToCopy]="entrypointCopyValue$()" />
+        </div>
       </div>
     </tr>
   </tbody>
