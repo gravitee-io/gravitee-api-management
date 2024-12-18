@@ -21,6 +21,7 @@ describe('HostSyncValidator', () => {
   it.each`
     key           | message                           | host
     ${'format'}   | ${`Host is not valid`}            | ${'ThisIsALongHostNameWithMoreThan63CharactersWhichIsNotValidInOurCase'}
+    ${'format'}   | ${`Host is not valid`}            | ${'ThisIsHasUppercaseLetters'}
     ${'max'}      | ${`Max length is 255 characters`} | ${'a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host'}
     ${'required'} | ${`Host is required.`}            | ${''}
     ${'required'} | ${`Host is required.`}            | ${null}
