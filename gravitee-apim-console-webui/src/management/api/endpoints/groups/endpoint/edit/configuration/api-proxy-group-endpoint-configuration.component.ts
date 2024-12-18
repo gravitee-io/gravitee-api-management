@@ -37,7 +37,7 @@ export class ApiProxyGroupEndpointConfigurationComponent {
     const configuration = EndpointHttpConfigComponent.getHttpConfigFormGroup(endpoint, isReadonly);
 
     inherit.valueChanges.pipe(startWith(inherit.value), takeUntil(unsubscribe$)).subscribe((inheritValue) => {
-      if (!inheritValue) {
+      if (!isReadonly && !inheritValue) {
         configuration.enable({ emitEvent: false });
         return;
       }
