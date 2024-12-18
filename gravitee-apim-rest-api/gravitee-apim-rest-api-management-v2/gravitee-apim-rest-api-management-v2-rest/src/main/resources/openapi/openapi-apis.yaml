@@ -2611,7 +2611,7 @@ paths:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
-        post:
+        get:
             tags:
                 - API Scoring
             summary: Get API Scoring
