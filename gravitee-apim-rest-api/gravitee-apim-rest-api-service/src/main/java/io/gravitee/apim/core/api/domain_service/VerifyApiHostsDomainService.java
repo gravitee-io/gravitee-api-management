@@ -43,13 +43,13 @@ public class VerifyApiHostsDomainService {
 
     /**
      * According to <a href="https://www.rfc-editor.org/rfc/rfc1123">RFC-1123</a> and <a href="https://www.rfc-editor.org/rfc/rfc952">RFC-952</a>
-     * - hostname label can contain lowercase, uppercase and digits characters.
+     * - hostname label can contain lowercase and digits characters.
      * - hostname label can contain dash or underscores, but not starts or ends with these characters
      * - each hostname label must have a max length of 63 characters
      */
     @SuppressWarnings("squid:S5998") // A max host size validation is done before the regexp to avoid applying it
     private static final Pattern HOST_PATTERN = Pattern.compile(
-        "^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-_]{0,61}[a-zA-Z0-9])(\\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-_]{0,61}[a-zA-Z0-9]))*$"
+        "^([a-z0-9]|[a-z0-9][a-z0-9\\-_]{0,61}[a-z0-9])(\\.([a-z0-9]|[a-z0-9][a-z0-9\\-_]{0,61}[a-z0-9]))*$"
     );
 
     private final ApiQueryService apiQueryService;
