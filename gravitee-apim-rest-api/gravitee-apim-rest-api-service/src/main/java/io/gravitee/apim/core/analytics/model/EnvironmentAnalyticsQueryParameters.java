@@ -20,6 +20,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.With;
 
+<<<<<<< HEAD:gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/analytics/model/EnvironmentAnalyticsQueryParameters.java
 @Data
 @Builder
 public class EnvironmentAnalyticsQueryParameters {
@@ -29,4 +30,17 @@ public class EnvironmentAnalyticsQueryParameters {
 
     long from;
     long to;
+=======
+import { ReplaceSpacesPipe } from '../../pipes/replace-spaces.pipe';
+
+@Component({
+  selector: 'file-preview',
+  standalone: true,
+  imports: [GioClipboardModule, ReplaceSpacesPipe],
+  templateUrl: './file-preview.component.html',
+  styleUrl: './file-preview.component.scss',
+})
+export class FilePreviewComponent {
+  @Input() payload: string;
+>>>>>>> c7cb597a7c (fix: code preview component fix):gravitee-apim-console-webui/src/shared/components/file-preview/file-preview.component.ts
 }
