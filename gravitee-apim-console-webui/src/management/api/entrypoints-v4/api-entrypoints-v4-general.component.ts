@@ -89,8 +89,8 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   public license$: Observable<License>;
   public isOEM$: Observable<boolean>;
   public isReadOnly = false;
-  public canUpdate = false;
   public portalSettings$: Observable<PortalSettingsPortal>;
+
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
@@ -110,8 +110,6 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.canUpdate = this.permissionService.hasAnyMatching(['api-definition-u']);
-
     this.portalSettings$ = this.portalSettingsService.getByEnvironmentId(this.envId).pipe(map(({ portal }) => portal));
 
     forkJoin([
@@ -122,6 +120,8 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(([restrictedDomains, api, availableEntrypoints]) => {
         this.domainRestrictions = restrictedDomains.map((value) => value.domain) || [];
+
+        this.isReadOnly = api.definitionContext?.origin === 'KUBERNETES' || !this.permissionService.hasAnyMatching(['api-definition-u']);
 
         if (api.definitionVersion === 'V4') {
           this.allEntrypoints = availableEntrypoints;
@@ -138,8 +138,6 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
       this.isOEM$ = this.licenseService.isOEM$();
     }
 
-    this.isReadOnly = api.definitionContext.origin === 'KUBERNETES';
-
     this.api = api as ApiV4;
     this.formGroup = new UntypedFormGroup({});
 
@@ -148,10 +146,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
       this.apiExistingPaths = httpListeners.flatMap((listener) => {
         return (listener as HttpListener).paths;
       });
-      this.pathsFormControl = this.formBuilder.control(
-        { value: this.apiExistingPaths, disabled: this.isReadOnly || !this.canUpdate },
-        Validators.required,
-      );
+      this.pathsFormControl = this.formBuilder.control({ value: this.apiExistingPaths, disabled: this.isReadOnly }, Validators.required);
       this.formGroup.addControl('paths', this.pathsFormControl);
       this.enableVirtualHost = this.apiExistingPaths.some((path) => path.host !== undefined);
     } else {
@@ -167,7 +162,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
           return <TcpHost>{ host };
         });
       });
-      this.hostsFormControl = this.formBuilder.control({ value: this.apiExistingHosts, disabled: !this.canUpdate }, Validators.required);
+      this.hostsFormControl = this.formBuilder.control({ value: this.apiExistingHosts, disabled: this.isReadOnly }, Validators.required);
       this.formGroup.addControl('hosts', this.hostsFormControl);
     } else {
       this.apiExistingHosts = [];
@@ -177,7 +172,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
     const kafkaListener: KafkaListener = this.api.listeners.find((listener) => listener.type === 'KAFKA');
     if (kafkaListener) {
       this.apiExistingKafkaHost = { host: kafkaListener.host ?? '' };
-      this.hostFormControl = this.formBuilder.control({ value: this.apiExistingKafkaHost, disabled: !this.canUpdate }, Validators.required);
+      this.hostFormControl = this.formBuilder.control({ value: this.apiExistingKafkaHost, disabled: this.isReadOnly }, Validators.required);
       this.formGroup.addControl('host', this.hostFormControl);
     } else {
       this.apiExistingKafkaHost = {};
