@@ -252,6 +252,28 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
   });
 
+  describe('When API has KUBERNETES origin and a NATIVE KAFKA listener', () => {
+    const RESTRICTED_DOMAINS = [];
+    const API = fakeApiV4({
+      type: 'NATIVE',
+      listeners: [{ type: 'KAFKA', entrypoints: [{ type: 'native-kafka' }], host: 'host' }],
+      definitionContext: {
+        origin: 'KUBERNETES',
+      },
+    });
+
+    beforeEach(async () => {
+      await createComponent(RESTRICTED_DOMAINS, API, true);
+    });
+
+    it('should disable host form', async () => {
+      const hostHarness = await loader.getHarness(GioFormListenersKafkaHostHarness);
+      const hostInput = await hostHarness.getHostInput();
+      expect(await hostInput.getValue()).toEqual('host');
+      expect(await hostInput.isDisabled()).toBe(true);
+    });
+  });
+
   describe('API with context path', () => {
     const RESTRICTED_DOMAINS = [];
     const API = fakeApiV4({ listeners: [{ type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }] }] });

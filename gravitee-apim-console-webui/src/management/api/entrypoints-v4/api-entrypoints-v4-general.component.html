@@ -23,14 +23,7 @@
           <div class="entrypoints__context-path__title">
             <span class="mat-body-strong">Entrypoint context-paths</span>
 
-            <button
-              *ngIf="canUpdate"
-              id="switchListenerType"
-              mat-button
-              type="button"
-              (click)="switchEntrypointsMode()"
-              [disabled]="this.isReadOnly"
-            >
+            <button *ngIf="!isReadOnly" id="switchListenerType" mat-button type="button" (click)="switchEntrypointsMode()">
               <mat-icon [svgIcon]="enableVirtualHost ? 'gio:cancel' : 'gio:check'"></mat-icon>
               {{ enableVirtualHost ? 'Disable virtual hosts' : 'Enable virtual hosts' }}
             </button>
@@ -48,7 +41,7 @@
             [domainRestrictions]="domainRestrictions"
           ></gio-form-listeners-virtual-host>
         </div>
-        <div class="entrypoints__footer" *ngIf="canUpdate">
+        <div class="entrypoints__footer" *ngIf="!isReadOnly">
           <button
             mat-flat-button
             color="primary"
@@ -69,7 +62,7 @@
           </div>
           <gio-form-listeners-tcp-hosts [formControl]="hostsFormControl" [apiId]="apiId"></gio-form-listeners-tcp-hosts>
         </div>
-        <div class="entrypoints__footer" *ngIf="canUpdate">
+        <div class="entrypoints__footer" *ngIf="!isReadOnly">
           <button
             mat-flat-button
             color="primary"
@@ -97,7 +90,7 @@
             />
           }
         </div>
-        <div class="entrypoints__footer" *ngIf="canUpdate">
+        <div class="entrypoints__footer" *ngIf="!isReadOnly">
           <button
             mat-flat-button
             color="primary"
@@ -131,17 +124,11 @@
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let element" class="entrypoints__type__table__actions">
-              <ng-container *ngIf="canUpdate">
+              <ng-container *ngIf="!isReadOnly">
                 <button type="button" mat-icon-button aria-label="Edit" [routerLink]="[element.id]" [disabled]="isReadOnly">
                   <mat-icon svgIcon="gio:edit-pencil" matTooltip="Edit"> </mat-icon>
                 </button>
-                <button
-                  type="button"
-                  [disabled]="dataSource.length <= 1 || isReadOnly"
-                  mat-icon-button
-                  aria-label="Delete"
-                  (click)="onDelete(element)"
-                >
+                <button type="button" [disabled]="dataSource.length <= 1" mat-icon-button aria-label="Delete" (click)="onDelete(element)">
                   <mat-icon
                     svgIcon="gio:trash"
                     [matTooltip]="dataSource.length <= 1 ? 'At least one entrypoint is required' : 'Delete'"
@@ -164,10 +151,10 @@
         </div>
 
         <button
-          *ngIf="canUpdate"
+          *ngIf="!isReadOnly"
           mat-stroked-button
           type="button"
-          [disabled]="entrypointAvailableForAdd.length < 1 || isReadOnly"
+          [disabled]="entrypointAvailableForAdd.length < 1"
           (click)="addNewEntrypoint()"
         >
           Add an entrypoint
