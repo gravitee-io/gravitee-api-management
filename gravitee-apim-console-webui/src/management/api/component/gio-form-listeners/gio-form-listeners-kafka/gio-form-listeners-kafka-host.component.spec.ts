@@ -107,7 +107,7 @@ describe('GioFormListenersKafkaHostComponent', () => {
         ${'Can contain dash'}                                                | ${true}  | ${'simple-host'}
         ${'Can contain underscore'}                                          | ${true}  | ${'simple_host'}
         ${'Can contain dash and underscore'}                                 | ${true}  | ${'simple-host_underscored'}
-        ${'Can contain uppercase, numbers, dash and underscore'}             | ${true}  | ${'simple1-Host_underscored33'}
+        ${'Can contain lowercase, numbers, dash and underscore'}             | ${true}  | ${'simple1-host_underscored33'}
       `('should validate `$reason`: is valid=$isValid', async ({ isValid, host }) => {
         const formHarness = await loader.getHarness(GioFormListenersKafkaHostHarness);
         const hostInput = await formHarness.getHostInput();
@@ -195,7 +195,7 @@ describe('GioFormListenersKafkaHostComponent', () => {
         ${'Can contain dash'}                                                | ${true}  | ${'simple-host'}
         ${'Can contain underscore'}                                          | ${true}  | ${'simple_host'}
         ${'Can contain dash and underscore'}                                 | ${true}  | ${'simple-host_underscored'}
-        ${'Can contain uppercase, numbers, dash and underscore'}             | ${true}  | ${'simple1-Host_underscored33'}
+        ${'Can contain lowercase, numbers, dash and underscore'}             | ${true}  | ${'simple1-host_underscored33'}
       `('should validate `$reason`: is valid=$isValid', async ({ isValid, host }) => {
         const formHarness = await loader.getHarness(GioFormListenersKafkaHostHarness);
         const hostInput = await formHarness.getHostInput();

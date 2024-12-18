@@ -138,20 +138,21 @@ describe('GioFormListenersTcpHostsModule', () => {
         ${'Host cannot be empty'}                                            | ${false} | ${''}
         ${'Host with only whitespace are considered empty'}                  | ${false} | ${'    '}
         ${'Total length should not be greater than 255 chars'}               | ${false} | ${'a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host'}
-        ${'Simple host label should be lower than 63 chars'}                 | ${false} | ${'ThisIsALongHostNameWithMoreThan63CharactersWhichIsNotValidInOurCase'}
-        ${'A label within a hostname should not be more than 63 chars long'} | ${false} | ${'host.ThisIsALongHostNameWithMoreThan63CharactersWhichIsNotValidInOurCase.gravitee'}
+        ${'Simple host label should be lower than 63 chars'}                 | ${false} | ${'thisisalonghostnamewithmorethan63charactereswhichisnotvalidinourcase'}
+        ${'A label within a hostname should not be more than 63 chars long'} | ${false} | ${'host.thisisalonghostnamewithmorethan63charactereswhichisnotvalidinourcase.gravitee'}
         ${'Can not start with dash'}                                         | ${false} | ${'-simple-host'}
         ${'Can not end with dash'}                                           | ${false} | ${'simple-host-'}
         ${'Host label can not end with dash'}                                | ${false} | ${'simple-host-.host'}
         ${'Can not start with underscore'}                                   | ${false} | ${'_simple-host'}
         ${'Can not end with underscore'}                                     | ${false} | ${'simple-host_'}
         ${'Host label can not end with underscore'}                          | ${false} | ${'simple-host_.host'}
+        ${'Cannot contain uppercase'}                                        | ${false} | ${'simple-Host'}
         ${'IPv4 should be a valid host'}                                     | ${true}  | ${'127.0.0.1'}
         ${'Can contain multiple host label'}                                 | ${true}  | ${'dev.simple-host.gravitee.io'}
         ${'Can contain dash'}                                                | ${true}  | ${'simple-host'}
         ${'Can contain underscore'}                                          | ${true}  | ${'simple_host'}
         ${'Can contain dash and underscore'}                                 | ${true}  | ${'simple-host_underscored'}
-        ${'Can contain uppercase, numbers, dash and underscore'}             | ${true}  | ${'simple1-Host_underscored33'}
+        ${'Can contain lowercase, numbers, dash and underscore'}             | ${true}  | ${'simple1-host_underscored33'}
       `('should validate `$reason`: is valid=$isValid', async ({ isValid, host }) => {
         const formHosts = await loader.getHarness(GioFormListenersTcpHostsHarness);
 
@@ -289,20 +290,21 @@ describe('GioFormListenersTcpHostsModule', () => {
         ${'Host cannot be empty'}                                            | ${false} | ${''}
         ${'Host with only whitespace are considered empty'}                  | ${false} | ${'    '}
         ${'Total length should not be greater than 255 chars'}               | ${false} | ${'a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host'}
-        ${'Simple host label should be lower than 63 chars'}                 | ${false} | ${'ThisIsALongHostNameWithMoreThan63CharactersWhichIsNotValidInOurCase'}
-        ${'A label within a hostname should not be more than 63 chars long'} | ${false} | ${'host.ThisIsALongHostNameWithMoreThan63CharactersWhichIsNotValidInOurCase.gravitee'}
+        ${'Simple host label should be lower than 63 chars'}                 | ${false} | ${'thisisalonghostnamewithmorethan63charactereswhichisnotvalidinourcase'}
+        ${'A label within a hostname should not be more than 63 chars long'} | ${false} | ${'host.thisisalonghostnamewithmorethan63charactereswhichisnotvalidinourcase.gravitee'}
         ${'Can not start with dash'}                                         | ${false} | ${'-simple-host'}
         ${'Can not end with dash'}                                           | ${false} | ${'simple-host-'}
         ${'Host label can not end with dash'}                                | ${false} | ${'simple-host-.host'}
         ${'Can not start with underscore'}                                   | ${false} | ${'_simple-host'}
         ${'Can not end with underscore'}                                     | ${false} | ${'simple-host_'}
         ${'Host label can not end with underscore'}                          | ${false} | ${'simple-host_.host'}
+        ${'Cannot contain uppercase'}                                        | ${false} | ${'simple-Host'}
         ${'IPv4 should be a valid host'}                                     | ${true}  | ${'127.0.0.1'}
         ${'Can contain multiple host label'}                                 | ${true}  | ${'dev.simple-host.gravitee.io'}
         ${'Can contain dash'}                                                | ${true}  | ${'simple-host'}
         ${'Can contain underscore'}                                          | ${true}  | ${'simple_host'}
         ${'Can contain dash and underscore'}                                 | ${true}  | ${'simple-host_underscored'}
-        ${'Can contain uppercase, numbers, dash and underscore'}             | ${true}  | ${'simple1-Host_underscored33'}
+        ${'Can contain lowercase, numbers, dash and underscore'}             | ${true}  | ${'simple1-host_underscored33'}
       `('should validate `$reason`: is valid=$isValid', async ({ isValid, host }) => {
         const formHosts = await loader.getHarness(GioFormListenersTcpHostsHarness);
 
