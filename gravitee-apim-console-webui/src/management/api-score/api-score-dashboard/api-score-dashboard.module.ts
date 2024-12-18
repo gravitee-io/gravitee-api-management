@@ -44,9 +44,9 @@ import { DateAgoPipe } from '../../../shared/pipes/date-ago.pipe';
     MatButtonModule,
     MatTooltipModule,
     MatIconModule,
-    DateAgoPipe,
     GioLoaderModule,
     GioCardEmptyStateModule,
+    DateAgoPipe,
   ],
 })
 export class ApiScoreDashboardModule {}
