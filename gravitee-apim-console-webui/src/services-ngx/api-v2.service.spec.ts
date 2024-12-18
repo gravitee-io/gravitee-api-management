@@ -423,8 +423,9 @@ describe('ApiV2Service', () => {
     it('should call the API', (done) => {
       const apiId = 'apiId';
       const hosts = ['host1', 'host2'];
+      const listenerType = 'TCP';
 
-      apiV2Service.verifyHosts(apiId, hosts).subscribe(() => {
+      apiV2Service.verifyHosts(apiId, listenerType, hosts).subscribe(() => {
         done();
       });
 
@@ -433,7 +434,7 @@ describe('ApiV2Service', () => {
         method: 'POST',
       });
 
-      expect(req.request.body).toEqual({ apiId, hosts });
+      expect(req.request.body).toEqual({ apiId, listenerType, hosts });
       req.flush(null);
     });
   });
