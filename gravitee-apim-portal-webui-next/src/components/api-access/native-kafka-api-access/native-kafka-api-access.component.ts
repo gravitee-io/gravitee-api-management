@@ -74,6 +74,11 @@ sasl.jaas.config=org.apache.kafka.common.security.plain.ScramLoginModule require
 ${this.trustStoreConfig}`,
   );
 
+  sslConfig = computed(
+    () => `security.protocol=SSL
+${this.trustStoreConfig}`,
+  );
+
   consumerCommand = computed(
     () =>
       `./bin/kafka-console-consumer.sh \\\n` +
