@@ -20,6 +20,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { ApiCreationGetStartedComponent } from './api-creation-get-started.component';
 import { ApiCreationGetStartedModule } from './api-creation-get-started.module';
@@ -97,6 +98,16 @@ describe('ApiCreationGetStartedComponent', () => {
       expectPoliciesSwaggerGetRequest();
 
       const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#importApiDialog' }));
+      await confirmDialog.close();
+    });
+
+    it('should open learn more dialog', async () => {
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`);
+
+      const learnMoreButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Learn More' }));
+      await learnMoreButton.click();
+
+      const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#moreInfoDialog' }));
       await confirmDialog.close();
     });
   });
