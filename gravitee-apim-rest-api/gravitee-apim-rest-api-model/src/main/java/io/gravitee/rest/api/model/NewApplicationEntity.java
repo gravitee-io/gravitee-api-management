@@ -41,8 +41,8 @@ public class NewApplicationEntity {
 
     @NotNull(message = "Application's description must not be null")
     @Schema(
-        description = "Application's description. A short description of your App.",
-        example = "I can use a hundred characters to describe this App."
+            description = "Application's description. A short description of your App.",
+            example = "I can use a hundred characters to describe this App."
     )
     private String description;
 
