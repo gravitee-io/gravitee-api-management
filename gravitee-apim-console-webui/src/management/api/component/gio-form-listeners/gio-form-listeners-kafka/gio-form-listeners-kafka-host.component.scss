@@ -13,9 +13,12 @@
     display: flex;
     gap: 8px;
     align-items: center;
+    flex: 1;
+    justify-content: space-between;
 
     gio-clipboard-copy-icon {
       padding-right: 6px;
+      margin-top: 6px;
     }
   }
 }
