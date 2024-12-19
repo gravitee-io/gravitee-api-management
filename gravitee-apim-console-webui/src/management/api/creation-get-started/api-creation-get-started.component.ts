@@ -19,7 +19,6 @@ import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, of, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
-
 import { CockpitService, UtmCampaign } from '../../../services-ngx/cockpit.service';
 import { Constants } from '../../../entities/Constants';
 import { InstallationService } from '../../../services-ngx/installation.service';
@@ -28,6 +27,10 @@ import { GioPermissionService } from '../../../shared/components/gio-permission/
 import { PolicyService } from '../../../services-ngx/policy.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioApiImportDialogComponent, GioApiImportDialogData } from '../component/gio-api-import-dialog/gio-api-import-dialog.component';
+import {
+  GioInformationDialogComponent,
+  GioConnectorDialogData,
+} from '../component/gio-information-dialog/gio-information-dialog.component';
 
 @Component({
   selector: 'api-creation-get-started',
@@ -110,5 +113,24 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
       UtmCampaign.API_DESIGNER,
       installation?.additionalInformation.COCKPIT_INSTALLATION_STATUS === 'ACCEPTED' ? 'ACCEPTED' : undefined,
     );
+  }
+
+  onMoreInfoClick(event: MouseEvent) {
+    event.stopPropagation();
+    this.matDialog
+      .open<GioInformationDialogComponent, GioConnectorDialogData, boolean>(GioInformationDialogComponent, {
+        data: {
+          name: 'Classic (v2) and New (v4) APIs compared',
+          information: {
+            description:
+              'Gravitee v4 APIs contain most of the same capabilities as v2 APIs, including analytics, logs, failover, and health check. They also support some features not available in v2 APIs, such as protocol mediation, shared policy groups, and native Kafka support. Some functionality is not yet included, however, including alerts, tenants, and some analytics capabilities.'
+          },
+        },
+        role: 'alertdialog',
+        id: 'moreInfoDialog',
+      })
+      .afterClosed()
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe();
   }
 }
