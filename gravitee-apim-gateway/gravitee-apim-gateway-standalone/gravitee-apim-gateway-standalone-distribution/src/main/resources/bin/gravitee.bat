@@ -9,9 +9,6 @@ for %%B in (%~dp0\.) do set GRAVITEE_HOME=%%~dpB
 
 IF "%JAVA_HOME%"=="" GOTO nojavahome
 
-set JAVA_OPTS="-Djava.net.preferIPv4Stack=true"
-
-
 set JAVA="%JAVA_HOME%/bin/java"
 
 rem Setup the classpath
@@ -35,7 +32,7 @@ REM set to headless, just in case
 set JAVA_OPTS=%JAVA_OPTS% -Djava.awt.headless=true
 
 REM Force the JVM to use IPv4 stack
-if NOT "%ES_USE_IPV4%" == "" (
+if NOT "%GIO_USE_IPV4%" == "" (
 set JAVA_OPTS=%JAVA_OPTS% -Djava.net.preferIPv4Stack=true
 )
 
