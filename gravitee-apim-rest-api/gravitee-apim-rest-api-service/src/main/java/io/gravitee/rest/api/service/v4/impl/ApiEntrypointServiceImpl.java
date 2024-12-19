@@ -76,6 +76,18 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
             executionContext.getEnvironmentId(),
             ParameterReferenceType.ENVIRONMENT
         );
+        String defaultKafkaDomain = parameterService.find(
+            executionContext,
+            Key.PORTAL_KAFKA_DOMAIN,
+            executionContext.getEnvironmentId(),
+            ParameterReferenceType.ENVIRONMENT
+        );
+        String defaultKafkaPort = parameterService.find(
+            executionContext,
+            Key.PORTAL_KAFKA_PORT,
+            executionContext.getEnvironmentId(),
+            ParameterReferenceType.ENVIRONMENT
+        );
 
         if (genericApiEntity.getTags() != null && !genericApiEntity.getTags().isEmpty()) {
             List<EntrypointEntity> organizationEntrypoints = entrypointService.findAll(executionContext);
@@ -93,6 +105,8 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
                             entrypointScheme,
                             entrypointValue,
                             defaultTcpPort,
+                            defaultKafkaDomain,
+                            defaultKafkaPort,
                             tagEntrypoints,
                             executionContext.getEnvironmentId()
                         )
@@ -117,6 +131,8 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
                     defaultScheme,
                     defaultEntrypoint,
                     defaultTcpPort,
+                    defaultKafkaDomain,
+                    defaultKafkaPort,
                     null,
                     executionContext.getEnvironmentId()
                 )
@@ -131,6 +147,8 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         final String entrypointScheme,
         final String entrypointHost,
         final String tcpPort,
+        final String kafkaDomain,
+        final String kafkaPort,
         final Set<String> tagEntrypoints,
         final String environmentId
     ) {
@@ -164,8 +182,7 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
                 .filter(listener -> listener instanceof KafkaListener)
                 .map(listener -> {
                     var kafkaListener = (KafkaListener) listener;
-                    // FIXME: use the kafkaPort config from properties when available (like tcpPort)
-                    return getKafkaNativeApiEntrypointEntity(kafkaListener.getHost(), 9092, tagEntrypoints);
+                    return getKafkaNativeApiEntrypointEntity(kafkaListener.getHost(), kafkaDomain, kafkaPort, tagEntrypoints);
                 })
                 .toList();
         } else {
@@ -255,8 +272,15 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         return new ApiEntrypointEntity(tags, target, host);
     }
 
-    private ApiEntrypointEntity getKafkaNativeApiEntrypointEntity(final String host, final Integer port, final Set<String> tags) {
-        var target = port != null ? String.join(":", host, port.toString()) : host;
+    private ApiEntrypointEntity getKafkaNativeApiEntrypointEntity(
+        final String host,
+        final String domain,
+        final String port,
+        final Set<String> tags
+    ) {
+        var domainSegment = domain != null && !domain.isBlank() ? "." + domain : "";
+
+        var target = host + domainSegment + ":" + port;
         return new ApiEntrypointEntity(tags, target, host);
     }
 
