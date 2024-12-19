@@ -66,6 +66,8 @@ import { distinctUntilChanged, filter, map, startWith, takeUntil } from 'rxjs/op
 
       .sidebar {
         grid-area: sidebar;
+        overflow-y: scroll;
+        scrollbar-width: none;
       }
 
       .content {
