@@ -47,6 +47,7 @@ import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.resource.api.ResourceManager;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.context.ApplicationContext;
@@ -153,10 +154,9 @@ public abstract class AbstractReactorFactory<T extends ReactableApi<? extends Ab
     protected List<TemplateVariableProvider> commonTemplateVariableProviders(T reactableApi) {
         final List<TemplateVariableProvider> templateVariableProviders = new ArrayList<>();
         templateVariableProviders.add(new ApiTemplateVariableProvider(reactableApi));
-        List<TemplateVariableProvider> list = applicationContext
-            .getBeansOfType(TemplateVariableProviderFactory.class)
-            .values()
-            .stream()
+        List<TemplateVariableProvider> list = Stream
+            .of(BeanFactoryUtils.beanNamesForTypeIncludingAncestors(applicationContext, TemplateVariableProviderFactory.class))
+            .map(name -> (TemplateVariableProviderFactory) applicationContext.getBean(name))
             .filter(factory -> factory.getTemplateVariableScope() == TemplateVariableScope.API)
             .flatMap(factory -> factory.getTemplateVariableProviders().stream())
             .toList();
