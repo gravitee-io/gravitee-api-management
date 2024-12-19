@@ -24,7 +24,11 @@
     <mat-card-content>
       @if (plans$ | async; as plans) {
         @if (plans.length) {
-          <app-subscribe-to-api-choose-plan [plans]="plans" [selectedPlan]="currentPlan" (selectPlan)="currentPlan.set($event)" />
+          <app-subscribe-to-api-choose-plan
+            [plans]="plans"
+            [selectedPlan]="currentPlan"
+            [api]="api"
+            (selectPlan)="currentPlan.set($event)" />
         }
       } @else {
         <app-loader />
@@ -64,7 +68,7 @@
       @if (currentPlan(); as plan) {
         @if (checkoutData$ | async; as checkoutData) {
           <app-subscribe-to-api-checkout
-            [api]="checkoutData.api"
+            [api]="api"
             [application]="currentApplication()"
             [plan]="plan"
             [message]="message"
