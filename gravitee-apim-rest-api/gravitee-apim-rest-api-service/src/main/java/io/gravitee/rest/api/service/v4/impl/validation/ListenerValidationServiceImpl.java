@@ -140,7 +140,8 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         verifyApiHostsDomainService.checkApiHosts(
             executionContext.getEnvironmentId(),
             apiId,
-            Collections.singletonList(listener.getHost())
+            Collections.singletonList(listener.getHost()),
+            ListenerType.KAFKA
         );
 
         validateEntrypoints(listener.getType(), listener.getEntrypoints(), endpointGroups);
@@ -195,7 +196,7 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         final TcpListener listener,
         final List<EndpointGroup> endpointGroups
     ) {
-        verifyApiHostsDomainService.checkApiHosts(executionContext.getEnvironmentId(), apiId, listener.getHosts());
+        verifyApiHostsDomainService.checkApiHosts(executionContext.getEnvironmentId(), apiId, listener.getHosts(), ListenerType.TCP);
 
         validateEntrypoints(listener.getType(), listener.getEntrypoints(), endpointGroups);
     }

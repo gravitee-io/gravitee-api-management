@@ -18,12 +18,13 @@ import { Observable, of, timer } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import { ListenerType } from '../../../entities/management-api-v2';
 
-export function hostAsyncValidator(apiV2Service: ApiV2Service, apiId?: string): AsyncValidatorFn {
+export function hostAsyncValidator(apiV2Service: ApiV2Service, apiId?: string, listenerType?: ListenerType): AsyncValidatorFn {
   return (formControl: FormControl): Observable<ValidationErrors | null> => {
     if (formControl && formControl.dirty) {
       return timer(250).pipe(
-        switchMap(() => apiV2Service.verifyHosts(apiId, [formControl.value])),
+        switchMap(() => apiV2Service.verifyHosts(apiId, listenerType, [formControl.value])),
         map((res) => (res.ok ? null : { listeners: res.reason })),
       );
     }

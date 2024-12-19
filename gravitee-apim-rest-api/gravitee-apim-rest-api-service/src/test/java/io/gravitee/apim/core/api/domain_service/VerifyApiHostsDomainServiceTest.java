@@ -27,6 +27,7 @@ import io.gravitee.apim.core.api.exception.DuplicatedHostException;
 import io.gravitee.apim.core.api.exception.HostAlreadyExistsException;
 import io.gravitee.apim.core.api.exception.InvalidHostException;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.definition.model.v4.listener.ListenerType;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,7 +70,7 @@ class VerifyApiHostsDomainServiceTest {
     @ParameterizedTest
     @NullAndEmptySource
     void should_throw_invalid_hosts_exception_when_no_host(List<String> hosts) {
-        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts))
+        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts, null))
             .isInstanceOf(InvalidHostException.class)
             .hasMessage("At least one host is required for the TCP listener.");
     }
@@ -77,7 +78,7 @@ class VerifyApiHostsDomainServiceTest {
     @Test
     void should_throw_hosts_already_exist_exception_when_hosts_are_duplicated() {
         var hosts = List.of("foo.example.com", "bar.example.com", "foo.example.com");
-        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts))
+        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts, null))
             .isInstanceOf(DuplicatedHostException.class)
             .hasMessage("Duplicated hosts detected: 'foo.example.com'. Please ensure each host is unique.");
     }
@@ -85,7 +86,7 @@ class VerifyApiHostsDomainServiceTest {
     @Test
     void should_throw_hosts_already_exist_exception_when_host_is_used_by_another_api() {
         var hosts = List.of("foo.example.com", "tcp.example.com");
-        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts))
+        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts, null))
             .isInstanceOf(HostAlreadyExistsException.class)
             .hasMessage("Hosts [foo.example.com] already exists");
     }
@@ -93,7 +94,7 @@ class VerifyApiHostsDomainServiceTest {
     @Test
     void should_throw_hosts_already_exist_exception_when_host_is_used_by_another_native_api() {
         var hosts = List.of("native.kafka");
-        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts))
+        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts, null))
             .isInstanceOf(HostAlreadyExistsException.class)
             .hasMessage("Hosts [native.kafka] already exists");
     }
@@ -101,7 +102,7 @@ class VerifyApiHostsDomainServiceTest {
     @Test
     void should_throw_invalid_hosts_exception_when_host_is_blank() {
         var hosts = List.of("foo.example.com", "");
-        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts))
+        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts, null))
             .isInstanceOf(InvalidHostException.class)
             .hasMessage("The hosts should not be null or blank.");
     }
@@ -109,17 +110,18 @@ class VerifyApiHostsDomainServiceTest {
     @ParameterizedTest
     @ValueSource(
         strings = {
-            "ThisIsALongHostNameWithMoreThan63CharactersWhichIsNotValidInOurCase",
-            "host.ThisIsALongHostNameWithMoreThan63CharactersWhichIsNotValidInOurCase.gravitee",
+            "thisisalonghostnamewithmorethan63charactereswhichisnotvalidinourcase",
+            "host.thisisalonghostnamewithmorethan63charactereswhichisnotvalidinourcase.gravitee",
             "-simple-host",
             "simple-host-",
             "simple-host-.host",
             "_simple-host",
             "simple-host_",
+            "MiXed-C4s3.example.c0m",
         }
     )
     void should_throw_invalid_exception_when_not_matching_rfc_pattern(String host) {
-        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, List.of(host)))
+        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, List.of(host), null))
             .isInstanceOf(InvalidHostException.class)
             .hasMessage("The hosts should be valid.");
     }
@@ -129,9 +131,26 @@ class VerifyApiHostsDomainServiceTest {
         var hosts = List.of(
             "a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host"
         );
-        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts))
+        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts, null))
             .isInstanceOf(InvalidHostException.class)
             .hasMessage("The hosts should not be greater than 255 characters.");
+    }
+
+    @Test
+    void should_throw_invalid_hosts_exception_when_first_segment_too_long_for_kafka() {
+        var hosts = List.of("a-valid-sub-host-a-valid-sub-host-a-valid-sub-host.dev");
+        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts, ListenerType.KAFKA))
+            .isInstanceOf(InvalidHostException.class)
+            .hasMessage("The first segment must be less than 50 characters.");
+    }
+
+    @Test
+    void should_allow_long_first_segment_for_non_kafka_listeners() {
+        var hosts = List.of("a-valid-sub-host-a-valid-sub-host-a-valid-sub-host.dev");
+
+        var result = verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts, ListenerType.TCP);
+
+        assertThat(result).isTrue();
     }
 
     @Test
@@ -142,11 +161,11 @@ class VerifyApiHostsDomainServiceTest {
             "tcp.2.example.com",
             "tcp-hyphen.example.com",
             "tcp_underscore.example.com",
-            "MiXed-C4s3.example.c0m"
+            "mixed-c4s3.example.c0m"
         );
 
         // when
-        var result = verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts);
+        var result = verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts, null);
 
         // then
         assertThat(result).isTrue();

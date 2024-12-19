@@ -32,6 +32,7 @@ import {
   UpdateApi,
   ApiTransferOwnership,
   VerifyApiDeployResponse,
+  ListenerType,
 } from '../entities/management-api-v2';
 import { PathToVerify, VerifyApiPathResponse } from '../entities/management-api-v2/api/verifyApiPath';
 import { VerifyApiHostsResponse } from '../entities/management-api-v2/api/verifyApiHosts';
@@ -212,8 +213,8 @@ export class ApiV2Service {
     return this.http.post<VerifyApiPathResponse>(`${this.constants.env.v2BaseURL}/apis/_verify/paths`, { apiId, paths });
   }
 
-  verifyHosts(apiId: string, hosts: string[]): Observable<VerifyApiHostsResponse> {
-    return this.http.post<VerifyApiHostsResponse>(`${this.constants.env.v2BaseURL}/apis/_verify/hosts`, { apiId, hosts });
+  verifyHosts(apiId: string, listenerType: ListenerType, hosts: string[]): Observable<VerifyApiHostsResponse> {
+    return this.http.post<VerifyApiHostsResponse>(`${this.constants.env.v2BaseURL}/apis/_verify/hosts`, { apiId, listenerType, hosts });
   }
 
   rollback(apiId: string, eventId: string): Observable<void> {

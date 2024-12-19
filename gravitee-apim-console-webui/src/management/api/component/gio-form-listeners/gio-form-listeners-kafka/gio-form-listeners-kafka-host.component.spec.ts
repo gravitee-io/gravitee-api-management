@@ -27,6 +27,7 @@ import { GioFormListenersKafkaHostComponent, KafkaHostData } from './gio-form-li
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { Constants } from '../../../../../entities/Constants';
+import { ListenerType } from '../../../../../entities/management-api-v2';
 
 @Component({
   template: ` <form [formGroup]="form"><gio-form-listeners-kafka-host formControlName="kafka" /></form> `,
@@ -243,7 +244,7 @@ describe('GioFormListenersKafkaHostComponent', () => {
     const requests = httpTestingController.match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/hosts`, method: 'POST' });
     hosts.forEach((host, index) => {
       const request = requests[index];
-      const expectedResult: { apiId?: string; hosts: [string] } = { hosts: [host] };
+      const expectedResult: { apiId?: string; hosts: [string]; listenerType: ListenerType } = { hosts: [host], listenerType: 'KAFKA' };
       if (withApiId) {
         expectedResult.apiId = 'api-id';
       }

@@ -28,6 +28,7 @@ import { GioFormListenersTcpHostsHarness } from './gio-form-listeners-tcp-hosts.
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { Constants } from '../../../../../entities/Constants';
+import { ListenerType } from '../../../../../entities/management-api-v2';
 
 @Component({
   template: ` <gio-form-listeners-tcp-hosts [formControl]="formControl"></gio-form-listeners-tcp-hosts> `,
@@ -358,7 +359,7 @@ describe('GioFormListenersTcpHostsModule', () => {
     const requests = httpTestingController.match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/hosts`, method: 'POST' });
     hosts.forEach((host, index) => {
       const request = requests[index];
-      const expectedResult: { apiId?: string; hosts: [string] } = { hosts: [host] };
+      const expectedResult: { apiId?: string; hosts: [string]; listenerType: ListenerType } = { hosts: [host], listenerType: 'TCP' };
       if (withApiId) {
         expectedResult.apiId = 'api-id';
       }
