@@ -20,6 +20,7 @@ import io.gravitee.definition.model.Origin;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.Set;
@@ -31,6 +32,7 @@ import java.util.Set;
  */
 public class NewApplicationEntity {
 
+    @NotBlank(message = "Application's id must not be blank")
     private String id;
 
     @NotNull(message = "Application's name must not be null")
@@ -52,7 +54,7 @@ public class NewApplicationEntity {
 
     /**
      * @deprecated Only for backward compatibility at the API level.
-     *             Will be remove in a future version.
+     * Will be remove in a future version.
      */
     @Deprecated
     @Schema(description = "a string to describe the type of your app.", example = "iOS")
@@ -60,7 +62,7 @@ public class NewApplicationEntity {
 
     /**
      * @deprecated Only for backward compatibility at the API level.
-     *             Will be remove in a future version.
+     * Will be remove in a future version.
      */
     @Deprecated
     private String clientId;
