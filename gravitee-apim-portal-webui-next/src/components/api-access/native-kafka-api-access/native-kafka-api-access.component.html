@@ -66,6 +66,8 @@
         </div>
       </mat-tab>
     </mat-tab-group>
+  } @else if (planSecurity() === 'KEY_LESS') {
+    <app-copy-code id="native-kafka-ssl-properties" [text]="sslConfig()" />
   }
 </div>
 

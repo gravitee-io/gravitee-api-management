@@ -24,7 +24,7 @@
     [planSecurity]="plan.security"
     [planValidation]="plan.validation" />
   @if (plan.security === 'KEY_LESS') {
-    <app-api-access [planSecurity]="plan.security" [entrypointUrl]="api.entrypoints[0]" />
+    <app-api-access [planSecurity]="plan.security" [entrypointUrl]="api.entrypoints[0]" [apiType]="api.type" />
   } @else {
     <div class="subscribe-to-api-checkout__container__right-column">
       @if (showApiKeyModeSelection()) {

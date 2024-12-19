@@ -139,18 +139,42 @@ describe('SubscribeToApiComponent', () => {
         const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
         await step1.selectPlanByPlanId(KEYLESS_PLAN_ID);
         await goToNextStep();
-        expectGetApi();
-        fixture.detectChanges();
       });
-      it('should see checkout information', async () => {
-        expect(fixture.debugElement.query(By.css('app-subscription-info'))).toBeTruthy();
-        const apiAccess = await harnessLoader.getHarness(ApiAccessHarness);
-        expect(apiAccess).toBeTruthy();
 
-        expect(await apiAccess.getBaseURL()).toEqual(ENTRYPOINT);
+      describe('V4 Proxy', () => {
+        beforeEach(() => {
+          expectGetApi(fakeApi({ type: 'PROXY', definitionVersion: 'V4', entrypoints: [ENTRYPOINT] }));
+          fixture.detectChanges();
+        });
+        it('should see checkout information', async () => {
+          expect(fixture.debugElement.query(By.css('app-subscription-info'))).toBeTruthy();
+          const apiAccess = await harnessLoader.getHarness(ApiAccessHarness);
+          expect(apiAccess).toBeTruthy();
+
+          expect(await apiAccess.getBaseURL()).toEqual(ENTRYPOINT);
+        });
+        it('should not show subscribe button', async () => {
+          expect(await getSubscribeButton()).toEqual(null);
+        });
       });
-      it('should not show subscribe button', async () => {
-        expect(await getSubscribeButton()).toEqual(null);
+
+      describe('V4 Native', () => {
+        const KAFKA_ENTRYPOINT = 'my.kafka.entrypoint:9092';
+        beforeEach(() => {
+          expectGetApi(fakeApi({ type: 'NATIVE', definitionVersion: 'V4', entrypoints: [KAFKA_ENTRYPOINT] }));
+          fixture.detectChanges();
+        });
+        it('should see checkout information', async () => {
+          expect(fixture.debugElement.query(By.css('app-subscription-info'))).toBeTruthy();
+          const apiAccess = await harnessLoader.getHarness(ApiAccessHarness);
+          expect(apiAccess).toBeTruthy();
+
+          expect(await apiAccess.getSslConfig()).toBeTruthy();
+          expect(await apiAccess.getProducerCommand()).toContain(KAFKA_ENTRYPOINT);
+        });
+        it('should not show subscribe button', async () => {
+          expect(await getSubscribeButton()).toEqual(null);
+        });
       });
     });
   });
