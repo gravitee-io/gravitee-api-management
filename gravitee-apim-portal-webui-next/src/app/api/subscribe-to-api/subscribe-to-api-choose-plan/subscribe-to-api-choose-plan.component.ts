@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 import { Component, computed, EventEmitter, Input, Output, Signal, WritableSignal } from '@angular/core';
+import { MatIcon } from '@angular/material/icon';
 
+import { BannerComponent } from '../../../../components/banner/banner.component';
 import { PlanCardComponent } from '../../../../components/subscribe/plan-card/plan-card.component';
+import { Api } from '../../../../entities/api/api';
 import { Plan } from '../../../../entities/plan/plan';
 
 @Component({
   selector: 'app-subscribe-to-api-choose-plan',
-  imports: [PlanCardComponent],
+  imports: [PlanCardComponent, BannerComponent, MatIcon],
   templateUrl: './subscribe-to-api-choose-plan.component.html',
   styleUrl: './subscribe-to-api-choose-plan.component.scss',
   standalone: true,
@@ -30,6 +33,9 @@ export class SubscribeToApiChoosePlanComponent {
 
   @Input()
   selectedPlan!: WritableSignal<Plan | undefined>;
+
+  @Input()
+  api!: Api;
 
   @Output()
   selectPlan = new EventEmitter<Plan>();

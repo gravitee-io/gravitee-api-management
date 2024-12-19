@@ -16,6 +16,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { MatCard, MatCardContent, MatCardHeader } from '@angular/material/card';
 
+import { ApiType } from '../../entities/api/api';
 import { getPlanSecurityTypeLabel, PlanSecurityEnum, PlanUsageConfiguration, PlanValidationEnum } from '../../entities/plan/plan';
 import { CapitalizeFirstPipe } from '../../pipe/capitalize-first.pipe';
 import { ToPeriodTimeUnitLabelPipe } from '../../pipe/time-unit.pipe';
@@ -42,6 +43,9 @@ export class SubscriptionInfoComponent implements OnInit {
 
   @Input()
   planValidation?: PlanValidationEnum;
+
+  @Input()
+  apiType?: ApiType;
 
   @Input()
   subscriptionStatus: string = '';

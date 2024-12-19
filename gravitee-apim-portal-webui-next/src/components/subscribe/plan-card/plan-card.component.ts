@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, computed, EventEmitter, input, Input, Output } from '@angular/core';
 
-import { getPlanSecurityTypeLabel, Plan } from '../../../entities/plan/plan';
+import { ApiType } from '../../../entities/api/api';
+import { getPlanSecurityTypeLabel, Plan, PlanSecurityEnum } from '../../../entities/plan/plan';
 import { ToPeriodTimeUnitLabelPipe } from '../../../pipe/time-unit.pipe';
 import { RadioCardComponent } from '../../radio-card/radio-card.component';
 
@@ -27,8 +28,9 @@ import { RadioCardComponent } from '../../radio-card/radio-card.component';
   providers: [ToPeriodTimeUnitLabelPipe],
   styleUrl: './plan-card.component.scss',
 })
-export class PlanCardComponent implements OnInit {
-  @Input() plan!: Plan;
+export class PlanCardComponent {
+  @Input()
+  apiType?: ApiType;
 
   @Input()
   selected: boolean = false;
@@ -39,15 +41,30 @@ export class PlanCardComponent implements OnInit {
   @Output()
   selectPlan = new EventEmitter<Plan>();
 
-  authentication: string = '';
+  plan = input.required<Plan>();
 
-  ngOnInit() {
-    this.authentication = getPlanSecurityTypeLabel(this.plan.security);
-  }
+  authentication = computed(() => {
+    if (this.apiType === 'NATIVE') {
+      return this.getNativeSecurityLabel(this.plan().security);
+    }
+    return getPlanSecurityTypeLabel(this.plan().security);
+  });
 
   onSelectPlan() {
     if (!this.disabled) {
-      this.selectPlan.emit(this.plan);
+      this.selectPlan.emit(this.plan());
+    }
+  }
+
+  private getNativeSecurityLabel(planSecurity: PlanSecurityEnum): string {
+    switch (planSecurity) {
+      case 'API_KEY':
+        return 'SASL/SSL with SASL mechanisms PLAIN, SCRAM-256, and SCRAM-512';
+      case 'JWT':
+      case 'OAUTH2':
+        return 'SASL/SSL with SASL mechanism OAUTHBEARER';
+      default:
+        return 'SSL';
     }
   }
 }
