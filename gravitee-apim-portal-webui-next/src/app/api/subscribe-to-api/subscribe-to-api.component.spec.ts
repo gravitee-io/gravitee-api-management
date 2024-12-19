@@ -50,6 +50,7 @@ describe('SubscribeToApiComponent', () => {
 
   const API_ID = 'api-id';
   const ENTRYPOINT = 'http://my.entrypoint';
+  const API = fakeApi({id: API_ID, entrypoints: [ENTRYPOINT] });
   const KEYLESS_PLAN_ID = 'keyless-plan';
   const API_KEY_PLAN_ID = 'api-key-plan';
   const API_KEY_PLAN_ID_COMMENT_REQUIRED = 'api-key-plan-comment-required';
@@ -63,7 +64,7 @@ describe('SubscribeToApiComponent', () => {
   const APP_ID_ONE_API_KEY_SUBSCRIPTION = 'app-id-one-api-key-subscription';
   const APP_ID_WITH_CLIENT_CERTIFICATE = 'app-id-with-client-certificate';
 
-  const init = async (sharedApiKeyModeEnabled: boolean) => {
+  const init = async (sharedApiKeyModeEnabled: boolean, api: Api = API) => {
     await TestBed.configureTestingModule({
       imports: [SubscribeToApiComponent, AppTestingModule],
       providers: [
@@ -91,7 +92,7 @@ describe('SubscribeToApiComponent', () => {
     rootHarnessLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     component = fixture.componentInstance;
-    component.apiId = API_ID;
+    component.api = API;
     fixture.detectChanges();
 
     httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${API_ID}/plans?size=-1`).flush({
@@ -129,7 +130,6 @@ describe('SubscribeToApiComponent', () => {
 
         await goToNextStep();
 
-        expectGetApi();
         fixture.detectChanges();
         expect(getTitle()).toEqual('Checkout');
       });
@@ -139,7 +139,7 @@ describe('SubscribeToApiComponent', () => {
         const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
         await step1.selectPlanByPlanId(KEYLESS_PLAN_ID);
         await goToNextStep();
-        expectGetApi();
+
         fixture.detectChanges();
       });
       it('should see checkout information', async () => {
@@ -271,7 +271,7 @@ describe('SubscribeToApiComponent', () => {
 
           await goToNextStep();
 
-          expectGetApi();
+
           fixture.detectChanges();
           expect(getTitle()).toEqual('Checkout');
         });
@@ -312,7 +312,7 @@ describe('SubscribeToApiComponent', () => {
           expect(await getSelectedApplicationName()).toEqual('App 10');
           await goToNextStep();
 
-          expectGetApi();
+
           fixture.detectChanges();
           expect(getTitle()).toEqual('Checkout');
         });
@@ -348,7 +348,7 @@ describe('SubscribeToApiComponent', () => {
           await selectPlan(API_KEY_PLAN_ID_COMMENT_REQUIRED);
           await selectApplication();
 
-          expectGetApi();
+
           fixture.detectChanges();
         });
         it('should not allow subscribe without comment', async () => {
@@ -382,7 +382,7 @@ describe('SubscribeToApiComponent', () => {
           await selectPlan(API_KEY_PLAN_ID_GENERAL_CONDITIONS);
           await selectApplication();
 
-          expectGetApi();
+
           fixture.detectChanges();
         });
         it('should not allow subscribe without accepting terms and conditions', async () => {
@@ -425,7 +425,7 @@ describe('SubscribeToApiComponent', () => {
             await selectPlan(API_KEY_PLAN_ID);
             await selectApplication(APP_ID_NO_SUBSCRIPTIONS);
 
-            expectGetApi();
+
             expectGetSubscriptionsForApplication(APP_ID_NO_SUBSCRIPTIONS, fakeSubscriptionResponse({ data: [], metadata: {} }));
             fixture.detectChanges();
           });
@@ -451,7 +451,7 @@ describe('SubscribeToApiComponent', () => {
                 await selectPlan(API_KEY_PLAN_ID);
                 await selectApplication(APP_ID_ONE_API_KEY_SUBSCRIPTION);
 
-                expectGetApi();
+
                 expectGetSubscriptionsForApplication(
                   APP_ID_ONE_API_KEY_SUBSCRIPTION,
                   fakeSubscriptionResponse({
@@ -494,7 +494,7 @@ describe('SubscribeToApiComponent', () => {
                 await selectPlan(API_KEY_PLAN_ID);
                 await selectApplication(APP_ID_ONE_API_KEY_SUBSCRIPTION);
 
-                expectGetApi();
+
                 expectGetSubscriptionsForApplication(
                   APP_ID_ONE_API_KEY_SUBSCRIPTION,
                   fakeSubscriptionResponse({
@@ -528,7 +528,7 @@ describe('SubscribeToApiComponent', () => {
               await selectPlan(API_KEY_PLAN_ID);
               await selectApplication(APP_ID_ONE_API_KEY_SUBSCRIPTION);
 
-              expectGetApi();
+
               expectGetSubscriptionsForApplication(
                 APP_ID_ONE_API_KEY_SUBSCRIPTION,
                 fakeSubscriptionResponse({
@@ -570,11 +570,10 @@ describe('SubscribeToApiComponent', () => {
         });
         describe('When the API is Federated', () => {
           beforeEach(async () => {
-            await init(true);
+            await init(true, fakeApi({ id: API_ID, definitionVersion: 'FEDERATED' }));
             await selectPlan(API_KEY_PLAN_ID);
             await selectApplication(APP_ID_ONE_API_KEY_SUBSCRIPTION);
 
-            expectGetApi(fakeApi({ id: API_ID, definitionVersion: 'FEDERATED' }));
             fixture.detectChanges();
           });
           it('should not show api key mode choice', async () => {
@@ -599,7 +598,7 @@ describe('SubscribeToApiComponent', () => {
           await selectPlan(API_KEY_PLAN_ID);
           await selectApplication();
 
-          expectGetApi();
+
           fixture.detectChanges();
         });
         it('should allow subscribe without comment', async () => {
@@ -767,7 +766,7 @@ describe('SubscribeToApiComponent', () => {
         await selectPlan(OAUTH2_PLAN_ID);
         await selectApplication();
 
-        expectGetApi();
+
         fixture.detectChanges();
       });
       it('should subscribe', async () => {
@@ -923,7 +922,7 @@ describe('SubscribeToApiComponent', () => {
         await selectPlan(JWT_PLAN_ID);
         await selectApplication();
 
-        expectGetApi();
+
         fixture.detectChanges();
       });
       it('should subscribe', async () => {
@@ -1032,7 +1031,7 @@ describe('SubscribeToApiComponent', () => {
         await selectPlan(MTLS_PLAN_ID);
         await selectApplication(APP_ID_WITH_CLIENT_CERTIFICATE);
 
-        expectGetApi();
+
         fixture.detectChanges();
       });
       it('should subscribe', async () => {
