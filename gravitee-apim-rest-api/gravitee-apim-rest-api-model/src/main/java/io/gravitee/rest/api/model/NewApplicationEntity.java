@@ -31,6 +31,7 @@ import java.util.Set;
  */
 public class NewApplicationEntity {
 
+    @NotEmpty(message = "Application's id must not be empty")
     private String id;
 
     @NotNull(message = "Application's name must not be null")
@@ -40,8 +41,8 @@ public class NewApplicationEntity {
 
     @NotNull(message = "Application's description must not be null")
     @Schema(
-        description = "Application's description. A short description of your App.",
-        example = "I can use a hundred characters to describe this App."
+            description = "Application's description. A short description of your App.",
+            example = "I can use a hundred characters to describe this App."
     )
     private String description;
 
@@ -52,7 +53,7 @@ public class NewApplicationEntity {
 
     /**
      * @deprecated Only for backward compatibility at the API level.
-     *             Will be remove in a future version.
+     * Will be remove in a future version.
      */
     @Deprecated
     @Schema(description = "a string to describe the type of your app.", example = "iOS")
@@ -60,7 +61,7 @@ public class NewApplicationEntity {
 
     /**
      * @deprecated Only for backward compatibility at the API level.
-     *             Will be remove in a future version.
+     * Will be remove in a future version.
      */
     @Deprecated
     private String clientId;

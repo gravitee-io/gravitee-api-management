@@ -482,7 +482,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
 
         Application application = applicationConverter.toApplication(newApplicationEntity);
-        if (newApplicationEntity.getId() != null && !newApplicationEntity.getId().isEmpty()) {
+        if (newApplicationEntity.getId() != null) {
             application.setId(newApplicationEntity.getId());
         } else {
             application.setId(UuidString.generateRandom());
