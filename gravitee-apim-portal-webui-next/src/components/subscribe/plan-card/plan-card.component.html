@@ -20,27 +20,27 @@
   [disabled]="disabled"
   [disabledMessage]="'Plan not available yet'"
   [value]="plan"
-  [title]="plan.name"
+  [title]="plan().name"
   (selectItem)="onSelectPlan()">
   <div class="m3-body-medium">Plan includes:</div>
   <ul class="plan-card__content">
-    <li class="m3-body-medium">Authentication: {{ authentication }}</li>
-    @if (!!plan.usage_configuration?.quota?.limit) {
+    <li class="m3-body-medium">Authentication: {{ authentication() }}</li>
+    @if (!!plan().usage_configuration?.quota?.limit) {
       <li class="m3-body-medium">
-        Quota: up to {{ plan.usage_configuration?.quota?.limit ?? 0 }} hits /
-        {{ plan.usage_configuration?.quota ?? {} | toPeriodTimeUnitLabelPipe }}
+        Quota: up to {{ plan().usage_configuration?.quota?.limit ?? 0 }} hits /
+        {{ plan().usage_configuration?.quota ?? {} | toPeriodTimeUnitLabelPipe }}
       </li>
     }
-    @if (!!plan.usage_configuration?.rate_limit?.limit) {
+    @if (!!plan().usage_configuration?.rate_limit?.limit) {
       <li class="m3-body-medium">
-        Rate-limit: up to {{ plan.usage_configuration?.rate_limit?.limit ?? 0 }} hits /
-        {{ plan.usage_configuration?.rate_limit ?? {} | toPeriodTimeUnitLabelPipe }}
+        Rate-limit: up to {{ plan().usage_configuration?.rate_limit?.limit ?? 0 }} hits /
+        {{ plan().usage_configuration?.rate_limit ?? {} | toPeriodTimeUnitLabelPipe }}
       </li>
     }
   </ul>
-  @if (plan.security !== 'KEY_LESS') {
+  @if (plan().security !== 'KEY_LESS') {
     <div class="m3-body-medium">
-      {{ plan.validation === 'AUTO' ? 'The subscription is automatic.' : 'The subscription is under admin review.' }}
+      {{ plan().validation === 'AUTO' ? 'The subscription is automatic.' : 'The subscription is under admin review.' }}
     </div>
   }
 </app-radio-card>
