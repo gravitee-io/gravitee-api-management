@@ -21,11 +21,6 @@ case "`uname`" in
         ;;
 esac
 
-# Force IPv4 on Linux systems since IPv6 doesn't work correctly with jdk5 and lower
-if [ "$linux" = "true" ]; then
-   JAVA_OPTS="$JAVA_OPTS -Djava.net.preferIPv4Stack=true"
-fi
-
 # Searching for configuration 
 GRAVITEE_OPTS=""
 if [ -f "/etc/gravitee-management/gravitee.yml" ]
