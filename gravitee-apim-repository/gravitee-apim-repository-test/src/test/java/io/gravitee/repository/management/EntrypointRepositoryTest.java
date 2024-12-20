@@ -19,6 +19,7 @@ import static org.junit.Assert.*;
 
 import io.gravitee.repository.management.model.Entrypoint;
 import io.gravitee.repository.management.model.EntrypointReferenceType;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.Assert;
@@ -91,6 +92,23 @@ public class EntrypointRepositoryTest extends AbstractManagementRepositoryTest {
         int nbEntryPointsAfterDeletion = entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION).size();
 
         Assert.assertEquals(nbEntryPointsBeforeDeletion - 1, nbEntryPointsAfterDeletion);
+    }
+
+    @Test
+    public void should_delete_by_reference_id_and_reference_type() throws Exception {
+        final Set<Entrypoint> beforeDelete = entrypointRepository.findByReference("ToBeDeleted", EntrypointReferenceType.ORGANIZATION);
+
+        final List<String> deleted = entrypointRepository.deleteByReferenceIdAndReferenceType(
+            "ToBeDeleted",
+            EntrypointReferenceType.ORGANIZATION
+        );
+
+        final Set<Entrypoint> afterDelete = entrypointRepository.findByReference("ToBeDeleted", EntrypointReferenceType.ORGANIZATION);
+
+        assertNotNull(beforeDelete);
+        assertEquals(2, beforeDelete.size());
+        assertEquals(2, deleted.size());
+        assertEquals(0, afterDelete.size());
     }
 
     @Test(expected = IllegalStateException.class)

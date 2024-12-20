@@ -52,6 +52,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
     private final AuditRepository auditRepository;
     private final CommandRepository commandRepository;
     private final CustomUserFieldsRepository customUserFieldsRepository;
+    private final EntrypointRepository entrypointRepository;
     private final EnvironmentService environmentService;
     private final FlowRepository flowRepository;
     private final IdentityProviderActivationRepository identityProviderActivationRepository;
@@ -77,6 +78,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         @Lazy AuditRepository auditRepository,
         @Lazy CommandRepository commandRepository,
         @Lazy CustomUserFieldsRepository customUserFieldsRepository,
+        @Lazy EntrypointRepository entrypointRepository,
         @Lazy FlowRepository flowRepository,
         @Lazy IdentityProviderActivationRepository identityProviderActivationRepository,
         @Lazy IdentityProviderRepository identityProviderRepository,
@@ -103,6 +105,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         this.auditRepository = auditRepository;
         this.commandRepository = commandRepository;
         this.customUserFieldsRepository = customUserFieldsRepository;
+        this.entrypointRepository = entrypointRepository;
         this.environmentService = environmentService;
         this.flowRepository = flowRepository;
         this.identityProviderActivationRepository = identityProviderActivationRepository;
@@ -217,5 +220,6 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
             organization.getId(),
             NotificationTemplateReferenceType.ORGANIZATION
         );
+        entrypointRepository.deleteByReferenceIdAndReferenceType(organization.getId(), EntrypointReferenceType.ORGANIZATION);
     }
 }
