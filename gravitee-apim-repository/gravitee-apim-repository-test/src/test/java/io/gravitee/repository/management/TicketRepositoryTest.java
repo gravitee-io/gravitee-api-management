@@ -16,6 +16,7 @@
 package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -44,7 +45,7 @@ public class TicketRepositoryTest extends AbstractManagementRepositoryTest {
             .getContent();
 
         assertNotNull(tickets);
-        assertEquals("Invalid tickets numbers in search", 4, tickets.size());
+        assertEquals("Invalid tickets numbers in search", 8, tickets.size());
         assertEquals("ticket0", tickets.get(0).getId());
         assertEquals("ticket1", tickets.get(1).getId());
         assertEquals("ticket2", tickets.get(2).getId());
@@ -58,7 +59,7 @@ public class TicketRepositoryTest extends AbstractManagementRepositoryTest {
             .getContent();
 
         assertNotNull(tickets);
-        assertEquals("Invalid tickets numbers in search", 4, tickets.size());
+        assertEquals("Invalid tickets numbers in search", 8, tickets.size());
         assertEquals("ticket0", tickets.get(0).getId());
         assertEquals("ticket1", tickets.get(1).getId());
         assertEquals("ticket2", tickets.get(2).getId());
@@ -76,7 +77,7 @@ public class TicketRepositoryTest extends AbstractManagementRepositoryTest {
             .getContent();
 
         assertNotNull(tickets);
-        assertEquals("Invalid tickets numbers in search", 4, tickets.size());
+        assertEquals("Invalid tickets numbers in search", 8, tickets.size());
         assertEquals("ticket0", tickets.get(0).getId());
         assertEquals("ticket1", tickets.get(1).getId());
         assertEquals("ticket2", tickets.get(2).getId());
@@ -133,5 +134,25 @@ public class TicketRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("Invalid saved ticket subject.", ticket.getSubject(), ticketFound.getSubject());
         assertEquals("Invalid saved ticket content.", ticket.getContent(), ticketFound.getContent());
         assertTrue(compareDate(ticket.getCreatedAt(), ticketFound.getCreatedAt()));
+    }
+
+    @Test
+    public void should_delete_by_api_id() throws Exception {
+        var nbBeforeDeletion = ticketRepository.findAll().stream().filter(t -> "api-to-delete".equals(t.getApi())).count();
+        var nbDeleted = ticketRepository.deleteByApiId("api-to-delete").size();
+
+        assertThat(nbBeforeDeletion).isEqualTo(2);
+        assertThat(nbDeleted).isEqualTo(2);
+        assertThat(ticketRepository.findAll().stream().filter(t -> "api-to-delete".equals(t.getApi())).count()).isEqualTo(0);
+    }
+
+    @Test
+    public void should_delete_by_application_id() throws Exception {
+        var nbBeforeDeletion = ticketRepository.findAll().stream().filter(t -> "app-to-delete".equals(t.getApplication())).count();
+        var nbDeleted = ticketRepository.deleteByApplicationId("app-to-delete").size();
+
+        assertThat(nbBeforeDeletion).isEqualTo(2);
+        assertThat(nbDeleted).isEqualTo(2);
+        assertThat(ticketRepository.findAll().stream().filter(t -> "app-to-delete".equals(t.getApplication())).count()).isEqualTo(0);
     }
 }
