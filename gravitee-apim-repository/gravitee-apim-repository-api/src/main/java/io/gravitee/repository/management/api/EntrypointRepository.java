@@ -18,7 +18,7 @@ package io.gravitee.repository.management.api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Entrypoint;
 import io.gravitee.repository.management.model.EntrypointReferenceType;
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -31,4 +31,13 @@ public interface EntrypointRepository extends CrudRepository<Entrypoint, String>
         throws TechnicalException;
 
     Set<Entrypoint> findByReference(String referenceId, EntrypointReferenceType referenceType) throws TechnicalException;
+
+    /**
+     * Delete entrypoints by reference
+     * @param referenceId
+     * @param referenceType
+     * @return List of IDs for deleted entrypoints
+     * @throws TechnicalException
+     */
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, EntrypointReferenceType referenceType) throws TechnicalException;
 }
