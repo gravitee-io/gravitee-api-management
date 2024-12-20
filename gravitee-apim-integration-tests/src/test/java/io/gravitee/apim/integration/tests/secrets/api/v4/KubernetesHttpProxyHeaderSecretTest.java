@@ -52,10 +52,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
 
@@ -64,133 +63,107 @@ import org.testcontainers.k3s.K3sContainer;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-public class KubernetesHttpProxyHeaderSecretTest {
+@GatewayTest
+class KubernetesHttpProxyHeaderSecretTest extends AbstractGatewayTest {
 
-    abstract static class AbstractKubernetesApiTest extends AbstractGatewayTest {
+    static Path kubeConfigFile;
+    static K3sContainer k3sServer;
+    final String apiKey = UUID.randomUUID().toString();
 
-        Path kubeConfigFile;
-        K3sContainer k3sServer;
+    @AfterAll
+    static void cleanup() throws IOException {
+        k3sServer.close();
+        Files.delete(kubeConfigFile);
+    }
 
-        @AfterEach
-        void cleanup() throws IOException {
-            k3sServer.close();
-            Files.delete(kubeConfigFile);
-        }
-
-        @Override
-        public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
-            try {
-                kubeConfigFile =
-                    Files.createTempDirectory(KubernetesHttpProxyHeaderSecretTest.class.getSimpleName()).resolve("kube_config.yml");
-                configurationBuilder.setYamlProperty("api.secrets.providers[0].plugin", "kubernetes");
-                configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.enabled", true);
-                configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.kubeConfigFile", kubeConfigFile.toString());
-
-                setupAdditionalProperties(configurationBuilder);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        @Override
-        public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
-        }
-
-        @Override
-        public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
-        }
-
-        @Override
-        public void configureSecretProviders(
-            Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
-        ) throws Exception {
-            secretProviderPlugins.add(
-                SecretProviderBuilder.build(KubernetesSecretProvider.PLUGIN_ID, KubernetesSecretProviderFactory.class, K8sConfig.class)
-            );
-            startK3s();
-            createSecrets();
-        }
-
-        @Override
-        public void configureServices(Set<Class<? extends AbstractService<?>>> services) {
-            super.configureServices(services);
-            services.add(SecretsService.class);
-        }
-
-        abstract void createSecrets() throws IOException, InterruptedException;
-
-        final void startK3s() throws IOException {
+    // not call by JUnit, as needs to be started before API is deployed
+    static void startK3s() throws IOException {
+        if (k3sServer == null) {
             k3sServer = KubernetesHelper.getK3sServer();
             k3sServer.start();
             // write config so the secret provider can pick it up
             Files.writeString(kubeConfigFile, k3sServer.getKubeConfigYaml());
         }
+    }
 
-        protected void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
-            // no op by default
+    @Override
+    public void configureSecretProviders(
+        Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
+    ) throws Exception {
+        secretProviderPlugins.add(
+            SecretProviderBuilder.build(KubernetesSecretProvider.PLUGIN_ID, KubernetesSecretProviderFactory.class, K8sConfig.class)
+        );
+        startK3s();
+        createSecrets();
+    }
+
+    @Override
+    public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
+        try {
+            kubeConfigFile =
+                Files.createTempDirectory(KubernetesHttpProxyHeaderSecretTest.class.getSimpleName()).resolve("kube_config.yml");
+            configurationBuilder.setYamlProperty("api.secrets.providers[0].plugin", "kubernetes");
+            configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.enabled", true);
+            configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.kubeConfigFile", kubeConfigFile.toString());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    abstract static class AbstractApiKeyStaticSecretRefTest extends AbstractKubernetesApiTest {
-
-        protected final String apiKey = UUID.randomUUID().toString();
-
-        @Override
-        void createSecrets() throws IOException, InterruptedException {
-            KubernetesHelper.createSecret(k3sServer, "default", "test", Map.of("api-key", this.apiKey));
-        }
-
-        protected void callAndAssert(HttpClient httpClient) {
-            wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
-
-            httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    // just asserting we get a response (hence no SSL errors), no need for an API.
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertComplete();
-
-            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")).withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
-        }
+    @Override
+    public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
+        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
-    @Nested
-    @GatewayTest
-    class StaticSecretRef extends AbstractApiKeyStaticSecretRefTest {
-
-        @Test
-        @DeployApi("/apis/v4/http/secrets/k8s/api-static-ref.json")
-        void should_call_api_with_k8s_api_key_from_static_ref(HttpClient httpClient) {
-            callAndAssert(httpClient);
-        }
+    @Override
+    public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
+        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
-    @Nested
-    @GatewayTest
-    class StaticSecretRefELKey extends AbstractApiKeyStaticSecretRefTest {
-
-        @Test
-        @DeployApi("/apis/v4/http/secrets/k8s/api-el-key-ref.json")
-        void should_call_api_with_k8s_api_key_from_static_ref_and_el_key(HttpClient httpClient) {
-            callAndAssert(httpClient);
-        }
+    @Override
+    public void configureServices(Set<Class<? extends AbstractService<?>>> services) {
+        super.configureServices(services);
+        services.add(SecretsService.class);
     }
 
-    @Nested
-    @GatewayTest
-    class StaticSecretRefELURI extends AbstractApiKeyStaticSecretRefTest {
+    // @Override
+    void createSecrets() throws IOException, InterruptedException {
+        KubernetesHelper.createSecret(k3sServer, "default", "test", Map.of("api-key", this.apiKey));
+    }
 
-        @Test
-        @DeployApi("/apis/v4/http/secrets/k8s/api-el-ref.json")
-        void should_call_api_with_k8s_api_key_el_ref(HttpClient httpClient) {
-            callAndAssert(httpClient);
-        }
+    protected void callAndAssert(HttpClient httpClient) {
+        wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
+
+        httpClient
+            .rxRequest(HttpMethod.GET, "/test")
+            .flatMap(HttpClientRequest::rxSend)
+            .flatMap(response -> {
+                // just asserting we get a response (hence no SSL errors), no need for an API.
+                assertThat(response.statusCode()).isEqualTo(200);
+                return response.body();
+            })
+            .test()
+            .awaitDone(10, TimeUnit.SECONDS)
+            .assertComplete();
+
+        wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")).withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
+    }
+
+    @Test
+    @DeployApi("/apis/v4/http/secrets/k8s/api-static-ref.json")
+    void should_call_api_with_k8s_api_key_from_static_ref(HttpClient httpClient) {
+        callAndAssert(httpClient);
+    }
+
+    @Test
+    @DeployApi("/apis/v4/http/secrets/k8s/api-el-key-ref.json")
+    void should_call_api_with_k8s_api_key_from_static_ref_and_el_key(HttpClient httpClient) {
+        callAndAssert(httpClient);
+    }
+
+    @Test
+    @DeployApi("/apis/v4/http/secrets/k8s/api-el-ref.json")
+    void should_call_api_with_k8s_api_key_el_ref(HttpClient httpClient) {
+        callAndAssert(httpClient);
     }
 }
