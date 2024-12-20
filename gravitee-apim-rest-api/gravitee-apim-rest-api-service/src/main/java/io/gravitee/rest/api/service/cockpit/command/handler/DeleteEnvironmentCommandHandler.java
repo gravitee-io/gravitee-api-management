@@ -34,6 +34,7 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.AsyncJobRepository;
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.CategoryRepository;
+import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.CustomUserFieldsRepository;
 import io.gravitee.repository.management.api.DashboardRepository;
@@ -120,6 +121,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final AuditRepository auditRepository;
     private final CategoryRepository categoryRepository;
     private final CommandRepository commandRepository;
+    private final ClientRegistrationProviderRepository clientRegistrationProviderRepository;
     private final CustomUserFieldsRepository customUserFieldsRepository;
     private final DashboardRepository dashboardRepository;
     private final DictionaryRepository dictionaryRepository;
@@ -167,6 +169,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         @Lazy AsyncJobRepository asyncJobRepository,
         @Lazy AuditRepository auditRepository,
         @Lazy CategoryRepository categoryRepository,
+        @Lazy ClientRegistrationProviderRepository clientRegistrationProviderRepository,
         @Lazy CommandRepository commandRepository,
         @Lazy CustomUserFieldsRepository customUserFieldsRepository,
         @Lazy DashboardRepository dashboardRepository,
@@ -220,6 +223,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.applicationRepository = applicationRepository;
         this.auditRepository = auditRepository;
         this.categoryRepository = categoryRepository;
+        this.clientRegistrationProviderRepository = clientRegistrationProviderRepository;
         this.commandRepository = commandRepository;
         this.customUserFieldsRepository = customUserFieldsRepository;
         this.dashboardRepository = dashboardRepository;
@@ -372,6 +376,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         metadataRepository.deleteByReferenceIdAndReferenceType(environment.getId(), MetadataReferenceType.ENVIRONMENT);
         environmentService.delete(environment.getId());
         auditRepository.deleteByReferenceIdAndReferenceType(environment.getId(), Audit.AuditReferenceType.ENVIRONMENT);
+        clientRegistrationProviderRepository.deleteByEnvironmentId(environment.getId());
     }
 
     private void deleteApis(ExecutionContext executionContext) throws TechnicalException {

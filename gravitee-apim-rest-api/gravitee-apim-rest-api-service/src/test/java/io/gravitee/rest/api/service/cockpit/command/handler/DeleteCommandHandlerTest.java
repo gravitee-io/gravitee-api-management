@@ -60,8 +60,7 @@ public class DeleteCommandHandlerTest {
         // Forgot repositories
         TicketRepository.class,
         QualityRuleRepository.class,
-        EntrypointRepository.class,
-        ClientRegistrationProviderRepository.class
+        EntrypointRepository.class
     );
 
     /**

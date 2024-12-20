@@ -181,4 +181,33 @@ public class JdbcClientRegistrationProviderRepository
         jdbcTemplate.update("delete from " + CLIENT_REGISTRATION_PROVIDER_SCOPES + " where client_registration_provider_id = ?", id);
         jdbcTemplate.update(getOrm().getDeleteSql(), id);
     }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcClientRegistrationProviderRepository.deleteByEnvironmentId({})", environmentId);
+        try {
+            List<String> rows = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where environment_id = ?",
+                String.class,
+                environmentId
+            );
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " +
+                    CLIENT_REGISTRATION_PROVIDER_SCOPES +
+                    " where client_registration_provider_id IN (" +
+                    getOrm().buildInClause(rows) +
+                    ")",
+                    rows.toArray()
+                );
+                jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
+            }
+
+            LOGGER.debug("JdbcClientRegistrationProviderRepository.deleteByEnvironmentId({})", environmentId);
+            return rows;
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to delete client registration providers by environment", ex);
+        }
+    }
 }

@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.ClientRegistrationProvider;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -38,4 +39,13 @@ public interface ClientRegistrationProviderRepository extends CrudRepository<Cli
      * @throws TechnicalException if something goes wrong
      */
     Set<ClientRegistrationProvider> findAllByEnvironment(String environmentId) throws TechnicalException;
+
+    /**
+     * Delete client registration providers by environment
+     *
+     * @param environmentId The environment ID
+     * @return List of deleted IDs for client registration providers
+     * @throws TechnicalException
+     */
+    List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 }

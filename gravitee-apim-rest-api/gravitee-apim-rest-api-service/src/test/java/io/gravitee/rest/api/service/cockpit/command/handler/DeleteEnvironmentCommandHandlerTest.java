@@ -38,6 +38,7 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.AsyncJobRepository;
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.CategoryRepository;
+import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.CustomUserFieldsRepository;
 import io.gravitee.repository.management.api.DashboardRepository;
@@ -283,6 +284,9 @@ public class DeleteEnvironmentCommandHandlerTest {
     @Mock
     private SearchEngineService searchEngineService;
 
+    @Mock
+    private ClientRegistrationProviderRepository clientRegistrationProviderRepository;
+
     private DeleteEnvironmentCommandHandler cut;
 
     @Before
@@ -348,6 +352,7 @@ public class DeleteEnvironmentCommandHandlerTest {
                 asyncJobRepository,
                 auditRepository,
                 categoryRepository,
+                clientRegistrationProviderRepository,
                 commandRepository,
                 customUserFieldsRepository,
                 dashboardRepository,
@@ -470,6 +475,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(metadataRepository).deleteByReferenceIdAndReferenceType(ENV_ID, MetadataReferenceType.ENVIRONMENT);
         verify(scoringRulesetRepository).deleteByReferenceId(ENV_ID, "ENVIRONMENT");
         verify(environmentService).delete(ENV_ID);
+        verify(clientRegistrationProviderRepository).deleteByEnvironmentId(ENV_ID);
     }
 
     private void verifyDeleteApplications(ExecutionContext executionContext) throws TechnicalException {
