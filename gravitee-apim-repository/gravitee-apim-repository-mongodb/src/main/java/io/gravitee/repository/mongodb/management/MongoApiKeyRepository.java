@@ -109,6 +109,11 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
     }
 
     @Override
+    public List<ApiKey> findByKeyAndEnvironmentId(String key, String environmentId) {
+        return internalApiKeyRepo.findByKeyAndEnvironmentId(key, environmentId).stream().map(this::toApiKey).toList();
+    }
+
+    @Override
     public Optional<ApiKey> findByKeyAndApi(String key, String api) {
         return internalApiKeyRepo.findByKeyAndApi(key, api).stream().findFirst().map(this::toApiKey);
     }
