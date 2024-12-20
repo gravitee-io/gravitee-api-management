@@ -58,6 +58,7 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.PortalMenuLinkRepository;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
 import io.gravitee.repository.management.api.PromotionRepository;
+import io.gravitee.repository.management.api.QualityRuleRepository;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.RoleRepository;
@@ -83,6 +84,7 @@ import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.ParameterReferenceType;
+import io.gravitee.repository.management.model.QualityRule;
 import io.gravitee.repository.management.model.RatingReferenceType;
 import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.ThemeReferenceType;
@@ -287,6 +289,9 @@ public class DeleteEnvironmentCommandHandlerTest {
     @Mock
     private ClientRegistrationProviderRepository clientRegistrationProviderRepository;
 
+    @Mock
+    private QualityRuleRepository qualityRuleRepository;
+
     private DeleteEnvironmentCommandHandler cut;
 
     @Before
@@ -373,6 +378,7 @@ public class DeleteEnvironmentCommandHandlerTest {
                 portalMenuLinkRepository,
                 portalNotificationConfigRepository,
                 promotionRepository,
+                qualityRuleRepository,
                 ratingAnswerRepository,
                 ratingRepository,
                 roleRepository,
@@ -476,6 +482,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(scoringRulesetRepository).deleteByReferenceId(ENV_ID, "ENVIRONMENT");
         verify(environmentService).delete(ENV_ID);
         verify(clientRegistrationProviderRepository).deleteByEnvironmentId(ENV_ID);
+        verify(qualityRuleRepository).deleteByReferenceIdAndReferenceType(ENV_ID, QualityRule.ReferenceType.ENVIRONMENT);
     }
 
     private void verifyDeleteApplications(ExecutionContext executionContext) throws TechnicalException {

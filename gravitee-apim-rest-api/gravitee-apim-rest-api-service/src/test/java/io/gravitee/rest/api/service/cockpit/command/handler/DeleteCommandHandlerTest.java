@@ -58,8 +58,7 @@ public class DeleteCommandHandlerTest {
         // what to do with it ?
         InstallationRepository.class,
         // Forgot repositories
-        TicketRepository.class,
-        QualityRuleRepository.class
+        TicketRepository.class
     );
 
     /**
