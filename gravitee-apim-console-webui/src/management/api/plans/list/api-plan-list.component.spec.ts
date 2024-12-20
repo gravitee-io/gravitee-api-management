@@ -459,6 +459,17 @@ describe('ApiPlanListComponent', () => {
       ],
     });
 
+    const nativeApi = fakeApiV4({
+      id: API_ID,
+      type: 'NATIVE',
+      listeners: [
+        {
+          type: 'KAFKA',
+          host: 'kafka-host',
+        },
+      ],
+    });
+
     describe('plansTable tests', () => {
       it('should display an empty table', fakeAsync(async () => {
         await initComponent([], asyncApi);
@@ -501,6 +512,7 @@ describe('ApiPlanListComponent', () => {
         ${asyncApi}        | ${['Push plan']}
         ${anotherAsyncApi} | ${['OAuth2', 'JWT', 'API Key', 'Keyless (public)', 'Push plan']}
         ${httpProxyApi}    | ${['OAuth2', 'JWT', 'API Key', 'Keyless (public)']}
+        ${nativeApi}       | ${['OAuth2', 'JWT', 'API Key', 'Keyless (public)']}
       `(
         'should filter plans according to listener types',
         fakeAsync(async ({ api, expectedPlans }) => {
@@ -513,6 +525,170 @@ describe('ApiPlanListComponent', () => {
           expect(availablePlans).toStrictEqual(expectedPlans);
         }),
       );
+    });
+
+    describe('Publish plan for Native Kafka API', () => {
+      describe('Keyless plan in staging', () => {
+        const KEYLESS_PLAN = fakePlanV4({ security: { type: 'KEY_LESS' }, status: 'STAGING' });
+        beforeEach(async () => {
+          await initComponent([KEYLESS_PLAN], nativeApi, 'STAGING');
+        });
+
+        it('should publish plan and close published plans with authentication', async () => {
+          const { rowCells } = await computePlansTableCells();
+          expect(rowCells).toHaveLength(1);
+
+          const publishBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' }));
+          await publishBtn.click();
+
+          const publishedApiKeyPlan = fakePlanV4({ id: 'api-key-plan', status: 'PUBLISHED', security: { type: 'API_KEY' } });
+          const publishedOAuth2Plan = fakePlanV4({ id: 'oauth2-plan', status: 'PUBLISHED', security: { type: 'OAUTH2' } });
+
+          expectApiPlansListRequest([publishedApiKeyPlan, publishedOAuth2Plan], ['PUBLISHED']);
+
+          const dialog = await rootLoader.getHarness(MatDialogHarness);
+          expect(await dialog.getText()).toContain('Your published plans with authentication will be closed automatically.');
+
+          const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+          expect(await rootLoader.getHarness(MatButtonHarness.with({ text: 'Publish & Close' }))).toBeTruthy();
+          await confirmDialog.confirm();
+
+          expectApiPlanCloseRequest(publishedApiKeyPlan);
+          expectApiPlanCloseRequest(publishedOAuth2Plan);
+          expectApiPlanPublishRequest(KEYLESS_PLAN);
+
+          // After calling ngOnInit
+          expectApiGetRequest(nativeApi);
+          expectApiPlansListRequest([], [...PLAN_STATUS]);
+        });
+
+        it('should send request to publish a Keyless plan even if Keyless plan already published', async () => {
+          const publishBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' }));
+          await publishBtn.click();
+
+          expectApiPlansListRequest([fakePlanV4({ security: { type: 'KEY_LESS' } })], ['PUBLISHED']);
+
+          const dialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#publishPlanDialog' }));
+          const publishBtnInDialog = await dialog.getHarness(MatButtonHarness.with({ text: 'Publish' }));
+          await publishBtnInDialog.click();
+
+          expectApiPlanPublishRequest(KEYLESS_PLAN);
+
+          // After calling ngOnInit
+          expectApiGetRequest(nativeApi);
+          expectApiPlansListRequest([], [...PLAN_STATUS]);
+        });
+
+        it('should publish Keyless plan if no other plans are published', async () => {
+          const publishBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' }));
+          await publishBtn.click();
+
+          expectApiPlansListRequest([], ['PUBLISHED']);
+
+          const dialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#publishPlanDialog' }));
+          const publishBtnInDialog = await dialog.getHarness(MatButtonHarness.with({ text: 'Publish' }));
+          await publishBtnInDialog.click();
+
+          expectApiPlanPublishRequest(KEYLESS_PLAN);
+
+          // After calling ngOnInit
+          expectApiGetRequest(nativeApi);
+          expectApiPlansListRequest([], [...PLAN_STATUS]);
+        });
+
+        it('should cancel publishing a keyless plan', async () => {
+          const publishBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' }));
+          await publishBtn.click();
+
+          const publishedApiKeyPlan = fakePlanV4({ id: 'api-key-plan', status: 'PUBLISHED', security: { type: 'API_KEY' } });
+          const publishedOAuth2Plan = fakePlanV4({ id: 'oauth2-plan', status: 'PUBLISHED', security: { type: 'OAUTH2' } });
+
+          expectApiPlansListRequest([publishedApiKeyPlan, publishedOAuth2Plan], ['PUBLISHED']);
+
+          const dialog = await rootLoader.getHarness(MatDialogHarness);
+          const cancelBtnInDialog = await dialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
+          await cancelBtnInDialog.click();
+        });
+      });
+
+      describe('API Key plan in staging', () => {
+        const API_KEY_PLAN = fakePlanV4({ security: { type: 'API_KEY' }, status: 'STAGING' });
+        beforeEach(async () => {
+          await initComponent([API_KEY_PLAN], nativeApi, 'STAGING');
+        });
+
+        it('should publish API Key plan and close published Keyless plan', async () => {
+          const publishBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' }));
+          await publishBtn.click();
+
+          const publishedKeylessPlan = fakePlanV4({ id: 'keyless-plan', status: 'PUBLISHED', security: { type: 'KEY_LESS' } });
+
+          expectApiPlansListRequest([publishedKeylessPlan], ['PUBLISHED']);
+
+          const dialog = await rootLoader.getHarness(MatDialogHarness);
+          expect(await dialog.getText()).toContain('Your published Keyless plan will be closed automatically.');
+
+          const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+          expect(await rootLoader.getHarness(MatButtonHarness.with({ text: 'Publish & Close' }))).toBeTruthy();
+          await confirmDialog.confirm();
+
+          expectApiPlanCloseRequest(publishedKeylessPlan);
+          expectApiPlanPublishRequest(API_KEY_PLAN);
+
+          // After calling ngOnInit
+          expectApiGetRequest(nativeApi);
+          expectApiPlansListRequest([], [...PLAN_STATUS]);
+        });
+
+        it('should publish an API Key plan if API Key plan already published', async () => {
+          const publishBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' }));
+          await publishBtn.click();
+
+          const publishedApiKeyPlan = fakePlanV4({ id: 'api-key-plan', status: 'PUBLISHED', security: { type: 'API_KEY' } });
+
+          expectApiPlansListRequest([publishedApiKeyPlan], ['PUBLISHED']);
+
+          const dialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#publishPlanDialog' }));
+          const publishBtnInDialog = await dialog.getHarness(MatButtonHarness.with({ text: 'Publish' }));
+          await publishBtnInDialog.click();
+
+          expectApiPlanPublishRequest(API_KEY_PLAN);
+
+          // After calling ngOnInit
+          expectApiGetRequest(nativeApi);
+          expectApiPlansListRequest([], [...PLAN_STATUS]);
+        });
+
+        it('should publish API Key plan if no plans already published', async () => {
+          const publishBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' }));
+          await publishBtn.click();
+
+          expectApiPlansListRequest([], ['PUBLISHED']);
+
+          const dialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#publishPlanDialog' }));
+          const publishBtnInDialog = await dialog.getHarness(MatButtonHarness.with({ text: 'Publish' }));
+          await publishBtnInDialog.click();
+
+          expectApiPlanPublishRequest(API_KEY_PLAN);
+
+          // After calling ngOnInit
+          expectApiGetRequest(nativeApi);
+          expectApiPlansListRequest([], [...PLAN_STATUS]);
+        });
+
+        it('should cancel publishing a plan with authentication', async () => {
+          const publishBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' }));
+          await publishBtn.click();
+
+          const publishedKeylessPlan = fakePlanV4({ id: 'keyless-plan', status: 'PUBLISHED', security: { type: 'KEY_LESS' } });
+
+          expectApiPlansListRequest([publishedKeylessPlan], ['PUBLISHED']);
+
+          const dialog = await rootLoader.getHarness(MatDialogHarness);
+          const cancelBtnInDialog = await dialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
+          await cancelBtnInDialog.click();
+        });
+      });
     });
   });
 
@@ -565,8 +741,10 @@ describe('ApiPlanListComponent', () => {
     });
   });
 
-  async function initComponent(plans: Plan[], api: Api = anAPi) {
-    await TestBed.overrideProvider(ActivatedRoute, { useValue: { snapshot: { params: { apiId: api.id } } } }).compileComponents();
+  async function initComponent(plans: Plan[], api: Api = anAPi, activePlanStatusTab: string = 'PUBLISHED') {
+    await TestBed.overrideProvider(ActivatedRoute, {
+      useValue: { snapshot: { params: { apiId: api.id }, queryParams: { status: activePlanStatusTab } } },
+    }).compileComponents();
     fixture = TestBed.createComponent(ApiPlanListComponent);
     component = fixture.componentInstance;
     httpTestingController = TestBed.inject(HttpTestingController);
