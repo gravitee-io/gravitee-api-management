@@ -182,4 +182,22 @@ public class MongoNotificationTemplateRepository implements NotificationTemplate
         LOGGER.debug("Find all notificationTemplates by environment- Done");
         return res;
     }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, NotificationTemplateReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("Delete notification template by refId: {}/{}", referenceId, referenceType);
+        try {
+            final var metadata = internalNotificationTemplateRepo
+                .deleteByReferenceIdAndReferenceType(referenceId, referenceType)
+                .stream()
+                .map(NotificationTemplateMongo::getId)
+                .toList();
+            LOGGER.debug("Delete notification by refId: {}/{} - Done", referenceId, referenceType);
+            return metadata;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete notification by refId: {}/{}", referenceId, referenceId, ex);
+            throw new TechnicalException("Failed to delete notification by reference");
+        }
+    }
 }

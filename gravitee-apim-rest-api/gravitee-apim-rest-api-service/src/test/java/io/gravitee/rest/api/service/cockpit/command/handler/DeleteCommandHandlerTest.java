@@ -61,8 +61,7 @@ public class DeleteCommandHandlerTest {
         TicketRepository.class,
         QualityRuleRepository.class,
         EntrypointRepository.class,
-        ClientRegistrationProviderRepository.class,
-        NotificationTemplateRepository.class
+        ClientRegistrationProviderRepository.class
     );
 
     /**
