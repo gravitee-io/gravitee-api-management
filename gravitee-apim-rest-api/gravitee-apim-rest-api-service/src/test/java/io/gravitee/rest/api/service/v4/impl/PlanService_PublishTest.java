@@ -36,6 +36,7 @@ import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.KeylessPlanAlreadyPublishedException;
+import io.gravitee.rest.api.service.exceptions.NativePlanAuthenticationConflictException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyPublishedException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionStatusException;
@@ -47,6 +48,7 @@ import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -212,6 +214,91 @@ public class PlanService_PublishTest {
         verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.PUBLISHED).build());
         verify(flowCrudService, times(1)).getNativePlanFlows(any());
         verify(flowService, never()).findByReference(any(), any());
+    }
+
+    @Test
+    public void shouldPublishAndUpdateApiKeyPlanWithOtherAuthPlansPublished() throws TechnicalException {
+        var apiKeyPlanToPublish = Plan
+            .builder()
+            .status(Plan.Status.STAGING)
+            .type(Plan.PlanType.API)
+            .apiType(ApiType.NATIVE)
+            .validation(Plan.PlanValidationType.AUTO)
+            .api(API_ID)
+            .security(Plan.PlanSecurityType.API_KEY)
+            .build();
+
+        var publishedOAuthPlan = Plan
+            .builder()
+            .id("oauth-plan")
+            .api(API_ID)
+            .status(Plan.Status.PUBLISHED)
+            .security(Plan.PlanSecurityType.OAUTH2)
+            .build();
+
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(apiKeyPlanToPublish));
+        when(planRepository.findByApi(API_ID)).thenReturn(Set.of(apiKeyPlanToPublish, publishedOAuthPlan));
+        when(planRepository.update(apiKeyPlanToPublish)).thenAnswer(returnsFirstArg());
+
+        planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
+
+        verify(planRepository, times(1)).update(apiKeyPlanToPublish.toBuilder().status(Plan.Status.PUBLISHED).build());
+        verify(flowCrudService, times(1)).getNativePlanFlows(any());
+        verify(flowService, never()).findByReference(any(), any());
+    }
+
+    @Test(expected = NativePlanAuthenticationConflictException.class)
+    public void shouldNotPublishKeylessNativePlanIfAuthPlanPublished() throws TechnicalException {
+        var stagedKeylessPlan = Plan
+            .builder()
+            .status(Plan.Status.STAGING)
+            .type(Plan.PlanType.API)
+            .apiType(ApiType.NATIVE)
+            .validation(Plan.PlanValidationType.AUTO)
+            .api(API_ID)
+            .security(Plan.PlanSecurityType.KEY_LESS)
+            .apiType(ApiType.NATIVE)
+            .build();
+
+        var publishedApiKeyPlan = Plan
+            .builder()
+            .id("published-api-key")
+            .api(API_ID)
+            .security(Plan.PlanSecurityType.API_KEY)
+            .status(Plan.Status.PUBLISHED)
+            .build();
+
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(stagedKeylessPlan));
+        when(planRepository.findByApi(API_ID)).thenReturn(Set.of(stagedKeylessPlan, publishedApiKeyPlan));
+
+        planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
+    }
+
+    @Test(expected = NativePlanAuthenticationConflictException.class)
+    public void shouldNotPublishAuthNativePlanIfKeylessPlanPublished() throws TechnicalException {
+        var stagedApiKeyPlan = Plan
+            .builder()
+            .status(Plan.Status.STAGING)
+            .type(Plan.PlanType.API)
+            .apiType(ApiType.NATIVE)
+            .validation(Plan.PlanValidationType.AUTO)
+            .api(API_ID)
+            .security(Plan.PlanSecurityType.API_KEY)
+            .apiType(ApiType.NATIVE)
+            .build();
+
+        var publishedKeylessPlan = Plan
+            .builder()
+            .id("published-keyless")
+            .api(API_ID)
+            .security(Plan.PlanSecurityType.KEY_LESS)
+            .status(Plan.Status.PUBLISHED)
+            .build();
+
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(stagedApiKeyPlan));
+        when(planRepository.findByApi(API_ID)).thenReturn(Set.of(stagedApiKeyPlan, publishedKeylessPlan));
+
+        planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
 
     @Test
