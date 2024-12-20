@@ -55,10 +55,9 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLHandshakeException;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -131,61 +130,51 @@ class KubernetesSecretProviderIntegrationTest {
                     -----END PRIVATE KEY-----
                     """;
 
+    static Path kubeConfigFile;
+    static K3sContainer k3sServer;
+
+    @BeforeAll
+    static void startK3s() throws IOException {
+        k3sServer = KubernetesHelper.getK3sServer();
+        k3sServer.start();
+        // write config so the secret provider can pick it up
+        kubeConfigFile =
+            Files.createTempDirectory(KubernetesSecretProviderIntegrationTest.class.getSimpleName()).resolve("kube_config.yml");
+        Files.writeString(kubeConfigFile, k3sServer.getKubeConfigYaml());
+    }
+
+    @AfterAll
+    static void cleanup() throws IOException {
+        k3sServer.close();
+        Files.delete(kubeConfigFile);
+    }
+
     abstract static class AbstractKubernetesTest extends AbstractGatewayTest {
-
-        Path kubeConfigFile;
-        K3sContainer k3sServer;
-
-        @AfterEach
-        void cleanup() throws IOException {
-            k3sServer.close();
-            Files.delete(kubeConfigFile);
-        }
 
         @Override
         public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
-            try {
-                kubeConfigFile =
-                    Files.createTempDirectory(KubernetesSecretProviderIntegrationTest.class.getSimpleName()).resolve("kube_config.yml");
-                // this allows to test if the plugin can be configured with or the other method -D... or gravitee.yml
-                if (useSystemProperties()) {
-                    configurationBuilder.setSystemProperty("secrets.kubernetes.enabled", true);
-                    configurationBuilder.setSystemProperty("secrets.kubernetes.kubeConfigFile", kubeConfigFile.toString());
-                } else {
-                    configurationBuilder.setYamlProperty("secrets.kubernetes.enabled", true);
-                    configurationBuilder.setYamlProperty("secrets.kubernetes.kubeConfigFile", kubeConfigFile.toString());
-                }
-                setupAdditionalProperties(configurationBuilder);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            // this allows to test if the plugin can be configured with or the other method -D... or gravitee.yml
+            if (useSystemProperties()) {
+                configurationBuilder.setSystemProperty("secrets.kubernetes.enabled", true);
+                configurationBuilder.setSystemProperty("secrets.kubernetes.kubeConfigFile", kubeConfigFile.toString());
+            } else {
+                configurationBuilder.setYamlProperty("secrets.kubernetes.enabled", true);
+                configurationBuilder.setYamlProperty("secrets.kubernetes.kubeConfigFile", kubeConfigFile.toString());
             }
+            setupAdditionalProperties(configurationBuilder);
         }
 
         @Override
         public void configureSecretProviders(
             Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
         ) throws Exception {
-            addPlugin(secretProviderPlugins);
-            startK3s();
+            secretProviderPlugins.add(
+                SecretProviderBuilder.build(KubernetesSecretProvider.PLUGIN_ID, KubernetesSecretProviderFactory.class, K8sConfig.class)
+            );
             createSecrets();
         }
 
         abstract void createSecrets() throws IOException, InterruptedException;
-
-        void addPlugin(
-            Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
-        ) {
-            secretProviderPlugins.add(
-                SecretProviderBuilder.build(KubernetesSecretProvider.PLUGIN_ID, KubernetesSecretProviderFactory.class, K8sConfig.class)
-            );
-        }
-
-        final void startK3s() throws IOException {
-            k3sServer = KubernetesHelper.getK3sServer();
-            k3sServer.start();
-            // write config so the secret provider can pick it up
-            Files.writeString(kubeConfigFile, k3sServer.getKubeConfigYaml());
-        }
 
         abstract void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder);
 
@@ -196,38 +185,7 @@ class KubernetesSecretProviderIntegrationTest {
 
     @Nested
     @GatewayTest
-    class DefaultNamespace extends AbstractKubernetesTest {
-
-        String password1 = UUID.randomUUID().toString();
-        String password2 = UUID.randomUUID().toString();
-
-        @Override
-        public void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
-            configurationBuilder
-                .setYamlProperty("test", "secret://kubernetes/test:password")
-                .setYamlProperty("foo", "secret://kubernetes/foo:password");
-        }
-
-        @Override
-        void createSecrets() throws IOException, InterruptedException {
-            KubernetesHelper.createSecret(k3sServer, "default", "test", Map.of("password", password1));
-            KubernetesHelper.createSecret(k3sServer, "default", "foo", Map.of("password", password2));
-        }
-
-        @Test
-        void should_be_able_to_resolve_secret() {
-            Environment environment = getBean(Environment.class);
-            assertThat(environment.getProperty("test")).isEqualTo(password1);
-            assertThat(environment.getProperty("foo")).isEqualTo(password2);
-        }
-    }
-
-    @Nested
-    @GatewayTest
-    class DefaultNamespaceUsingSystemProps extends AbstractKubernetesTest {
-
-        String password1 = UUID.randomUUID().toString();
-        String password2 = UUID.randomUUID().toString();
+    class SimplePropertiesSystemProps extends AbstractKubernetesTest {
 
         @Override
         boolean useSystemProperties() {
@@ -235,54 +193,81 @@ class KubernetesSecretProviderIntegrationTest {
         }
 
         @Override
-        void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
-            // setting secret refs to yaml as it is not supported in system props
-            configurationBuilder
-                .setYamlProperty("test", "secret://kubernetes/test:password")
-                .setYamlProperty("foo", "secret://kubernetes/foo:password");
+        void createSecrets() throws IOException, InterruptedException {
+            KubernetesHelper.createSecret(k3sServer, "default", "simple", Map.of("password", "simplepwd"));
         }
 
         @Override
-        public void createSecrets() throws IOException, InterruptedException {
-            KubernetesHelper.createSecret(k3sServer, "default", "test", Map.of("password", password1));
-            KubernetesHelper.createSecret(k3sServer, "default", "foo", Map.of("password", password2));
+        void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
+            // setting secret refs to yaml as it is not supported in system props
+            configurationBuilder.setYamlProperty("simple", "secret://kubernetes/simple:password");
         }
 
         @Test
-        void should_be_able_to_resolve_secret() {
+        void should_be_able_to_resolve_secret_default_ns() {
             Environment environment = getBean(Environment.class);
-            assertThat(environment.getProperty("test")).isEqualTo(password1);
-            assertThat(environment.getProperty("foo")).isEqualTo(password2);
+            assertThat(environment.getProperty("simple")).isEqualTo("simplepwd");
         }
     }
 
     @Nested
     @GatewayTest
-    class NonDefaultNamespace extends AbstractKubernetesTest {
-
-        String password1 = UUID.randomUUID().toString();
-        String password2 = UUID.randomUUID().toString();
-
-        @Override
-        void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
-            configurationBuilder
-                .setYamlProperty("test", "secret://kubernetes/test:password?namespace=test")
-                .setYamlProperty("foo", "secret://kubernetes/foo:password");
-        }
+    class SimplePropertiesYaml extends AbstractKubernetesTest {
 
         @Override
         public void createSecrets() throws IOException, InterruptedException {
-            KubernetesHelper.createNamespace(k3sServer, "test");
-            KubernetesHelper.createSecret(k3sServer, "test", "test", Map.of("password", password1));
-            // create one more to make sure we don't get the right one by chance
-            KubernetesHelper.createSecret(k3sServer, "default", "foo", Map.of("password", password2));
+            KubernetesHelper.createNamespace(k3sServer, "nondefaultns");
+            KubernetesHelper.createSecret(k3sServer, "nondefaultns", "bar", Map.of("password", "nonDefaultNSBar"));
+            KubernetesHelper.createSecret(k3sServer, "default", "bar", Map.of("password", "bar"));
+            KubernetesHelper.createSecret(k3sServer, "default", "foo", Map.of("password", "foo"));
+            KubernetesHelper.createSecret(k3sServer, "default", "watched", Map.of("password", "iwillchange"));
+        }
+
+        @Override
+        void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
+            // setting secret refs to yaml as it is not supported in system props
+            configurationBuilder
+                .setYamlProperty("barNonDefault", "secret://kubernetes/bar:password?namespace=nondefaultns")
+                .setYamlProperty("bar", "secret://kubernetes/bar:password")
+                .setYamlProperty("foo", "secret://kubernetes/foo:password")
+                .setYamlProperty("watched", "secret://kubernetes/watched:password?watch");
+        }
+
+        // occurs after Gateway has started, otherwise it won't start
+        @BeforeAll
+        void setupBadSecrets() {
+            final GraviteeYamlPropertySource graviteeProperties = getGraviteeYamlProperties();
+            if (graviteeProperties != null) {
+                graviteeProperties.getSource().put("missing", "secret://kubernetes/missing:pass");
+                graviteeProperties.getSource().put("missing2", "secret://kubernetes/missing:pass?namespace=nondefaultns");
+                graviteeProperties.getSource().put("no_plugin", "secret://foo/test:pass");
+            }
         }
 
         @Test
-        void should_be_able_to_resolve_secret() {
+        void should_resolve_secrets() throws IOException, InterruptedException {
             Environment environment = getBean(Environment.class);
-            assertThat(environment.getProperty("test")).isEqualTo(password1);
-            assertThat(environment.getProperty("foo")).isEqualTo(password2);
+            assertThat(environment.getProperty("barNonDefault")).isEqualTo("nonDefaultNSBar");
+            assertThat(environment.getProperty("bar")).isEqualTo("bar");
+            assertThat(environment.getProperty("foo")).isEqualTo("foo");
+            assertThat(environment.getProperty("watched")).isEqualTo("iwillchange");
+
+            KubernetesHelper.updateSecret(k3sServer, "default", "watched", Map.of("password", "iamchanged"), false);
+            await()
+                .atMost(Duration.ofSeconds(2))
+                .untilAsserted(() -> assertThat(environment.getProperty("watched")).isEqualTo("iamchanged"));
+        }
+
+        @Test
+        void should_fail_resolve_secrets() {
+            final Environment environment = getBean(Environment.class);
+            assertThatCode(() -> environment.getProperty("missing"))
+                .isInstanceOf(SecretManagerException.class)
+                .hasMessageContaining("secret not found");
+            assertThatCode(() -> environment.getProperty("missing2"))
+                .isInstanceOf(SecretManagerException.class)
+                .hasMessageContaining("secret not found");
+            assertThat(environment.getProperty("no_plugin")).isEqualTo("secret://foo/test:pass"); // not recognized as a secret does not return value
         }
     }
 
@@ -297,7 +282,7 @@ class KubernetesSecretProviderIntegrationTest {
 
         @Override
         void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
-            configurationBuilder.httpSecured(true).httpSslKeystoreType("pem").httpSslSecret("secret://kubernetes/tls-test");
+            configurationBuilder.httpSecured(true).httpSslKeystoreType("pem").httpSslSecret("secret://kubernetes/tls-test-default");
         }
 
         @Override
@@ -307,7 +292,7 @@ class KubernetesSecretProviderIntegrationTest {
 
         @Override
         public void createSecrets() throws IOException, InterruptedException {
-            KubernetesHelper.createSecret(k3sServer, "default", "tls-test", Map.of("tls.crt", CERT, "tls.key", KEY), true);
+            KubernetesHelper.createSecret(k3sServer, "default", "tls-test-default", Map.of("tls.crt", CERT, "tls.key", KEY), true);
         }
 
         @Test
@@ -341,7 +326,7 @@ class KubernetesSecretProviderIntegrationTest {
             configurationBuilder
                 .httpSecured(true)
                 .httpSslKeystoreType("pem")
-                .httpSslSecret("secret://kubernetes/tls-test?resolveBeforeWatch=false");
+                .httpSslSecret("secret://kubernetes/tls-test-late?resolveBeforeWatch=false");
         }
 
         @Override
@@ -351,7 +336,7 @@ class KubernetesSecretProviderIntegrationTest {
 
         @Override
         public void createSecrets() throws IOException, InterruptedException {
-            KubernetesHelper.createSecret(k3sServer, "default", "tls-test", Map.of("tls.crt", CERT, "tls.key", KEY), true);
+            KubernetesHelper.createSecret(k3sServer, "default", "tls-test-late", Map.of("tls.crt", CERT, "tls.key", KEY), true);
         }
 
         @Test
@@ -380,7 +365,7 @@ class KubernetesSecretProviderIntegrationTest {
         void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
             configurationBuilder
                 .httpSecured(true)
-                .httpSslSecret("secret://kubernetes/tls-test?namespace=test&keymap=certificate:cert&keymap=private_key:key")
+                .httpSslSecret("secret://kubernetes/tls-test-custom?namespace=test&keymap=certificate:cert&keymap=private_key:key")
                 .httpSslKeystoreType("pem");
         }
 
@@ -392,7 +377,7 @@ class KubernetesSecretProviderIntegrationTest {
         @Override
         public void createSecrets() throws IOException, InterruptedException {
             KubernetesHelper.createNamespace(k3sServer, "test");
-            KubernetesHelper.createSecret(k3sServer, "test", "tls-test", Map.of("cert", CERT, "key", KEY));
+            KubernetesHelper.createSecret(k3sServer, "test", "tls-test-custom", Map.of("cert", CERT, "key", KEY));
         }
 
         @Test
@@ -408,31 +393,6 @@ class KubernetesSecretProviderIntegrationTest {
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS)
                 .assertComplete();
-        }
-    }
-
-    @Nested
-    @GatewayTest
-    class WatchProperty extends AbstractKubernetesTest {
-
-        @Override
-        void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
-            configurationBuilder.setYamlProperty("test", "secret://kubernetes/test:password?watch");
-        }
-
-        @Override
-        void createSecrets() throws IOException, InterruptedException {
-            KubernetesHelper.createSecret(k3sServer, "default", "test", Map.of("password", "changeme"));
-        }
-
-        @Test
-        void should_be_able_to_watch_secret() throws IOException, InterruptedException {
-            Environment environment = getBean(Environment.class);
-            assertThat(environment.getProperty("test")).isEqualTo("changeme");
-            KubernetesHelper.updateSecret(k3sServer, "default", "test", Map.of("password", "okiamchanged"), false);
-            await()
-                .atMost(Duration.ofSeconds(2))
-                .untilAsserted(() -> assertThat(environment.getProperty("test")).isEqualTo("okiamchanged"));
         }
     }
 
@@ -571,43 +531,6 @@ class KubernetesSecretProviderIntegrationTest {
                         .awaitDone(2, TimeUnit.SECONDS)
                         .assertError(SSLHandshakeException.class)
                 );
-        }
-    }
-
-    @Nested
-    @GatewayTest
-    class Errors extends AbstractKubernetesTest {
-
-        @Override
-        void createSecrets() {
-            // no op
-        }
-
-        @Override
-        public void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
-            // We can't add invalid secret here unless the gateway will fail to start.
-        }
-
-        @BeforeAll
-        void setupAdditionalSecrets() {
-            final GraviteeYamlPropertySource graviteeProperties = getGraviteeYamlProperties();
-            if (graviteeProperties != null) {
-                graviteeProperties.getSource().put("missing", "secret://kubernetes/test:pass");
-                graviteeProperties.getSource().put("missing2", "secret://kubernetes/test:pass?namespace=test");
-                graviteeProperties.getSource().put("no_plugin", "secret://foo/test:pass");
-            }
-        }
-
-        @Test
-        void should_fail_resolve_secret() {
-            final Environment environment = getBean(Environment.class);
-            assertThatCode(() -> environment.getProperty("missing"))
-                .isInstanceOf(SecretManagerException.class)
-                .hasMessageContaining("secret not found");
-            assertThatCode(() -> environment.getProperty("missing2"))
-                .isInstanceOf(SecretManagerException.class)
-                .hasMessageContaining("secret not found");
-            assertThat(environment.getProperty("no_plugin")).isEqualTo("secret://foo/test:pass"); // not recognized as a secret does not return value
         }
     }
 }
