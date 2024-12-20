@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import com.graviteesource.entrypoint.webhook.configuration.HttpHeader;
+import com.graviteesource.entrypoint.webhook.configuration.RetryStrategy;
 import com.graviteesource.entrypoint.webhook.configuration.SecurityType;
 import com.graviteesource.entrypoint.webhook.configuration.WebhookEntrypointConnectorSubscriptionConfiguration;
 import com.graviteesource.entrypoint.webhook.configuration.WebhookSubscriptionAuthConfiguration;
@@ -173,6 +174,10 @@ public class WebhookTestingActions {
         WebhookEntrypointConnectorSubscriptionConfiguration configuration = new WebhookEntrypointConnectorSubscriptionConfiguration();
         configuration.setCallbackUrl(String.format("http://localhost:%s%s", wiremock.port(), callbackPath));
         configuration.setHeaders(headers);
+        configuration.getRetry().setRetryStrategy(RetryStrategy.EXPONENTIAL);
+        configuration.getRetry().setRetryOnFail(true);
+        configuration.getRetry().setInitialDelaySeconds(3L);
+        configuration.getRetry().setMaxDelaySeconds(3L);
         wiremock.stubFor(post(callbackPath).willReturn(ok("callback body")));
 
         return buildTestSubscription(apiId, configuration);
