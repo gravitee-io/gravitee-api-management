@@ -52,6 +52,7 @@ import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.PortalMenuLinkRepository;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
+import io.gravitee.repository.management.api.PromotionRepository;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.RoleRepository;
@@ -141,6 +142,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final PlanRepository planRepository;
     private final PortalMenuLinkRepository portalMenuLinkRepository;
     private final PortalNotificationConfigRepository portalNotificationConfigRepository;
+    private final PromotionRepository promotionRepository;
     private final RatingAnswerRepository ratingAnswerRepository;
     private final RatingRepository ratingRepository;
     private final RoleRepository roleRepository;
@@ -184,6 +186,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         @Lazy PlanRepository planRepository,
         @Lazy PortalMenuLinkRepository portalMenuLinkRepository,
         @Lazy PortalNotificationConfigRepository portalNotificationConfigRepository,
+        @Lazy PromotionRepository promotionRepository,
         @Lazy RatingAnswerRepository ratingAnswerRepository,
         @Lazy RatingRepository ratingRepository,
         @Lazy RoleRepository roleRepository,
@@ -240,6 +243,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.planRepository = planRepository;
         this.portalMenuLinkRepository = portalMenuLinkRepository;
         this.portalNotificationConfigRepository = portalNotificationConfigRepository;
+        this.promotionRepository = promotionRepository;
         this.ratingAnswerRepository = ratingAnswerRepository;
         this.ratingRepository = ratingRepository;
         this.roleRepository = roleRepository;
@@ -389,6 +393,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
                     membershipRepository.deleteByReferenceIdAndReferenceType(apiId, MembershipReferenceType.API);
                     metadataRepository.deleteByReferenceIdAndReferenceType(apiId, MetadataReferenceType.API);
                     portalNotificationConfigRepository.deleteByReferenceIdAndReferenceType(apiId, NotificationReferenceType.API);
+                    promotionRepository.deleteByApiId(apiId);
                     scoringReportRepository.deleteByApi(apiId);
                     workflowRepository.deleteByReferenceIdAndReferenceType(apiId, Workflow.ReferenceType.API.name());
                     deleteRatings(apiId, RatingReferenceType.API);
