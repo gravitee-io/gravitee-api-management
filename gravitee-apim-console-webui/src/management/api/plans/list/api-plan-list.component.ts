@@ -15,7 +15,7 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { EMPTY, Observable, of, Subject } from 'rxjs';
+import { EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { orderBy } from 'lodash';
 import {
@@ -142,21 +142,13 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
   }
 
   public publishPlan(plan: Plan): void {
-    this.matDialog
-      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
-        width: '500px',
-        data: {
-          title: `Publish plan`,
-          content: `Are you sure you want to publish the plan ${plan.name}?`,
-          confirmButton: `Publish`,
-        },
-        role: 'alertdialog',
-        id: 'publishPlanDialog',
-      })
-      .afterClosed()
+    const publishPlan$ =
+      this.api.definitionVersion === 'V4' && this.api.type === 'NATIVE' && this.api.listeners.some((l) => l.type === 'KAFKA')
+        ? this.publishNativeKafkaPlan$(plan)
+        : this.httpPlanDialog$(plan);
+
+    publishPlan$
       .pipe(
-        filter((confirm) => confirm === true),
-        switchMap(() => this.plansService.publish(this.api.id, plan.id)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
@@ -244,6 +236,72 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
+  }
+
+  private httpPlanDialog$(plan: Plan): Observable<Plan> {
+    return this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: `Publish plan`,
+          content: `Are you sure you want to publish the plan ${plan.name}?`,
+          confirmButton: `Publish`,
+        },
+        role: 'alertdialog',
+        id: 'publishPlanDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirm) => confirm === true),
+        switchMap(() => this.plansService.publish(this.api.id, plan.id)),
+      );
+  }
+
+  private publishNativeKafkaPlan$(plan: Plan): Observable<Plan> {
+    return this.plansService.list(this.api.id, undefined, ['PUBLISHED'], undefined, 1, 9999).pipe(
+      switchMap((plansResponse) => {
+        const publishedKeylessPlan = plansResponse.data.filter((plan) => plan.security.type === 'KEY_LESS');
+        const publishedAuthPlans = plansResponse.data.filter((plan) => plan.security.type !== 'KEY_LESS');
+
+        if (plan.security?.type === 'KEY_LESS' && publishedAuthPlans.length) {
+          return this.nativeKafkaDialog$(plan, publishedAuthPlans);
+        } else if (plan.security?.type !== 'KEY_LESS' && publishedKeylessPlan.length) {
+          return this.nativeKafkaDialog$(plan, publishedKeylessPlan);
+        } else {
+          return this.httpPlanDialog$(plan);
+        }
+      }),
+      takeUntil(this.unsubscribe$),
+    );
+  }
+
+  private nativeKafkaDialog$(plan: Plan, plansToClose: Plan[]): Observable<Plan> {
+    const plansWithAuthentication = `plan${plansToClose.length > 1 ? 's' : ''} with authentication`;
+    const ifSubscriptionContent = '<b>If there are subscriptions associated to this plan, they will be closed!</b>';
+
+    const content = `Kafka APIs cannot have both plans with and without authentication published. Are you sure you want to publish the plan ${plan.name}? <br />
+Your published ${plan.security.type === 'KEY_LESS' ? plansWithAuthentication : 'Keyless plan'} will be closed automatically. ${plan.security.type === 'KEY_LESS' ? ifSubscriptionContent : ''}
+`;
+    return this.matDialog
+      .open<GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData>(GioConfirmAndValidateDialogComponent, {
+        width: '500px',
+        data: {
+          title: `Publish plan and close current one`,
+          warning: `This operation is irreversible.`,
+          validationMessage: `Please, type in the name of the plan <code>${plan.name}</code> to confirm.`,
+          validationValue: plan.name,
+          content,
+          confirmButton: `Publish & Close`,
+        },
+        role: 'alertdialog',
+        id: 'publishNativeKafkaPlanDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirm) => confirm === true),
+        switchMap(() => forkJoin(plansToClose.map((p) => this.plansService.close(this.api.id, p.id)))),
+        switchMap(() => this.plansService.publish(this.api.id, plan.id)),
+      );
   }
 
   private initPlansTableDS(selectedStatus: PlanStatus, fullReload = false): void {
