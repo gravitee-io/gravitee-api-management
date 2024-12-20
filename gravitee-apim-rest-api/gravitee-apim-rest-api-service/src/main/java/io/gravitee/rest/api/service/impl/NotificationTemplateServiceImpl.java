@@ -589,8 +589,8 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
             }
             throw new NotificationTemplateNotFoundException(id);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete a notificationTemplate using its ID {}", id, ex);
-            throw new TechnicalManagementException("An error occurs while trying to delete a notificationTemplate using its ID " + id, ex);
+            log.error("An error occurs while trying to find a notificationTemplate using its ID {}", id, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find a notificationTemplate using its ID " + id, ex);
         }
     }
 
