@@ -76,5 +76,43 @@
       "source": "internal",
       "sourceId": "internal#1"
     }
+  },
+  {
+    "id": "promotion#api-to-delete",
+    "status": "CREATED",
+    "apiId": "api-to-delete",
+    "apiDefinition": "{\"id\" : \"product\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAliveTimeout\" : 30000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}",
+    "sourceEnvCockpitId": "env#cockpit-1",
+    "sourceEnvName": "Demo",
+    "targetEnvCockpitId": "env#cockpit-2",
+    "targetEnvName": "Prod",
+    "createdAt": 1623154561000,
+    "updatedAt": 1623154561000,
+    "author": {
+      "userId": "user#1",
+      "displayName": "Gaetan Maisse",
+      "email": "gm@gv.io",
+      "source": "internal",
+      "sourceId": "internal#1"
+    }
+  },
+  {
+    "id": "promotion#api-to-delete-2",
+    "status": "CREATED",
+    "apiId": "api-to-delete",
+    "apiDefinition": "{\"id\" : \"product\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAliveTimeout\" : 30000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}",
+    "sourceEnvCockpitId": "env#cockpit-1",
+    "sourceEnvName": "Demo",
+    "targetEnvCockpitId": "env#cockpit-2",
+    "targetEnvName": "Prod",
+    "createdAt": 1623154561000,
+    "updatedAt": 1623154561000,
+    "author": {
+      "userId": "user#1",
+      "displayName": "Gaetan Maisse",
+      "email": "gm@gv.io",
+      "source": "internal",
+      "sourceId": "internal#1"
+    }
   }
 ]
