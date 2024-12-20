@@ -142,6 +142,23 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
         return res;
     }
 
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("Delete client registration providers by environment [{}]", environmentId);
+        try {
+            final var subscriptionMongos = internalClientRegistrationProviderRepository
+                .deleteByEnvironmentId(environmentId)
+                .stream()
+                .map(ClientRegistrationProviderMongo::getId)
+                .toList();
+            LOGGER.debug("Delete client registration providers by environment [{}] - Done", environmentId);
+            return subscriptionMongos;
+        } catch (Exception e) {
+            LOGGER.error("Failed to delete client registration providers by environment [{}]", environmentId, e);
+            throw new TechnicalException("Failed to delete client registration providers by environment");
+        }
+    }
+
     private ClientRegistrationProvider map(ClientRegistrationProviderMongo provider) {
         return (provider == null) ? null : mapper.map(provider);
     }
