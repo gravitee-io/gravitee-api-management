@@ -15,13 +15,14 @@
 #
 
 # First stage to share environment variable
-FROM graviteeio/java:17-alpine-3.18 AS base
+FROM graviteeio/java:21 AS base
 ENV GRAVITEEIO_HOME=/opt/graviteeio-gateway
 
 RUN apk update  \
     && apk add --no-cache libc6-compat  \
     && apkArch="$(apk --print-arch)" \
-    && ln -s /lib/libc.musl-${apkArch}.so.1 /lib/ld-linux-${apkArch/_/-}.so.2
+    && if [ $(apk --print-arch) = "aarch64" ]; then ln -s /lib/libc.musl-aarch64.so.1 /lib/ld-linux-aarch64.so.2; fi
+
 
 RUN addgroup -g 1000 graviteeio \
     && adduser -D -H -u 1001 graviteeio --ingroup graviteeio
