@@ -32,6 +32,7 @@ import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.CustomUserFieldsRepository;
+import io.gravitee.repository.management.api.EntrypointRepository;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.api.IdentityProviderActivationRepository;
 import io.gravitee.repository.management.api.IdentityProviderRepository;
@@ -49,6 +50,7 @@ import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.CustomUserFieldReferenceType;
+import io.gravitee.repository.management.model.EntrypointReferenceType;
 import io.gravitee.repository.management.model.License;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.MetadataReferenceType;
@@ -159,6 +161,9 @@ public class DeleteOrganizationCommandHandlerTest {
     @Mock
     private NotificationTemplateRepository notificationTemplateRepository;
 
+    @Mock
+    private EntrypointRepository entrypointRepository;
+
     private DeleteOrganizationCommandHandler cut;
 
     @Before
@@ -179,6 +184,7 @@ public class DeleteOrganizationCommandHandlerTest {
                 auditRepository,
                 commandRepository,
                 customUserFieldsRepository,
+                entrypointRepository,
                 flowRepository,
                 identityProviderActivationRepository,
                 identityProviderRepository,
@@ -292,6 +298,8 @@ public class DeleteOrganizationCommandHandlerTest {
         verify(organizationService).delete(executionContext.getOrganizationId());
         verify(notificationTemplateRepository)
             .deleteByReferenceIdAndReferenceType(executionContext.getOrganizationId(), NotificationTemplateReferenceType.ORGANIZATION);
+        verify(entrypointRepository)
+            .deleteByReferenceIdAndReferenceType(executionContext.getOrganizationId(), EntrypointReferenceType.ORGANIZATION);
     }
 
     private void verifyDisableOrganization(ExecutionContext context) {
