@@ -140,4 +140,20 @@ public class MongoEntrypointRepository implements EntrypointRepository {
     public Set<Entrypoint> findAll() throws TechnicalException {
         return internalEntryPointRepo.findAll().stream().map(entrypointMongo -> mapper.map(entrypointMongo)).collect(Collectors.toSet());
     }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(final String referenceId, final EntrypointReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("Delete entrypoint by reference [{}, {}]", referenceType, referenceId);
+        try {
+            List<EntrypointMongo> entrypointMongos = internalEntryPointRepo.deleteByReferenceIdAndReferenceType(
+                referenceId,
+                referenceType.name()
+            );
+            LOGGER.debug("Delete entrypoint by reference [{}, {}] - Done", referenceType, referenceId);
+            return entrypointMongos.stream().map(EntrypointMongo::getId).toList();
+        } catch (Exception e) {
+            throw new TechnicalException("An error occurred while deleting entrypoint", e);
+        }
+    }
 }

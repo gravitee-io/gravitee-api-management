@@ -26,5 +26,19 @@
       "referenceType": "ORGANIZATION",
       "value": "https://other-internal-api.company.com",
       "tags": "private"
+   },
+   {
+      "id": "fbbc53ea3-357e-45bf-853e-a3357ed5abcd",
+      "referenceId": "ToBeDeleted",
+      "referenceType": "ORGANIZATION",
+      "value": "https://internal-api.company.com",
+      "tags": "private;store"
+   },
+   {
+      "id": "fbbc53ea3-357e-45bf-853e-a3357ed5bdefgh",
+      "referenceId": "ToBeDeleted",
+      "referenceType": "ORGANIZATION",
+      "value": "https://other-internal-api.company.com",
+      "tags": "private"
    }
 ]
