@@ -21,6 +21,8 @@ import static org.junit.Assert.*;
 import io.gravitee.repository.management.model.NotificationTemplate;
 import io.gravitee.repository.management.model.NotificationTemplateReferenceType;
 import io.gravitee.repository.management.model.NotificationTemplateType;
+import io.gravitee.repository.management.model.Rating;
+import io.gravitee.repository.management.model.RatingReferenceType;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
@@ -39,7 +41,7 @@ public class NotificationTemplateRepositoryTest extends AbstractManagementReposi
         final Set<NotificationTemplate> notificationTemplates = notificationTemplateRepository.findAll();
 
         assertNotNull(notificationTemplates);
-        assertEquals(4, notificationTemplates.size());
+        assertEquals(6, notificationTemplates.size());
     }
 
     @Test
@@ -285,5 +287,25 @@ public class NotificationTemplateRepositoryTest extends AbstractManagementReposi
     public void shouldNotUpdateNull() throws Exception {
         notificationTemplateRepository.update(null);
         fail("A null notificationTemplate should not be updated");
+    }
+
+    @Test
+    public void should_delete_by_reference_id_and_reference_type() throws Exception {
+        final var beforeDeletion = notificationTemplateRepository
+            .findAllByReferenceIdAndReferenceType("org-to-delete", NotificationTemplateReferenceType.ORGANIZATION)
+            .stream()
+            .map(NotificationTemplate::getId)
+            .toList();
+        final var deleted = notificationTemplateRepository.deleteByReferenceIdAndReferenceType(
+            "org-to-delete",
+            NotificationTemplateReferenceType.ORGANIZATION
+        );
+        final var nbAfterDeletion = notificationTemplateRepository
+            .findAllByReferenceIdAndReferenceType("org-to-delete", NotificationTemplateReferenceType.ORGANIZATION)
+            .size();
+
+        assertEquals(beforeDeletion.size(), deleted.size());
+        assertTrue(beforeDeletion.containsAll(deleted));
+        assertEquals(0, nbAfterDeletion);
     }
 }

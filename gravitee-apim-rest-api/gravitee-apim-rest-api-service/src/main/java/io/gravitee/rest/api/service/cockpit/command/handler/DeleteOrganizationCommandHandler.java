@@ -62,6 +62,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
     private final MembershipRepository membershipRepository;
     private final MetadataRepository metadataRepository;
     private final OrganizationService organizationService;
+    private final NotificationTemplateRepository notificationTemplateRepository;
     private final ParameterRepository parameterRepository;
     private final PortalNotificationRepository portalNotificationRepository;
     private final RoleRepository roleRepository;
@@ -83,6 +84,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         @Lazy MediaRepository mediaRepository,
         @Lazy MembershipRepository membershipRepository,
         @Lazy MetadataRepository metadataRepository,
+        @Lazy NotificationTemplateRepository notificationTemplateRepository,
         @Lazy ParameterRepository parameterRepository,
         @Lazy PortalNotificationRepository portalNotificationRepository,
         @Lazy RoleRepository roleRepository,
@@ -110,6 +112,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         this.mediaRepository = mediaRepository;
         this.membershipRepository = membershipRepository;
         this.metadataRepository = metadataRepository;
+        this.notificationTemplateRepository = notificationTemplateRepository;
         this.organizationService = organizationService;
         this.parameterRepository = parameterRepository;
         this.portalNotificationRepository = portalNotificationRepository;
@@ -210,5 +213,9 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         mediaRepository.deleteByOrganization(organization.getId());
         organizationService.delete(organization.getId());
         auditRepository.deleteByReferenceIdAndReferenceType(organization.getId(), Audit.AuditReferenceType.ORGANIZATION);
+        notificationTemplateRepository.deleteByReferenceIdAndReferenceType(
+            organization.getId(),
+            NotificationTemplateReferenceType.ORGANIZATION
+        );
     }
 }

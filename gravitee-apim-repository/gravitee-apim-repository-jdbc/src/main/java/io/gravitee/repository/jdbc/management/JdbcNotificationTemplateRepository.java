@@ -94,6 +94,38 @@ public class JdbcNotificationTemplateRepository
     }
 
     @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, NotificationTemplateReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("JdbcNotificationTemplateRepository.deleteByReferenceIdAndReferenceType({},{})", referenceId, referenceType);
+        try {
+            final var rows = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where reference_type = ? and reference_id = ?",
+                String.class,
+                referenceType.name(),
+                referenceId
+            );
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " + tableName + " where reference_type = ? and reference_id = ?",
+                    referenceType.name(),
+                    referenceId
+                );
+            }
+
+            LOGGER.debug(
+                "JdbcNotificationTemplateRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done",
+                referenceId,
+                referenceType
+            );
+            return rows;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete notification for refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete notification by reference", ex);
+        }
+    }
+
+    @Override
     public Set<NotificationTemplate> findAllByReferenceIdAndReferenceType(
         String referenceId,
         NotificationTemplateReferenceType referenceType
