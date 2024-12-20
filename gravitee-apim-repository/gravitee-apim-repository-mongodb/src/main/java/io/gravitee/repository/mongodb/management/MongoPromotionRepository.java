@@ -25,6 +25,7 @@ import io.gravitee.repository.management.model.Promotion;
 import io.gravitee.repository.mongodb.management.internal.model.PromotionMongo;
 import io.gravitee.repository.mongodb.management.internal.promotion.PromotionMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -103,6 +104,19 @@ public class MongoPromotionRepository implements PromotionRepository {
 
         logger.debug("Searching promotions - Done");
         return promotions;
+    }
+
+    @Override
+    public List<String> deleteByApiId(String apiId) throws TechnicalException {
+        logger.debug("Delete all by api id [{}]", apiId);
+        try {
+            final var allByApiId = internalRepository.deleteByApiId(apiId).stream().map(PromotionMongo::getId).toList();
+            logger.debug("Delete all by api id [{}] -- Done", apiId);
+            return allByApiId;
+        } catch (Exception ex) {
+            logger.error("Failed to delete promotion order by apiId: {}", apiId, ex);
+            throw new TechnicalException("Failed to delete promotion by apiId");
+        }
     }
 
     @Override

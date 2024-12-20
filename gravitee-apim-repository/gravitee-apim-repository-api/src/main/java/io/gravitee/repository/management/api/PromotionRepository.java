@@ -21,7 +21,16 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.PromotionCriteria;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Promotion;
+import java.util.List;
 
 public interface PromotionRepository extends CrudRepository<Promotion, String> {
     Page<Promotion> search(PromotionCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException;
+
+    /**
+     * Delete promotion by api ID
+     * @param apiId The api ID
+     * @return List of deleted IDs for promotions
+     * @throws TechnicalException
+     */
+    List<String> deleteByApiId(String apiId) throws TechnicalException;
 }

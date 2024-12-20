@@ -30,7 +30,6 @@ import io.gravitee.repository.management.api.FindAllRepository;
 import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.api.NotificationTemplateRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.repository.management.api.PromotionRepository;
 import io.gravitee.repository.management.api.QualityRuleRepository;
 import io.gravitee.repository.management.api.TicketRepository;
 import java.io.BufferedReader;
@@ -63,8 +62,7 @@ public class DeleteCommandHandlerTest {
         QualityRuleRepository.class,
         EntrypointRepository.class,
         ClientRegistrationProviderRepository.class,
-        NotificationTemplateRepository.class,
-        PromotionRepository.class
+        NotificationTemplateRepository.class
     );
 
     /**

@@ -56,6 +56,7 @@ import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.PortalMenuLinkRepository;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
+import io.gravitee.repository.management.api.PromotionRepository;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.RoleRepository;
@@ -265,6 +266,9 @@ public class DeleteEnvironmentCommandHandlerTest {
     private PortalMenuLinkRepository portalMenuLinkRepository;
 
     @Mock
+    private PromotionRepository promotionRepository;
+
+    @Mock
     private ApplicationAlertService applicationAlertService;
 
     @Mock
@@ -363,6 +367,7 @@ public class DeleteEnvironmentCommandHandlerTest {
                 planRepository,
                 portalMenuLinkRepository,
                 portalNotificationConfigRepository,
+                promotionRepository,
                 ratingAnswerRepository,
                 ratingRepository,
                 roleRepository,
@@ -496,6 +501,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(searchEngineService).delete(executionContext, ApiEntity.builder().id(apiId).build());
         verifyDeletePages(executionContext, PageReferenceType.API, apiId);
         verify(portalNotificationConfigRepository).deleteByReferenceIdAndReferenceType(apiId, NotificationReferenceType.API);
+        verify(promotionRepository).deleteByApiId(apiId);
         verify(apiCategoryOrderRepository).deleteByApiId(apiId);
         verify(apiQualityRuleRepository).deleteByApi(apiId);
         verify(mediaRepository).deleteAllByApi(apiId);

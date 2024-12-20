@@ -129,14 +129,16 @@ public class PromotionRepositoryTest extends AbstractManagementRepositoryTest {
             .search(null, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
             .getContent();
 
-        assertThat(promotions).hasSize(4);
+        assertThat(promotions).hasSize(6);
         assertThat(promotions)
             .extracting(Promotion::getId)
             .containsExactlyInAnyOrder(
                 "promotion#1",
                 "promotion#to-delete",
                 "promotion#to_be_validated_env_1",
-                "promotion#to_be_validated_env_2"
+                "promotion#to_be_validated_env_2",
+                "promotion#api-to-delete",
+                "promotion#api-to-delete-2"
             );
     }
 
@@ -147,14 +149,16 @@ public class PromotionRepositoryTest extends AbstractManagementRepositoryTest {
             .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
             .getContent();
 
-        assertThat(promotions).hasSize(4);
+        assertThat(promotions).hasSize(6);
         assertThat(promotions)
             .extracting(Promotion::getId)
             .containsExactlyInAnyOrder(
                 "promotion#1",
                 "promotion#to-delete",
                 "promotion#to_be_validated_env_1",
-                "promotion#to_be_validated_env_2"
+                "promotion#to_be_validated_env_2",
+                "promotion#api-to-delete",
+                "promotion#api-to-delete-2"
             );
     }
 
@@ -191,14 +195,16 @@ public class PromotionRepositoryTest extends AbstractManagementRepositoryTest {
             .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
             .getContent();
 
-        assertThat(promotions).hasSize(4);
+        assertThat(promotions).hasSize(6);
         assertThat(promotions)
             .extracting(Promotion::getId)
             .containsExactlyInAnyOrder(
                 "promotion#1",
                 "promotion#to-delete",
                 "promotion#to_be_validated_env_1",
-                "promotion#to_be_validated_env_2"
+                "promotion#to_be_validated_env_2",
+                "promotion#api-to-delete",
+                "promotion#api-to-delete-2"
             );
     }
 
@@ -258,5 +264,18 @@ public class PromotionRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(promotions)
             .extracting(Promotion::getId)
             .containsExactlyInAnyOrder("promotion#to_be_validated_env_1", "promotion#to_be_validated_env_2");
+    }
+
+    @Test
+    public void should_delete_by_api_id() throws Exception {
+        final var criteria = new PromotionCriteria.Builder().apiId("api-to-delete").build();
+        final var pageable = new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build();
+        final var nbBeforeDeletion = promotionRepository.search(criteria, null, pageable).getTotalElements();
+        assertThat(nbBeforeDeletion).isEqualTo(2);
+
+        List<String> deletedPromotions = promotionRepository.deleteByApiId("api-to-delete");
+
+        assertThat(deletedPromotions).containsOnly("promotion#api-to-delete", "promotion#api-to-delete-2");
+        assertThat(promotionRepository.search(criteria, null, pageable).getTotalElements()).isEqualTo(0);
     }
 }
