@@ -17,6 +17,7 @@ package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -37,11 +38,18 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
     public void shouldFindAll() throws Exception {
         final Set<QualityRule> qualityRules = qualityRuleRepository.findAll();
 
-        assertThat(qualityRules).isNotNull().hasSize(4);
+        assertThat(qualityRules).isNotNull().hasSize(6);
 
         assertThat(qualityRules)
             .extracting(QualityRule::getId)
-            .containsExactlyInAnyOrder("quality-rule1", "quality-rule2", "quality-rule3", "quality-rule-other-env");
+            .containsExactlyInAnyOrder(
+                "quality-rule1",
+                "quality-rule2",
+                "quality-rule3",
+                "quality-rule-other-env",
+                "env-to-delete",
+                "env-to-delete-1"
+            );
 
         final QualityRule qualityRuleProduct = qualityRules
             .stream()
@@ -157,5 +165,21 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
             .hasSize(3)
             .extracting(QualityRule::getId)
             .containsExactlyInAnyOrder("quality-rule1", "quality-rule2", "quality-rule3");
+    }
+
+    @Test
+    public void should_delete_by_reference_id_and_reference_type() throws Exception {
+        final var nbBeforeDelete = qualityRuleRepository.findByReference(QualityRule.ReferenceType.ENVIRONMENT, "ToBeDeleted").size();
+
+        final List<String> deleted = qualityRuleRepository.deleteByReferenceIdAndReferenceType(
+            "ToBeDeleted",
+            QualityRule.ReferenceType.ENVIRONMENT
+        );
+
+        final var nbAfterDelete = qualityRuleRepository.findByReference(QualityRule.ReferenceType.ENVIRONMENT, "ToBeDeleted").size();
+
+        assertEquals(2, nbBeforeDelete);
+        assertEquals(2, deleted.size());
+        assertEquals(0, nbAfterDelete);
     }
 }
