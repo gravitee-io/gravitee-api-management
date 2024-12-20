@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.notification;
 
+import io.gravitee.repository.management.model.NotificationTemplateReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.NotificationTemplateMongo;
 import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -40,4 +41,10 @@ public interface NotificationTemplateMongoRepository extends MongoRepository<Not
 
     @Query("{ type: ?0, 'referenceId': ?1, 'referenceType': ?2 }")
     List<NotificationTemplateMongo> findByType(String type, String referenceId, String referenceType);
+
+    @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", delete = true)
+    List<NotificationTemplateMongo> deleteByReferenceIdAndReferenceType(
+        String referenceId,
+        NotificationTemplateReferenceType referenceType
+    );
 }

@@ -18,9 +18,12 @@ package io.gravitee.repository.management;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.ClientRegistrationProvider;
+import io.gravitee.repository.management.model.Subscription;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.Assert;
@@ -42,7 +45,7 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractManagement
         final Set<ClientRegistrationProvider> clientRegistrationProviders = clientRegistrationProviderRepository.findAll();
 
         assertNotNull(clientRegistrationProviders);
-        assertEquals(3, clientRegistrationProviders.size());
+        assertEquals(5, clientRegistrationProviders.size());
     }
 
     @Test
@@ -225,5 +228,19 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractManagement
 
         assertNotNull(clientRegistrationProviders);
         assertEquals(2, clientRegistrationProviders.size());
+    }
+
+    @Test
+    public void should_delete_by_environment_id() throws TechnicalException {
+        List<ClientRegistrationProvider> clientRegistrationProvidersBeforeDeletion = clientRegistrationProviderRepository
+            .findAllByEnvironment("ToBeDeleted")
+            .stream()
+            .toList();
+        assertEquals(2, clientRegistrationProvidersBeforeDeletion.size());
+
+        List<String> clientRegistrationProvidersDeleted = clientRegistrationProviderRepository.deleteByEnvironmentId("ToBeDeleted");
+
+        assertEquals(2, clientRegistrationProvidersDeleted.size());
+        assertEquals(0, clientRegistrationProviderRepository.findAllByEnvironment("ToBeDeleted").size());
     }
 }

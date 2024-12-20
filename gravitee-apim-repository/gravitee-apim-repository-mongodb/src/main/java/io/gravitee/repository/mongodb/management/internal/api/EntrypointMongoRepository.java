@@ -20,6 +20,7 @@ import io.gravitee.repository.mongodb.management.internal.model.EntrypointMongo;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -35,4 +36,7 @@ public interface EntrypointMongoRepository extends MongoRepository<EntrypointMon
         String referenceId,
         EntrypointReferenceType referenceType
     );
+
+    @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", delete = true)
+    List<EntrypointMongo> deleteByReferenceIdAndReferenceType(String referenceId, String name);
 }

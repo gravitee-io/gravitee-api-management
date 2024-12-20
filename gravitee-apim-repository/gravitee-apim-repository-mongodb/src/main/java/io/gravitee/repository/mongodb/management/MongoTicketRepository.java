@@ -25,6 +25,7 @@ import io.gravitee.repository.management.model.Ticket;
 import io.gravitee.repository.mongodb.management.internal.model.TicketMongo;
 import io.gravitee.repository.mongodb.management.internal.ticket.TicketMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -87,5 +88,31 @@ public class MongoTicketRepository implements TicketRepository {
     @Override
     public Set<Ticket> findAll() throws TechnicalException {
         return internalTicketRepo.findAll().stream().map(ticketMongo -> mapper.map(ticketMongo)).collect(Collectors.toSet());
+    }
+
+    @Override
+    public List<String> deleteByApiId(String apiId) throws TechnicalException {
+        LOGGER.debug("Delete by apiId [{}]", apiId);
+        try {
+            final var tickets = internalTicketRepo.deleteByApi(apiId).stream().map(TicketMongo::getId).toList();
+            LOGGER.debug("Delete by apiId [{}] - Done", apiId);
+            return tickets;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete tickets by apiId: {}", apiId, ex);
+            throw new TechnicalException("Failed to delete tickets by apiId");
+        }
+    }
+
+    @Override
+    public List<String> deleteByApplicationId(String applicationId) throws TechnicalException {
+        LOGGER.debug("Delete by applicationId [{}]", applicationId);
+        try {
+            final var tickets = internalTicketRepo.deleteByApplication(applicationId).stream().map(TicketMongo::getId).toList();
+            LOGGER.debug("Delete by applicationId [{}] - Done", applicationId);
+            return tickets;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete tickets by applicationId: {}", applicationId, ex);
+            throw new TechnicalException("Failed to delete tickets by applicationId");
+        }
     }
 }
