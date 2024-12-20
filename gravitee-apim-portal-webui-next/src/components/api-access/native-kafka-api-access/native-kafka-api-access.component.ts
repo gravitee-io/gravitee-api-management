@@ -43,7 +43,7 @@ sasl.login.callback.handler.class=org.apache.kafka.common.security.oauthbearer.s
 sasl.oauthbearer.token.endpoint.url={{ TOKEN_ENDPOINT_URL }}
 sasl.jaas.config=org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \\
   clientId="${this.computedClientId()}" \\
-  clientSecret="{{ CLIENT_SECRET }}"
+  clientSecret="{{ CLIENT_SECRET }}";
 ${this.trustStoreConfig}`,
   );
 
@@ -71,6 +71,11 @@ sasl.mechanism=SCRAM-SHA-512
 sasl.jaas.config=org.apache.kafka.common.security.plain.ScramLoginModule required \\
   username="${this.apiKeyConfigUsername()}" \\
   password="${this.apiKey()}";
+${this.trustStoreConfig}`,
+  );
+
+  sslConfig = computed(
+    () => `security.protocol=SSL
 ${this.trustStoreConfig}`,
   );
 
