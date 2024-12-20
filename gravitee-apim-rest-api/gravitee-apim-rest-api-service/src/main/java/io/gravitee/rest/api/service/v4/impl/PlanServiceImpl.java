@@ -59,6 +59,7 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.KeylessPlanAlreadyPublishedException;
+import io.gravitee.rest.api.service.exceptions.NativePlanAuthenticationConflictException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyPublishedException;
@@ -92,6 +93,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
@@ -551,6 +553,10 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 }
             }
 
+            if (plan.getApiType() == ApiType.NATIVE) {
+                validateNoConflictingAuthenticationForNativePlan(plan, plans);
+            }
+
             // Update plan status
             plan.setStatus(Plan.Status.PUBLISHED);
             // Update plan order
@@ -690,6 +696,24 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                     throw new TechnicalManagementException("An error occurs while trying to update plan " + plan.getId(), ex);
                 }
             });
+    }
+
+    private void validateNoConflictingAuthenticationForNativePlan(final Plan nativePlanToPublish, final Set<Plan> apiPlans) {
+        boolean planToPublishIsKeyless = nativePlanToPublish.getSecurity() == Plan.PlanSecurityType.KEY_LESS;
+
+        long conflictingPublishedPlansCount = apiPlans
+            .stream()
+            .filter(existingPlan -> existingPlan.getStatus() == Plan.Status.PUBLISHED)
+            .filter(existingPlan ->
+                planToPublishIsKeyless
+                    ? existingPlan.getSecurity() != Plan.PlanSecurityType.KEY_LESS
+                    : existingPlan.getSecurity() == Plan.PlanSecurityType.KEY_LESS
+            )
+            .count();
+
+        if (conflictingPublishedPlansCount > 0) {
+            throw new NativePlanAuthenticationConflictException(planToPublishIsKeyless);
+        }
     }
 
     private PlanEntity mapToEntity(final Plan plan) {
