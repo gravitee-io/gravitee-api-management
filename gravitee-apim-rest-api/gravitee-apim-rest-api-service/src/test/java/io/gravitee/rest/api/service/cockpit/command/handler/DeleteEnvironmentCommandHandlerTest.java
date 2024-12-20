@@ -69,6 +69,7 @@ import io.gravitee.repository.management.api.SharedPolicyGroupHistoryRepository;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.ThemeRepository;
+import io.gravitee.repository.management.api.TicketRepository;
 import io.gravitee.repository.management.api.WorkflowRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
@@ -292,6 +293,9 @@ public class DeleteEnvironmentCommandHandlerTest {
     @Mock
     private QualityRuleRepository qualityRuleRepository;
 
+    @Mock
+    private TicketRepository ticketRepository;
+
     private DeleteEnvironmentCommandHandler cut;
 
     @Before
@@ -389,6 +393,7 @@ public class DeleteEnvironmentCommandHandlerTest {
                 sharedPolicyGroupHistoryRepository,
                 subscriptionRepository,
                 themeRepository,
+                ticketRepository,
                 workflowRepository,
                 accessPointService,
                 alertService,
@@ -500,6 +505,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(metadataRepository).deleteByReferenceIdAndReferenceType(appId, MetadataReferenceType.APPLICATION);
         verify(invitationRepository).deleteByReferenceIdAndReferenceType(appId, InvitationReferenceType.APPLICATION);
         verify(workflowRepository).deleteByReferenceIdAndReferenceType(appId, Workflow.ReferenceType.APPLICATION.name());
+        verify(ticketRepository).deleteByApplicationId(appId);
     }
 
     private void verifyDeleteApis(ExecutionContext executionContext) throws TechnicalException {
@@ -524,6 +530,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(ratingAnswerRepository).deleteByRating(apiId);
         verify(scoringReportRepository).deleteByApi(apiId);
         verify(flowRepository).deleteByReferenceIdAndReferenceType(apiId, FlowReferenceType.API);
+        verify(ticketRepository).deleteByApiId(apiId);
     }
 
     private void verifyDeletePages(ExecutionContext executionContext, PageReferenceType type, String id) throws TechnicalException {

@@ -65,6 +65,7 @@ import io.gravitee.repository.management.api.SharedPolicyGroupHistoryRepository;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.ThemeRepository;
+import io.gravitee.repository.management.api.TicketRepository;
 import io.gravitee.repository.management.api.WorkflowRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
@@ -159,6 +160,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final ThemeRepository themeRepository;
+    private final TicketRepository ticketRepository;
     private final WorkflowRepository workflowRepository;
 
     public DeleteEnvironmentCommandHandler(
@@ -204,6 +206,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         @Lazy SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository,
         @Lazy SubscriptionRepository subscriptionRepository,
         @Lazy ThemeRepository themeRepository,
+        @Lazy TicketRepository ticketRepository,
         @Lazy WorkflowRepository workflowRepository,
         AccessPointCrudService accessPointService,
         AlertService alertService,
@@ -264,6 +267,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.sharedPolicyGroupHistoryRepository = sharedPolicyGroupHistoryRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.themeRepository = themeRepository;
+        this.ticketRepository = ticketRepository;
         this.workflowRepository = workflowRepository;
     }
 
@@ -406,6 +410,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
                     portalNotificationConfigRepository.deleteByReferenceIdAndReferenceType(apiId, NotificationReferenceType.API);
                     promotionRepository.deleteByApiId(apiId);
                     scoringReportRepository.deleteByApi(apiId);
+                    ticketRepository.deleteByApiId(apiId);
                     workflowRepository.deleteByReferenceIdAndReferenceType(apiId, Workflow.ReferenceType.API.name());
                     deleteRatings(apiId, RatingReferenceType.API);
                 } catch (TechnicalException e) {
@@ -462,6 +467,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
                     );
                     workflowRepository.deleteByReferenceIdAndReferenceType(applicationId, Workflow.ReferenceType.APPLICATION.name());
                     auditRepository.deleteByReferenceIdAndReferenceType(applicationId, Audit.AuditReferenceType.APPLICATION);
+                    ticketRepository.deleteByApplicationId(applicationId);
                 } catch (TechnicalException e) {
                     throw new TechnicalManagementException(e);
                 }

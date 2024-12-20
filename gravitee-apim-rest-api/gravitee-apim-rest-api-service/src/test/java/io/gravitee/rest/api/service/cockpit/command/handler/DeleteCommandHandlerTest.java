@@ -56,9 +56,7 @@ public class DeleteCommandHandlerTest {
         AlertTriggerRepository.class,
         AlertEventRepository.class,
         // what to do with it ?
-        InstallationRepository.class,
-        // Forgot repositories
-        TicketRepository.class
+        InstallationRepository.class
     );
 
     /**
