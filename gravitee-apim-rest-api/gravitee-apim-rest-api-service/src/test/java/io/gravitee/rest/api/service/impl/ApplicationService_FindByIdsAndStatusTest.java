@@ -38,10 +38,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.Before;
@@ -56,7 +53,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ApplicationService_FindByIdsTest {
+public class ApplicationService_FindByIdsAndStatusTest {
 
     private static final List<String> APPLICATION_IDS = Arrays.asList("id-app-1", "id-app-2");
 
@@ -94,12 +91,11 @@ public class ApplicationService_FindByIdsTest {
     public void setUp() {
         GraviteeContext.setCurrentOrganization("DEFAULT");
         GraviteeContext.setCurrentEnvironment("DEFAULT");
-        // One application is active
         when(app1.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(app1.getId()).thenReturn(APPLICATION_IDS.get(0));
         when(app1.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
-        // One application is archived/deleted
-        when(app2.getStatus()).thenReturn(ApplicationStatus.ARCHIVED);
+
+        when(app2.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(app2.getId()).thenReturn(APPLICATION_IDS.get(1));
         when(app2.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
 
@@ -118,36 +114,20 @@ public class ApplicationService_FindByIdsTest {
     }
 
     @Test
-    public void shouldFindByIds() throws TechnicalException {
+    public void shouldFindByIdsAndStatus() throws TechnicalException {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         ApplicationCriteria criteria = new ApplicationCriteria.Builder()
             .ids(Sets.newHashSet(APPLICATION_IDS))
+            .status(ApplicationStatus.ACTIVE)
             .environmentIds(executionContext.getEnvironmentId())
             .build();
-        // Should return both the applications by Ids irrespective of status
         doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
         doReturn(2).when(primaryOwners).size();
 
-        final Set<ApplicationListItem> applications = applicationService.findByIds(executionContext, APPLICATION_IDS);
-
-        assertNotNull(applications);
-        assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
-    }
-
-    @Test
-    public void shouldFindByIdsWithDuplicatedIdsAndStatus() throws TechnicalException {
-        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApplicationCriteria criteria = new ApplicationCriteria.Builder()
-            .ids(Sets.newHashSet(APPLICATION_IDS))
-            .environmentIds(executionContext.getEnvironmentId())
-            .build();
-
-        doReturn(new Page<>(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
-        doReturn(2).when(primaryOwners).size();
-
-        final Set<ApplicationListItem> applications = applicationService.findByIds(
+        final Set<ApplicationListItem> applications = applicationService.findByIdsAndStatus(
             executionContext,
-            List.of("id-app-1", "id-app-1", "id-app-2")
+            APPLICATION_IDS,
+            ApplicationStatus.ACTIVE
         );
 
         assertNotNull(applications);
@@ -155,23 +135,56 @@ public class ApplicationService_FindByIdsTest {
     }
 
     @Test
-    public void shouldFindByIdsWithNoEnvironmentCriteria() throws TechnicalException {
-        ExecutionContext executionContext = new ExecutionContext("DEFAULT", null);
-        ApplicationCriteria criteria = new ApplicationCriteria.Builder().ids(Sets.newHashSet(APPLICATION_IDS)).build();
-        doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
+    public void shouldFindByIdsAndStatusWithDuplicatedIdsAndStatus() throws TechnicalException {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        ApplicationCriteria criteria = new ApplicationCriteria.Builder()
+            .ids(Sets.newHashSet(APPLICATION_IDS))
+            .status(ApplicationStatus.ACTIVE)
+            .environmentIds(executionContext.getEnvironmentId())
+            .build();
+
+        doReturn(new Page<>(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
         doReturn(2).when(primaryOwners).size();
 
-        final Set<ApplicationListItem> applications = applicationService.findByIds(executionContext, APPLICATION_IDS);
+        final Set<ApplicationListItem> applications = applicationService.findByIdsAndStatus(
+            executionContext,
+            List.of("id-app-1", "id-app-1", "id-app-2"),
+            ApplicationStatus.ACTIVE
+        );
 
         assertNotNull(applications);
         assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
     }
 
     @Test
-    public void shouldFindByIdsWithEmptySet() throws TechnicalException {
+    public void shouldFindByIdsAndStatusWithNoEnvironmentCriteria() throws TechnicalException {
+        ExecutionContext executionContext = new ExecutionContext("DEFAULT", null);
+        ApplicationCriteria criteria = new ApplicationCriteria.Builder()
+            .ids(Sets.newHashSet(APPLICATION_IDS))
+            .status(ApplicationStatus.ACTIVE)
+            .build();
+        doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
+        doReturn(2).when(primaryOwners).size();
+
+        final Set<ApplicationListItem> applications = applicationService.findByIdsAndStatus(
+            executionContext,
+            APPLICATION_IDS,
+            ApplicationStatus.ACTIVE
+        );
+
+        assertNotNull(applications);
+        assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
+    }
+
+    @Test
+    public void shouldFindByIdsAndStatusWithEmptySet() throws TechnicalException {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
-        final Set<ApplicationListItem> applications = applicationService.findByIds(executionContext, Collections.emptySet());
+        final Set<ApplicationListItem> applications = applicationService.findByIdsAndStatus(
+            executionContext,
+            Collections.emptySet(),
+            ApplicationStatus.ACTIVE
+        );
 
         assertNotNull(applications);
         assertTrue(applications.isEmpty());
@@ -183,11 +196,16 @@ public class ApplicationService_FindByIdsTest {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         ApplicationCriteria criteria = new ApplicationCriteria.Builder()
             .ids(Sets.newHashSet(APPLICATION_IDS))
+            .status(ApplicationStatus.ACTIVE)
             .environmentIds(executionContext.getEnvironmentId())
             .build();
         doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
 
-        final Set<ApplicationListItem> applications = applicationService.findByIds(GraviteeContext.getExecutionContext(), APPLICATION_IDS);
+        final Set<ApplicationListItem> applications = applicationService.findByIdsAndStatus(
+            GraviteeContext.getExecutionContext(),
+            APPLICATION_IDS,
+            ApplicationStatus.ACTIVE
+        );
 
         assertNotNull(applications);
         assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
@@ -196,6 +214,6 @@ public class ApplicationService_FindByIdsTest {
     @Test(expected = TechnicalManagementException.class)
     public void shouldThrowTechnicalManagementException() throws TechnicalException {
         when(applicationRepository.search(any(), any())).thenThrow(new TechnicalException());
-        applicationService.findByIds(GraviteeContext.getExecutionContext(), APPLICATION_IDS);
+        applicationService.findByIdsAndStatus(GraviteeContext.getExecutionContext(), APPLICATION_IDS, ApplicationStatus.ACTIVE);
     }
 }
