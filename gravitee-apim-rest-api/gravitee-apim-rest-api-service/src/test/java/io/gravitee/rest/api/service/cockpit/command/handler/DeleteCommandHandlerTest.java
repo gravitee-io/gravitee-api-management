@@ -16,22 +16,16 @@
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import io.gravitee.repository.management.api.AlertEventRepository;
 import io.gravitee.repository.management.api.AlertTriggerRepository;
-import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
 import io.gravitee.repository.management.api.CrudRepository;
-import io.gravitee.repository.management.api.EntrypointRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.FindAllRepository;
 import io.gravitee.repository.management.api.InstallationRepository;
-import io.gravitee.repository.management.api.NotificationTemplateRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.repository.management.api.QualityRuleRepository;
-import io.gravitee.repository.management.api.TicketRepository;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -50,15 +44,12 @@ public class DeleteCommandHandlerTest {
         // Repositories that must not be removed
         EventRepository.class,
         EventLatestRepository.class,
+        InstallationRepository.class,
         // We use the services for deletion
         OrganizationRepository.class,
         EnvironmentRepository.class,
         AlertTriggerRepository.class,
-        AlertEventRepository.class,
-        // what to do with it ?
-        InstallationRepository.class,
-        // Forgot repositories
-        TicketRepository.class
+        AlertEventRepository.class
     );
 
     /**
