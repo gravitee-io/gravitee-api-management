@@ -50,6 +50,10 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.property.Property;
@@ -80,6 +84,8 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanType;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
@@ -137,9 +143,9 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
     }
 
     @Test
-    public void should_export() throws JsonProcessingException {
+    public void should_export_ApiEntityV4() throws JsonProcessingException {
         when(apiImportExportService.exportApi(GraviteeContext.getExecutionContext(), API, USER_NAME, EXCLUDE_ADDITIONAL_DATA))
-            .thenReturn(this.fakeExportApiEntity());
+            .thenReturn(this.fakeExportApiEntity(fakeApiEntityV4()));
 
         Response response = rootTarget().request().get();
         assertEquals(OK_200, response.getStatus());
@@ -153,6 +159,39 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
         final ApiV4 api = export.getApi();
         testReturnedApi(api);
+
+        final Set<Member> members = export.getMembers();
+        testReturnedMembers(members);
+
+        final Set<Metadata> metadata = export.getMetadata();
+        testReturnedMetadata(metadata);
+
+        final Set<PlanV4> plans = export.getPlans();
+        testReturnedPlans(plans);
+
+        final Set<Page> pages = export.getPages();
+        final List<Media> mediaList = export.getApiMedia();
+        testReturnedPages(pages);
+        testReturnedMedia(mediaList);
+    }
+
+    @Test
+    public void should_export_NativeApiEntityV4() throws JsonProcessingException {
+        when(apiImportExportService.exportApi(GraviteeContext.getExecutionContext(), API, USER_NAME, EXCLUDE_ADDITIONAL_DATA))
+            .thenReturn(this.fakeExportApiEntity(fakeNativeApiEntityV4()));
+
+        Response response = rootTarget().request().get();
+        assertEquals(OK_200, response.getStatus());
+
+        final ExportApiV4 export = response.readEntity(ExportApiV4.class);
+        assertNotNull(export.getMembers());
+        assertNotNull(export.getMetadata());
+        assertNotNull(export.getPlans());
+        assertNotNull(export.getPages());
+        assertNotNull(export.getApi());
+
+        final ApiV4 api = export.getApi();
+        testReturnedNativeApi(api);
 
         final Set<Member> members = export.getMembers();
         testReturnedMembers(members);
@@ -190,9 +229,9 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         return apiEntity;
     }
 
-    private ExportApiEntity fakeExportApiEntity() {
+    private ExportApiEntity fakeExportApiEntity(GenericApiEntity apiEntity) {
         var exportApiEntity = new ExportApiEntity();
-        exportApiEntity.setApiEntity(fakeApiEntityV4());
+        exportApiEntity.setApiEntity(apiEntity);
         exportApiEntity.setApiMedia(fakeApiMedia());
         exportApiEntity.setMembers(fakeApiMembers());
         exportApiEntity.setMetadata(fakeApiMetadata());
@@ -282,6 +321,62 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         conditionSelector.setCondition("my-condition");
 
         flow.setSelectors(List.of(httpSelector, channelSelector, conditionSelector));
+        apiEntity.setFlows(List.of(flow));
+
+        return apiEntity;
+    }
+
+    private NativeApiEntity fakeNativeApiEntityV4() {
+        var apiEntity = new NativeApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setId(API);
+        apiEntity.setName(API);
+        apiEntity.setApiVersion("v1.0");
+        KafkaListener kafkaListener = new KafkaListener();
+        kafkaListener.setHost("my.fake.host");
+
+        SubscriptionListener subscriptionListener = new SubscriptionListener();
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("Entrypoint type");
+        entrypoint.setQos(Qos.AT_LEAST_ONCE);
+        entrypoint.setDlq(new Dlq("my-endpoint"));
+        entrypoint.setConfiguration("{\n \"nice\" : \"configuration\"\n}");
+        subscriptionListener.setEntrypoints(List.of(entrypoint));
+        subscriptionListener.setType(ListenerType.SUBSCRIPTION);
+
+        TcpListener tcpListener = new TcpListener();
+        tcpListener.setType(ListenerType.TCP);
+        tcpListener.setEntrypoints(List.of(entrypoint));
+
+        apiEntity.setListeners(List.of(kafkaListener));
+        apiEntity.setProperties(List.of(new Property()));
+        apiEntity.setResources(List.of(new Resource()));
+        apiEntity.setUpdatedAt(new Date());
+
+        NativeEndpointGroup endpointGroup = new NativeEndpointGroup();
+        endpointGroup.setType("kafka");
+        NativeEndpoint endpoint = new NativeEndpoint();
+        endpoint.setType("kafka");
+        endpoint.setConfiguration("{\"bootstrapServers\": \"kafka:9092\"}");
+        endpointGroup.setEndpoints(List.of(endpoint));
+        apiEntity.setEndpointGroups(List.of(endpointGroup));
+
+        NativeFlow flow = new NativeFlow();
+        flow.setName("flowName");
+        flow.setEnabled(true);
+
+        Step step = new Step();
+        step.setEnabled(true);
+        step.setPolicy("my-policy");
+        step.setCondition("my-condition");
+        flow.setInteract(List.of(step));
+        flow.setTags(Set.of("tag1", "tag2"));
+
+        HttpSelector httpSelector = new HttpSelector();
+        httpSelector.setPath("/test");
+        httpSelector.setMethods(Set.of(HttpMethod.GET, HttpMethod.POST));
+        httpSelector.setPathOperator(Operator.STARTS_WITH);
+
         apiEntity.setFlows(List.of(flow));
 
         return apiEntity;
@@ -550,6 +645,59 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
         var conditionSelector = flow.getSelectors().get(2).getConditionSelector();
         assertEquals("my-condition", conditionSelector.getCondition());
+    }
+
+    private void testReturnedNativeApi(ApiV4 responseApi) throws JsonProcessingException {
+        assertNotNull(responseApi);
+        assertEquals(API, responseApi.getName());
+        assertEquals(API, responseApi.getId());
+        assertNull(responseApi.getLinks());
+        assertNotNull(responseApi.getProperties());
+        assertEquals(1, responseApi.getProperties().size());
+        assertNotNull(responseApi.getResources());
+        assertEquals(1, responseApi.getResources().size());
+
+        assertNotNull(responseApi.getListeners());
+        assertEquals(1, responseApi.getListeners().size());
+
+        io.gravitee.rest.api.management.v2.rest.model.KafkaListener kafkaListener = responseApi.getListeners().get(0).getKafkaListener();
+        assertNotNull(kafkaListener);
+        assertNotNull(kafkaListener.getHost());
+        assertEquals("my.fake.host", kafkaListener.getHost());
+
+        assertNotNull(responseApi.getEndpointGroups());
+        assertEquals(1, responseApi.getEndpointGroups().size());
+        assertNotNull(responseApi.getEndpointGroups().get(0));
+        assertNotNull(responseApi.getEndpointGroups().get(0).getEndpoints());
+        assertEquals(1, responseApi.getEndpointGroups().get(0).getEndpoints().size());
+
+        var endpoint = responseApi.getEndpointGroups().get(0).getEndpoints().get(0);
+        assertNotNull(endpoint);
+        assertEquals("kafka", endpoint.getType());
+
+        LinkedHashMap endpointConfig = (LinkedHashMap) endpoint.getConfiguration();
+        assertEquals("kafka:9092", endpointConfig.get("bootstrapServers"));
+
+        assertNotNull(responseApi.getFlows());
+        assertEquals(1, responseApi.getFlows().size());
+
+        var flow = responseApi.getFlows().get(0);
+        assertNotNull(flow);
+        assertEquals("flowName", flow.getName());
+        assertEquals(Boolean.TRUE, flow.getEnabled());
+        assertNotNull(flow.getTags());
+        assertEquals(2, flow.getTags().size());
+        assertEquals(Set.of("tag1", "tag2"), flow.getTags());
+        assertNotNull(flow.getInteract());
+        assertEquals(1, flow.getInteract().size());
+
+        var step = flow.getInteract().get(0);
+        assertNotNull(step);
+        assertEquals(Boolean.TRUE, step.getEnabled());
+        assertEquals("my-policy", step.getPolicy());
+        assertEquals("my-condition", step.getCondition());
+
+        assertNull(flow.getSelectors());
     }
 
     private void testReturnedMembers(Set<Member> members) {

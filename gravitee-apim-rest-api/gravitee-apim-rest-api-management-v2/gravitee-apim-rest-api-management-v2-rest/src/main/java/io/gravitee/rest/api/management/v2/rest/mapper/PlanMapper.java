@@ -101,7 +101,7 @@ public interface PlanMapper {
     @Mapping(target = "definitionVersion", constant = "FEDERATED")
     PlanFederated mapFederated(io.gravitee.apim.core.plan.model.Plan source);
 
-    Set<PlanV4> map(Set<PlanEntity> planEntityList);
+    Set<PlanV4> map(Set<? extends GenericPlanEntity> planEntityList);
 
     @Mapping(source = "security", target = "security.type")
     @Mapping(source = "securityDefinition", target = "security.configuration", qualifiedByName = "deserializeConfiguration")

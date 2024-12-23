@@ -42,6 +42,10 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.property.Property;
@@ -64,6 +68,8 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanType;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
@@ -288,6 +294,43 @@ public class ApiImportExportServiceImplTest {
         assertNull(export.getPages());
         assertNotNull(export.getApiEntity());
         assertNull(export.getApiEntity().getGroups());
+    }
+
+    @Test
+    public void should_export_native_api_and_exclude_all_additional_data() throws JsonProcessingException {
+        doReturn(this.fakeNativeApiEntityV4()).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
+
+        var EXCLUDE_ALL_ADDITIONAL_DATA = Set.of("members", "metadata", "plans", "pages", "groups");
+        final ExportApiEntity export = cut.exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_ID, EXCLUDE_ALL_ADDITIONAL_DATA);
+        assertNull(export.getMembers());
+        assertNull(export.getMetadata());
+        assertNull(export.getPlans());
+        assertNull(export.getPages());
+        assertNotNull(export.getApiEntity());
+        assertNull(export.getApiEntity().getGroups());
+    }
+
+    @Test
+    public void should_export_native_api_with_members_metadata_nativePlans_pages() throws JsonProcessingException {
+        mockPermissions(true, true, true, true);
+        doReturn(this.fakeNativeApiEntityV4()).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
+        doReturn(this.fakeApiMembers())
+            .when(membershipService)
+            .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
+        doReturn(new ArrayList<>(this.fakeApiMetadata()))
+            .when(apiMetadataService)
+            .findAllByApi(GraviteeContext.getExecutionContext(), API_ID);
+        doReturn(this.fakeApiNativePlans()).when(planService).findNativePlansByApi(GraviteeContext.getExecutionContext(), API_ID);
+        doReturn(this.fakeApiPages()).when(pageService).findByApi(GraviteeContext.getCurrentEnvironment(), API_ID);
+        doReturn(this.fakeApiMedia()).when(mediaService).findAllByApiId(API_ID);
+
+        final ExportApiEntity export = cut.exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_ID, EXCLUDE_ADDITIONAL_DATA);
+        assertNotNull(export.getMembers());
+        assertNotNull(export.getMetadata());
+        assertNotNull(export.getPlans());
+        assertNotNull(export.getPages());
+        assertNotNull(export.getApiEntity());
+        assertNotNull(export.getApiEntity().getGroups());
     }
 
     @Test
@@ -558,6 +601,63 @@ public class ApiImportExportServiceImplTest {
         return apiEntity;
     }
 
+    private NativeApiEntity fakeNativeApiEntityV4() {
+        var apiEntity = new NativeApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setId(API_ID);
+        apiEntity.setName(API_ID);
+        apiEntity.setApiVersion("v1.0");
+        apiEntity.setGroups(Set.of("group1", "group2"));
+        KafkaListener kafkaListener = new KafkaListener();
+        kafkaListener.setHost("my.fake.host");
+
+        SubscriptionListener subscriptionListener = new SubscriptionListener();
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("Entrypoint type");
+        entrypoint.setQos(Qos.AT_LEAST_ONCE);
+        entrypoint.setDlq(new Dlq("my-endpoint"));
+        entrypoint.setConfiguration("{\n \"nice\" : \"configuration\"\n}");
+        subscriptionListener.setEntrypoints(List.of(entrypoint));
+        subscriptionListener.setType(ListenerType.SUBSCRIPTION);
+
+        TcpListener tcpListener = new TcpListener();
+        tcpListener.setType(ListenerType.TCP);
+        tcpListener.setEntrypoints(List.of(entrypoint));
+
+        apiEntity.setListeners(List.of(kafkaListener));
+        apiEntity.setProperties(List.of(new Property()));
+        apiEntity.setResources(List.of(new Resource()));
+        apiEntity.setUpdatedAt(new Date());
+
+        NativeEndpointGroup endpointGroup = new NativeEndpointGroup();
+        endpointGroup.setType("kafka");
+        NativeEndpoint endpoint = new NativeEndpoint();
+        endpoint.setType("kafka");
+        endpoint.setConfiguration("{\"bootstrapServers\": \"kafka:9092\"}");
+        endpointGroup.setEndpoints(List.of(endpoint));
+        apiEntity.setEndpointGroups(List.of(endpointGroup));
+
+        NativeFlow flow = new NativeFlow();
+        flow.setName("flowName");
+        flow.setEnabled(true);
+
+        Step step = new Step();
+        step.setEnabled(true);
+        step.setPolicy("my-policy");
+        step.setCondition("my-condition");
+        flow.setInteract(List.of(step));
+        flow.setTags(Set.of("tag1", "tag2"));
+
+        HttpSelector httpSelector = new HttpSelector();
+        httpSelector.setPath("/test");
+        httpSelector.setMethods(Set.of(HttpMethod.GET, HttpMethod.POST));
+        httpSelector.setPathOperator(Operator.STARTS_WITH);
+
+        apiEntity.setFlows(List.of(flow));
+
+        return apiEntity;
+    }
+
     private Set<MemberEntity> fakeApiMembers() {
         var role = new RoleEntity();
         role.setId(OWNER);
@@ -646,6 +746,58 @@ public class ApiImportExportServiceImplTest {
         httpSelector.setPath("/test");
         httpSelector.setPathOperator(Operator.STARTS_WITH);
         planFlow.setSelectors(List.of(httpSelector));
+        planFlow.setTags(null);
+
+        planEntity.setFlows(List.of(planFlow));
+
+        PlanSecurity planSecurity = new PlanSecurity();
+        planSecurity.setType("key-less");
+        planSecurity.setConfiguration("{}");
+        planEntity.setSecurity(planSecurity);
+
+        return Set.of(planEntity);
+    }
+
+    private Set<NativePlanEntity> fakeApiNativePlans() {
+        NativePlanEntity planEntity = new NativePlanEntity();
+        planEntity.setApiId(API_ID);
+        planEntity.setCharacteristics(List.of("characteristic1", "characteristic2"));
+        planEntity.setCommentMessage("commentMessage");
+        planEntity.setCommentRequired(true);
+        planEntity.setCrossId("crossId");
+        planEntity.setCreatedAt(new Date(5025000));
+        planEntity.setClosedAt(null);
+        planEntity.setDescription("description");
+        planEntity.setExcludedGroups(List.of("excludedGroup"));
+        planEntity.setGeneralConditions("generalConditions");
+        planEntity.setId("planId");
+        planEntity.setName("planName");
+        planEntity.setNeedRedeployAt(null);
+        planEntity.setOrder(1);
+        planEntity.setPublishedAt(new Date(5026000));
+        planEntity.setStatus(PlanStatus.PUBLISHED);
+        planEntity.setSelectionRule(null);
+        planEntity.setTags(Set.of("tag1", "tag2"));
+        planEntity.setType(PlanType.API);
+        planEntity.setUpdatedAt(new Date(5027000));
+        planEntity.setValidation(PlanValidationType.AUTO);
+
+        Step step = new Step();
+        step.setName("stepName");
+        step.setDescription("stepDescription");
+        step.setConfiguration("stepConfiguration");
+        step.setCondition("stepCondition");
+        step.setPolicy("stepPolicy");
+        step.setEnabled(true);
+        step.setMessageCondition("stepMessageCondition");
+
+        NativeFlow planFlow = new NativeFlow();
+        planFlow.setEnabled(true);
+        planFlow.setName("planFlowName");
+        planFlow.setPublish(null);
+        planFlow.setInteract(List.of(step));
+        planFlow.setSubscribe(null);
+
         planFlow.setTags(null);
 
         planEntity.setFlows(List.of(planFlow));
