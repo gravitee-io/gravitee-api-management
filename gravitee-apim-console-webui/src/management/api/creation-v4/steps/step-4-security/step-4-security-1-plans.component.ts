@@ -36,6 +36,7 @@ export class Step4Security1PlansComponent implements OnInit {
   selectedPlanMenuItem: PlanMenuItemVM;
   public apiType: ApiType;
   public isTcpApi: boolean;
+  public isNativeKafkaApi: boolean;
 
   constructor(
     private readonly stepService: ApiCreationStepService,
@@ -54,6 +55,8 @@ export class Step4Security1PlansComponent implements OnInit {
 
     this.apiType = currentStepPayload.type;
     this.isTcpApi = currentStepPayload.hosts?.length > 0;
+    this.isNativeKafkaApi =
+      currentStepPayload.type === 'NATIVE' && currentStepPayload.selectedEntrypoints.some((e) => e.supportedListenerType === 'KAFKA');
   }
 
   private computeDefaultApiPlans(currentStepPayload: ApiCreationPayload) {
@@ -116,6 +119,4 @@ export class Step4Security1PlansComponent implements OnInit {
   onRemovePlanClicked(plan: CreatePlanV4) {
     this.plans = this.plans.filter((listedPlan) => listedPlan !== plan);
   }
-
-  protected readonly undefined = undefined;
 }
