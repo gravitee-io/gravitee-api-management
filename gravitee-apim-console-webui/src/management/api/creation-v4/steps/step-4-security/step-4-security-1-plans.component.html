@@ -24,6 +24,12 @@
     </div>
 
     <ng-container *ngIf="view === 'list'">
+      @if (isNativeKafkaApi) {
+        <gio-banner type="info"
+          >Kafka APIs cannot have published plans with conflicting authentication. In order to automatically deploy your API, add either a
+          Keyless plan or one or more plans with authentication.</gio-banner
+        >
+      }
       <step-4-security-1-plans-list
         [plans]="plans"
         (addPlanClicked)="onAddPlanClicked($event)"
