@@ -75,34 +75,39 @@
         </div>
       </mat-card-content>
     </mat-card>
-    <mat-card *ngIf="api.type === 'NATIVE'">
-      <mat-card-content>
-        <div class="entrypoints__host">
-          <div class="entrypoints__host__title">
-            <span class="mat-body-strong">Entrypoint host</span>
+    @if (api.type === 'NATIVE') {
+      <mat-card>
+        <mat-card-content>
+          <div class="entrypoints__host">
+            <div class="entrypoints__host__title">
+              <span class="mat-body-strong">Entrypoint host</span>
+            </div>
+            @if (portalSettings$ | async; as portalSettings) {
+              <gio-form-listeners-kafka-host
+                [formControl]="hostFormControl"
+                [apiId]="apiId"
+                [kafkaPort]="portalSettings.kafkaPort"
+                [kafkaDomain]="portalSettings.kafkaDomain"
+              />
+            }
           </div>
-          @if (portalSettings$ | async; as portalSettings) {
-            <gio-form-listeners-kafka-host
-              [formControl]="hostFormControl"
-              [apiId]="apiId"
-              [kafkaPort]="portalSettings.kafkaPort"
-              [kafkaDomain]="portalSettings.kafkaDomain"
-            />
-          }
-        </div>
-        <div class="entrypoints__footer" *ngIf="!isReadOnly">
-          <button
-            mat-flat-button
-            color="primary"
-            type="submit"
-            [disabled]="formGroup.pristine || formGroup.invalid || dataSource.length === 0"
-          >
-            Save changes
-          </button>
-          <button mat-stroked-button type="button" (click)="onReset()" [disabled]="!formGroup.dirty">Reset</button>
-        </div>
-      </mat-card-content>
-    </mat-card>
+          <div class="entrypoints__footer" *ngIf="!isReadOnly">
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              [disabled]="formGroup.pristine || formGroup.invalid || dataSource.length === 0"
+            >
+              Save changes
+            </button>
+            <button mat-stroked-button type="button" (click)="onReset()" [disabled]="!formGroup.dirty">Reset</button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      @if (shouldUpgrade) {
+        <gio-license-banner [license]="license$ | async" [isOEM]="isOEM$ | async" (onRequestUpgrade)="onRequestUpgrade()" />
+      }
+    }
   </form>
   <mat-card *ngIf="api?.type === 'MESSAGE'">
     <mat-card-content>

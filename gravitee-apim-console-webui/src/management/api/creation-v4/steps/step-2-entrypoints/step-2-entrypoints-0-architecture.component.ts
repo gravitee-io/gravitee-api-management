@@ -204,7 +204,11 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
       .subscribe();
   }
 
-  public onRequestUpgrade() {
+  public onRequestMessageUpgrade() {
     this.licenseService.openDialog(this.messageLicenseOptions);
+  }
+
+  public onRequestNativeKafkaUpgrade() {
+    this.licenseService.openDialog(this.nativeKafkaLicenseOptions);
   }
 }
