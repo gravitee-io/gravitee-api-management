@@ -78,6 +78,10 @@ export class Step5SummaryComponent implements OnInit {
   }
 
   public onRequestUpgrade() {
-    this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_MESSAGE_SUMMARY });
+    if (this.currentStepPayload.type === 'NATIVE') {
+      this.licenseService.openDialog({ feature: ApimFeature.APIM_NATIVE_KAFKA_REACTOR, context: UTMTags.API_CREATION_MESSAGE_SUMMARY });
+    } else {
+      this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_MESSAGE_SUMMARY });
+    }
   }
 }

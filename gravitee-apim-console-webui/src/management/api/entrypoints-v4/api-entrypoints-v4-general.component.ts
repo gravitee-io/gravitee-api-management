@@ -112,11 +112,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.portalSettings$ = this.portalSettingsService.getByEnvironmentId(this.envId).pipe(map(({ portal }) => portal));
 
-    forkJoin([
-      this.restrictedDomainService.get(),
-      this.apiService.get(this.apiId),
-      this.connectorPluginsV2Service.listAsyncEntrypointPlugins(),
-    ])
+    forkJoin([this.restrictedDomainService.get(), this.apiService.get(this.apiId), this.connectorPluginsV2Service.listEntrypointPlugins()])
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(([restrictedDomains, api, availableEntrypoints]) => {
         this.domainRestrictions = restrictedDomains.map((value) => value.domain) || [];
@@ -124,14 +120,14 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
         this.isReadOnly = api.definitionContext?.origin === 'KUBERNETES' || !this.permissionService.hasAnyMatching(['api-definition-u']);
 
         if (api.definitionVersion === 'V4') {
-          this.allEntrypoints = availableEntrypoints;
+          this.allEntrypoints = availableEntrypoints.filter((entrypoint) => entrypoint.supportedApiType === api.type);
           this.initForm(api);
         }
       });
   }
 
   private initForm(api: ApiV4) {
-    if (api.type === 'MESSAGE') {
+    if (api.type === 'MESSAGE' || api.type === 'NATIVE') {
       const selectedEntrypoints = flatten(api.listeners.map((l) => l.entrypoints)).map((e) => e.type);
       this.shouldUpgrade = this.allEntrypoints.filter((e) => selectedEntrypoints.includes(e.id)).some(({ deployed }) => !deployed);
       this.license$ = this.licenseService.getLicense$();
@@ -413,7 +409,10 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   }
 
   onRequestUpgrade() {
-    this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.GENERAL_ENTRYPOINT_CONFIG });
+    this.licenseService.openDialog({
+      feature: this.api.type === 'NATIVE' ? ApimFeature.APIM_NATIVE_KAFKA_REACTOR : ApimFeature.APIM_EN_MESSAGE_REACTOR,
+      context: UTMTags.GENERAL_ENTRYPOINT_CONFIG,
+    });
   }
 
   ngOnDestroy(): void {

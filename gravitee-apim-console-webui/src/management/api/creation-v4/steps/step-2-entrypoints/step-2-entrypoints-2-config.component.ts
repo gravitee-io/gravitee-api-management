@@ -101,7 +101,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       this.formGroup.addControl(`${id}-qos`, this.formBuilder.control(selectedQos ?? 'AUTO'));
     });
 
-    if (this.apiType === 'MESSAGE') {
+    if (this.apiType === 'MESSAGE' || this.apiType === 'NATIVE') {
       this.shouldUpgrade = currentStepPayload.selectedEntrypoints.some(({ deployed }) => !deployed);
       this.license$ = this.licenseService.getLicense$();
       this.isOEM$ = this.licenseService.isOEM$();

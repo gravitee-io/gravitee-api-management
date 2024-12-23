@@ -49,6 +49,7 @@ const ENTRYPOINTS: Partial<ConnectorPlugin>[] = [
   { id: 'http-post', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP POST', deployed: true },
   { id: 'sse', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'Server-Sent Events', deployed: false },
   { id: 'webhook', supportedApiType: 'MESSAGE', supportedListenerType: 'SUBSCRIPTION', name: 'Webhook', deployed: false },
+  { id: 'native-kafka', supportedApiType: 'NATIVE', supportedListenerType: 'KAFKA', name: 'Client', deployed: false },
 ];
 
 describe('ApiProxyV4EntrypointsComponent', () => {
@@ -77,7 +78,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       expectGetPortalSettings();
     }
 
-    if (api.type === 'MESSAGE' && checkLicense) {
+    if ((api.type === 'MESSAGE' || api.type === 'NATIVE') && checkLicense) {
       expectLicenseGetRequest({ tier: 'universe', features: [], packs: [], scope: 'PLATFORM' });
     }
   };
@@ -191,7 +192,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     beforeEach(async () => {
-      await createComponent(RESTRICTED_DOMAINS, API, true);
+      await createComponent(RESTRICTED_DOMAINS, API, true, undefined, true);
     });
 
     afterEach(() => {
@@ -875,6 +876,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   describe('When API has entrypoints not available in license feature', () => {
     const RESTRICTED_DOMAINS = [];
     const API = fakeApiV4({
+      type: 'MESSAGE',
       listeners: [{ type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'sse' }] }],
     });
 
