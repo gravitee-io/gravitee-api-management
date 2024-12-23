@@ -38,6 +38,7 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.AsyncJobRepository;
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.CategoryRepository;
+import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.CustomUserFieldsRepository;
 import io.gravitee.repository.management.api.DashboardRepository;
@@ -56,6 +57,8 @@ import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.PortalMenuLinkRepository;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
+import io.gravitee.repository.management.api.PromotionRepository;
+import io.gravitee.repository.management.api.QualityRuleRepository;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.RoleRepository;
@@ -66,6 +69,7 @@ import io.gravitee.repository.management.api.SharedPolicyGroupHistoryRepository;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.ThemeRepository;
+import io.gravitee.repository.management.api.TicketRepository;
 import io.gravitee.repository.management.api.WorkflowRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
@@ -81,6 +85,7 @@ import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.ParameterReferenceType;
+import io.gravitee.repository.management.model.QualityRule;
 import io.gravitee.repository.management.model.RatingReferenceType;
 import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.ThemeReferenceType;
@@ -265,6 +270,9 @@ public class DeleteEnvironmentCommandHandlerTest {
     private PortalMenuLinkRepository portalMenuLinkRepository;
 
     @Mock
+    private PromotionRepository promotionRepository;
+
+    @Mock
     private ApplicationAlertService applicationAlertService;
 
     @Mock
@@ -278,6 +286,15 @@ public class DeleteEnvironmentCommandHandlerTest {
 
     @Mock
     private SearchEngineService searchEngineService;
+
+    @Mock
+    private ClientRegistrationProviderRepository clientRegistrationProviderRepository;
+
+    @Mock
+    private QualityRuleRepository qualityRuleRepository;
+
+    @Mock
+    private TicketRepository ticketRepository;
 
     private DeleteEnvironmentCommandHandler cut;
 
@@ -344,6 +361,7 @@ public class DeleteEnvironmentCommandHandlerTest {
                 asyncJobRepository,
                 auditRepository,
                 categoryRepository,
+                clientRegistrationProviderRepository,
                 commandRepository,
                 customUserFieldsRepository,
                 dashboardRepository,
@@ -363,6 +381,8 @@ public class DeleteEnvironmentCommandHandlerTest {
                 planRepository,
                 portalMenuLinkRepository,
                 portalNotificationConfigRepository,
+                promotionRepository,
+                qualityRuleRepository,
                 ratingAnswerRepository,
                 ratingRepository,
                 roleRepository,
@@ -373,6 +393,7 @@ public class DeleteEnvironmentCommandHandlerTest {
                 sharedPolicyGroupHistoryRepository,
                 subscriptionRepository,
                 themeRepository,
+                ticketRepository,
                 workflowRepository,
                 accessPointService,
                 alertService,
@@ -465,6 +486,8 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(metadataRepository).deleteByReferenceIdAndReferenceType(ENV_ID, MetadataReferenceType.ENVIRONMENT);
         verify(scoringRulesetRepository).deleteByReferenceId(ENV_ID, "ENVIRONMENT");
         verify(environmentService).delete(ENV_ID);
+        verify(clientRegistrationProviderRepository).deleteByEnvironmentId(ENV_ID);
+        verify(qualityRuleRepository).deleteByReferenceIdAndReferenceType(ENV_ID, QualityRule.ReferenceType.ENVIRONMENT);
     }
 
     private void verifyDeleteApplications(ExecutionContext executionContext) throws TechnicalException {
@@ -482,6 +505,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(metadataRepository).deleteByReferenceIdAndReferenceType(appId, MetadataReferenceType.APPLICATION);
         verify(invitationRepository).deleteByReferenceIdAndReferenceType(appId, InvitationReferenceType.APPLICATION);
         verify(workflowRepository).deleteByReferenceIdAndReferenceType(appId, Workflow.ReferenceType.APPLICATION.name());
+        verify(ticketRepository).deleteByApplicationId(appId);
     }
 
     private void verifyDeleteApis(ExecutionContext executionContext) throws TechnicalException {
@@ -496,6 +520,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(searchEngineService).delete(executionContext, ApiEntity.builder().id(apiId).build());
         verifyDeletePages(executionContext, PageReferenceType.API, apiId);
         verify(portalNotificationConfigRepository).deleteByReferenceIdAndReferenceType(apiId, NotificationReferenceType.API);
+        verify(promotionRepository).deleteByApiId(apiId);
         verify(apiCategoryOrderRepository).deleteByApiId(apiId);
         verify(apiQualityRuleRepository).deleteByApi(apiId);
         verify(mediaRepository).deleteAllByApi(apiId);
@@ -505,6 +530,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(ratingAnswerRepository).deleteByRating(apiId);
         verify(scoringReportRepository).deleteByApi(apiId);
         verify(flowRepository).deleteByReferenceIdAndReferenceType(apiId, FlowReferenceType.API);
+        verify(ticketRepository).deleteByApiId(apiId);
     }
 
     private void verifyDeletePages(ExecutionContext executionContext, PageReferenceType type, String id) throws TechnicalException {

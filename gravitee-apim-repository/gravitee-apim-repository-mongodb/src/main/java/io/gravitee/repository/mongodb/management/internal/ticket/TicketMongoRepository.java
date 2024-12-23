@@ -16,7 +16,9 @@
 package io.gravitee.repository.mongodb.management.internal.ticket;
 
 import io.gravitee.repository.mongodb.management.internal.model.TicketMongo;
+import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -24,4 +26,10 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface TicketMongoRepository extends MongoRepository<TicketMongo, String>, TicketMongoRepositoryCustom {}
+public interface TicketMongoRepository extends MongoRepository<TicketMongo, String>, TicketMongoRepositoryCustom {
+    @Query(value = "{ 'api': ?0 }", delete = true)
+    List<TicketMongo> deleteByApi(String apiId);
+
+    @Query(value = "{ 'application': ?0 }", delete = true)
+    List<TicketMongo> deleteByApplication(String applicationId);
+}

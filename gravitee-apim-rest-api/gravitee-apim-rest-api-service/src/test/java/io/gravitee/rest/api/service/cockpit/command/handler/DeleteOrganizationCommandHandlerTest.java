@@ -32,12 +32,14 @@ import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.CustomUserFieldsRepository;
+import io.gravitee.repository.management.api.EntrypointRepository;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.api.IdentityProviderActivationRepository;
 import io.gravitee.repository.management.api.IdentityProviderRepository;
 import io.gravitee.repository.management.api.LicenseRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.MetadataRepository;
+import io.gravitee.repository.management.api.NotificationTemplateRepository;
 import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.api.PortalNotificationRepository;
 import io.gravitee.repository.management.api.RoleRepository;
@@ -48,9 +50,11 @@ import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.CustomUserFieldReferenceType;
+import io.gravitee.repository.management.model.EntrypointReferenceType;
 import io.gravitee.repository.management.model.License;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.MetadataReferenceType;
+import io.gravitee.repository.management.model.NotificationTemplateReferenceType;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.TagReferenceType;
@@ -154,6 +158,12 @@ public class DeleteOrganizationCommandHandlerTest {
     @Mock
     private SearchEngineService searchEngineService;
 
+    @Mock
+    private NotificationTemplateRepository notificationTemplateRepository;
+
+    @Mock
+    private EntrypointRepository entrypointRepository;
+
     private DeleteOrganizationCommandHandler cut;
 
     @Before
@@ -174,6 +184,7 @@ public class DeleteOrganizationCommandHandlerTest {
                 auditRepository,
                 commandRepository,
                 customUserFieldsRepository,
+                entrypointRepository,
                 flowRepository,
                 identityProviderActivationRepository,
                 identityProviderRepository,
@@ -181,6 +192,7 @@ public class DeleteOrganizationCommandHandlerTest {
                 mediaRepository,
                 membershipRepository,
                 metadataRepository,
+                notificationTemplateRepository,
                 parameterRepository,
                 portalNotificationRepository,
                 roleRepository,
@@ -284,6 +296,10 @@ public class DeleteOrganizationCommandHandlerTest {
         verify(licenseRepository).delete(ORG_ID, License.ReferenceType.ORGANIZATION);
         verify(mediaRepository).deleteByOrganization(ORG_ID);
         verify(organizationService).delete(executionContext.getOrganizationId());
+        verify(notificationTemplateRepository)
+            .deleteByReferenceIdAndReferenceType(executionContext.getOrganizationId(), NotificationTemplateReferenceType.ORGANIZATION);
+        verify(entrypointRepository)
+            .deleteByReferenceIdAndReferenceType(executionContext.getOrganizationId(), EntrypointReferenceType.ORGANIZATION);
     }
 
     private void verifyDisableOrganization(ExecutionContext context) {
