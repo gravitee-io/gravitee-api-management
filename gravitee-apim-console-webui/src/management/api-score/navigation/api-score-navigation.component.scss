@@ -68,3 +68,8 @@ $borderColor: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter20')
     margin-right: 8px;
   }
 }
+
+.nav-items {
+  position: sticky;
+  top: 16px;
+}
