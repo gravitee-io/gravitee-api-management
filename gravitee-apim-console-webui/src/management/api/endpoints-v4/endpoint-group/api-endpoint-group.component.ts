@@ -53,6 +53,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
   public healthCheckForm: EndpointGroupHealthCheckFormType;
   public healthCheckSchema: unknown;
   public isHttpProxyApi: boolean;
+  public isNativeKafkaApi: boolean;
 
   public initialGroupFormValue: any;
   public endpointGroup: EndpointGroupV4;
@@ -108,6 +109,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
     this.api = api;
 
     this.isHttpProxyApi = api.type === 'PROXY' && !(api.listeners.find((listener) => listener.type === 'TCP') != null);
+    this.isNativeKafkaApi = api.type === 'NATIVE' && api.listeners.some((listener) => listener.type === 'KAFKA');
 
     this.initialApi = this.api;
 

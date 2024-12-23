@@ -35,6 +35,7 @@ import { ApiV4, fakeApiV4, fakeProxyApiV4, fakeProxyTcpApiV4 } from '../../../..
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { fakeEndpointGroupV4, fakeHTTPProxyEndpointGroupV4 } from '../../../../entities/management-api-v2/api/v4/endpointGroupV4.fixture';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { fakeKafkaListener } from '../../../../entities/management-api-v2/api/v4/listener.fixture';
 
 /**
  * Expect that a single GET request has been made which matches the specified URL
@@ -195,6 +196,20 @@ describe('ApiEndpointGroupComponent', () => {
       expect(endpointsGroup[0].name).toEqual('default-group');
       expect(endpointsGroup[0].loadBalancer.type).toEqual('RANDOM');
       expect(await componentHarness.configurationTabIsVisible()).toEqual(true);
+    });
+
+    it('should not show native api endpoint group load balancing', async () => {
+      api = fakeApiV4({
+        id: API_ID,
+        type: 'NATIVE',
+        listeners: [fakeKafkaListener()],
+        endpointGroups: [fakeEndpointGroupV4({ type: 'native-kafka' })],
+      });
+      await initComponent(api);
+      await componentHarness.clickGeneralTab();
+      expectApiSchemaGetRequests(api, fixture, httpTestingController);
+
+      expect(await componentHarness.isEndpointGroupLoadBalancerSelectorShown()).toEqual(false);
     });
   });
   describe('endpoint group update - health check', () => {

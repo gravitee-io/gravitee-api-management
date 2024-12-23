@@ -25,5 +25,7 @@ import { LOAD_BALANCER_TYPES } from '../../../../../entities/management-api-v2';
 })
 export class ApiEndpointGroupGeneralComponent {
   @Input() generalForm: UntypedFormGroup;
+  @Input() isNativeKafka: boolean;
+
   public loadBalancerTypes = LOAD_BALANCER_TYPES;
 }

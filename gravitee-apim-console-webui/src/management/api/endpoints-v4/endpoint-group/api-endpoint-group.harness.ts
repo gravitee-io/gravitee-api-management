@@ -49,6 +49,13 @@ export class ApiEndpointGroupHarness extends ComponentHarness {
     return this.getEndpointGroupGeneralHarness().then((harness) => harness.setNameValue(inputValue));
   }
 
+  public async isEndpointGroupLoadBalancerSelectorShown() {
+    return this.getEndpointGroupGeneralHarness()
+      .then((harness) => harness.getLoadBalancerValue())
+      .then((_) => true)
+      .catch((_) => false);
+  }
+
   public async readEndpointGroupLoadBalancerSelector() {
     return this.getEndpointGroupGeneralHarness().then((harness) => harness.getLoadBalancerValue());
   }
