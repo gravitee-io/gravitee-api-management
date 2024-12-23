@@ -116,26 +116,38 @@ export class ApiCreationV4SpecHttpExpects {
     });
   }
 
-  expectCallsForApiAndPlanCreation(apiId: string, planId: string, planName: string = 'Default Keyless (UNSECURED)') {
+  expectCallsForApiAndPlanCreation(
+    apiId: string,
+    planIdBase: string,
+    planNames: string[] = ['Default Keyless (UNSECURED)'],
+    shouldExpectPublishPlans: boolean = true,
+  ) {
     this.expectCallsForApiCreation(apiId);
 
-    const createPlansRequest = this.httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/plans`,
-      method: 'POST',
-    });
-    expect(createPlansRequest.request.body).toEqual(
-      expect.objectContaining({
-        definitionVersion: 'V4',
-        name: planName,
-      }),
-    );
-    createPlansRequest.flush(fakePlanV4({ apiId: apiId, id: planId }));
+    for (let i = 0; i < planNames.length; i++) {
+      const planName = planNames[i];
+      const planId = `${planIdBase}-${i}`;
 
-    const publishPlansRequest = this.httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/plans/${planId}/_publish`,
-      method: 'POST',
-    });
-    publishPlansRequest.flush({});
+      const createPlansRequest = this.httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/plans`,
+        method: 'POST',
+      });
+      expect(createPlansRequest.request.body).toEqual(
+        expect.objectContaining({
+          definitionVersion: 'V4',
+          name: planName,
+        }),
+      );
+      createPlansRequest.flush(fakePlanV4({ apiId: apiId, id: planId }));
+
+      if (shouldExpectPublishPlans) {
+        const publishPlansRequest = this.httpTestingController.expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/plans/${planId}/_publish`,
+          method: 'POST',
+        });
+        publishPlansRequest.flush({});
+      }
+    }
   }
 
   expectCallsForApiCreation(apiId: string) {
@@ -150,8 +162,8 @@ export class ApiCreationV4SpecHttpExpects {
     createApiRequest.flush(fakeApiV4({ id: apiId }));
   }
 
-  expectCallsForApiDeployment(apiId: string, planId: string, planName?: string) {
-    this.expectCallsForApiAndPlanCreation(apiId, planId, planName);
+  expectCallsForApiDeployment(apiId: string, planId: string, planNames?: string[]) {
+    this.expectCallsForApiAndPlanCreation(apiId, planId, planNames);
 
     const startApiRequest = this.httpTestingController.expectOne({
       url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_start`,
