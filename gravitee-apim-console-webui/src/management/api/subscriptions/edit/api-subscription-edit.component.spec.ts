@@ -400,6 +400,35 @@ describe('ApiSubscriptionEditComponent', () => {
     });
   });
 
+  describe('resume failed subscription', () => {
+    const failedSubscription = BASIC_SUBSCRIPTION();
+    failedSubscription.consumerStatus = 'FAILURE';
+
+    it('should resume failed subscription', async () => {
+      await initComponent({ subscription: failedSubscription });
+      expectApiKeyListGet();
+
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
+      expect(await harness.resumeFailureBtnIsVisible()).toEqual(true);
+
+      await harness.openResumeFailureDialog();
+
+      const resumeDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#confirmResumeFailureSubscriptionDialog' }),
+      );
+      expect(await resumeDialog.getTitleText()).toEqual('Resume your failure subscription');
+
+      const resumeBtn = await resumeDialog.getHarness(MatButtonHarness.with({ text: 'Resume' }));
+      expect(await resumeBtn.isDisabled()).toEqual(false);
+      await resumeBtn.click();
+
+      expectApiSubscriptionFailureResume(SUBSCRIPTION_ID, BASIC_SUBSCRIPTION());
+      expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
+      expectApiKeyListGet();
+      expectApiGet();
+    });
+  });
+
   describe('resume subscription', () => {
     const pausedSubscription = BASIC_SUBSCRIPTION();
     pausedSubscription.status = 'PAUSED';
@@ -1229,6 +1258,15 @@ describe('ApiSubscriptionEditComponent', () => {
   function expectApiSubscriptionResume(subscriptionId: string, subscription: Subscription): void {
     const req = httpTestingController.expectOne({
       url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${subscriptionId}/_resume`,
+      method: 'POST',
+    });
+    expect(req.request.body).toEqual({});
+    req.flush(subscription);
+  }
+
+  function expectApiSubscriptionFailureResume(subscriptionId: string, subscription: Subscription): void {
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${subscriptionId}/_resumeFailure`,
       method: 'POST',
     });
     expect(req.request.body).toEqual({});

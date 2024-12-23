@@ -366,6 +366,36 @@ export class ApiSubscriptionEditComponent implements OnInit {
       );
   }
 
+  resumeFailureSubscription() {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        data: {
+          title: `Resume your failure subscription`,
+          content: 'The application will be able to consume your API.',
+          confirmButton: 'Resume',
+        },
+        role: 'alertdialog',
+        id: 'confirmResumeFailureSubscriptionDialog',
+      })
+      .afterClosed()
+      .pipe(
+        switchMap((confirm) => {
+          if (confirm) {
+            return this.apiSubscriptionService.resumeFailure(this.subscription.id, this.apiId);
+          }
+          return EMPTY;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(
+        (_) => {
+          this.snackBarService.success(`Subscription resumed`);
+          this.ngOnInit();
+        },
+        (err) => this.snackBarService.error(err.message),
+      );
+  }
+
   changeEndDate() {
     this.matDialog
       .open<

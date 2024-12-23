@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
-import io.gravitee.rest.api.model.ProcessSubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.TransferSubscriptionEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
@@ -69,6 +68,7 @@ public interface SubscriptionService {
     SubscriptionEntity pause(ExecutionContext executionContext, String subscription);
 
     SubscriptionEntity resumeConsumer(ExecutionContext executionContext, String subscriptionId);
+    SubscriptionEntity resumeFailed(ExecutionContext executionContext, String subscriptionId);
 
     SubscriptionEntity resume(ExecutionContext executionContext, String subscription);
 
