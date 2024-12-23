@@ -67,6 +67,12 @@ export class ApiEndpointHarness extends ComponentHarness {
     return this.getHealthCheckInheritToggle().then((toggle) => toggle.toggle());
   }
 
+  public async isWeightButtonShown(): Promise<boolean> {
+    return this.getWeightButton()
+      .then((_) => true)
+      .catch((_) => false);
+  }
+
   public async fillWeightButton(weight: number) {
     return this.getWeightButton().then((button) => button.setValue(weight.toString()));
   }
