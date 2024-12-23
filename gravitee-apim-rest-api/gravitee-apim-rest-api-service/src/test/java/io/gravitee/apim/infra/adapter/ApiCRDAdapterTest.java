@@ -21,10 +21,16 @@ import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
+import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import java.sql.Date;
 import java.time.Instant;
@@ -59,9 +65,24 @@ class ApiCRDAdapterTest {
     }
 
     @Test
+    void should_convert_nativeApi_to_crd_spec() {
+        var export = exportNativeApiEntity();
+        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity());
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(spec.getId()).isEqualTo("api-id");
+            soft.assertThat(spec.getName()).isEqualTo("api-name");
+            soft.assertThat(spec.getCrossId()).isEqualTo("api-cross-id");
+            soft.assertThat(spec.getListeners()).hasSize(1);
+            soft.assertThat(spec.getEndpointGroups()).hasSize(1);
+            soft.assertThat(spec.getPlans()).hasSize(1);
+            soft.assertThat(spec.getPlans()).containsKey("plan-name");
+        });
+    }
+
+    @Test
     void should_exclude_closed_plans_from_crd_spec() {
         var export = exportEntity();
-        var plansWithOneClosedPlan = new HashSet<>(export.getPlans());
+        Set<GenericPlanEntity> plansWithOneClosedPlan = new HashSet<>(export.getPlans());
         plansWithOneClosedPlan.add(PlanEntity.builder().status(PlanStatus.CLOSED).name("closed-plan").build());
         export.setPlans(plansWithOneClosedPlan);
         var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity());
@@ -134,6 +155,43 @@ class ApiCRDAdapterTest {
                     .build()
             )
             .plans(Set.of(PlanEntity.builder().name("plan-name").id("plan-id").security(new PlanSecurity("key-less", "{}")).build()))
+            .build();
+    }
+
+    private static ExportApiEntity exportNativeApiEntity() {
+        return ExportApiEntity
+            .builder()
+            .apiEntity(
+                NativeApiEntity
+                    .builder()
+                    .name("api-name")
+                    .id("api-id")
+                    .crossId("api-cross-id")
+                    .listeners(List.of(KafkaListener.builder().host("myapi").build()))
+                    .endpointGroups(
+                        List.of(
+                            NativeEndpointGroup
+                                .builder()
+                                .name("default-group")
+                                .type("kafka")
+                                .sharedConfiguration("{}")
+                                .endpoints(
+                                    List.of(
+                                        NativeEndpoint
+                                            .builder()
+                                            .name("default-endpoint")
+                                            .type("kafka")
+                                            .inheritConfiguration(true)
+                                            .configuration("{\"bootstrapServers\":\"localhost:9092\"}")
+                                            .build()
+                                    )
+                                )
+                                .build()
+                        )
+                    )
+                    .build()
+            )
+            .plans(Set.of(NativePlanEntity.builder().name("plan-name").id("plan-id").security(new PlanSecurity("key-less", "{}")).build()))
             .build();
     }
 }

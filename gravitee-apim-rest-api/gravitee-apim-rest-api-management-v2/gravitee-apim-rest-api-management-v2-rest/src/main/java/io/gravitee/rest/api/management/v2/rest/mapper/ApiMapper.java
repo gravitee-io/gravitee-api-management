@@ -167,15 +167,32 @@ public interface ApiMapper {
     ApiV4 mapToV4(ApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
+    @Mapping(target = "listeners", qualifiedByName = "fromHttpListeners")
+    ApiV4 mapToV4(ApiEntity apiEntity);
+
+    @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "listeners", qualifiedByName = "fromNativeListeners")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
     ApiV4 mapToV4(NativeApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+
+    @Mapping(target = "definitionContext", source = "apiEntity.originContext")
+    @Mapping(target = "listeners", qualifiedByName = "fromNativeListeners")
+    ApiV4 mapToV4(NativeApiEntity apiEntity);
 
     default ApiV4 mapToV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState) {
         if (ApiType.NATIVE.equals(source.getType())) {
             return mapToNativeV4(source, uriInfo, deploymentState);
         }
         return mapToHttpV4(source, uriInfo, deploymentState);
+    }
+
+    default ApiV4 mapToV4(GenericApiEntity genericApiEntity) {
+        if (genericApiEntity instanceof ApiEntity asApiEntity) {
+            return mapToV4(asApiEntity);
+        } else if (genericApiEntity instanceof NativeApiEntity asNativeApiEntity) {
+            return mapToV4(asNativeApiEntity);
+        }
+        return null;
     }
 
     @Mapping(target = "definitionContext", source = "source.originContext")

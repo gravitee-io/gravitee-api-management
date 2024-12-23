@@ -31,9 +31,9 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipService;
@@ -95,9 +95,10 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
         if (apiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
             throw new ApiDefinitionVersionNotSupportedException(apiEntity.getDefinitionVersion().getLabel());
         }
+        boolean isNativeApi = apiEntity instanceof NativeApiEntity;
 
         final ExportApiEntity exportApi = new ExportApiEntity();
-        exportApi.setApiEntity((ApiEntity) apiEntity);
+        exportApi.setApiEntity(apiEntity);
 
         if (!excludeAdditionalData.contains("members")) {
             var members = exportApiMembers(apiId);
@@ -110,7 +111,7 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
         }
 
         if (!excludeAdditionalData.contains("plans")) {
-            var plans = exportApiPlans(apiId);
+            var plans = exportApiPlans(apiId, isNativeApi);
             exportApi.setPlans(plans);
         }
 
@@ -119,7 +120,7 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
         }
 
         if (excludeAdditionalData.contains("groups")) {
-            exportApi.getApiEntity().setGroups(null);
+            exportApi.excludeGroups();
         }
 
         return exportApi;
@@ -142,7 +143,7 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
         }
     }
 
-    private Set<PlanEntity> exportApiPlans(String apiId) {
+    private Set<? extends GenericPlanEntity> exportApiPlans(String apiId, boolean isNativeApi) {
         if (
             permissionService.hasPermission(
                 GraviteeContext.getExecutionContext(),
@@ -151,6 +152,9 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
                 RolePermissionAction.READ
             )
         ) {
+            if (isNativeApi) {
+                return planService.findNativePlansByApi(GraviteeContext.getExecutionContext(), apiId);
+            }
             return planService.findByApi(GraviteeContext.getExecutionContext(), apiId);
         }
         return null;
