@@ -16,6 +16,7 @@
 package io.gravitee.plugin.endpoint.http.proxy.configuration;
 
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorConfiguration;
+import io.gravitee.plugin.annotation.ConfigurationEvaluator;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,6 +26,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@ConfigurationEvaluator(attributePrefix = "gravitee.attributes.endpoint.httpProxy")
 public class HttpProxyEndpointConnectorConfiguration implements EndpointConnectorConfiguration {
 
     private String target;
