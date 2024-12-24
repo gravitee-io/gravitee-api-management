@@ -21,11 +21,13 @@ import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.v4.http.HttpClientOptions;
+import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.reactive.api.ApiType;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
+import io.reactivex.rxjava3.core.Maybe;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,12 +49,16 @@ class HttpProxyEndpointConnectorFactoryTest {
     private TemplateEngine templateEngine;
 
     @Mock
+    private TemplateContext templateContext;
+
+    @Mock
     private DeploymentContext deploymentContext;
 
     @BeforeEach
     void beforeEach() {
         lenient().when(deploymentContext.getTemplateEngine()).thenReturn(templateEngine);
-        lenient().when(templateEngine.convert(anyString())).thenAnswer(i -> i.getArgument(0));
+        lenient().when(templateEngine.getTemplateContext()).thenReturn(templateContext);
+        lenient().when(templateEngine.eval(anyString(), any())).thenAnswer(i -> Maybe.just(i.getArgument(0)));
         cut = new HttpProxyEndpointConnectorFactory(new PluginConfigurationHelper(null, new ObjectMapper()));
     }
 
@@ -85,12 +91,12 @@ class HttpProxyEndpointConnectorFactoryTest {
         HttpProxyEndpointConnector connector = cut.createConnector(deploymentContext, CONFIG, SHARED_CONFIG);
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
-        verify(templateEngine).convert("https://localhost:8082/echo?foo=bar");
-        verify(templateEngine).convert("localhost");
-        verify(templateEngine).convert("user");
-        verify(templateEngine).convert("pwd");
-        verify(templateEngine).convert("Value1");
-        verify(templateEngine).convert("Value2");
+        verify(templateEngine).eval("https://localhost:8082/echo?foo=bar", String.class);
+        verify(templateEngine).eval("localhost", String.class);
+        verify(templateEngine).eval("user", String.class);
+        verify(templateEngine).eval("pwd", String.class);
+        verify(templateEngine).eval("Value1", String.class);
+        verify(templateEngine).eval("Value2", String.class);
     }
 
     @Test

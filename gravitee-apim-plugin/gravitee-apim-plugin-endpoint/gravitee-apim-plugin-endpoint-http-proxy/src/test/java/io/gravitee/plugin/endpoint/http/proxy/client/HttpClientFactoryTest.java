@@ -21,7 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
@@ -47,7 +47,7 @@ class HttpClientFactoryTest {
     public static final int TIMEOUT_SECONDS = 60;
 
     @Mock
-    protected ExecutionContext ctx;
+    protected HttpExecutionContext ctx;
 
     protected HttpClientFactory cut;
     protected HttpProxyEndpointConnectorConfiguration configuration;

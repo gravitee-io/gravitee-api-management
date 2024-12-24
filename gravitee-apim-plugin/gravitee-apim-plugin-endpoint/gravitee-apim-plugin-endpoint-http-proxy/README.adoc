@@ -37,12 +37,14 @@ Bellow you will find the common options related to endpoint configuration which 
 
 === Http proxy connector configuration
 
+#Warning: EL and Secret are evaluated at Api deployment (not request time!)#
+
 ==== Endpoint level configuration
 
 |===
-|Attributes | Default | Mandatory | Description
+|Attributes | Default | Mandatory | Support EL | Support secret | Description
 
-|target | N/A     | Yes | The target url to use to contact the backend (ex: https://api.gravitee.io/echo).
+|target | N/A     | Yes | Yes | Yes | The target url to use to contact the backend (ex: https://api.gravitee.io/echo).
 
 |===
 
@@ -53,12 +55,12 @@ Shared configuration can be done directly from the endpoint group `sharedConfigu
 If `inheritConfiguration` is false, then shared configuration can be overridden directly from endpoint `overriddenSharedConfiguration` field.
 
 |===
-|Attributes | Default | Mandatory | Description
+|Attributes | Default | Mandatory | Support EL | Support secret | Description
 
-|headers | N/A     | No | An optional list of headers to add before sending the request to the backend. Header's value support EL expression that are evaluated at Api deployment (not request time!) and support a subset of expressions (api properties, dictionary, node). All headers defined here take precedence over headers defined at request time (override).
-|http | N/A     | No | The configuration related to http (pool, timeout, ...). See bellow for details.
-|proxy | N/A     | No | The configuration related to the configuration of proxy (http or tcp proxy). See bellow for details.
-|ssl | N/A     | No | The configuration related to ssl. See bellow for details.
+|headers | N/A     | No | Yes | Yes | An optional list of headers to add before sending the request to the backend. Header's value support EL expression support a subset of expressions (api properties, dictionary, node). All headers defined here take precedence over headers defined at request time (override).
+|http | N/A     | No | N/A | N/A | The configuration related to http (pool, timeout, ...). See bellow for details.
+|proxy | N/A     | No | N/A | N/A | The configuration related to the configuration of proxy (http or tcp proxy). See bellow for details.
+|ssl | N/A     | No | N/A | N/A | The configuration related to ssl. See bellow for details.
 
 |===
 
@@ -67,21 +69,21 @@ If `inheritConfiguration` is false, then shared configuration can be overridden 
 The http proxy connector comes with default values regarding the connection pool and the different timeout. They are all overridable depending on the need. Each configured endpoint will have its own instance of endpoint connector with its dedicated connection pool and properties.
 
 |===
-|Attributes | Default | Mandatory | Description
+|Attributes | Default | Mandatory | Support EL | Support secret | Description
 
-|keepAlive | true     | Yes | Use an HTTP persistent connection to send and receive multiple HTTP requests / responses.
-|followRedirects | false     | Yes | When the connector receives a status code in the range 3xx from the backend, it follows the redirection provided by the Location response header.
-|readTimeout | 10000     | Yes | Maximum time given to the backend to complete the request (including response) in milliseconds.
-|idleTimeout | 60000     | Yes | Maximum time a connection will be opened if no data is received nor sent. Once the timeout has elapsed, the unused connection will be closed, allowing to free the associated resources.
-|keepAliveTimeout | 30000     | Yes | Maximum time a connection will remains unused in the pool in milliseconds. Once the timeout has elapsed, the unused connection will be evicted.
-|connectTimeout | 5000     | Yes | Maximum time to connect to the backend in milliseconds.
-|propagateClientAcceptEncoding | false     | Yes | Propagate client Accept-Encoding header (no decompression if any). The gateway will propagate the Accept-Encoding header's value specified by the client's request to the backend (if any). The gateway will <b>NEVER attempt to decompress the content</b> if the backend response is compressed (gzip, deflate). It is then not possible to apply transformation policy if the body is compressed. Also, body will appear compressed if logging is enabled for the API. <b>DO NOT</b> activate this option if you plan to play with body responses.
-|useCompression | true     | Yes | Enable compression (gzip, deflate). The gateway can let the remote http server know that it supports compression. In case the remote http server returns a compressed response, the gateway will decompress it. Leave that option off if you don't want compression between the gateway and the remote server.
-|maxConcurrentConnections | 20     | Yes | Maximum pool size for connections. It basically represents the maximum number of concurrent requests at a time.
-|version | HTTP_1     | Yes | The http version to use.
-|clearTextUpgrade | true     | No | Allows h2c Clear Text Upgrade. If enabled, an h2c connection is established using an HTTP/1.1 Upgrade request. If disabled, h2c connection is established directly (with prior knowledge).
-|pipelining | false     | No | Enable HTTP pipelining. When pipe-lining is enabled requests will be written to connections without waiting for previous responses to return.
-|connectTimeout | 3000     | Yes | Maximum time to connect to the backend in milliseconds.
+|keepAlive | true     | Yes | No | No | Use an HTTP persistent connection to send and receive multiple HTTP requests / responses.
+|followRedirects | false     | Yes | No | No | When the connector receives a status code in the range 3xx from the backend, it follows the redirection provided by the Location response header.
+|readTimeout | 10000     | Yes | No | No | Maximum time given to the backend to complete the request (including response) in milliseconds.
+|idleTimeout | 60000     | Yes | No | No | Maximum time a connection will be opened if no data is received nor sent. Once the timeout has elapsed, the unused connection will be closed, allowing to free the associated resources.
+|keepAliveTimeout | 30000     | Yes | No | No | Maximum time a connection will remains unused in the pool in milliseconds. Once the timeout has elapsed, the unused connection will be evicted.
+|connectTimeout | 5000     | Yes | No | No | Maximum time to connect to the backend in milliseconds.
+|propagateClientAcceptEncoding | false     | Yes | No | No | Propagate client Accept-Encoding header (no decompression if any). The gateway will propagate the Accept-Encoding header's value specified by the client's request to the backend (if any). The gateway will <b>NEVER attempt to decompress the content</b> if the backend response is compressed (gzip, deflate). It is then not possible to apply transformation policy if the body is compressed. Also, body will appear compressed if logging is enabled for the API. <b>DO NOT</b> activate this option if you plan to play with body responses.
+|useCompression | true     | Yes | No | No | Enable compression (gzip, deflate). The gateway can let the remote http server know that it supports compression. In case the remote http server returns a compressed response, the gateway will decompress it. Leave that option off if you don't want compression between the gateway and the remote server.
+|maxConcurrentConnections | 20     | Yes | No | No | Maximum pool size for connections. It basically represents the maximum number of concurrent requests at a time.
+|version | HTTP_1     | Yes | No | No | The http version to use.
+|clearTextUpgrade | true     | No | No | No | Allows h2c Clear Text Upgrade. If enabled, an h2c connection is established using an HTTP/1.1 Upgrade request. If disabled, h2c connection is established directly (with prior knowledge).
+|pipelining | false     | No | No | No | Enable HTTP pipelining. When pipe-lining is enabled requests will be written to connections without waiting for previous responses to return.
+|connectTimeout | 3000     | Yes | No | No | Maximum time to connect to the backend in milliseconds.
 
 |===
 
@@ -96,15 +98,15 @@ Here are some considerations regarding connection pool and timeouts:
 The proxy options allows to configure the use of an http or tcp proxy. Large companies often use a global enterprise proxy to control traffic going outside the company's network (eg: internet traffic). Proxy options allows to indicate the connector to configure a proxy server to pass through.
 
 |===
-|Attributes | Default | Mandatory | Description
+|Attributes | Default | Mandatory | Support EL | Support secret | Description
 
-|enabled | false     | No | Indicates to use the specified http proxy configuration when contacting the backend target.
-|type | HTTP     | No | The type of proxy (could be `HTTP`, `SOCKS4` or `SOCKS5`)
-|useSystemProxy | false     | No | Indicates if the system proxy configured globally must be used or not. If enabled, it avoids specifying proxy configuration by yourself at endpoint level.
-|host | N/A     | No | The proxy host.
-|port | N/A     | No | The proxy port.
-|username | N/A     | No | The optional proxy username to use in case the proxy requires authentication.
-|password | N/A     | No | The optional proxy password to use in case the proxy requires authentication.
+|enabled | false     | No | No | No | Indicates to use the specified http proxy configuration when contacting the backend target.
+|type | HTTP     | No | No | No | The type of proxy (could be `HTTP`, `SOCKS4` or `SOCKS5`)
+|useSystemProxy | false     | No | No | No | Indicates if the system proxy configured globally must be used or not. If enabled, it avoids specifying proxy configuration by yourself at endpoint level.
+|host | N/A     | No | Yes | No | The proxy host.
+|port | N/A     | No | No | No | The proxy port.
+|username | N/A     | No | Yes | Yes | The optional proxy username to use in case the proxy requires authentication.
+|password | N/A     | No | Yes | Yes | The optional proxy password to use in case the proxy requires authentication.
 
 |===
 
@@ -116,37 +118,36 @@ When configuring the endpoint, you may want to contact a secured target (https).
  * keystore: what is required for mtls (eg: client certificate)
 
 |===
-|Attributes | Default | Mandatory | Description
+|Attributes | Default | Mandatory | Support EL | Support secret | Description
 
-|hostnameVerifier | true    | No | Verify host. When enabled, the certificate of the backend server will be validated against the targeted host to verify they match together.
-|trustAll | false     | No | Trust all. Use this with caution (if over Internet). The gateway must trust any origin certificates. The connection will still be encrypted but this mode is vulnerable to 'man in the middle' attacks.
-|useSystemProxy | false     | No | Indicates if the system proxy configured globally must be used or not. If enabled, it avoid to specified http proxy configuration by yourself.
-|trustStore | N/A     | No | Configuration for the truststore. The truststore is used to validate the server's certificate. See bellow for details.
-|keystore | N/A     | No | Configuration for Mutual TLS. The keystore is used to select the client certificate to send to the backend server when connecting. See bellow for details.
+|hostnameVerifier | true    | No | No | No | Verify host. When enabled, the certificate of the backend server will be validated against the targeted host to verify they match together.
+|trustAll | false     | No | No | No | Trust all. Use this with caution (if over Internet). The gateway must trust any origin certificates. The connection will still be encrypted but this mode is vulnerable to 'man in the middle' attacks.
+|trustStore | N/A     | No | N/A| N/A | Configuration for the truststore. The truststore is used to validate the server's certificate. See bellow for details.
+|keystore | N/A     | No | N/A | N/A | Configuration for Mutual TLS. The keystore is used to select the client certificate to send to the backend server when connecting. See bellow for details.
 
 |===
 
 Here are the attributes for configuring the truststore options (eg: backend certificate validation).
 
 |===
-|Attributes | Default | Mandatory | Description
+|Attributes | Default | Mandatory | Support EL | Support secret | Description
 
-|type | true    | Yes | The type of the specified truststore. Could be `PKCS12` (recommended as it is an industry standard), `JKS` (not recommended, deprecated) or `PEM`.
-|password | N/A     | No | The password to use when the truststore is protected.
-|path | N/A     | No | The path to the truststore file on the server. Use content to provide the truststore by yourself.
-|content | N/A     | No | Configuration for the truststore. The truststore is used to validate the server's certificate. See bellow for details.
+|type | true    | Yes | No | No | The type of the specified truststore. Could be `PKCS12` (recommended as it is an industry standard), `JKS` (not recommended, deprecated) or `PEM`.
+|password | N/A     | No | Yes | Yes | The password to use when the truststore is protected.
+|path | N/A     | No | Yes | Yes | The path to the truststore file on the server. Use content to provide the truststore by yourself.
+|content | N/A     | No | Yes | Yes | Configuration for the truststore. The truststore is used to validate the server's certificate. See bellow for details.
 
 |===
 
 Here are the attributes for configuring the keystore options (client certificate, Mutual TLS).
 
 |===
-|Attributes | Default | Mandatory | Description
+|Attributes | Default | Mandatory | Support EL | Support secret | Description
 
-|type | true    | Yes | The type of the specified keystore. Could be `PKCS12` (recommended as it is an industry standard), `JKS` (not recommended, deprecated) or `PEM`.
-|password | N/A     | No | The password to use when the keystore is protected.
-|path | N/A     | No | The path to the keystore file on the server. Use content to provide the keystore by yourself.
-|content | N/A     | No | Configuration for the keystore. The truststore is used to validate the server's certificate. See bellow for details.
+|type | true    | Yes | No | No | The type of the specified keystore. Could be `PKCS12` (recommended as it is an industry standard), `JKS` (not recommended, deprecated) or `PEM`.
+|password | N/A     | No | Yes | Yes | The password to use when the keystore is protected.
+|path | N/A     | No | Yes | Yes | The path to the keystore file on the server. Use content to provide the keystore by yourself.
+|content | N/A     | No | Yes | Yes | Configuration for the keystore. The truststore is used to validate the server's certificate. See bellow for details.
 
 |===
 
