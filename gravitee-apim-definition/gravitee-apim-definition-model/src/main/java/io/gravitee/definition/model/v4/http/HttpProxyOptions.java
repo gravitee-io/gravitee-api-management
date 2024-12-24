@@ -15,6 +15,8 @@
  */
 package io.gravitee.definition.model.v4.http;
 
+import io.gravitee.secrets.api.annotation.Secret;
+import io.gravitee.secrets.api.el.FieldKind;
 import java.io.Serial;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
@@ -39,9 +41,15 @@ public class HttpProxyOptions implements Serializable {
 
     private boolean enabled;
     private boolean useSystemProxy;
+
     private String host;
+
     private int port;
+
+    @Secret
     private String username;
+
+    @Secret(FieldKind.PASSWORD)
     private String password;
 
     @Builder.Default
