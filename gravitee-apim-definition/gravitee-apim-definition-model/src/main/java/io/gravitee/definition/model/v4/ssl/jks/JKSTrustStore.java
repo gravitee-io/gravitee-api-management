@@ -17,6 +17,8 @@ package io.gravitee.definition.model.v4.ssl.jks;
 
 import io.gravitee.definition.model.v4.ssl.TrustStore;
 import io.gravitee.definition.model.v4.ssl.TrustStoreType;
+import io.gravitee.secrets.api.annotation.Secret;
+import io.gravitee.secrets.api.el.FieldKind;
 import java.io.Serial;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,9 +36,16 @@ public class JKSTrustStore extends TrustStore {
     @Serial
     private static final long serialVersionUID = -6603840868190194763L;
 
+    @Secret
     private String path;
+
+    @Secret
     private String content;
+
+    @Secret(FieldKind.PASSWORD)
     private String password;
+
+    @Secret
     private String alias;
 
     public JKSTrustStore() {
