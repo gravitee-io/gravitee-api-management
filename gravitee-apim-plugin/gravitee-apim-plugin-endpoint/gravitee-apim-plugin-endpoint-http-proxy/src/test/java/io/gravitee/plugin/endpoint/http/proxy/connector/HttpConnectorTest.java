@@ -46,9 +46,9 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.Request;
-import io.gravitee.gateway.reactive.api.context.Response;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
+import io.gravitee.gateway.reactive.api.context.http.HttpResponse;
 import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
@@ -96,13 +96,13 @@ class HttpConnectorTest {
     private TemplateEngine templateEngine;
 
     @Mock
-    private ExecutionContext ctx;
+    private HttpExecutionContext ctx;
 
     @Mock
-    private Request request;
+    private HttpRequest request;
 
     @Mock
-    private Response response;
+    private HttpResponse response;
 
     @Mock
     private Metrics metrics;

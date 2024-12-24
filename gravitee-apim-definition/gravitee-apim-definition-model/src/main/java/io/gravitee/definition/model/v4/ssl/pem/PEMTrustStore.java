@@ -17,6 +17,7 @@ package io.gravitee.definition.model.v4.ssl.pem;
 
 import io.gravitee.definition.model.v4.ssl.TrustStore;
 import io.gravitee.definition.model.v4.ssl.TrustStoreType;
+import io.gravitee.secrets.api.annotation.Secret;
 import java.io.Serial;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,7 +35,10 @@ public class PEMTrustStore extends TrustStore {
     @Serial
     private static final long serialVersionUID = 7432939542056493096L;
 
+    @Secret
     private String path;
+
+    @Secret
     private String content;
 
     public PEMTrustStore() {

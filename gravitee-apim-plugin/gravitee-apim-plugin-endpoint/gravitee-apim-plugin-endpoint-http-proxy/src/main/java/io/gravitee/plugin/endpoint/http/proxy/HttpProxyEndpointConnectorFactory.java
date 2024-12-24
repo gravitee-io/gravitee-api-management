@@ -15,16 +15,14 @@
  */
 package io.gravitee.plugin.endpoint.http.proxy;
 
-import io.gravitee.common.http.HttpHeader;
-import io.gravitee.definition.model.v4.http.HttpProxyOptions;
-import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
 import io.gravitee.gateway.reactive.api.connector.endpoint.sync.HttpEndpointSyncConnectorFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfigurationEvaluator;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
-import java.util.List;
+import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfigurationEvaluator;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,56 +49,20 @@ public class HttpProxyEndpointConnectorFactory implements HttpEndpointSyncConnec
         final String sharedConfiguration
     ) {
         try {
-            return new HttpProxyEndpointConnector(
-                eval(
-                    deploymentContext,
-                    connectorFactoryHelper.readConfiguration(HttpProxyEndpointConnectorConfiguration.class, configuration)
-                ),
-                eval(
-                    deploymentContext,
+            HttpProxyEndpointConnectorConfigurationEvaluator configurationEvaluator = new HttpProxyEndpointConnectorConfigurationEvaluator(
+                connectorFactoryHelper.readConfiguration(HttpProxyEndpointConnectorConfiguration.class, configuration)
+            );
+            HttpProxyEndpointConnectorSharedConfigurationEvaluator sharedConfigurationEvaluator =
+                new HttpProxyEndpointConnectorSharedConfigurationEvaluator(
                     connectorFactoryHelper.readConfiguration(HttpProxyEndpointConnectorSharedConfiguration.class, sharedConfiguration)
-                )
+                );
+            return new HttpProxyEndpointConnector(
+                configurationEvaluator.evalNow(deploymentContext),
+                sharedConfigurationEvaluator.evalNow(deploymentContext)
             );
         } catch (Exception e) {
             log.error("Can't create connector because no valid configuration", e);
             return null;
         }
-    }
-
-    private HttpProxyEndpointConnectorConfiguration eval(
-        final DeploymentContext deploymentContext,
-        final HttpProxyEndpointConnectorConfiguration configuration
-    ) {
-        configuration.setTarget(eval(deploymentContext.getTemplateEngine(), configuration.getTarget()));
-        return configuration;
-    }
-
-    private HttpProxyEndpointConnectorSharedConfiguration eval(
-        final DeploymentContext deploymentContext,
-        final HttpProxyEndpointConnectorSharedConfiguration groupConfiguration
-    ) {
-        final TemplateEngine templateEngine = deploymentContext.getTemplateEngine();
-        final HttpProxyOptions proxyOptions = groupConfiguration.getProxyOptions();
-        final List<HttpHeader> headers = groupConfiguration.getHeaders();
-
-        if (proxyOptions != null) {
-            proxyOptions.setHost(eval(templateEngine, proxyOptions.getHost()));
-            proxyOptions.setUsername(eval(templateEngine, proxyOptions.getUsername()));
-            proxyOptions.setPassword(eval(templateEngine, proxyOptions.getPassword()));
-        }
-
-        if (headers != null && !headers.isEmpty()) {
-            headers.forEach(httpHeader -> httpHeader.setValue(eval(templateEngine, httpHeader.getValue())));
-        }
-
-        return groupConfiguration;
-    }
-
-    private String eval(TemplateEngine templateEngine, String value) {
-        if (value != null && !value.isEmpty()) {
-            return templateEngine.convert(value);
-        }
-
-        return value;
     }
 }
