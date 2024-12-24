@@ -256,6 +256,7 @@ class ApiHistoryControllerAjs {
       plans: api.plans != null ? api.plans : [],
       properties: api.properties,
       flow_mode: api.flow_mode,
+      tags: api.tags,
     };
     this.studio.services = api.services || {};
   }
@@ -483,7 +484,6 @@ class ApiHistoryControllerAjs {
     delete payload.entrypoints;
     delete payload.lifecycle_state;
     delete payload.path_mappings;
-    delete payload.tags;
     delete payload.workflow_state;
     delete payload.crossId;
     delete payload.definition_context;
@@ -500,6 +500,9 @@ class ApiHistoryControllerAjs {
     }
     if (payload.services && _.isEmpty(payload.services)) {
       delete payload.services;
+    }
+    if (payload.tags && _.isEmpty(payload.tags)) {
+      delete payload.tags;
     }
 
     payload.plans = (payload.plans ?? [])
