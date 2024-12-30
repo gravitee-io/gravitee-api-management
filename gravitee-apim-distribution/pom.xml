@@ -1262,7 +1262,7 @@
                 <dependency>
                     <groupId>com.graviteesource.connector</groupId>
                     <artifactId>gravitee-entrypoint-native-kafka</artifactId>
-                    <version>${gravitee-connectors-native-kafka.version}</version>
+                    <version>${gravitee-reactor-native-kafka.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
@@ -1329,7 +1329,7 @@
                 <dependency>
                     <groupId>com.graviteesource.connector</groupId>
                     <artifactId>gravitee-endpoint-native-kafka</artifactId>
-                    <version>${gravitee-connectors-native-kafka.version}</version>
+                    <version>${gravitee-reactor-native-kafka.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>

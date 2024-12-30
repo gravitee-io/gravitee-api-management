@@ -282,14 +282,13 @@
         <gravitee-policy-graphql-rate-limit.version>1.0.1</gravitee-policy-graphql-rate-limit.version>
         <gravitee-resource-schema-registry-confluent.version>3.1.0</gravitee-resource-schema-registry-confluent.version>
         <gravitee-reactor-message.version>5.0.0-alpha.11</gravitee-reactor-message.version>
-        <gravitee-reactor-native-kafka.version>1.0.0-alpha.37</gravitee-reactor-native-kafka.version>
+        <gravitee-reactor-native-kafka.version>1.0.0-alpha.38</gravitee-reactor-native-kafka.version>
         <gravitee-apim-repository-bridge.version>5.1.2</gravitee-apim-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>2.0.0</gravitee-secretprovider-hc-vault.version>
         <gravitee-secretprovider-aws.version>2.0.0</gravitee-secretprovider-aws.version>
         <gravitee-service-secrets.version>1.0.0</gravitee-service-secrets.version>
         <gravitee-policy-interops.version>1.1.2</gravitee-policy-interops.version>
 
-        <gravitee-connectors-native-kafka.version>1.0.0-alpha.10</gravitee-connectors-native-kafka.version>
         <gravitee-policy-kafka-quota.version>1.0.0-alpha.2</gravitee-policy-kafka-quota.version>
         <gravitee-policy-kafka-topic-mapping.version>1.0.0-alpha.1</gravitee-policy-kafka-topic-mapping.version>
     </properties>
