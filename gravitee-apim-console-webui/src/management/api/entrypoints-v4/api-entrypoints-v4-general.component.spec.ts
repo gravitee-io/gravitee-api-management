@@ -49,9 +49,11 @@ const ENTRYPOINTS: Partial<ConnectorPlugin>[] = [
   { id: 'http-post', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP POST', deployed: true },
   { id: 'sse', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'Server-Sent Events', deployed: false },
   { id: 'webhook', supportedApiType: 'MESSAGE', supportedListenerType: 'SUBSCRIPTION', name: 'Webhook', deployed: false },
+  { id: 'native-kafka', supportedApiType: 'NATIVE', supportedListenerType: 'KAFKA', name: 'Client', deployed: false },
 ];
 
 describe('ApiProxyV4EntrypointsComponent', () => {
+  const ENV_ID = 'DEFAULT';
   const API_ID = 'apiId';
   let fixture: ComponentFixture<ApiEntrypointsV4GeneralComponent>;
   let loader: HarnessLoader;
@@ -76,7 +78,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       expectGetPortalSettings();
     }
 
-    if (api.type === 'MESSAGE' && checkLicense) {
+    if ((api.type === 'MESSAGE' || api.type === 'NATIVE') && checkLicense) {
       expectLicenseGetRequest({ tier: 'universe', features: [], packs: [], scope: 'PLATFORM' });
     }
   };
@@ -85,7 +87,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
       providers: [
-        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, envHrid: ENV_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: permissions },
         {
           provide: 'LicenseConfiguration',
@@ -190,7 +192,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     beforeEach(async () => {
-      await createComponent(RESTRICTED_DOMAINS, API, false);
+      await createComponent(RESTRICTED_DOMAINS, API, true, undefined, true);
     });
 
     afterEach(() => {
@@ -248,6 +250,28 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       };
       expect(saveReq.request.body).toEqual(expectedUpdateApi);
       saveReq.flush(API);
+    });
+  });
+
+  describe('When API has KUBERNETES origin and a NATIVE KAFKA listener', () => {
+    const RESTRICTED_DOMAINS = [];
+    const API = fakeApiV4({
+      type: 'NATIVE',
+      listeners: [{ type: 'KAFKA', entrypoints: [{ type: 'native-kafka' }], host: 'host' }],
+      definitionContext: {
+        origin: 'KUBERNETES',
+      },
+    });
+
+    beforeEach(async () => {
+      await createComponent(RESTRICTED_DOMAINS, API, true);
+    });
+
+    it('should disable host form', async () => {
+      const hostHarness = await loader.getHarness(GioFormListenersKafkaHostHarness);
+      const hostInput = await hostHarness.getHostInput();
+      expect(await hostInput.getValue()).toEqual('host');
+      expect(await hostInput.isDisabled()).toBe(true);
     });
   });
 
@@ -852,6 +876,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   describe('When API has entrypoints not available in license feature', () => {
     const RESTRICTED_DOMAINS = [];
     const API = fakeApiV4({
+      type: 'MESSAGE',
       listeners: [{ type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'sse' }] }],
     });
 
@@ -890,7 +915,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   }
 
   function expectGetPortalSettings(): void {
-    const settings: PortalSettings = { portal: { entrypoint: 'localhost' } };
+    const settings: PortalSettings = { portal: { entrypoint: 'localhost', kafkaDomain: 'kafka.domain', kafkaPort: 9092 } };
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/settings`, method: 'GET' }).flush(settings);
   }
 

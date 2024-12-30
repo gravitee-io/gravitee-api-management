@@ -33,10 +33,8 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
-import org.apiguardian.api.API;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -68,7 +66,8 @@ class SaveScoringResponseUseCaseTest {
                 "Hint rule message",
                 "paths./hint"
             )
-        )
+        ),
+        List.of()
     );
     private static final ScoringReport.Asset ANALYZED_ASSET_2 = new ScoringReport.Asset(
         "asyncpage-id",
@@ -88,12 +87,20 @@ class SaveScoringResponseUseCaseTest {
                 "error-message",
                 "info"
             )
-        )
+        ),
+        List.of()
     );
     private static final ScoringReport.Asset ANALYZED_ASSET_3 = new ScoringReport.Asset(
         null,
         ScoringAssetType.GRAVITEE_DEFINITION,
+        List.of(),
         List.of()
+    );
+    private static final ScoringReport.Asset ANALYZED_ASSET_4 = new ScoringReport.Asset(
+        null,
+        ScoringAssetType.GRAVITEE_DEFINITION,
+        List.of(),
+        List.of(new ScoringReport.ScoringError("ruleset-validation-error", List.of("path", "to", "invalid", "element")))
     );
 
     ScoringReportCrudServiceInMemory scoringReportCrudService = new ScoringReportCrudServiceInMemory();
@@ -199,7 +206,7 @@ class SaveScoringResponseUseCaseTest {
 
         // When
         useCase
-            .execute(new Input(JOB_ID, List.of(ANALYZED_ASSET_1, ANALYZED_ASSET_2, ANALYZED_ASSET_3)))
+            .execute(new Input(JOB_ID, List.of(ANALYZED_ASSET_1, ANALYZED_ASSET_2, ANALYZED_ASSET_3, ANALYZED_ASSET_4)))
             .test()
             .awaitDone(5, TimeUnit.SECONDS)
             .assertComplete();
@@ -208,6 +215,22 @@ class SaveScoringResponseUseCaseTest {
         assertThat(scoringReportCrudService.storage())
             .extracting(ScoringReport::summary)
             .contains((new ScoringReport.Summary(0.92D, 2L, 1L, 0L, 1L)));
+    }
+
+    @Test
+    void should_ignore_assets_with_validation_errors_for_computing_average_score() {
+        // Given
+        givenAnAsyncJob(
+            aPendingScoringRequestJob().toBuilder().id(JOB_ID).sourceId(API_ID).initiatorId(USER_ID).environmentId(ENVIRONMENT_ID).build()
+        );
+
+        // When
+        useCase.execute(new Input(JOB_ID, List.of(ANALYZED_ASSET_4))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+
+        // Then
+        assertThat(scoringReportCrudService.storage())
+            .extracting(ScoringReport::summary)
+            .contains((new ScoringReport.Summary(0.0D, 0L, 0L, 0L, 0L)));
     }
 
     @Test

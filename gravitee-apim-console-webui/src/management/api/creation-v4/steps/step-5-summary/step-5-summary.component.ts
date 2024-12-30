@@ -22,6 +22,7 @@ import { ApiCreationStepService } from '../../services/api-creation-step.service
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 import { Constants } from '../../../../../entities/Constants';
+import { ApiCreationCommonService } from '../../services/api-creation-common.service';
 
 @Component({
   selector: 'step-5-summary',
@@ -37,13 +38,13 @@ export class Step5SummaryComponent implements OnInit {
   public listenerTypes: string[];
   public entrypointsDeployable: boolean;
   public endpointsDeployable: boolean;
-  public deployable: boolean;
+  public connectorsDeployable: boolean;
   public shouldUpgrade: boolean;
   public license$: Observable<License>;
   public isOEM$: Observable<boolean>;
   public hasReviewEnabled = this.constants.env?.settings?.apiReview?.enabled ?? false;
-
-  public apiType: ApiCreationPayload['type'];
+  public hasInvalidNativeKafkaPlans: boolean;
+  public deployTooltipMessage: string;
 
   constructor(
     private readonly stepService: ApiCreationStepService,
@@ -53,7 +54,6 @@ export class Step5SummaryComponent implements OnInit {
 
   ngOnInit(): void {
     this.currentStepPayload = this.stepService.payload;
-    this.apiType = this.currentStepPayload.type;
 
     this.paths = this.currentStepPayload.paths?.map((path) => path.path);
     this.hosts = this.currentStepPayload.hosts?.map((host) => host.host);
@@ -63,10 +63,21 @@ export class Step5SummaryComponent implements OnInit {
       ...new Set(this.currentStepPayload.selectedEntrypoints.map(({ supportedListenerType }) => supportedListenerType)),
     ];
 
+    this.hasInvalidNativeKafkaPlans = !ApiCreationCommonService.canPublishPlans(this.currentStepPayload);
+
     this.entrypointsDeployable = this.currentStepPayload.selectedEntrypoints.every(({ deployed }) => deployed);
     this.endpointsDeployable = this.currentStepPayload.selectedEndpoints.every(({ deployed }) => deployed);
-    this.deployable = this.entrypointsDeployable && this.endpointsDeployable;
-    this.shouldUpgrade = !this.deployable;
+    this.connectorsDeployable = this.entrypointsDeployable && this.endpointsDeployable;
+    this.shouldUpgrade = !this.connectorsDeployable;
+
+    if (!this.connectorsDeployable) {
+      this.deployTooltipMessage = 'You cannot deploy an API with endpoints or entrypoints not deployed.';
+    } else if (this.hasInvalidNativeKafkaPlans) {
+      this.deployTooltipMessage = 'You cannot deploy a Kafka API with conflicting plan authentication.';
+    } else {
+      this.deployTooltipMessage = 'Your API will be deployed to the gateway.';
+    }
+
     this.license$ = this.licenseService.getLicense$();
     this.isOEM$ = this.licenseService.isOEM$();
   }
@@ -81,6 +92,10 @@ export class Step5SummaryComponent implements OnInit {
   }
 
   public onRequestUpgrade() {
-    this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_MESSAGE_SUMMARY });
+    if (this.currentStepPayload.type === 'NATIVE') {
+      this.licenseService.openDialog({ feature: ApimFeature.APIM_NATIVE_KAFKA_REACTOR, context: UTMTags.API_CREATION_MESSAGE_SUMMARY });
+    } else {
+      this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_MESSAGE_SUMMARY });
+    }
   }
 }

@@ -44,6 +44,7 @@ import io.gravitee.platform.repository.api.RepositoryScopeProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -79,6 +80,7 @@ public class StandaloneConfiguration {
     }
 
     @Bean
+    @Primary
     public EventManager eventManager() {
         return new EventManagerImpl();
     }

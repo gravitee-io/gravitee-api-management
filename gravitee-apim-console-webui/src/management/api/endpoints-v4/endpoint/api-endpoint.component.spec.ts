@@ -33,6 +33,7 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing'
 import { ApiV4, fakeApiV4, fakeConnectorPlugin, fakeProxyApiV4 } from '../../../../entities/management-api-v2';
 import { fakeEndpointGroupV4, fakeHTTPProxyEndpointGroupV4 } from '../../../../entities/management-api-v2/api/v4/endpointGroupV4.fixture';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { fakeKafkaListener } from '../../../../entities/management-api-v2/api/v4/listener.fixture';
 
 const healthCheckSchema = {
   $schema: 'http://json-schema.org/draft-07/schema#',
@@ -331,6 +332,65 @@ describe('ApiEndpointComponent', () => {
                   sharedConfigurationOverride: {
                     test: undefined,
                   },
+                },
+              ],
+            },
+          ],
+        };
+        expectApiPutRequest(updatedApi);
+        expect(routerNavigationSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
+      });
+
+      it('should edit and save a native kafka endpoint without weight', async () => {
+        const apiV4 = fakeApiV4({
+          id: API_ID,
+          type: 'NATIVE',
+          endpointGroups: [
+            {
+              type: 'native-kafka',
+              endpoints: [
+                {
+                  type: 'native-kafka',
+                  name: 'default',
+                },
+              ],
+            },
+          ],
+          listeners: [fakeKafkaListener()],
+        });
+
+        await initComponent(apiV4, { apiId: API_ID, groupIndex: 0, endpointIndex: 0 });
+        fixture.detectChanges();
+        expect(await componentHarness.getEndpointName()).toStrictEqual('default');
+
+        await componentHarness.fillInputName('endpoint-name updated');
+        expect(await componentHarness.getEndpointName()).toStrictEqual('endpoint-name updated');
+
+        expect(await componentHarness.isWeightButtonShown()).toEqual(false);
+        expect(await componentHarness.isSaveButtonDisabled()).toEqual(false);
+
+        await componentHarness.clickSaveButton();
+        fixture.detectChanges();
+
+        expectApiGetRequest(apiV4);
+
+        const updatedApi: ApiV4 = {
+          ...apiV4,
+          endpointGroups: [
+            {
+              ...apiV4.endpointGroups[0],
+              endpoints: [
+                {
+                  ...apiV4.endpointGroups[0].endpoints[0],
+                  name: 'endpoint-name updated',
+                  sharedConfigurationOverride: {
+                    test: undefined,
+                  },
+                  configuration: {
+                    bootstrapServers: undefined,
+                  },
+                  inheritConfiguration: null,
+                  weight: null,
                 },
               ],
             },

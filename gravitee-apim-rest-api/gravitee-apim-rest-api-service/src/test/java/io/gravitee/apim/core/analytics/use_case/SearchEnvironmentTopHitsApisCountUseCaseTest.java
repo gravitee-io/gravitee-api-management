@@ -89,14 +89,12 @@ class SearchEnvironmentTopHitsApisCountUseCaseTest {
         var result = cut.execute(input).topHitsApis();
 
         assertThat(result)
-            .isNotNull()
-            .isPresent()
-            .hasValueSatisfying(topHitsApis ->
-                assertThat(topHitsApis.getData())
-                    .containsExactly(
-                        TopHitsApis.TopHitApi.builder().id("message-api-v4-id").name("Message Api v4").count(17L).build(),
-                        TopHitsApis.TopHitApi.builder().id("proxy-api-v4-id").name("Proxy Api v4").count(3L).build()
-                    )
+            .extracting(TopHitsApis::getData)
+            .isEqualTo(
+                List.of(
+                    TopHitsApis.TopHitApi.builder().id("message-api-v4-id").name("Message Api v4").count(17L).build(),
+                    TopHitsApis.TopHitApi.builder().id("proxy-api-v4-id").name("Proxy Api v4").count(3L).build()
+                )
             );
     }
 
@@ -125,12 +123,8 @@ class SearchEnvironmentTopHitsApisCountUseCaseTest {
         var result = cut.execute(input).topHitsApis();
 
         assertThat(result)
-            .isNotNull()
-            .isPresent()
-            .hasValueSatisfying(topHitsApis ->
-                assertThat(topHitsApis.getData())
-                    .containsExactly(TopHitsApis.TopHitApi.builder().id("message-api-v4-id").name("Message Api v4").count(17L).build())
-            );
+            .extracting(TopHitsApis::getData)
+            .isEqualTo(List.of(TopHitsApis.TopHitApi.builder().id("message-api-v4-id").name("Message Api v4").count(17L).build()));
     }
 
     @Test
@@ -168,11 +162,21 @@ class SearchEnvironmentTopHitsApisCountUseCaseTest {
 
         var result = cut.execute(input).topHitsApis();
 
-        assertThat(result)
-            .isNotNull()
-            .isPresent()
-            .hasValueSatisfying(topHitsApis ->
-                assertThat(topHitsApis.getData()).extracting(TopHitsApis.TopHitApi::count).containsExactly(17L, 5L, 3L, 2L)
-            );
+        assertThat(result.getData()).extracting(TopHitsApis.TopHitApi::count).containsExactly(17L, 5L, 3L, 2L);
+    }
+
+    @Test
+    void should_get_empty_top_hits_list_if_case_of_no_records_found() {
+        var input = SearchEnvironmentTopHitsApisCountUseCase.Input
+            .builder()
+            .executionContext(executionContext)
+            .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .build();
+
+        when(analyticsQueryService.searchTopHitsApis(any(), any())).thenReturn(Optional.empty());
+
+        var result = cut.execute(input).topHitsApis();
+
+        assertThat(result).extracting(TopHitsApis::getData).isEqualTo(List.of());
     }
 }

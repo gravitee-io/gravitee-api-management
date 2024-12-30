@@ -68,7 +68,12 @@ export class Step4Security1PlansHarness extends ComponentHarness {
     return this.clickValidate();
   }
 
-  async addApiKeyPlan(planName: string, httpTestingController: HttpTestingController): Promise<void> {
+  async addApiKeyPlan(
+    planName: string,
+    httpTestingController: HttpTestingController,
+    isNativeKafka: boolean = false,
+    isFakeAsync: boolean = false,
+  ): Promise<void> {
     await this.getButtonBySelector('[aria-label="Add new plan"]').then((b) => b.click());
     const planSecurityDropdown = await this.locatorFor(MatMenuHarness)();
     expect(await planSecurityDropdown.getItems().then((items) => items.length)).toEqual(4);
@@ -80,10 +85,23 @@ export class Step4Security1PlansHarness extends ComponentHarness {
     apiPlanFormHarness.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
     await apiPlanFormHarness.getNameInput().then((i) => i.setValue(planName));
 
+    const nextButton = await this.getButtonByText('Next');
+    expect(await nextButton.isDisabled()).toEqual(false);
+    await nextButton.click();
+
+    if (isFakeAsync) {
+      tick(100);
+    }
+
     apiPlanFormHarness.httpRequest(httpTestingController).expectPolicySchemaV2GetRequest('api-key', {});
 
-    await (await this.getButtonByText('Next')).click();
-    await (await this.getButtonByText('Next')).click();
+    if (!isNativeKafka) {
+      await (await this.getButtonByText('Next')).click();
+      if (isFakeAsync) {
+        tick(100);
+      }
+    }
+
     await (await this.getButtonByText('Add plan')).click();
   }
 

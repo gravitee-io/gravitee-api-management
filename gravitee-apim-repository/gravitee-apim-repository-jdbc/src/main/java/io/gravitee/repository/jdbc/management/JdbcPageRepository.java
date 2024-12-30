@@ -86,6 +86,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             .addColumn("parent_id", Types.NVARCHAR, String.class)
             .addColumn("use_auto_fetch", Types.BOOLEAN, Boolean.class)
             .addColumn("excluded_access_controls", Types.BOOLEAN, boolean.class)
+            .addColumn("ingested", Types.BOOLEAN, boolean.class)
             .build();
     }
 
@@ -634,8 +635,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                 select += " where ";
             }
 
-            final String sql =
-                select + where.toString() + "order by " + ESCAPED_ORDER_COLUMN_NAME + ", p.id, p.reference_id, p.reference_type";
+            final String sql = select + where + "order by " + ESCAPED_ORDER_COLUMN_NAME + ", p.id, p.reference_id, p.reference_type";
             jdbcTemplate.query(sql, rowMapper, params.toArray());
 
             List<Page> items = rowMapper.getRows();

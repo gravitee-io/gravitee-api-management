@@ -17,13 +17,18 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.Metadata;
 import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import java.util.Set;
 import org.mapstruct.Mapper;
@@ -57,7 +62,7 @@ public interface ImportExportApiMapper {
     }
 
     @Named("toPlanV4Nullable")
-    default Set<PlanV4> toPlanV4Nullable(Set<PlanEntity> plans) {
+    default Set<PlanV4> toPlanV4Nullable(Set<? extends GenericPlanEntity> plans) {
         if (plans == null) {
             return null;
         }

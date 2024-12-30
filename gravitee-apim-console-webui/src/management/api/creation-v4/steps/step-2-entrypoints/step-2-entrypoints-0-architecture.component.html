@@ -74,11 +74,11 @@
               </div>
             </gio-selection-list-option-layout-body>
           </gio-selection-list-option-layout>
-          <div *ngIf="shouldUpgrade$ | async">
+          <div *ngIf="isMissingMessageReactor$ | async">
             <gio-license-banner
               [license]="license$ | async"
               [isOEM]="isOEM$ | async"
-              (onRequestUpgrade)="onRequestUpgrade()"
+              (onRequestUpgrade)="onRequestMessageUpgrade()"
             ></gio-license-banner>
           </div>
         </mat-radio-button>
@@ -92,17 +92,17 @@
             </gio-selection-list-option-layout-title>
 
             <gio-selection-list-option-layout-body>
-              <p>
+              <p class="option__kafka-description">
                 Choose this mode if you want to proxy the native Kafka protocol. In this case, the gateway acts as a Kafka broker to Kafka
                 clients.
               </p>
             </gio-selection-list-option-layout-body>
           </gio-selection-list-option-layout>
-          <div *ngIf="shouldUpgrade$ | async">
+          <div *ngIf="isMissingNativeKafkaReactor$ | async">
             <gio-license-banner
               [license]="license$ | async"
               [isOEM]="isOEM$ | async"
-              (onRequestUpgrade)="onRequestUpgrade()"
+              (onRequestUpgrade)="onRequestNativeKafkaUpgrade()"
             ></gio-license-banner>
           </div>
         </mat-radio-button>

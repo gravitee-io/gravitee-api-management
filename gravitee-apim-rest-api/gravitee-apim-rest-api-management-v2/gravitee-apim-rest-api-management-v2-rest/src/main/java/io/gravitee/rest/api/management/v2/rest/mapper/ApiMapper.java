@@ -23,7 +23,13 @@ import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.v4.listener.AbstractListener;
+import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLinks;
@@ -40,7 +46,6 @@ import io.gravitee.rest.api.management.v2.rest.model.IntegrationOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.KubernetesOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.ManagementOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.PageCRD;
-import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
@@ -162,15 +167,32 @@ public interface ApiMapper {
     ApiV4 mapToV4(ApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
+    @Mapping(target = "listeners", qualifiedByName = "fromHttpListeners")
+    ApiV4 mapToV4(ApiEntity apiEntity);
+
+    @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "listeners", qualifiedByName = "fromNativeListeners")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
     ApiV4 mapToV4(NativeApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+
+    @Mapping(target = "definitionContext", source = "apiEntity.originContext")
+    @Mapping(target = "listeners", qualifiedByName = "fromNativeListeners")
+    ApiV4 mapToV4(NativeApiEntity apiEntity);
 
     default ApiV4 mapToV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState) {
         if (ApiType.NATIVE.equals(source.getType())) {
             return mapToNativeV4(source, uriInfo, deploymentState);
         }
         return mapToHttpV4(source, uriInfo, deploymentState);
+    }
+
+    default ApiV4 mapToV4(GenericApiEntity genericApiEntity) {
+        if (genericApiEntity instanceof ApiEntity asApiEntity) {
+            return mapToV4(asApiEntity);
+        } else if (genericApiEntity instanceof NativeApiEntity asNativeApiEntity) {
+            return mapToV4(asNativeApiEntity);
+        }
+        return null;
     }
 
     @Mapping(target = "definitionContext", source = "source.originContext")
@@ -228,8 +250,10 @@ public interface ApiMapper {
     @Mapping(target = "listeners", qualifiedByName = "toNativeListeners")
     NewNativeApi mapToNewNativeApi(CreateApiV4 api);
 
-    @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
-    @Mapping(target = "plans", qualifiedByName = "mapPlanCRD")
+    @Mapping(target = "plans", expression = "java(mapPlanCRD(crd))")
+    @Mapping(target = "flows", expression = "java(mapApiCRDFlows(crd))")
+    @Mapping(target = "listeners", expression = "java(mapApiCRDListeners(crd))")
+    @Mapping(target = "endpointGroups", expression = "java(mapApiCRDEndpointGroups(crd))")
     ApiCRDSpec map(io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec crd);
 
     @Mapping(target = "source.configuration", qualifiedByName = "serializeConfiguration")
@@ -287,17 +311,59 @@ public interface ApiMapper {
             .backgroundUrl(ManagementApiLinkHelper.apiBackgroundURL(uriInfo.getBaseUriBuilder(), api));
     }
 
-    @Named("mapPlanCRD")
-    default Map<String, io.gravitee.apim.core.api.model.crd.PlanCRD> mapPlanCRD(Map<String, PlanCRD> plans) {
-        return plans
+    default Map<String, io.gravitee.apim.core.api.model.crd.PlanCRD> mapPlanCRD(
+        io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec spec
+    ) {
+        return spec
+            .getPlans()
             .entrySet()
             .stream()
             .map(entry -> {
                 var key = entry.getKey();
                 var plan = entry.getValue();
-                return Map.entry(key, PlanMapper.INSTANCE.fromPlanCRD(plan));
+                return Map.entry(key, PlanMapper.INSTANCE.fromPlanCRD(plan, spec.getType().name()));
             })
             .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    default List<? extends AbstractFlow> mapApiCRDFlows(io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec spec) {
+        if (CollectionUtils.isEmpty(spec.getFlows())) {
+            return List.of();
+        }
+
+        if (ApiType.NATIVE.name().equalsIgnoreCase(spec.getType().name())) {
+            return FlowMapper.INSTANCE.mapToNativeV4(spec.getFlows());
+        } else {
+            return FlowMapper.INSTANCE.mapToHttpV4(spec.getFlows());
+        }
+    }
+
+    default List<? extends AbstractListener<? extends AbstractEntrypoint>> mapApiCRDListeners(
+        io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec spec
+    ) {
+        if (CollectionUtils.isEmpty(spec.getListeners())) {
+            return List.of();
+        }
+
+        if (ApiType.NATIVE.name().equalsIgnoreCase(spec.getType().name())) {
+            return ListenerMapper.INSTANCE.mapToNativeListenerV4List(spec.getListeners());
+        } else {
+            return ListenerMapper.INSTANCE.mapToListenerEntityV4List(spec.getListeners());
+        }
+    }
+
+    default List<? extends AbstractEndpointGroup<? extends AbstractEndpoint>> mapApiCRDEndpointGroups(
+        io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec spec
+    ) {
+        if (CollectionUtils.isEmpty(spec.getEndpointGroups())) {
+            return List.of();
+        }
+
+        if (ApiType.NATIVE.name().equalsIgnoreCase(spec.getType().name())) {
+            return EndpointMapper.INSTANCE.mapEndpointGroupsNativeV4(spec.getEndpointGroups());
+        } else {
+            return EndpointMapper.INSTANCE.mapEndpointGroupsHttpV4(spec.getEndpointGroups());
+        }
     }
 
     @Named("computeOriginContext")

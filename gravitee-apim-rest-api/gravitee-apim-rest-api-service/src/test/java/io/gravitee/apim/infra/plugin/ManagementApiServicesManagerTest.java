@@ -25,6 +25,7 @@ import io.gravitee.apim.rest.api.common.apiservices.DefaultManagementDeploymentC
 import io.gravitee.apim.rest.api.common.apiservices.ManagementApiService;
 import io.gravitee.apim.rest.api.common.apiservices.ManagementApiServiceFactory;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
@@ -299,7 +300,7 @@ class ManagementApiServicesManagerTest {
         }
 
         @Override
-        public Completable update(io.gravitee.definition.model.v4.Api api) {
+        public Completable update(AbstractApi api) {
             hasBeenRestarted = true;
             return Completable.complete();
         }

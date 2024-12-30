@@ -17,10 +17,12 @@
 import { Component, Input } from '@angular/core';
 import { GioClipboardModule } from '@gravitee/ui-particles-angular';
 
+import { ReplaceSpacesPipe } from '../../pipes/replace-spaces.pipe';
+
 @Component({
   selector: 'file-preview',
   standalone: true,
-  imports: [GioClipboardModule],
+  imports: [GioClipboardModule, ReplaceSpacesPipe],
   templateUrl: './file-preview.component.html',
   styleUrl: './file-preview.component.scss',
 })

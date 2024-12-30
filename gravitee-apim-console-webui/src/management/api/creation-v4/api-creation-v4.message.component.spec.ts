@@ -363,7 +363,7 @@ describe('ApiCreationV4Component - Message', () => {
       await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig();
       await stepperHelper.fillAndValidateStep3_1_EndpointsList();
       await stepperHelper.fillAndValidateStep3_2_EndpointsConfig();
-      await stepperHelper.fillAndValidateStep4_1_SecurityPlansList();
+      await stepperHelper.editAndValidateStep4_1_SecurityPlansList();
 
       const step5Harness = await harnessLoader.getHarness(Step5SummaryHarness);
       const step1Summary = await step5Harness.getStepSummaryTextContent(1);

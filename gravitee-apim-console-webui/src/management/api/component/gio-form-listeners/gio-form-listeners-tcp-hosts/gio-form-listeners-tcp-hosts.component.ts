@@ -150,7 +150,7 @@ export class GioFormListenersTcpHostsComponent implements OnInit, OnDestroy, Con
     return new FormGroup({
       host: new FormControl(listener.host || '', {
         validators: [hostSyncValidator],
-        asyncValidators: [hostAsyncValidator(this.apiV2Service, this.apiId)],
+        asyncValidators: [hostAsyncValidator(this.apiV2Service, this.apiId, 'TCP')],
       }),
     });
   }

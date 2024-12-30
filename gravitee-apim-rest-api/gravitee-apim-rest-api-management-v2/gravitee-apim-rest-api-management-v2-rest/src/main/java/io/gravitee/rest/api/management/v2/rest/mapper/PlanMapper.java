@@ -16,12 +16,14 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.plan.model.PlanUpdates;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
-import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV4;
@@ -99,7 +101,7 @@ public interface PlanMapper {
     @Mapping(target = "definitionVersion", constant = "FEDERATED")
     PlanFederated mapFederated(io.gravitee.apim.core.plan.model.Plan source);
 
-    Set<PlanV4> map(Set<PlanEntity> planEntityList);
+    Set<PlanV4> map(Set<? extends GenericPlanEntity> planEntityList);
 
     @Mapping(source = "security", target = "security.type")
     @Mapping(source = "securityDefinition", target = "security.configuration", qualifiedByName = "deserializeConfiguration")
@@ -169,7 +171,8 @@ public interface PlanMapper {
     io.gravitee.definition.model.v4.plan.Plan mapPlanV4ToPlanDefinitionV4(PlanV4 planV4);
 
     @Mapping(target = "security", qualifiedByName = "mapToPlanSecurityV4")
-    io.gravitee.apim.core.api.model.crd.PlanCRD fromPlanCRD(PlanCRD plan);
+    @Mapping(target = "flows", expression = "java(mapApiCRDPlanFlows(plan, apiType))")
+    io.gravitee.apim.core.api.model.crd.PlanCRD fromPlanCRD(PlanCRD plan, String apiType);
 
     @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
     UpdatePlanEntity map(UpdatePlanV4 plan);
@@ -241,5 +244,20 @@ public interface PlanMapper {
             return FlowMapper.INSTANCE.mapFromNativeV4((List<NativeFlow>) source.getFlows());
         }
         return FlowMapper.INSTANCE.mapFromHttpV4((List<Flow>) source.getFlows());
+    }
+
+    @Mapping(target = "securityConfiguration", source = "security.configuration", qualifiedByName = "serializeConfiguration")
+    PlanUpdates mapToPlanUpdates(UpdatePlanV4 updatePlanV4);
+
+    default List<? extends AbstractFlow> mapApiCRDPlanFlows(PlanCRD plan, String apiType) {
+        if (CollectionUtils.isEmpty(plan.getFlows())) {
+            return List.of();
+        }
+
+        if (ApiType.NATIVE.name().equalsIgnoreCase(apiType)) {
+            return FlowMapper.INSTANCE.mapToNativeV4(plan.getFlows());
+        } else {
+            return FlowMapper.INSTANCE.mapToHttpV4(plan.getFlows());
+        }
     }
 }

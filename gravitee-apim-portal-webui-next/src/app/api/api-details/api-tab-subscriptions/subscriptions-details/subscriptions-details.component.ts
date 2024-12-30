@@ -30,6 +30,7 @@ import { of } from 'rxjs/internal/observable/of';
 import { ApiAccessComponent } from '../../../../../components/api-access/api-access.component';
 import { LoaderComponent } from '../../../../../components/loader/loader.component';
 import { SubscriptionInfoComponent } from '../../../../../components/subscription-info/subscription-info.component';
+import { ApiType } from '../../../../../entities/api/api';
 import { UserApiPermissions } from '../../../../../entities/permission/permission';
 import { PlanSecurityEnum, PlanUsageConfiguration } from '../../../../../entities/plan/plan';
 import { SubscriptionStatusEnum } from '../../../../../entities/subscription/subscription';
@@ -53,9 +54,11 @@ interface SubscriptionDetailsData {
   planUsageConfiguration: PlanUsageConfiguration;
   subscriptionStatus: SubscriptionStatusEnum;
   apiKey?: string;
+  apiKeyConfigUsername?: string;
   entrypointUrl?: string;
   clientId?: string;
   clientSecret?: string;
+  apiType?: ApiType;
 }
 
 @Component({
@@ -127,18 +130,21 @@ export class SubscriptionsDetailsComponent implements OnInit {
           planSecurity: plan.securityType,
           planUsageConfiguration: plan.usageConfiguration,
           subscriptionStatus: subscription.status,
+          apiType: api.type,
+          entrypointUrl: api?.entrypoints?.[0],
         };
 
         if (subscription.status === 'ACCEPTED') {
           if (plan.securityType === 'API_KEY' && subscription.api) {
-            const entrypointUrl = api?.entrypoints?.[0];
-            const apiKey = subscription?.keys?.length && subscription.keys[0].key ? subscription.keys[0].key : '';
+            const apiKeyItem = subscription?.keys?.length ? subscription.keys[0] : undefined;
+            const apiKey = apiKeyItem?.key ?? '';
+            const apiKeyConfigUsername = apiKeyItem?.hash ?? '';
 
             return {
               result: {
                 ...subscriptionDetails,
                 apiKey,
-                entrypointUrl,
+                apiKeyConfigUsername,
               },
             };
           } else if (plan.securityType === 'OAUTH2' || plan.securityType === 'JWT') {

@@ -18,8 +18,9 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { forkJoin, Observable, Subject } from 'rxjs';
 import { GioFormJsonSchemaComponent, GioJsonSchema, GioLicenseService, License } from '@gravitee/ui-particles-angular';
-import { debounceTime, takeUntil, tap } from 'rxjs/operators';
+import { debounceTime, map, takeUntil, tap } from 'rxjs/operators';
 import { omitBy } from 'lodash';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { Step3Endpoints1ListComponent } from '../step-3-endpoints/step-3-endpoints-1-list.component';
@@ -31,6 +32,8 @@ import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-licen
 import { RestrictedDomainService } from '../../../../../services-ngx/restricted-domain.service';
 import { TcpHost } from '../../../../../entities/management-api-v2/api/v4/tcpHost';
 import { KafkaHostData } from '../../../component/gio-form-listeners/gio-form-listeners-kafka/gio-form-listeners-kafka-host.component';
+import { PortalSettingsService } from '../../../../../services-ngx/portal-settings.service';
+import { PortalSettingsPortal } from '../../../../../entities/portal/portalSettings';
 
 @Component({
   selector: 'step-2-entrypoints-2-config',
@@ -52,8 +55,10 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   public shouldUpgrade = false;
   public license$: Observable<License>;
   public isOEM$: Observable<boolean>;
+  public portalSettings$: Observable<PortalSettingsPortal>;
 
   private apiType: ApiCreationPayload['type'];
+  private envId: string;
 
   constructor(
     private readonly formBuilder: UntypedFormBuilder,
@@ -62,11 +67,16 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     private readonly restrictedDomainService: RestrictedDomainService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly licenseService: GioLicenseService,
-  ) {}
+    private readonly portalSettingsService: PortalSettingsService,
+    private readonly activatedRoute: ActivatedRoute,
+  ) {
+    this.envId = this.activatedRoute.snapshot.params.envHrid;
+  }
 
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
     this.apiType = currentStepPayload.type;
+    this.portalSettings$ = this.portalSettingsService.getByEnvironmentId(this.envId).pipe(map(({ portal }) => portal));
 
     const paths = currentStepPayload.paths ?? [];
     const tcpHosts = currentStepPayload.hosts ?? [];
@@ -91,7 +101,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       this.formGroup.addControl(`${id}-qos`, this.formBuilder.control(selectedQos ?? 'AUTO'));
     });
 
-    if (this.apiType === 'MESSAGE') {
+    if (this.apiType === 'MESSAGE' || this.apiType === 'NATIVE') {
       this.shouldUpgrade = currentStepPayload.selectedEntrypoints.some(({ deployed }) => !deployed);
       this.license$ = this.licenseService.getLicense$();
       this.isOEM$ = this.licenseService.isOEM$();
@@ -201,9 +211,16 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   }
 
   onRequestUpgrade() {
-    this.licenseService.openDialog({
-      feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
-      context: UTMTags.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG,
-    });
+    if (this.apiType === 'NATIVE') {
+      this.licenseService.openDialog({
+        feature: ApimFeature.APIM_NATIVE_KAFKA_REACTOR,
+        context: UTMTags.API_CREATION_NATIVE_KAFKA_ENTRYPOINT_CONFIG,
+      });
+    } else {
+      this.licenseService.openDialog({
+        feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
+        context: UTMTags.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG,
+      });
+    }
   }
 }

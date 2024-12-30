@@ -244,11 +244,11 @@ paths:
                 - $ref: "#/components/parameters/envIdParam"
             tags:
                 - APIs
-            summary: Verify TCP API hosts
+            summary: Verify TCP and Kafka API hosts
             description: |-
-                Verify hosts before creating or updating a TCP API.<br>
+                Verify hosts before creating or updating a TCP or Kafka API.<br>
                 This will check it is not already used by other APIs in the environment.<br>
-                The result will indicate if the hists are OK, and give the reason of the failure if they are not.
+                The result will indicate if the hosts are OK, and give the reason of the failure if they are not.
             operationId: verifyHosts
             requestBody:
                 content:
@@ -2611,7 +2611,7 @@ paths:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
-        post:
+        get:
             tags:
                 - API Scoring
             summary: Get API Scoring
@@ -5471,6 +5471,8 @@ components:
             properties:
                 apiId:
                     type: string
+                listenerType:
+                  $ref: "#/components/schemas/ListenerType"
                 hosts:
                     type: array
                     example:
@@ -7260,6 +7262,10 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/ApiScoringDiagnostic"
+                errors:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ApiScoringError"
         ApiScoringAssetType:
             type: string
             description: The type of the asset.
@@ -7292,6 +7298,18 @@ components:
                     type: string
                     description: A string that indicates the location within the analyzed document where the rule was triggered. It shows the "path" in the document structure to the issue.
                     example: "paths./my-api.get"
+        ApiScoringError:
+            type: object
+            properties:
+                code:
+                    type: string
+                    description: code of the api scoring validation error
+                    example: "undefined-function"
+                path:
+                    type: array
+                    description: Path to the specific place in document where problem occurred
+                    items:
+                        type: string
         ApiScoringSeverity:
             type: string
             description: An enum representing the severity level of the rule violation.

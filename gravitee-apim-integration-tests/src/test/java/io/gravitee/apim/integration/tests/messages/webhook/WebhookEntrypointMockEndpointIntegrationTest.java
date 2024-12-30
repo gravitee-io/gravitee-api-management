@@ -15,8 +15,18 @@
  */
 package io.gravitee.apim.integration.tests.messages.webhook;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.graviteesource.entrypoint.webhook.auth.OAuth2AuthenticationProvider.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.badRequest;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToIgnoreCase;
+import static com.github.tomakehurst.wiremock.client.WireMock.moreThanOrExactly;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
+import static com.github.tomakehurst.wiremock.client.WireMock.unauthorized;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.graviteesource.entrypoint.webhook.auth.OAuth2AuthenticationProvider.ACCESS_TOKEN_KEY;
+import static com.graviteesource.entrypoint.webhook.auth.OAuth2AuthenticationProvider.EXPIRES_IN_KEY;
+import static com.graviteesource.entrypoint.webhook.auth.OAuth2AuthenticationProvider.TOKEN_TYPE_KEY;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -50,7 +60,6 @@ import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
 import java.util.ArrayList;
@@ -155,10 +164,10 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
             configureMockEndpoint(api, 0, 1);
             deploy(api);
 
-            final int messageCount = 6;
+            // 1 first attempt + 3 retries  then 5 dispatcher retries * ( 1 regular attempt + 3 retries)
+            final int messageCount = (1 + 3) + (5 * (1 + 3));
             final String callbackPath = WEBHOOK_URL_PATH + "/test";
-            final ArrayList<Completable> readyObs = new ArrayList<>();
-            final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath, readyObs);
+            final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
 
             TestScheduler testScheduler = new TestScheduler();
             RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
@@ -166,22 +175,23 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
             wiremock.resetAll();
             wiremock.stubFor(post(callbackPath).willReturn(serverError()));
 
-            final TestObserver<Void> obs = webhookActions
+            webhookActions
                 .dispatchSubscription(subscription)
-                .mergeWith(Completable.merge(readyObs).andThen(Completable.fromRunnable(testScheduler::triggerActions)))
+                .mergeWith(Completable.fromRunnable(testScheduler::triggerActions))
                 .takeUntil(
                     webhookActions.waitForRequestsOnCallback(
                         messageCount,
                         callbackPath,
                         () -> {
+                            // 1000 for the webhook
                             testScheduler.advanceTimeBy(3000, MILLISECONDS);
                             testScheduler.triggerActions();
                         }
                     )
                 )
-                .test();
-
-            obs.awaitDone(10, SECONDS).assertError(InterruptionFailureException.class);
+                .test()
+                .awaitDone(10, SECONDS)
+                .assertError(InterruptionFailureException.class);
 
             // Mock endpoint produces only 1 message. 1 attempt + 5 retries. We should expect no more than 6 calls
             webhookActions.verifyMessages(messageCount, callbackPath, "message");

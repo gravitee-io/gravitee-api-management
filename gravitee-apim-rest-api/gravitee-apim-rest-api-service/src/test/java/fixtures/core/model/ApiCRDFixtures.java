@@ -22,6 +22,10 @@ import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
+import io.gravitee.definition.model.v4.nativeapi.NativeEntrypoint;
+import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +75,41 @@ public class ApiCRDFixtures {
             )
         );
 
+    public static ApiCRDSpecBuilder BASE_NATIVE_SPEC = ApiCRDSpec
+        .builder()
+        .id(API_ID)
+        .crossId(API_CROSS_ID)
+        .name(API_NAME)
+        .listeners(List.of(KafkaListener.builder().host("local.kafka").port(9092).build()))
+        .plans(Map.of(PLAN_NAME, PlanCRD.builder().name(PLAN_NAME).id(PLAN_ID).security(new PlanSecurity("key-less", "{}")).build()))
+        .state("STARTED")
+        .endpointGroups(
+            List.of(
+                NativeEndpointGroup
+                    .builder()
+                    .name("default-group")
+                    .type("native-kafka")
+                    .sharedConfiguration("{\"security\":{\"protocol\":\"PLAINTEXT\"}}")
+                    .endpoints(
+                        List.of(
+                            NativeEndpoint
+                                .builder()
+                                .name("default-endpoint")
+                                .type("native-kafka")
+                                .inheritConfiguration(true)
+                                .configuration("{}")
+                                .build()
+                        )
+                    )
+                    .build()
+            )
+        );
+
     public static ApiCRDSpec anApiCRD() {
         return BASE_SPEC.build();
+    }
+
+    public static ApiCRDSpec aNativeApiCRD() {
+        return BASE_NATIVE_SPEC.build();
     }
 }

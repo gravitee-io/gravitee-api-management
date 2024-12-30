@@ -499,9 +499,9 @@ describe('ApiPlanEditComponent', () => {
         expectPlanGetRequest(API_ID, PLAN);
       });
 
-      it('should access plan in read only', async () => {
-        fixture.detectChanges();
-        expect(await loader.getAllHarnesses(GioSaveBarHarness)).toHaveLength(0);
+      it('should edit plan', async () => {
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await saveBar.isVisible()).toBe(false);
 
         const planForm = await loader.getHarness(ApiPlanFormHarness);
 
@@ -523,7 +523,20 @@ describe('ApiPlanEditComponent', () => {
         planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
 
         const nameInput = await planForm.getNameInput();
-        expect(await nameInput.isDisabled()).toEqual(true);
+        await nameInput.setValue('My plan edited');
+
+        expect(await saveBar.isVisible()).toBe(true);
+        await saveBar.clickSubmit();
+
+        expectPlanGetRequest(API_ID, PLAN);
+        const req = httpTestingController.expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN.id}`,
+          method: 'PUT',
+        });
+
+        expect(req.request.body).toEqual(expect.objectContaining({ name: 'My plan edited' }));
+        req.flush({});
+        expect(routerNavigationSpy).toHaveBeenCalled();
       });
     });
   });

@@ -273,7 +273,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             } else {
                 planSearchService.findById(executionContext, planEntity.getId());
                 // No need to validate again the path param in this case
-                resultPlanEntity = update(executionContext, planMapper.toUpdatePlanEntity(planEntity), false);
+                resultPlanEntity = update(executionContext, planMapper.toUpdatePlanEntity(planEntity));
             }
         } catch (PlanNotFoundException npe) {
             // No need to validate again the path param in this case
@@ -282,12 +282,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
         return resultPlanEntity;
     }
 
-    @Override
-    public PlanEntity update(final ExecutionContext executionContext, UpdatePlanEntity updatePlan) {
-        return update(executionContext, updatePlan, true);
-    }
-
-    private PlanEntity update(final ExecutionContext executionContext, UpdatePlanEntity updatePlan, boolean validatePathParams) {
+    private PlanEntity update(final ExecutionContext executionContext, UpdatePlanEntity updatePlan) {
         try {
             logger.debug("Update plan {}", updatePlan.getName());
 
@@ -362,10 +357,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             validateTags(newPlan.getTags(), api);
             updatePlan.setFlows(flowValidationService.validateAndSanitize(api.getType(), updatePlan.getFlows()));
 
-            if (validatePathParams) {
-                validatePathParameters(api, updatePlan);
-            }
-
             // if order change, reorder all pages
             if (newPlan.getOrder() != updatePlan.getOrder()) {
                 newPlan.setOrder(updatePlan.getOrder());
@@ -404,24 +395,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 ex
             );
         }
-    }
-
-    private void validatePathParameters(Api api, UpdatePlanEntity updatePlan) throws TechnicalException {
-        final Set<Plan> plans = planRepository.findByApi(api.getId());
-        final Stream<Flow> apiFlows = flowService.findByReference(FlowReferenceType.API, api.getId()).stream();
-
-        Stream<Flow> planFlows = plans
-            .stream()
-            .map(plan -> {
-                if (plan.getId().equals(updatePlan.getId())) {
-                    return updatePlan.getFlows();
-                } else {
-                    return flowService.findByReference(FlowReferenceType.PLAN, plan.getId());
-                }
-            })
-            .flatMap(Collection::stream);
-
-        pathParametersValidationService.validate(api.getType(), apiFlows, planFlows);
     }
 
     private void checkStatusOfGeneralConditions(Plan plan) {

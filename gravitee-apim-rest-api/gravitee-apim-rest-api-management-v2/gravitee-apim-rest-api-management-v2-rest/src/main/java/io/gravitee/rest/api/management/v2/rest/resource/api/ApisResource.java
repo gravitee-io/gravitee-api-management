@@ -37,6 +37,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.ListenerMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.model.ApiSearchQuery;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
@@ -429,7 +430,12 @@ public class ApisResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
             verifyApiHostsUseCase.execute(
-                new VerifyApiHostsUseCase.Input(executionContext.getEnvironmentId(), verifyPayload.getApiId(), verifyPayload.getHosts())
+                new VerifyApiHostsUseCase.Input(
+                    executionContext.getEnvironmentId(),
+                    verifyPayload.getApiId(),
+                    ListenerMapper.INSTANCE.map(verifyPayload.getListenerType()),
+                    verifyPayload.getHosts()
+                )
             );
             return Response.accepted(VerifyApiHostsResponse.builder().ok(true).build()).build();
         } catch (Exception e) {

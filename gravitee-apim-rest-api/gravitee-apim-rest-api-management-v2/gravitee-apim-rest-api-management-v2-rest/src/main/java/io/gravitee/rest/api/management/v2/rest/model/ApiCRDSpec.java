@@ -15,7 +15,11 @@
  */
 package io.gravitee.rest.api.management.v2.rest.model;
 
+import io.gravitee.definition.model.DefinitionContext;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.failover.Failover;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -27,13 +31,19 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ApiCRDSpec {
 
     @NotNull
@@ -83,7 +93,7 @@ public class ApiCRDSpec {
 
     private Map<String, Map<String, ResponseTemplate>> responseTemplates = new LinkedHashMap<>();
 
-    private ApiServices services;
+    private ApiServicesCRD services;
 
     private Set<String> groups;
 
@@ -107,7 +117,7 @@ public class ApiCRDSpec {
 
     private Map<String, PageCRD> pages;
 
-    public DefinitionVersion getDefinitionVersion() {
-        return DefinitionVersion.V4;
+    public String getDefinitionVersion() {
+        return DefinitionVersion.V4.name();
     }
 }

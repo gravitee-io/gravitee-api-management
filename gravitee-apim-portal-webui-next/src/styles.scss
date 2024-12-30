@@ -18,6 +18,7 @@
 
 @forward './scss/material-design-overrides';
 @forward 'scss/m3-adapter';
+@forward 'scss/helper';
 @use '@angular/material' as mat;
 @use '@angular/material-experimental' as matx;
 @use './scss/theme';

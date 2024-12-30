@@ -58,6 +58,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
   private mode: 'edit' | 'create';
   public healthCheckSchema: unknown;
   public isHttpProxyApi: boolean;
+  public isNativeKafkaApi: boolean;
   public healthCheckForm: EndpointHealthCheckFormType;
 
   constructor(
@@ -85,6 +86,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
           this.api = api;
 
           this.isHttpProxyApi = api.type === 'PROXY' && !(api.listeners.find((listener) => listener.type === 'TCP') != null);
+          this.isNativeKafkaApi = api.type === 'NATIVE' && api.listeners.some((listener) => listener.type === 'KAFKA');
 
           const isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
           const hasPermission = this.permissionService.hasAnyMatching(['api-definition-r']);
@@ -314,12 +316,16 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
           ? isEndpointNameUniqueAndDoesNotMatchDefaultValue(this.api, this.endpoint.name)
           : isEndpointNameUnique(this.api),
       ]),
-      weight: new UntypedFormControl(weight, Validators.required),
+      weight: new UntypedFormControl(weight),
       inheritConfiguration: new UntypedFormControl(inheritConfiguration),
       configuration: new UntypedFormControl(configuration),
       sharedConfigurationOverride: new UntypedFormControl({ value: sharedConfigurationOverride, disabled: inheritConfiguration }),
       healthCheck: this.healthCheckForm,
     });
+
+    if (!this.isNativeKafkaApi) {
+      this.formGroup.get('weight').addValidators([Validators.required]);
+    }
 
     if (this.isReadOnly) {
       this.formGroup.disable({ emitEvent: false });

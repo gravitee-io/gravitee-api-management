@@ -23,10 +23,9 @@ import { mapValues, omitBy } from 'lodash';
 
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
+import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 import { Step4Security1PlansComponent } from '../step-4-security/step-4-security-1-plans.component';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
-import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
-import { Step5SummaryComponent } from '../step-5-summary/step-5-summary.component';
 
 @Component({
   selector: 'step-3-endpoints-2-config',
@@ -114,15 +113,7 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
       })),
     }));
 
-    switch (this.apiType) {
-      case 'NATIVE':
-        this.stepService.goToNextStep({ groupNumber: 5, component: Step5SummaryComponent });
-        break;
-      case 'PROXY':
-      case 'MESSAGE':
-        this.stepService.goToNextStep({ groupNumber: 4, component: Step4Security1PlansComponent });
-        break;
-    }
+    this.stepService.goToNextStep({ groupNumber: 4, component: Step4Security1PlansComponent });
   }
 
   goBack(): void {
@@ -130,6 +121,16 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
   }
 
   public onRequestUpgrade() {
-    this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_MESSAGE_ENDPOINT_CONFIG });
+    if (this.apiType === 'NATIVE') {
+      this.licenseService.openDialog({
+        feature: ApimFeature.APIM_NATIVE_KAFKA_REACTOR,
+        context: UTMTags.API_CREATION_NATIVE_KAFKA_ENDPOINT_CONFIG,
+      });
+    } else {
+      this.licenseService.openDialog({
+        feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
+        context: UTMTags.API_CREATION_MESSAGE_ENDPOINT_CONFIG,
+      });
+    }
   }
 }

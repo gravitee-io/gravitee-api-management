@@ -134,6 +134,7 @@ export class ApiCreationV4SpecStepperHelper {
       await entrypointsConfig.fillPaths(...paths);
       this.httpExpects.expectVerifyContextPath();
     } else if (entrypoints.some((entrypoint) => entrypoint.supportedListenerType === 'KAFKA')) {
+      this.httpExpects.expectApiGetPortalSettings();
       await entrypointsConfig.fillHost(host);
       this.httpExpects.expectVerifyHosts([host]);
     }
@@ -167,7 +168,7 @@ export class ApiCreationV4SpecStepperHelper {
     await endpointsConfig.clickValidate();
   }
 
-  async fillAndValidateStep4_1_SecurityPlansList() {
+  async editAndValidateStep4_1_SecurityPlansList() {
     const plansList = await this.harnessLoader.getHarness(Step4Security1PlansHarness);
 
     await plansList.editDefaultKeylessPlanNameAndAddRateLimit('Update name', this.httpTestingController);

@@ -16,6 +16,8 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { MatCard, MatCardContent, MatCardHeader } from '@angular/material/card';
 
+import { NativeKafkaApiAccessComponent } from './native-kafka-api-access/native-kafka-api-access.component';
+import { ApiType } from '../../entities/api/api';
 import { PlanSecurityEnum } from '../../entities/plan/plan';
 import { SubscriptionStatusEnum } from '../../entities/subscription/subscription';
 import { ConfigService } from '../../services/config.service';
@@ -24,7 +26,7 @@ import { CopyCodeComponent } from '../copy-code/copy-code.component';
 @Component({
   selector: 'app-api-access',
   standalone: true,
-  imports: [MatCard, MatCardContent, MatCardHeader, CopyCodeComponent],
+  imports: [MatCard, MatCardContent, MatCardHeader, CopyCodeComponent, NativeKafkaApiAccessComponent],
   templateUrl: './api-access.component.html',
   styleUrl: './api-access.component.scss',
 })
@@ -37,6 +39,12 @@ export class ApiAccessComponent implements OnInit {
 
   @Input()
   apiKey?: string;
+
+  @Input()
+  apiKeyConfigUsername?: string;
+
+  @Input()
+  apiType?: ApiType;
 
   @Input()
   entrypointUrl?: string;

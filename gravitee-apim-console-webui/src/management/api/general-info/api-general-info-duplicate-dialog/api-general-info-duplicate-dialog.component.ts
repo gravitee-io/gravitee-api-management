@@ -90,7 +90,10 @@ export class ApiGeneralInfoDuplicateDialogComponent implements OnDestroy {
 
     if (dialogData.api.definitionVersion === 'V4') {
       if (dialogData.api.listeners?.find((listener) => listener.type === 'TCP')) {
-        this.duplicateApiForm.addControl('host', new FormControl('', [hostSyncValidator], [hostAsyncValidator(this.apiV2Service)]));
+        this.duplicateApiForm.addControl(
+          'host',
+          new FormControl('', [hostSyncValidator], [hostAsyncValidator(this.apiV2Service, undefined, 'TCP')]),
+        );
       } else {
         this.duplicateApiForm.addControl(
           'contextPath',

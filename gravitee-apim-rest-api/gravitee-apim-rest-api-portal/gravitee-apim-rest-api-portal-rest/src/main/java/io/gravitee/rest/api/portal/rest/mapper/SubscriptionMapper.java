@@ -21,6 +21,7 @@ import io.gravitee.rest.api.portal.rest.model.Subscription;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 
+@Slf4j
 @Component
 public class SubscriptionMapper {
 
@@ -48,7 +50,7 @@ public class SubscriptionMapper {
         subscriptionItem.setReason(subscriptionEntity.getReason());
         subscriptionItem.setStatus(Subscription.StatusEnum.fromValue(subscriptionEntity.getStatus().name()));
         subscriptionItem.setSubscribedBy(subscriptionEntity.getSubscribedBy());
-        subscriptionItem.setOrigin(Subscription.OriginEnum.valueOf(subscriptionEntity.getOrigin()));
+        subscriptionItem.setOrigin(convert(subscriptionEntity.getOrigin()));
         return subscriptionItem;
     }
 
@@ -57,5 +59,14 @@ public class SubscriptionMapper {
             return date.toInstant().atOffset(ZoneOffset.UTC);
         }
         return null;
+    }
+
+    private static Subscription.OriginEnum convert(String origin) {
+        try {
+            return Subscription.OriginEnum.valueOf(origin);
+        } catch (IllegalArgumentException | NullPointerException e) {
+            log.error("Unable to serialize Subscription Origin: [{}]", origin);
+            return null;
+        }
     }
 }

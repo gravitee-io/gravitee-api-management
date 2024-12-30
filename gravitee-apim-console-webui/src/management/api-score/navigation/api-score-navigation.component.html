@@ -19,22 +19,24 @@
 <div class="navigation">
   <div class="navigation__menu">
     <gio-submenu class="navigation__submenu">
-      @for (item of navigationItems; track item.routerLink) {
-        <a
-          [routerLink]="item.routerLink"
-          routerLinkActive
-          #rla="routerLinkActive"
-          [routerLinkActiveOptions]="item?.routerLinkActiveOptions ?? { exact: false }"
-          class="nav-item-api-score"
-        >
-          <gio-submenu-item tabIndex="1" [active]="rla.isActive">
-            <div class="menu-item">
-              <mat-icon class="menu-item__icon" [svgIcon]="'gio:' + item.icon"></mat-icon>
-              <span data-testid="navitem" class="menu-item__text">{{ item.displayName }}</span>
-            </div>
-          </gio-submenu-item>
-        </a>
-      }
+      <div class="nav-items">
+        @for (item of navigationItems; track item.routerLink) {
+          <a
+            [routerLink]="item.routerLink"
+            routerLinkActive
+            #rla="routerLinkActive"
+            [routerLinkActiveOptions]="item?.routerLinkActiveOptions ?? { exact: false }"
+            class="nav-item-api-score"
+          >
+            <gio-submenu-item tabIndex="1" [active]="rla.isActive">
+              <div class="menu-item">
+                <mat-icon class="menu-item__icon" [svgIcon]="'gio:' + item.icon"></mat-icon>
+                <span data-testid="navitem" class="menu-item__text">{{ item.displayName }}</span>
+              </div>
+            </gio-submenu-item>
+          </a>
+        }
+      </div>
     </gio-submenu>
   </div>
   <div class="navigation__content">

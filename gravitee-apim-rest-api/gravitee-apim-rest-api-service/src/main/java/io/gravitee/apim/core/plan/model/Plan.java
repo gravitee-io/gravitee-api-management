@@ -19,6 +19,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -191,6 +192,22 @@ public class Plan implements GenericPlanEntity {
             }
         }
         return this;
+    }
+
+    public Set<String> getPlanTags() {
+        return switch (definitionVersion) {
+            case V4 -> getPlanDefinitionV4().getTags();
+            case V1, V2 -> planDefinitionV2.getTags();
+            case FEDERATED -> Set.of();
+        };
+    }
+
+    public String getSelectionRule() {
+        return switch (definitionVersion) {
+            case V4 -> getPlanDefinitionV4().getSelectionRule();
+            case V1, V2 -> planDefinitionV2.getSelectionRule();
+            case FEDERATED -> "";
+        };
     }
 
     @Override

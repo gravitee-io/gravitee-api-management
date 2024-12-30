@@ -21,7 +21,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -47,6 +49,16 @@ class DefaultManagementDeploymentContextTest {
         final Api api = new Api();
         final DefaultManagementDeploymentContext cut = new DefaultManagementDeploymentContext(api, applicationContext);
         assertThat(cut.getComponent(Api.class)).isEqualTo(api);
+        assertThat(cut.getComponent(AbstractApi.class)).isEqualTo(api);
+        verify(applicationContext, never()).getBean(any(Class.class));
+    }
+
+    @Test
+    void should_get_native_api() {
+        final NativeApi api = new NativeApi();
+        final DefaultManagementDeploymentContext cut = new DefaultManagementDeploymentContext(api, applicationContext);
+        assertThat(cut.getComponent(NativeApi.class)).isEqualTo(api);
+        assertThat(cut.getComponent(AbstractApi.class)).isEqualTo(api);
         verify(applicationContext, never()).getBean(any(Class.class));
     }
 

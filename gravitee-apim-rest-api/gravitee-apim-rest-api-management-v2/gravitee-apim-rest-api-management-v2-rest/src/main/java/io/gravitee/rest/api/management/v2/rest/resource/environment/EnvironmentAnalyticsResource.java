@@ -67,11 +67,13 @@ public class EnvironmentAnalyticsResource {
         var params = AnalyticsQueryParameters.builder().from(timeRangeParam.getFrom()).to(timeRangeParam.getTo()).build();
         var input = new SearchEnvironmentTopHitsApisCountUseCase.Input(GraviteeContext.getExecutionContext(), params);
 
-        return searchEnvironmentTopHitsApisCountUseCase
-            .execute(input)
-            .topHitsApis()
-            .map(EnvironmentAnalyticsMapper.INSTANCE::map)
-            .orElse(EnvironmentAnalyticsTopHitsApisResponse.builder().data(List.of()).build());
+        var topHitsApis = searchEnvironmentTopHitsApisCountUseCase.execute(input).topHitsApis();
+
+        if (topHitsApis == null) {
+            return EnvironmentAnalyticsTopHitsApisResponse.builder().build();
+        }
+
+        return EnvironmentAnalyticsMapper.INSTANCE.map(topHitsApis);
     }
 
     @Path("/request-response-time")

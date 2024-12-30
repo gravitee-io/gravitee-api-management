@@ -40,6 +40,7 @@ import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFact
 import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessorFactory;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactoryManager;
+import io.gravitee.gateway.reactive.reactor.v4.secrets.ApiV4DefinitionSecretRefsFinder;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.AcceptorResolver;
 import io.gravitee.gateway.reactor.handler.ReactorEventListener;
@@ -54,10 +55,9 @@ import io.gravitee.gateway.reactor.processor.transaction.TraceContextProcessorFa
 import io.gravitee.gateway.reactor.processor.transaction.TransactionRequestProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
-import io.gravitee.node.api.opentelemetry.Tracer;
-import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import io.gravitee.plugin.alert.AlertEventProducer;
+import io.gravitee.secrets.api.discovery.DefinitionSecretRefsFinder;
 import io.vertx.core.Vertx;
 import java.util.List;
 import org.slf4j.Logger;
@@ -179,7 +179,6 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    @Qualifier
     public TcpSocketDispatcher tcpSocketDispatcher(
         TcpAcceptorResolver tcpAcceptorResolver,
         ComponentProvider globalComponentProvider,
@@ -261,5 +260,10 @@ public class ReactorConfiguration {
     @Bean
     public NodeTemplateVariableProvider nodeTemplateVariableProvider(Node node, GatewayConfiguration gatewayConfiguration) {
         return new NodeTemplateVariableProvider(node, gatewayConfiguration);
+    }
+
+    @Bean
+    public DefinitionSecretRefsFinder<?> v4ApiDefinitionSecretRefsFinder() {
+        return new ApiV4DefinitionSecretRefsFinder();
     }
 }

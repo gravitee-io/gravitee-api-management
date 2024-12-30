@@ -29,10 +29,12 @@ import io.gravitee.apim.core.search.Indexer.IndexationContext;
 import io.gravitee.apim.core.search.model.IndexablePage;
 import java.time.ZoneId;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @DomainService
+@RequiredArgsConstructor
 public class CreateApiDocumentationDomainService {
 
     private final PageCrudService pageCrudService;
@@ -40,18 +42,6 @@ public class CreateApiDocumentationDomainService {
     private final AuditDomainService auditDomainService;
 
     private final Indexer indexer;
-
-    public CreateApiDocumentationDomainService(
-        PageCrudService pageCrudService,
-        PageRevisionCrudService pageRevisionCrudService,
-        AuditDomainService auditDomainService,
-        Indexer indexer
-    ) {
-        this.pageCrudService = pageCrudService;
-        this.pageRevisionCrudService = pageRevisionCrudService;
-        this.auditDomainService = auditDomainService;
-        this.indexer = indexer;
-    }
 
     public Page createPage(Page page, AuditInfo auditInfo) {
         var createdPage = pageCrudService.createDocumentationPage(page);

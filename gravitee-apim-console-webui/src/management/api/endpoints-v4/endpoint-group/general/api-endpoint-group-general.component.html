@@ -29,17 +29,19 @@
     </mat-form-field>
   </div>
 
-  <!-- Load balancing algorithm -->
-  <div class="card__endpoint-group-lb">
-    <p class="card__endpoint-group-lb__hint">
-      You can configure load balancing by creating a logical group of endpoints and specifying a load balancing algorithm for them.
-    </p>
-    <mat-form-field class="card__endpoint-group-lb__form-field">
-      <mat-label>Load balancing algorithm</mat-label>
-      <mat-select aria-label="Load balancing algorithm" formControlName="loadBalancerType" required>
-        <mat-option *ngFor="let loadBalancerType of loadBalancerTypes" [value]="loadBalancerType">{{ loadBalancerType }}</mat-option>
-      </mat-select>
-      <mat-error *ngIf="generalForm.get('loadBalancerType').hasError('required')"> Load balancing algorithm is required. </mat-error>
-    </mat-form-field>
-  </div>
+  @if (!isNativeKafka) {
+    <!-- Load balancing algorithm -->
+    <div class="card__endpoint-group-lb">
+      <p class="card__endpoint-group-lb__hint">
+        You can configure load balancing by creating a logical group of endpoints and specifying a load balancing algorithm for them.
+      </p>
+      <mat-form-field class="card__endpoint-group-lb__form-field">
+        <mat-label>Load balancing algorithm</mat-label>
+        <mat-select aria-label="Load balancing algorithm" formControlName="loadBalancerType" required>
+          <mat-option *ngFor="let loadBalancerType of loadBalancerTypes" [value]="loadBalancerType">{{ loadBalancerType }}</mat-option>
+        </mat-select>
+        <mat-error *ngIf="generalForm.get('loadBalancerType').hasError('required')"> Load balancing algorithm is required. </mat-error>
+      </mat-form-field>
+    </div>
+  }
 </form>

@@ -15,7 +15,7 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, from, mergeMap, Observable, of } from 'rxjs';
 import { distinctUntilChanged, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 
@@ -30,11 +30,12 @@ import {
   CreateApi,
   DuplicateApiOptions,
   UpdateApi,
+  ApiTransferOwnership,
+  VerifyApiDeployResponse,
+  ListenerType,
 } from '../entities/management-api-v2';
-import { ApiTransferOwnership } from '../entities/management-api-v2/api/apiTransferOwnership';
 import { PathToVerify, VerifyApiPathResponse } from '../entities/management-api-v2/api/verifyApiPath';
 import { VerifyApiHostsResponse } from '../entities/management-api-v2/api/verifyApiHosts';
-import { VerifyApiDeployResponse } from '../entities/management-api-v2/api/verifyApiDeploy';
 import { ImportSwaggerDescriptor } from '../entities/management-api-v2/api/v4/importSwaggerDescriptor';
 
 export interface HostValidatorParams {
@@ -111,12 +112,21 @@ export class ApiV2Service {
       excludeAdditionalData?: string[];
     },
   ): Observable<Blob> {
-    return this.http.get(`${this.constants.env.v2BaseURL}/apis/${apiId}/_export/definition`, {
-      responseType: 'blob',
-      params: {
-        ...(options?.excludeAdditionalData ? { excludeAdditionalData: options.excludeAdditionalData.join(',') } : {}),
-      },
-    });
+    return this.http
+      .get(`${this.constants.env.v2BaseURL}/apis/${apiId}/_export/definition`, {
+        responseType: 'blob',
+        params: {
+          ...(options?.excludeAdditionalData ? { excludeAdditionalData: options.excludeAdditionalData.join(',') } : {}),
+        },
+      })
+      .pipe(
+        mergeMap((blob) => from(blob.text())),
+        map((content) => {
+          return new Blob([JSON.stringify(JSON.parse(content), undefined, 2)], {
+            type: 'application/json',
+          });
+        }),
+      );
   }
 
   import(importApi: any): Observable<ApiV4> {
@@ -203,8 +213,8 @@ export class ApiV2Service {
     return this.http.post<VerifyApiPathResponse>(`${this.constants.env.v2BaseURL}/apis/_verify/paths`, { apiId, paths });
   }
 
-  verifyHosts(apiId: string, hosts: string[]): Observable<VerifyApiHostsResponse> {
-    return this.http.post<VerifyApiHostsResponse>(`${this.constants.env.v2BaseURL}/apis/_verify/hosts`, { apiId, hosts });
+  verifyHosts(apiId: string, listenerType: ListenerType, hosts: string[]): Observable<VerifyApiHostsResponse> {
+    return this.http.post<VerifyApiHostsResponse>(`${this.constants.env.v2BaseURL}/apis/_verify/hosts`, { apiId, listenerType, hosts });
   }
 
   rollback(apiId: string, eventId: string): Observable<void> {

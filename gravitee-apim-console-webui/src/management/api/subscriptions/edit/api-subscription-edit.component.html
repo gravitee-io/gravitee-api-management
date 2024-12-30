@@ -139,6 +139,10 @@
                 <mat-icon svgIcon="gio:calendar"></mat-icon>
                 Change end date
               </button>
+              <button mat-stroked-button (click)="resumeFailureSubscription()" *ngIf="subscription.consumerStatus === 'FAILURE'">
+                <mat-icon svgIcon="gio:play-circle"></mat-icon>
+                Resume from failure
+              </button>
               <button mat-raised-button color="warn" (click)="closeSubscription()" [disabled]="subscription.origin === 'KUBERNETES'">
                 <mat-icon svgIcon="gio:x-circle"></mat-icon>
                 Close

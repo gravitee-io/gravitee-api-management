@@ -18,7 +18,6 @@ package io.gravitee.apim.core.application.model.crd;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.definition.model.Origin;
 import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.ApplicationMetadataEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import java.util.List;
@@ -60,6 +59,7 @@ public class ApplicationCRDSpec extends ApplicationEntity {
         nae.setOrigin(Origin.KUBERNETES);
         nae.setGroups(getGroups());
         nae.setSettings(getSettings());
+        nae.setDisableMembershipNotifications(isDisableMembershipNotifications());
 
         return nae;
     }

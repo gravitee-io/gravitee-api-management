@@ -66,4 +66,5 @@ public class PageMongo extends Auditable {
     private String parentId;
     private Map<String, String> metadata;
     private Boolean useAutoFetch; // use Boolean to avoid default value of primitive type
+    private boolean ingested;
 }

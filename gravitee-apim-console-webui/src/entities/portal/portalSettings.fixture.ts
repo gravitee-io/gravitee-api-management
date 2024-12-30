@@ -20,6 +20,8 @@ export function fakePortalSettings(attributes?: Partial<PortalSettings>): Portal
     portal: {
       entrypoint: 'https://api.company.com',
       apikeyHeader: 'X-Gravitee-Api-Key',
+      kafkaDomain: '',
+      kafkaPort: 9092,
       support: {
         enabled: true,
       },

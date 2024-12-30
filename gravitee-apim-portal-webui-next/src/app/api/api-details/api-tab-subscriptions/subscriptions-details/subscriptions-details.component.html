@@ -33,14 +33,17 @@
         [planName]="detailsVM.result.planName"
         [planSecurity]="detailsVM.result.planSecurity"
         [subscriptionStatus]="detailsVM.result.subscriptionStatus"
-        [planUsageConfiguration]="detailsVM.result.planUsageConfiguration" />
+        [planUsageConfiguration]="detailsVM.result.planUsageConfiguration"
+        [apiType]="detailsVM.result.apiType" />
       <app-api-access
         [planSecurity]="detailsVM.result.planSecurity"
         [subscriptionStatus]="detailsVM.result.subscriptionStatus"
         [entrypointUrl]="detailsVM.result.entrypointUrl"
         [apiKey]="detailsVM.result.apiKey"
         [clientId]="detailsVM.result.clientId"
-        [clientSecret]="detailsVM.result.clientSecret" />
+        [clientSecret]="detailsVM.result.clientSecret"
+        [apiType]="detailsVM.result.apiType"
+        [apiKeyConfigUsername]="detailsVM.result.apiKeyConfigUsername" />
     </div>
   }
 } @else {

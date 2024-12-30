@@ -32,6 +32,9 @@ import io.gravitee.node.monitoring.spring.NodeMonitoringConfiguration;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.node.plugin.cache.standalone.StandaloneCacheManager;
 import io.gravitee.node.plugin.cluster.standalone.StandaloneClusterManager;
+import io.gravitee.node.plugins.service.ServiceManager;
+import io.gravitee.node.plugins.service.impl.ServiceManagerImpl;
+import io.gravitee.node.plugins.service.spring.ServicePluginConfiguration;
 import io.gravitee.reporter.api.Reporter;
 import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.api.ApiKeyRepository;
@@ -49,6 +52,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 
 /**
@@ -106,6 +110,7 @@ public class GatewayTestContainer extends GatewayContainer {
     }
 
     @Configuration
+    @Import(ServicePluginConfiguration.class)
     public static class GatewayTestConfiguration {
 
         @Bean
@@ -186,6 +191,11 @@ public class GatewayTestContainer extends GatewayContainer {
         @Bean
         public MessageStorage messageStorage() {
             return new MessageStorage();
+        }
+
+        @Bean
+        public ServiceManager serviceManager() {
+            return new ServiceManagerImpl();
         }
     }
 }

@@ -75,10 +75,10 @@ import { OrgSettingsPlatformPoliciesComponent } from './policies/org-settings-pl
 import { OrgSettingsTenantsComponent } from './tenants/org-settings-tenants.component';
 import { OrgSettingAddTenantComponent } from './tenants/org-settings-add-tenant.component';
 import { OrgSettingsRolesComponent } from './roles/org-settings-roles.component';
-import { OrgSettingsTagsComponent } from './tags/org-settings-tags.component';
+import { OrgSettingsEntrypointsAndShardingTagsComponent } from './entrypoints-and-sharding-tags/org-settings-entrypoints-and-sharding-tags.component';
 import { OrgSettingsRoleMembersComponent } from './roles/org-settings-role-members.component';
-import { OrgSettingAddTagDialogComponent } from './tags/org-settings-add-tag-dialog.component';
-import { OrgSettingAddMappingDialogComponent } from './tags/org-settings-add-mapping-dialog.component';
+import { OrgSettingAddTagDialogComponent } from './entrypoints-and-sharding-tags/dialog/org-settings-add-tag-dialog.component';
+import { OrgSettingAddMappingDialogComponent } from './entrypoints-and-sharding-tags/dialog/org-settings-add-mapping-dialog.component';
 import { OrgSettingsRoleComponent } from './roles/role/org-settings-role.component';
 import { OrgSettingsUserDetailAddGroupDialogComponent } from './user/detail/org-settings-user-detail-add-group-dialog.component';
 import { OrgSettingsUserGenerateTokenComponent } from './user/detail/tokens/org-settings-user-generate-token.component';
@@ -169,7 +169,7 @@ import { GioUsersSelectorModule } from '../../shared/components/gio-users-select
     OrgSettingsTenantsComponent,
     OrgSettingAddTenantComponent,
     OrgSettingsRolesComponent,
-    OrgSettingsTagsComponent,
+    OrgSettingsEntrypointsAndShardingTagsComponent,
     OrgSettingsRoleMembersComponent,
     OrgSettingAddTagDialogComponent,
     OrgSettingAddMappingDialogComponent,

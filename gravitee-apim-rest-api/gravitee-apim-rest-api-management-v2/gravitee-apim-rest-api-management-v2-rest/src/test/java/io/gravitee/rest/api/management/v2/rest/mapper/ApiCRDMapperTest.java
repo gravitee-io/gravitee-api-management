@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import fixtures.definition.FlowFixtures;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
+import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -29,7 +30,6 @@ import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLifecycleState;
 import java.util.List;
@@ -136,7 +136,7 @@ class ApiCRDMapperTest {
                         .build()
                 )
             )
-            .properties(List.of(Property.builder().key("prop-key").value("prop-value").build()))
+            .properties(List.of(EncryptableProperty.builder().key("prop-key").value("prop-value").build()))
             .resources(List.of(Resource.builder().name("resource-name").type("resource-type").enabled(true).build()))
             .responseTemplates(Map.of("DEFAULT", Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
             .state("STARTED")

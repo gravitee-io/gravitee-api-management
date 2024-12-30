@@ -21,8 +21,11 @@
       <div class="m3-body-medium">{{ title }}</div>
     }
     <div class="copy-code__command-line">
+      <div class="copy-code__command-line__container">
+        <pre class="copy-code__command-line__container__code">{{ passwordContent() }}</pre>
+      </div>
+
       @if (mode === 'PASSWORD') {
-        <code class="copy-code__command-line__code">{{ passwordContent() }}</code>
         <button
           mat-icon-button
           matSuffix
@@ -31,8 +34,6 @@
           [attr.aria-pressed]="hidePassword()">
           <mat-icon> {{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
         </button>
-      } @else {
-        <code class="copy-code__command-line__code">{{ text }}</code>
       }
       <app-copy-code-icon [contentToCopy]="text" [label]="title ?? ''" />
     </div>
