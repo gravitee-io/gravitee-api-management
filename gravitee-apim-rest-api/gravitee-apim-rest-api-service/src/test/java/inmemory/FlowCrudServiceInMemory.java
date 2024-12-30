@@ -75,6 +75,22 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
     }
 
     @Override
+    public List<NativeFlow> saveNativePlanFlows(String planId, List<NativeFlow> flows) {
+        planFlowsNativeV4.put(planId, flows);
+        return flows;
+    }
+
+    @Override
+    public List<NativeFlow> getNativeApiFlows(String apiId) {
+        return apiFlowsNativeV4.getOrDefault(apiId, new ArrayList<>());
+    }
+
+    @Override
+    public List<NativeFlow> getNativePlanFlows(String planId) {
+        return planFlowsNativeV4.getOrDefault(planId, new ArrayList<>());
+    }
+
+    @Override
     public void initWith(List<AbstractFlow> items) {
         throw new UnsupportedOperationException();
     }

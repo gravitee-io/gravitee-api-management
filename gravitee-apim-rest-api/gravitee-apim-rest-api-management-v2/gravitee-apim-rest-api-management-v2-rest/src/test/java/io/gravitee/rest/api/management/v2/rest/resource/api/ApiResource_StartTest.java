@@ -40,7 +40,6 @@ import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
@@ -75,7 +74,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
 
     @Test
     public void should_not_start_api_with_incorrect_if_match() {
-        var apiEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).build();
+        var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
         when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API))).thenReturn(apiEntity);
 
         final Response response = rootTarget().request().header(HttpHeaders.IF_MATCH, "\"000\"").post(Entity.json(""));
@@ -104,7 +103,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
     @Test
     public void should_not_start_api_if_archived() {
         var apiEntity = ApiFixtures
-            .aModelApiV4()
+            .aModelHttpApiV4()
             .toBuilder()
             .id(API)
             .state(Lifecycle.State.STOPPED)
@@ -124,7 +123,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
 
     @Test
     public void should_not_start_api_with_failing_license_check() {
-        var apiEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).state(Lifecycle.State.STOPPED).build();
+        var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).state(Lifecycle.State.STOPPED).build();
         when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API))).thenReturn(apiEntity);
         doThrow(new ForbiddenFeatureException("apim-en-endpoint-kafka")).when(apiLicenseService).checkLicense(any(), anyString());
         final Response response = rootTarget().request().post(Entity.json(""));
@@ -139,7 +138,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
 
     @Test
     public void should_not_start_api_if_already_started() {
-        var apiEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).state(Lifecycle.State.STARTED).build();
+        var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).state(Lifecycle.State.STARTED).build();
         when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API))).thenReturn(apiEntity);
 
         final Response response = rootTarget().request().post(Entity.json(""));
@@ -155,7 +154,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
     @Test
     public void should_not_start_api_if_not_review_ok() {
         var apiEntity = ApiFixtures
-            .aModelApiV4()
+            .aModelHttpApiV4()
             .toBuilder()
             .id(API)
             .state(Lifecycle.State.STOPPED)
@@ -184,7 +183,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
 
     @Test
     public void should_start_api() {
-        var apiEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).state(Lifecycle.State.STOPPED).build();
+        var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).state(Lifecycle.State.STOPPED).build();
         when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API))).thenReturn(apiEntity);
 
         when(apiStateServiceV4.start(eq(GraviteeContext.getExecutionContext()), eq(API), eq(USER_NAME))).thenReturn(apiEntity);

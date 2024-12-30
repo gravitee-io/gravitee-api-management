@@ -129,7 +129,7 @@ secrets:
 #  idleTimeout: 0
 #  tcpKeepAlive: true
 #  instances: 0
-#  requestTimeout: 0 (in v4 mode, default is 30_000 ms)
+#  requestTimeout: 30_000 # default is 30_000 ms
 #  # TCP REQUIRES TLS to be set up properly
 #  secured: true
 #  ssl:
@@ -161,12 +161,22 @@ secrets:
 # Gateway Kafka server
 #kafka:
 #  enabled: false
+
+#  routingMode: host # default is host. Only host is supported for now.
+#  # Routing Host Mode
+#  routingHostMode:
+#    brokerPrefix: broker- # default is broker-
+#    # The default domain where the Kafka APIs are exposed. ex: `myapi` will be exposed as `myapi.mycompany.org`
+#    defaultDomain: mycompany.org # Should set according to the public wildcard DNS/Certificate. Default is empty
+#    defaultPort: 9092 # Default public port for Kafka APIs. Default is 9092
+
+#  # Kafka Network settings
 #  port: 9092
 #  host: 0.0.0.0
 #  idleTimeout: 0
 #  tcpKeepAlive: true
 #  instances: 0
-#  requestTimeout: 0 (in v4 mode, default is 30_000 ms)
+#  requestTimeout: 35_000 # default is 35_000 ms
 #  # TCP REQUIRES TLS to be set up properly
 #  secured: true
 #  ssl:
@@ -775,6 +785,43 @@ api:
   # change), this timeout will be the maximum time (in milliseconds) to wait for all pending requests to terminate
 #  pending_requests_timeout: 10000
   validateSubscription: true  # set to false if you want to skip validating the subscription, default value is true
+  # API level Secret manager configuration
+#  secrets:
+#    providers:
+#      # exists on all environments
+#      - id: all                # uri starts with '/all/...'
+#        plugin: vault
+#        configuration:
+#          enabled: true
+#          # ... HC Vault plugin configuration
+#          auth:
+#            method: token
+#            # this points to the configuration-level kube plugin
+#            # as configured in 'secrets.kubernetes' section of the configuration
+#            token: secrets://kubernetes/gravitee-secrets:vault-token
+#      # this one is another instance of kube plugin
+#      # and may have a different configuration
+#      - plugin: kubernetes    # uri starts with '/kubernetes/...'
+#        configuration:
+#          enabled: true
+#          # ... Kube plugin config
+#        environments:
+#          - f5bd78b7-eec2-4c97-9d3a-cb73ec7e3e87
+#          - 6654bb2f-1f07-4b55-b708-0d0fde18159e
+#    retryOnError:
+#      enabled: true
+#      delay: 2
+#      unit: SECONDS
+#      backoffFactor: 1.5
+#      maxDelay: 60
+#      maxAttempt: 10
+#    allowGeneratedSpecs: true
+#    renewal:
+#      enable: true
+#      check:
+#        delay: 15
+#        unit: MINUTES
+
 # Graceful shutdown.
 #gracefulShutdown:
   # Default delay is 0 but it can be useful to set it to an adequate value depending on how much time the load balancer takes to stop routing traffic to a gateway instance which is shutting down.

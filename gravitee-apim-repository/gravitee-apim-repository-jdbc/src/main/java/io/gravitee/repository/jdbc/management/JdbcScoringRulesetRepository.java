@@ -46,10 +46,12 @@ public class JdbcScoringRulesetRepository extends JdbcAbstractCrudRepository<Sco
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
+            .addColumn("format", Types.NVARCHAR, ScoringRuleset.Format.class)
             .addColumn("payload", Types.NCLOB, String.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
+            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .build();
     }
 

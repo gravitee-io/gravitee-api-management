@@ -16,12 +16,15 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -96,6 +99,10 @@ public class SubscriptionEntity {
     private List<String> keys;
 
     private String security;
+
+    @Getter
+    @Setter
+    private String origin = OriginContext.Origin.MANAGEMENT.name();
 
     /**
      * Number of days before the expiration of this subscription when the last pre-expiration notification was sent

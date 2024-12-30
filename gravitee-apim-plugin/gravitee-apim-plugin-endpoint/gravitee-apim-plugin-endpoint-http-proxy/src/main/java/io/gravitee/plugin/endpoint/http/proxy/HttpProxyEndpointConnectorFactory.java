@@ -19,7 +19,7 @@ import io.gravitee.common.http.HttpHeader;
 import io.gravitee.definition.model.v4.http.HttpProxyOptions;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
-import io.gravitee.gateway.reactive.api.connector.endpoint.sync.EndpointSyncConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.endpoint.sync.HttpEndpointSyncConnectorFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @AllArgsConstructor
-public class HttpProxyEndpointConnectorFactory implements EndpointSyncConnectorFactory<HttpProxyEndpointConnector> {
+public class HttpProxyEndpointConnectorFactory implements HttpEndpointSyncConnectorFactory {
 
     private final PluginConfigurationHelper connectorFactoryHelper;
 

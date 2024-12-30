@@ -48,8 +48,13 @@ public abstract class WeightedLoadBalancer extends LoadBalancer {
         int position = 0;
 
         for (Endpoint endpoint : endpoints) {
-            runtimeRatios.add(new WeightRatio(position++, endpoint.weight()));
+            runtimeRatios.add(new WeightRatio(position++, computeWeight(endpoint)));
         }
+    }
+
+    private int computeWeight(final Endpoint endpoint) {
+        // has been implemented to protect the load balancer behavior as the initial weight cannot be 0 or lower
+        return endpoint.weight() > 0 ? endpoint.weight() : 1;
     }
 
     boolean isRuntimeRatiosZeroed() {

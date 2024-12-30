@@ -195,6 +195,32 @@ describe('ConstantsService', () => {
         ]);
       });
 
+      it('should filter PUSH plan and mTLS menu items when API definition version is V4 and Kafka Listeners selected', () => {
+        const result = constantsService.getPlanMenuItems('V4', ['KAFKA']);
+
+        expect(result).toMatchObject([
+          {
+            planFormType: 'OAUTH2',
+            name: 'OAuth2',
+            policy: 'oauth2',
+          },
+          {
+            planFormType: 'JWT',
+            name: 'JWT',
+            policy: 'jwt',
+          },
+          {
+            planFormType: 'API_KEY',
+            name: 'API Key',
+            policy: 'api-key',
+          },
+          {
+            planFormType: 'KEY_LESS',
+            name: 'Keyless (public)',
+          },
+        ]);
+      });
+
       it('should return all plan menu items when user has HTTP and SUBSCRIPTION listeners types selected', () => {
         const result = constantsService.getPlanMenuItems('V4', ['HTTP', 'SUBSCRIPTION']);
 

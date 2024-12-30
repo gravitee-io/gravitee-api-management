@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.mapper;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
@@ -76,6 +77,7 @@ public class SubscriptionMapperTest {
         subscriptionEntity.setStatus(SubscriptionStatus.ACCEPTED);
         subscriptionEntity.setSubscribedBy(SUBSCRIPTION_SUBSCRIBED_BY);
         subscriptionEntity.setUpdatedAt(nowDate);
+        subscriptionEntity.setOrigin("KUBERNETES");
 
         //Test
         Subscription subscription = subscriptionMapper.convert(subscriptionEntity);
@@ -91,5 +93,44 @@ public class SubscriptionMapperTest {
         assertEquals(SUBSCRIPTION_REQUEST, subscription.getRequest());
         assertEquals(now.toEpochMilli(), subscription.getStartAt().toInstant().toEpochMilli());
         assertEquals(StatusEnum.ACCEPTED, subscription.getStatus());
+        assertEquals(Subscription.OriginEnum.KUBERNETES, subscription.getOrigin());
+    }
+
+    @Test
+    public void should_handle_null_origin() {
+        Instant now = Instant.now();
+        Date nowDate = Date.from(now);
+
+        //init
+        subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setApi(SUBSCRIPTION_API);
+        subscriptionEntity.setStatus(SubscriptionStatus.ACCEPTED);
+        subscriptionEntity.setOrigin(null);
+
+        //Test
+        Subscription subscription = subscriptionMapper.convert(subscriptionEntity);
+        assertNotNull(subscription);
+
+        assertEquals(SUBSCRIPTION_API, subscription.getApi());
+        assertNull(subscription.getOrigin());
+    }
+
+    @Test
+    public void should_handle_origin_not_in_enum() {
+        Instant now = Instant.now();
+        Date nowDate = Date.from(now);
+
+        //init
+        subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setApi(SUBSCRIPTION_API);
+        subscriptionEntity.setStatus(SubscriptionStatus.ACCEPTED);
+        subscriptionEntity.setOrigin("unicorn");
+
+        //Test
+        Subscription subscription = subscriptionMapper.convert(subscriptionEntity);
+        assertNotNull(subscription);
+
+        assertEquals(SUBSCRIPTION_API, subscription.getApi());
+        assertNull(subscription.getOrigin());
     }
 }

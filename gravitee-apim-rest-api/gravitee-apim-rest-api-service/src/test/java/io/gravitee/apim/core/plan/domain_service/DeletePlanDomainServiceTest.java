@@ -95,7 +95,7 @@ class DeletePlanDomainServiceTest {
     @Test
     void should_delete_a_plan() {
         // Given
-        var plan = givenExistingPlan(PlanFixtures.anApiKeyV4());
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey());
 
         // When
         service.delete(plan, AUDIT_INFO);
@@ -107,7 +107,7 @@ class DeletePlanDomainServiceTest {
     @Test
     void should_create_an_audit() {
         // Given
-        var plan = givenExistingPlan(PlanFixtures.anApiKeyV4());
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey());
 
         // When
         service.delete(plan, AUDIT_INFO);
@@ -135,7 +135,7 @@ class DeletePlanDomainServiceTest {
     @EnumSource(value = SubscriptionEntity.Status.class, mode = EnumSource.Mode.EXCLUDE, names = { "CLOSED", "REJECTED" })
     void should_throw_when_deleting_plan_with_active_subscriptions(SubscriptionEntity.Status status) {
         // Given
-        var plan = givenExistingPlan(PlanFixtures.anApiKeyV4());
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey());
         givenExistingSubscriptions(SubscriptionFixtures.aSubscription().toBuilder().planId(plan.getId()).status(status).build());
 
         // When
@@ -151,7 +151,7 @@ class DeletePlanDomainServiceTest {
     @EnumSource(value = SubscriptionEntity.Status.class, mode = EnumSource.Mode.INCLUDE, names = { "CLOSED", "REJECTED" })
     void should_delete_plan_if_existing_subscriptions_are_inactive(SubscriptionEntity.Status status) {
         // Given
-        var plan = givenExistingPlan(PlanFixtures.anApiKeyV4());
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey());
         givenExistingSubscriptions(SubscriptionFixtures.aSubscription().toBuilder().planId(plan.getId()).status(status).build());
 
         // When

@@ -36,6 +36,7 @@ import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Visibility;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -88,7 +89,7 @@ public class ApiFixtures {
         .endpointGroups(List.of(EndpointFixtures.anEndpointGroupV4()))
         .services(new ApiServices())
         .analytics(new Analytics())
-        .flows(List.of(FlowFixtures.aFlowV4()));
+        .flows(List.of(FlowFixtures.aFlowHttpV4()));
 
     private static final UpdateApiV2.UpdateApiV2Builder BASE_UPDATE_API_V2 = UpdateApiV2
         .builder()
@@ -129,7 +130,7 @@ public class ApiFixtures {
         .endpointGroups(List.of(EndpointFixtures.anEndpointGroupV4()))
         .resources(List.of(ResourceFixtures.aResource()))
         .properties(List.of(PropertyFixtures.aProperty()))
-        .flows(List.of(FlowFixtures.aFlowV4()))
+        .flows(List.of(FlowFixtures.aFlowHttpV4()))
         .services(new ApiServices())
         .lifecycleState(ApiLifecycleState.ARCHIVED)
         .disableMembershipNotifications(true)
@@ -179,7 +180,11 @@ public class ApiFixtures {
         return ApiModelFixtures.aModelApiV2();
     }
 
-    public static ApiEntity aModelApiV4() {
-        return ApiModelFixtures.aModelApiV4();
+    public static ApiEntity aModelHttpApiV4() {
+        return ApiModelFixtures.aModelHttpApiV4();
+    }
+
+    public static NativeApiEntity aModelNativeApiV4() {
+        return ApiModelFixtures.aModelNativeApiV4();
     }
 }

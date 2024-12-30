@@ -34,30 +34,36 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
   let httpTestingController: HttpTestingController;
   let componentHarness: ApiRuntimeLogsProxySettingsHarness;
 
-  const initComponent = async () => {
+  const initComponent = async (api: ApiV4) => {
+    fixture = TestBed.createComponent(ApiRuntimeLogsProxySettingsComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsProxySettingsHarness);
+
+    fixture.detectChanges();
+    expectApiGetRequest(api);
+  };
+
+  beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, ApiRuntimeLogsProxySettingsModule, MatIconTestingModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
     }).compileComponents();
+  });
 
-    fixture = TestBed.createComponent(ApiRuntimeLogsProxySettingsComponent);
-    httpTestingController = TestBed.inject(HttpTestingController);
-    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsProxySettingsHarness);
-  };
+  afterEach(() => {
+    httpTestingController.verify();
+  });
 
   describe('with an API', () => {
     const api = fakeProxyApiV4({ id: API_ID, analytics: { enabled: true, logging: { mode: { entrypoint: false, endpoint: false } } } });
 
     beforeEach(async () => {
-      await initComponent();
+      await initComponent(api);
     });
 
     it('should enable and disable all form fields according to analytics enabled', async () => {
-      expectApiGetRequest(api);
-
       expect(await componentHarness.isEnabledChecked()).toStrictEqual(true);
 
-      // Expect all fields enabled
       expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(false);
       expect(await componentHarness.isEndpointDisabled()).toStrictEqual(false);
       await componentHarness.toggleEntrypoint();
@@ -65,14 +71,12 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
 
       await componentHarness.toggleEnabled();
 
-      // Expect all fields disabled
       expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(true);
       expect(await componentHarness.isEndpointDisabled()).toStrictEqual(true);
       await checkLoggingFieldsDisabled();
 
       await componentHarness.toggleEnabled();
 
-      // Expect all fields enabled like before
       expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(false);
       expect(await componentHarness.isEndpointDisabled()).toStrictEqual(false);
       expect(await componentHarness.isEntrypointChecked()).toStrictEqual(true);
@@ -80,7 +84,6 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
     });
 
     it('should enable and disable form fields according to logging mode', async () => {
-      expectApiGetRequest(api);
       expect(await componentHarness.isEntrypointChecked()).toStrictEqual(false);
       expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(false);
       expect(await componentHarness.isEndpointChecked()).toStrictEqual(false);
@@ -103,7 +106,6 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
     });
 
     it('should save API proxy logging settings', async () => {
-      expectApiGetRequest(api);
       await componentHarness.toggleEntrypoint();
       await componentHarness.toggleEndpoint();
       await componentHarness.toggleRequestPhase();
@@ -130,9 +132,10 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
     });
 
     it('should init form with API logging values', async () => {
-      const api = fakeProxyApiV4({
+      const apiWithLogging = fakeProxyApiV4({
         id: API_ID,
         analytics: {
+          enabled: true,
           logging: {
             mode: { entrypoint: true, endpoint: true },
             phase: { request: true, response: true },
@@ -141,7 +144,7 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
           },
         },
       });
-      expectApiGetRequest(api);
+      await initComponent(apiWithLogging);
 
       expect(await componentHarness.isEntrypointChecked()).toStrictEqual(true);
       expect(await componentHarness.isEndpointChecked()).toStrictEqual(true);
@@ -153,16 +156,14 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
     });
 
     it('should disable the fields when it is a kubernetes API', async () => {
-      const api = fakeApiV4({ id: API_ID, definitionContext: { origin: 'KUBERNETES' } });
-      expectApiGetRequest(api);
+      const apiKubernetes = fakeApiV4({ id: API_ID, definitionContext: { origin: 'KUBERNETES' } });
+      await initComponent(apiKubernetes);
       expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(true);
       expect(await componentHarness.isEndpointDisabled()).toStrictEqual(true);
       await checkLoggingFieldsDisabled();
     });
 
     it('should discard the changes', async () => {
-      expectApiGetRequest(api);
-
       await componentHarness.toggleEntrypoint();
       await componentHarness.toggleEndpoint();
       await componentHarness.toggleRequestPhase();
@@ -257,40 +258,69 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
       },
     });
 
+    const apiWithTracingEnabledAndVerboseFalse = fakeProxyApiV4({
+      id: API_ID,
+      analytics: {
+        enabled: true,
+        tracing: {
+          enabled: true,
+          verbose: false,
+        },
+      },
+    });
+
     beforeEach(async () => {
-      await initComponent();
+      await initComponent(apiWithTracingEnabled);
     });
 
     it('should reflect the initial state of OpenTelemetry controls', async () => {
-      expectApiGetRequest(apiWithTracingDisabled);
-
-      expect(await componentHarness.isEnabledChecked()).toStrictEqual(true);
-
-      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(false);
-      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(false);
+      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(true);
+      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(true);
+      expect(await componentHarness.isTracingVerboseDisabled()).toStrictEqual(false);
     });
 
-    it('should enable and disable OpenTelemetry controls correctly', async () => {
-      expectApiGetRequest(apiWithTracingEnabled);
-
-      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(true);
-      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(true);
-
-      await componentHarness.toggleTracingEnabled();
-      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(false);
-
-      await componentHarness.toggleTracingVerbose();
-      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(false);
+    it('should disable tracingVerbose when tracingEnabled is toggled off from enabled state where tracingVerbose was enabled', async () => {
+      expect(await componentHarness.isTracingEnabledChecked()).toBe(true);
+      expect(await componentHarness.isTracingVerboseChecked()).toBe(true);
+      expect(await componentHarness.isTracingVerboseDisabled()).toBe(false);
 
       await componentHarness.toggleTracingEnabled();
-      expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(true);
 
-      await componentHarness.toggleTracingVerbose();
-      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(true);
+      expect(await componentHarness.isTracingEnabledChecked()).toBe(false);
+      expect(await componentHarness.isTracingVerboseChecked()).toBe(true);
+      expect(await componentHarness.isTracingVerboseDisabled()).toBe(true);
+    });
+
+    it('should disable tracingVerbose when tracingEnabled is toggled off from enabled state where tracingVerbose was disabled', async () => {
+      await initComponent(apiWithTracingEnabledAndVerboseFalse);
+
+      expect(await componentHarness.isTracingEnabledChecked()).toBe(true);
+      expect(await componentHarness.isTracingVerboseChecked()).toBe(false);
+      expect(await componentHarness.isTracingVerboseDisabled()).toBe(false);
+
+      await componentHarness.toggleTracingEnabled();
+
+      expect(await componentHarness.isTracingEnabledChecked()).toBe(false);
+      expect(await componentHarness.isTracingVerboseChecked()).toBe(false);
+      expect(await componentHarness.isTracingVerboseDisabled()).toBe(true);
+    });
+
+    it('should enable tracingVerbose when tracingEnabled is toggled on from disabled state, with tracingVerbose set to false', async () => {
+      await initComponent(apiWithTracingDisabled);
+
+      expect(await componentHarness.isTracingEnabledChecked()).toBe(false);
+      expect(await componentHarness.isTracingVerboseChecked()).toBe(false);
+      expect(await componentHarness.isTracingVerboseDisabled()).toBe(true);
+
+      await componentHarness.toggleTracingEnabled();
+
+      expect(await componentHarness.isTracingEnabledChecked()).toBe(true);
+      expect(await componentHarness.isTracingVerboseChecked()).toBe(false);
+      expect(await componentHarness.isTracingVerboseDisabled()).toBe(false);
     });
 
     it('should save API proxy OpenTelemetry settings', async () => {
-      expectApiGetRequest(apiWithTracingDisabled);
+      await initComponent(apiWithTracingDisabled);
 
       await componentHarness.toggleTracingEnabled();
       await componentHarness.toggleTracingVerbose();
@@ -311,13 +341,11 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
     });
 
     it('should discard changes in OpenTelemetry controls', async () => {
-      expectApiGetRequest(apiWithTracingEnabled);
-
       await componentHarness.toggleTracingEnabled();
       await componentHarness.toggleTracingVerbose();
 
       expect(await componentHarness.isTracingEnabledChecked()).toStrictEqual(false);
-      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(false);
+      expect(await componentHarness.isTracingVerboseChecked()).toStrictEqual(true);
 
       await componentHarness.clickOnResetButton();
 

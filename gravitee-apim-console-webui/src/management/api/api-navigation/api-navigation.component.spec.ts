@@ -185,7 +185,7 @@ describe('ApiNavigationComponent', () => {
               hasAnyMatching: () => true,
             },
           },
-          { provide: Constants, useValue: CONSTANTS_TESTING },
+          { provide: Constants, useValue: { ...CONSTANTS_TESTING, org: { settings: { scoring: { enabled: true } } } } },
           { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
           { provide: GioMenuSearchService, useValue: menuSearchService },
         ],
@@ -227,6 +227,7 @@ describe('ApiNavigationComponent', () => {
             'API Traffic',
             'Runtime Logs',
             'Settings',
+            'API Score',
           ].map((name) =>
             expect.objectContaining({
               name,
@@ -271,6 +272,7 @@ describe('ApiNavigationComponent', () => {
             'History',
             'Events',
             'Notification settings',
+            'API Score',
           ].map((name) =>
             expect.objectContaining({
               name,
@@ -283,6 +285,11 @@ describe('ApiNavigationComponent', () => {
   });
 
   function expectApiGetRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
+        method: 'GET',
+      })
+      .flush(api);
   }
 });

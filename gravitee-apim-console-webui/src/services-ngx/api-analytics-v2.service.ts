@@ -15,7 +15,8 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable, switchMap } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import { AnalyticsRequestsCount } from '../entities/management-api-v2/analytics/analyticsRequestsCount';
@@ -24,43 +25,88 @@ import { AnalyticsAverageMessagesPerRequest } from '../entities/management-api-v
 import { AnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
 import { AnalyticsResponseStatusOvertime } from '../entities/management-api-v2/analytics/analyticsResponseStatusOvertime';
 import { AnalyticsResponseTimeOverTime } from '../entities/management-api-v2/analytics/analyticsResponseTimeOverTime';
+import { TimeRangeParams } from '../shared/utils/timeFrameRanges';
+
+export interface DefaultFilters {
+  period: string;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiAnalyticsV2Service {
+  public readonly defaultFilters: DefaultFilters = { period: '1d' };
+  private timeRangeFilter$: BehaviorSubject<TimeRangeParams> = new BehaviorSubject<TimeRangeParams>(null);
+
   constructor(
     private readonly http: HttpClient,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
+  public timeRangeFilter(): Observable<TimeRangeParams> {
+    return this.timeRangeFilter$.asObservable();
+  }
+  public setTimeRangeFilter(timeRangeParams: TimeRangeParams) {
+    this.timeRangeFilter$.next(timeRangeParams);
+  }
+
   getRequestsCount(apiId: string): Observable<AnalyticsRequestsCount> {
-    return this.http.get<AnalyticsRequestsCount>(`${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/requests-count`);
+    return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
+      switchMap(({ from, to }) => {
+        const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/requests-count?from=${from}&to=${to}`;
+        return this.http.get<AnalyticsRequestsCount>(url);
+      }),
+    );
   }
 
   getAverageConnectionDuration(apiId: string): Observable<AnalyticsAverageConnectionDuration> {
-    return this.http.get<AnalyticsAverageConnectionDuration>(
-      `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/average-connection-duration`,
+    return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
+      switchMap(({ from, to }) => {
+        const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/average-connection-duration?from=${from}&to=${to}`;
+        return this.http.get<AnalyticsAverageConnectionDuration>(url);
+      }),
     );
   }
 
   getAverageMessagesPerRequest(apiId: string): Observable<AnalyticsAverageMessagesPerRequest> {
-    return this.http.get<AnalyticsAverageMessagesPerRequest>(
-      `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/average-messages-per-request`,
+    return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
+      switchMap(({ from, to }) => {
+        const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/average-messages-per-request?from=${from}&to=${to}`;
+        return this.http.get<AnalyticsAverageMessagesPerRequest>(url);
+      }),
     );
   }
 
   getResponseStatusRanges(apiId: string): Observable<AnalyticsResponseStatusRanges> {
-    return this.http.get<AnalyticsResponseStatusRanges>(`${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-status-ranges`);
+    return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
+      switchMap(({ from, to }) => {
+        const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-status-ranges?from=${from}&to=${to}`;
+        return this.http.get<AnalyticsResponseStatusRanges>(url);
+      }),
+    );
   }
 
-  getResponseStatusOvertime(apiId: string, from: number, to: number): Observable<AnalyticsResponseStatusOvertime> {
-    const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-status-overtime?from=${from}&to=${to}`;
-    return this.http.get<AnalyticsResponseStatusOvertime>(url);
+  getResponseStatusOvertime(apiId: string): Observable<AnalyticsResponseStatusOvertime> {
+    return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
+      switchMap(({ from, to }) => {
+        const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-status-overtime?from=${from}&to=${to}`;
+        return this.http.get<AnalyticsResponseStatusOvertime>(url);
+      }),
+    );
   }
 
-  getResponseTimeOverTime(apiId: string, from: number, to: number): Observable<AnalyticsResponseTimeOverTime> {
-    const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-time-over-time?from=${from}&to=${to}`;
-    return this.http.get<AnalyticsResponseTimeOverTime>(url);
+  getResponseTimeOverTime(apiId: string): Observable<AnalyticsResponseTimeOverTime> {
+    return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
+      switchMap(({ from, to }) => {
+        const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-time-over-time?from=${from}&to=${to}`;
+        return this.http.get<AnalyticsResponseTimeOverTime>(url);
+      }),
+    );
   }
 }

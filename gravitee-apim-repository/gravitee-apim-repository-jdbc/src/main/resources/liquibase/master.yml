@@ -215,3 +215,17 @@ databaseChangeLog:
           - file: liquibase/changelogs/v4_5_0/07_add_scoring_ruleset_table.yml
     - include:
           - file: liquibase/changelogs/v4_6_0/00_migrate_spg_phase.yml
+    - include:
+          - file: liquibase/changelogs/v4_6_0/01_add_api_type_to_plans_table.yml
+    - include:
+          - file: liquibase/changelogs/v4_6_0/02_add_scoring_function_table.yml
+    - include:
+          - file: liquibase/changelogs/v4_6_0/03_add_updated_at_to_ruleset_table.yml
+    - include:
+          - file: liquibase/changelogs/v4_6_0/04_add_ruleset_format_to_ruleset_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_6_0/05_add_subscription_origin.yml
+    - include:
+        - file: liquibase/changelogs/v4_6_0/06_add_error_support_to_scoring_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_6_0/07_add_ingested_mark_page_table.yml

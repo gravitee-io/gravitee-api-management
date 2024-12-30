@@ -30,11 +30,14 @@ import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 @DomainService
 public class UpdatePlanDomainService {
@@ -68,7 +71,13 @@ public class UpdatePlanDomainService {
         this.reorderPlanDomainService = reorderPlanDomainService;
     }
 
-    public Plan update(Plan planToUpdate, List<Flow> flows, Map<String, PlanStatus> existingPlanStatuses, Api api, AuditInfo auditInfo) {
+    public Plan update(
+        Plan planToUpdate,
+        List<? extends AbstractFlow> flows,
+        Map<String, PlanStatus> existingPlanStatuses,
+        Api api,
+        AuditInfo auditInfo
+    ) {
         return switch (planToUpdate.getDefinitionVersion()) {
             case V4 -> {
                 if (existingPlanStatuses == null) {
@@ -86,13 +95,13 @@ public class UpdatePlanDomainService {
      * Update plans of V4 API.
      *
      * @param planToUpdate The plan to update
-     * @param api The API to update.
-     * @param auditInfo The audit information
+     * @param api          The API to update.
+     * @param auditInfo    The audit information
      * @return The updated plan
      */
     private Plan updateV4ApiPlan(
         Plan planToUpdate,
-        List<Flow> flows,
+        List<? extends AbstractFlow> flows,
         Map<String, PlanStatus> existingPlanStatuses,
         Api api,
         AuditInfo auditInfo
@@ -105,33 +114,62 @@ public class UpdatePlanDomainService {
             throw new ValidationDomainException("Invalid status for plan '" + planToUpdate.getName() + "'");
         }
 
-        planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId());
-        planValidatorDomainService.validatePlanTagsAgainstApiTags(planToUpdate.getPlanDefinitionV4().getTags(), api.getTags());
+        planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), api.getType());
+        planValidatorDomainService.validatePlanTagsAgainstApiTags(planToUpdate.getTags(), api.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
 
+        Plan existingPlan = planCrudService.getById(planToUpdate.getId());
+        Plan updatePlan = existingPlan.update(planToUpdate);
+
+        if (api.isNative()) {
+            return updateNativeV4ApiPlan(existingPlan, updatePlan, (List<NativeFlow>) flows, api, auditInfo);
+        }
+
+        return updateHttpV4ApiPlan(existingPlan, updatePlan, (List<Flow>) flows, api, auditInfo);
+    }
+
+    private Plan updateHttpV4ApiPlan(Plan existingPlan, Plan updatePlan, List<Flow> flows, Api api, AuditInfo auditInfo) {
         var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows);
         flowValidationDomainService.validatePathParameters(
             api.getType(),
-            api.getApiDefinitionHttpV4().getFlows().stream(),
+            api.getApiDefinitionHttpV4().getFlows() != null ? api.getApiDefinitionHttpV4().getFlows().stream() : Stream.empty(),
             sanitizedFlows.stream()
         );
 
-        var existingPlan = planCrudService.getById(planToUpdate.getId());
-        var toUpdate = existingPlan.update(planToUpdate);
-        if (!planSynchronizationService.checkSynchronized(existingPlan, List.of(), toUpdate, sanitizedFlows)) {
-            toUpdate.setNeedRedeployAt(Date.from(toUpdate.getUpdatedAt().toInstant()));
+        if (!planSynchronizationService.checkSynchronized(existingPlan, List.of(), updatePlan, sanitizedFlows)) {
+            updatePlan.setNeedRedeployAt(Date.from(updatePlan.getUpdatedAt().toInstant()));
         }
 
         Plan updated;
-        if (toUpdate.getOrder() != existingPlan.getOrder()) {
-            updated = reorderPlanDomainService.reorderAfterUpdate(toUpdate);
+        if (updatePlan.getOrder() != existingPlan.getOrder()) {
+            updated = reorderPlanDomainService.reorderAfterUpdate(updatePlan);
         } else {
-            updated = planCrudService.update(toUpdate);
+            updated = planCrudService.update(updatePlan);
         }
 
         flowCrudService.savePlanFlows(updated.getId(), sanitizedFlows);
-        createAuditLog(existingPlan, updated, auditInfo);
 
+        createAuditLog(existingPlan, updated, auditInfo);
+        return updated;
+    }
+
+    private Plan updateNativeV4ApiPlan(Plan existingPlan, Plan updatePlan, List<NativeFlow> flows, Api api, AuditInfo auditInfo) {
+        var sanitizedNativeFlows = flowValidationDomainService.validateAndSanitizeNativeV4(flows);
+
+        if (!planSynchronizationService.checkNativePlanSynchronized(existingPlan, List.of(), updatePlan, sanitizedNativeFlows)) {
+            updatePlan.setNeedRedeployAt(Date.from(updatePlan.getUpdatedAt().toInstant()));
+        }
+
+        Plan updated;
+        if (updatePlan.getOrder() != existingPlan.getOrder()) {
+            updated = reorderPlanDomainService.reorderAfterUpdate(updatePlan);
+        } else {
+            updated = planCrudService.update(updatePlan);
+        }
+
+        flowCrudService.saveNativePlanFlows(updated.getId(), sanitizedNativeFlows);
+
+        createAuditLog(existingPlan, updated, auditInfo);
         return updated;
     }
 
@@ -139,7 +177,7 @@ public class UpdatePlanDomainService {
      * Update plans of Federated API.
      *
      * @param planToUpdate The plan to update
-     * @param auditInfo The audit information
+     * @param auditInfo    The audit information
      * @return The updated plan
      */
     private Plan updateFederatedApiPlan(Plan planToUpdate, AuditInfo auditInfo) {

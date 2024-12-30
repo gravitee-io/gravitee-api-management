@@ -128,6 +128,9 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
   isFederated = false;
 
   @Input()
+  isNative = false;
+
+  @Input()
   apiType?: ApiType;
 
   @Input()
@@ -196,7 +199,7 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
     this.ngControl.control.setValidators(this.validate.bind(this));
     this.ngControl.control.updateValueAndValidity();
 
-    this.displayRestrictionStep = this.mode === 'create' && !this.isTcpApi;
+    this.displayRestrictionStep = this.mode === 'create' && !this.isTcpApi && !this.isNative;
     this.displaySecurityStep =
       !this.isFederated &&
       !['KEY_LESS', 'PUSH'].includes(this.planMenuItem.planFormType) &&
@@ -534,6 +537,10 @@ const internalFormValueToPlanV4 = (
 ): PlanFormValue => {
   // Init flows with restriction step. Only used in create mode
   const initFlowsWithRestriction = (restriction: InternalPlanFormValue['restriction']): FlowV4[] => {
+    if (apiType === 'NATIVE') {
+      return [];
+    }
+
     const restrictionPolicies: StepV4[] = displayRestrictionStep
       ? [
           ...(restriction.rateLimitEnabled

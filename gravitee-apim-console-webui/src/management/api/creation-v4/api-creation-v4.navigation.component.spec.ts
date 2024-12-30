@@ -1258,7 +1258,7 @@ describe('ApiCreationV4Component - Navigation', () => {
         await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig();
         await stepperHelper.fillAndValidateStep3_1_EndpointsList();
         await stepperHelper.fillAndValidateStep3_2_EndpointsConfig();
-        await stepperHelper.fillAndValidateStep4_1_SecurityPlansList();
+        await stepperHelper.editAndValidateStep4_1_SecurityPlansList();
         step5Harness = await harnessLoader.getHarness(Step5SummaryHarness);
       }));
 
@@ -1315,7 +1315,7 @@ describe('ApiCreationV4Component - Navigation', () => {
 
         await stepperHelper.fillAndValidateStep3_1_EndpointsList();
         await stepperHelper.fillAndValidateStep3_2_EndpointsConfig();
-        await stepperHelper.fillAndValidateStep4_1_SecurityPlansList();
+        await stepperHelper.editAndValidateStep4_1_SecurityPlansList();
 
         // Reinitialize step5Harness after last step validation
         step5Harness = await harnessLoader.getHarness(Step5SummaryHarness);
@@ -1342,7 +1342,7 @@ describe('ApiCreationV4Component - Navigation', () => {
         await dialogHarness.confirm();
         await stepperHelper.fillAndValidateStep3_2_EndpointsConfig([{ id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' }]);
 
-        await stepperHelper.fillAndValidateStep4_1_SecurityPlansList();
+        await stepperHelper.editAndValidateStep4_1_SecurityPlansList();
 
         // Reinitialize step5Harness after step2 validation
         step5Harness = await harnessLoader.getHarness(Step5SummaryHarness);
@@ -1384,14 +1384,14 @@ describe('ApiCreationV4Component - Navigation', () => {
         await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig();
         await stepperHelper.fillAndValidateStep3_1_EndpointsList();
         await stepperHelper.fillAndValidateStep3_2_EndpointsConfig();
-        await stepperHelper.fillAndValidateStep4_1_SecurityPlansList();
+        await stepperHelper.editAndValidateStep4_1_SecurityPlansList();
         step5Harness = await harnessLoader.getHarness(Step5SummaryHarness);
       }));
 
       it('should go to confirmation page after clicking Deploy my API', async () => {
         await step5Harness.clickDeployMyApiButton();
 
-        httpExpects.expectCallsForApiDeployment(API_ID, PLAN_ID);
+        httpExpects.expectCallsForApiDeployment(API_ID, PLAN_ID, ['Update name']);
 
         expect(routerNavigateSpy).toHaveBeenCalledWith(['.', 'my-api'], expect.anything());
       });
@@ -1408,20 +1408,14 @@ describe('ApiCreationV4Component - Navigation', () => {
         await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig();
         await stepperHelper.fillAndValidateStep3_1_EndpointsList();
         await stepperHelper.fillAndValidateStep3_2_EndpointsConfig();
-        await stepperHelper.fillAndValidateStep4_1_SecurityPlansList();
+        await stepperHelper.editAndValidateStep4_1_SecurityPlansList();
         step5Harness = await harnessLoader.getHarness(Step5SummaryHarness);
       }));
 
       it('should go to confirmation page after clicking Save API & Ask for review', async () => {
         await step5Harness.clickCreateAndAskForReviewMyApiButton();
 
-        httpExpects.expectCallsForApiCreation(API_ID, PLAN_ID);
-
-        const publishPlansRequest = httpTestingController.expectOne({
-          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_ID}/_publish`,
-          method: 'POST',
-        });
-        publishPlansRequest.flush({});
+        httpExpects.expectCallsForApiAndPlanCreation(API_ID, PLAN_ID, ['Update name']);
 
         const askRequest = httpTestingController.expectOne({
           url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/reviews/_ask`,

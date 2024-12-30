@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.infra.query_service.analytics;
 
-import io.gravitee.apim.core.analytics.model.EnvironmentAnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.infra.adapter.ResponseStatusQueryCriteriaAdapter;
@@ -59,21 +59,23 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     }
 
     @Override
-    public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId) {
+    public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
         return analyticsRepository
-            .searchRequestsCount(executionContext.getQueryContext(), RequestsCountQuery.builder().apiId(apiId).build())
+            .searchRequestsCount(executionContext.getQueryContext(), new RequestsCountQuery(apiId, from, to))
             .map(countAggregate ->
                 RequestsCount.builder().total(countAggregate.getTotal()).countsByEntrypoint(countAggregate.getCountBy()).build()
             );
     }
 
     @Override
-    public Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(ExecutionContext executionContext, String apiId) {
+    public Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant from,
+        Instant to
+    ) {
         return analyticsRepository
-            .searchAverageMessagesPerRequest(
-                executionContext.getQueryContext(),
-                AverageMessagesPerRequestQuery.builder().apiId(apiId).build()
-            )
+            .searchAverageMessagesPerRequest(executionContext.getQueryContext(), new AverageMessagesPerRequestQuery(apiId, from, to))
             .map(averageAggregate ->
                 AverageMessagesPerRequest
                     .builder()
@@ -86,7 +88,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     @Override
     public Optional<ResponseStatusRanges> searchResponseStatusRanges(
         ExecutionContext executionContext,
-        EnvironmentAnalyticsQueryParameters queryParameters
+        AnalyticsQueryParameters queryParameters
     ) {
         var responseStatusQueryParameters = ResponseStatusQueryCriteriaAdapter.INSTANCE.map(queryParameters);
 
@@ -104,7 +106,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     }
 
     @Override
-    public Optional<TopHitsApis> searchTopHitsApis(ExecutionContext executionContext, EnvironmentAnalyticsQueryParameters parameters) {
+    public Optional<TopHitsApis> searchTopHitsApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
         return analyticsRepository
             .searchTopHitsApi(
                 executionContext.getQueryContext(),
@@ -122,12 +124,14 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     }
 
     @Override
-    public Optional<AverageConnectionDuration> searchAverageConnectionDuration(ExecutionContext executionContext, String apiId) {
+    public Optional<AverageConnectionDuration> searchAverageConnectionDuration(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant from,
+        Instant to
+    ) {
         return analyticsRepository
-            .searchAverageConnectionDuration(
-                executionContext.getQueryContext(),
-                AverageConnectionDurationQuery.builder().apiId(apiId).build()
-            )
+            .searchAverageConnectionDuration(executionContext.getQueryContext(), new AverageConnectionDurationQuery(apiId, from, to))
             .map(averageAggregate ->
                 AverageConnectionDuration
                     .builder()
@@ -169,10 +173,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     }
 
     @Override
-    public RequestResponseTime searchRequestResponseTime(
-        ExecutionContext executionContext,
-        EnvironmentAnalyticsQueryParameters parameters
-    ) {
+    public RequestResponseTime searchRequestResponseTime(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
         var result = analyticsRepository.searchRequestResponseTimes(
             executionContext.getQueryContext(),
             new RequestResponseTimeQueryCriteria(parameters.getApiIds(), parameters.getFrom(), parameters.getTo())

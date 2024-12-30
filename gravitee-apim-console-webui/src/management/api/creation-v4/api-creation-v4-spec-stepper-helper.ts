@@ -27,7 +27,7 @@ import { Step3Endpoints2ConfigHarness } from './steps/step-3-endpoints/step-3-en
 import { Step4Security1PlansHarness } from './steps/step-4-security/step-4-security-1-plans.harness';
 import { Step3EndpointListHarness } from './steps/step-3-endpoints/step-3-endpoints-1-list.harness';
 
-import { ApiType, ConnectorPlugin } from '../../../entities/management-api-v2';
+import { ConnectorPlugin, fakeConnectorPlugin } from '../../../entities/management-api-v2';
 
 export class ApiCreationV4SpecStepperHelper {
   private ossLicense: License = { tier: 'oss', features: [], packs: [] };
@@ -50,12 +50,32 @@ export class ApiCreationV4SpecStepperHelper {
     await apiDetails.fillAndValidate(name, version, description);
   }
 
-  async fillAndValidateStep2_0_EntrypointsArchitecture(type: ApiType = 'MESSAGE') {
+  async fillAndValidateStep2_0_EntrypointsArchitecture(type: 'PROXY' | 'MESSAGE' | 'KAFKA' = 'MESSAGE') {
     const architecture = await this.harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
-    if (type === 'MESSAGE') {
+    if (type === 'MESSAGE' || type === 'KAFKA') {
       expect(await architecture.isLicenseBannerShown()).toEqual(true);
     }
+
     await architecture.fillAndValidate(type);
+
+    if (type === 'KAFKA') {
+      this.httpExpects.expectEntrypointGetRequest(
+        fakeConnectorPlugin({
+          id: 'native-kafka',
+          supportedApiType: 'NATIVE',
+          name: 'Native Kafka Entrypoint',
+          supportedListenerType: 'KAFKA',
+        }),
+      );
+      this.httpExpects.expectEndpointGetRequest(
+        fakeConnectorPlugin({
+          id: 'native-kafka',
+          supportedApiType: 'NATIVE',
+          name: 'Native Kafka Endpoint',
+          supportedListenerType: 'KAFKA',
+        }),
+      );
+    }
   }
 
   async fillAndValidateStep2_1_EntrypointsList(
@@ -98,6 +118,7 @@ export class ApiCreationV4SpecStepperHelper {
     ],
     paths: string[] = ['/api/my-api-3'],
     hosts: string[] = ['host'],
+    host: string = 'kafka-host',
   ) {
     const entrypointsConfig = await this.harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
     this.httpExpects.expectRestrictedDomainsGetRequest([]);
@@ -106,10 +127,16 @@ export class ApiCreationV4SpecStepperHelper {
     if (entrypoints.some((entrypoint) => entrypoint.supportedListenerType === 'TCP')) {
       await entrypointsConfig.fillHosts(...hosts);
       this.httpExpects.expectVerifyHosts(hosts);
-    } else if (entrypoints.some((entrypoint) => entrypoint.supportedListenerType !== 'SUBSCRIPTION')) {
+    } else if (
+      entrypoints.some((entrypoint) => entrypoint.supportedListenerType !== 'SUBSCRIPTION' && entrypoint.supportedApiType !== 'NATIVE')
+    ) {
       this.httpExpects.expectApiGetPortalSettings();
       await entrypointsConfig.fillPaths(...paths);
       this.httpExpects.expectVerifyContextPath();
+    } else if (entrypoints.some((entrypoint) => entrypoint.supportedListenerType === 'KAFKA')) {
+      this.httpExpects.expectApiGetPortalSettings();
+      await entrypointsConfig.fillHost(host);
+      this.httpExpects.expectVerifyHosts([host]);
     }
 
     expect(await entrypointsConfig.hasValidationDisabled()).toBeFalsy();
@@ -141,7 +168,7 @@ export class ApiCreationV4SpecStepperHelper {
     await endpointsConfig.clickValidate();
   }
 
-  async fillAndValidateStep4_1_SecurityPlansList() {
+  async editAndValidateStep4_1_SecurityPlansList() {
     const plansList = await this.harnessLoader.getHarness(Step4Security1PlansHarness);
 
     await plansList.editDefaultKeylessPlanNameAndAddRateLimit('Update name', this.httpTestingController);

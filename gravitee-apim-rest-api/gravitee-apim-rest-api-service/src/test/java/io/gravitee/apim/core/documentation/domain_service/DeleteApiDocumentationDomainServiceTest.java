@@ -122,7 +122,7 @@ class DeleteApiDocumentationDomainServiceTest {
             planQueryService.initWith(
                 List.of(
                     PlanFixtures
-                        .aPlanV4()
+                        .aPlanHttpV4()
                         .toBuilder()
                         .id("plan-1")
                         .apiId(API.getId())
@@ -156,7 +156,7 @@ class DeleteApiDocumentationDomainServiceTest {
             planQueryService.initWith(
                 List.of(
                     PlanFixtures
-                        .aPlanV4()
+                        .aPlanHttpV4()
                         .toBuilder()
                         .id("plan-1")
                         .apiId(API.getId())

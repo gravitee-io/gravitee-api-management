@@ -67,6 +67,12 @@ public class ApiKeyEntity {
     private boolean expired;
 
     /**
+     * The API Key as a MD5 hash.
+     * Used as username for Native Kafka API Authentication.
+     */
+    private String hash;
+
+    /**
      * Indicates the API Key is coming from external provider.
      * <p>
      *     It should not be synchronized on the Gateway.

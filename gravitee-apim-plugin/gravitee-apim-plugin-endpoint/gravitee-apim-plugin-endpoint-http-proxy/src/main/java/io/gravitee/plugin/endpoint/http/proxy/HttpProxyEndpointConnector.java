@@ -18,10 +18,9 @@ package io.gravitee.plugin.endpoint.http.proxy;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
-import io.gravitee.gateway.reactive.api.connector.endpoint.sync.EndpointSyncConnector;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.HttpRequest;
-import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.connector.endpoint.sync.HttpEndpointSyncConnector;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
 import io.gravitee.plugin.endpoint.http.proxy.client.GrpcHttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
@@ -31,7 +30,6 @@ import io.gravitee.plugin.endpoint.http.proxy.connector.HttpConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.ProxyConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.WebSocketConnector;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.CompletableSource;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author GraviteeSource Team
  */
 @Slf4j
-public class HttpProxyEndpointConnector extends EndpointSyncConnector {
+public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
 
     private static final String ENDPOINT_ID = "http-proxy";
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.REQUEST_RESPONSE);
@@ -80,14 +78,14 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
     }
 
     @Override
-    public Completable connect(ExecutionContext ctx) {
+    public Completable connect(HttpExecutionContext ctx) {
         return Completable.defer(() -> {
-            Request request = ctx.request();
+            HttpRequest request = ctx.request();
             return getConnector(request).connect(ctx);
         });
     }
 
-    private ProxyConnector getConnector(Request request) {
+    private ProxyConnector getConnector(HttpRequest request) {
         if (request.isWebSocket()) {
             return this.connectors.computeIfAbsent(
                     "ws",

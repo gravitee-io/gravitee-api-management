@@ -283,6 +283,89 @@ paths:
                     description: Ruleset deleted
                 default:
                     $ref: "#/components/responses/Error"
+        get:
+            tags:
+                - Scoring
+                - Rulesets
+            summary: Get a specific ruleset
+            operationId: getEnvironmentRuleset
+            parameters:
+                - $ref: "#/components/parameters/rulesetId"
+            responses:
+                "200":
+                    description: Scoring ruleset found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ScoringRuleset"
+                default:
+                    $ref: "#/components/responses/Error"
+        put:
+            tags:
+                - Scoring
+                - Rulesets
+            summary: Update ruleset
+            operationId: updateEnvironmentRuleset
+            parameters:
+                - $ref: "#/components/parameters/rulesetId"
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateScoringRuleset"
+                required: true
+            responses:
+                "200":
+                    description: Ruleset updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ScoringRuleset"
+                default:
+                    $ref: "#/components/responses/Error"
+    /scoring/functions:
+      post:
+        tags:
+          - Scoring
+          - Functions
+        summary: Create a new scoring function at environment level
+        operationId: createEnvironmentScoringFunction
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportScoringFunction"
+          required: true
+        responses:
+          "201":
+            description: Scoring functions created
+          default:
+            $ref: "#/components/responses/Error"
+      get:
+        tags:
+          - Scoring
+          - Functions
+        summary: Get all functions at environment level
+        operationId: getEnvironmentScoringFunctions
+        responses:
+          "200":
+            $ref: "#/components/responses/ScoringFunctionsResponse"
+          default:
+            $ref: "#/components/responses/Error"
+    /scoring/functions/{scoringFunctionName}:
+      delete:
+        tags:
+          - Scoring
+          - Functions
+        summary: Delete a scoring function
+        operationId: deleteEnvironmentScoringFunction
+        parameters:
+          - $ref: "#/components/parameters/scoringFunctionName"
+        responses:
+          "204":
+            description: Scoring function deleted
+          default:
+            $ref: "#/components/responses/Error"
 
 components:
     schemas:
@@ -516,6 +599,24 @@ components:
                 payload:
                     type: string
                     description: The ruleset payload
+                format:
+                    type: string
+                    description: Format is required only for rulesets that should be applied to a Gravitee definition. For native oas/async api rulesets this property must be null.
+                    enum:
+                        - GRAVITEE_FEDERATION
+                        - GRAVITEE_MESSAGE
+                        - GRAVITEE_PROXY
+        UpdateScoringRuleset:
+            type: object
+            description: The scoring ruleset to update
+            properties:
+                name:
+                    type: string
+                    description: The name of ruleset
+                description:
+                    type: string
+                    description: The description of ruleset
+            required: ["name"]
         ScoringRuleset:
             type: object
             description: A scoring ruleset
@@ -532,10 +633,22 @@ components:
                 payload:
                     type: string
                     description: The ruleset payload
+                format:
+                    type: string
+                    description: Information about gravitee definition ruleset format. For native oas/async API ruleset this property is null.
+                    enum:
+                        - GRAVITEE_FEDERATION
+                        - GRAVITEE_MESSAGE
+                        - GRAVITEE_PROXY
                 createdAt:
                     type: string
                     format: date-time
                     description: The date at which the ruleset was created
+                    example: 2020-01-01T00:00:00Z
+                updatedAt:
+                    type: string
+                    format: date-time
+                    description: The date at which the ruleset was updated
                     example: 2020-01-01T00:00:00Z
                 referenceId:
                     type: string
@@ -546,6 +659,42 @@ components:
             type: string
             enum:
                 - ENVIRONMENT
+        ImportScoringFunction:
+          type: object
+          description: The scoring scoring function to import
+          properties:
+            name:
+              $ref: "#/components/schemas/ScoringFunctionName"
+            payload:
+              type: string
+              description: The scoring function payload
+        ScoringFunction:
+          type: object
+          description: A scoring ruleset
+          properties:
+            name:
+              $ref: "#/components/schemas/ScoringFunctionName"
+            payload:
+              type: string
+              description: The ruleset payload
+            createdAt:
+              type: string
+              format: date-time
+              description: The date at which the ruleset was created
+              example: 2020-01-01T00:00:00Z
+            referenceId:
+              type: string
+              description: The reference Id of ruleset
+            referenceType:
+              $ref: "#/components/schemas/ScoringFunctionReferenceType"
+        ScoringFunctionReferenceType:
+          type: string
+          enum:
+            - ENVIRONMENT
+        ScoringFunctionName:
+          type: string
+          pattern: '^[^/]+\.js$'
+          description: The name of ruleset
 
         Error:
             type: object
@@ -706,6 +855,13 @@ components:
             required: true
             schema:
                 type: string
+        scoringFunctionName:
+          name: scoringFunctionName
+          in: path
+          description: The name of scoring function
+          required: true
+          schema:
+            $ref: "#/components/schemas/ScoringFunctionName"
     responses:
         SchemaFormResponse:
             description: Schema form of a plugin
@@ -781,6 +937,18 @@ components:
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/ScoringRuleset"
+        ScoringFunctionsResponse:
+          description: Scoring functions list
+          content:
+            application/json:
+              schema:
+                title: "ScoringFunctionsResponse"
+                properties:
+                  data:
+                    description: List of rulesets.
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ScoringFunction"
 
     securitySchemes:
         BasicAuth:

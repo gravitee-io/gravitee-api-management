@@ -19,6 +19,7 @@ import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.reactive.core.DefaultTlsSession;
 import io.gravitee.gateway.reactive.core.MessageFlow;
 import io.gravitee.gateway.reactive.core.context.AbstractRequest;
 import io.reactivex.rxjava3.core.Completable;
@@ -66,6 +67,7 @@ public class VertxTcpRequest extends AbstractRequest {
         this.uri = "";
         this.headers = HttpHeaders.create();
         this.sslSession = proxySocket.sslSession();
+        this.tlsSession = new DefaultTlsSession(this.sslSession);
         this.parameters = new LinkedMultiValueMap<>();
         this.pathParameters = new LinkedMultiValueMap<>();
     }

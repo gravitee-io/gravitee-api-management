@@ -91,7 +91,7 @@ class SearchAverageHealthCheckResponseTimeOvertimeUseCaseTest {
 
         // When
         var output = useCase
-            .execute(new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(ORGANIZATION_ID, ENV_ID, MY_API, FROM, TO, INTERVAL))
+            .execute(new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(ORGANIZATION_ID, ENV_ID, MY_API, FROM, TO))
             .blockingGet();
 
         // Then
@@ -119,7 +119,7 @@ class SearchAverageHealthCheckResponseTimeOvertimeUseCaseTest {
         // When
         var throwable = catchThrowable(() ->
             useCase
-                .execute(new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(ORGANIZATION_ID, ENV_ID, MY_API, FROM, TO, INTERVAL))
+                .execute(new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(ORGANIZATION_ID, ENV_ID, MY_API, FROM, TO))
                 .blockingGet()
         );
 
@@ -135,9 +135,7 @@ class SearchAverageHealthCheckResponseTimeOvertimeUseCaseTest {
         // When
         var throwable = catchThrowable(() ->
             useCase
-                .execute(
-                    new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(ORGANIZATION_ID, "another", MY_API, FROM, TO, INTERVAL)
-                )
+                .execute(new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(ORGANIZATION_ID, "another", MY_API, FROM, TO))
                 .blockingGet()
         );
 
@@ -153,7 +151,7 @@ class SearchAverageHealthCheckResponseTimeOvertimeUseCaseTest {
         // When
         var throwable = catchThrowable(() ->
             useCase
-                .execute(new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(ORGANIZATION_ID, ENV_ID, MY_API, FROM, TO, INTERVAL))
+                .execute(new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(ORGANIZATION_ID, ENV_ID, MY_API, FROM, TO))
                 .blockingGet()
         );
 

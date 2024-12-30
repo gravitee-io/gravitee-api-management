@@ -29,8 +29,10 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.HttpRequest;
 import io.gravitee.gateway.reactive.api.context.HttpResponse;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.el.EvaluableRequest;
 import io.gravitee.gateway.reactive.api.el.EvaluableResponse;
+import io.gravitee.gateway.reactive.core.context.ExecutionContextTemplateVariableProvider;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,7 +44,7 @@ import java.util.Map;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ContentTemplateVariableProvider implements TemplateVariableProvider {
+public class ContentTemplateVariableProvider implements ExecutionContextTemplateVariableProvider {
 
     protected static final String TEMPLATE_ATTRIBUTE_REQUEST_CONTENT = TEMPLATE_ATTRIBUTE_REQUEST + ".content";
     protected static final String TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_JSON = TEMPLATE_ATTRIBUTE_REQUEST + ".jsonContent";
@@ -56,12 +58,8 @@ public class ContentTemplateVariableProvider implements TemplateVariableProvider
     private static final XmlMapper XML_MAPPER = new XmlMapper();
 
     @Override
-    public void provide(TemplateContext templateContext) {
-        // Use provide(HttpExecutionContext) instead.
-    }
-
-    @Override
-    public <T extends HttpExecutionContext> void provide(T ctx) {
+    public <T extends BaseExecutionContext> void provide(T executionContext) {
+        HttpExecutionContext ctx = (HttpExecutionContext) executionContext;
         final TemplateEngine templateEngine = ctx.getTemplateEngine();
         final TemplateContext templateContext = templateEngine.getTemplateContext();
         final EvaluableRequest evaluableRequest = (EvaluableRequest) templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST);

@@ -23,10 +23,12 @@ import { fakeAnalyticsRequestsCount } from '../entities/management-api-v2/analyt
 import { fakeAnalyticsAverageConnectionDuration } from '../entities/management-api-v2/analytics/analyticsAverageConnectionDuration.fixture';
 import { fakeAnalyticsAverageMessagesPerRequest } from '../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest.fixture';
 import { fakeAnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges.fixture';
+import { timeFrameRangesParams } from '../shared/utils/timeFrameRanges';
 
 describe('ApiAnalyticsV2Service', () => {
   let httpTestingController: HttpTestingController;
   let service: ApiAnalyticsV2Service;
+  const apiId = 'api-id';
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -35,6 +37,7 @@ describe('ApiAnalyticsV2Service', () => {
 
     httpTestingController = TestBed.inject(HttpTestingController);
     service = TestBed.inject<ApiAnalyticsV2Service>(ApiAnalyticsV2Service);
+    service.setTimeRangeFilter(timeFrameRangesParams('1d'));
   });
 
   afterEach(() => {
@@ -43,55 +46,34 @@ describe('ApiAnalyticsV2Service', () => {
 
   describe('getRequestsCount', () => {
     it('should call the API', (done) => {
-      const apiId = 'api-id';
-
       service.getRequestsCount(apiId).subscribe((result) => {
         expect(result).toEqual(fakeAnalyticsRequestsCount());
         done();
       });
 
-      httpTestingController
-        .expectOne({
-          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics/requests-count`,
-          method: 'GET',
-        })
-        .flush(fakeAnalyticsRequestsCount());
+      expectGetRequestCount();
     });
   });
 
   describe('getAverageConnectionDuration', () => {
     it('should call the API', (done) => {
-      const apiId = 'api-id';
-
       service.getAverageConnectionDuration(apiId).subscribe((result) => {
         expect(result).toEqual(fakeAnalyticsAverageConnectionDuration());
         done();
       });
 
-      httpTestingController
-        .expectOne({
-          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics/average-connection-duration`,
-          method: 'GET',
-        })
-        .flush(fakeAnalyticsAverageConnectionDuration());
+      expectApiAnalyticsAverageConnectionDurationGetRequest();
     });
   });
 
   describe('getAverageMessagesPerRequest', () => {
     it('should call the API', (done) => {
-      const apiId = 'api-id';
-
       service.getAverageMessagesPerRequest(apiId).subscribe((result) => {
         expect(result).toEqual(fakeAnalyticsAverageMessagesPerRequest());
         done();
       });
 
-      httpTestingController
-        .expectOne({
-          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics/average-messages-per-request`,
-          method: 'GET',
-        })
-        .flush(fakeAnalyticsAverageMessagesPerRequest());
+      expectAverageMessagesPerRequestGetRequest();
     });
   });
 
@@ -104,12 +86,39 @@ describe('ApiAnalyticsV2Service', () => {
         done();
       });
 
-      httpTestingController
-        .expectOne({
-          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics/response-status-ranges`,
-          method: 'GET',
-        })
-        .flush(fakeAnalyticsResponseStatusRanges());
+      expectApiAnalyticsResponseStatusRangesGetRequest();
     });
   });
+
+  function expectGetRequestCount() {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics/requests-count`;
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(url);
+    });
+    req.flush(fakeAnalyticsRequestsCount());
+  }
+
+  function expectApiAnalyticsResponseStatusRangesGetRequest() {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics/response-status-ranges`;
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(url);
+    });
+    req.flush(fakeAnalyticsResponseStatusRanges());
+  }
+
+  function expectAverageMessagesPerRequestGetRequest() {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics/average-messages-per-request`;
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(url);
+    });
+    req.flush(fakeAnalyticsAverageMessagesPerRequest());
+  }
+
+  function expectApiAnalyticsAverageConnectionDurationGetRequest() {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics/average-connection-duration`;
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(url);
+    });
+    req.flush(fakeAnalyticsAverageConnectionDuration());
+  }
 });

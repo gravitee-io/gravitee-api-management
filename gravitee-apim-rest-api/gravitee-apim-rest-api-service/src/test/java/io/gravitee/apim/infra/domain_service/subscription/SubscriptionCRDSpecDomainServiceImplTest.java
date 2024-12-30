@@ -56,6 +56,7 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -194,6 +195,7 @@ class SubscriptionCRDSpecDomainServiceImplTest {
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID)).isNotNull();
             soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
+            soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getOrigin()).isEqualTo(OriginContext.Origin.KUBERNETES);
         });
     }
 

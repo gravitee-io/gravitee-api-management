@@ -1,5 +1,5 @@
 @use 'sass:map';
-@use 'src/scss/gio-layout' as gio-layout;
+@use '../../../../scss/gio-layout' as gio-layout;
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
@@ -66,11 +66,5 @@
     &__tab-content {
       padding: 24px 0;
     }
-  }
-
-  &__actions {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
   }
 }

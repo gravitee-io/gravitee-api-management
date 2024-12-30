@@ -612,9 +612,12 @@ components:
             description: A mode used by a connector
             example: SUBSCRIBE
             enum:
+                - CONNECT
+                - INTERACT
                 - SUBSCRIBE
                 - PUBLISH
                 - REQUEST_RESPONSE
+                - SOCKET
 
         FlowPhase:
             type: string

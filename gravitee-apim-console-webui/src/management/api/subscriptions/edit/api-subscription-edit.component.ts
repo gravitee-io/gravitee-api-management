@@ -83,6 +83,7 @@ interface SubscriptionDetailVM {
   description?: string;
   consumerConfiguration?: SubscriptionConsumerConfiguration;
   metadata?: { [key: string]: string };
+  origin: 'KUBERNETES' | 'MANAGEMENT';
 }
 
 interface ApiKeyVM {
@@ -151,6 +152,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
           if (subscription) {
             this.subscription = {
               id: subscription.id,
+              origin: subscription.origin,
               plan: {
                 id: subscription.plan.id,
                 label: subscription.plan.security?.type

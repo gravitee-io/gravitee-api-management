@@ -29,6 +29,10 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -62,11 +66,39 @@ public interface ApiCRDAdapter {
     @Mapping(target = "notifyMembers", expression = "java(!exportEntity.getApiEntity().isDisableMembershipNotifications())")
     ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, ApiEntity apiEntity);
 
+    @Mapping(target = "version", source = "apiEntity.apiVersion")
+    @Mapping(target = "metadata", source = "exportEntity.metadata")
+    @Mapping(target = "definitionContext", ignore = true)
+    @Mapping(target = "plans", expression = "java(mapPlans(exportEntity))")
+    @Mapping(target = "pages", expression = "java(mapPages(exportEntity))")
+    @Mapping(target = "members", expression = "java(mapMembers(exportEntity))")
+    @Mapping(target = "notifyMembers", expression = "java(!exportEntity.getApiEntity().isDisableMembershipNotifications())")
+    ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, NativeApiEntity apiEntity);
+
+    default ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, GenericApiEntity apiEntity) {
+        if (apiEntity instanceof ApiEntity) {
+            return toCRDSpec(exportEntity, (ApiEntity) apiEntity);
+        } else if (apiEntity instanceof NativeApiEntity) {
+            return toCRDSpec(exportEntity, (NativeApiEntity) apiEntity);
+        }
+        return null;
+    }
+
     PlanCRD toCRDPlan(PlanEntity planEntity);
+    PlanCRD toCRDPlan(NativePlanEntity planEntity);
+
+    default PlanCRD toCRDPlan(GenericPlanEntity genericPlanEntity) {
+        if (genericPlanEntity instanceof PlanEntity planEntity) {
+            return toCRDPlan(planEntity);
+        } else if (genericPlanEntity instanceof NativePlanEntity nativePlanEntity) {
+            return toCRDPlan(nativePlanEntity);
+        }
+        return null;
+    }
 
     default Map<String, PlanCRD> mapPlans(ExportApiEntity definition) {
         var plansMap = new HashMap<String, PlanCRD>();
-        var nonClosedPlans = definition.getPlans().stream().filter(plan -> plan.getStatus() != PlanStatus.CLOSED).toList();
+        var nonClosedPlans = definition.getPlans().stream().filter(plan -> !plan.isClosed()).toList();
         for (var plan : nonClosedPlans) {
             var key = plansMap.containsKey(plan.getName()) ? randomize(plan.getName()) : plan.getName();
             plansMap.put(key, toCRDPlan(plan));

@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiQueryServiceInMemory;
-import io.gravitee.apim.core.analytics.model.EnvironmentAnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
@@ -45,14 +45,14 @@ class SearchEnvironmentRequestResponseTimeUseCaseTest {
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
     private SearchEnvironmentRequestResponseTimeUseCase cut;
 
-    private ArgumentCaptor<EnvironmentAnalyticsQueryParameters> argumentCaptor;
+    private ArgumentCaptor<AnalyticsQueryParameters> argumentCaptor;
 
     @BeforeEach
     void setUp() {
         analyticsQueryService = mock(FakeAnalyticsQueryService.class);
         cut = new SearchEnvironmentRequestResponseTimeUseCase(apiQueryService, analyticsQueryService);
 
-        argumentCaptor = ArgumentCaptor.forClass(EnvironmentAnalyticsQueryParameters.class);
+        argumentCaptor = ArgumentCaptor.forClass(AnalyticsQueryParameters.class);
     }
 
     @AfterEach
@@ -73,7 +73,7 @@ class SearchEnvironmentRequestResponseTimeUseCaseTest {
         var input = SearchEnvironmentRequestResponseTimeUseCase.Input
             .builder()
             .executionContext(executionContext)
-            .parameters(EnvironmentAnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();
 
         when(analyticsQueryService.searchRequestResponseTime(any(), any()))
@@ -96,12 +96,7 @@ class SearchEnvironmentRequestResponseTimeUseCaseTest {
             softAssertions
                 .assertThat(argumentCaptor.getValue())
                 .isEqualTo(
-                    EnvironmentAnalyticsQueryParameters
-                        .builder()
-                        .from(FROM)
-                        .to(TO)
-                        .apiIds(List.of("message-api-v4-id", "proxy-api-v4-id"))
-                        .build()
+                    AnalyticsQueryParameters.builder().from(FROM).to(TO).apiIds(List.of("message-api-v4-id", "proxy-api-v4-id")).build()
                 );
             softAssertions
                 .assertThat(result)
@@ -131,7 +126,7 @@ class SearchEnvironmentRequestResponseTimeUseCaseTest {
         var input = SearchEnvironmentRequestResponseTimeUseCase.Input
             .builder()
             .executionContext(executionContext)
-            .parameters(EnvironmentAnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();
 
         when(analyticsQueryService.searchRequestResponseTime(any(), any()))
@@ -153,9 +148,7 @@ class SearchEnvironmentRequestResponseTimeUseCaseTest {
         SoftAssertions.assertSoftly(softAssertions -> {
             softAssertions
                 .assertThat(argumentCaptor.getValue())
-                .isEqualTo(
-                    EnvironmentAnalyticsQueryParameters.builder().from(FROM).to(TO).apiIds(List.of("proper-env-proxy-api-v4-id")).build()
-                );
+                .isEqualTo(AnalyticsQueryParameters.builder().from(FROM).to(TO).apiIds(List.of("proper-env-proxy-api-v4-id")).build());
             softAssertions
                 .assertThat(result)
                 .isPresent()

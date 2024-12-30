@@ -29,6 +29,7 @@ import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
+import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
@@ -60,10 +61,10 @@ import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
-import io.gravitee.apim.core.membership.query_service.RoleQueryService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
+import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
@@ -96,6 +97,7 @@ import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDSpecDom
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -632,7 +634,22 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public ApiExportDomainService apiExportDomainService() {
+        return mock(ApiExportDomainService.class);
+    }
+
+    @Bean
+    public DataEncryptor dataEncryptor() {
+        return mock(DataEncryptor.class);
+    }
+
+    @Bean
     public ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService() {
         return mock(ApplicationPrimaryOwnerDomainService.class);
+    }
+
+    @Bean
+    public UpdatePlanDomainService updatePlanDomainService() {
+        return mock(UpdatePlanDomainService.class);
     }
 }

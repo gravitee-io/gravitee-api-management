@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
-import { tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { switchMap } from 'rxjs/operators';
 
 import { GioChartLineModule } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.module';
 import { GioChartLineData, GioChartLineOptions } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.component';
@@ -33,45 +33,35 @@ import { SnackBarService } from '../../../../../../services-ngx/snack-bar.servic
   styleUrl: './api-analytics-response-status-overtime.component.scss',
 })
 export class ApiAnalyticsResponseStatusOvertimeComponent implements OnInit {
-  private apiId = this.activatedRoute.snapshot.params.apiId;
-  private destroyRef = inject(DestroyRef);
-
-  // toDo:  default we take one day, remove hardcoded values when time filters is developed, by
-  private MS_IN_DAY = 24 * 3600 * 1000;
-  private timeRange = {
-    to: new Date().getTime(),
-    from: new Date().getTime() - this.MS_IN_DAY,
-  };
-
-  public input: GioChartLineData[];
+  public chartInput: GioChartLineData[];
   public isLoading = true;
-  public options: GioChartLineOptions;
+  public chartOptions: GioChartLineOptions;
 
   constructor(
-    private readonly apiAnalyticsV2Service: ApiAnalyticsV2Service,
     private readonly activatedRoute: ActivatedRoute,
+    private readonly apiAnalyticsV2Service: ApiAnalyticsV2Service,
+    private readonly destroyRef: DestroyRef,
     private readonly snackBarService: SnackBarService,
   ) {}
 
-  ngOnInit(): void {
-    this.getData();
-  }
-
-  getData() {
+  ngOnInit() {
     this.apiAnalyticsV2Service
-      .getResponseStatusOvertime(this.apiId, this.timeRange.from, this.timeRange.to)
+      .timeRangeFilter()
       .pipe(
-        tap(() => (this.isLoading = true)),
+        switchMap(() => {
+          this.isLoading = true;
+          return this.apiAnalyticsV2Service.getResponseStatusOvertime(this.activatedRoute.snapshot.params.apiId);
+        }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: (res) => {
           this.isLoading = false;
-          this.input = Object.entries(res.data).map(([key, value]) => ({
+          this.chartInput = Object.entries(res.data).map(([key, value]) => ({
             name: key,
             values: value,
           }));
-          this.options = {
+          this.chartOptions = {
             pointStart: res.timeRange?.from,
             pointInterval: res.timeRange?.interval,
           };

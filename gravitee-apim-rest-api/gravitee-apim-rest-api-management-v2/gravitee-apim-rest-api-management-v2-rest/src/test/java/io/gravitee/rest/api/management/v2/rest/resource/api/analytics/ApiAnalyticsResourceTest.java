@@ -28,7 +28,6 @@ import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
-import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponseTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
@@ -283,6 +282,8 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
 
         @Test
         void should_return_status_codes_by_entrypoint() {
+            var FROM = 1728981738L;
+            var TO = 1729068138L;
             apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
             fakeAnalyticsQueryService.responseStatusRanges =
                 ResponseStatusRanges
@@ -290,7 +291,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     .statusRangesCountByEntrypoint(Map.of("http-get", Map.of("100.0-200.0", 1L), "http-post", Map.of("100.0-200.0", 1L)))
                     .build();
 
-            final Response response = statusCodesByEntrypointTarget.request().get();
+            final Response response = statusCodesByEntrypointTarget.queryParam("from", FROM).queryParam("to", TO).request().get();
 
             MAPIAssertions
                 .assertThat(response)
@@ -352,8 +353,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                 .extracting(ApiAnalyticsOverPeriodResponse::getData)
                 .isNotNull()
                 .satisfies(output -> {
-                    assertThat(output).hasSize(2);
-                    assertThat(output).containsExactly(1L, 2L);
+                    assertThat(output).hasSize(2).containsExactly(1L, 2L);
                 });
         }
     }

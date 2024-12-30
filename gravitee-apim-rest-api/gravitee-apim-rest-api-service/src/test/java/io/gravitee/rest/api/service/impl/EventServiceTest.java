@@ -30,8 +30,15 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.EventRepository;
@@ -131,6 +138,12 @@ public class EventServiceTest {
 
     @Mock
     private ObjectMapper objectMapper;
+
+    @Mock
+    private PlanQueryService planQueryService;
+
+    @Mock
+    private FlowCrudService flowCrudService;
 
     @Test
     public void shouldCreateEventWithPublishApiEventType() throws TechnicalException {
@@ -678,37 +691,62 @@ public class EventServiceTest {
     }
 
     @Test
-    public void should_delete_events_by_environment_id() throws TechnicalException {
-        Event deletedEvent = Event.builder().id("deleted-event").environments(Set.of(ENVIRONMENT_ID)).build();
-        Event updatedEvent = Event.builder().id("updated-event").environments(Set.of(ENVIRONMENT_ID, "ANOTHER_ENV_ID")).build();
-        when(eventRepository.findByEnvironmentId(ENVIRONMENT_ID)).thenReturn(List.of(deletedEvent, updatedEvent));
-        when(eventLatestRepository.findByEnvironmentId(ENVIRONMENT_ID)).thenReturn(List.of(deletedEvent, updatedEvent));
+    public void create_native_api_event_with_api_and_plan_flows_in_payload() throws TechnicalException, JsonProcessingException {
+        ObjectMapper realObjectMapper = new ObjectMapper();
+        ReflectionTestUtils.setField(eventService, "objectMapper", realObjectMapper);
+        ReflectionTestUtils.setField(eventService, "planConverter", new PlanConverter(objectMapper));
+        when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
-        eventService.deleteOrUpdateEventsByEnvironment(ENVIRONMENT_ID);
+        Api api = new Api();
+        api.setId(API_ID);
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.NATIVE);
+        api.setDefinition("{ \"type\": \"native\" }");
 
-        verify(eventRepository).delete(deletedEvent.getId());
-        updatedEvent.setEnvironments(Set.of(ENVIRONMENT_ID));
-        verify(eventRepository).update(updatedEvent);
-        verify(eventLatestRepository).delete(deletedEvent.getId());
-        updatedEvent.setEnvironments(Set.of(ENVIRONMENT_ID));
-        verify(eventLatestRepository).createOrUpdate(updatedEvent);
-    }
+        when(planQueryService.findAllByApiId(API_ID))
+            .thenReturn(
+                List.of(
+                    buildCorePlan("plan-id", ApiType.NATIVE, io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED),
+                    buildCorePlan("plan-id", ApiType.MESSAGE, io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED)
+                )
+            );
 
-    @Test
-    public void should_delete_events_by_organization_id() throws TechnicalException {
-        Event deletedEvent = Event.builder().id("deleted-event").organizations(Set.of(ORGANIZATION_ID)).build();
-        Event updatedEvent = Event.builder().id("updated-event").organizations(Set.of(ORGANIZATION_ID, "ANOTHER_ORG_ID")).build();
-        when(eventRepository.findByOrganizationId(ORGANIZATION_ID)).thenReturn(List.of(deletedEvent, updatedEvent));
-        when(eventLatestRepository.findByOrganizationId(ORGANIZATION_ID)).thenReturn(List.of(deletedEvent, updatedEvent));
+        when(flowCrudService.getNativePlanFlows("plan-id"))
+            .thenReturn(List.of(buildNativeFlow("flow1-plan"), buildNativeFlow("flow2-plan")));
+        when(flowCrudService.getNativeApiFlows(API_ID)).thenReturn(List.of(buildNativeFlow("flow1"), buildNativeFlow("flow2")));
 
-        eventService.deleteOrUpdateEventsByOrganization(ORGANIZATION_ID);
+        eventService.createApiEvent(
+            GraviteeContext.getExecutionContext(),
+            Set.of(ENVIRONMENT_ID),
+            ORGANIZATION_ID,
+            io.gravitee.rest.api.model.EventType.PUBLISH_API,
+            api,
+            Map.of()
+        );
 
-        verify(eventRepository).delete(deletedEvent.getId());
-        updatedEvent.setOrganizations(Set.of(ORGANIZATION_ID));
-        verify(eventRepository).update(updatedEvent);
-        verify(eventLatestRepository).delete(deletedEvent.getId());
-        updatedEvent.setOrganizations(Set.of(ORGANIZATION_ID));
-        verify(eventLatestRepository).createOrUpdate(updatedEvent);
+        // check event has been created and capture his payload
+        ArgumentCaptor<Event> createdEvent = ArgumentCaptor.forClass(Event.class);
+        verify(eventRepository).create(createdEvent.capture());
+        verifyNoMoreInteractions(eventRepository);
+
+        // deserialize payload event and check it contains api flows from database
+        Event eventCaptured = createdEvent.getValue();
+        assertTrue(eventCaptured.getProperties().containsKey(Event.EventProperties.API_ID.getValue()));
+        Api payloadApi = realObjectMapper.readValue(eventCaptured.getPayload(), Api.class);
+        var payloadApiDefinition = realObjectMapper.readValue(
+            payloadApi.getDefinition(),
+            io.gravitee.definition.model.v4.nativeapi.NativeApi.class
+        );
+        assertEquals(2, payloadApiDefinition.getFlows().size());
+        assertEquals("flow1", payloadApiDefinition.getFlows().get(0).getName());
+        assertEquals("flow2", payloadApiDefinition.getFlows().get(1).getName());
+        assertEquals(1, payloadApiDefinition.getPlans().size());
+        assertEquals(2, payloadApiDefinition.getPlans().get(0).getFlows().size());
+        assertEquals("flow1-plan", payloadApiDefinition.getPlans().get(0).getFlows().get(0).getName());
+        assertEquals("flow2-plan", payloadApiDefinition.getPlans().get(0).getFlows().get(1).getName());
+
+        assertEquals(Set.of(ENVIRONMENT_ID), eventCaptured.getEnvironments());
+        assertEquals(Set.of(ORGANIZATION_ID), eventCaptured.getOrganizations());
     }
 
     private PlanEntity buildPlanEntity(String id, PlanStatus status) {
@@ -719,9 +757,25 @@ public class EventServiceTest {
         return plan;
     }
 
+    private Plan buildCorePlan(String id, ApiType apiType, io.gravitee.definition.model.v4.plan.PlanStatus status) {
+        var plan = Plan.builder().id(id).definitionVersion(DefinitionVersion.V4).apiType(apiType).apiId(API_ID);
+
+        if (apiType == ApiType.NATIVE) {
+            plan.planDefinitionNativeV4(NativePlan.builder().status(status).build());
+        } else {
+            plan.planDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder().status(status).build());
+        }
+
+        return plan.build();
+    }
+
     private Flow buildFlow(String name) {
         Flow flow = new Flow();
         flow.setName(name);
         return flow;
+    }
+
+    private NativeFlow buildNativeFlow(String name) {
+        return NativeFlow.builder().name(name).build();
     }
 }

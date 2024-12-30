@@ -17,7 +17,7 @@ package io.gravitee.apim.gateway.tests.sdk.connector.fakes;
 
 import io.gravitee.apim.gateway.tests.sdk.connector.fakes.ConnectionErrorMockEndpointConnectorConfiguration.Failure;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.plugin.endpoint.mock.MockEndpointConnector;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Optional;
@@ -46,7 +46,7 @@ public class ConnectionErrorMockEndpointConnector extends MockEndpointConnector 
     }
 
     @Override
-    public Completable connect(ExecutionContext ctx) {
+    public Completable connect(HttpExecutionContext ctx) {
         Failure failure = Optional.ofNullable(failureConfiguration.connectionErrors.pollFirst()).orElse(new Failure(200, "ok"));
         // Return the connection attempts counter as a header to simplify the assertions
         ctx.response().headers().set(MOCK_CONNECTION_ATTEMPTS, Integer.toString(connectAttempts.incrementAndGet()));

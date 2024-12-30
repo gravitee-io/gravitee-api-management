@@ -23,6 +23,10 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.AbstractApi;
@@ -95,10 +99,16 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     private PlanService planService;
 
     @Autowired
+    private PlanQueryService planQueryService;
+
+    @Autowired
     private io.gravitee.rest.api.service.v4.PlanService planServiceV4;
 
     @Autowired
     private FlowService flowService;
+
+    @Autowired
+    private FlowCrudService flowCrudService;
 
     @Autowired
     private PlanMapper planMapper;
@@ -489,7 +499,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
      */
     private AbstractApi buildGatewayApiDefinitionV4(ExecutionContext executionContext, Api api) throws JsonProcessingException {
         if (api.getType() == ApiType.NATIVE) {
-            return extractV4NativeApiDefinition(executionContext, api);
+            return extractV4NativeApiDefinition(api);
         }
         return extractV4ApiDefinition(executionContext, api);
     }
@@ -526,25 +536,26 @@ public class EventServiceImpl extends TransactionalService implements EventServi
      * It reads API plans from plan collections, and API flows from flow collection ;
      * And generates gateway API definition from management API definition (containing no plans or flows).
      *
-     * @param executionContext
      * @param api
      * @return API definition
      * @throws JsonProcessingException
      */
-    private NativeApi extractV4NativeApiDefinition(ExecutionContext executionContext, Api api) throws JsonProcessingException {
-        var apiDefinitionV4 = objectMapper.readValue(api.getDefinition(), NativeApi.class);
+    private NativeApi extractV4NativeApiDefinition(Api api) throws JsonProcessingException {
+        var apiDefinitionNativeV4 = objectMapper.readValue(api.getDefinition(), NativeApi.class);
 
-        // FIXME: Kafka Gateway - look for plans from plan service, here we rely on the parameter because it is a first step
-        //        Set<io.gravitee.rest.api.model.v4.plan.PlanEntity> plans = planServiceV4
-        //            .findByApi(executionContext, api.getId())
-        //            .stream()
-        //            .filter(p -> p.getPlanStatus() != PlanStatus.CLOSED)
-        //            .collect(toSet());
-        //
-        //        apiDefinitionV4.setPlans(planMapper.toNativeDefinitions(plans));
-        // FIXME: Kafka Gateway - Work on the flow model to match NativeFlow definition
-        apiDefinitionV4.setFlows(List.of());
-        return apiDefinitionV4;
+        var nativePlans = planQueryService
+            .findAllByApiId(api.getId())
+            .stream()
+            .filter(p -> p.getPlanStatus() != PlanStatus.CLOSED && p.getPlanDefinitionNativeV4() != null)
+            .map(p -> {
+                p.getPlanDefinitionNativeV4().setFlows(flowCrudService.getNativePlanFlows(p.getId()));
+                return p.getPlanDefinitionNativeV4();
+            })
+            .toList();
+
+        apiDefinitionNativeV4.setPlans(nativePlans);
+        apiDefinitionNativeV4.setFlows(flowCrudService.getNativeApiFlows(api.getId()));
+        return apiDefinitionNativeV4;
     }
 
     @Override
@@ -562,92 +573,6 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying create or patch " + latestEvent, ex);
         }
-    }
-
-    @Override
-    public void deleteOrUpdateEventsByEnvironment(String environmentId) {
-        eventRepository
-            .findByEnvironmentId(environmentId)
-            .forEach(event -> {
-                event.setEnvironments(event.getEnvironments().stream().filter(env -> !env.equals(environmentId)).collect(toSet()));
-                if (event.getEnvironments().isEmpty()) {
-                    try {
-                        eventRepository.delete(event.getId());
-                    } catch (TechnicalException e) {
-                        throw new TechnicalManagementException("An error occurs while trying delete event " + event, e);
-                    }
-                } else {
-                    try {
-                        eventRepository.update(event);
-                    } catch (TechnicalException e) {
-                        throw new TechnicalManagementException("An error occurs while trying update event " + event, e);
-                    }
-                }
-            });
-
-        eventLatestRepository
-            .findByEnvironmentId(environmentId)
-            .forEach(eventLatest -> {
-                eventLatest.setEnvironments(
-                    eventLatest.getEnvironments().stream().filter(env -> !env.equals(environmentId)).collect(toSet())
-                );
-                if (eventLatest.getEnvironments().isEmpty()) {
-                    try {
-                        eventLatestRepository.delete(eventLatest.getId());
-                    } catch (TechnicalException e) {
-                        throw new TechnicalManagementException("An error occurs while trying delete eventLatest " + eventLatest, e);
-                    }
-                } else {
-                    try {
-                        eventLatestRepository.createOrUpdate(eventLatest);
-                    } catch (TechnicalException e) {
-                        throw new TechnicalManagementException("An error occurs while trying update eventLatest" + eventLatest, e);
-                    }
-                }
-            });
-    }
-
-    @Override
-    public void deleteOrUpdateEventsByOrganization(String organizationId) {
-        eventRepository
-            .findByOrganizationId(organizationId)
-            .forEach(event -> {
-                event.setOrganizations(event.getOrganizations().stream().filter(org -> !org.equals(organizationId)).collect(toSet()));
-                if (event.getOrganizations().isEmpty()) {
-                    try {
-                        eventRepository.delete(event.getId());
-                    } catch (TechnicalException e) {
-                        throw new TechnicalManagementException("An error occurs while trying delete event " + event, e);
-                    }
-                } else {
-                    try {
-                        eventRepository.update(event);
-                    } catch (TechnicalException e) {
-                        throw new TechnicalManagementException("An error occurs while trying update event " + event, e);
-                    }
-                }
-            });
-
-        eventLatestRepository
-            .findByOrganizationId(organizationId)
-            .forEach(eventLatest -> {
-                eventLatest.setOrganizations(
-                    eventLatest.getOrganizations().stream().filter(org -> !org.equals(organizationId)).collect(toSet())
-                );
-                if (eventLatest.getOrganizations().isEmpty()) {
-                    try {
-                        eventLatestRepository.delete(eventLatest.getId());
-                    } catch (TechnicalException e) {
-                        throw new TechnicalManagementException("An error occurs while trying delete eventLatest " + eventLatest, e);
-                    }
-                } else {
-                    try {
-                        eventLatestRepository.createOrUpdate(eventLatest);
-                    } catch (TechnicalException e) {
-                        throw new TechnicalManagementException("An error occurs while trying update eventLatest" + eventLatest, e);
-                    }
-                }
-            });
     }
 
     private Event convert(EventEntity eventEntity) {

@@ -21,12 +21,17 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.gateway.reactive.api.ApiType;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.BaseEntrypointConnector;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.HttpEntrypointConnector;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.async.HttpEntrypointAsyncConnector;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.async.HttpEntrypointAsyncConnectorFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import java.util.Comparator;
@@ -45,7 +50,7 @@ import org.slf4j.LoggerFactory;
 public class DefaultEntrypointConnectorResolver extends AbstractService<DefaultEntrypointConnectorResolver> {
 
     private static final Logger log = LoggerFactory.getLogger(DefaultEntrypointConnectorResolver.class);
-    private final List<EntrypointConnector> entrypointConnectors;
+    private final List<BaseEntrypointConnector> entrypointConnectors;
 
     public DefaultEntrypointConnectorResolver(
         final Api api,
@@ -58,14 +63,14 @@ public class DefaultEntrypointConnectorResolver extends AbstractService<DefaultE
                 .stream()
                 .flatMap(listener -> listener.getEntrypoints().stream())
                 .map(entrypoint ->
-                    this.<EntrypointConnector>createConnector(deploymentContext, entrypointConnectorPluginManager, entrypoint)
+                    this.<BaseEntrypointConnector<?>>createConnector(deploymentContext, entrypointConnectorPluginManager, entrypoint)
                 )
                 .filter(Objects::nonNull)
-                .sorted(Comparator.comparingInt(EntrypointConnector::matchCriteriaCount).reversed())
+                .sorted(Comparator.<BaseEntrypointConnector<?>>comparingInt(BaseEntrypointConnector::matchCriteriaCount).reversed())
                 .collect(Collectors.toList());
     }
 
-    private <T extends EntrypointConnector> T createConnector(
+    private <T extends BaseEntrypointConnector<?>> T createConnector(
         final DeploymentContext deploymentContext,
         final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         final Entrypoint entrypoint
@@ -74,8 +79,8 @@ public class DefaultEntrypointConnectorResolver extends AbstractService<DefaultE
 
         if (connectorFactory != null) {
             if (connectorFactory.supportedApi() == ApiType.MESSAGE) {
-                EntrypointAsyncConnectorFactory<EntrypointAsyncConnector> entrypointAsyncConnectorFactory =
-                    (EntrypointAsyncConnectorFactory<EntrypointAsyncConnector>) connectorFactory;
+                HttpEntrypointAsyncConnectorFactory<HttpEntrypointAsyncConnector> entrypointAsyncConnectorFactory =
+                    (HttpEntrypointAsyncConnectorFactory<HttpEntrypointAsyncConnector>) connectorFactory;
                 Qos qos = Qos.AUTO;
                 if (entrypoint.getQos() != null) {
                     qos = Qos.fromLabel(entrypoint.getQos().getLabel());
@@ -87,8 +92,8 @@ public class DefaultEntrypointConnectorResolver extends AbstractService<DefaultE
         return null;
     }
 
-    public <T extends EntrypointConnector> T resolve(final ExecutionContext ctx) {
-        for (EntrypointConnector connector : entrypointConnectors) {
+    public <C extends BaseExecutionContext, T extends BaseEntrypointConnector<C>> T resolve(final C ctx) {
+        for (BaseEntrypointConnector<C> connector : entrypointConnectors) {
             if (connector.supportedListenerType() == ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE) && connector.matches(ctx)) {
                 return (T) connector;
             }
@@ -100,7 +105,7 @@ public class DefaultEntrypointConnectorResolver extends AbstractService<DefaultE
     protected void doStop() throws Exception {
         super.doStop();
 
-        for (EntrypointConnector connector : entrypointConnectors) {
+        for (BaseEntrypointConnector<?> connector : entrypointConnectors) {
             try {
                 connector.stop();
             } catch (Exception e) {
@@ -113,7 +118,7 @@ public class DefaultEntrypointConnectorResolver extends AbstractService<DefaultE
     public DefaultEntrypointConnectorResolver preStop() throws Exception {
         super.preStop();
 
-        for (EntrypointConnector connector : entrypointConnectors) {
+        for (BaseEntrypointConnector<?> connector : entrypointConnectors) {
             try {
                 connector.preStop();
             } catch (Exception e) {

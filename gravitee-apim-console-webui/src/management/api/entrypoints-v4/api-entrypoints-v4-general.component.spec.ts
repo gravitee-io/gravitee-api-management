@@ -42,15 +42,18 @@ import { GioTestingPermissionProvider } from '../../../shared/components/gio-per
 import { GioFormListenersTcpHostsHarness } from '../component/gio-form-listeners/gio-form-listeners-tcp-hosts/gio-form-listeners-tcp-hosts.harness';
 import { GioLicenseBannerHarness } from '../../../shared/components/gio-license-banner/gio-license-banner.harness';
 import { License } from '../../../entities/license/License';
+import { GioFormListenersKafkaHostHarness } from '../component/gio-form-listeners/gio-form-listeners-kafka/gio-form-listeners-kafka-host.harness';
 
 const ENTRYPOINTS: Partial<ConnectorPlugin>[] = [
   { id: 'http-get', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP GET', deployed: true },
   { id: 'http-post', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP POST', deployed: true },
   { id: 'sse', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'Server-Sent Events', deployed: false },
   { id: 'webhook', supportedApiType: 'MESSAGE', supportedListenerType: 'SUBSCRIPTION', name: 'Webhook', deployed: false },
+  { id: 'native-kafka', supportedApiType: 'NATIVE', supportedListenerType: 'KAFKA', name: 'Client', deployed: false },
 ];
 
 describe('ApiProxyV4EntrypointsComponent', () => {
+  const ENV_ID = 'DEFAULT';
   const API_ID = 'apiId';
   let fixture: ComponentFixture<ApiEntrypointsV4GeneralComponent>;
   let loader: HarnessLoader;
@@ -75,7 +78,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       expectGetPortalSettings();
     }
 
-    if (api.type === 'MESSAGE' && checkLicense) {
+    if ((api.type === 'MESSAGE' || api.type === 'NATIVE') && checkLicense) {
       expectLicenseGetRequest({ tier: 'universe', features: [], packs: [], scope: 'PLATFORM' });
     }
   };
@@ -84,7 +87,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
       providers: [
-        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, envHrid: ENV_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: permissions },
         {
           provide: 'LicenseConfiguration',
@@ -178,6 +181,97 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEntrypointsV4GeneralHarness);
       const rows = await harness.getEntrypointsTableRows();
       expect(rows.length).toEqual(1);
+    });
+  });
+
+  describe('When API has NATIVE KAFKA architecture type', () => {
+    const RESTRICTED_DOMAINS = [];
+    const API = fakeApiV4({
+      type: 'NATIVE',
+      listeners: [{ type: 'KAFKA', entrypoints: [{ type: 'native-kafka' }], host: 'host' }],
+    });
+
+    beforeEach(async () => {
+      await createComponent(RESTRICTED_DOMAINS, API, true, undefined, true);
+    });
+
+    afterEach(() => {
+      expectApiPathVerify();
+    });
+
+    it('should show host only', async () => {
+      const host = await loader.getAllHarnesses(GioFormListenersKafkaHostHarness);
+      expect(host.length).toEqual(1);
+      const addEntrypointButton = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Add an entrypoint' }));
+      expect(await loader.hasHarness(GioFormListenersContextPathHarness)).toEqual(false);
+      expect(await loader.hasHarness(GioFormListenersVirtualHostHarness)).toEqual(false);
+      expect(await loader.hasHarness(GioFormListenersTcpHostsHarness)).toEqual(false);
+      expect(addEntrypointButton.length).toEqual(0);
+      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEntrypointsV4GeneralHarness);
+      expect(await harness.hasEntrypointsTable()).toEqual(false);
+    });
+
+    it('should reset host form', async () => {
+      const hostHarness = await loader.getHarness(GioFormListenersKafkaHostHarness);
+      const hostInput = await hostHarness.getHostInput();
+      await hostInput.setValue('new-host');
+      expect(await hostInput.getValue()).toEqual('new-host');
+
+      const resetButton = await loader.getHarness(MatButtonHarness.with({ text: 'Reset' }));
+      expect(await resetButton.isDisabled()).toBeFalsy();
+      await resetButton.click();
+
+      expect(await hostInput.getValue()).toEqual('host');
+    });
+
+    it('should save host form', async () => {
+      const hostHarness = await loader.getHarness(GioFormListenersKafkaHostHarness);
+      const hostInput = await hostHarness.getHostInput();
+      await hostInput.setValue('new-host');
+      expect(await hostInput.getValue()).toEqual('new-host');
+
+      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
+      expect(await saveButton.isDisabled()).toBeFalsy();
+      await saveButton.click();
+
+      // GET
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(API);
+      // UPDATE
+      const saveReq = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
+      const expectedUpdateApi: UpdateApiV4 = {
+        ...API,
+        listeners: [
+          {
+            type: 'KAFKA',
+            host: 'new-host',
+            entrypoints: API.listeners[0].entrypoints,
+          },
+        ],
+      };
+      expect(saveReq.request.body).toEqual(expectedUpdateApi);
+      saveReq.flush(API);
+    });
+  });
+
+  describe('When API has KUBERNETES origin and a NATIVE KAFKA listener', () => {
+    const RESTRICTED_DOMAINS = [];
+    const API = fakeApiV4({
+      type: 'NATIVE',
+      listeners: [{ type: 'KAFKA', entrypoints: [{ type: 'native-kafka' }], host: 'host' }],
+      definitionContext: {
+        origin: 'KUBERNETES',
+      },
+    });
+
+    beforeEach(async () => {
+      await createComponent(RESTRICTED_DOMAINS, API, true);
+    });
+
+    it('should disable host form', async () => {
+      const hostHarness = await loader.getHarness(GioFormListenersKafkaHostHarness);
+      const hostInput = await hostHarness.getHostInput();
+      expect(await hostInput.getValue()).toEqual('host');
+      expect(await hostInput.isDisabled()).toBe(true);
     });
   });
 
@@ -782,6 +876,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   describe('When API has entrypoints not available in license feature', () => {
     const RESTRICTED_DOMAINS = [];
     const API = fakeApiV4({
+      type: 'MESSAGE',
       listeners: [{ type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'sse' }] }],
     });
 
@@ -820,7 +915,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   }
 
   function expectGetPortalSettings(): void {
-    const settings: PortalSettings = { portal: { entrypoint: 'localhost' } };
+    const settings: PortalSettings = { portal: { entrypoint: 'localhost', kafkaDomain: 'kafka.domain', kafkaPort: 9092 } };
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/settings`, method: 'GET' }).flush(settings);
   }
 

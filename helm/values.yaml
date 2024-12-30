@@ -951,6 +951,44 @@ gateway:
     alpn: "true"
     requestTimeout: 30000
     requestTimeoutGraceDelay: 30
+
+# # Gateway Kafka server
+#  kafka:
+#    enabled: false
+#    routingMode: host # default is host. Only host is supported for now.
+#    # Routing Host Mode
+#    routingHostMode:
+#      brokerPrefix: broker- # default is broker-
+#      # The default domain where the Kafka APIs are exposed. ex: `myapi` will be exposed as `myapi.mycompany.org`
+#      defaultDomain: mycompany.org # Should set according to the public wildcard DNS/Certificate. Default is empty
+#      defaultPort: 9092 # Default public port for Kafka APIs. Default is 9092
+#    port: 9092
+#    host: 0.0.0.0
+#    idleTimeout: 0
+#    tcpKeepAlive: true
+#    instances: 0
+#    requestTimeout: 35_000 # default is 35_000 ms
+#    ssl:
+#      clientAuth: none # Supports none, request, required
+#      tlsProtocols: TLSv1.2, TLSv1.3
+#      tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+#      keystore:
+#        type: jks # Supports jks, pem, pkcs12, self-signed
+#        path: ${gravitee.home}/security/keystore.jks # A path is required if certificate's type is jks or pkcs12
+#        certificates: # Certificates are required if keystore's type is pem
+#          - cert: ${gravitee.home}/security/mycompany.org.pem
+#            key: ${gravitee.home}/security/mycompany.org.key
+#          - cert: ${gravitee.home}/security/mycompany.com.pem
+#            key: ${gravitee.home}/security/mycompany.com.key
+#        password: secret
+#        watch: true # Watch for any updates on the keystore and reload it. Default is true.
+#      truststore:
+#        type: jks # Supports jks, pem, pkcs12, pem-folder (for the latter watch supports added/updated/removed files)
+#        path: ${gravitee.home}/security/truststore.jks
+#        password: secret
+#        watch: true # Watch for any updates on the keystore/pem and reload it. Default is true.
+#      openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
+
   logging:
     debug: false
     stdout:
@@ -1207,6 +1245,11 @@ gateway:
 #         type: ClusterIP
 #         externalPort: 18082
 #         appProtocol: http
+    kafka:
+      enabled: true # Activated if `gateway.kafka.enabled` are also be enabled
+      service:
+        externalPort: 9092
+        internalPort: 9092
     bridge:
       enabled: false
       # host: localhost
@@ -1311,7 +1354,47 @@ gateway:
       enabled: true
       delay: 5000
       unit: MILLISECONDS
-
+## APIs specific configuration
+#  api:
+#    properties:
+#      encryption:
+#        secret: ...
+## API Level secret-provider configuration
+#    secrets:
+#      providers:
+#        # exists on all environments
+#        - id: all                # uri starts with '/all/...'
+#          plugin: vault
+#          configuration:
+#            enabled: true
+#            # ... HC Vault plugin configuration
+#            auth:
+#              method: token
+#              # this points to the configuration-level kube plugin
+#              # as configured in 'secrets.kubernetes' section of the configuration
+#              token: secrets://kubernetes/gravitee-secrets:vault-token
+#        # this one is another instance of kube plugin
+#        # and may have a different configuration
+#        - plugin: kubernetes    # uri starts with '/kubernetes/...'
+#          configuration:
+#            enabled: true
+#            # ... Kube plugin config
+#          environments:
+#            - f5bd78b7-eec2-4c97-9d3a-cb73ec7e3e87
+#            - 6654bb2f-1f07-4b55-b708-0d0fde18159e
+#      retryOnError:
+#        enabled: true
+#        delay: 2
+#        unit: SECONDS
+#        backoffFactor: 1.5
+#        maxDelay: 60
+#        maxAttempt: 10
+#      allowGeneratedSpecs: true
+#      renewal:
+#        enable: true
+#        check:
+#          delay: 15
+#          unit: MINUTES
   # handlers:
   #   request:
   #     transaction:

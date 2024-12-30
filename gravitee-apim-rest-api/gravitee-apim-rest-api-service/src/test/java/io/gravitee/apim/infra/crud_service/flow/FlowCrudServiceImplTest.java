@@ -381,6 +381,143 @@ class FlowCrudServiceImplTest {
     }
 
     @Nested
+    class SaveNativePlanFlows {
+
+        @Test
+        @SneakyThrows
+        void should_delete_existing_flows() {
+            // Given
+
+            // When
+            service.saveNativePlanFlows(PLAN_ID, List.of());
+
+            // Then
+            verify(flowRepository).deleteByReferenceIdAndReferenceType(PLAN_ID, FlowReferenceType.PLAN);
+            verify(flowRepository, never()).delete(any());
+            verify(flowRepository, never()).create(any());
+        }
+
+        @Test
+        @SneakyThrows
+        void should_save_flows() {
+            // Given
+            List<NativeFlow> flows = List.of(NativeFlow.builder().name("My flow").enabled(true).build());
+
+            // When
+            service.saveNativePlanFlows(PLAN_ID, flows);
+
+            // Then
+            var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.flow.Flow.class);
+            verify(flowRepository).create(captor.capture());
+
+            assertThat(captor.getValue())
+                .usingRecursiveComparison()
+                .isEqualTo(
+                    io.gravitee.repository.management.model.flow.Flow
+                        .builder()
+                        .referenceType(FlowReferenceType.PLAN)
+                        .referenceId(PLAN_ID)
+                        .order(0)
+                        .id("generated-id")
+                        .enabled(true)
+                        .name("My flow")
+                        .createdAt(Date.from(INSTANT_NOW))
+                        .updatedAt(Date.from(INSTANT_NOW))
+                        .build()
+                );
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_created_flows() {
+            // Given
+            when(flowRepository.create(any())).thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+            List<Flow> flows = List.of(Flow.builder().build());
+
+            // When
+            var result = service.savePlanFlows(PLAN_ID, flows);
+            flows.get(0).setId(result.get(0).getId());
+
+            // Then
+            assertThat(result).isEqualTo(flows);
+        }
+
+        @Test
+        @SneakyThrows
+        void should_throw_when_technical_exception_occurs() {
+            // Given
+            when(flowRepository.create(any())).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.savePlanFlows(PLAN_ID, List.of(Flow.builder().build())));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to save flows for PLAN: plan-id");
+        }
+
+        @Test
+        void should_delete_one_existing_and_create_new_flow() throws TechnicalException {
+            Flow flow1 = new Flow();
+            flow1.setId("id1");
+            flow1.setName("flow1");
+            io.gravitee.repository.management.model.flow.Flow repoFlow1 = FlowAdapter.INSTANCE.toRepository(
+                flow1,
+                FlowReferenceType.API,
+                API_ID,
+                0
+            );
+            repoFlow1.setId(flow1.getId());
+            io.gravitee.definition.model.v4.flow.Flow flow2 = new io.gravitee.definition.model.v4.flow.Flow();
+            flow2.setName("flow2");
+
+            when(flowRepository.findByReference(any(), eq(API_ID))).thenAnswer(invocation -> List.of(repoFlow1));
+            when(flowRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            List<io.gravitee.definition.model.v4.flow.Flow> flowServiceByReference = service.saveApiFlows(API_ID, List.of(flow2));
+            assertThat(flowServiceByReference).isNotNull();
+            assertThat(flowServiceByReference.size()).isEqualTo(1);
+            assertThat(flowServiceByReference.get(0).getName()).isEqualTo("flow2");
+
+            verify(flowRepository, never()).deleteByReferenceIdAndReferenceType(API_ID, FlowReferenceType.API);
+            verify(flowRepository, times(1)).deleteAllById(Set.of(flow1.getId()));
+            verify(flowRepository, times(1)).create(any());
+        }
+
+        @Test
+        void should_update_one_and_create_flow() throws TechnicalException {
+            io.gravitee.definition.model.v4.flow.Flow flow1 = new io.gravitee.definition.model.v4.flow.Flow();
+            flow1.setId("id1");
+            flow1.setName("flow1");
+            io.gravitee.repository.management.model.flow.Flow repoFlow1 = FlowAdapter.INSTANCE.toRepository(
+                flow1,
+                FlowReferenceType.API,
+                API_ID,
+                0
+            );
+            repoFlow1.setId(flow1.getId());
+            io.gravitee.definition.model.v4.flow.Flow flow2 = new io.gravitee.definition.model.v4.flow.Flow();
+            flow2.setName("flow2");
+
+            when(flowRepository.findByReference(any(), eq(API_ID))).thenAnswer(invocation -> List.of(repoFlow1));
+            when(flowRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+            when(flowRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            List<io.gravitee.definition.model.v4.flow.Flow> flowServiceByReference = service.saveApiFlows(API_ID, List.of(flow1, flow2));
+            assertThat(flowServiceByReference).isNotNull();
+            assertThat(flowServiceByReference.size()).isEqualTo(2);
+            assertThat(flowServiceByReference.get(0).getName()).isEqualTo("flow1");
+            assertThat(flowServiceByReference.get(1).getName()).isEqualTo("flow2");
+
+            verify(flowRepository, never()).deleteByReferenceIdAndReferenceType(API_ID, FlowReferenceType.API);
+            verify(flowRepository, never()).deleteAllById(anySet());
+            verify(flowRepository, times(1)).create(any());
+            verify(flowRepository, times(1)).update(any());
+        }
+    }
+
+    @Nested
     class GetApiV4Flows {
 
         @Test
@@ -441,6 +578,66 @@ class FlowCrudServiceImplTest {
     }
 
     @Nested
+    class GetNativeApiFlows {
+
+        @Test
+        @SneakyThrows
+        void should_return_flows() {
+            // Given
+            var repoFlows = List.of(
+                io.gravitee.repository.management.model.flow.Flow
+                    .builder()
+                    .id("flow-id")
+                    .referenceType(FlowReferenceType.API)
+                    .referenceId(API_ID)
+                    .order(0)
+                    .name("My flow")
+                    .enabled(true)
+                    .createdAt(Date.from(INSTANT_NOW))
+                    .updatedAt(Date.from(INSTANT_NOW))
+                    .build()
+            );
+            when(flowRepository.findByReference(FlowReferenceType.API, API_ID)).thenReturn(repoFlows);
+
+            // When
+            var result = service.getNativeApiFlows(API_ID);
+
+            // Then
+            assertThat(result)
+                .usingRecursiveComparison()
+                .isEqualTo(List.of(NativeFlow.builder().id("flow-id").name("My flow").enabled(true).build()));
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_empty_list_when_no_flows() {
+            // Given
+            when(flowRepository.findByReference(FlowReferenceType.API, API_ID)).thenReturn(List.of());
+
+            // When
+            var result = service.getNativeApiFlows(API_ID);
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @SneakyThrows
+        void should_throw_when_technical_exception_occurs() {
+            // Given
+            when(flowRepository.findByReference(FlowReferenceType.API, API_ID)).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.getNativeApiFlows(API_ID));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to get flows for API: api-id");
+        }
+    }
+
+    @Nested
     class GetPlanV4Flows {
 
         @Test
@@ -492,6 +689,66 @@ class FlowCrudServiceImplTest {
 
             // When
             Throwable throwable = catchThrowable(() -> service.getPlanV4Flows(PLAN_ID));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to get flows for PLAN: plan-id");
+        }
+    }
+
+    @Nested
+    class GetNativePlanFlows {
+
+        @Test
+        @SneakyThrows
+        void should_return_flows() {
+            // Given
+            var repoFlows = List.of(
+                io.gravitee.repository.management.model.flow.Flow
+                    .builder()
+                    .id("flow-id")
+                    .referenceType(FlowReferenceType.PLAN)
+                    .referenceId(PLAN_ID)
+                    .order(0)
+                    .name("My flow")
+                    .enabled(true)
+                    .createdAt(Date.from(INSTANT_NOW))
+                    .updatedAt(Date.from(INSTANT_NOW))
+                    .build()
+            );
+            when(flowRepository.findByReference(FlowReferenceType.PLAN, PLAN_ID)).thenReturn(repoFlows);
+
+            // When
+            var result = service.getNativePlanFlows(PLAN_ID);
+
+            // Then
+            assertThat(result)
+                .usingRecursiveComparison()
+                .isEqualTo(List.of(NativeFlow.builder().id("flow-id").name("My flow").enabled(true).build()));
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_empty_list_when_no_flows() {
+            // Given
+            when(flowRepository.findByReference(FlowReferenceType.PLAN, PLAN_ID)).thenReturn(List.of());
+
+            // When
+            var result = service.getNativePlanFlows(PLAN_ID);
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @SneakyThrows
+        void should_throw_when_technical_exception_occurs() {
+            // Given
+            when(flowRepository.findByReference(FlowReferenceType.PLAN, PLAN_ID)).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.getNativePlanFlows(PLAN_ID));
 
             // Then
             assertThat(throwable)

@@ -34,4 +34,10 @@ public interface FlowCrudService {
 
     //    Native APIs
     List<NativeFlow> saveNativeApiFlows(String apiId, List<NativeFlow> flows);
+
+    List<NativeFlow> saveNativePlanFlows(String planId, List<NativeFlow> flows);
+
+    List<NativeFlow> getNativeApiFlows(String apiId);
+
+    List<NativeFlow> getNativePlanFlows(String planId);
 }

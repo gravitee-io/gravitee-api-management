@@ -27,44 +27,25 @@ import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook;
-import io.gravitee.node.api.cache.Cache;
-import io.gravitee.node.api.cache.CacheConfiguration;
-import io.gravitee.node.api.configuration.Configuration;
-import io.gravitee.node.plugin.cache.common.InMemoryCache;
 import io.netty.util.internal.StringUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
- * {@link PolicyChainFactory} that can be instantiated per-api or per-organization, and optimized to maximize the reuse of created {@link HttpPolicyChain} thanks to a cache.
+ * {@link HttpPolicyChainFactory} that can be instantiated per-api or per-organization, and optimized to maximize the reuse of created {@link HttpPolicyChain} thanks to a cache.
  *
  * <b>WARNING</b>: this factory must absolutely be created per api to ensure proper cache destruction when deploying / un-deploying the api.
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpPolicyChainFactory implements PolicyChainFactory<HttpPolicyChain, Flow> {
+public class HttpPolicyChainFactory extends AbstractPolicyChainFactory<HttpPolicy, Flow, HttpPolicyChain> {
 
-    public static final long CACHE_MAX_SIZE = 15;
-    public static final long CACHE_TIME_TO_IDLE_IN_MS = 3_600_000;
-    private static final String ID_SEPARATOR = "-";
     protected final List<HttpHook> policyHooks = new ArrayList<>();
-    protected final PolicyManager policyManager;
-    protected final Cache<String, HttpPolicyChain> policyChains;
 
     public HttpPolicyChainFactory(final String id, final PolicyManager policyManager, final boolean tracing) {
-        this.policyManager = policyManager;
-
-        final CacheConfiguration cacheConfiguration = CacheConfiguration
-            .builder()
-            .maxSize(CACHE_MAX_SIZE)
-            .timeToIdleInMs(CACHE_TIME_TO_IDLE_IN_MS)
-            .build();
-
-        this.policyChains = new InMemoryCache<>(id + "-policyChainFactory", cacheConfiguration);
+        super(id, policyManager);
         initPolicyHooks(tracing);
     }
 
@@ -74,47 +55,32 @@ public class HttpPolicyChainFactory implements PolicyChainFactory<HttpPolicyChai
         }
     }
 
-    /**
-     * Creates a policy chain from the provided flow, for the given execution phase.
-     * The policies composing the policy chain, depends on the specified execution phase:
-     * <ul>
-     *     <li>{@link ExecutionPhase#REQUEST}: {@link Flow#getRequest()}</li>
-     *     <li>{@link ExecutionPhase#MESSAGE_REQUEST}: {@link Flow#getPublish()}</li>
-     *     <li>{@link ExecutionPhase#RESPONSE}: {@link Flow#getResponse()} </li>
-     *     <li>{@link ExecutionPhase#MESSAGE_RESPONSE}: {@link Flow#getSubscribe()}</li>
-     * </ul>
-     *
-     * @param flowChainId the flow chain id in which one the policy chain will be executed
-     * @param flow the flow where to extract the policies to create the policy chain.
-     * @param phase the execution phase used to select the relevant steps list in the flow.
-     *
-     * @return the created {@link HttpPolicyChain}.
-     */
     @Override
-    public HttpPolicyChain create(final String flowChainId, Flow flow, ExecutionPhase phase) {
-        final String key = getFlowKey(flow, phase);
-        HttpPolicyChain policyChain = policyChains.get(key);
-
-        if (policyChain == null) {
-            final List<Step> steps = getSteps(flow, phase);
-
-            final List<HttpPolicy> policies = steps
-                .stream()
-                .filter(Step::isEnabled)
-                .map(this::buildPolicyMetadata)
-                .map(policyMetadata -> (HttpPolicy) policyManager.create(phase, policyMetadata))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-            String policyChainId = getFlowId(flowChainId, flow);
-            policyChain = new HttpPolicyChain(policyChainId, policies, phase);
-            policyChain.addHooks(policyHooks);
-            policyChains.put(key, policyChain);
-        }
-
-        return policyChain;
+    protected String getIdSuffix() {
+        return "-policyChainFactory";
     }
 
+    @Override
+    protected List<Step> getSteps(Flow flow, ExecutionPhase phase) {
+        final List<Step> steps =
+            switch (phase) {
+                case REQUEST -> flow.getRequest();
+                case RESPONSE -> flow.getResponse();
+                default -> new ArrayList<>();
+            };
+
+        return steps != null ? steps : new ArrayList<>();
+    }
+
+    @Override
+    protected HttpPolicyChain buildPolicyChain(String flowChainId, Flow flow, ExecutionPhase phase, List<HttpPolicy> policies) {
+        String policyChainId = getPolicyChainId(flowChainId, flow);
+        HttpPolicyChain httpPolicyChain = new HttpPolicyChain(policyChainId, policies, phase);
+        httpPolicyChain.addHooks(policyHooks);
+        return httpPolicyChain;
+    }
+
+    @Override
     protected PolicyMetadata buildPolicyMetadata(Step step) {
         final PolicyMetadata policyMetadata = new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition());
         policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.EXECUTION_MODE, ExecutionMode.V4_EMULATION_ENGINE);
@@ -122,28 +88,7 @@ public class HttpPolicyChainFactory implements PolicyChainFactory<HttpPolicyChai
         return policyMetadata;
     }
 
-    protected List<Step> getSteps(Flow flow, ExecutionPhase phase) {
-        final List<Step> steps;
-
-        switch (phase) {
-            case REQUEST:
-                steps = flow.getRequest();
-                break;
-            case RESPONSE:
-                steps = flow.getResponse();
-                break;
-            default:
-                steps = new ArrayList<>();
-        }
-
-        return steps != null ? steps : new ArrayList<>();
-    }
-
-    private String getFlowKey(Flow flow, ExecutionPhase phase) {
-        return flow.hashCode() + "-" + phase.name();
-    }
-
-    private String getFlowId(final String flowChainId, final Flow flow) {
+    private String getPolicyChainId(final String flowChainId, final Flow flow) {
         StringBuilder flowNameBuilder = new StringBuilder(flowChainId).append(ID_SEPARATOR);
         if (StringUtil.isNullOrEmpty(flow.getName())) {
             flow

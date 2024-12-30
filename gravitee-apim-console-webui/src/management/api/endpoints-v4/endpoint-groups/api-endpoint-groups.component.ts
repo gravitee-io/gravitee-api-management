@@ -48,8 +48,13 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
   public isReadOnly = true;
   public api: ApiV4;
 
-  private licenseOptions = {
+  private messageLicenseOptions = {
     feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
+    context: UTMTags.GENERAL_ENDPOINT_CONFIG,
+  };
+
+  private nativeLicenseOptions = {
+    feature: ApimFeature.APIM_NATIVE_KAFKA_REACTOR,
     context: UTMTags.GENERAL_ENDPOINT_CONFIG,
   };
 
@@ -200,6 +205,6 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
   }
 
   public onRequestUpgrade() {
-    this.licenseService.openDialog(this.licenseOptions);
+    this.licenseService.openDialog(this.api.type === 'NATIVE' ? this.nativeLicenseOptions : this.messageLicenseOptions);
   }
 }

@@ -15,7 +15,9 @@
  */
 package io.gravitee.rest.api.service.v4.mapper;
 
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
@@ -39,23 +41,29 @@ public class GenericPlanMapper {
     private final FlowService flowService;
     private final PlanConverter planConverter;
     private final io.gravitee.rest.api.service.configuration.flow.FlowService flowServiceV2;
+    private final FlowCrudService flowCrudService;
 
     public GenericPlanMapper(
         final PlanMapper planMapper,
         @Lazy final FlowService flowService,
         final PlanConverter planConverter,
-        @Lazy final io.gravitee.rest.api.service.configuration.flow.FlowService flowServiceV2
+        @Lazy final io.gravitee.rest.api.service.configuration.flow.FlowService flowServiceV2,
+        @Lazy final FlowCrudService flowCrudService
     ) {
         this.planMapper = planMapper;
         this.flowService = flowService;
         this.planConverter = planConverter;
         this.flowServiceV2 = flowServiceV2;
+        this.flowCrudService = flowCrudService;
     }
 
     public GenericPlanEntity toGenericPlan(final Api api, final Plan plan) {
         var apiDefinitionVersion = api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
         return switch (apiDefinitionVersion) {
-            case V4 -> planMapper.toEntity(plan, flowService.findByReference(FlowReferenceType.PLAN, plan.getId()));
+            case V4 -> switch (api.getType()) {
+                case PROXY, MESSAGE -> planMapper.toEntity(plan, flowService.findByReference(FlowReferenceType.PLAN, plan.getId()));
+                case NATIVE -> planMapper.toNativeEntity(plan, flowCrudService.getNativePlanFlows(plan.getId()));
+            };
             case FEDERATED -> planMapper.toEntity(plan, null);
             default -> planConverter.toPlanEntity(plan, flowServiceV2.findByReference(FlowReferenceType.PLAN, plan.getId()));
         };

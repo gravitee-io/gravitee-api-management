@@ -49,14 +49,16 @@
               <div class="endpoint-card__form__config">
                 <gio-form-json-schema formControlName="configuration" [jsonSchema]="endpointSchema?.config"></gio-form-json-schema>
               </div>
-              <div class="endpoint-card__form__lb">
-                <span class="mat-h3">Configure the load balancer</span>
-                <mat-form-field class="endpoint-card__form__weight">
-                  <mat-label>Weight</mat-label>
-                  <input id="weight" type="number" aria-label="Endpoint weight input" matInput formControlName="weight" required />
-                  <mat-error *ngIf="formGroup.get('weight').hasError('required')"> Weight is required. </mat-error>
-                </mat-form-field>
-              </div>
+              @if (!isNativeKafkaApi) {
+                <div class="endpoint-card__form__lb">
+                  <span class="mat-h3">Configure the load balancer</span>
+                  <mat-form-field class="endpoint-card__form__weight">
+                    <mat-label>Weight</mat-label>
+                    <input id="weight" type="number" aria-label="Endpoint weight input" matInput formControlName="weight" required />
+                    <mat-error *ngIf="formGroup.get('weight').hasError('required')"> Weight is required. </mat-error>
+                  </mat-form-field>
+                </div>
+              }
             </div>
           </mat-tab>
           <mat-tab label="Configuration" *ngIf="endpointSchema.sharedConfig">
@@ -89,19 +91,16 @@
         </mat-tab-group>
       </div>
 
-      <div class="endpoint-card__actions">
-        <a mat-stroked-button type="button" [routerLink]="'../'">Previous</a>
-        <button
-          mat-flat-button
-          aria-label="Validate my endpoints"
-          color="primary"
-          type="submit"
-          [disabled]="formGroup.invalid || !formGroup.dirty"
-          (click)="onSave()"
-        >
-          Validate my endpoints
-        </button>
-      </div>
+      <button
+        mat-flat-button
+        aria-label="Validate my endpoints"
+        color="primary"
+        type="submit"
+        [disabled]="formGroup.invalid || !formGroup.dirty"
+        (click)="onSave()"
+      >
+        Validate my endpoints
+      </button>
     </form>
   </mat-card-content>
 </mat-card>

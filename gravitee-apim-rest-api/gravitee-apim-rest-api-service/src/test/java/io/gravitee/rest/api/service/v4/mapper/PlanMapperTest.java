@@ -19,11 +19,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -86,6 +89,51 @@ public class PlanMapperTest {
         assertEquals(plan.getApi(), planEntity.getApiId());
         assertEquals(plan.getGeneralConditions(), planEntity.getGeneralConditions());
         assertEquals(PlanSecurityType.KEY_LESS.getLabel(), planEntity.getSecurity().getType());
+        assertSame(flows, planEntity.getFlows());
+    }
+
+    @Test
+    public void shouldConvertNativePlanEntityToPlan() {
+        var planEntity = buildTestNativePlanEntity();
+
+        var planDefinition = planMapper.toNativeDefinition(planEntity);
+        assertEquals(planDefinition.getId(), planEntity.getId());
+        assertEquals(planDefinition.getName(), planEntity.getName());
+        assertEquals(planDefinition.getMode().name(), planEntity.getMode().name());
+        assertEquals(planDefinition.getStatus().name(), planEntity.getStatus().name());
+        assertEquals(planDefinition.getSecurity().getType(), planEntity.getSecurity().getType());
+        assertEquals(planDefinition.getSelectionRule(), planEntity.getSelectionRule());
+        assertSame(planDefinition.getTags(), planEntity.getTags());
+    }
+
+    @Test
+    public void shouldConvertPlanToNativePlanEntity() {
+        Plan plan = new Plan();
+        plan.setId("123123-1531-4563456166");
+        plan.setName("Plan name");
+        plan.setDescription("Description for the new plan");
+        plan.setValidation(Plan.PlanValidationType.AUTO);
+        plan.setType(Plan.PlanType.API);
+        plan.setMode(Plan.PlanMode.STANDARD);
+        plan.setStatus(Plan.Status.STAGING);
+        plan.setApi("api1");
+        plan.setGeneralConditions("general_conditions");
+        plan.setSecurity(Plan.PlanSecurityType.KEY_LESS);
+        plan.setApiType(ApiType.NATIVE);
+
+        List<NativeFlow> flows = new ArrayList<>();
+
+        var planEntity = planMapper.toNativeEntity(plan, flows);
+
+        assertEquals(plan.getId(), planEntity.getId());
+        assertEquals(plan.getName(), planEntity.getName());
+        assertEquals(plan.getDescription(), planEntity.getDescription());
+        assertEquals(plan.getValidation().name(), planEntity.getValidation().name());
+        assertEquals(plan.getStatus().name(), planEntity.getStatus().name());
+        assertEquals(plan.getApi(), planEntity.getApiId());
+        assertEquals(plan.getGeneralConditions(), planEntity.getGeneralConditions());
+        assertEquals(PlanSecurityType.KEY_LESS.getLabel(), planEntity.getSecurity().getType());
+        assertEquals(plan.getApiType(), planEntity.getApiType());
         assertSame(flows, planEntity.getFlows());
     }
 
@@ -234,6 +282,31 @@ public class PlanMapperTest {
 
     private PlanEntity buildTestPlanEntity() {
         final PlanEntity planEntity = new PlanEntity();
+        planEntity.setId("plan-id");
+        planEntity.setApiId("api-id");
+        planEntity.setName("plan-name");
+        planEntity.setDescription("description");
+        planEntity.setValidation(PlanValidationType.AUTO);
+        PlanSecurity security = new PlanSecurity();
+        security.setType(PlanSecurityType.JWT.getLabel());
+        security.setConfiguration("definition");
+        planEntity.setMode(PlanMode.STANDARD);
+        planEntity.setSecurity(security);
+        planEntity.setType(PlanType.API);
+        planEntity.setStatus(PlanStatus.STAGING);
+        planEntity.setFlows(new ArrayList<>());
+        planEntity.setCharacteristics(new ArrayList<>());
+        planEntity.setExcludedGroups(new ArrayList<>());
+        planEntity.setCommentRequired(true);
+        planEntity.setCommentMessage("comment-message");
+        planEntity.setGeneralConditions("conditions");
+        planEntity.setTags(new HashSet<>());
+        planEntity.setSelectionRule("selection-rule");
+        return planEntity;
+    }
+
+    private NativePlanEntity buildTestNativePlanEntity() {
+        final NativePlanEntity planEntity = new NativePlanEntity();
         planEntity.setId("plan-id");
         planEntity.setApiId("api-id");
         planEntity.setName("plan-name");

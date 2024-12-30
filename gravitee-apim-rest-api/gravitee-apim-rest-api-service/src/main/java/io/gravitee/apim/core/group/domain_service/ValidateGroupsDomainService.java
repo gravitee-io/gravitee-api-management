@@ -21,12 +21,14 @@ import static java.util.stream.Collectors.toSet;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
+import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.DefinitionVersion;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -66,12 +68,21 @@ public class ValidateGroupsDomainService implements Validator<ValidateGroupsDoma
 
         var errors = new ArrayList<Error>();
 
+        var noPrimaryOwnerResultFromIds = validateAndSanitizeNoPrimaryOwners(groupsFromIds, Group::getId);
+        var noPrimaryOwnerResultFromNames = validateAndSanitizeNoPrimaryOwners(groupsFromNames, Group::getName);
+
+        noPrimaryOwnerResultFromIds.errors().ifPresent(errors::addAll);
+        noPrimaryOwnerResultFromNames.errors().ifPresent(errors::addAll);
+
+        var sanitizedFromIds = noPrimaryOwnerResultFromIds.value().orElse(List.of());
+        var sanitizedFromNames = noPrimaryOwnerResultFromNames.value().orElse(List.of());
+
         if (DefinitionVersion.V2.getLabel().equals(input.definitionVersion)) {
-            sanitizedGroups.addAll(groupsFromIds.stream().map(Group::getName).toList());
-            sanitizedGroups.addAll(groupsFromNames.stream().map(Group::getName).toList());
+            sanitizedGroups.addAll(sanitizedFromIds.stream().map(Group::getName).toList());
+            sanitizedGroups.addAll(sanitizedFromNames.stream().map(Group::getName).toList());
         } else {
-            sanitizedGroups.addAll(groupsFromIds.stream().map(Group::getId).toList());
-            sanitizedGroups.addAll(groupsFromNames.stream().map(Group::getId).toList());
+            sanitizedGroups.addAll(sanitizedFromIds.stream().map(Group::getId).toList());
+            sanitizedGroups.addAll(sanitizedFromNames.stream().map(Group::getId).toList());
         }
 
         givenGroups.removeAll(groupIds);
@@ -82,5 +93,26 @@ public class ValidateGroupsDomainService implements Validator<ValidateGroupsDoma
         }
 
         return Result.ofBoth(input.sanitized(sanitizedGroups), errors);
+    }
+
+    private Result<List<Group>> validateAndSanitizeNoPrimaryOwners(List<Group> groups, Function<Group, String> idMapper) {
+        var sanitized = new ArrayList<>(groups);
+        var groupsWithPrimaryOwner = sanitized.stream().filter(group -> StringUtils.isNotEmpty(group.getApiPrimaryOwner())).toList();
+        sanitized.removeAll(groupsWithPrimaryOwner);
+        var errors = buildPrimaryOwnerErrors(groupsWithPrimaryOwner, idMapper);
+        return Result.ofBoth(sanitized, errors);
+    }
+
+    private List<Error> buildPrimaryOwnerErrors(List<Group> groupsWithPrimaryOwner, Function<Group, String> idMapper) {
+        return groupsWithPrimaryOwner
+            .stream()
+            .map(idMapper)
+            .map(id ->
+                Error.warning(
+                    "Group [%s] will be discarded because it contains an API Primary Owner member, which is not supported with by the operator.",
+                    id
+                )
+            )
+            .toList();
     }
 }

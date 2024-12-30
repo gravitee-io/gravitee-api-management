@@ -44,7 +44,7 @@
 
         <ng-container matColumnDef="count">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>Hits</th>
-          <td mat-cell *matCellDef="let element">{{ element.count }}</td>
+          <td mat-cell *matCellDef="let element">{{ element.count | number }}</td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

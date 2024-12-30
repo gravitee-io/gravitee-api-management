@@ -15,15 +15,19 @@
  */
 package io.gravitee.apim.core.api.model;
 
+import io.gravitee.apim.core.api.model.property.DynamicApiProperties;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.listener.AbstractListener;
+import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -220,11 +224,11 @@ public class Api {
     public Api setPlans(List<Plan> plans) {
         switch (definitionVersion) {
             case V4 -> {
-                if (apiDefinitionHttpV4.getType() == ApiType.NATIVE) {
+                if (this.type == ApiType.NATIVE) {
                     apiDefinitionNativeV4.setPlans(plans.stream().map(Plan::getPlanDefinitionNativeV4).toList());
+                } else {
+                    apiDefinitionHttpV4.setPlans(plans.stream().map(Plan::getPlanDefinitionHttpV4).toList());
                 }
-
-                apiDefinitionHttpV4.setPlans(plans.stream().map(Plan::getPlanDefinitionHttpV4).toList());
             }
             case V1, V2 -> apiDefinition.setPlans(plans.stream().map(Plan::getPlanDefinitionV2).collect(Collectors.toList()));
             case FEDERATED -> {
@@ -232,6 +236,22 @@ public class Api {
             }
         }
         return this;
+    }
+
+    public List<? extends AbstractListener<? extends AbstractEntrypoint>> getApiListeners() {
+        if (definitionVersion != DefinitionVersion.V4) {
+            return Collections.emptyList();
+        }
+
+        if (type == ApiType.NATIVE) {
+            return Optional.ofNullable(apiDefinitionNativeV4.getListeners()).orElse(Collections.emptyList());
+        }
+
+        return Optional.ofNullable(apiDefinitionHttpV4.getListeners()).orElse(Collections.emptyList());
+    }
+
+    public boolean isNative() {
+        return type == ApiType.NATIVE;
     }
 
     /**
@@ -244,8 +264,8 @@ public class Api {
         if (definitionVersion != DefinitionVersion.V4) {
             return false;
         }
-        final ApiProperties apiProperties = new ApiProperties(this.apiDefinitionHttpV4.getProperties());
-        final ApiProperties.DynamicPropertiesResult properties = apiProperties.updateDynamicProperties(dynamicProperties);
+        final DynamicApiProperties apiProperties = new DynamicApiProperties(this.apiDefinitionHttpV4.getProperties());
+        final DynamicApiProperties.DynamicPropertiesResult properties = apiProperties.updateDynamicProperties(dynamicProperties);
 
         this.getApiDefinitionHttpV4().setProperties(properties.orderedProperties());
 

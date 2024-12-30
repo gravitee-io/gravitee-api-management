@@ -53,6 +53,7 @@ export interface TopApisV4 {
 })
 export class TopApisWidgetComponent implements OnChanges {
   @Input() data: TopApisV4[];
+  @Input() period: string;
 
   displayedColumns = ['name', 'count'];
   filteredTableData: TopApisV4[];
@@ -74,6 +75,7 @@ export class TopApisWidgetComponent implements OnChanges {
   navigateToApi(apiKey: string): void {
     this.router.navigate(['../../', 'apis', apiKey, 'v4', 'analytics'], {
       relativeTo: this.activatedRoute,
+      queryParams: { period: this.period },
     });
   }
 

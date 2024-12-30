@@ -30,6 +30,7 @@ public class ScoringRulesetFixture {
             .id("ruleset-id")
             .name("ruleset-name")
             .description("ruleset-description")
+            .format(ScoringRuleset.Format.GRAVITEE_PROXY)
             .payload("ruleset-payload")
             .referenceId("environment-id")
             .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
@@ -41,5 +42,9 @@ public class ScoringRulesetFixture {
 
     public static ScoringRuleset aRuleset(String id) {
         return BASE.get().id(id).payload("payload-" + id).build();
+    }
+
+    public static ScoringRuleset aRuleset(String id, ScoringRuleset.Format format) {
+        return aRuleset().toBuilder().format(format).build();
     }
 }

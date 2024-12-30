@@ -21,7 +21,6 @@ import static io.gravitee.apim.plugin.apiservice.healthcheck.http.HttpHealthChec
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -37,7 +36,7 @@ import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
+import io.gravitee.gateway.reactive.api.connector.endpoint.BaseEndpointConnector;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
@@ -100,7 +99,7 @@ public class HttpHealthCheckServiceTest {
     private AlertEventProducer alertEventProducer;
 
     @Mock
-    private EndpointConnector endpointConnector;
+    private BaseEndpointConnector endpointConnector;
 
     @Mock
     private ManagedEndpointGroup managedEndpointGroup;

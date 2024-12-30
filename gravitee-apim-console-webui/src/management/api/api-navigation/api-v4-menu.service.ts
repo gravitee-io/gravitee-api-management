@@ -42,15 +42,15 @@ export class ApiV4MenuService implements ApiMenuService {
 
     const subMenuItems: MenuItem[] = [
       this.addConfigurationMenuEntry(),
-      ...(this.constants.org.settings?.scoring?.enabled ? [this.addApiScoreMenuEntry()] : []),
-      this.addEntrypointsMenuEntry(hasTcpListeners),
+      ...(this.constants.org.settings?.scoring?.enabled && api.type !== 'NATIVE' ? [this.addApiScoreMenuEntry()] : []),
+      this.addEntrypointsMenuEntry(hasTcpListeners, api),
       this.addEndpointsMenuEntry(api, hasTcpListeners),
       this.addPoliciesMenuEntry(hasTcpListeners),
       this.addConsumersMenuEntry(hasTcpListeners),
       this.addDocumentationMenuEntry(api),
       this.addDeploymentMenuEntry(),
-      this.addApiTrafficMenuEntry(hasTcpListeners),
-      this.addApiRuntimeAlertsMenuEntry(),
+      ...(api.type !== 'NATIVE' ? [this.addApiTrafficMenuEntry(hasTcpListeners)] : []),
+      ...(api.type !== 'NATIVE' ? [this.addApiRuntimeAlertsMenuEntry()] : []),
     ].filter((entry) => entry != null && !entry.tabs?.every((tab) => tab.routerLink === 'DISABLED'));
 
     return { subMenuItems, groupItems: [] };
@@ -131,7 +131,23 @@ export class ApiV4MenuService implements ApiMenuService {
     };
   }
 
-  private addEntrypointsMenuEntry(hasTcpListeners: boolean): MenuItem {
+  private addEntrypointsMenuEntry(hasTcpListeners: boolean, api: ApiV4): MenuItem {
+    const menuItem: MenuItem = {
+      displayName: 'Entrypoints',
+      icon: 'entrypoints',
+      header: {
+        title: 'Entrypoints',
+        subtitle: 'Define the protocol and configuration settings by which the API consumer accesses the Gateway API',
+      },
+    };
+
+    if (api.type === 'NATIVE') {
+      return {
+        ...menuItem,
+        routerLink: 'v4/entrypoints',
+      };
+    }
+
     const tabs: MenuItem[] = [
       {
         displayName: 'Entrypoints',
@@ -154,18 +170,30 @@ export class ApiV4MenuService implements ApiMenuService {
     }
 
     return {
-      displayName: 'Entrypoints',
-      icon: 'entrypoints',
+      ...menuItem,
       routerLink: '',
-      header: {
-        title: 'Entrypoints',
-        subtitle: 'Define the protocol and configuration settings by which the API consumer accesses the Gateway API',
-      },
       tabs: tabs,
     };
   }
 
   private addEndpointsMenuEntry(api: ApiV4, hasTcpListeners: boolean): MenuItem {
+    const menuItem: MenuItem = {
+      displayName: 'Endpoints',
+      icon: 'endpoints',
+      header: {
+        title: 'Endpoints',
+        subtitle:
+          'Define the protocol and configuration settings by which the Gateway API will fetch data from, or post data to, the backend API',
+      },
+    };
+
+    if (api.type === 'NATIVE') {
+      return {
+        ...menuItem,
+        routerLink: 'v4/endpoints',
+      };
+    }
+
     const tabs: MenuItem[] = [];
 
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
@@ -181,15 +209,18 @@ export class ApiV4MenuService implements ApiMenuService {
         routerLink: 'v4/failover',
       });
 
+    if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
+      if (api.type === 'PROXY' && !hasTcpListeners) {
+        tabs.push({
+          displayName: 'Health Check Dashboard',
+          routerLink: 'v4/health-check-dashboard',
+        });
+      }
+    }
+
     return {
-      displayName: 'Endpoints',
-      icon: 'endpoints',
+      ...menuItem,
       routerLink: tabs.length === 1 ? tabs[0].routerLink : '',
-      header: {
-        title: 'Endpoints',
-        subtitle:
-          'Define the protocol and configuration settings by which the Gateway API will fetch data from, or post data to, the backend API',
-      },
       tabs: tabs.length === 1 ? undefined : tabs,
     };
   }

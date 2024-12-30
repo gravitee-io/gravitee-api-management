@@ -341,4 +341,7 @@ public interface GraviteeMapper {
     ScoringReportMongo map(ScoringReport source);
     ScoringRuleset map(ScoringRulesetMongo source);
     ScoringRulesetMongo map(ScoringRuleset source);
+
+    ScoringFunction map(ScoringFunctionMongo source);
+    ScoringFunctionMongo map(ScoringFunction source);
 }

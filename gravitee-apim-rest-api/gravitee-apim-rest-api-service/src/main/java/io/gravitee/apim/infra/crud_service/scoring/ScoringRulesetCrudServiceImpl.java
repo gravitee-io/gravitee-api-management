@@ -58,6 +58,16 @@ public class ScoringRulesetCrudServiceImpl extends AbstractService implements Sc
     }
 
     @Override
+    public ScoringRuleset update(ScoringRuleset ruleset) {
+        try {
+            var updated = scoringRulesetRepository.update(ScoringRulesetAdapter.INSTANCE.toRepository(ruleset));
+            return ScoringRulesetAdapter.INSTANCE.toEntity(updated);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("Error when updating Scoring Ruleset: " + ruleset.id(), e);
+        }
+    }
+
+    @Override
     public void delete(String id) {
         try {
             scoringRulesetRepository.delete(id);

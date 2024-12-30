@@ -41,6 +41,7 @@ import io.reactivex.rxjava3.core.Single;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -62,20 +63,43 @@ class SpecGenProviderTest {
     @Mock
     InstallationService installationService;
 
-    private SpecGenProviderImpl specGenProvider;
-
-    @BeforeEach
-    void setUp() {
-        specGenProvider = new SpecGenProviderImpl(cockpitConnector, installationService);
+    public static Stream<Arguments> params_must_return_state_unavailable_reply_due_to_not_enabled() {
+        return Stream.of(
+            Arguments.of(GET_STATE, false, false),
+            Arguments.of(GET_STATE, true, false),
+            Arguments.of(GET_STATE, false, true),
+            Arguments.of(POST_JOB, false, false),
+            Arguments.of(POST_JOB, true, false),
+            Arguments.of(POST_JOB, false, true)
+        );
     }
 
-    public static Stream<ApiSpecGenOperation> params_that_must_return_state_request_reply_due_to_error() {
+    @ParameterizedTest
+    @MethodSource("params_must_return_state_unavailable_reply_due_to_not_enabled")
+    void must_return_state_unavailable_reply_due_to_not_enabled(
+        ApiSpecGenOperation operation,
+        boolean cloudEnabled,
+        boolean specGenEnabled
+    ) {
+        var specGenProvider = new SpecGenProviderImpl(cloudEnabled, specGenEnabled, cockpitConnector, installationService);
+
+        specGenProvider
+            .performRequest(generateRandom(), operation, generateRandom())
+            .test()
+            .awaitDone(2, SECONDS)
+            .assertComplete()
+            .assertNoErrors()
+            .assertValue(reply -> UNAVAILABLE.equals(reply.requestState()));
+    }
+
+    public static @NotNull Stream<ApiSpecGenOperation> params_that_must_return_state_request_reply_due_to_error() {
         return Arrays.stream(ApiSpecGenOperation.values());
     }
 
     @ParameterizedTest
     @MethodSource("params_that_must_return_state_request_reply_due_to_error")
     void must_return_state_request_reply_due_to_error(ApiSpecGenOperation operation) {
+        var specGenProvider = new SpecGenProviderImpl(true, true, cockpitConnector, installationService);
         var installationEntity = mock(InstallationEntity.class);
         var additionalInformation = Map.of(COCKPIT_INSTALLATION_ID, generateRandom());
 
@@ -110,6 +134,7 @@ class SpecGenProviderTest {
     @ParameterizedTest
     @MethodSource("params_that_must_return_state_request_reply")
     void must_return_state_request_reply(ApiSpecGenRequestState state, ApiSpecGenOperation operation) {
+        var specGenProvider = new SpecGenProviderImpl(true, true, cockpitConnector, installationService);
         var installationEntity = mock(InstallationEntity.class);
         var additionalInformation = Map.of(COCKPIT_INSTALLATION_ID, generateRandom());
 

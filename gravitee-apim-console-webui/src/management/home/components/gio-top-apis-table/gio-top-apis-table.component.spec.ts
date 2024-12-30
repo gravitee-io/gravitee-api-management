@@ -115,7 +115,7 @@ describe('GioStatsTableComponent', () => {
     expect(link2.length).toEqual(1);
 
     const nbHits = await rows[0].getCellTextByIndex({ columnName: 'value' });
-    expect(nbHits).toEqual(['2764281']);
+    expect(nbHits).toEqual(['2,764,281']);
 
     const paginotorHarness = await loader.getHarness(MatPaginatorHarness);
     expect(paginotorHarness).toBeDefined();

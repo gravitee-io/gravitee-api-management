@@ -54,5 +54,7 @@ public class KafkaListener extends NativeListener {
 
     protected KafkaListener(KafkaListenerBuilder<?, ?> b) {
         super(ListenerType.KAFKA, b);
+        this.host = b.host;
+        this.port = b.port;
     }
 }

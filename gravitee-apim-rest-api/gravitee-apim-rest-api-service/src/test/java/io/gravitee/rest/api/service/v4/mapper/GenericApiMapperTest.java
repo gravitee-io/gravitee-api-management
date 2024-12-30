@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.v4.mapper;
 import static org.mockito.Mockito.verify;
 
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import org.junit.Before;
@@ -47,12 +48,23 @@ public class GenericApiMapperTest {
     }
 
     @Test
-    public void shouldCallV4ApiMapperWhenDefinitionVersionV4() {
+    public void shouldCallHttpV4ApiMapperWhenDefinitionVersionV4AndNotNative() {
         Api api = new Api();
         api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.PROXY);
 
         genericApiMapper.toGenericApi(api, null);
         verify(apiMapper).toEntity(api, null);
+    }
+
+    @Test
+    public void shouldCallNativeV4ApiMapperWhenDefinitionVersionV4AndNative() {
+        Api api = new Api();
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.NATIVE);
+
+        genericApiMapper.toGenericApi(api, null);
+        verify(apiMapper).toNativeEntity(api, null);
     }
 
     @Test

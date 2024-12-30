@@ -19,7 +19,7 @@ import io.gravitee.apim.common.mapper.SslOptionsMapper;
 import io.gravitee.apim.common.mapper.TcpClientOptionsMapper;
 import io.gravitee.apim.common.mapper.TcpProxyOptionsMapper;
 import io.gravitee.apim.common.mapper.TcpTargetMapper;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.tcp.TcpExecutionContext;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.vertx.client.tcp.VertxTcpClientFactory;
 import io.gravitee.plugin.endpoint.tcp.proxy.configuration.TcpProxyEndpointConnectorConfiguration;
@@ -38,7 +38,7 @@ public class TcpClientFactory {
     private final AtomicBoolean tcpClientCreated = new AtomicBoolean(false);
 
     public NetClient getOrBuildTcpClient(
-        final ExecutionContext ctx,
+        final TcpExecutionContext ctx,
         final TcpProxyEndpointConnectorConfiguration configuration,
         final TcpProxyEndpointConnectorSharedConfiguration sharedConfiguration
     ) {
@@ -54,7 +54,7 @@ public class TcpClientFactory {
     }
 
     protected VertxTcpClientFactory.VertxTcpClientFactoryBuilder buildTcpClient(
-        final ExecutionContext ctx,
+        final TcpExecutionContext ctx,
         final TcpProxyEndpointConnectorConfiguration configuration,
         final TcpProxyEndpointConnectorSharedConfiguration sharedConfiguration
     ) {

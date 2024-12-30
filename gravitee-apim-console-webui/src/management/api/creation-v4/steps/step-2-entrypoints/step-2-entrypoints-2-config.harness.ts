@@ -21,6 +21,7 @@ import { GioFormListenersVirtualHostHarness } from '../../../component/gio-form-
 import { Qos } from '../../../../../entities/management-api-v2';
 import { GioFormQosHarness } from '../../../component/gio-form-qos/gio-form-qos.harness';
 import { GioFormListenersTcpHostsHarness } from '../../../component/gio-form-listeners/gio-form-listeners-tcp-hosts/gio-form-listeners-tcp-hosts.harness';
+import { GioFormListenersKafkaHostHarness } from '../../../component/gio-form-listeners/gio-form-listeners-kafka/gio-form-listeners-kafka-host.harness';
 
 export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
   static hostSelector = 'step-2-entrypoints-2-config';
@@ -47,6 +48,8 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
 
   protected getQosSelect = (entrypointId: string) =>
     this.locatorFor(GioFormQosHarness.with({ selector: '[ng-reflect-id="' + entrypointId + '"]' }));
+
+  protected getKafkaHostPort = this.locatorFor(GioFormListenersKafkaHostHarness);
 
   async clickPrevious(): Promise<void> {
     return this.getPreviousButton().then((elt) => elt.click());
@@ -124,5 +127,20 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
     return this.getSwitchListenersTypeButton()
       .then(async (elt) => elt != null && !(await elt.isDisabled()))
       .catch(() => false);
+  }
+
+  /**
+   * Kafka Listener configuration
+   */
+  async hasKafkaListenersForm(): Promise<boolean> {
+    return this.getKafkaHostPort()
+      .then((elt) => elt != null)
+      .catch(() => false);
+  }
+
+  async fillHost(newHostValue: string): Promise<void> {
+    return this.getKafkaHostPort()
+      .then((component) => component.getHostInput())
+      .then((hostInput) => hostInput.setValue(newHostValue));
   }
 }

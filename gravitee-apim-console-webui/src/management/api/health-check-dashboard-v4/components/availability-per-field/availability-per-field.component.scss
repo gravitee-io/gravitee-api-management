@@ -1,0 +1,20 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.card {
+  height: 100%;
+
+  &__title {
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    margin: 0;
+  }
+
+  &__loader {
+    margin-top: 16px;
+  }
+
+  &__table {
+    padding: 0;
+  }
+}

@@ -17,6 +17,8 @@ package io.gravitee.definition.model.v4.analytics.logging;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,6 +30,8 @@ import lombok.ToString;
  * @author GraviteeSource Team
  */
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 @Getter
 @Setter
 @ToString
@@ -35,10 +39,13 @@ import lombok.ToString;
 @Schema(name = "LoggingV4")
 public class Logging implements Serializable {
 
+    @Builder.Default
     private LoggingMode mode = new LoggingMode();
 
+    @Builder.Default
     private LoggingPhase phase = new LoggingPhase();
 
+    @Builder.Default
     private LoggingContent content = new LoggingContent();
 
     private String condition;

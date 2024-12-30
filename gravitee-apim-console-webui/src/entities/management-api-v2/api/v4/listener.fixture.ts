@@ -18,6 +18,7 @@ import { isFunction } from 'lodash';
 
 import { HttpListener } from './httpListener';
 import { SubscriptionListener } from './subscriptionListener';
+import { KafkaListener } from './kafkaListener';
 
 export function fakeHttpListener(modifier?: Partial<HttpListener> | ((baseListener: HttpListener) => HttpListener)): HttpListener {
   const base: HttpListener = {
@@ -67,6 +68,28 @@ export function fakeSubscriptionListener(
             maxConcurrentConnections: 5,
           },
         },
+      },
+    ],
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}
+export function fakeKafkaListener(modifier?: Partial<KafkaListener> | ((baseListener: KafkaListener) => KafkaListener)): KafkaListener {
+  const base: KafkaListener = {
+    type: 'KAFKA',
+    host: 'kafka-host',
+    port: 1000,
+    entrypoints: [
+      {
+        type: 'native-kafka',
+        configuration: {},
       },
     ],
   };

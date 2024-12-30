@@ -29,7 +29,7 @@ public class ListenerModelFixtures {
         io.gravitee.definition.model.v4.listener.http.HttpListener
             .builder()
             // Listener
-            .entrypoints(List.of(EntrypointModelFixtures.aModelEntrypointV4()))
+            .entrypoints(List.of(EntrypointModelFixtures.aModelEntrypointHttpV4()))
             .servers(List.of("my-server1", "my-server2"))
             // HttpListener specific
             .paths(List.of(BASE_MODEL_PATH_V4.build()))
@@ -40,7 +40,7 @@ public class ListenerModelFixtures {
         io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener
             .builder()
             // BaseListener
-            .entrypoints(List.of(EntrypointModelFixtures.aModelEntrypointV4()))
+            .entrypoints(List.of(EntrypointModelFixtures.aModelEntrypointHttpV4()))
             .servers(List.of("my-server1", "my-server2"));
 
     private static final io.gravitee.definition.model.v4.listener.tcp.TcpListener.TcpListenerBuilder<?, ?> BASE_MODEL_TCP_LISTENER =
@@ -48,7 +48,16 @@ public class ListenerModelFixtures {
             .builder()
             // BaseListener
             .hosts(List.of("fake.host.io"))
-            .entrypoints(List.of(EntrypointModelFixtures.aModelEntrypointV4()))
+            .entrypoints(List.of(EntrypointModelFixtures.aModelEntrypointHttpV4()))
+            .servers(List.of("my-server1", "my-server2"));
+
+    private static final io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener.KafkaListenerBuilder<?, ?> BASE_MODEL_KAFKA_LISTENER =
+        io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener
+            .builder()
+            // BaseListener
+            .host("fake.host.io")
+            .port(1000)
+            .entrypoints(List.of(EntrypointModelFixtures.aModelEntrypointNativeV4()))
             .servers(List.of("my-server1", "my-server2"));
 
     public static io.gravitee.definition.model.v4.listener.http.HttpListener aModelHttpListener() {
@@ -61,5 +70,9 @@ public class ListenerModelFixtures {
 
     public static io.gravitee.definition.model.v4.listener.tcp.TcpListener aModelTcpListener() {
         return BASE_MODEL_TCP_LISTENER.build();
+    }
+
+    public static io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener aModelKafkaListener() {
+        return BASE_MODEL_KAFKA_LISTENER.build();
     }
 }

@@ -1,0 +1,24 @@
+.kafka-configuration {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 16px;
+  padding: 0 8px 8px 8px;
+
+  &__host {
+    flex: 1;
+  }
+
+  &__domain {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex: 1;
+    justify-content: space-between;
+
+    gio-clipboard-copy-icon {
+      padding-right: 6px;
+      margin-top: 6px;
+    }
+  }
+}

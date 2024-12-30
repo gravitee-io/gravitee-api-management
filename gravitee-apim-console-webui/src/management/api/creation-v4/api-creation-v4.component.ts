@@ -15,7 +15,7 @@
  */
 
 import { Component, HostBinding, Injector, OnDestroy, OnInit } from '@angular/core';
-import { catchError, concatMap, map, switchMap, takeUntil, toArray } from 'rxjs/operators';
+import { catchError, concatMap, filter, map, switchMap, takeUntil, toArray } from 'rxjs/operators';
 import { from, Observable, of, Subject, throwError } from 'rxjs';
 import { isEmpty, isString } from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -29,11 +29,12 @@ import { Step1MenuItemComponent } from './steps/step-1-menu-item/step-1-menu-ite
 import { StepEntrypointMenuItemComponent } from './steps/step-connector-menu-item/step-entrypoint-menu-item.component';
 import { StepEndpointMenuItemComponent } from './steps/step-connector-menu-item/step-endpoint-menu-item.component';
 import { Step4MenuItemComponent } from './steps/step-4-menu-item/step-4-menu-item.component';
+import { ApiCreationCommonService } from './services/api-creation-common.service';
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { ApiPlanV2Service } from '../../../services-ngx/api-plan-v2.service';
-import { PlanV4, Api, CreateApiV4, EndpointGroupV4, Entrypoint, Listener } from '../../../entities/management-api-v2';
+import { PlanV4, Api, CreateApiV4, EndpointGroupV4, Entrypoint, Listener, ListenerType } from '../../../entities/management-api-v2';
 import { ApiReviewV2Service } from '../../../services-ngx/api-review-v2.service';
 
 export interface Result {
@@ -190,12 +191,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
       const listenerConfig = {
         type: listenersType,
-        ...(listenersType === 'HTTP'
-          ? { paths: apiCreationPayload.paths }
-          : listenersType === 'TCP'
-            ? // api is expecting hosts as a list of strings
-              { hosts: apiCreationPayload.hosts.map((host) => host.host) }
-            : {}),
+        ...this.getListenerSpecificConfig(listenersType, apiCreationPayload),
         entrypoints,
       };
       return [...listeners, listenerConfig];
@@ -242,12 +238,14 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     }
 
     const api = previousResult.result.api;
+    const canPublishPlans = ApiCreationCommonService.canPublishPlans(previousResult.apiCreationPayload);
 
     // For each plan
     return from(previousResult.apiCreationPayload.plans).pipe(
       concatMap((plan) =>
         // Create it
         this.apiPlanV2Service.create(api.id, { ...plan, definitionVersion: 'V4' }).pipe(
+          filter((_) => canPublishPlans),
           concatMap((plan) =>
             // If create success, publish it
             this.apiPlanV2Service.publish(api.id, plan.id).pipe(
@@ -319,5 +317,18 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
         });
       }),
     );
+  }
+
+  private getListenerSpecificConfig(listenerType: ListenerType, apiCreationPayload: ApiCreationPayload): object {
+    switch (listenerType) {
+      case 'HTTP':
+        return { paths: apiCreationPayload.paths };
+      case 'TCP':
+        return { hosts: apiCreationPayload.hosts.map((host) => host.host) };
+      case 'KAFKA':
+        return { host: apiCreationPayload.host?.host, port: apiCreationPayload.port?.port };
+      default:
+        return {};
+    }
   }
 }

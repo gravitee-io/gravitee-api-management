@@ -15,8 +15,6 @@
  */
 package io.gravitee.gateway.reactive.core;
 
-import io.gravitee.common.security.CertificateUtils;
-import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.context.TlsSession;
 import java.security.Principal;
 import java.security.cert.Certificate;
@@ -25,15 +23,15 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSessionContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.StringUtils;
 
+/**
+ * Default implementation of {@link TlsSession} which acts as a wrapper for {@link SSLSession}
+ */
 @RequiredArgsConstructor
 @Slf4j
 public class DefaultTlsSession implements TlsSession {
 
     private final SSLSession delegate;
-    private final HttpHeaders headers;
-    private final String clientAuthCertHeaderName;
 
     @Override
     public byte[] getId() {
@@ -87,29 +85,7 @@ public class DefaultTlsSession implements TlsSession {
 
     @Override
     public Certificate[] getPeerCertificates() throws SSLPeerUnverifiedException {
-        if (!canExtractClientCertFromHeader() && isSSLConnection()) {
-            return delegate.getPeerCertificates();
-        }
-
-        if (!isSSLConnection()) {
-            return extractPeerCertificatesFromHeader();
-        }
-
-        try {
-            final Certificate[] peerCertificates = delegate.getPeerCertificates();
-            if (peerCertificates == null || peerCertificates.length == 0) {
-                log.debug("Unable to retrieve peer certificate from request, extracting from header {}", clientAuthCertHeaderName);
-                return extractPeerCertificatesFromHeader();
-            }
-            return peerCertificates;
-        } catch (SSLPeerUnverifiedException e) {
-            log.debug("Unable to retrieve peer certificate from request, extracting from header {}", clientAuthCertHeaderName, e);
-            return extractPeerCertificatesFromHeader();
-        }
-    }
-
-    private boolean canExtractClientCertFromHeader() {
-        return StringUtils.hasText(clientAuthCertHeaderName);
+        return delegate.getPeerCertificates();
     }
 
     @Override
@@ -160,12 +136,5 @@ public class DefaultTlsSession implements TlsSession {
     @Override
     public boolean isSSLConnection() {
         return delegate != null;
-    }
-
-    private Certificate[] extractPeerCertificatesFromHeader() {
-        return CertificateUtils
-            .extractCertificate(headers, clientAuthCertHeaderName)
-            .map(certificate -> new Certificate[] { certificate })
-            .orElse(new Certificate[0]);
     }
 }

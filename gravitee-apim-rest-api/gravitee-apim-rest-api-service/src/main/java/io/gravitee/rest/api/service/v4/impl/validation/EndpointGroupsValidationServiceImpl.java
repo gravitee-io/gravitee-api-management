@@ -105,6 +105,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
                     .getEndpoints()
                     .forEach(endpoint -> {
                         validateUniqueEndpointName(endpoint.getName(), names);
+                        validateEndpointWeight(endpoint);
                         validateEndpointType(endpoint.getType());
                         validateEndpointMatchType(endpointGroup, endpoint);
                         validateEndpointConfiguration(endpointConnector, endpoint);
@@ -116,6 +117,12 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         });
 
         return endpointGroups;
+    }
+
+    private void validateEndpointWeight(final AbstractEndpoint endpoint) {
+        if (endpoint.getWeight() <= 0) {
+            endpoint.setWeight(AbstractEndpoint.DEFAULT_WEIGHT);
+        }
     }
 
     private void validateEndpointConfiguration(ConnectorPluginEntity endpointConnector, AbstractEndpoint endpoint) {

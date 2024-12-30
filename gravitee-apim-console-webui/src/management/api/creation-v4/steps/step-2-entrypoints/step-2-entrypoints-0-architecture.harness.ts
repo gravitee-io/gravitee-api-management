@@ -50,6 +50,6 @@ export class Step2Entrypoints0ArchitectureHarness extends ComponentHarness {
 
   async fillAndValidate(architecture: string): Promise<void> {
     await this.getArchitecture().then((f) => f.selectOptionById(architecture));
-    return this.clickValidate();
+    return await this.clickValidate();
   }
 }

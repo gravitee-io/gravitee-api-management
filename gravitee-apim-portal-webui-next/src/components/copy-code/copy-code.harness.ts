@@ -18,7 +18,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class CopyCodeHarness extends ContentContainerComponentHarness {
   public static hostSelector = 'app-copy-code';
-  protected locateCodeText = this.locatorFor('.copy-code__command-line__code');
+  protected locateCodeText = this.locatorFor('.copy-code__command-line__container__code');
   protected locateVisibilityBtn = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Hide password"]' }));
 
   public static with(options: BaseHarnessFilters): HarnessPredicate<CopyCodeHarness> {

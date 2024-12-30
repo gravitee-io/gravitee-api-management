@@ -17,4 +17,4 @@
 /**
  * Listener type.
  */
-export type ListenerType = 'HTTP' | 'SUBSCRIPTION' | 'TCP';
+export type ListenerType = 'HTTP' | 'SUBSCRIPTION' | 'TCP' | 'KAFKA';

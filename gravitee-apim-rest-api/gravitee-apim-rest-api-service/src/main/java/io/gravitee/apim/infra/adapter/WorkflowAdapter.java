@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.workflow.model.Workflow;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -24,6 +25,8 @@ public interface WorkflowAdapter {
     WorkflowAdapter INSTANCE = Mappers.getMapper(WorkflowAdapter.class);
 
     Workflow toEntity(io.gravitee.repository.management.model.Workflow source);
+
+    List<Workflow> toEntities(List<io.gravitee.repository.management.model.Workflow> source);
 
     io.gravitee.repository.management.model.Workflow toRepository(Workflow source);
 }

@@ -1,0 +1,19 @@
+databaseChangeLog:
+    - changeSet:
+          id: 05_add_error_support_to_scoring_table
+          author: GraviteeSource Team
+          changes:
+              - addColumn:
+                    tableName: ${gravitee_prefix}scoring_reports
+                    columns:
+                        - column:
+                              name: error_code
+                              type: nvarchar(256)
+                        - column:
+                              name: row_type
+                              type: nvarchar(16)
+              - addNotNullConstraint:
+                    tableName: ${gravitee_prefix}scoring_reports
+                    columnDataType: nvarchar(16)
+                    columnName: row_type
+                    defaultNullValue: DIAGNOSTIC

@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, Signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { isEqual, isNil } from 'lodash';
 import { MatDialog } from '@angular/material/dialog';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 import {
   ApiHistoryV4DeploymentCompareDialogComponent,
@@ -70,6 +71,11 @@ export class ApiHistoryV4Component {
   protected deploymentState$: Observable<string> = this.getLastApiFetch$.pipe(map((api) => api.deploymentState));
 
   protected compareEvent?: [Event, Event];
+
+  private isV4Native$: Signal<boolean> = toSignal(
+    this.getLastApiFetch$.pipe(map((api) => api.definitionVersion === 'V4' && api.type === 'NATIVE')),
+  );
+
   get compareEventLabel(): string {
     return `version ${this.compareEvent[0]?.properties['DEPLOYMENT_NUMBER']} with ${this.compareEvent[1]?.properties['DEPLOYMENT_NUMBER']}`;
   }
@@ -94,16 +100,17 @@ export class ApiHistoryV4Component {
     this.compareEvent = events;
     const jsonDefinitionLeft = this.extractApiDefinition(events[0]);
     const jsonDefinitionRight = this.extractApiDefinition(events[1]);
+    const isNativeV4 = this.isV4Native$();
     this.getCompareDialog$({
       left: {
         eventId: events[0].id,
-        hideRollback: deploymentStates !== 'NEED_REDEPLOY' && this.definitionInUseId === events[0].id,
+        hideRollback: (deploymentStates !== 'NEED_REDEPLOY' && this.definitionInUseId === events[0].id) || isNativeV4,
         apiDefinition: jsonDefinitionLeft,
         version: events[0].properties['DEPLOYMENT_NUMBER'],
       },
       right: {
         eventId: events[1].id,
-        hideRollback: deploymentStates !== 'NEED_REDEPLOY' && this.definitionInUseId === events[1].id,
+        hideRollback: (deploymentStates !== 'NEED_REDEPLOY' && this.definitionInUseId === events[1].id) || isNativeV4,
         apiDefinition: jsonDefinitionRight,
         version: events[1].properties['DEPLOYMENT_NUMBER'],
       },
@@ -117,19 +124,20 @@ export class ApiHistoryV4Component {
         switchMap((currentDeploymentDefinition) => {
           const jsonDefinitionToCompare = this.extractApiDefinition(eventToCompare);
           const jsonCurrentDefinition = JSON.stringify(currentDeploymentDefinition, null, 2);
+          const isNativeV4 = this.isV4Native$();
 
           return this.getCompareDialog$({
             left: {
               eventId: eventToCompare.id,
               apiDefinition: jsonDefinitionToCompare,
               version: eventToCompare.properties['DEPLOYMENT_NUMBER'],
-              hideRollback: false,
+              hideRollback: isNativeV4,
             },
             right: {
               eventId: null,
               apiDefinition: jsonCurrentDefinition,
               version: 'to be deployed',
-              hideRollback: true,
+              hideRollback: isNativeV4,
             },
           });
         }),
@@ -148,6 +156,7 @@ export class ApiHistoryV4Component {
               {
                 data: {
                   version: 'to be deployed',
+                  hideRollback: this.isV4Native$(),
                   apiDefinition: JSON.stringify(currentDeploymentDefinition, null, 2),
                 },
                 width: GIO_DIALOG_WIDTH.LARGE,
@@ -172,6 +181,7 @@ export class ApiHistoryV4Component {
             createdAt: event.createdAt,
             label: event.properties['DEPLOYMENT_LABEL'],
             user: event.initiator.displayName,
+            hideRollback: this.isV4Native$(),
           },
           width: GIO_DIALOG_WIDTH.LARGE,
           maxHeight: 'calc(100vh - 90px)',

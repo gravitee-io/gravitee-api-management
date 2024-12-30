@@ -23,7 +23,6 @@ import lombok.experimental.SuperBuilder;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -31,6 +30,7 @@ import lombok.experimental.SuperBuilder;
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "EntrypointV4")
+@SuperBuilder(toBuilder = true)
 public class Entrypoint extends AbstractEntrypoint {
 
     @Builder.Default

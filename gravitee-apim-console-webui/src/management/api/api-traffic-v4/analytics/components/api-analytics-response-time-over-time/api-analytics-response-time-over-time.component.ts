@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { tap } from 'rxjs/operators';
+import { switchMap } from 'rxjs/operators';
 
 import { GioChartLineModule } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.module';
 import { GioChartLineData, GioChartLineOptions } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.component';
@@ -33,35 +33,26 @@ import { SnackBarService } from '../../../../../../services-ngx/snack-bar.servic
   styleUrl: './api-analytics-response-time-over-time.component.scss',
 })
 export class ApiAnalyticsResponseTimeOverTimeComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
   private apiId = this.activatedRoute.snapshot.params.apiId;
-
-  // toDo: remove hardcoded values when time filters is developed, by default we take 1 day
-  private MS_IN_DAY = 24 * 3600 * 1000;
-  private timeRange = {
-    from: new Date().getTime() - this.MS_IN_DAY,
-    to: new Date().getTime(),
-  };
-
+  public isLoading = true;
   public input: GioChartLineData[];
   public options: GioChartLineOptions;
-  public isLoading = true;
 
   constructor(
     private readonly apiAnalyticsV2Service: ApiAnalyticsV2Service,
     private readonly activatedRoute: ActivatedRoute,
     private readonly snackBarService: SnackBarService,
+    private readonly destroyRef: DestroyRef,
   ) {}
 
-  ngOnInit(): void {
-    this.getData();
-  }
-
-  getData() {
+  ngOnInit() {
     this.apiAnalyticsV2Service
-      .getResponseTimeOverTime(this.apiId, this.timeRange.from, this.timeRange.to)
+      .timeRangeFilter()
       .pipe(
-        tap(() => (this.isLoading = true)),
+        switchMap(() => {
+          this.isLoading = true;
+          return this.apiAnalyticsV2Service.getResponseTimeOverTime(this.apiId);
+        }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({

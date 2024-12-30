@@ -43,6 +43,7 @@ import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomai
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Origin;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -533,6 +534,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setClientId(clientId);
             subscription.setClientCertificate(clientCertificate);
             subscription.setMetadata(newSubscriptionEntity.getMetadata());
+            subscription.setOrigin(newSubscriptionEntity.getOrigin().name());
 
             setSubscriptionConfig(newSubscriptionEntity.getConfiguration(), subscription);
 
@@ -1769,7 +1771,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         }
         entity.setMetadata(subscription.getMetadata());
         entity.setFailureCause(subscription.getFailureCause());
-
+        entity.setOrigin(subscription.getOrigin());
         return entity;
     }
 

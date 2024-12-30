@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.analytics.query_service;
 
-import io.gravitee.apim.core.analytics.model.EnvironmentAnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
@@ -31,18 +31,25 @@ import java.util.Map;
 import java.util.Optional;
 
 public interface AnalyticsQueryService {
-    Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId);
+    Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to);
 
-    Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(ExecutionContext executionContext, String apiId);
-
-    Optional<AverageConnectionDuration> searchAverageConnectionDuration(ExecutionContext executionContext, String apiId);
-
-    Optional<ResponseStatusRanges> searchResponseStatusRanges(
+    Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(
         ExecutionContext executionContext,
-        EnvironmentAnalyticsQueryParameters queryParameters
+        String apiId,
+        Instant from,
+        Instant to
     );
 
-    Optional<TopHitsApis> searchTopHitsApis(ExecutionContext executionContext, EnvironmentAnalyticsQueryParameters parameters);
+    Optional<AverageConnectionDuration> searchAverageConnectionDuration(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant from,
+        Instant to
+    );
+
+    Optional<ResponseStatusRanges> searchResponseStatusRanges(ExecutionContext executionContext, AnalyticsQueryParameters queryParameters);
+
+    Optional<TopHitsApis> searchTopHitsApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
 
     Maybe<Map<String, Double>> searchAvgResponseTimeOverTime(
         ExecutionContext executionContext,
@@ -54,7 +61,7 @@ public interface AnalyticsQueryService {
 
     ResponseStatusOvertime searchResponseStatusOvertime(ExecutionContext executionContext, ResponseStatusOverTimeQuery query);
 
-    RequestResponseTime searchRequestResponseTime(ExecutionContext executionContext, EnvironmentAnalyticsQueryParameters parameters);
+    RequestResponseTime searchRequestResponseTime(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
 
     record ResponseStatusOverTimeQuery(String apiId, Instant from, Instant to, Duration interval) {}
 }

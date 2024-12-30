@@ -26,9 +26,10 @@ import io.gravitee.apim.core.plan.exception.PlanInvalidException;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.List;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -44,11 +45,12 @@ public class CreatePlanUseCase {
             throw new PlanInvalidException("Can't manually create Federated Plan");
         }
 
-        if (isMtls(api, input) && api.getApiDefinitionHttpV4().isTcpProxy()) {
+        var plan = input.toPlan.apply(api);
+
+        if (isMtls(api, plan) && api.getApiDefinitionHttpV4() != null && api.getApiDefinitionHttpV4().isTcpProxy()) {
             throw new PlanInvalidException("Cannot create mTLS plan for TCP API");
         }
 
-        var plan = input.plan;
         plan.setEnvironmentId(api.getEnvironmentId());
         plan.setApiId(input.apiId);
         plan.setType(Plan.PlanType.API);
@@ -57,25 +59,27 @@ public class CreatePlanUseCase {
             plan.setPlanMode(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD);
         }
 
-        PlanWithFlows createdPlan = createPlanDomainService.create(
-            plan,
-            input.flows == null ? List.of() : input.flows,
-            api,
-            input.auditInfo
-        );
+        var flows = input.flowProvider.apply(api);
+
+        PlanWithFlows createdPlan = createPlanDomainService.create(plan, flows, api, input.auditInfo);
 
         return new Output(createdPlan.getId(), createdPlan);
     }
 
-    private static boolean isMtls(Api api, Input input) {
+    private static boolean isMtls(Api api, Plan plan) {
         return (
             api.getDefinitionVersion() == DefinitionVersion.V4 &&
-            !isNull(input.plan().getPlanSecurity()) &&
-            input.plan().getPlanSecurity().getType().equalsIgnoreCase("mtls")
+            !isNull(plan.getPlanSecurity()) &&
+            plan.getPlanSecurity().getType().equalsIgnoreCase("mtls")
         );
     }
 
-    public record Input(String apiId, Plan plan, List<Flow> flows, AuditInfo auditInfo) {}
+    public record Input(
+        String apiId,
+        Function<Api, Plan> toPlan,
+        Function<Api, List<? extends AbstractFlow>> flowProvider,
+        AuditInfo auditInfo
+    ) {}
 
     public record Output(String id, PlanWithFlows plan) {}
 }

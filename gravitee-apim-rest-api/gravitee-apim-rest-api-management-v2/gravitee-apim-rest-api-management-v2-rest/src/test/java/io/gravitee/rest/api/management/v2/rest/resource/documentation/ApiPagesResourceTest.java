@@ -857,7 +857,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             planQueryServiceInMemory.initWith(
                 List.of(
                     PlanFixtures
-                        .aPlanV4()
+                        .aPlanHttpV4()
                         .toBuilder()
                         .id("plan-1")
                         .apiId("api-id")
@@ -2112,7 +2112,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             planQueryServiceInMemory.initWith(
                 List.of(
                     PlanFixtures
-                        .aPlanV4()
+                        .aPlanHttpV4()
                         .toBuilder()
                         .id("plan-id")
                         .apiId(API_ID)

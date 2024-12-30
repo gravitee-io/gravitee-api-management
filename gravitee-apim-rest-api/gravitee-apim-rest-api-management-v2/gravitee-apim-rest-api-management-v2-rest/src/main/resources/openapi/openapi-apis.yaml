@@ -244,11 +244,11 @@ paths:
                 - $ref: "#/components/parameters/envIdParam"
             tags:
                 - APIs
-            summary: Verify TCP API hosts
+            summary: Verify TCP and Kafka API hosts
             description: |-
-                Verify hosts before creating or updating a TCP API.<br>
+                Verify hosts before creating or updating a TCP or Kafka API.<br>
                 This will check it is not already used by other APIs in the environment.<br>
-                The result will indicate if the hists are OK, and give the reason of the failure if they are not.
+                The result will indicate if the hosts are OK, and give the reason of the failure if they are not.
             operationId: verifyHosts
             requestBody:
                 content:
@@ -1995,6 +1995,8 @@ paths:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/from"
+            - $ref: "#/components/parameters/to"
         get:
             tags:
                 - API Analytics
@@ -2014,6 +2016,8 @@ paths:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/from"
+            - $ref: "#/components/parameters/to"
         get:
             tags:
                 - API Analytics
@@ -2032,16 +2036,8 @@ paths:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
-            - in: query
-              name: from
-              schema:
-                type: integer
-              description: The start timestamp of sample
-            - in: query
-              name: to
-              schema:
-                type: integer
-              description: The end timestamp of sample
+            - $ref: "#/components/parameters/from"
+            - $ref: "#/components/parameters/to"
         get:
             tags:
                 - API Analytics
@@ -2061,6 +2057,8 @@ paths:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/from"
+            - $ref: "#/components/parameters/to"
         get:
             tags:
                 - API Analytics
@@ -2076,29 +2074,31 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/analytics/response-time-over-time:
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/apiIdParam"
-        - $ref: "#/components/parameters/from"
-        - $ref: "#/components/parameters/to"
-      get:
-        tags:
-          - API Analytics
-        summary: Get API Analytics average response time
-        description: |-
-          Get API Analytics average response time
-          
-          User must have the API_ANALYTICS[READ] permission.
-        operationId: getResponseTimeOverTime
-        responses:
-          "200":
-            $ref: "#/components/responses/ApiAnalyticsOverPeriodResponse"
-          default:
-            $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/analytics/response-statuses-over-time:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/from"
+            - $ref: "#/components/parameters/to"
+        get:
+            tags:
+                - API Analytics
+            summary: Get API Analytics average response time
+            description: |-
+                Get API Analytics average response time
+
+                User must have the API_ANALYTICS[READ] permission.
+            operationId: getResponseTimeOverTime
+            responses:
+                "200":
+                    $ref: "#/components/responses/ApiAnalyticsOverPeriodResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/analytics/response-status-overtime:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/from"
+            - $ref: "#/components/parameters/to"
         get:
             tags:
                 - API Analytics
@@ -2207,6 +2207,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/envIdParam"
         - $ref: "#/components/parameters/apiIdParam"
+        - $ref: "#/components/parameters/from"
+        - $ref: "#/components/parameters/to"
       get:
         tags:
           - API Health
@@ -2238,6 +2240,29 @@ paths:
         responses:
           "200":
             $ref: "#/components/responses/ApiHealthAvailabilityResponse"
+          default:
+            $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/health/logs:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+        - in: query
+          name: success
+          schema:
+            type: boolean
+          description: Filter logs by success status
+      get:
+        tags:
+          - API Health
+        summary: Get API Health Check logs
+        description: |-
+          Get API Health Check average response time overtime. 
+
+          User must have the API_HEALTH[READ] permission.
+        operationId: getApiHealthLogs
+        responses:
+          "200":
+            $ref: "#/components/responses/ApiHealthLogsResponse"
           default:
             $ref: "#/components/responses/Error"
 
@@ -2586,7 +2611,7 @@ paths:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
-        post:
+        get:
             tags:
                 - API Scoring
             summary: Get API Scoring
@@ -3495,7 +3520,6 @@ components:
             enum:
                 - MESSAGE
                 - PROXY
-                #                FIXME: Kafka Gateway - properly support it, it has just been added for mapstruct
                 - NATIVE
         Visibility:
             type: string
@@ -3891,18 +3915,32 @@ components:
                         $ref: "#/components/schemas/Selector"
                 request:
                     type: array
+                    description: Flow step used for PROXY and MESSAGE APIs
                     items:
                         $ref: "#/components/schemas/StepV4"
                 response:
                     type: array
+                    description: Flow step used for PROXY and MESSAGE APIs
                     items:
                         $ref: "#/components/schemas/StepV4"
                 subscribe:
                     type: array
+                    description: Flow step used for MESSAGE and NATIVE APIs
                     items:
                         $ref: "#/components/schemas/StepV4"
                 publish:
                     type: array
+                    description: Flow step used for MESSAGE and NATIVE APIs
+                    items:
+                        $ref: "#/components/schemas/StepV4"
+                connect:
+                    type: array
+                    description: Flow step used for NATIVE APIs
+                    items:
+                        $ref: "#/components/schemas/StepV4"
+                interact:
+                    type: array
+                    description: Flow step used for NATIVE APIs
                     items:
                         $ref: "#/components/schemas/StepV4"
                 tags:
@@ -4113,12 +4151,14 @@ components:
                 - $ref: "#/components/schemas/HttpListener"
                 - $ref: "#/components/schemas/SubscriptionListener"
                 - $ref: "#/components/schemas/TcpListener"
+                - $ref: "#/components/schemas/KafkaListener"
             discriminator:
                 propertyName: type
                 mapping:
                     HTTP: "#/components/schemas/HttpListener"
                     TCP: "#/components/schemas/TcpListener"
                     SUBSCRIPTION: "#/components/schemas/SubscriptionListener"
+                    KAFKA: "#/components/schemas/KafkaListener"
         BaseListener:
             type: object
             required:
@@ -4141,6 +4181,7 @@ components:
                     HTTP: "#/components/schemas/HttpListener"
                     TCP: "#/components/schemas/TcpListener"
                     SUBSCRIPTION: "#/components/schemas/SubscriptionListener"
+                    KAFKA: "#/components/schemas/KafkaListener"
         ListenerType:
             type: string
             description: Listener type.
@@ -4149,7 +4190,6 @@ components:
                 - HTTP
                 - SUBSCRIPTION
                 - TCP
-                #                FIXME: Kafka Gateway: properly support it, it has just been added for mapstruct
                 - KAFKA
         LoadBalancer:
             type: object
@@ -4784,7 +4824,13 @@ components:
                           format: date-time
                           description: The datetime when the subscription was paused by the api consumer.
                           example: 2023-05-25T12:40:46.184Z
-
+                      origin:
+                          type: string
+                          example: KUBERNETES
+                          description: The origin of the subscription.
+                          enum:
+                            - KUBERNETES
+                            - MANAGEMENT
         SubscriptionStatus:
             type: string
             description: The status of the subscription manageable by the api publisher.
@@ -5391,6 +5437,24 @@ components:
                               minLength: 1
                   required:
                       - "hosts"
+        KafkaListener:
+            title: "KafkaListener"
+            required:
+                - type
+            allOf:
+                - $ref: "#/components/schemas/BaseListener"
+                - type: object
+                  properties:
+                      host:
+                          description: A hostname for which the API will match against SNI.
+                          type: string
+                      port:
+                        type: integer
+                        minimum: 0
+                        description: The port of the listener
+                        example: 8080
+                  required:
+                      - "host"
         VerifyApiPaths:
             title: "VerifyApiPaths"
             properties:
@@ -5407,6 +5471,8 @@ components:
             properties:
                 apiId:
                     type: string
+                listenerType:
+                  $ref: "#/components/schemas/ListenerType"
                 hosts:
                     type: array
                     example:
@@ -7196,6 +7262,10 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/ApiScoringDiagnostic"
+                errors:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ApiScoringError"
         ApiScoringAssetType:
             type: string
             description: The type of the asset.
@@ -7228,6 +7298,18 @@ components:
                     type: string
                     description: A string that indicates the location within the analyzed document where the rule was triggered. It shows the "path" in the document structure to the issue.
                     example: "paths./my-api.get"
+        ApiScoringError:
+            type: object
+            properties:
+                code:
+                    type: string
+                    description: code of the api scoring validation error
+                    example: "undefined-function"
+                path:
+                    type: array
+                    description: Path to the specific place in document where problem occurred
+                    items:
+                        type: string
         ApiScoringSeverity:
             type: string
             description: An enum representing the severity level of the rule violation.
@@ -7315,6 +7397,100 @@ components:
               format: int64
               description: The interval in milliseconds splitting the data
               example: 120000
+
+        # API Health
+        HealthCheckLog:
+          type: object
+          description: A healh check log
+          properties:
+            id:
+              type: string
+              description: The id of the log
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+            timestamp:
+              type: string
+              format: date-time
+              description: The date of the log
+              example: 2023-05-18T12:40:46.184Z
+            endpointName:
+              type: string
+              description: The name of the endpoint
+              example: default
+            gatewayId:
+              type: string
+              description: The id of the gateway that called the health check
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+            responseTime:
+              type: integer
+              format: int64
+              description: The response time in ms
+              example: 12
+            success:
+              type: boolean
+              description: The success of the health check
+              example: true
+            steps:
+              type: array
+              items:
+                  $ref: "#/components/schemas/HealthCheckLogStep"
+
+        HealthCheckLogStep:
+          type: object
+          description: A healh check log step
+          properties:
+            name:
+              type: string
+              description: The step name
+              example: default-step
+            success:
+              type: boolean
+              description: The status of the step
+              example: true
+            message:
+              type: string
+              description: The failure message when step failed
+              example: Assertions failed
+            request:
+              $ref: "#/components/schemas/HealthCheckLogRequest"
+            response:
+              $ref: "#/components/schemas/HealthCheckLogResponse"
+
+        HealthCheckLogRequest:
+          type: object
+          description: A health check request
+          properties:
+            uri:
+              type: string
+              description: The uri called
+              example: https://api.gravitee.io/
+            method:
+              type: string
+              description: The http method
+              example: GET
+            headers:
+              type: object
+              description: The request headers
+              additionalProperties:
+                type: string
+        HealthCheckLogResponse:
+          type: object
+          description: A health check response
+          properties:
+            status:
+              type: integer
+              description: The response status
+              example: 200/
+            body:
+              type: string
+              description: The response body
+              example: OK
+            headers:
+              type: object
+              description: The response headers
+              additionalProperties:
+                type: string
+
+
 
     parameters:
         #############
@@ -7933,24 +8109,7 @@ components:
                         description: API Analytics integer data point on a period.
                         properties:
                             timeRange:
-                                type: object
-                                description: Time range of the analytics
-                                properties:
-                                    from:
-                                        type: integer
-                                        format: int64
-                                        description: The timestamp starting the time range
-                                        example: 1621339200000
-                                    to:
-                                        type: integer
-                                        format: int64
-                                        description: The timestamp ending the time range
-                                        example: 1621425600000
-                                    interval:
-                                        type: integer
-                                        format: int64
-                                        description: The interval in milliseconds splitting the data
-                                        example: 120000
+                              $ref: "#/components/schemas/AnalyticTimeRange"
                             data:
                                 type: array
                                 description: Response time average (in milliseconds) over time
@@ -8219,22 +8378,40 @@ components:
                 description: Availability of an API.
                 properties:
                   global:
-                    type: integer
-                    format: int32
+                    type: number
+                    format: float
                     minimum: 0
-                    maximum: 100
+                    maximum: 1
+                    multipleOf: 0.0001
                     description: Availability of the API for all endpoint combined
                   group:
                     type: object
                     description: Availability by endpoint or by gateway
                     additionalProperties:
                       description: Average response time
-                      type: integer
-                      format: int32
+                      type: number
+                      format: float
                       minimum: 0
-                      maximum: 100
+                      maximum: 1
+                      multipleOf: 0.0001
                     example:
-                      default: 30
+                      default: 0.7504
+        ApiHealthLogsResponse:
+          description: Page of HealthCheck logs
+          content:
+            application/json:
+              schema:
+                title: "ApiHealthLogsResponse"
+                properties:
+                  data:
+                    description: List of health check logs.
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/HealthCheckLog"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                  links:
+                    $ref: "#/components/schemas/Links"
 
         # Audit
         AuditsResponse:

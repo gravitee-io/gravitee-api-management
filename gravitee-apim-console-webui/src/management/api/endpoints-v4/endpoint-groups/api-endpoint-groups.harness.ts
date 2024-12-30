@@ -110,6 +110,12 @@ export class ApiEndpointGroupsHarness extends ComponentHarness {
     return button[index].click();
   }
 
+  public async isAddEndpointGroupDisplayed(): Promise<boolean> {
+    return await this.getAddEndpointGroupButton()
+      .then((_) => true)
+      .catch((_) => false);
+  }
+
   public async isAddEndpointGroupClickable(): Promise<boolean> {
     const button = await this.getAddEndpointGroupButton();
     return !(await button.isDisabled());

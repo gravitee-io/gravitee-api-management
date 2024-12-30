@@ -38,6 +38,7 @@ import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.AuditService;
@@ -288,10 +289,7 @@ public class ApiStateServiceImpl implements ApiStateService {
             api.setUpdatedAt(new Date());
             api.setLifecycleState(lifecycleState);
             Api updateApi = apiRepository.update(api);
-            ApiEntity apiEntity = apiMapper.toEntity(
-                updateApi,
-                primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId())
-            );
+
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
@@ -320,7 +318,10 @@ public class ApiStateServiceImpl implements ApiStateService {
                 return deployedApi;
             }
 
-            return apiEntity;
+            return genericApiMapper.toGenericApi(
+                updateApi,
+                primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId())
+            );
         } else {
             throw new ApiNotFoundException(apiId);
         }
@@ -465,11 +466,14 @@ public class ApiStateServiceImpl implements ApiStateService {
                                 deployedApiEntity,
                                 apiEntity
                             );
-                    } else {
-                        ApiEntity apiEntity = (ApiEntity) genericApiEntity;
+                    } else if (genericApiEntity instanceof ApiEntity httpApiEntity) {
                         ApiEntity deployedApiEntity = apiMapper.toEntity(executionContext, payloadEntity, null, false);
 
-                        sync = synchronizationService.checkSynchronization(ApiEntity.class, deployedApiEntity, apiEntity);
+                        sync = synchronizationService.checkSynchronization(ApiEntity.class, deployedApiEntity, httpApiEntity);
+                    } else if (genericApiEntity instanceof NativeApiEntity nativeApiEntity) {
+                        NativeApiEntity deployedApiEntity = apiMapper.toNativeEntity(executionContext, payloadEntity, null, false);
+
+                        sync = synchronizationService.checkSynchronization(NativeApiEntity.class, deployedApiEntity, nativeApiEntity);
                     }
 
                     // 2 - If API definition is synchronized, check if there is any modification for API's plans

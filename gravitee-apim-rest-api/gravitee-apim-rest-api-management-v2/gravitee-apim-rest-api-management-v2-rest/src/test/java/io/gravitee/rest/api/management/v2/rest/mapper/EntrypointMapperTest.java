@@ -31,9 +31,9 @@ public class EntrypointMapperTest {
 
     @Test
     void shouldMapToEntrypointEntity() throws JsonProcessingException {
-        var entrypoint = EntrypointFixtures.anEntrypointV4();
+        var entrypoint = EntrypointFixtures.anEntrypointHttpV4();
 
-        var entrypointEntity = entrypointMapper.map(entrypoint);
+        var entrypointEntity = entrypointMapper.mapToHttpV4(entrypoint);
         assertThat(entrypointEntity).isNotNull();
         assertThat(entrypointEntity.getType()).isEqualTo(entrypoint.getType());
         assertThat(entrypointEntity.getConfiguration()).isEqualTo(new GraviteeMapper().writeValueAsString(entrypoint.getConfiguration()));
@@ -44,9 +44,9 @@ public class EntrypointMapperTest {
 
     @Test
     void shouldMapFromEntrypointEntity() throws JsonProcessingException {
-        var entrypointEntity = EntrypointFixtures.aModelEntrypointV4();
+        var entrypointEntity = EntrypointFixtures.aModelEntrypointHttpV4();
 
-        var entrypoint = entrypointMapper.map(entrypointEntity);
+        var entrypoint = entrypointMapper.mapFromHttpV4(entrypointEntity);
         assertThat(entrypoint).isNotNull();
         assertThat(entrypoint.getType()).isEqualTo(entrypointEntity.getType());
         assertThat(entrypoint.getConfiguration())
@@ -55,5 +55,28 @@ public class EntrypointMapperTest {
         assertThat(entrypoint.getDlq().getEndpoint()).isEqualTo(entrypointEntity.getDlq().getEndpoint());
         assertThat(entrypoint.getQos())
             .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.Qos.valueOf(entrypointEntity.getQos().name()));
+    }
+
+    @Test
+    void shouldMapToNativeEntrypoint() throws JsonProcessingException {
+        var entrypoint = EntrypointFixtures.anEntrypointNativeV4();
+
+        var entrypointEntity = entrypointMapper.mapToNativeV4(entrypoint);
+        assertThat(entrypointEntity).isNotNull();
+        assertThat(entrypointEntity.getType()).isEqualTo(entrypoint.getType());
+        assertThat(entrypointEntity.getConfiguration()).isEqualTo(new GraviteeMapper().writeValueAsString(entrypoint.getConfiguration()));
+    }
+
+    @Test
+    void shouldMapFromNativeEntrypoint() throws JsonProcessingException {
+        var entrypointEntity = EntrypointFixtures.aModelEntrypointNativeV4();
+
+        var entrypoint = entrypointMapper.mapFromNativeV4(entrypointEntity);
+        assertThat(entrypoint).isNotNull();
+        assertThat(entrypoint.getType()).isEqualTo(entrypointEntity.getType());
+        assertThat(entrypoint.getConfiguration())
+            .isEqualTo(new GraviteeMapper().readValue(entrypointEntity.getConfiguration(), LinkedHashMap.class));
+        assertThat(entrypoint.getDlq()).isNull();
+        assertThat(entrypoint.getQos()).isNull();
     }
 }

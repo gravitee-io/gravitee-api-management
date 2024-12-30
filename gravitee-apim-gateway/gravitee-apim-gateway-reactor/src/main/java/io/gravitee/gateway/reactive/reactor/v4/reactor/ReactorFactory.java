@@ -15,9 +15,7 @@
  */
 package io.gravitee.gateway.reactive.reactor.v4.reactor;
 
-import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.reactor.Reactable;
-import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 
 /**

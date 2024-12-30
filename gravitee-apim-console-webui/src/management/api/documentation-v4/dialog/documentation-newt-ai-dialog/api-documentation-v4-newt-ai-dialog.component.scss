@@ -1,0 +1,29 @@
+@use 'sass:map';
+@use '@angular/material/index' as mat;
+@use '@gravitee/ui-particles-angular/index' as gio;
+@use 'src/scss/gio-layout' as gio-layout;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+.dialog-close {
+  right: 0;
+  position: absolute;
+}
+
+.newt-ai-main-content {
+  color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
+
+  .steps {
+    display: flex;
+    padding: 0 16px;
+    flex-direction: column;
+    gap: 8px;
+
+    &__step {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+}

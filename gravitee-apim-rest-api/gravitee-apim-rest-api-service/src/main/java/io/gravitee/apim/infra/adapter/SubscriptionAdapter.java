@@ -126,6 +126,7 @@ public abstract class SubscriptionAdapter {
     @Mapping(target = "closedAt", ignore = true)
     @Mapping(target = "clientId", ignore = true)
     @Mapping(target = "clientCertificate", ignore = true)
+    @Mapping(target = "origin", constant = "KUBERNETES")
     public abstract SubscriptionEntity fromSpec(SubscriptionCRDSpec spec);
 
     @Mapping(target = "request", ignore = true)

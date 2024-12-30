@@ -40,6 +40,7 @@ import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -56,6 +57,12 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
+import io.gravitee.definition.model.v4.nativeapi.NativeEntrypoint;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
@@ -68,6 +75,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ServiceV4;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import jakarta.ws.rs.core.Response;
@@ -267,6 +275,138 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
     }
 
     @Test
+    public void should_get_native_api_V4() throws JsonProcessingException {
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(this.fakeNativeApiEntityV4());
+
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(false);
+
+        final Response response = rootTarget(API).request().get();
+
+        assertEquals(OK_200, response.getStatus());
+
+        final ApiV4 responseApi = response.readEntity(ApiV4.class);
+
+        assertNotNull(responseApi);
+        assertEquals(API, responseApi.getName());
+        assertEquals(GenericApi.DeploymentStateEnum.NEED_REDEPLOY, responseApi.getDeploymentState());
+        assertNotNull(responseApi.getLinks());
+        assertNotNull(responseApi.getLinks().getPictureUrl());
+        assertTrue(responseApi.getLinks().getPictureUrl().contains("environments/my-env/apis/my-api/picture"));
+        assertNotNull(responseApi.getLinks().getBackgroundUrl());
+        assertTrue(responseApi.getLinks().getBackgroundUrl().contains("environments/my-env/apis/my-api/background"));
+        assertNotNull(responseApi.getProperties());
+        assertEquals(1, responseApi.getProperties().size());
+        assertNotNull(responseApi.getServices());
+        assertNotNull(responseApi.getResources());
+        assertEquals(1, responseApi.getResources().size());
+        assertEquals(0, responseApi.getResponseTemplates().size());
+
+        assertNotNull(responseApi.getListeners());
+        assertEquals(1, responseApi.getListeners().size());
+
+        var kafkaListener = responseApi.getListeners().get(0).getKafkaListener();
+        assertNotNull(kafkaListener);
+        assertNotNull(kafkaListener.getHost());
+        assertNotNull(kafkaListener.getPort());
+        var foundEntrypoint = kafkaListener.getEntrypoints().get(0);
+        assertNotNull(foundEntrypoint);
+        LinkedHashMap configuration = (LinkedHashMap) foundEntrypoint.getConfiguration();
+        assertEquals("configuration", configuration.get("nice"));
+        assertEquals("native-kafka", foundEntrypoint.getType());
+        assertEquals("KAFKA", kafkaListener.getType().toString());
+
+        assertNotNull(responseApi.getEndpointGroups());
+        assertEquals(1, responseApi.getEndpointGroups().size());
+        assertNotNull(responseApi.getEndpointGroups().get(0));
+        EndpointGroupV4 endpointGroup = responseApi.getEndpointGroups().get(0);
+        LinkedHashMap sharedConfig = (LinkedHashMap) endpointGroup.getSharedConfiguration();
+        assertNotNull(sharedConfig);
+        assertEquals("configuration", sharedConfig.get("shared"));
+        assertNotNull(responseApi.getEndpointGroups().get(0).getEndpoints());
+        assertEquals(1, responseApi.getEndpointGroups().get(0).getEndpoints().size());
+
+        var endpoint = responseApi.getEndpointGroups().get(0).getEndpoints().get(0);
+        assertNotNull(endpoint);
+        assertEquals("native-kafka", endpoint.getType());
+
+        JsonNode jsonNode = mapper.valueToTree((LinkedHashMap) endpoint.getConfiguration());
+        assertEquals("kafka:9092", jsonNode.get("bootstrapServers").asText());
+        assertEquals(List.of("demo"), mapper.readValue(jsonNode.get("topics").toString(), List.class));
+
+        assertNotNull(responseApi.getFlows());
+        assertEquals(1, responseApi.getFlows().size());
+
+        var flow = responseApi.getFlows().get(0);
+        assertNotNull(flow);
+        assertEquals("flowName", flow.getName());
+        assertEquals(Boolean.TRUE, flow.getEnabled());
+        assertNotNull(flow.getTags());
+        assertEquals(2, flow.getTags().size());
+        assertEquals(Set.of("tag1", "tag2"), flow.getTags());
+        assertNotNull(flow.getConnect());
+        assertNotNull(flow.getInteract());
+        assertNotNull(flow.getPublish());
+        assertNotNull(flow.getSubscribe());
+
+        assertNull(flow.getRequest());
+        assertNull(flow.getResponse());
+        assertNull(flow.getSelectors());
+
+        assertEquals(1, flow.getConnect().size());
+
+        var step = flow.getConnect().get(0);
+        assertNotNull(step);
+        assertEquals(Boolean.TRUE, step.getEnabled());
+        assertEquals("my-policy", step.getPolicy());
+        assertEquals("my-condition", step.getCondition());
+
+        var service = responseApi.getServices();
+        assertNotNull(service);
+        assertNotNull(service.getDynamicProperty());
+        assertNotNull(service.getDynamicProperty().getConfiguration());
+
+        ServiceV4 dynamicPropertyConfiguration = service.getDynamicProperty();
+        assertNotNull(dynamicPropertyConfiguration);
+        assertEquals(true, dynamicPropertyConfiguration.getEnabled());
+        assertEquals(true, dynamicPropertyConfiguration.getOverrideConfiguration());
+        assertNotNull(dynamicPropertyConfiguration.getConfiguration());
+        assertEquals("dynamic-property", dynamicPropertyConfiguration.getType());
+    }
+
+    @Test
+    public void should_get_filtered_native_api_V4() {
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(this.fakeNativeApiEntityV4());
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_DEFINITION,
+                API,
+                RolePermissionAction.READ
+            )
+        )
+            .thenReturn(false);
+
+        final Response response = rootTarget(API).request().get();
+
+        assertEquals(OK_200, response.getStatus());
+
+        final ApiV4 responseApi = response.readEntity(ApiV4.class);
+        assertNotNull(responseApi);
+        assertEquals(API, responseApi.getName());
+        assertNotNull(responseApi.getLinks());
+        assertNotNull(responseApi.getLinks().getPictureUrl());
+        assertNotNull(responseApi.getLinks().getBackgroundUrl());
+        assertNotNull(responseApi.getProperties());
+        assertTrue(responseApi.getProperties().isEmpty());
+        assertNull(responseApi.getServices());
+        assertNull(responseApi.getResources());
+        assertNotNull(responseApi.getResponseTemplates());
+        assertEquals(0, responseApi.getResponseTemplates().size());
+        assertNotNull(responseApi.getListeners());
+        assertNotNull(responseApi.getListeners().get(0));
+    }
+
+    @Test
     public void should_get_api_V2() {
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(this.fakeApiEntityV2());
 
@@ -461,6 +601,91 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         dynamicProperty.setEnabled(true);
         dynamicProperty.setOverrideConfiguration(true);
         apiEntity.setServices(new ApiServices(dynamicProperty));
+
+        return apiEntity;
+    }
+
+    private NativeApiEntity fakeNativeApiEntityV4() {
+        var apiEntity = new NativeApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setType(ApiType.NATIVE);
+        apiEntity.setId(API);
+        apiEntity.setName(API);
+        var kafkaListener = new KafkaListener();
+        kafkaListener.setHost("my.fake.host");
+        kafkaListener.setPort(1000);
+
+        var entrypoint = new NativeEntrypoint();
+        entrypoint.setType("native-kafka");
+        entrypoint.setConfiguration("{\"nice\": \"configuration\"}");
+        kafkaListener.setEntrypoints(List.of(entrypoint));
+        kafkaListener.setType(ListenerType.KAFKA);
+
+        apiEntity.setListeners(List.of(kafkaListener));
+        apiEntity.setProperties(List.of(new Property()));
+        apiEntity.setServices(new NativeApiServices());
+        apiEntity.setResources(List.of(new Resource()));
+        apiEntity.setUpdatedAt(new Date());
+
+        var endpointGroup = new NativeEndpointGroup();
+        endpointGroup.setType("native-kafka");
+        endpointGroup.setSharedConfiguration("{\"shared\": \"configuration\"}");
+        var endpoint = new NativeEndpoint();
+        endpoint.setType("native-kafka");
+        endpoint.setConfiguration(
+            "{\n" +
+            "                        \"bootstrapServers\": \"kafka:9092\",\n" +
+            "                        \"topics\": [\n" +
+            "                            \"demo\"\n" +
+            "                        ],\n" +
+            "                        \"producer\": {\n" +
+            "                            \"enabled\": false\n" +
+            "                        },\n" +
+            "                        \"consumer\": {\n" +
+            "                            \"encodeMessageId\": true,\n" +
+            "                            \"enabled\": true,\n" +
+            "                            \"autoOffsetReset\": \"earliest\"\n" +
+            "                        }\n" +
+            "                    }"
+        );
+        endpointGroup.setEndpoints(List.of(endpoint));
+        apiEntity.setEndpointGroups(List.of(endpointGroup));
+
+        var flow = new NativeFlow();
+        flow.setName("flowName");
+        flow.setEnabled(true);
+
+        Step step = new Step();
+        step.setEnabled(true);
+        step.setPolicy("my-policy");
+        step.setCondition("my-condition");
+        flow.setInteract(List.of(step));
+        flow.setConnect(List.of(step));
+        flow.setPublish(List.of(step));
+        flow.setSubscribe(List.of(step));
+        flow.setTags(Set.of("tag1", "tag2"));
+
+        apiEntity.setFlows(List.of(flow));
+
+        Service dynamicProperty = new Service();
+        dynamicProperty.setConfiguration(
+            "{\n" +
+            "        \"enabled\": true,\n" +
+            "        \"schedule\": \"*/10 * * * * *\",\n" +
+            "        \"provider\": \"HTTP\",\n" +
+            "        \"configuration\": {\n" +
+            "          \"url\": \"https://api.gravitee.io/echo\",\n" +
+            "          \"specification\": \"[{\\n    \\\"operation\\\": \\\"shift\\\",\\n    \\\"spec\\\": {\\n      \\\"rating\\\": {\\n        \\\"primary\\\": {\\n          \\\"value\\\": \\\"Rating\\\",\\n          \\\"max\\\": \\\"RatingRange\\\"\\n        },\\n        \\\"*\\\": {\\n          \\\"max\\\": \\\"SecondaryRatings.&1.Range\\\",\\n          \\\"value\\\": \\\"SecondaryRatings.&1.Value\\\",\\n          \\\"$\\\": \\\"SecondaryRatings.&1.Id\\\"\\n        }\\n      }\\n    }\\n  },\\n  {\\n    \\\"operation\\\": \\\"default\\\",\\n    \\\"spec\\\": {\\n      \\\"Range\\\": 5,\\n      \\\"SecondaryRatings\\\": {\\n        \\\"*\\\": {\\n          \\\"Range\\\": 5\\n        }\\n      }\\n    }\\n  }\\n]\",\n" +
+            "          \"useSystemProxy\": false,\n" +
+            "          \"method\": \"GET\",\n" +
+            "          \"body\": \"{\\n    \\\"rating\\\": {\\n      \\\"primary\\\": {\\n        \\\"value\\\": 3\\n      },\\n      \\\"quality\\\": {\\n        \\\"value\\\": 3\\n      }\\n    }\\n  }\"\n" +
+            "        }\n" +
+            "      }"
+        );
+        dynamicProperty.setType("dynamic-property");
+        dynamicProperty.setEnabled(true);
+        dynamicProperty.setOverrideConfiguration(true);
+        apiEntity.setServices(new NativeApiServices(dynamicProperty));
 
         return apiEntity;
     }

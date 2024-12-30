@@ -54,7 +54,7 @@ public class ApiResource_StopTest extends ApiResourceTest {
 
     @Test
     public void should_not_stop_api_with_incorrect_if_match() {
-        var apiEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).build();
+        var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
         when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API))).thenReturn(apiEntity);
 
         final Response response = rootTarget().request().header(HttpHeaders.IF_MATCH, "\"000\"").post(Entity.json(""));
@@ -82,7 +82,7 @@ public class ApiResource_StopTest extends ApiResourceTest {
 
     @Test
     public void should_not_stop_api_if_archived() {
-        var archivedEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).lifecycleState(ApiLifecycleState.ARCHIVED).build();
+        var archivedEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).lifecycleState(ApiLifecycleState.ARCHIVED).build();
 
         when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API))).thenReturn(archivedEntity);
 
@@ -98,7 +98,7 @@ public class ApiResource_StopTest extends ApiResourceTest {
 
     @Test
     public void should_not_stop_api_if_already_stopped() {
-        var stoppedEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).state(Lifecycle.State.STOPPED).build();
+        var stoppedEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).state(Lifecycle.State.STOPPED).build();
 
         when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API))).thenReturn(stoppedEntity);
 
@@ -114,7 +114,7 @@ public class ApiResource_StopTest extends ApiResourceTest {
 
     @Test
     public void should_stop_api() {
-        var updatedEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).build();
+        var updatedEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(updatedEntity);
 
         when(apiStateServiceV4.stop(eq(GraviteeContext.getExecutionContext()), eq(API), eq(USER_NAME))).thenReturn(updatedEntity);

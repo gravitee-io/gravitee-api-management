@@ -1,6 +1,6 @@
 #!/usr/bin/env zx
 
-import xml2json from 'xml2json';
+import xml2json from "xml2json";
 
 console.log(chalk.magenta(`######################################`));
 console.log(chalk.magenta(`# 📦 Prepare APIM package bundles 📦 #`));
@@ -166,6 +166,7 @@ const restApiDependenciesExclusion = [
   'gravitee-apim-repository-bridge-http-client',
   'gravitee-apim-repository-redis',
   'gravitee-gateway-services-ratelimit',
+  'gravitee-service-secrets'
 ];
 
 console.log(chalk.blue(`Add plugins to Rest API`));
@@ -189,6 +190,8 @@ const gatewayDependenciesExclusion = [
   'gravitee-apim-repository-elasticsearch',
   'gravitee-cockpit-connectors-ws',
   'gravitee-apim-plugin-apiservice-dynamicproperties-http',
+  'gravitee-endpoint-native-kafka',
+  'gravitee-entrypoint-native-kafka',
 ];
 
 console.log(chalk.blue(`Add plugins to Gateway`));

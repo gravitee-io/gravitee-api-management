@@ -23,6 +23,7 @@ import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.exception.TcpProxyNotSupportedException;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.utils.DurationUtils;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Duration;
@@ -38,33 +39,12 @@ import lombok.extern.slf4j.Slf4j;
 @UseCase
 public class SearchResponseStatusOverTimeUseCase {
 
-    private static final Collection<IntervalData> INTERVAL = List.of(
-        new IntervalData(Duration.ofMinutes(5), Duration.ofSeconds(10)),
-        new IntervalData(Duration.ofMinutes(30), Duration.ofSeconds(15)),
-        new IntervalData(Duration.ofHours(1), Duration.ofSeconds(30)),
-        new IntervalData(Duration.ofHours(3), Duration.ofMinutes(1)),
-        new IntervalData(Duration.ofHours(6), Duration.ofMinutes(2)),
-        new IntervalData(Duration.ofHours(12), Duration.ofMinutes(5)),
-        new IntervalData(Duration.ofDays(1), Duration.ofMinutes(10)),
-        new IntervalData(Duration.ofDays(3), Duration.ofMinutes(30)),
-        new IntervalData(Duration.ofDays(7), Duration.ofHours(1)),
-        new IntervalData(Duration.ofDays(14), Duration.ofHours(3)),
-        new IntervalData(Duration.ofDays(30), Duration.ofHours(6)),
-        new IntervalData(Duration.ofDays(90), Duration.ofHours(12))
-    );
-
     private final AnalyticsQueryService analyticsQueryService;
     private final ApiCrudService apiCrudService;
 
     public Output execute(ExecutionContext executionContext, Input input) {
         validateApiRequirements(input);
-        Duration duration = Duration.between(input.from(), input.to());
-        Duration interval = INTERVAL
-            .stream()
-            .filter(id -> id.dataDuration().compareTo(duration) <= 0)
-            .max(Comparator.comparing(IntervalData::dataDuration))
-            .map(IntervalData::interval)
-            .orElse(Duration.ofDays(1));
+        Duration interval = DurationUtils.buildIntervalFromTimePeriod(input.from(), input.to());
 
         var result = analyticsQueryService.searchResponseStatusOvertime(
             executionContext,
@@ -102,6 +82,4 @@ public class SearchResponseStatusOverTimeUseCase {
     public record Input(String apiId, String environmentId, Instant from, Instant to) {}
 
     public record Output(ResponseStatusOvertime responseStatusOvertime) {}
-
-    private record IntervalData(Duration dataDuration, Duration interval) {}
 }

@@ -17,6 +17,7 @@ package io.gravitee.rest.api.model.v4.plan;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -92,6 +93,7 @@ public class BasePlanEntity implements GenericPlanEntity {
     private boolean commentRequired;
     private String commentMessage;
     private String generalConditions;
+    private ApiType apiType;
 
     @Override
     public PlanType getPlanType() {

@@ -15,15 +15,18 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ErrorStateMatcher, ShowOnDirtyErrorStateMatcher } from '@angular/material/core';
 
 import { ApiScoreRoutingModule } from './api-score-routing.module';
-import { ApiScoreDashboardModule } from './api-score-dashboard/api-score-dashboard.module';
+import { ApiScoreDashboardModule } from './dashboard/api-score-dashboard.module';
+import { ApiScoreNavigationComponent } from './navigation/api-score-navigation.component';
+import { ApiScoreRulesetsModule } from './rulesets/api-score-rulesets.module';
 
 import { ApiScoringService } from '../../services-ngx/api-scoring.service';
 
 @NgModule({
   declarations: [],
-  imports: [CommonModule, ApiScoreRoutingModule, ApiScoreDashboardModule],
-  providers: [ApiScoringService],
+  imports: [CommonModule, ApiScoreRoutingModule, ApiScoreDashboardModule, ApiScoreRulesetsModule, ApiScoreNavigationComponent],
+  providers: [ApiScoringService, { provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher }],
 })
 export class ApiScoreModule {}

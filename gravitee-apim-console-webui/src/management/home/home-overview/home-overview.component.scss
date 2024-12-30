@@ -27,42 +27,61 @@ $typography: map.get(gio.$mat-theme, typography);
     grid-auto-flow: column;
     gap: 14px;
   }
+}
 
-  &__card {
-    width: 100%;
-    flex: 1 1 100%;
-    min-height: 250px;
+.card {
+  width: 100%;
+  flex: 1 1 100%;
+  min-height: 250px;
 
-    &.flex {
-      display: flex;
-      flex-direction: column;
+  &__header {
+    @include mat.m2-typography-level($typography, 'body-1');
+    border-bottom: 1px mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    &__tooltip {
+      height: 16px;
+      width: 16px;
     }
+  }
 
-    &__list {
+  &__content {
+    padding: 16px;
+  }
+
+  &.flex {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+
+    flex: 1 1 auto;
+
+    &__row {
+      gap: 4px;
+      padding-bottom: 8px;
       display: flex;
       flex-direction: column;
+      justify-content: center;
+      border-bottom: 1px mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
+      flex: 1 1 100%;
 
-      flex: 1 1 auto;
+      &:last-child {
+        border-bottom: none;
+      }
 
-      &__row {
-        gap: 4px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        border-bottom: 1px mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
-        flex: 1 1 100%;
+      &__label {
+        @include mat.m2-typography-level($typography, 'caption');
+      }
 
-        &:last-child {
-          border-bottom: none;
-        }
-
-        &__label {
-          @include mat.m2-typography-level($typography, 'caption');
-        }
-
-        &__value {
-          @include mat.m2-typography-level($typography, 'headline-6');
-        }
+      &__value {
+        @include mat.m2-typography-level($typography, 'headline-6');
       }
     }
   }

@@ -18,6 +18,8 @@ package io.gravitee.apim.core.plan.model;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -96,6 +98,7 @@ public class Plan implements GenericPlanEntity {
     private io.gravitee.definition.model.v4.nativeapi.NativePlan planDefinitionNativeV4;
     private io.gravitee.definition.model.Plan planDefinitionV2;
     private io.gravitee.definition.model.federation.FederatedPlan federatedPlanDefinition;
+    private ApiType apiType;
 
     public Plan(String apiId, io.gravitee.definition.model.v4.plan.Plan planDefinitionV4) {
         this.setPlanDefinitionHttpV4(planDefinitionV4);
@@ -111,7 +114,10 @@ public class Plan implements GenericPlanEntity {
     }
 
     public AbstractPlan getPlanDefinitionV4() {
-        return this.planDefinitionNativeV4 != null ? this.planDefinitionNativeV4 : this.planDefinitionHttpV4;
+        if (ApiType.NATIVE.equals(apiType)) {
+            return this.planDefinitionNativeV4;
+        }
+        return this.planDefinitionHttpV4;
     }
 
     @Override
@@ -188,6 +194,22 @@ public class Plan implements GenericPlanEntity {
         return this;
     }
 
+    public Set<String> getPlanTags() {
+        return switch (definitionVersion) {
+            case V4 -> getPlanDefinitionV4().getTags();
+            case V1, V2 -> planDefinitionV2.getTags();
+            case FEDERATED -> Set.of();
+        };
+    }
+
+    public String getSelectionRule() {
+        return switch (definitionVersion) {
+            case V4 -> getPlanDefinitionV4().getSelectionRule();
+            case V1, V2 -> planDefinitionV2.getSelectionRule();
+            case FEDERATED -> "";
+        };
+    }
+
     @Override
     public io.gravitee.rest.api.model.v4.plan.PlanValidationType getPlanValidation() {
         return io.gravitee.rest.api.model.v4.plan.PlanValidationType.valueOf(validation.name());
@@ -228,6 +250,14 @@ public class Plan implements GenericPlanEntity {
 
     public boolean isPublished() {
         return getPlanStatus() == PlanStatus.PUBLISHED;
+    }
+
+    public Set<String> getTags() {
+        return switch (definitionVersion) {
+            case V4 -> getPlanDefinitionV4().getTags();
+            case V1, V2 -> planDefinitionV2.getTags();
+            case FEDERATED -> Set.of();
+        };
     }
 
     public Plan close() {

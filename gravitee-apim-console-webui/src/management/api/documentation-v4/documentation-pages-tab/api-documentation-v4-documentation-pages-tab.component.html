@@ -20,9 +20,11 @@
     <api-documentation-list-navigation-header
       [breadcrumbs]="data.breadcrumbs"
       [isReadOnly]="isReadOnly"
+      [specGenState]="specGenState"
       [hasPages]="data.pages.length > 0"
       (addFolder)="addFolder()"
       (addPage)="addPage($event)"
+      (generate)="generate()"
       (onNavigateTo)="navigateTo($event)"
     />
     @if (data.pages.length) {

@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.gateway.reactive.api.ApiType;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
 import io.gravitee.gateway.reactive.api.ListenerType;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,7 +35,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class HttpProxyEntrypointConnectorTest {
 
     @Mock
-    private ExecutionContext ctx;
+    private HttpExecutionContext ctx;
 
     private HttpProxyEntrypointConnector cut;
 

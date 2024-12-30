@@ -34,6 +34,8 @@ export interface Api {
    */
   version: string;
 
+  type?: ApiType;
+
   definitionVersion: 'V1' | 'V2' | 'V4' | 'FEDERATED';
   /**
    * Description of the API.
@@ -71,3 +73,5 @@ export interface Api {
   categories?: Array<string>;
   _links?: ApiLinks;
 }
+
+export type ApiType = 'NATIVE' | 'MESSAGE' | 'PROXY';

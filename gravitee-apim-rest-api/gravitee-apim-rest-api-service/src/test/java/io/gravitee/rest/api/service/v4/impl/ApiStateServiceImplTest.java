@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
@@ -203,6 +204,7 @@ public class ApiStateServiceImplTest {
         api.setName(API_NAME);
         api.setEnvironmentId(executionContext.getEnvironmentId());
         api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.PROXY);
 
         updatedApi = new Api(api);
 

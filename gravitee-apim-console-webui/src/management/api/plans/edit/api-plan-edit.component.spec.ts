@@ -35,6 +35,7 @@ import { ApiPlanFormHarness } from '../../component/plan/api-plan-form.harness';
 import {
   Api,
   CreatePlanV2,
+  CreatePlanV4,
   fakeApiFederated,
   fakeApiV1,
   fakeApiV2,
@@ -408,6 +409,134 @@ describe('ApiPlanEditComponent', () => {
 
         const nameInput = await planForm.getNameInput();
         expect(await nameInput.isDisabled()).toEqual(true);
+      });
+    });
+  });
+
+  describe('With a V4 Native API', () => {
+    describe('Create', () => {
+      const TAG_1_ID = 'tag-1';
+
+      beforeEach(() => {
+        configureTestingModule();
+        fixture.detectChanges();
+        expectApiGetRequest(fakeApiV4({ id: API_ID, type: 'NATIVE' }));
+      });
+
+      it('should create new plan', async () => {
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await saveBar.isVisible()).toBe(true);
+
+        const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+        planForm
+          .httpRequest(httpTestingController)
+          .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+        planForm.httpRequest(httpTestingController).expectGroupListRequest([
+          fakeGroup({
+            id: 'group-a',
+            name: 'Group A',
+          }),
+        ]);
+        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API_ID, [
+          {
+            id: 'doc-1',
+            name: 'Doc 1',
+          },
+        ]);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+        planForm.httpRequest(httpTestingController).expectPolicySchemaV2GetRequest('jwt', {});
+
+        await planForm.getNameInput().then((i) => i.setValue('My new plan'));
+
+        // Click on Next buttons to display Save one
+        await loader.getHarness(MatButtonHarness.with({ text: 'Next' })).then((b) => b.click());
+
+        await saveBar.clickSubmit();
+
+        const req = httpTestingController.expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans`,
+          method: 'POST',
+        });
+
+        expect(req.request.body).toEqual({
+          definitionVersion: 'V4',
+          name: 'My new plan',
+          description: '',
+          commentMessage: '',
+          commentRequired: false,
+          mode: 'STANDARD',
+          validation: 'MANUAL',
+          generalConditions: '',
+          characteristics: [],
+          excludedGroups: [],
+          tags: [],
+          security: {
+            type: 'JWT',
+            configuration: {},
+          },
+          selectionRule: null,
+          flows: [],
+        } as CreatePlanV4);
+        req.flush({});
+        expect(routerNavigationSpy).toHaveBeenCalledWith(['../'], {
+          queryParams: {
+            status: 'STAGING',
+          },
+          relativeTo: expect.anything(),
+        });
+      });
+    });
+
+    describe('Edit', () => {
+      const TAG_1_ID = 'tag-1';
+      const PLAN = fakePlanV4({ apiId: API_ID, security: { type: 'KEY_LESS' } });
+
+      beforeEach(() => {
+        configureTestingModule(PLAN.id);
+        fixture.detectChanges();
+        expectApiGetRequest(fakeApiV4({ id: API_ID, type: 'NATIVE' }));
+        expectPlanGetRequest(API_ID, PLAN);
+      });
+
+      it('should edit plan', async () => {
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await saveBar.isVisible()).toBe(false);
+
+        const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+        planForm
+          .httpRequest(httpTestingController)
+          .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+        planForm.httpRequest(httpTestingController).expectGroupListRequest([
+          fakeGroup({
+            id: 'group-a',
+            name: 'Group A',
+          }),
+        ]);
+        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API_ID, [
+          {
+            id: 'doc-1',
+            name: 'Doc 1',
+          },
+        ]);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+
+        const nameInput = await planForm.getNameInput();
+        await nameInput.setValue('My plan edited');
+
+        expect(await saveBar.isVisible()).toBe(true);
+        await saveBar.clickSubmit();
+
+        expectPlanGetRequest(API_ID, PLAN);
+        const req = httpTestingController.expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN.id}`,
+          method: 'PUT',
+        });
+
+        expect(req.request.body).toEqual(expect.objectContaining({ name: 'My plan edited' }));
+        req.flush({});
+        expect(routerNavigationSpy).toHaveBeenCalled();
       });
     });
   });

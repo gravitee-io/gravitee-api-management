@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.context.OriginContext;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -99,6 +100,10 @@ public class ApiExport {
     private boolean disableMembershipNotifications;
     private String background;
     private String backgroundUrl;
+
+    private Instant createdAt;
+    private Instant deployedAt;
+    private Instant updatedAt;
 
     public ApiBuilder toApiBuilder() {
         return Api

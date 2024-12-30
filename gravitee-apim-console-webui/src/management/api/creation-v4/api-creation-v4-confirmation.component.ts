@@ -19,7 +19,7 @@ import { Subject } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { Api } from '../../../entities/management-api-v2';
+import { Api, ApiType, ApiV4 } from '../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-creation-v4-confirmation',
@@ -29,6 +29,7 @@ import { Api } from '../../../entities/management-api-v2';
 export class ApiCreationV4ConfirmationComponent implements OnInit {
   private unsubscribe$: Subject<void> = new Subject<void>();
   public api: Api;
+  public apiType: ApiType;
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly apiV2Service: ApiV2Service,
@@ -40,6 +41,7 @@ export class ApiCreationV4ConfirmationComponent implements OnInit {
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((api) => {
         this.api = api;
+        this.apiType = (api as ApiV4).type;
       });
   }
 }

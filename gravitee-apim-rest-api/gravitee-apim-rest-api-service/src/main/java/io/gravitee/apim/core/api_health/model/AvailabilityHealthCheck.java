@@ -17,4 +17,4 @@ package io.gravitee.apim.core.api_health.model;
 
 import java.util.Map;
 
-public record AvailabilityHealthCheck(int global, Map<String, Integer> byField) {}
+public record AvailabilityHealthCheck(float global, Map<String, Float> byField) {}

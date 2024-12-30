@@ -16,7 +16,7 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
-import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import {
   GIO_DIALOG_WIDTH,
   GioConfirmDialogComponent,
@@ -43,6 +43,8 @@ import {
   ConnectorVM,
   fromConnector,
   TcpListener,
+  KafkaHost,
+  KafkaListener,
 } from '../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../services-ngx/icon.service';
@@ -51,6 +53,8 @@ import { GioPermissionService } from '../../../shared/components/gio-permission/
 import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 import { RestrictedDomainService } from '../../../services-ngx/restricted-domain.service';
 import { TcpHost } from '../../../entities/management-api-v2/api/v4/tcpHost';
+import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
+import { PortalSettingsPortal } from '../../../entities/portal/portalSettings';
 
 type EntrypointVM = {
   id: string;
@@ -66,23 +70,27 @@ type EntrypointVM = {
 export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public apiId: string;
+  public envId: string;
   public api: ApiV4;
   public formGroup: UntypedFormGroup;
   public pathsFormControl: UntypedFormControl;
   public hostsFormControl: UntypedFormControl;
+  public hostFormControl: UntypedFormControl;
   public displayedColumns = ['type', 'qos', 'actions'];
   public dataSource: EntrypointVM[] = [];
   private allEntrypoints: ConnectorPlugin[];
   public enableVirtualHost = false;
   public apiExistingPaths: PathV4[] = [];
   public apiExistingHosts: TcpHost[] = [];
+  public apiExistingKafkaHost: KafkaHost = {};
   public domainRestrictions: string[] = [];
   public entrypointAvailableForAdd: ConnectorVM[] = [];
   public shouldUpgrade = false;
   public license$: Observable<License>;
   public isOEM$: Observable<boolean>;
   public isReadOnly = false;
-  public canUpdate = false;
+  public portalSettings$: Observable<PortalSettingsPortal>;
+
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
@@ -95,38 +103,36 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
     private readonly permissionService: GioPermissionService,
     private readonly changeDetector: ChangeDetectorRef,
     private readonly licenseService: GioLicenseService,
+    private readonly portalSettingsService: PortalSettingsService,
   ) {
     this.apiId = this.activatedRoute.snapshot.params.apiId;
+    this.envId = this.activatedRoute.snapshot.params.envHrid;
   }
 
   ngOnInit(): void {
-    this.canUpdate = this.permissionService.hasAnyMatching(['api-definition-u']);
+    this.portalSettings$ = this.portalSettingsService.getByEnvironmentId(this.envId).pipe(map(({ portal }) => portal));
 
-    forkJoin([
-      this.restrictedDomainService.get(),
-      this.apiService.get(this.apiId),
-      this.connectorPluginsV2Service.listAsyncEntrypointPlugins(),
-    ])
+    forkJoin([this.restrictedDomainService.get(), this.apiService.get(this.apiId), this.connectorPluginsV2Service.listEntrypointPlugins()])
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(([restrictedDomains, api, availableEntrypoints]) => {
         this.domainRestrictions = restrictedDomains.map((value) => value.domain) || [];
 
+        this.isReadOnly = api.definitionContext?.origin === 'KUBERNETES' || !this.permissionService.hasAnyMatching(['api-definition-u']);
+
         if (api.definitionVersion === 'V4') {
-          this.allEntrypoints = availableEntrypoints;
+          this.allEntrypoints = availableEntrypoints.filter((entrypoint) => entrypoint.supportedApiType === api.type);
           this.initForm(api);
         }
       });
   }
 
   private initForm(api: ApiV4) {
-    if (api.type === 'MESSAGE') {
+    if (api.type === 'MESSAGE' || api.type === 'NATIVE') {
       const selectedEntrypoints = flatten(api.listeners.map((l) => l.entrypoints)).map((e) => e.type);
       this.shouldUpgrade = this.allEntrypoints.filter((e) => selectedEntrypoints.includes(e.id)).some(({ deployed }) => !deployed);
       this.license$ = this.licenseService.getLicense$();
       this.isOEM$ = this.licenseService.isOEM$();
     }
-
-    this.isReadOnly = api.definitionContext.origin === 'KUBERNETES';
 
     this.api = api as ApiV4;
     this.formGroup = new UntypedFormGroup({});
@@ -136,10 +142,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
       this.apiExistingPaths = httpListeners.flatMap((listener) => {
         return (listener as HttpListener).paths;
       });
-      this.pathsFormControl = this.formBuilder.control(
-        { value: this.apiExistingPaths, disabled: this.isReadOnly || !this.canUpdate },
-        Validators.required,
-      );
+      this.pathsFormControl = this.formBuilder.control({ value: this.apiExistingPaths, disabled: this.isReadOnly }, Validators.required);
       this.formGroup.addControl('paths', this.pathsFormControl);
       this.enableVirtualHost = this.apiExistingPaths.some((path) => path.host !== undefined);
     } else {
@@ -155,11 +158,21 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
           return <TcpHost>{ host };
         });
       });
-      this.hostsFormControl = this.formBuilder.control({ value: this.apiExistingHosts, disabled: !this.canUpdate }, Validators.required);
+      this.hostsFormControl = this.formBuilder.control({ value: this.apiExistingHosts, disabled: this.isReadOnly }, Validators.required);
       this.formGroup.addControl('hosts', this.hostsFormControl);
     } else {
       this.apiExistingHosts = [];
       this.formGroup.removeControl('hosts');
+    }
+
+    const kafkaListener: KafkaListener = this.api.listeners.find((listener) => listener.type === 'KAFKA');
+    if (kafkaListener) {
+      this.apiExistingKafkaHost = { host: kafkaListener.host ?? '' };
+      this.hostFormControl = this.formBuilder.control({ value: this.apiExistingKafkaHost, disabled: this.isReadOnly }, Validators.required);
+      this.formGroup.addControl('host', this.hostFormControl);
+    } else {
+      this.apiExistingKafkaHost = {};
+      this.formGroup.removeControl('host');
     }
 
     const existingEntrypoints = flatten(this.api.listeners.map((l) => l.entrypoints)).map((e) => e.type);
@@ -277,19 +290,28 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
             hosts: formValue.hosts?.map((host) => host.host),
             entrypoints: currentTcpListener?.entrypoints,
           };
+
+          const currentKafkaListener = this.api.listeners.find((listener) => listener.type === 'KAFKA');
+          const updatedKafkaListener: KafkaListener = {
+            ...currentKafkaListener,
+            host: formValue.host?.host,
+            entrypoints: currentKafkaListener?.entrypoints,
+          };
+
           const updateApi: UpdateApiV4 = {
             ...(api as ApiV4),
             listeners: [
               updatedHttpListener,
               updatedTcpListener,
-              ...this.api.listeners.filter((listener) => listener.type !== 'HTTP' && listener.type !== 'TCP'),
+              updatedKafkaListener,
+              ...this.api.listeners.filter((listener) => listener.type !== 'HTTP' && listener.type !== 'TCP' && listener.type !== 'KAFKA'),
             ].filter((listener) => listener?.entrypoints?.length > 0),
           };
 
           return this.apiService.update(this.apiId, updateApi);
         }),
         tap(() => {
-          if (this.apiExistingHosts?.length > 0) {
+          if (this.apiExistingHosts?.length > 0 || !!this.apiExistingKafkaHost.host) {
             this.snackBarService.success('Host configuration successfully saved!');
           } else {
             this.snackBarService.success('Context-path configuration successfully saved!');
@@ -387,7 +409,10 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   }
 
   onRequestUpgrade() {
-    this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.GENERAL_ENTRYPOINT_CONFIG });
+    this.licenseService.openDialog({
+      feature: this.api.type === 'NATIVE' ? ApimFeature.APIM_NATIVE_KAFKA_REACTOR : ApimFeature.APIM_EN_MESSAGE_REACTOR,
+      context: UTMTags.GENERAL_ENTRYPOINT_CONFIG,
+    });
   }
 
   ngOnDestroy(): void {

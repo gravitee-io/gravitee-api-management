@@ -60,7 +60,6 @@ interface ApplicationsData {
 }
 
 interface CheckoutData {
-  api: Api;
   applicationApiKeySubscriptions: Subscription[];
 }
 
@@ -85,8 +84,7 @@ interface CheckoutData {
   standalone: true,
 })
 export class SubscribeToApiComponent implements OnInit {
-  @Input()
-  apiId!: string;
+  @Input() api!: Api;
 
   currentStep = signal(1);
   currentPlan = signal<Plan | undefined>(undefined);
@@ -111,7 +109,6 @@ export class SubscribeToApiComponent implements OnInit {
     return false;
   });
 
-  api$: Observable<Api> = of();
   plans$: Observable<Plan[]> = of();
   applicationsData$: Observable<ApplicationsData> = of();
   checkoutData$: Observable<CheckoutData> = of();
@@ -135,24 +132,22 @@ export class SubscribeToApiComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.plans$ = this.planService.list(this.apiId).pipe(
+    this.plans$ = this.planService.list(this.api.id).pipe(
       map(({ data }) => data ?? []),
       catchError(_ => of([])),
     );
-    this.api$ = this.apiService.details(this.apiId).pipe(catchError(_ => of()));
 
-    this.applicationsData$ = this.subscriptionService.list({ apiId: this.apiId, statuses: ['PENDING', 'ACCEPTED'], size: -1 }).pipe(
+    this.applicationsData$ = this.subscriptionService.list({ apiId: this.api.id, statuses: ['PENDING', 'ACCEPTED'], size: -1 }).pipe(
       combineLatestWith(this.currentApplicationsPage),
       switchMap(([subscriptions, page]) => this.getApplicationsData$(page, subscriptions)),
       catchError(_ => of({ applications: [], pagination: { currentPage: 0, totalApplications: 0, start: 0, end: 0 } })),
     );
 
-    this.checkoutData$ = this.api$.pipe(
-      switchMap(api => this.handleCheckoutData$(api)),
-      tap(({ api, applicationApiKeySubscriptions }) => {
+    this.checkoutData$ = this.handleCheckoutData$(this.api).pipe(
+      tap(({ applicationApiKeySubscriptions }) => {
         this.showApiKeyModeSelection.set(
           this.configuration.plan?.security?.sharedApiKey?.enabled === true &&
-            api.definitionVersion !== 'FEDERATED' &&
+            this.api.definitionVersion !== 'FEDERATED' &&
             applicationApiKeySubscriptions.length === 1,
         );
       }),
@@ -250,8 +245,8 @@ export class SubscribeToApiComponent implements OnInit {
     const generalConditionsPageId = this.currentPlan()?.general_conditions;
     if (generalConditionsPageId) {
       return this.pageService
-        .getByApiIdAndId(this.apiId, generalConditionsPageId, true)
-        .pipe(switchMap(page => this.handleTermsAndConditionsDialog$(this.apiId, page, createSubscription)));
+        .getByApiIdAndId(this.api.id, generalConditionsPageId, true)
+        .pipe(switchMap(page => this.handleTermsAndConditionsDialog$(this.api.id, page, createSubscription)));
     }
     return of(createSubscription);
   }
@@ -404,11 +399,11 @@ export class SubscribeToApiComponent implements OnInit {
       }),
       map(response => {
         if (!response) {
-          return { api, applicationApiKeySubscriptions: [] };
+          return { applicationApiKeySubscriptions: [] };
         }
 
         const applicationApiKeySubscriptions = response.data.filter(s => response.metadata[s.plan]?.securityType === 'API_KEY');
-        return { api, applicationApiKeySubscriptions };
+        return { applicationApiKeySubscriptions };
       }),
     );
   }

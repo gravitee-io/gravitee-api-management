@@ -20,12 +20,18 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { combineLatest, Observable, Subject, timer } from 'rxjs';
 import { map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
-import { ApiScoring, ScoringAsset, ScoringDiagnostic, ScoringSeverity } from './api-scoring.model';
+import { ApiScoring, ScoringAsset, ScoringDiagnostic, ScoringError, ScoringSeverity } from './api-scoring.model';
 
 import { ApiScoringService } from '../../../services-ngx/api-scoring.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api } from '../../../entities/management-api-v2';
 import { AsyncJobService } from '../../../services-ngx/async-job.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+
+interface ScoreEvaluationErrors {
+  assetName?: string;
+  errors: ScoringError[];
+}
 
 @Component({
   selector: 'app-api-scoring',
@@ -50,6 +56,7 @@ export class ApiScoringComponent implements OnInit {
     private readonly apiService: ApiV2Service,
     private readonly apiScoringService: ApiScoringService,
     private readonly asyncJobService: AsyncJobService,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit() {
@@ -108,7 +115,16 @@ export class ApiScoringComponent implements OnInit {
 
           if (!this.pendingScoreRequest) {
             this.stopPolling$.next();
+
+            const evaluationErrors = this.getEvaluationErrors(apiScoring);
+            if (evaluationErrors.length) {
+              this.snackBarService.error(this.formatEvaluationErrors(evaluationErrors));
+            }
           }
+        },
+        error: (e) => {
+          this.isLoading = false;
+          this.snackBarService.error(e.error?.message ?? 'An error occurred while getting your API Scoring.');
         },
       });
   }
@@ -132,5 +148,28 @@ export class ApiScoringComponent implements OnInit {
       ...this.apiScoring,
       assets: filteredScoringAssets,
     };
+  }
+
+  private getEvaluationErrors(apiScoring: ApiScoring): ScoreEvaluationErrors[] {
+    return apiScoring.assets
+      .filter((asset) => asset?.errors?.length > 0)
+      .map((asset) => ({
+        assetName: asset.name,
+        errors: asset.errors,
+      }));
+  }
+
+  private formatEvaluationErrors(evaluationErrors: ScoreEvaluationErrors[]): string {
+    let errorMessage = 'Errors occurred while scoring this API:';
+    evaluationErrors.forEach((asset) => {
+      errorMessage += '\n';
+      if (asset.assetName) {
+        errorMessage += '\nAsset: ' + asset.assetName;
+      }
+      asset.errors.forEach((error) => {
+        errorMessage += '\nCode: ' + error.code + '\n' + 'Path: ' + error.path.toString();
+      });
+    });
+    return errorMessage;
   }
 }

@@ -220,7 +220,13 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
             templateEngine = TemplateEngine.templateEngine();
             prepareTemplateEngine(templateEngine);
             if (templateVariableProviders != null) {
-                templateVariableProviders.forEach(templateVariableProvider -> templateVariableProvider.provide(this));
+                templateVariableProviders.forEach(templateVariableProvider -> {
+                    if (templateVariableProvider instanceof ExecutionContextTemplateVariableProvider ctxTemplateVariableProvider) {
+                        ctxTemplateVariableProvider.provide(this);
+                    } else {
+                        templateVariableProvider.provide(templateEngine.getTemplateContext());
+                    }
+                });
             }
         }
 

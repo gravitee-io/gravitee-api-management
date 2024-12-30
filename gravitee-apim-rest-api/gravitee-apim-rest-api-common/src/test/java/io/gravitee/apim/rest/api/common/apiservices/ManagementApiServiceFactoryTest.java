@@ -18,6 +18,7 @@ package io.gravitee.apim.rest.api.common.apiservices;
 import static io.gravitee.apim.rest.api.common.apiservices.ManagementApiServiceFactory.DEPLOYMENT_CONTEXT_MESSAGE;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
@@ -66,7 +67,7 @@ class ManagementApiServiceFactoryTest {
     static class TestingManagementApiService implements ManagementApiService {
 
         @Override
-        public Completable update(Api api) {
+        public Completable update(AbstractApi api) {
             return Completable.complete();
         }
 

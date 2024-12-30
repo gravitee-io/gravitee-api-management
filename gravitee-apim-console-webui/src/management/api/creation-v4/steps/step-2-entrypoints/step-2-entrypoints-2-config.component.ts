@@ -18,18 +18,22 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { forkJoin, Observable, Subject } from 'rxjs';
 import { GioFormJsonSchemaComponent, GioJsonSchema, GioLicenseService, License } from '@gravitee/ui-particles-angular';
-import { debounceTime, takeUntil, tap } from 'rxjs/operators';
+import { debounceTime, map, takeUntil, tap } from 'rxjs/operators';
 import { omitBy } from 'lodash';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { Step3Endpoints1ListComponent } from '../step-3-endpoints/step-3-endpoints-1-list.component';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 import { Step3Endpoints2ConfigComponent } from '../step-3-endpoints/step-3-endpoints-2-config.component';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
-import { PathV4, Qos } from '../../../../../entities/management-api-v2';
+import { KafkaHost, PathV4, Qos } from '../../../../../entities/management-api-v2';
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 import { RestrictedDomainService } from '../../../../../services-ngx/restricted-domain.service';
 import { TcpHost } from '../../../../../entities/management-api-v2/api/v4/tcpHost';
+import { KafkaHostData } from '../../../component/gio-form-listeners/gio-form-listeners-kafka/gio-form-listeners-kafka-host.component';
+import { PortalSettingsService } from '../../../../../services-ngx/portal-settings.service';
+import { PortalSettingsPortal } from '../../../../../entities/portal/portalSettings';
 
 @Component({
   selector: 'step-2-entrypoints-2-config',
@@ -45,13 +49,16 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   public entrypointSchemas: Record<string, GioJsonSchema>;
   public hasHttpListeners: boolean;
   public hasTcpListeners: boolean;
+  public hasKafkaListeners: boolean;
   public enableVirtualHost: boolean;
   public domainRestrictions: string[] = [];
   public shouldUpgrade = false;
   public license$: Observable<License>;
   public isOEM$: Observable<boolean>;
+  public portalSettings$: Observable<PortalSettingsPortal>;
 
   private apiType: ApiCreationPayload['type'];
+  private envId: string;
 
   constructor(
     private readonly formBuilder: UntypedFormBuilder,
@@ -60,14 +67,20 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     private readonly restrictedDomainService: RestrictedDomainService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly licenseService: GioLicenseService,
-  ) {}
+    private readonly portalSettingsService: PortalSettingsService,
+    private readonly activatedRoute: ActivatedRoute,
+  ) {
+    this.envId = this.activatedRoute.snapshot.params.envHrid;
+  }
 
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
     this.apiType = currentStepPayload.type;
+    this.portalSettings$ = this.portalSettingsService.getByEnvironmentId(this.envId).pipe(map(({ portal }) => portal));
 
     const paths = currentStepPayload.paths ?? [];
-    const hosts = currentStepPayload.hosts ?? [];
+    const tcpHosts = currentStepPayload.hosts ?? [];
+    const kafkaHost = currentStepPayload.host;
 
     this.restrictedDomainService
       .get()
@@ -81,14 +94,14 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       .subscribe();
     this.formGroup = this.formBuilder.group({});
 
-    this.initFormForSyncEntrypoints(currentStepPayload, paths, hosts);
+    this.initFormForSyncEntrypoints(currentStepPayload, paths, tcpHosts, kafkaHost);
 
     currentStepPayload.selectedEntrypoints.forEach(({ id, configuration, selectedQos }) => {
       this.formGroup.addControl(`${id}-config`, this.formBuilder.control(configuration ?? {}));
       this.formGroup.addControl(`${id}-qos`, this.formBuilder.control(selectedQos ?? 'AUTO'));
     });
 
-    if (this.apiType === 'MESSAGE') {
+    if (this.apiType === 'MESSAGE' || this.apiType === 'NATIVE') {
       this.shouldUpgrade = currentStepPayload.selectedEntrypoints.some(({ deployed }) => !deployed);
       this.license$ = this.licenseService.getLicense$();
       this.isOEM$ = this.licenseService.isOEM$();
@@ -112,7 +125,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       });
   }
 
-  private initFormForSyncEntrypoints(currentStepPayload: ApiCreationPayload, paths: PathV4[], hosts: any) {
+  private initFormForSyncEntrypoints(currentStepPayload: ApiCreationPayload, paths: PathV4[], tcpHosts: TcpHost[], kafkaHost: KafkaHost) {
     this.hasHttpListeners =
       currentStepPayload.selectedEntrypoints.find((entrypoint) => entrypoint.supportedListenerType === 'HTTP') != null;
     if (this.hasHttpListeners) {
@@ -120,7 +133,13 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     }
     this.hasTcpListeners = currentStepPayload.selectedEntrypoints.find((entrypoint) => entrypoint.supportedListenerType === 'TCP') != null;
     if (this.hasTcpListeners) {
-      this.formGroup.addControl('hosts', this.formBuilder.control(hosts, Validators.required));
+      this.formGroup.addControl('hosts', this.formBuilder.control(tcpHosts, Validators.required));
+    }
+    this.hasKafkaListeners = currentStepPayload.selectedEntrypoints.some((entrypoint) => entrypoint.supportedListenerType === 'KAFKA');
+    if (this.hasKafkaListeners) {
+      const initialKafkaControlValue: KafkaHostData = kafkaHost;
+
+      this.formGroup.addControl('kafka', this.formBuilder.control(initialKafkaControlValue, Validators.required));
     }
 
     this.formGroup.valueChanges.pipe(debounceTime(500), takeUntil(this.unsubscribe$)).subscribe(() => {
@@ -137,20 +156,22 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   save(): void {
     const pathsValue = this.formGroup.get('paths')?.value ?? [];
     const hostsValues = this.formGroup.get('hosts')?.value ?? [];
+    const hostValue = this.formGroup.get('kafka')?.value;
 
     this.stepService.validStep((previousPayload) => {
       let paths: PathV4[];
       let hosts: TcpHost[];
+      let host: KafkaHost;
       if (this.selectedEntrypoints.some((entrypoint) => entrypoint.supportedListenerType === 'TCP')) {
-        paths = undefined;
         hosts = hostsValues;
+      } else if (this.selectedEntrypoints.some((entrypoint) => entrypoint.supportedListenerType === 'KAFKA')) {
+        host = hostValue;
       } else {
         paths = this.enableVirtualHost
           ? // Remove host and overrideAccess from virualHost if is not necessary
             pathsValue.map(({ path, host, overrideAccess }) => ({ path, host, overrideAccess }))
           : // Clear private properties from gio-listeners-virtual-host component
             pathsValue.map(({ path }) => ({ path }));
-        hosts = undefined;
       }
 
       const selectedEntrypoints: ApiCreationPayload['selectedEntrypoints'] = previousPayload.selectedEntrypoints.map((entrypoint) => ({
@@ -159,13 +180,30 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
         selectedQos: this.formGroup.get(`${entrypoint.id}-qos`)?.value,
       }));
 
-      return { ...previousPayload, paths, hosts, selectedEntrypoints };
+      return {
+        ...previousPayload,
+        paths,
+        hosts,
+        host,
+        selectedEntrypoints,
+      };
     });
-    // Skip step 3-list if api type is sync
-    this.stepService.goToNextStep({
-      groupNumber: 3,
-      component: this.apiType === 'MESSAGE' ? Step3Endpoints1ListComponent : Step3Endpoints2ConfigComponent,
-    });
+
+    switch (this.apiType) {
+      case 'MESSAGE':
+        this.stepService.goToNextStep({
+          groupNumber: 3,
+          component: Step3Endpoints1ListComponent,
+        });
+        break;
+      case 'PROXY':
+      case 'NATIVE':
+        this.stepService.goToNextStep({
+          groupNumber: 3,
+          component: Step3Endpoints2ConfigComponent,
+        });
+        break;
+    }
   }
 
   goBack(): void {
@@ -173,9 +211,16 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   }
 
   onRequestUpgrade() {
-    this.licenseService.openDialog({
-      feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
-      context: UTMTags.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG,
-    });
+    if (this.apiType === 'NATIVE') {
+      this.licenseService.openDialog({
+        feature: ApimFeature.APIM_NATIVE_KAFKA_REACTOR,
+        context: UTMTags.API_CREATION_NATIVE_KAFKA_ENTRYPOINT_CONFIG,
+      });
+    } else {
+      this.licenseService.openDialog({
+        feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
+        context: UTMTags.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG,
+      });
+    }
   }
 }

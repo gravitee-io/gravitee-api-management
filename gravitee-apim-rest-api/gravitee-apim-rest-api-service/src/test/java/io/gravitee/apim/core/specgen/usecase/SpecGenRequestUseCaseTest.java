@@ -15,10 +15,16 @@
  */
 package io.gravitee.apim.core.specgen.usecase;
 
+import static assertions.CoreAssertions.assertThat;
+import static io.gravitee.apim.core.specgen.model.ApiSpecGenRequestState.AVAILABLE;
+import static io.gravitee.apim.core.specgen.model.ApiSpecGenRequestState.GENERATING;
+import static io.gravitee.apim.core.specgen.model.ApiSpecGenRequestState.STARTED;
 import static io.gravitee.apim.core.specgen.model.ApiSpecGenRequestState.UNAVAILABLE;
 import static io.gravitee.rest.api.service.common.UuidString.generateRandom;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.mockito.Mockito.mock;
 
+import inmemory.ApiSpecGenCrudServiceInMemory;
 import inmemory.ApiSpecGenQueryServiceInMemory;
 import inmemory.SpecGenProviderInMemory;
 import io.gravitee.apim.core.specgen.model.ApiSpecGen;
@@ -27,14 +33,14 @@ import io.gravitee.apim.core.specgen.model.ApiSpecGenRequestState;
 import io.gravitee.apim.core.specgen.use_case.SpecGenRequestUseCase;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.UuidString;
 import io.reactivex.rxjava3.core.Single;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /**
@@ -45,6 +51,7 @@ public class SpecGenRequestUseCaseTest {
 
     static final ApiSpecGenQueryServiceInMemory queryService = new ApiSpecGenQueryServiceInMemory();
     static final SpecGenProviderInMemory specGenProvider = new SpecGenProviderInMemory();
+    static final ApiSpecGenCrudServiceInMemory crudService = new ApiSpecGenCrudServiceInMemory();
 
     private SpecGenRequestUseCase useCase;
     private static final String CURRENT_ENV = "envId";
@@ -52,10 +59,10 @@ public class SpecGenRequestUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new SpecGenRequestUseCase(queryService, specGenProvider);
+        useCase = new SpecGenRequestUseCase(queryService, specGenProvider, crudService);
 
         GraviteeContext.setCurrentEnvironment(CURRENT_ENV);
-
+        crudService.initWith(List.of());
         queryService.initWith(
             List.of(
                 new ApiSpecGen(generateRandom(), "api-1", "some description", "some-version", ApiType.MESSAGE, CURRENT_ENV),
@@ -91,13 +98,13 @@ public class SpecGenRequestUseCaseTest {
             .assertValue(state -> UNAVAILABLE.equals(state.state()));
     }
 
-    public static Stream<ApiSpecGenRequestState> params_that_must_return_request_state() {
-        return Arrays.stream(ApiSpecGenRequestState.values());
+    static Stream<Arguments> params_that_must_return_post_job_request_state() {
+        return Stream.of(Arguments.of(UNAVAILABLE, 0), Arguments.of(STARTED, 1), Arguments.of(GENERATING, 0));
     }
 
     @ParameterizedTest
-    @MethodSource("params_that_must_return_request_state")
-    void must_return_post_job_request_state(ApiSpecGenRequestState state) {
+    @MethodSource("params_that_must_return_post_job_request_state")
+    void must_return_post_job_request_state(ApiSpecGenRequestState state, int crudSize) {
         specGenProvider.initWith(List.of(Single.just(new ApiSpecGenRequestReply(state))));
 
         useCase
@@ -107,11 +114,17 @@ public class SpecGenRequestUseCaseTest {
             .assertComplete()
             .assertNoErrors()
             .assertValue(reply -> state.equals(reply.state()));
+
+        assertThat(crudService.storage()).hasSize(crudSize);
+    }
+
+    public static Stream<Arguments> params_that_must_return_get_state_request_state() {
+        return Stream.of(Arguments.of(AVAILABLE, 0), Arguments.of(UNAVAILABLE, 0), Arguments.of(GENERATING, 0));
     }
 
     @ParameterizedTest
-    @MethodSource("params_that_must_return_request_state")
-    void must_return_get_state_request_state(ApiSpecGenRequestState state) {
+    @MethodSource("params_that_must_return_get_state_request_state")
+    void must_return_get_state_request_state(ApiSpecGenRequestState state, int crudSize) {
         specGenProvider.initWith(List.of(Single.just(new ApiSpecGenRequestReply(state))));
 
         useCase
@@ -121,5 +134,12 @@ public class SpecGenRequestUseCaseTest {
             .assertComplete()
             .assertNoErrors()
             .assertValue(reply -> state.equals(reply.state()));
+
+        assertThat(crudService.storage()).hasSize(crudSize);
+    }
+
+    @AfterEach
+    void tearDown() {
+        GraviteeContext.cleanContext();
     }
 }

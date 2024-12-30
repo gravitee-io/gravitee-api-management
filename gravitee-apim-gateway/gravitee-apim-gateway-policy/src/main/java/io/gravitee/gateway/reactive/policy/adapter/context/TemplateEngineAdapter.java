@@ -45,6 +45,11 @@ public class TemplateEngineAdapter implements TemplateEngine {
     }
 
     @Override
+    public <T> T evalNow(String expression, Class<T> clazz) {
+        return templateEngine.evalNow(expression, clazz);
+    }
+
+    @Override
     public <T> Maybe<T> eval(String expression, Class<T> clazz) {
         return templateEngine.eval(expression, clazz);
     }

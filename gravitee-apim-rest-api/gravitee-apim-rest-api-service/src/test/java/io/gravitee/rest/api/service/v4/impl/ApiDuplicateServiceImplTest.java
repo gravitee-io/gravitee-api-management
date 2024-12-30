@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static assertions.RestApiAssertions.assertThat;
-import static fixtures.ApiModelFixtures.aModelApiV4;
+import static fixtures.ApiModelFixtures.aModelHttpApiV4;
 import static fixtures.PlanModelFixtures.aKeylessPlanV4;
 import static fixtures.PlanModelFixtures.anApiKeyPanV4;
 import static io.gravitee.rest.api.model.v4.api.DuplicateOptions.FilteredFieldsEnum.GROUPS;
@@ -117,7 +117,7 @@ public class ApiDuplicateServiceImplTest {
 
         duplicateOptions = DuplicateOptions.builder().contextPath("/my-context-path").filteredFields(List.of(PAGES, MEMBERS)).build();
 
-        sourceApi = aModelApiV4().toBuilder().id(API_ID).plans(Set.of(aKeylessPlanV4(), anApiKeyPanV4())).build();
+        sourceApi = aModelHttpApiV4().toBuilder().id(API_ID).plans(Set.of(aKeylessPlanV4(), anApiKeyPanV4())).build();
 
         GraviteeContext.setCurrentEnvironment("my-env");
         GraviteeContext.setCurrentOrganization("my-org");

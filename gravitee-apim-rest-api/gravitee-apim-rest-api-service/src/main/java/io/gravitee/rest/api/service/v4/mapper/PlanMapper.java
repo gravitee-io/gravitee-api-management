@@ -17,12 +17,16 @@ package io.gravitee.rest.api.service.v4.mapper;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.nativeapi.NativeApi;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
+import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
+import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -45,8 +49,14 @@ import org.springframework.stereotype.Component;
 public class PlanMapper {
 
     public PlanEntity toEntity(Plan plan, List<Flow> flows) {
-        PlanEntity entity = new PlanEntity();
+        return toEntity(plan, new PlanEntity(flows));
+    }
 
+    public NativePlanEntity toNativeEntity(Plan plan, List<NativeFlow> flows) {
+        return toEntity(plan, new NativePlanEntity(flows));
+    }
+
+    private <T extends BasePlanEntity> T toEntity(Plan plan, T entity) {
         entity.setId(plan.getId());
         entity.setDefinitionVersion(plan.getDefinitionVersion());
         entity.setCrossId(plan.getCrossId());
@@ -61,8 +71,8 @@ public class PlanMapper {
         entity.setPublishedAt(plan.getPublishedAt());
         entity.setOrder(plan.getOrder());
         entity.setExcludedGroups(plan.getExcludedGroups());
-        entity.setFlows(flows);
         entity.setType(PlanType.valueOf(plan.getType().name()));
+        entity.setApiType(plan.getApiType());
         if (plan.getMode() != null) {
             entity.setMode(PlanMode.valueOf(plan.getMode().name()));
         } else {
@@ -93,7 +103,7 @@ public class PlanMapper {
         return entity;
     }
 
-    public Plan toRepository(final NewPlanEntity newPlanEntity) {
+    public Plan toRepository(final NewPlanEntity newPlanEntity, Api api) {
         Plan plan = new Plan();
         plan.setDefinitionVersion(DefinitionVersion.V4);
         plan.setId(newPlanEntity.getId());
@@ -120,6 +130,7 @@ public class PlanMapper {
         plan.setSelectionRule(newPlanEntity.getSelectionRule());
         plan.setGeneralConditions(newPlanEntity.getGeneralConditions());
         plan.setOrder(newPlanEntity.getOrder());
+        plan.setApiType(api.getType());
 
         if (newPlanEntity.getStatus() == PlanStatus.PUBLISHED) {
             plan.setPublishedAt(new Date());
@@ -141,36 +152,30 @@ public class PlanMapper {
     }
 
     public io.gravitee.definition.model.v4.plan.Plan toDefinition(final PlanEntity planEntity) {
-        io.gravitee.definition.model.v4.plan.Plan planDefinition = new io.gravitee.definition.model.v4.plan.Plan();
-        planDefinition.setId(planEntity.getId());
-        planDefinition.setSecurity(planEntity.getSecurity());
-        planDefinition.setMode(io.gravitee.definition.model.v4.plan.PlanMode.valueOf(planEntity.getMode().name()));
-        planDefinition.setFlows(planEntity.getFlows());
-        planDefinition.setId(planEntity.getId());
-        planDefinition.setName(planEntity.getName());
-        planDefinition.setSelectionRule(planEntity.getSelectionRule());
-        planDefinition.setStatus(planEntity.getStatus());
-        planDefinition.setTags(planEntity.getTags());
+        var planDefinition = new io.gravitee.definition.model.v4.plan.Plan(planEntity.getFlows());
+        mergeEntityToDefinition(planEntity, planDefinition);
         return planDefinition;
     }
 
-    public List<NativePlan> toNativeDefinitions(final Set<PlanEntity> planEntities) {
+    public List<NativePlan> toNativeDefinitions(final Set<NativePlanEntity> planEntities) {
         return planEntities.stream().map(this::toNativeDefinition).collect(Collectors.toList());
     }
 
-    public NativePlan toNativeDefinition(final PlanEntity planEntity) {
-        NativePlan planDefinition = new NativePlan();
+    public NativePlan toNativeDefinition(final NativePlanEntity planEntity) {
+        var planDefinition = new NativePlan(planEntity.getFlows());
+        mergeEntityToDefinition(planEntity, planDefinition);
+        return planDefinition;
+    }
+
+    private static void mergeEntityToDefinition(BasePlanEntity planEntity, AbstractPlan planDefinition) {
         planDefinition.setId(planEntity.getId());
         planDefinition.setSecurity(planEntity.getSecurity());
-        planDefinition.setMode(io.gravitee.definition.model.v4.plan.PlanMode.valueOf(planEntity.getMode().name()));
-        // FIXME: Kafka Gateway - PlanEntity is HTTP oriented, probably need a NativePlanEntity ?
-        planDefinition.setFlows(List.of());
+        planDefinition.setMode(PlanMode.valueOf(planEntity.getMode().name()));
         planDefinition.setId(planEntity.getId());
         planDefinition.setName(planEntity.getName());
         planDefinition.setSelectionRule(planEntity.getSelectionRule());
         planDefinition.setStatus(planEntity.getStatus());
         planDefinition.setTags(planEntity.getTags());
-        return planDefinition;
     }
 
     public UpdatePlanEntity toUpdatePlanEntity(final PlanEntity planEntity) {

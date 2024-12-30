@@ -300,7 +300,7 @@ class RollbackApiUseCaseTest {
                 api.setUpdatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()));
                 apiCrudService.update(api);
                 return ApiModelFixtures
-                    .aModelApiV4()
+                    .aModelHttpApiV4()
                     .toBuilder()
                     .id(existingApi.getId())
                     .updatedAt(Date.from(INSTANT_NOW.atZone(ZoneId.systemDefault()).toInstant()))
@@ -348,7 +348,7 @@ class RollbackApiUseCaseTest {
         // Existing plan
         Plan existingPlanToUpdate = givenExistingPlan(
             PlanFixtures
-                .aPlanV4()
+                .aPlanHttpV4()
                 .toBuilder()
                 .id("plan-to-update")
                 .apiId(existingApi.getId())
@@ -358,16 +358,16 @@ class RollbackApiUseCaseTest {
                 .build()
         );
         Plan existingPlanToClose = givenExistingPlan(
-            PlanFixtures.aPlanV4().toBuilder().id("plan-to-close").apiId(existingApi.getId()).name("plan-to-close-name").build()
+            PlanFixtures.aPlanHttpV4().toBuilder().id("plan-to-close").apiId(existingApi.getId()).name("plan-to-close-name").build()
         );
         Plan existingPlanToRepublish = givenExistingPlan(
             PlanFixtures
-                .aPlanV4()
+                .aPlanHttpV4()
                 .toBuilder()
                 .id("plan-to-republish")
                 .apiId(existingApi.getId())
                 .name("plan-to-republish-name")
-                .planDefinitionHttpV4(PlanFixtures.aPlanV4().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.CLOSED).build())
+                .planDefinitionHttpV4(PlanFixtures.aPlanHttpV4().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.CLOSED).build())
                 .build()
         );
 
@@ -445,7 +445,7 @@ class RollbackApiUseCaseTest {
                 apiCrudService.update(api);
 
                 return ApiModelFixtures
-                    .aModelApiV4()
+                    .aModelHttpApiV4()
                     .toBuilder()
                     .id(existingApi.getId())
                     .updatedAt(Date.from(INSTANT_NOW.atZone(ZoneId.systemDefault()).toInstant()))

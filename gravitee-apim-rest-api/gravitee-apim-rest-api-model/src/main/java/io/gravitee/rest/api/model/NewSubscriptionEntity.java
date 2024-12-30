@@ -18,6 +18,7 @@ package io.gravitee.rest.api.model;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.Map;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -41,6 +42,8 @@ public class NewSubscriptionEntity {
     private ApiKeyMode apiKeyMode;
 
     private SubscriptionConfigurationEntity configuration;
+
+    private OriginContext.Origin origin = OriginContext.Origin.MANAGEMENT;
 
     private Map<String, String> metadata;
 

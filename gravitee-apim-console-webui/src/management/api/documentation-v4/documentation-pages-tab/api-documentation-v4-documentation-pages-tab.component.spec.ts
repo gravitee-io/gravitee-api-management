@@ -34,10 +34,11 @@ import { ApiDocumentationV4ListNavigationHeaderHarness } from '../components/doc
 import { ApiDocumentationV4EditFolderDialogHarness } from '../dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.harness';
 import { ApiDocumentationV4PagesListHarness } from '../components/api-documentation-v4-pages-list/api-documentation-v4-pages-list.harness';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
-import { Breadcrumb, Page, fakeFolder, fakeMarkdown, ApiLifecycleState, fakeApiV4, ApiV4 } from '../../../../entities/management-api-v2';
+import { ApiLifecycleState, ApiV4, Breadcrumb, fakeApiV4, fakeFolder, fakeMarkdown, Page } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { PageType } from '../../../../entities/page';
 import { Constants } from '../../../../entities/Constants';
+import { ApiSpecGenRequestState, ApiSpecGenState } from '../../../../services-ngx/api-spec-gen.service';
 
 describe('ApiDocumentationV4DocumentationPagesTab', () => {
   let fixture: ComponentFixture<ApiDocumentationV4DocumentationPagesTabComponent>;
@@ -52,6 +53,7 @@ describe('ApiDocumentationV4DocumentationPagesTab', () => {
     parentId = 'ROOT',
     portalUrl = 'portal.url',
     apiLifecycleStatus: ApiLifecycleState = 'PUBLISHED',
+    apiSpecGenState: ApiSpecGenState = ApiSpecGenState.UNAVAILABLE,
   ) => {
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4DocumentationPagesTabComponent],
@@ -100,6 +102,7 @@ describe('ApiDocumentationV4DocumentationPagesTab', () => {
 
     expectGetApi(fakeApiV4({ id: API_ID, lifecycleState: apiLifecycleStatus }));
     expectGetPages(pages, breadcrumb, parentId);
+    expectSpecGenState({ state: apiSpecGenState });
   };
 
   afterEach(() => {
@@ -535,5 +538,13 @@ describe('ApiDocumentationV4DocumentationPagesTab', () => {
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
       })
       .flush(api);
+  };
+
+  const expectSpecGenState = (apiSpecGenRequestState: ApiSpecGenRequestState) => {
+    const req = httpTestingController.expectOne({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/spec-gen/_state`,
+    });
+    req.flush(apiSpecGenRequestState);
   };
 });

@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import java.io.IOException;
 import java.util.stream.Stream;
 import org.mapstruct.DecoratedWith;
@@ -64,14 +65,13 @@ public interface ApiAdapter {
     @Mapping(target = "analytics", source = "apiDefinitionHttpV4.analytics")
     @Mapping(target = "flowExecution", source = "apiDefinitionHttpV4.flowExecution")
     @Mapping(target = "flows", source = "apiDefinitionHttpV4.flows")
+    @Mapping(target = "failover", source = "apiDefinitionHttpV4.failover")
     NewApiEntity toNewApiEntity(Api source);
-
-    @Mapping(target = "apiVersion", source = "version")
-    io.gravitee.definition.model.v4.Api toApiDefinition(ApiCRDSpec source);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "version", target = "apiVersion")
     @Mapping(target = "disableMembershipNotifications", expression = "java(!spec.isNotifyMembers())")
+    @Mapping(target = "listeners", expression = "java((List<Listener>) spec.getListeners())")
     UpdateApiEntity toUpdateApiEntity(ApiCRDSpec spec);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
@@ -87,12 +87,27 @@ public interface ApiAdapter {
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "version", target = "apiVersion")
     @Mapping(target = "metadata", ignore = true)
+    @Mapping(target = "listeners", expression = "java((List<Listener>) api.getListeners())")
     ApiEntity toApiEntity(ApiCRDSpec api);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "version", target = "apiVersion")
     @Mapping(target = "metadata", ignore = true)
     ApiEntity toApiEntity(Api api);
+
+    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
+    @Mapping(source = "version", target = "apiVersion")
+    @Mapping(target = "metadata", ignore = true)
+    @Mapping(target = "tags", source = "apiDefinitionNativeV4.tags")
+    @Mapping(target = "listeners", source = "apiDefinitionNativeV4.listeners")
+    @Mapping(target = "endpointGroups", source = "apiDefinitionNativeV4.endpointGroups")
+    @Mapping(target = "flows", source = "apiDefinitionNativeV4.flows")
+    @Mapping(target = "resources", source = "apiDefinitionNativeV4.resources")
+    @Mapping(target = "services", source = "apiDefinitionNativeV4.services")
+    @Mapping(target = "properties", source = "apiDefinitionNativeV4.properties")
+    @Mapping(target = "state", source = "lifecycleState")
+    @Mapping(target = "lifecycleState", source = "apiLifecycleState")
+    NativeApiEntity toNativeApiEntity(Api api);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "source.version", target = "apiVersion")

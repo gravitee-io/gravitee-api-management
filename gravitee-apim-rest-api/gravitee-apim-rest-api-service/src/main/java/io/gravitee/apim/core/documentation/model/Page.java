@@ -66,6 +66,7 @@ public class Page {
     private Map<String, String> metadata;
     private Boolean useAutoFetch; // use Boolean to avoid default value of primitive type
     private List<PageMedia> attachedMedia;
+    private boolean ingested;
 
     public enum Visibility {
         PUBLIC,

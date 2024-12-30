@@ -24,12 +24,20 @@ public record ScoringRuleset(
     String id,
     String name,
     String description,
+    Format format,
     @With String referenceId,
     ReferenceType referenceType,
     String payload,
-    ZonedDateTime createdAt
+    ZonedDateTime createdAt,
+    ZonedDateTime updatedAt
 ) {
     public enum ReferenceType {
         ENVIRONMENT,
+    }
+
+    public enum Format {
+        GRAVITEE_FEDERATION,
+        GRAVITEE_MESSAGE,
+        GRAVITEE_PROXY,
     }
 }

@@ -16,10 +16,10 @@
 package io.gravitee.apim.gateway.tests.sdk.connector.fakes;
 
 import io.gravitee.gateway.reactive.api.ConnectorMode;
-import io.gravitee.gateway.reactive.api.connector.endpoint.sync.EndpointSyncConnectorFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
+import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import java.util.Set;
 
@@ -27,12 +27,12 @@ import java.util.Set;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ConnectionErrorHttpProxyEndpointConnectorFactory
-    implements EndpointSyncConnectorFactory<ConnectionErrorHttpProxyEndpointConnector> {
+public class ConnectionErrorHttpProxyEndpointConnectorFactory extends HttpProxyEndpointConnectorFactory {
 
     private final PluginConfigurationHelper pluginConfigurationHelper;
 
     public ConnectionErrorHttpProxyEndpointConnectorFactory(PluginConfigurationHelper pluginConfigurationHelper) {
+        super(pluginConfigurationHelper);
         this.pluginConfigurationHelper = pluginConfigurationHelper;
     }
 

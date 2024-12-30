@@ -47,8 +47,8 @@ import org.junit.jupiter.api.Test;
 class SearchConnectionLogsUseCaseTest {
 
     private static final String API_ID = "f1608475-dd77-4603-a084-75dd775603e9";
-    private static final Plan PLAN_1 = PlanFixtures.aPlanV4().toBuilder().id("plan1").name("1st plan").build();
-    private static final Plan PLAN_2 = PlanFixtures.aPlanV4().toBuilder().id("plan2").name("2nd plan").build();
+    private static final Plan PLAN_1 = PlanFixtures.aPlanHttpV4().toBuilder().id("plan1").name("1st plan").build();
+    private static final Plan PLAN_2 = PlanFixtures.aPlanHttpV4().toBuilder().id("plan2").name("2nd plan").build();
     private static final BaseApplicationEntity APPLICATION_1 = BaseApplicationEntity
         .builder()
         .id("app1")
@@ -268,9 +268,9 @@ class SearchConnectionLogsUseCaseTest {
         assertThat(result.data())
             .extracting(ConnectionLogModel::getRequestId, ConnectionLogModel::getPlan)
             .containsExactlyInAnyOrder(
-                tuple("req1", PlanFixtures.aPlanV4().toBuilder().id(PLAN_1.getId()).name(PLAN_1.getName()).build()),
-                tuple("req2", PlanFixtures.aPlanV4().toBuilder().id(PLAN_1.getId()).name(PLAN_1.getName()).build()),
-                tuple("req3", PlanFixtures.aPlanV4().toBuilder().id(PLAN_2.getId()).name(PLAN_2.getName()).build())
+                tuple("req1", PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_1.getId()).name(PLAN_1.getName()).build()),
+                tuple("req2", PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_1.getId()).name(PLAN_1.getName()).build()),
+                tuple("req3", PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_2.getId()).name(PLAN_2.getName()).build())
             );
     }
 

@@ -93,4 +93,9 @@ public class EnvironmentScoringResource extends AbstractResource {
     public EnvironmentScoringRulesetsResource getEnvironmentScoringRulesetsResource() {
         return resourceContext.getResource(EnvironmentScoringRulesetsResource.class);
     }
+
+    @Path("functions")
+    public EnvironmentScoringFunctionsResource getEnvironmentScoringFunctionsResource() {
+        return resourceContext.getResource(EnvironmentScoringFunctionsResource.class);
+    }
 }

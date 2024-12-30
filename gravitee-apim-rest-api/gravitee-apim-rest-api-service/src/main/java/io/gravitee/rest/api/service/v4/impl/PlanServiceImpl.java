@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -41,6 +42,7 @@ import io.gravitee.rest.api.model.PlanSecurityEntity;
 import io.gravitee.rest.api.model.PlansConfigurationEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
@@ -182,6 +184,11 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
         return planSearchService.findByApi(executionContext, api).stream().map(PlanEntity.class::cast).collect(Collectors.toSet());
     }
 
+    @Override
+    public Set<NativePlanEntity> findNativePlansByApi(final ExecutionContext executionContext, final String api) {
+        return planSearchService.findByApi(executionContext, api).stream().map(NativePlanEntity.class::cast).collect(Collectors.toSet());
+    }
+
     private PlanEntity create(ExecutionContext executionContext, NewPlanEntity newPlan, boolean validatePathParams) {
         try {
             logger.debug("Create a new plan {} for API {}", newPlan.getName(), newPlan.getApiId());
@@ -212,7 +219,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             String id = newPlan.getId() != null && UUID.fromString(newPlan.getId()) != null ? newPlan.getId() : UuidString.generateRandom();
             newPlan.setId(id);
 
-            Plan plan = planMapper.toRepository(newPlan);
+            Plan plan = planMapper.toRepository(newPlan, api);
             plan.setEnvironmentId(executionContext.getEnvironmentId());
             plan = planRepository.create(plan);
 
@@ -266,7 +273,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             } else {
                 planSearchService.findById(executionContext, planEntity.getId());
                 // No need to validate again the path param in this case
-                resultPlanEntity = update(executionContext, planMapper.toUpdatePlanEntity(planEntity), false);
+                resultPlanEntity = update(executionContext, planMapper.toUpdatePlanEntity(planEntity));
             }
         } catch (PlanNotFoundException npe) {
             // No need to validate again the path param in this case
@@ -275,12 +282,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
         return resultPlanEntity;
     }
 
-    @Override
-    public PlanEntity update(final ExecutionContext executionContext, UpdatePlanEntity updatePlan) {
-        return update(executionContext, updatePlan, true);
-    }
-
-    private PlanEntity update(final ExecutionContext executionContext, UpdatePlanEntity updatePlan, boolean validatePathParams) {
+    private PlanEntity update(final ExecutionContext executionContext, UpdatePlanEntity updatePlan) {
         try {
             logger.debug("Update plan {}", updatePlan.getName());
 
@@ -311,6 +313,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             newPlan.setPublishedAt(oldPlan.getPublishedAt());
             newPlan.setClosedAt(oldPlan.getClosedAt());
             newPlan.setMode(oldPlan.getMode());
+            newPlan.setApiType(oldPlan.getApiType());
             // for existing plans, needRedeployAt doesn't exist. We have to initialize it
             if (oldPlan.getNeedRedeployAt() == null) {
                 newPlan.setNeedRedeployAt(oldPlan.getUpdatedAt());
@@ -354,10 +357,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             validateTags(newPlan.getTags(), api);
             updatePlan.setFlows(flowValidationService.validateAndSanitize(api.getType(), updatePlan.getFlows()));
 
-            if (validatePathParams) {
-                validatePathParameters(api, updatePlan);
-            }
-
             // if order change, reorder all pages
             if (newPlan.getOrder() != updatePlan.getOrder()) {
                 newPlan.setOrder(updatePlan.getOrder());
@@ -396,24 +395,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 ex
             );
         }
-    }
-
-    private void validatePathParameters(Api api, UpdatePlanEntity updatePlan) throws TechnicalException {
-        final Set<Plan> plans = planRepository.findByApi(api.getId());
-        final Stream<Flow> apiFlows = flowService.findByReference(FlowReferenceType.API, api.getId()).stream();
-
-        Stream<Flow> planFlows = plans
-            .stream()
-            .map(plan -> {
-                if (plan.getId().equals(updatePlan.getId())) {
-                    return updatePlan.getFlows();
-                } else {
-                    return flowService.findByReference(FlowReferenceType.PLAN, plan.getId());
-                }
-            })
-            .flatMap(Collection::stream);
-
-        pathParametersValidationService.validate(api.getType(), apiFlows, planFlows);
     }
 
     private void checkStatusOfGeneralConditions(Plan plan) {
@@ -513,7 +494,11 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             }
 
             // Delete plan and his flows
-            flowCrudService.savePlanFlows(planId, null);
+            if (plan.getApiType() == ApiType.NATIVE) {
+                flowCrudService.saveNativePlanFlows(planId, null);
+            } else {
+                flowCrudService.savePlanFlows(planId, null);
+            }
             planRepository.delete(planId);
 
             // Audit
@@ -536,7 +521,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     }
 
     @Override
-    public PlanEntity publish(final ExecutionContext executionContext, String planId) {
+    public GenericPlanEntity publish(final ExecutionContext executionContext, String planId) {
         try {
             logger.debug("Publish plan {}", planId);
 
@@ -596,7 +581,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 plan
             );
 
-            return mapToEntity(plan);
+            return mapToGenericEntity(plan);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to publish plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to publish plan: %s", planId), ex);
@@ -604,12 +589,12 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     }
 
     @Override
-    public PlanEntity deprecate(final ExecutionContext executionContext, String planId) {
+    public GenericPlanEntity deprecate(final ExecutionContext executionContext, String planId) {
         return deprecate(executionContext, planId, false);
     }
 
     @Override
-    public PlanEntity deprecate(final ExecutionContext executionContext, String planId, boolean allowStaging) {
+    public GenericPlanEntity deprecate(final ExecutionContext executionContext, String planId, boolean allowStaging) {
         try {
             logger.debug("Deprecate plan {}", planId);
 
@@ -641,7 +626,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 plan
             );
 
-            return mapToEntity(plan);
+            return mapToGenericEntity(plan);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to deprecate plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to deprecate plan: %s", planId), ex);
@@ -710,6 +695,14 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     private PlanEntity mapToEntity(final Plan plan) {
         List<Flow> flows = flowService.findByReference(FlowReferenceType.PLAN, plan.getId());
         return planMapper.toEntity(plan, flows);
+    }
+
+    private GenericPlanEntity mapToGenericEntity(final Plan plan) {
+        if (plan.getApiType() == ApiType.NATIVE) {
+            var flows = flowCrudService.getNativePlanFlows(plan.getId());
+            return planMapper.toNativeEntity(plan, flows);
+        }
+        return mapToEntity(plan);
     }
 
     private void assertPlanSecurityIsAllowed(final ExecutionContext executionContext, String securityType) {

@@ -52,6 +52,17 @@
 
         <gio-form-listeners-tcp-hosts formControlName="hosts"></gio-form-listeners-tcp-hosts>
       </div>
+      <div id="kafka-listeners" class="api-creation-v4__form-container" *ngIf="hasKafkaListeners">
+        <h3>Configure common entrypoints fields</h3>
+
+        @if (portalSettings$ | async; as portalSettings) {
+          <gio-form-listeners-kafka-host
+            formControlName="kafka"
+            [kafkaPort]="portalSettings.kafkaPort"
+            [kafkaDomain]="portalSettings.kafkaDomain"
+          />
+        }
+      </div>
 
       <ng-container *ngFor="let entrypoint of selectedEntrypoints">
         <div *ngIf="entrypointSchemas[entrypoint.id]" class="api-creation-v4__form-container">

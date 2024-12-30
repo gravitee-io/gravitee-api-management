@@ -25,6 +25,7 @@ import io.gravitee.el.TemplateEngine;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.api.ApiTemplateVariables;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.portal.rest.model.PeriodTimeUnit;
@@ -218,6 +219,9 @@ public class PlanMapper {
                     .toList();
             }
             case V4 -> {
+                if (plan instanceof NativePlanEntity) {
+                    return List.of();
+                }
                 var planV4 = (io.gravitee.rest.api.model.v4.plan.PlanEntity) plan;
                 return planV4
                     .getFlows()

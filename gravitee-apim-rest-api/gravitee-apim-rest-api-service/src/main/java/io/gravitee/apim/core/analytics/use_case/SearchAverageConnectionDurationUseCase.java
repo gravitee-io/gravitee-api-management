@@ -24,6 +24,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.time.Instant;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +40,10 @@ public class SearchAverageConnectionDurationUseCase {
     public Output execute(ExecutionContext executionContext, Input input) {
         validateApiRequirements(input);
 
-        return analyticsQueryService.searchAverageConnectionDuration(executionContext, input.apiId()).map(Output::new).orElse(new Output());
+        return analyticsQueryService
+            .searchAverageConnectionDuration(executionContext, input.apiId(), input.from.orElse(null), input.to.orElse(null))
+            .map(Output::new)
+            .orElse(new Output());
     }
 
     private void validateApiRequirements(Input input) {
@@ -67,7 +71,7 @@ public class SearchAverageConnectionDurationUseCase {
         }
     }
 
-    public record Input(String apiId, String environmentId) {}
+    public record Input(String apiId, String environmentId, Optional<Instant> from, Optional<Instant> to) {}
 
     public record Output(Optional<AverageConnectionDuration> averageConnectionDuration) {
         Output(AverageConnectionDuration averageConnectionDuration) {

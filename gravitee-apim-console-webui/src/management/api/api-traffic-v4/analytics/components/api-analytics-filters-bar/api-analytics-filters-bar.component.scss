@@ -3,7 +3,13 @@
   margin-bottom: 16px;
 }
 
-.filterBar {
+.filters {
   display: flex;
+  gap: 8px;
   align-items: center;
+}
+
+.form {
+  display: flex;
+  gap: 8px;
 }

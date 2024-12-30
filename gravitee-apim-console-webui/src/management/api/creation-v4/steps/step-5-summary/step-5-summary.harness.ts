@@ -41,6 +41,10 @@ export class Step5SummaryHarness extends ComponentHarness {
     await button.click();
   }
 
+  async getDeployMyApiButton(): Promise<MatButtonHarness> {
+    return await this.getButtonDeployMyApi();
+  }
+
   async clickDeployMyApiButton(): Promise<void> {
     const button: MatButtonHarness = await this.getButtonDeployMyApi();
     await button.click();

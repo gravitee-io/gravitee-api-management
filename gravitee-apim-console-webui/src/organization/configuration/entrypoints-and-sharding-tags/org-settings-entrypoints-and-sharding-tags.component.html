@@ -1,0 +1,300 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<form class="org-settings-tags" *ngIf="!isLoading" autocomplete="off" [formGroup]="defaultConfigForm">
+  <div>
+    <h1>Entrypoints & Sharding Tags</h1>
+
+    <h4>Manage sharding tags, entrypoints and mappings between them both for Console and the Developer Portal.</h4>
+  </div>
+
+  <gio-banner type="info"
+    >Include entrypoint and sharding tag configuration according to the values already used by the deployed API Gateway(s).</gio-banner
+  >
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Entrypoint Configuration</mat-card-title>
+      <mat-card-subtitle>Default entrypoint values to be shown in the Developer Portal</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div
+        *ngFor="let configForm of defaultConfigForm.controls | keyvalue"
+        [formGroupName]="configForm.key"
+        class="org-settings-tags__configuration"
+      >
+        <h4>
+          Default values for environment:
+          <div class="gio-badge-primary">{{ configForm.value.get('_environmentName').value }}</div>
+        </h4>
+        <div class="org-settings-tags__configuration__container">
+          <mat-form-field
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonlySetting(configForm.key, 'entrypoint')"
+            class="org-settings-tags__configuration__entrypoint"
+          >
+            <mat-icon *ngIf="isReadonlySetting(configForm.key, 'entrypoint')" class="org-settings-tags__configuration__icon" matPrefix
+              >lock</mat-icon
+            >
+            <mat-label>Default entrypoint</mat-label>
+            <input #entrypointInput matInput formControlName="entrypoint" />
+            <gio-clipboard-copy-icon matSuffix [contentToCopy]="entrypointInput.value"></gio-clipboard-copy-icon>
+          </mat-form-field>
+
+          <mat-form-field
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonlySetting(configForm.key, 'tcpPort')"
+            class="org-settings-tags__configuration__tcp"
+          >
+            <mat-icon *ngIf="isReadonlySetting(configForm.key, 'tcpPort')" class="org-settings-tags__configuration__icon" matPrefix
+              >lock</mat-icon
+            >
+            <mat-label>Default TCP port</mat-label>
+            <input #tcpPortInput matInput formControlName="tcpPort" type="number" />
+            <mat-error *ngIf="configForm.value.get('tcpPort').hasError('invalidPort')"
+              >TCP port should be in range between 1025 and 65535</mat-error
+            >
+            <gio-clipboard-copy-icon matSuffix [contentToCopy]="tcpPortInput.value"></gio-clipboard-copy-icon>
+          </mat-form-field>
+
+          <div class="org-settings-tags__configuration__kafka">
+            <mat-form-field
+              [matTooltip]="providedConfigurationMessage"
+              [matTooltipDisabled]="!isReadonlySetting(configForm.key, 'kafkaDomain')"
+              class="org-settings-tags__configuration__kafka__domain"
+            >
+              <mat-icon *ngIf="isReadonlySetting(configForm.key, 'kafkaDomain')" class="org-settings-tags__configuration__icon" matPrefix
+                >lock</mat-icon
+              >
+              <mat-label>Default Kafka domain</mat-label>
+              <input #kafkaDomainInput matInput formControlName="kafkaDomain" />
+              <gio-clipboard-copy-icon matSuffix [contentToCopy]="kafkaDomainInput.value"></gio-clipboard-copy-icon>
+              <mat-error *ngIf="configForm.value.get('kafkaDomain').hasError('maxLength')"
+                >Kafka Domain must be less than 192 characters.</mat-error
+              >
+              <mat-error *ngIf="configForm.value.get('kafkaDomain').hasError('format')">Kafka Domain is not valid.</mat-error>
+            </mat-form-field>
+            <mat-form-field
+              [matTooltip]="providedConfigurationMessage"
+              [matTooltipDisabled]="!isReadonlySetting(configForm.key, 'kafkaPort')"
+              class="org-settings-tags__configuration__kafka__port"
+            >
+              <mat-icon *ngIf="isReadonlySetting(configForm.key, 'kafkaPort')" class="org-settings-tags__configuration__icon" matPrefix
+                >lock</mat-icon
+              >
+              <mat-label>Default Kafka port</mat-label>
+              <input #kafkaPortInput matInput formControlName="kafkaPort" type="number" />
+              <mat-error *ngIf="configForm.value.get('kafkaPort').hasError('invalidPort')"
+                >Port should be in range between 1025 and 65535</mat-error
+              >
+              <gio-clipboard-copy-icon matSuffix [contentToCopy]="kafkaPortInput.value"></gio-clipboard-copy-icon>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  <mat-card class="org-settings-tags__tags-card">
+    <mat-card-header>
+      <mat-card-title>Sharding Tags</mat-card-title>
+      <div class="org-settings-tags__tags-card__headerRightBtn" *gioPermission="{ anyOf: ['organization-tag-c'] }">
+        <button
+          [gioLicense]="shardingTagsLicenseOptions"
+          (click)="onAddTagClicked()"
+          mat-raised-button
+          color="primary"
+          aria-label="Button to add a tag"
+          type="button"
+        >
+          <mat-icon>add</mat-icon>Add a tag
+          <mat-icon *ngIf="hasShardingTagsLock$ | async" iconPositionEnd svgIcon="gio:lock"></mat-icon>
+        </button>
+      </div>
+    </mat-card-header>
+    <mat-card-content>
+      <gio-banner type="info"
+        >Add the sharding tag's ID to the API Gateway configuration file in order to manage API deployments.</gio-banner
+      >
+    </mat-card-content>
+    <gio-table-wrapper [length]="tagsTableUnpaginatedLength" (filtersChange)="onTagsFiltersChanged($event)">
+      <table
+        mat-table
+        [dataSource]="filteredTagsTableDS"
+        matSort
+        matSortActive="name"
+        matSortDirection="asc"
+        class="tags-table"
+        id="tagsTable"
+        aria-label="Tags table"
+      >
+        <!-- Id Column -->
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef id="id" mat-sort-header>ID</th>
+          <td mat-cell *matCellDef="let tag">
+            <span gioClipboardCopyWrapper [contentToCopy]="tag.id">{{ tag.id }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Name Column -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef id="name" mat-sort-header>Name</th>
+          <td mat-cell *matCellDef="let tag">{{ tag.name }}</td>
+        </ng-container>
+
+        <!-- Description Column -->
+        <ng-container matColumnDef="description">
+          <th mat-header-cell *matHeaderCellDef id="description" mat-sort-header>Description</th>
+          <td mat-cell *matCellDef="let tag">{{ tag.description }}</td>
+        </ng-container>
+
+        <!-- Restricted groups Column -->
+        <ng-container matColumnDef="restrictedGroupsName">
+          <th mat-header-cell *matHeaderCellDef id="restrictedGroupsName" mat-sort-header>Restricted groups</th>
+          <td mat-cell *matCellDef="let tag">{{ tag.restrictedGroupsName.join(', ') }}</td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let tag">
+            <div class="centered-cell">
+              <ng-container *gioPermission="{ anyOf: ['organization-tag-u'] }">
+                <button
+                  (click)="onEditTagClicked(tag)"
+                  mat-icon-button
+                  type="button"
+                  aria-label="Button to edit a tag"
+                  matTooltip="Edit tag"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+              </ng-container>
+              <ng-container *gioPermission="{ anyOf: ['organization-tag-d'] }">
+                <button
+                  (click)="onDeleteTagClicked(tag)"
+                  mat-icon-button
+                  type="button"
+                  aria-label="Button to delete a tag"
+                  matTooltip="Delete tag"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </ng-container>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="tagsTableDisplayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: tagsTableDisplayedColumns"></tr>
+
+        <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+          <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="tagsTableDisplayedColumns.length">No tag</td>
+        </tr>
+      </table>
+    </gio-table-wrapper>
+  </mat-card>
+
+  <mat-card class="org-settings-tags__entrypoints-card">
+    <mat-card-header>
+      <mat-card-title>Entrypoint Mappings</mat-card-title>
+      <mat-card-subtitle>Entrypoint to be displayed in the Developer Portal if an API has a given tag</mat-card-subtitle>
+      <div class="org-settings-tags__entrypoints-card__headerRightBtn">
+        <button
+          *gioPermission="{ anyOf: ['organization-entrypoint-c'] }"
+          (click)="onAddEntrypointClicked()"
+          mat-raised-button
+          color="primary"
+          type="button"
+          aria-label="Button to add a mapping"
+        >
+          <mat-icon>add</mat-icon>Add a mapping
+        </button>
+      </div>
+    </mat-card-header>
+    <gio-table-wrapper [length]="entrypointsTableUnpaginatedLength" (filtersChange)="onEntrypointsFiltersChanged($event)">
+      <table
+        mat-table
+        [dataSource]="filteredEntrypointsTableDS"
+        matSort
+        class="entrypoints-table"
+        id="entrypointsTable"
+        aria-label="Entrypoints table"
+      >
+        <!-- Entrypoint Column -->
+        <ng-container matColumnDef="entrypoint">
+          <th mat-header-cell *matHeaderCellDef id="entrypoint" mat-sort-header="url">Entrypoint</th>
+          <td mat-cell *matCellDef="let entrypoint">
+            <span gioClipboardCopyWrapper [contentToCopy]="entrypoint.url">{{ entrypoint.url }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Tags Column -->
+        <ng-container matColumnDef="tags">
+          <th mat-header-cell *matHeaderCellDef id="tags" mat-sort-header="tags">Tags</th>
+          <td mat-cell *matCellDef="let entrypoint">{{ entrypoint.tagsName.join(', ') }}</td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let entrypoint">
+            <div class="centered-cell">
+              <ng-container *gioPermission="{ anyOf: ['organization-entrypoint-u'] }">
+                <button
+                  (click)="onEditEntrypointClicked(entrypoint)"
+                  mat-icon-button
+                  type="button"
+                  aria-label="Button to edit a mapping"
+                  matTooltip="Edit mapping"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+              </ng-container>
+              <ng-container *gioPermission="{ anyOf: ['organization-entrypoint-d'] }">
+                <button
+                  (click)="onDeleteEntrypointClicked(entrypoint)"
+                  mat-icon-button
+                  type="button"
+                  aria-label="Button to delete a mapping"
+                  matTooltip="Delete mapping"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </ng-container>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="entrypointsTableDisplayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: entrypointsTableDisplayedColumns"></tr>
+
+        <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+          <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="entrypointsTableDisplayedColumns.length">No entrypoint</td>
+        </tr>
+      </table>
+    </gio-table-wrapper>
+  </mat-card>
+
+  <gio-save-bar
+    [creationMode]="false"
+    [form]="defaultConfigForm"
+    [formInitialValues]="initialDefaultConfigFormValues"
+    (submitted)="submitForm()"
+  >
+  </gio-save-bar>
+</form>

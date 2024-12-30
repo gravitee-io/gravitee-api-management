@@ -22,10 +22,10 @@ import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusOverTimeUseC
 import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusRangesUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseTimeUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiAnalyticsMapper;
+import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
-import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponseTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
@@ -45,6 +45,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 
 public class ApiAnalyticsResource extends AbstractResource {
 
@@ -73,8 +74,11 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
-    public ApiAnalyticsRequestsCountResponse getApiAnalyticsRequestCount() {
-        var request = new SearchRequestsCountAnalyticsUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment());
+    public ApiAnalyticsRequestsCountResponse getApiAnalyticsRequestCount(@QueryParam("from") Long from, @QueryParam("to") Long to) {
+        var end = Optional.ofNullable(to).map(Instant::ofEpochMilli);
+        var start = Optional.ofNullable(from).map(Instant::ofEpochMilli);
+
+        var request = new SearchRequestsCountAnalyticsUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), start, end);
 
         return searchRequestsCountAnalyticsUseCase
             .execute(GraviteeContext.getExecutionContext(), request)
@@ -87,8 +91,14 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
-    public ApiAnalyticsAverageMessagesPerRequestResponse getAverageMessagesPerRequest() {
-        var request = new SearchAverageMessagesPerRequestAnalyticsUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment());
+    public ApiAnalyticsAverageMessagesPerRequestResponse getAverageMessagesPerRequest(
+        @QueryParam("from") Long from,
+        @QueryParam("to") Long to
+    ) {
+        var end = Optional.ofNullable(to).map(Instant::ofEpochMilli);
+        var start = Optional.ofNullable(from).map(Instant::ofEpochMilli);
+
+        var request = new SearchAverageMessagesPerRequestAnalyticsUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), start, end);
 
         return searchAverageMessagesPerRequestAnalyticsUseCase
             .execute(GraviteeContext.getExecutionContext(), request)
@@ -101,8 +111,14 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
-    public ApiAnalyticsAverageConnectionDurationResponse getAverageConnectionDuration() {
-        var request = new SearchAverageConnectionDurationUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment());
+    public ApiAnalyticsAverageConnectionDurationResponse getAverageConnectionDuration(
+        @QueryParam("from") Long from,
+        @QueryParam("to") Long to
+    ) {
+        var end = Optional.ofNullable(to).map(Instant::ofEpochMilli);
+        var start = Optional.ofNullable(from).map(Instant::ofEpochMilli);
+
+        var request = new SearchAverageConnectionDurationUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), start, end);
 
         return searchAverageConnectionDurationUseCase
             .execute(GraviteeContext.getExecutionContext(), request)
@@ -115,8 +131,8 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
-    public ApiAnalyticsResponseStatusRangesResponse getResponseStatusRanges() {
-        var request = new SearchResponseStatusRangesUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment());
+    public ApiAnalyticsResponseStatusRangesResponse getResponseStatusRanges(@QueryParam("from") Long from, @QueryParam("to") Long to) {
+        var request = new SearchResponseStatusRangesUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), from, to);
 
         return searchResponseStatusRangesUseCase
             .execute(GraviteeContext.getExecutionContext(), request)
@@ -139,7 +155,7 @@ public class ApiAnalyticsResource extends AbstractResource {
             .map(out ->
                 new ApiAnalyticsOverPeriodResponse()
                     .timeRange(
-                        new ApiAnalyticsOverPeriodResponseTimeRange()
+                        new AnalyticTimeRange()
                             .from(out.from().toEpochMilli())
                             .to(out.to().toEpochMilli())
                             .interval(out.interval().toMillis())

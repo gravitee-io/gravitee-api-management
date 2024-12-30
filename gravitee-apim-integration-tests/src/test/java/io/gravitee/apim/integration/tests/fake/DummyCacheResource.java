@@ -18,6 +18,7 @@ package io.gravitee.apim.integration.tests.fake;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.policy.cache.CacheResponse;
 import io.gravitee.policy.cache.configuration.SerializationMode;
 import io.gravitee.policy.cache.mapper.CacheResponseMapper;
@@ -88,6 +89,11 @@ public class DummyCacheResource extends CacheResource {
 
     public String getResourceName() {
         return name();
+    }
+
+    @Override
+    public Cache getCache(BaseExecutionContext ctx) {
+        return null;
     }
 
     static class DummyCache implements Cache {

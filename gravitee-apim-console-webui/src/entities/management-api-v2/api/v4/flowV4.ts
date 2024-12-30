@@ -31,6 +31,8 @@ export interface FlowV4 {
   response?: StepV4[];
   subscribe?: StepV4[];
   publish?: StepV4[];
+  connect?: StepV4[];
+  interact?: StepV4[];
   /**
    * Flow's tags.
    */

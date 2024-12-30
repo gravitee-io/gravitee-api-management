@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.gateway.tests.sdk.connector.fakes;
 
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.plugin.endpoint.mock.MockEndpointConnector;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
 import io.reactivex.rxjava3.core.Completable;
@@ -35,7 +35,7 @@ public class PersistentMockEndpointConnector extends MockEndpointConnector {
     }
 
     @Override
-    public Completable publish(ExecutionContext ctx) {
+    public Completable publish(HttpExecutionContext ctx) {
         return Completable
             .defer(() ->
                 ctx

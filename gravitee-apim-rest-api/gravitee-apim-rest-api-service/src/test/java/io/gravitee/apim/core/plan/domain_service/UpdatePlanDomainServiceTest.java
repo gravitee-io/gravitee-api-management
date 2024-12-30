@@ -16,9 +16,8 @@
 package io.gravitee.apim.core.plan.domain_service;
 
 import static fixtures.core.model.ApiFixtures.aMessageApiV4;
+import static fixtures.core.model.ApiFixtures.aNativeApi;
 import static fixtures.core.model.ApiFixtures.aProxyApiV4;
-import static fixtures.core.model.PlanFixtures.aPushPlan;
-import static fixtures.core.model.PlanFixtures.anApiKeyV4;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
@@ -94,6 +93,7 @@ class UpdatePlanDomainServiceTest {
     private static final String TAG = "tag1";
 
     private static final Api API_PROXY_V4 = aProxyApiV4().toBuilder().id(API_ID).build();
+    private static final Api NATIVE_API = aNativeApi().toBuilder().id(API_ID).build();
     private static final Api API_MESSAGE_V4 = aMessageApiV4().toBuilder().id(API_ID).build();
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
@@ -161,7 +161,7 @@ class UpdatePlanDomainServiceTest {
         @Test
         void should_throw_when_invalid_status_change_detected() {
             // Given
-            var plan = anApiKeyV4().toBuilder().build();
+            var plan = PlanFixtures.HttpV4.anApiKey().toBuilder().build();
             parametersQueryService.initWith(
                 List.of(new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "false"))
             );
@@ -176,12 +176,45 @@ class UpdatePlanDomainServiceTest {
         @Test
         void should_throw_when_security_configuration_is_invalid() {
             // Given
-            var plan = anApiKeyV4().toBuilder().build();
+            var plan = PlanFixtures.HttpV4.anApiKey().toBuilder().build();
             when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
                 .thenThrow(new InvalidDataException("invalid"));
 
             // When
             var throwable = Assertions.catchThrowable(() -> service.update(plan, List.of(), Map.of(), API_PROXY_V4, AUDIT_INFO));
+
+            // Then
+            assertThat(throwable).isInstanceOf(InvalidDataException.class);
+        }
+    }
+
+    @Nested
+    class NativePlan {
+
+        @Test
+        void should_throw_when_invalid_status_change_detected_native_api() {
+            // Given
+            var plan = PlanFixtures.NativeV4.anApiKey().toBuilder().build();
+            parametersQueryService.initWith(
+                List.of(new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "false"))
+            );
+
+            // When
+            var throwable = Assertions.catchThrowable(() -> service.update(plan, List.of(), Map.of(), NATIVE_API, AUDIT_INFO));
+
+            // Then
+            assertThat(throwable).isInstanceOf(UnauthorizedPlanSecurityTypeException.class);
+        }
+
+        @Test
+        void should_throw_when_security_configuration_is_invalid_native_api() {
+            // Given
+            var plan = PlanFixtures.NativeV4.anApiKey().toBuilder().build();
+            when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
+                .thenThrow(new InvalidDataException("invalid"));
+
+            // When
+            var throwable = Assertions.catchThrowable(() -> service.update(plan, List.of(), Map.of(), NATIVE_API, AUDIT_INFO));
 
             // Then
             assertThat(throwable).isInstanceOf(InvalidDataException.class);
@@ -487,14 +520,34 @@ class UpdatePlanDomainServiceTest {
         void should_reorder_all_plans_when_order_is_updated() {
             // Given
             var plans = givenExistingPlans(
-                PlanFixtures.aKeylessV4().toBuilder().id("plan1").order(1).build(),
-                PlanFixtures.aKeylessV4().toBuilder().id("plan2").order(2).build(),
-                PlanFixtures.aKeylessV4().toBuilder().id("plan3").order(3).build()
+                PlanFixtures.HttpV4.aKeyless().toBuilder().id("plan1").order(1).build(),
+                PlanFixtures.HttpV4.aKeyless().toBuilder().id("plan2").order(2).build(),
+                PlanFixtures.HttpV4.aKeyless().toBuilder().id("plan3").order(3).build()
             );
 
             // When
             var toUpdate = plans.get(0).toBuilder().order(2).build();
             service.update(toUpdate, List.of(), null, API_PROXY_V4, AUDIT_INFO);
+
+            // Then
+            Assertions
+                .assertThat(planCrudService.storage())
+                .extracting(Plan::getId, Plan::getOrder)
+                .containsOnly(tuple("plan2", 1), tuple("plan1", 2), tuple("plan3", 3));
+        }
+
+        @Test
+        void should_reorder_all_native_plans_when_order_is_updated() {
+            // Given
+            var plans = givenExistingPlans(
+                PlanFixtures.NativeV4.aKeyless().toBuilder().id("plan1").order(1).build(),
+                PlanFixtures.NativeV4.aKeyless().toBuilder().id("plan2").order(2).build(),
+                PlanFixtures.NativeV4.aKeyless().toBuilder().id("plan3").order(3).build()
+            );
+
+            // When
+            var toUpdate = plans.get(0).toBuilder().order(2).build();
+            service.update(toUpdate, List.of(), null, NATIVE_API, AUDIT_INFO);
 
             // Then
             Assertions
@@ -508,22 +561,34 @@ class UpdatePlanDomainServiceTest {
         return Stream.of(
             Arguments.of(
                 API_PROXY_V4,
-                anApiKeyV4()
+                PlanFixtures.HttpV4
+                    .anApiKey()
                     .toBuilder()
                     .apiId(API_ID)
                     .planDefinitionHttpV4(
-                        fixtures.definition.PlanFixtures.anApiKeyV4().toBuilder().tags(Set.of(TAG)).status(PlanStatus.STAGING).build()
+                        fixtures.definition.PlanFixtures.HttpV4Definition
+                            .anApiKeyV4()
+                            .toBuilder()
+                            .tags(Set.of(TAG))
+                            .status(PlanStatus.STAGING)
+                            .build()
                     )
                     .build(),
                 List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build())
             ),
             Arguments.of(
                 API_MESSAGE_V4,
-                aPushPlan()
+                PlanFixtures.HttpV4
+                    .aPushPlan()
                     .toBuilder()
                     .apiId(API_ID)
                     .planDefinitionHttpV4(
-                        fixtures.definition.PlanFixtures.anApiKeyV4().toBuilder().tags(Set.of(TAG)).status(PlanStatus.STAGING).build()
+                        fixtures.definition.PlanFixtures.HttpV4Definition
+                            .anApiKeyV4()
+                            .toBuilder()
+                            .tags(Set.of(TAG))
+                            .status(PlanStatus.STAGING)
+                            .build()
                     )
                     .build(),
                 List.of(Flow.builder().name("flow").selectors(List.of(new ChannelSelector())).build())

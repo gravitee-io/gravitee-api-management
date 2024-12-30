@@ -46,6 +46,7 @@ public class KeyMapper {
         keyItem.setKey(apiKeyEntity.getKey());
         keyItem.setPaused(apiKeyEntity.isPaused());
         keyItem.setRevoked(apiKeyEntity.isRevoked());
+        keyItem.setHash(apiKeyEntity.getHash());
         if (apiKeyEntity.isRevoked()) {
             keyItem.setRevokedAt(apiKeyEntity.getRevokedAt().toInstant().atOffset(ZoneOffset.UTC));
         }

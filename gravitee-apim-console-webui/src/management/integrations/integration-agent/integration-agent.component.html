@@ -74,24 +74,7 @@
                   <h5 class="content__title">Agent Configuration</h5>
                   <p class="content__desc">Copy the configuration files and place them in the same folder.</p>
 
-                  <code>
-                    <div class="editor code-area">
-                      <div
-                        class="editor__copy-to-clipboard"
-                        gioClipboardCopyWrapper
-                        [alwaysVisible]="true"
-                        [contentToCopy]="codeForEditor"
-                      ></div>
-                      <div class="editor__lines">
-                        @for (line of codeForEditor.split('\n'); track line + i; let i = $index) {
-                          <div class="line">
-                            <span class="line__number">{{ i + 1 }}</span>
-                            <span>{{ line.replaceAll(' ', '&nbsp;') }}</span>
-                          </div>
-                        }
-                      </div>
-                    </div>
-                  </code>
+                  <file-preview [payload]="codeForEditor"></file-preview>
                 </div>
               </div>
 

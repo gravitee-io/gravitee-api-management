@@ -418,6 +418,7 @@ class CreateHttpApiUseCaseTest {
                             "MESSAGE",
                             "NEW_RATING",
                             "NEW_RATING_ANSWER",
+                            "NEW_SPEC_GENERATED",
                             "NEW_SUPPORT_TICKET",
                             "REQUEST_FOR_CHANGES",
                             "REVIEW_OK",

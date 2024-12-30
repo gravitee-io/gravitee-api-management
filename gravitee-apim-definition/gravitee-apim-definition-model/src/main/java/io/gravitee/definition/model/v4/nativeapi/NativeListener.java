@@ -54,7 +54,7 @@ public abstract class NativeListener extends AbstractListener<NativeEntrypoint> 
     public static final String KAFKA_LABEL = "kafka";
 
     protected NativeListener(ListenerType type) {
-        this.type = type;
+        super(type);
     }
 
     public NativeListener(ListenerType type, NativeListenerBuilder<?, ?> b) {

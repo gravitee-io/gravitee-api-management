@@ -19,7 +19,6 @@ import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.component.ComponentProvider;
-import io.gravitee.gateway.reactive.api.context.TlsSession;
 import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import java.util.Collection;

@@ -56,7 +56,7 @@ public class ApiResource_DeployTest extends ApiResourceTest {
         ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
         deployEntity.setDeploymentLabel("label");
 
-        ApiEntity apiEntity = ApiFixtures.aModelApiV4().toBuilder().state(Lifecycle.State.STARTED).updatedAt(new Date()).build();
+        ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().state(Lifecycle.State.STARTED).updatedAt(new Date()).build();
         when(apiStateServiceV4.deploy(eq(GraviteeContext.getExecutionContext()), any(String.class), any(), any())).thenReturn(apiEntity);
 
         final Response response = rootTarget(API + "/deployments").request().post(Entity.json(deployEntity));

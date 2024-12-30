@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import io.gravitee.definition.model.Origin;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
@@ -134,6 +135,8 @@ public class Subscription implements Serializable {
 
     private String failureCause;
 
+    private String origin;
+
     public Subscription(Subscription cloned) {
         this.id = cloned.id;
         this.api = cloned.api;
@@ -164,6 +167,7 @@ public class Subscription implements Serializable {
         this.metadata = cloned.metadata;
         this.type = cloned.type;
         this.failureCause = cloned.failureCause;
+        this.origin = cloned.origin;
     }
 
     /**

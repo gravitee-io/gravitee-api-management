@@ -56,4 +56,10 @@ public class JacksonSpringConfiguration {
     public JacksonJsonDiffProcessor jsonDiffProcessor(@Qualifier("defaultMapper") JsonMapper mapper) {
         return new JacksonJsonDiffProcessor(mapper);
     }
+
+    @Bean
+    @Qualifier("GraviteeDefinitionSerializer")
+    public GraviteeDefinitionJacksonJsonSerializer graviteeDefinitionSerializer() {
+        return new GraviteeDefinitionJacksonJsonSerializer();
+    }
 }

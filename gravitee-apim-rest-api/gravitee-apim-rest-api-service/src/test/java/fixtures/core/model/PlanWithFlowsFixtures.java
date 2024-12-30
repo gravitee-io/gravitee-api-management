@@ -15,6 +15,7 @@
  */
 package fixtures.core.model;
 
+import fixtures.definition.PlanFixtures;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -37,7 +38,7 @@ public class PlanWithFlowsFixtures {
             .validation(Plan.PlanValidationType.AUTO)
             .type(Plan.PlanType.API)
             .planDefinitionHttpV4(
-                fixtures.definition.PlanFixtures
+                PlanFixtures.HttpV4Definition
                     .anApiKeyV4()
                     .toBuilder()
                     .security(

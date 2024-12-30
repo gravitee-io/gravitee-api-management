@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -246,11 +247,13 @@ public class ApiSearchService_SearchTest {
         var apiEntity1 = new Api();
         apiEntity1.setId("id-3");
         apiEntity1.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity1.setType(ApiType.PROXY);
         apiEntity1.setLifecycleState(LifecycleState.STARTED);
 
         var apiEntity2 = new Api();
         apiEntity2.setId("id-4");
         apiEntity2.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity2.setType(ApiType.PROXY);
         apiEntity2.setLifecycleState(LifecycleState.STARTED);
 
         when(
@@ -328,11 +331,13 @@ public class ApiSearchService_SearchTest {
         var apiEntity1 = new Api();
         apiEntity1.setId("id-1");
         apiEntity1.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity1.setType(ApiType.PROXY);
         apiEntity1.setLifecycleState(LifecycleState.STARTED);
 
         var apiEntity2 = new Api();
         apiEntity2.setId("id-2");
         apiEntity2.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity2.setType(ApiType.PROXY);
         apiEntity2.setLifecycleState(LifecycleState.STARTED);
 
         when(apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true)))
@@ -472,11 +477,13 @@ public class ApiSearchService_SearchTest {
         var apiEntity1 = new Api();
         apiEntity1.setId("id-1");
         apiEntity1.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity1.setType(ApiType.PROXY);
         apiEntity1.setLifecycleState(LifecycleState.STARTED);
 
         var apiEntity2 = new Api();
         apiEntity2.setId("id-2");
         apiEntity2.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity2.setType(ApiType.PROXY);
         apiEntity2.setLifecycleState(LifecycleState.STARTED);
 
         when(

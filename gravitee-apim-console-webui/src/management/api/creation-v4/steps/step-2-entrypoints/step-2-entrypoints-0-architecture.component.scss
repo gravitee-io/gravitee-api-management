@@ -15,4 +15,12 @@ $typography: map.get(gio.$mat-theme, typography);
       text-transform: none;
     }
   }
+
+  &__kafka-title {
+    gap: 4px;
+  }
+
+  &__kafka-description {
+    margin: 0;
+  }
 }

@@ -15,7 +15,7 @@
  */
 package fakes;
 
-import io.gravitee.apim.core.analytics.model.EnvironmentAnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
@@ -48,17 +48,27 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public ResponseStatusOvertime responseStatusOvertime;
 
     @Override
-    public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId) {
+    public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
         return Optional.ofNullable(requestsCount);
     }
 
     @Override
-    public Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(ExecutionContext executionContext, String apiId) {
+    public Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant from,
+        Instant to
+    ) {
         return Optional.ofNullable(averageMessagesPerRequest);
     }
 
     @Override
-    public Optional<AverageConnectionDuration> searchAverageConnectionDuration(ExecutionContext executionContext, String apiId) {
+    public Optional<AverageConnectionDuration> searchAverageConnectionDuration(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant from,
+        Instant to
+    ) {
         return Optional.ofNullable(averageConnectionDuration);
     }
 
@@ -75,13 +85,13 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     @Override
     public Optional<ResponseStatusRanges> searchResponseStatusRanges(
         ExecutionContext executionContext,
-        EnvironmentAnalyticsQueryParameters queryParameters
+        AnalyticsQueryParameters queryParameters
     ) {
         return Optional.ofNullable(responseStatusRanges);
     }
 
     @Override
-    public Optional<TopHitsApis> searchTopHitsApis(ExecutionContext executionContext, EnvironmentAnalyticsQueryParameters parameters) {
+    public Optional<TopHitsApis> searchTopHitsApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
         return Optional.ofNullable(topHitsApis);
     }
 
@@ -102,10 +112,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     }
 
     @Override
-    public RequestResponseTime searchRequestResponseTime(
-        ExecutionContext executionContext,
-        EnvironmentAnalyticsQueryParameters parameters
-    ) {
+    public RequestResponseTime searchRequestResponseTime(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
         return requestResponseTime;
     }
 }

@@ -108,6 +108,12 @@
             </dependency>
 
             <dependency>
+                <groupId>io.gravitee.secret</groupId>
+                <artifactId>gravitee-secret-api</artifactId>
+                <version>${gravitee-secret-api.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>io.gravitee.fetcher</groupId>
                 <artifactId>gravitee-fetcher-api</artifactId>
                 <version>${gravitee-fetcher-api.version}</version>
@@ -618,14 +624,6 @@
                 <groupId>org.javassist</groupId>
                 <artifactId>javassist</artifactId>
                 <version>${javassist.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.testcontainers</groupId>
-                <artifactId>testcontainers-bom</artifactId>
-                <version>${testcontainers.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
             </dependency>
 
             <dependency>

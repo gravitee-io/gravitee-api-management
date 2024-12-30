@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiQueryServiceInMemory;
-import io.gravitee.apim.core.analytics.model.EnvironmentAnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
@@ -47,14 +47,14 @@ class SearchEnvironmentResponseStatusRangesUseCaseTest {
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
     private SearchEnvironmentResponseStatusRangesUseCase cut;
 
-    private ArgumentCaptor<EnvironmentAnalyticsQueryParameters> argumentCaptor;
+    private ArgumentCaptor<AnalyticsQueryParameters> argumentCaptor;
 
     @BeforeEach
     void setUp() {
         analyticsQueryService = mock(FakeAnalyticsQueryService.class);
         cut = new SearchEnvironmentResponseStatusRangesUseCase(analyticsQueryService, apiQueryService);
 
-        argumentCaptor = ArgumentCaptor.forClass(EnvironmentAnalyticsQueryParameters.class);
+        argumentCaptor = ArgumentCaptor.forClass(AnalyticsQueryParameters.class);
     }
 
     @AfterEach
@@ -75,7 +75,7 @@ class SearchEnvironmentResponseStatusRangesUseCaseTest {
         var input = SearchEnvironmentResponseStatusRangesUseCase.Input
             .builder()
             .executionContext(executionContext)
-            .parameters(EnvironmentAnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();
 
         when(analyticsQueryService.searchResponseStatusRanges(any(), any()))
@@ -96,12 +96,7 @@ class SearchEnvironmentResponseStatusRangesUseCaseTest {
             softAssertions
                 .assertThat(argumentCaptor.getValue())
                 .isEqualTo(
-                    EnvironmentAnalyticsQueryParameters
-                        .builder()
-                        .from(FROM)
-                        .to(TO)
-                        .apiIds(List.of("message-api-v4-id", "proxy-api-v4-id"))
-                        .build()
+                    AnalyticsQueryParameters.builder().from(FROM).to(TO).apiIds(List.of("message-api-v4-id", "proxy-api-v4-id")).build()
                 );
             softAssertions
                 .assertThat(result)
@@ -124,7 +119,7 @@ class SearchEnvironmentResponseStatusRangesUseCaseTest {
         var input = SearchEnvironmentResponseStatusRangesUseCase.Input
             .builder()
             .executionContext(executionContext)
-            .parameters(EnvironmentAnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();
 
         when(analyticsQueryService.searchResponseStatusRanges(any(), any()))
@@ -144,9 +139,7 @@ class SearchEnvironmentResponseStatusRangesUseCaseTest {
         SoftAssertions.assertSoftly(softAssertions -> {
             softAssertions
                 .assertThat(argumentCaptor.getValue())
-                .isEqualTo(
-                    EnvironmentAnalyticsQueryParameters.builder().from(FROM).to(TO).apiIds(List.of("proper-env-proxy-api-v4-id")).build()
-                );
+                .isEqualTo(AnalyticsQueryParameters.builder().from(FROM).to(TO).apiIds(List.of("proper-env-proxy-api-v4-id")).build());
             softAssertions
                 .assertThat(result)
                 .isPresent()

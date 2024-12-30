@@ -366,6 +366,7 @@ class ImportApiDefinitionUseCaseTest {
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .needRedeployAt(Date.from(INSTANT_NOW))
+                    .apiType(ApiType.PROXY)
                     .build();
                 soft.assertThat(createdPlans).containsExactly(expectedPlan);
             });

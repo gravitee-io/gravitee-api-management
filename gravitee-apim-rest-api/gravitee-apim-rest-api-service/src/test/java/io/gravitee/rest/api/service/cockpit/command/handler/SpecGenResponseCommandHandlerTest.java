@@ -34,10 +34,12 @@ import io.gravitee.apim.core.documentation.use_case.ApiCreateDocumentationPageUs
 import io.gravitee.apim.core.documentation.use_case.ApiCreateDocumentationPageUseCase.Output;
 import io.gravitee.apim.core.specgen.use_case.BuildSpecGenPageResponseUseCase;
 import io.gravitee.apim.core.specgen.use_case.BuildSpecGenPageResponseUseCase.Input;
+import io.gravitee.apim.core.specgen.use_case.NotifySpecGenResponseUseCase;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.specgen.SpecGenCommandPayload;
 import io.gravitee.cockpit.api.command.v1.specgen.response.SpecGenResponseCommand;
 import io.gravitee.exchange.api.command.CommandStatus;
+import io.gravitee.rest.api.service.PortalNotificationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.spec.gen.api.SpecGenResponse;
@@ -65,11 +67,15 @@ class SpecGenResponseCommandHandlerTest {
     @Mock
     ApiCreateDocumentationPageUseCase createDocumentationPageUseCase;
 
+    @Mock
+    NotifySpecGenResponseUseCase portalNotificationService;
+
     SpecGenResponseCommandHandler specGenResponseCommandHandler;
 
     @BeforeEach
     void setUp() {
-        specGenResponseCommandHandler = new SpecGenResponseCommandHandler(buildSpecGenPageResponseUseCase, createDocumentationPageUseCase);
+        specGenResponseCommandHandler =
+            new SpecGenResponseCommandHandler(buildSpecGenPageResponseUseCase, createDocumentationPageUseCase, portalNotificationService);
     }
 
     @Test

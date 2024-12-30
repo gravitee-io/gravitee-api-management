@@ -34,9 +34,9 @@ import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.Request;
-import io.gravitee.gateway.reactive.api.context.Response;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
+import io.gravitee.gateway.reactive.api.context.http.HttpResponse;
 import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerResponse;
 import io.gravitee.node.api.opentelemetry.Span;
 import io.gravitee.node.api.opentelemetry.http.ObservableHttpClientRequest;
@@ -109,10 +109,10 @@ public class HttpConnector implements ProxyConnector {
     }
 
     @Override
-    public Completable connect(final ExecutionContext ctx) {
+    public Completable connect(final HttpExecutionContext ctx) {
         try {
-            final Request request = ctx.request();
-            final Response response = ctx.response();
+            final HttpRequest request = ctx.request();
+            final HttpResponse response = ctx.response();
 
             final RequestOptions options = buildRequestOptions(ctx);
             String absoluteUri = VertxHttpClientFactory.toAbsoluteUri(options, defaultHost, defaultPort);
@@ -177,9 +177,9 @@ public class HttpConnector implements ProxyConnector {
         }
     }
 
-    protected RequestOptions buildRequestOptions(ExecutionContext ctx) {
+    protected RequestOptions buildRequestOptions(HttpExecutionContext ctx) {
         final RequestOptions requestOptions = new RequestOptions();
-        final Request request = ctx.request();
+        final HttpRequest request = ctx.request();
         final io.gravitee.gateway.api.http.HttpHeaders requestHeaders = request.headers();
         final String originalHost = request.originalHost();
         final String currentRequestHost = request.host();
@@ -228,8 +228,8 @@ public class HttpConnector implements ProxyConnector {
         return HOP_HEADERS;
     }
 
-    private void prepareUriAndQueryParameters(final ExecutionContext ctx, final RequestOptions requestOptions) {
-        final Request request = ctx.request();
+    private void prepareUriAndQueryParameters(final HttpExecutionContext ctx, final RequestOptions requestOptions) {
+        final HttpRequest request = ctx.request();
         final MultiValueMap<String, String> requestParameters = request.parameters();
         addParameters(requestParameters, targetParameters);
 

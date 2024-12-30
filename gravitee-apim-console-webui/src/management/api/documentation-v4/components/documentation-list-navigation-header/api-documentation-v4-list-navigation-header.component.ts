@@ -17,6 +17,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 import { Breadcrumb, PageType } from '../../../../../entities/management-api-v2';
+import { ApiSpecGenState } from '../../../../../services-ngx/api-spec-gen.service';
 
 @Component({
   selector: 'api-documentation-list-navigation-header',
@@ -30,10 +31,14 @@ export class ApiDocumentationV4ListNavigationHeaderComponent {
   isReadOnly: boolean;
   @Input()
   hasPages: boolean;
+  @Input()
+  specGenState: ApiSpecGenState;
   @Output()
   addFolder = new EventEmitter<void>();
   @Output()
   addPage = new EventEmitter<PageType>();
   @Output()
   onNavigateTo = new EventEmitter<string>();
+  @Output()
+  generate = new EventEmitter<void>();
 }

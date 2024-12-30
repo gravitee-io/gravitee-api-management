@@ -16,7 +16,7 @@
 package io.gravitee.apim.core.analytics.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.analytics.model.EnvironmentAnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
@@ -53,7 +53,7 @@ public class SearchEnvironmentTopHitsApisCountUseCase {
             .searchTopHitsApis(input.executionContext(), input.parameters().withApiIds(v4ApiIds))
             .map(topHitsApis -> sortByCountAndUpdateTopHitsWithApiNames(v4Apis, topHitsApis))
             .map(Output::new)
-            .orElse(new Output());
+            .orElse(new Output(TopHitsApis.builder().data(List.of()).build()));
     }
 
     private Map<String, Api> getAllV4ApisForEnv(String envId) {
@@ -79,15 +79,7 @@ public class SearchEnvironmentTopHitsApisCountUseCase {
     }
 
     @Builder
-    public record Input(ExecutionContext executionContext, EnvironmentAnalyticsQueryParameters parameters) {}
+    public record Input(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {}
 
-    public record Output(Optional<TopHitsApis> topHitsApis) {
-        Output(TopHitsApis topHitsApis) {
-            this(Optional.of(topHitsApis));
-        }
-
-        Output() {
-            this(TopHitsApis.builder().build());
-        }
-    }
+    public record Output(TopHitsApis topHitsApis) {}
 }

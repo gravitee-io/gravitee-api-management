@@ -20,12 +20,14 @@ import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.model.EntrypointEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.service.EntrypointService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -74,6 +76,18 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
             executionContext.getEnvironmentId(),
             ParameterReferenceType.ENVIRONMENT
         );
+        String defaultKafkaDomain = parameterService.find(
+            executionContext,
+            Key.PORTAL_KAFKA_DOMAIN,
+            executionContext.getEnvironmentId(),
+            ParameterReferenceType.ENVIRONMENT
+        );
+        String defaultKafkaPort = parameterService.find(
+            executionContext,
+            Key.PORTAL_KAFKA_PORT,
+            executionContext.getEnvironmentId(),
+            ParameterReferenceType.ENVIRONMENT
+        );
 
         if (genericApiEntity.getTags() != null && !genericApiEntity.getTags().isEmpty()) {
             List<EntrypointEntity> organizationEntrypoints = entrypointService.findAll(executionContext);
@@ -91,6 +105,8 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
                             entrypointScheme,
                             entrypointValue,
                             defaultTcpPort,
+                            defaultKafkaDomain,
+                            defaultKafkaPort,
                             tagEntrypoints,
                             executionContext.getEnvironmentId()
                         )
@@ -115,6 +131,8 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
                     defaultScheme,
                     defaultEntrypoint,
                     defaultTcpPort,
+                    defaultKafkaDomain,
+                    defaultKafkaPort,
                     null,
                     executionContext.getEnvironmentId()
                 )
@@ -129,6 +147,8 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         final String entrypointScheme,
         final String entrypointHost,
         final String tcpPort,
+        final String kafkaDomain,
+        final String kafkaPort,
         final Set<String> tagEntrypoints,
         final String environmentId
     ) {
@@ -154,6 +174,16 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
                     )
                         .stream()
                 )
+                .toList();
+        } else if (genericApiEntity.getDefinitionVersion() == DefinitionVersion.V4 && genericApiEntity instanceof NativeApiEntity api) {
+            return api
+                .getListeners()
+                .stream()
+                .filter(listener -> listener instanceof KafkaListener)
+                .map(listener -> {
+                    var kafkaListener = (KafkaListener) listener;
+                    return getKafkaNativeApiEntrypointEntity(kafkaListener.getHost(), kafkaDomain, kafkaPort, tagEntrypoints);
+                })
                 .toList();
         } else {
             io.gravitee.rest.api.model.v4.api.ApiEntity api = (io.gravitee.rest.api.model.v4.api.ApiEntity) genericApiEntity;
@@ -242,6 +272,18 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         return new ApiEntrypointEntity(tags, target, host);
     }
 
+    private ApiEntrypointEntity getKafkaNativeApiEntrypointEntity(
+        final String host,
+        final String domain,
+        final String port,
+        final Set<String> tags
+    ) {
+        var domainSegment = domain != null && !domain.isBlank() ? "." + domain : "";
+
+        var target = host + domainSegment + ":" + port;
+        return new ApiEntrypointEntity(tags, target, host);
+    }
+
     private String getScheme(String entrypointValue) {
         String scheme = "https";
         if (entrypointValue != null) {
@@ -260,6 +302,15 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
             genericApiEntity.getDefinitionVersion() == DefinitionVersion.V2
         ) {
             return "HTTP";
+        }
+
+        if (genericApiEntity instanceof NativeApiEntity api) {
+            return api
+                .getListeners()
+                .stream()
+                .findFirst()
+                .map(listener -> listener.getType().toString())
+                .orElseThrow(() -> new EntrypointNotFoundException(api.getId()));
         }
         io.gravitee.rest.api.model.v4.api.ApiEntity api = (io.gravitee.rest.api.model.v4.api.ApiEntity) genericApiEntity;
         return api

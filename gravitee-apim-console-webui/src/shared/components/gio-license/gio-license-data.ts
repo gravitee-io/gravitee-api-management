@@ -24,6 +24,7 @@ export enum ApimFeature {
   APIM_AUDIT_TRAIL = 'apim-audit-trail',
   APIM_DEBUG_MODE = 'apim-debug-mode',
   APIM_DCR_REGISTRATION = 'apim-dcr-registration',
+  APIM_NATIVE_KAFKA_REACTOR = 'apim-native-kafka-reactor',
   APIM_POLICY_V2 = 'apim-policy-v2',
   APIM_SCHEMA_REGISTRY_PROVIDER = 'apim-en-schema-registry-provider',
   APIM_EN_MESSAGE_REACTOR = 'apim-en-message-reactor',
@@ -46,8 +47,10 @@ export enum UTMTags {
   API_CREATION_TRY_MESSAGE = 'api_creation_try_message',
   API_CREATION_MESSAGE_ENTRYPOINT = 'api_creation_message_entrypoint',
   API_CREATION_MESSAGE_ENTRYPOINT_CONFIG = 'api_creation_message_entrypoint_config',
+  API_CREATION_NATIVE_KAFKA_ENTRYPOINT_CONFIG = 'api_creation_native_kafka_entrypoint_config',
   API_CREATION_MESSAGE_ENDPOINT = 'api_creation_message_endpoint',
   API_CREATION_MESSAGE_ENDPOINT_CONFIG = 'api_creation_message_endpoint_config',
+  API_CREATION_NATIVE_KAFKA_ENDPOINT_CONFIG = 'api_creation_native_kafka_endpoint_config',
   API_CREATION_MESSAGE_SUMMARY = 'api_creation_message_summary',
 }
 
@@ -70,6 +73,13 @@ export const getFeatureInfoData = (ctaConfig: CTAConfiguration): Record<ApimFeat
       title,
       image: 'assets/gio-ee-unlock-dialog/policies.svg',
       description: `Request a license to unlock enterprise functionality, such as support for event-native APIs, multitenancy support, enterprise policies, and federation of 3rd-party gateways and brokers.`,
+      trialButtonLabel,
+      hideDays,
+    },
+    [ApimFeature.APIM_NATIVE_KAFKA_REACTOR]: {
+      title,
+      image: 'assets/gio-ee-unlock-dialog/policies.svg',
+      description: `Request the Native Kafka pack to unlock Kafka APIs and the Kafka Gateway.`,
       trialButtonLabel,
       hideDays,
     },

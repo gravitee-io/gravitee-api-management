@@ -1,0 +1,14 @@
+databaseChangeLog:
+    - changeSet:
+          id: 4.6.0_add_updated_at_to_ruleset_table
+          author: GraviteeSource Team
+          changes:
+              - addColumn:
+                    tableName: ${gravitee_prefix}scoring_rulesets
+                    columns:
+                        - column:
+                              name: updated_at
+                              type: timestamp(6)
+                              defaultValueComputed: CURRENT_TIMESTAMP(6)
+                              constraints:
+                                  nullable: false

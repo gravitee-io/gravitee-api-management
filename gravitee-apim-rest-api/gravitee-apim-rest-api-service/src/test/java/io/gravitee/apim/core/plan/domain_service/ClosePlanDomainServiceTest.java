@@ -97,7 +97,7 @@ class ClosePlanDomainServiceTest {
     @Test
     void should_close_a_plan() {
         // Given
-        var plan = givenExistingPlan(PlanFixtures.anApiKeyV4());
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey());
 
         // When
         service.close(plan.getId(), AUDIT_INFO);
@@ -106,12 +106,12 @@ class ClosePlanDomainServiceTest {
         assertThat(planCrudService.storage().get(0))
             .usingRecursiveComparison(RecursiveComparisonConfiguration.builder().build())
             .isEqualTo(
-                PlanFixtures
-                    .anApiKeyV4()
+                PlanFixtures.HttpV4
+                    .anApiKey()
                     .toBuilder()
                     .planDefinitionHttpV4(
-                        PlanFixtures
-                            .anApiKeyV4()
+                        PlanFixtures.HttpV4
+                            .anApiKey()
                             .getPlanDefinitionHttpV4()
                             .toBuilder()
                             .status(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED)
@@ -127,7 +127,7 @@ class ClosePlanDomainServiceTest {
     @Test
     void should_create_an_audit_when_closing_plan_successfully() {
         // Given
-        var plan = givenExistingPlan(PlanFixtures.anApiKeyV4());
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey());
 
         // When
         service.close(plan.getId(), AUDIT_INFO);
@@ -155,7 +155,7 @@ class ClosePlanDomainServiceTest {
     @EnumSource(value = SubscriptionEntity.Status.class, mode = EnumSource.Mode.EXCLUDE, names = { "CLOSED", "REJECTED" })
     void should_throw_when_closing_plan_with_active_subscriptions(SubscriptionEntity.Status status) {
         // Given
-        var plan = givenExistingPlan(PlanFixtures.anApiKeyV4());
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey());
         givenExistingSubscriptions(SubscriptionFixtures.aSubscription().toBuilder().planId(plan.getId()).status(status).build());
 
         // When
@@ -171,7 +171,7 @@ class ClosePlanDomainServiceTest {
     @EnumSource(value = SubscriptionEntity.Status.class, mode = EnumSource.Mode.INCLUDE, names = { "CLOSED", "REJECTED" })
     void should_close_plan_if_existing_subscriptions_are_inactive(SubscriptionEntity.Status status) {
         // Given
-        var plan = givenExistingPlan(PlanFixtures.anApiKeyV4());
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey());
         givenExistingSubscriptions(SubscriptionFixtures.aSubscription().toBuilder().planId(plan.getId()).status(status).build());
 
         // When
@@ -185,12 +185,12 @@ class ClosePlanDomainServiceTest {
     void should_throw_when_plan_already_closed() {
         // Given
         var plan = givenExistingPlan(
-            PlanFixtures
-                .anApiKeyV4()
+            PlanFixtures.HttpV4
+                .anApiKey()
                 .toBuilder()
                 .planDefinitionHttpV4(
-                    PlanFixtures
-                        .anApiKeyV4()
+                    PlanFixtures.HttpV4
+                        .anApiKey()
                         .getPlanDefinitionHttpV4()
                         .toBuilder()
                         .status(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED)

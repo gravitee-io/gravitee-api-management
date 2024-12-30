@@ -15,14 +15,14 @@
  */
 package io.gravitee.plugin.endpoint;
 
+import io.gravitee.gateway.reactive.api.connector.endpoint.BaseEndpointConnectorFactory;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorConfiguration;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePlugin;
 
 /**
  * @author GraviteeSource Team
  */
-public interface EndpointConnectorPlugin<T extends EndpointConnectorFactory<?>, C extends EndpointConnectorConfiguration>
+public interface EndpointConnectorPlugin<T extends BaseEndpointConnectorFactory<?>, C extends EndpointConnectorConfiguration>
     extends ConfigurablePlugin<C> {
     String PLUGIN_TYPE = "endpoint-connector";
 

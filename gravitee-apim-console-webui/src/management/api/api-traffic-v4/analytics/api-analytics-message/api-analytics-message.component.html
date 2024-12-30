@@ -28,7 +28,7 @@
       subtitle="Your metrics live here. Start monitoring your API by enabling the Analytics in the settings."
     ></gio-card-empty-state>
   } @else {
-    <api-analytics-filters-bar (filtersChange)="filters$.next($event)"></api-analytics-filters-bar>
+    <api-analytics-filters-bar></api-analytics-filters-bar>
     <div class="entrypoints">
       <h2>Entrypoints</h2>
       <div class="entrypoints__rows">

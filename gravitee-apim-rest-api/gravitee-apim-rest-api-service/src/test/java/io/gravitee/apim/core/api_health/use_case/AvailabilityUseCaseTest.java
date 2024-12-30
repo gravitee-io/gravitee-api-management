@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api_health.use_case;
 import static fixtures.core.model.ApiFixtures.MY_API;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.withPrecision;
 
 import fakes.FakeApiHealthQueryService;
 import fixtures.core.model.ApiFixtures;
@@ -67,15 +68,15 @@ class AvailabilityUseCaseTest {
             .definitionVersion(DefinitionVersion.V4)
             .build();
         apiCrudServiceInMemory.initWith(List.of(Api.builder().id("MyApiID").apiDefinitionHttpV4(definition).environmentId(ENV_ID).build()));
-        apiHealthQueryService.availabilityHealthCheck = new AvailabilityHealthCheck(12, Map.of("gw", 12));
+        apiHealthQueryService.availabilityHealthCheck = new AvailabilityHealthCheck(.12f, Map.of("gw", .12f));
 
         // When
         var output = cut.execute(input).blockingGet();
 
         // Then
         assertThat(output).isNotNull();
-        assertThat(output.global()).isEqualTo(12L);
-        assertThat(output.byField()).containsEntry("gw", 12).containsOnlyKeys("gw");
+        assertThat(output.global()).isCloseTo(.12f, withPrecision(.0001f));
+        assertThat(output.byField()).containsEntry("gw", .12f).containsOnlyKeys("gw");
     }
 
     @Test

@@ -420,9 +420,10 @@ describe('ApiSubscriptionListComponent', () => {
       tick();
       await creationDialogHarness.selectApplication('application');
       tick(400);
-      const apiKeySubscription = {
+      const apiKeySubscription: Partial<SubscriptionPage> = {
         security: PlanSecurityType.API_KEY,
         api: 'another-plan-id',
+        origin: 'MANAGEMENT',
       };
       expectSubscriptionsForApplication(application.id, [apiKeySubscription]);
       await creationDialogHarness.choosePlan(planV4.name);
@@ -970,7 +971,7 @@ describe('ApiSubscriptionListComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectApiKeySubscriptionsGetRequest(applicationId: string, subscriptions: SubscriptionPage[]) {
+  function expectApiKeySubscriptionsGetRequest(applicationId: string, subscriptions: Partial<SubscriptionPage>[]) {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.baseURL}/applications/${applicationId}/subscriptions?page=1&size=20&status=ACCEPTED,PENDING,PAUSED&security_types=API_KEY`,

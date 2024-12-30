@@ -43,7 +43,7 @@ public class ApplicationFixtures {
         spec.setId("application-id");
         spec.setName("test");
         spec.setDescription("description");
-        spec.setSettings(new ApplicationCRDSettings(new ApplicationCRDSettings.SimpleApplicationSettings("WEB", "test"), null));
+        spec.setSettings(new ApplicationCRDSettings(new ApplicationCRDSettings.SimpleApplicationSettings("WEB", "test"), null, null));
 
         ApplicationCRDMetadata metadata = new ApplicationCRDMetadata();
         metadata.setName("test");

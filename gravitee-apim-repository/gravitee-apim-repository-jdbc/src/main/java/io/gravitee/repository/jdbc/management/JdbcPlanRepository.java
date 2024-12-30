@@ -19,6 +19,7 @@ import static java.lang.String.format;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -94,6 +95,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             .addColumn("comment_message", Types.NVARCHAR, String.class)
             .addColumn("selection_rule", Types.NVARCHAR, String.class)
             .addColumn("general_conditions", Types.NVARCHAR, String.class)
+            .addColumn("api_type", Types.NVARCHAR, ApiType.class)
             .build();
     }
 

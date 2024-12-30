@@ -52,8 +52,10 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
 import org.apache.lucene.document.Document;
@@ -176,18 +178,14 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
     }
 
     private void transformV4Api(Document doc, IndexableApi api) {
-        var apiDefinitionV4 = api.getApi().getApiDefinitionHttpV4();
-        if (apiDefinitionV4 != null && apiDefinitionV4.getListeners() != null) {
-            final int[] pathIndex = { 0 };
-            apiDefinitionV4
-                .getListeners()
-                .stream()
-                .filter(listener -> listener.getType() == ListenerType.HTTP)
-                .flatMap(listener -> {
-                    HttpListener httpListener = (HttpListener) listener;
-                    return httpListener.getPaths().stream();
-                })
-                .forEach(path -> appendPath(doc, pathIndex, path.getHost(), path.getPath()));
+        var apiDefinitionV4 = api.getApi().getType() == ApiType.NATIVE
+            ? api.getApi().getApiDefinitionNativeV4()
+            : api.getApi().getApiDefinitionHttpV4();
+
+        if (api.getApi().getType() == ApiType.NATIVE) {
+            transformV4ApiNativeListeners(doc, api.getApi().getApiDefinitionNativeV4());
+        } else {
+            transformV4ApiHttpListeners(doc, api.getApi().getApiDefinitionHttpV4());
         }
 
         // tags
@@ -199,15 +197,48 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         }
     }
 
-    private void appendPath(final Document doc, final int[] pathIndex, final String host, final String path) {
+    private void transformV4ApiHttpListeners(Document doc, io.gravitee.definition.model.v4.Api apiDefinitionV4) {
+        if (apiDefinitionV4 != null && apiDefinitionV4.getListeners() != null) {
+            final int[] pathIndex = { 0 };
+            apiDefinitionV4
+                .getListeners()
+                .stream()
+                .filter(listener -> listener.getType() == ListenerType.HTTP)
+                .flatMap(listener -> {
+                    HttpListener httpListener = (HttpListener) listener;
+                    return httpListener.getPaths().stream();
+                })
+                .forEach(path -> {
+                    appendPath(doc, pathIndex, path.getPath());
+                    appendHost(doc, path.getHost());
+                });
+        }
+    }
+
+    private void transformV4ApiNativeListeners(Document doc, io.gravitee.definition.model.v4.nativeapi.NativeApi apiDefinitionV4) {
+        if (apiDefinitionV4 != null && apiDefinitionV4.getListeners() != null) {
+            apiDefinitionV4
+                .getListeners()
+                .stream()
+                .filter(listener -> listener.getType() == ListenerType.KAFKA)
+                .forEach(listener -> {
+                    if (listener instanceof KafkaListener kafkaListener) appendHost(doc, kafkaListener.getHost());
+                });
+        }
+    }
+
+    private void appendPath(final Document doc, final int[] pathIndex, final String path) {
         doc.add(new StringField(FIELD_PATHS, path, Field.Store.NO));
         doc.add(new TextField(FIELD_PATHS_SPLIT, path, Field.Store.NO));
+        if (pathIndex[0]++ == 0) {
+            doc.add(new SortedDocValuesField(FIELD_PATHS_SORTED, new BytesRef(QueryParser.escape(path))));
+        }
+    }
+
+    private void appendHost(Document doc, String host) {
         if (host != null && !host.isEmpty()) {
             doc.add(new StringField(FIELD_HOSTS, host, Field.Store.NO));
             doc.add(new TextField(FIELD_HOSTS_SPLIT, host, Field.Store.NO));
-        }
-        if (pathIndex[0]++ == 0) {
-            doc.add(new SortedDocValuesField(FIELD_PATHS_SORTED, new BytesRef(QueryParser.escape(path))));
         }
     }
 

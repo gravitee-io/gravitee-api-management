@@ -17,4 +17,4 @@ package io.gravitee.repository.healthcheck.v4.model;
 
 import java.util.Map;
 
-public record AvailabilityResponse(int global, Map<String, Integer> ratesByFields) {}
+public record AvailabilityResponse(float global, Map<String, Float> ratesByFields) {}

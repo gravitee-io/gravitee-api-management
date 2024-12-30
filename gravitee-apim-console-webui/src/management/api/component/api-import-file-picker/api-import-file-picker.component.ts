@@ -31,7 +31,7 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 export class ApiImportFilePickerComponent implements OnInit {
   private snackBarService = inject(SnackBarService);
   private destroyRef = inject(DestroyRef);
-  allowedFileExtensions = input<string[]>(['yml', 'yaml', 'json', 'wsdl', 'xml']);
+  allowedFileExtensions = input<string[]>(['yml', 'yaml', 'json', 'wsdl', 'xml', 'js']);
   filePickerControl = new FormControl();
   importType: string;
   accept: string;
@@ -85,6 +85,10 @@ export class ApiImportFilePickerComponent implements OnInit {
       case 'yml':
       case 'yaml':
         this.importType = 'SWAGGER';
+        break;
+
+      case 'js':
+        this.importType = 'JavaScript';
         break;
 
       default:

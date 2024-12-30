@@ -161,30 +161,34 @@
             <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="endpointsDisplayedColumns.length">No Endpoints</td>
           </tr>
         </table>
-        <a
-          *gioPermission="{ anyOf: ['api-definition-u'] }"
-          mat-stroked-button
-          aria-label="Add endpoint"
-          class="add_endpoint"
-          [routerLink]="['./', i, 'new']"
-          [disabled]="isReadOnly"
-          >Add endpoint</a
-        >
+        @if (api?.type !== 'NATIVE') {
+          <a
+            *gioPermission="{ anyOf: ['api-definition-u'] }"
+            mat-stroked-button
+            aria-label="Add endpoint"
+            class="add_endpoint"
+            [routerLink]="['./', i, 'new']"
+            [disabled]="isReadOnly"
+            >Add endpoint</a
+          >
+        }
       </mat-card-content>
     </mat-card>
   </ng-container>
 </ng-container>
 
-<button
-  *gioPermission="{ anyOf: ['api-definition-u'] }"
-  mat-flat-button
-  color="primary"
-  aria-label="Add endpoint group"
-  [routerLink]="['./', 'new']"
-  [disabled]="isReadOnly"
->
-  Add endpoint group
-</button>
+@if (api?.type !== 'NATIVE') {
+  <button
+    *gioPermission="{ anyOf: ['api-definition-u'] }"
+    mat-flat-button
+    color="primary"
+    aria-label="Add endpoint group"
+    [routerLink]="['./', 'new']"
+    [disabled]="isReadOnly"
+  >
+    Add endpoint group
+  </button>
+}
 
 <div *ngIf="shouldUpgrade">
   <gio-license-banner [license]="license$ | async" [isOEM]="isOEM$ | async" (onRequestUpgrade)="onRequestUpgrade()"></gio-license-banner>

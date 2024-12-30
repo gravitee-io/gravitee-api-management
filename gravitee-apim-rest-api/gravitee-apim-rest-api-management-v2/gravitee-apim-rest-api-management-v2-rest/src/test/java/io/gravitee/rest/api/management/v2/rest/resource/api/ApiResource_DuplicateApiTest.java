@@ -115,7 +115,7 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
 
     @Test
     void should_return_400_when_duplicate_exception_is_thrown() {
-        var apiEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).build();
+        var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
 
         var duplicateOptions = aDuplicateApiOptions();
@@ -138,7 +138,7 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
 
     @Test
     void should_duplicate_v4_api() {
-        ApiEntity apiEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).build();
+        ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
 
         var duplicateOptions = aDuplicateApiOptions();
@@ -149,7 +149,7 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
                 eq(DuplicateApiMapper.INSTANCE.map(duplicateOptions))
             )
         )
-            .thenReturn(ApiFixtures.aModelApiV4().toBuilder().id("duplicate").build());
+            .thenReturn(ApiFixtures.aModelHttpApiV4().toBuilder().id("duplicate").build());
 
         final Response response = rootTarget().request().post(Entity.json(duplicateOptions));
         assertThat(response.getStatus()).isEqualTo(OK_200);

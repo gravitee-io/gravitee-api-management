@@ -18,6 +18,25 @@ pull_request_rules:
                   ----
                   {{ cherry_pick_error }}
               title: "[master] {{ title }}"
+    - name: Apply commits on `4.6.x`
+      conditions:
+          - label=apply-on-4-6-x
+      actions:
+          backport:
+              branches:
+                  - 4.6.x
+              assignees:
+                  - "{{ author }}"
+              body: |
+                  This is an automatic copy of pull request #{{number}} done by [Mergify](https://mergify.com).
+
+                  ----
+
+                  {{ body }}
+
+                  ----
+                  {{ cherry_pick_error }}
+              title: "[4.6.x] {{ title }}"
     - name: Apply commits on `4.5.x`
       conditions:
           - label=apply-on-4-5-x

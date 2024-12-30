@@ -19,6 +19,8 @@ import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import java.util.List;
 import java.util.Set;
@@ -36,7 +38,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ExportApiEntity {
 
-    private ApiEntity apiEntity;
+    private GenericApiEntity apiEntity;
 
     private Set<MemberEntity> members;
 
@@ -44,7 +46,16 @@ public class ExportApiEntity {
 
     private List<PageEntity> pages;
 
-    private Set<PlanEntity> plans;
+    private Set<? extends GenericPlanEntity> plans;
 
     private List<MediaEntity> apiMedia;
+
+    public void excludeGroups() {
+        if (apiEntity instanceof ApiEntity) {
+            ((ApiEntity) apiEntity).setGroups(null);
+        }
+        if (apiEntity instanceof NativeApiEntity) {
+            ((NativeApiEntity) apiEntity).setGroups(null);
+        }
+    }
 }

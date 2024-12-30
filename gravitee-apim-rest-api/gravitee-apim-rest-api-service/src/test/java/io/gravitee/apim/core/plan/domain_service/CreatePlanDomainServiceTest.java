@@ -18,17 +18,16 @@ package io.gravitee.apim.core.plan.domain_service;
 import static fixtures.core.model.ApiFixtures.aMessageApiV4;
 import static fixtures.core.model.ApiFixtures.aProxyApiV4;
 import static fixtures.core.model.ApiFixtures.aTcpApiV4;
-import static fixtures.core.model.PlanFixtures.aKeylessV4;
-import static fixtures.core.model.PlanFixtures.aPlanV4;
-import static fixtures.core.model.PlanFixtures.aPushPlan;
-import static fixtures.core.model.PlanFixtures.anApiKeyV4;
+import static fixtures.core.model.PlanFixtures.aPlanHttpV4;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
+import fixtures.definition.FlowFixtures;
 import fixtures.definition.PlanFixtures;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
@@ -55,6 +54,7 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
@@ -98,6 +98,7 @@ class CreatePlanDomainServiceTest {
     private static final Api HTTP_PROXY_API_V4 = aProxyApiV4().toBuilder().id(API_ID).build();
     private static final Api TCP_PROXY_API_V4 = aTcpApiV4().toBuilder().id(API_ID).build();
     private static final Api API_MESSAGE_V4 = aMessageApiV4().toBuilder().id(API_ID).build();
+    private static final Api API_NATIVE_V4 = ApiFixtures.aNativeApi().toBuilder().id(API_ID).build();
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
@@ -156,7 +157,7 @@ class CreatePlanDomainServiceTest {
         @Test
         void should_throw_when_invalid_status_change_detected() {
             // Given
-            var plan = anApiKeyV4().toBuilder().build();
+            var plan = fixtures.core.model.PlanFixtures.HttpV4.anApiKey().toBuilder().build();
             parametersQueryService.initWith(
                 List.of(new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "false"))
             );
@@ -171,7 +172,7 @@ class CreatePlanDomainServiceTest {
         @Test
         void should_throw_when_security_configuration_is_invalid() {
             // Given
-            var plan = anApiKeyV4().toBuilder().build();
+            var plan = fixtures.core.model.PlanFixtures.HttpV4.anApiKey().toBuilder().build();
             when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
                 .thenThrow(new InvalidDataException("invalid"));
 
@@ -189,9 +190,12 @@ class CreatePlanDomainServiceTest {
         @Test
         void should_throw_when_security_configuration_is_invalid() {
             // Given
-            var plan = aPushPlan()
+            var plan = fixtures.core.model.PlanFixtures.HttpV4
+                .aPushPlan()
                 .toBuilder()
-                .planDefinitionHttpV4(PlanFixtures.aPushPlan().toBuilder().security(PlanSecurity.builder().build()).build())
+                .planDefinitionHttpV4(
+                    PlanFixtures.HttpV4Definition.aPushPlan().toBuilder().security(PlanSecurity.builder().build()).build()
+                )
                 .build();
 
             // When
@@ -206,7 +210,10 @@ class CreatePlanDomainServiceTest {
         @Test
         void should_throw_when_security_configuration_is_missing() {
             // Given
-            var plan = aPlanV4().toBuilder().planDefinitionHttpV4(PlanFixtures.anApiKeyV4().toBuilder().security(null).build()).build();
+            var plan = aPlanHttpV4()
+                .toBuilder()
+                .planDefinitionHttpV4(PlanFixtures.HttpV4Definition.anApiKeyV4().toBuilder().security(null).build())
+                .build();
 
             // When
             var throwable = Assertions.catchThrowable(() -> service.create(plan, List.of(), HTTP_PROXY_API_V4, AUDIT_INFO));
@@ -238,7 +245,11 @@ class CreatePlanDomainServiceTest {
         @MethodSource("plans")
         void should_throw_when_plan_tags_mismatch_with_tags_defined_in_api(Api api, Plan plan, List<Flow> flows) {
             // Given
-            api.getApiDefinitionHttpV4().setTags(Set.of());
+            if (api.isNative()) {
+                api.getApiDefinitionNativeV4().setTags(Set.of());
+            } else {
+                api.getApiDefinitionHttpV4().setTags(Set.of());
+            }
 
             // When
             var throwable = Assertions.catchThrowable(() -> service.create(plan, flows, api, AUDIT_INFO));
@@ -250,7 +261,7 @@ class CreatePlanDomainServiceTest {
         }
 
         @ParameterizedTest
-        @MethodSource("plans")
+        @MethodSource("httpPlans")
         void should_throw_when_flows_are_invalid(Api api, Plan plan) {
             // Given
             List<Flow> invalidFlows = List.of(
@@ -293,7 +304,7 @@ class CreatePlanDomainServiceTest {
         }
 
         @ParameterizedTest
-        @MethodSource("plans")
+        @MethodSource("httpPlans")
         void should_throw_when_flows_contains_overlapped_path_parameters(Api api, Plan plan) {
             // Given
             var selector1 = api.getType() == ApiType.PROXY
@@ -328,7 +339,7 @@ class CreatePlanDomainServiceTest {
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(result.getApiId()).isEqualTo(API_ID);
-                soft.assertThat(result.getFlows()).hasSize(1).extracting(Flow::getName).containsExactly("flow");
+                soft.assertThat(result.getFlows()).hasSize(1).extracting(AbstractFlow::getName).containsExactly("flow");
                 soft.assertThat(result.getCreatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
                 soft.assertThat(result.getUpdatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
                 soft.assertThat(result.getNeedRedeployAt()).isEqualTo(INSTANT_NOW);
@@ -417,7 +428,7 @@ class CreatePlanDomainServiceTest {
         void should_throw_when_adding_secured_plan_to_tcp_api() {
             // When
             var throwable = Assertions.catchThrowable(() ->
-                service.create(anApiKeyV4(), Collections.emptyList(), TCP_PROXY_API_V4, AUDIT_INFO)
+                service.create(fixtures.core.model.PlanFixtures.HttpV4.anApiKey(), Collections.emptyList(), TCP_PROXY_API_V4, AUDIT_INFO)
             );
 
             // Then
@@ -427,7 +438,13 @@ class CreatePlanDomainServiceTest {
         @Test
         void should_allow_keyless_plan_creation_to_tcp_api() {
             // Given
-            var plan = aKeylessV4().toBuilder().apiId(API_ID).build().setPlanStatus(PlanStatus.PUBLISHED).setPlanTags(Set.of(TAG));
+            var plan = fixtures.core.model.PlanFixtures.HttpV4
+                .aKeyless()
+                .toBuilder()
+                .apiId(API_ID)
+                .build()
+                .setPlanStatus(PlanStatus.PUBLISHED)
+                .setPlanTags(Set.of(TAG));
             List<Flow> flows = List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build());
 
             // When
@@ -451,13 +468,61 @@ class CreatePlanDomainServiceTest {
             return Stream.of(
                 Arguments.of(
                     HTTP_PROXY_API_V4,
-                    anApiKeyV4().toBuilder().apiId(API_ID).build().setPlanStatus(PlanStatus.STAGING).setPlanTags(Set.of(TAG)),
+                    fixtures.core.model.PlanFixtures.HttpV4
+                        .anApiKey()
+                        .toBuilder()
+                        .apiId(API_ID)
+                        .build()
+                        .setPlanStatus(PlanStatus.STAGING)
+                        .setPlanTags(Set.of(TAG)),
                     List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build())
                 ),
                 Arguments.of(
                     API_MESSAGE_V4,
-                    aPushPlan().toBuilder().apiId(API_ID).build().setPlanStatus(PlanStatus.STAGING).setPlanTags(Set.of(TAG)),
+                    fixtures.core.model.PlanFixtures.HttpV4
+                        .aPushPlan()
+                        .toBuilder()
+                        .apiId(API_ID)
+                        .build()
+                        .setPlanStatus(PlanStatus.STAGING)
+                        .setPlanTags(Set.of(TAG)),
                     List.of(Flow.builder().name("flow").selectors(List.of(new ChannelSelector())).build())
+                ),
+                Arguments.of(
+                    API_NATIVE_V4,
+                    fixtures.core.model.PlanFixtures.NativeV4
+                        .aKeyless()
+                        .toBuilder()
+                        .apiId(API_ID)
+                        .build()
+                        .setPlanStatus(PlanStatus.STAGING)
+                        .setPlanTags(Set.of(TAG)),
+                    List.of(FlowFixtures.aNativeFlowV4().toBuilder().name("flow").build())
+                )
+            );
+        }
+
+        static Stream<Arguments> httpPlans() {
+            return Stream.of(
+                Arguments.of(
+                    HTTP_PROXY_API_V4,
+                    fixtures.core.model.PlanFixtures.HttpV4
+                        .anApiKey()
+                        .toBuilder()
+                        .apiId(API_ID)
+                        .build()
+                        .setPlanStatus(PlanStatus.STAGING)
+                        .setPlanTags(Set.of(TAG))
+                ),
+                Arguments.of(
+                    API_MESSAGE_V4,
+                    fixtures.core.model.PlanFixtures.HttpV4
+                        .aPushPlan()
+                        .toBuilder()
+                        .apiId(API_ID)
+                        .build()
+                        .setPlanStatus(PlanStatus.STAGING)
+                        .setPlanTags(Set.of(TAG))
                 )
             );
         }

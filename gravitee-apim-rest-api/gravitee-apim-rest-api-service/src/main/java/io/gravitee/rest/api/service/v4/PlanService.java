@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.v4;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PlansConfigurationEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
@@ -31,18 +32,17 @@ public interface PlanService {
     PlanEntity findById(ExecutionContext executionContext, String plan);
 
     Set<PlanEntity> findByApi(ExecutionContext executionContext, String api);
-
-    PlanEntity update(final ExecutionContext executionContext, final UpdatePlanEntity plan);
+    Set<NativePlanEntity> findNativePlansByApi(ExecutionContext executionContext, String api);
 
     GenericPlanEntity close(final ExecutionContext executionContext, final String plan);
 
     void delete(final ExecutionContext executionContext, final String plan);
 
-    PlanEntity publish(final ExecutionContext executionContext, final String plan);
+    GenericPlanEntity publish(final ExecutionContext executionContext, final String plan);
 
-    PlanEntity deprecate(final ExecutionContext executionContext, final String plan);
+    GenericPlanEntity deprecate(final ExecutionContext executionContext, final String plan);
 
-    PlanEntity deprecate(final ExecutionContext executionContext, final String plan, final boolean allowStaging);
+    GenericPlanEntity deprecate(final ExecutionContext executionContext, final String plan, final boolean allowStaging);
 
     PlansConfigurationEntity getConfiguration();
 

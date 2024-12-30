@@ -3827,6 +3827,8 @@ components:
                 description:
                     description: Description of the API.
                     type: string
+                type:
+                    $ref: "#/components/schemas/ApiType"
                 draft:
                     type: boolean
                     description: Whether or not the API is in draft.
@@ -3909,6 +3911,15 @@ components:
                 - HTTP
                 - TCP
                 - SUBSCRIPTION
+                - KAFKA
+        ApiType:
+            description: Type of V4 APIs.
+            type: string
+            example: PROXY
+            enum:
+                - PROXY
+                - MESSAGE
+                - NATIVE
         ApiInformation:
             properties:
                 name:
@@ -4458,6 +4469,12 @@ components:
                 failureCause:
                     description: The cause of the failure
                     type: string
+                origin:
+                  description: The origin of the subscription
+                  type: string
+                  enum:
+                    - KUBERNETES
+                    - MANAGEMENT
                 ###################
                 # may be included #
                 ###################
@@ -5544,6 +5561,9 @@ components:
                 expire_at:
                     type: string
                     format: date-time
+                hash:
+                  type: string
+                  description: The MD5 hash of the API Key
         AlertType:
             type: string
             enum:

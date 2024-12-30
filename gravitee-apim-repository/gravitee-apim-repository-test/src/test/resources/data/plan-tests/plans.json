@@ -8,6 +8,7 @@
       "security": "API_KEY",
       "validation": "AUTO",
       "type": "API",
+      "apiType": "native",
       "mode": "STANDARD",
       "status": "PUBLISHED",
       "order": 2,
@@ -36,6 +37,7 @@
       "security": "API_KEY",
       "validation": "AUTO",
       "type": "API",
+      "apiType": "proxy",
       "mode": "STANDARD",
       "status": "PUBLISHED",
       "order": 0,
@@ -50,7 +52,8 @@
       "name":"old plan",
       "api": "api3",
       "environmentId" : "DEFAULT",
-      "commentRequired": true
+      "commentRequired": true,
+      "apiType": "message"
    },
    {
       "id":"products",
@@ -60,7 +63,8 @@
       "environmentId" : "DEFAULT",
       "characteristics": [],
       "excludedGroups": [],
-      "commentRequired": false
+      "commentRequired": false,
+      "apiType": "message"
    },
    {
       "id":"stores",
@@ -80,6 +84,7 @@
       "selectionRule": "#context.attributes['jwt'].claims['iss'] == 'toto'",
       "type": "API",
       "mode": "PUSH",
+      "apiType": "proxy",
       "status": "STAGING",
       "api": "4e0db366-f772-4489-8db3-66f772b48989",
       "environmentId" : "DEFAULT",

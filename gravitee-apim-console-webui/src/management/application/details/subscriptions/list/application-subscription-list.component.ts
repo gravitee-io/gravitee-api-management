@@ -47,6 +47,7 @@ type SubscriptionsTableDS = {
   endAt: Date;
   status: string;
   statusBadge: string;
+  origin: 'KUBERNETES' | 'MANAGEMENT';
 };
 
 type SubscriptionsTableFilters = {
@@ -204,6 +205,7 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
             startingAt: subscription.starting_at,
             status: status?.name,
             statusBadge: status?.badge,
+            origin: subscription.origin,
           };
         });
         this.isLoadingData = false;

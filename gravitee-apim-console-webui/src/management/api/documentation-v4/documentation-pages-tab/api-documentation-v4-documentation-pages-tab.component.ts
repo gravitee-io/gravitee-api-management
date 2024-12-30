@@ -15,7 +15,7 @@
  */
 
 import { Component, computed, OnDestroy, OnInit } from '@angular/core';
-import { Observable, Subject, of, combineLatest, EMPTY, BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { catchError, filter, map, switchMap, takeUntil } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
@@ -28,15 +28,21 @@ import {
 } from '../dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.component';
 import { ApiDocumentationPageResult, ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { ApiSpecGenRequestState, ApiSpecGenService, ApiSpecGenState } from '../../../../services-ngx/api-spec-gen.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import {
   Api,
-  PageType,
-  EditDocumentationFolder,
   Breadcrumb,
-  Page,
   CreateDocumentationFolder,
+  EditDocumentationFolder,
+  Page,
+  PageType,
 } from '../../../../entities/management-api-v2';
+import {
+  ApiDocumentationV4NewtAiDialogComponent,
+  ApiDocumentationV4NewtAiDialogData,
+  ApiDocumentationV4NewtAiDialogResult,
+} from '../dialog/documentation-newt-ai-dialog/api-documentation-v4-newt-ai-dialog.component';
 
 interface ApiDocumentationV4ListData {
   pages: Page[];
@@ -51,6 +57,7 @@ interface ApiDocumentationV4ListData {
 export class ApiDocumentationV4DocumentationPagesTabComponent implements OnInit, OnDestroy {
   api: Api;
   isReadOnly = false;
+  specGenState: ApiSpecGenState = ApiSpecGenState.UNAVAILABLE;
   data$: Observable<ApiDocumentationV4ListData> = of();
 
   private parentId: string;
@@ -71,6 +78,7 @@ export class ApiDocumentationV4DocumentationPagesTabComponent implements OnInit,
     private readonly apiV2Service: ApiV2Service,
     private readonly apiDocumentationV2Service: ApiDocumentationV2Service,
     private readonly snackBarService: SnackBarService,
+    private readonly apiSpecGenService: ApiSpecGenService,
   ) {}
 
   ngOnInit() {
@@ -81,17 +89,31 @@ export class ApiDocumentationV4DocumentationPagesTabComponent implements OnInit,
           return EMPTY;
         }
         this.parentId = (queryParams as Params)['parentId'] || 'ROOT';
-
-        return combineLatest([this.apiV2Service.get(apiId), this.getApiPages(apiId, this.parentId)]);
+        return combineLatest([
+          this.apiV2Service.get(apiId),
+          this.getApiPages(apiId, this.parentId),
+          this.apiSpecGenService.getState(apiId),
+        ]);
       }),
-      map(([api, pagesResponse]) => {
+      map(([api, pagesResponse, apiSpecGenRequestState]) => {
         this.api = api;
         this.isReadOnly = api.originContext?.origin === 'KUBERNETES';
+        this.specGenState = this.getSpecGenState(api, apiSpecGenRequestState);
 
-        return { pages: pagesResponse.pages.filter((page) => !page.homepage) ?? [], breadcrumbs: pagesResponse.breadcrumb ?? [] };
+        return {
+          pages: pagesResponse.pages.filter((page) => !page.homepage) ?? [],
+          breadcrumbs: pagesResponse.breadcrumb ?? [],
+        };
       }),
       catchError(() => of({ pages: [], breadcrumbs: [] })),
     );
+  }
+
+  private getSpecGenState(api: Api, apiSpecGenRequestState: ApiSpecGenRequestState): ApiSpecGenState {
+    if (api?.definitionVersion === 'V4' && api?.type === 'PROXY') {
+      return apiSpecGenRequestState?.state ?? ApiSpecGenState.UNAVAILABLE;
+    }
+    return ApiSpecGenState.UNAVAILABLE;
   }
 
   ngOnDestroy() {
@@ -146,6 +168,44 @@ export class ApiDocumentationV4DocumentationPagesTabComponent implements OnInit,
       relativeTo: this.activatedRoute,
       queryParams: { parentId: folderId || 'ROOT' },
     });
+  }
+
+  generate() {
+    this.matDialog
+      .open<ApiDocumentationV4NewtAiDialogComponent, ApiDocumentationV4NewtAiDialogData, ApiDocumentationV4NewtAiDialogResult>(
+        ApiDocumentationV4NewtAiDialogComponent,
+        {
+          width: GIO_DIALOG_WIDTH.MEDIUM,
+          data: {
+            state: this.specGenState,
+          } as ApiDocumentationV4NewtAiDialogData,
+        },
+      )
+      .afterClosed()
+      .pipe(
+        filter((start) => !!start),
+        switchMap(() => this.apiSpecGenService.postJob(this.api.id)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe({
+        next: (value) => {
+          this.specGenState = value?.state ?? this.specGenState;
+          switch (this.specGenState) {
+            case ApiSpecGenState.STARTED:
+              this.snackBarService.success(`[${this.api.name}] by NewtAI started!`);
+              break;
+            case ApiSpecGenState.GENERATING:
+              this.snackBarService.success(`[${this.api.name}] by NewtAI is cooking!`);
+              break;
+            default:
+              this.snackBarService.error('It seems you cannot use NewtAI!');
+              break;
+          }
+        },
+        error: () => {
+          this.snackBarService.error('It seems you cannot use NewtAI!');
+        },
+      });
   }
 
   editPage(pageId: string) {

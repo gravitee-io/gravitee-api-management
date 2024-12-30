@@ -17,6 +17,7 @@ import { NgModule } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import {
+  GioBannerModule,
   GioFormFilePickerModule,
   GioFormJsonSchemaModule,
   GioFormSelectionInlineModule,
@@ -41,6 +42,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatOption } from '@angular/material/autocomplete';
 import { MatSelect } from '@angular/material/select';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { MatListModule } from '@angular/material/list';
 
 import { ApiDocumentationV4EmptyStateComponent } from './components/documentation-empty-state/api-documentation-v4-empty-state.component';
 import { ApiDocumentationV4ListNavigationHeaderComponent } from './components/documentation-list-navigation-header/api-documentation-v4-list-navigation-header.component';
@@ -54,6 +56,8 @@ import { ApiDocumentationV4FileUploadComponent } from './components/api-document
 import { ApiDocumentationV4MetadataTabComponent } from './metadata-tab/api-documentation-v4-metadata-tab.component';
 import { ApiDocumentationV4MainPagesTabComponent } from './main-pages-tab/api-documentation-v4-main-pages-tab.component';
 import { ApiDocumentationV4AddPageButtonComponent } from './components/api-documentation-v4-add-page-button/api-documentation-v4-add-page-button.component';
+import { ApiDocumentationV4NewtAiButtonComponent } from './components/api-documentation-v4-newt-ai-button/api-documentation-v4-newt-ai-button.component';
+import { ApiDocumentationV4NewtAiDialogComponent } from './dialog/documentation-newt-ai-dialog/api-documentation-v4-newt-ai-dialog.component';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioTooltipOnEllipsisModule } from '../../../shared/components/gio-tooltip-on-ellipsis/gio-tooltip-on-ellipsis.module';
@@ -70,6 +74,8 @@ import { GioApiMetadataListModule } from '../component/gio-api-metadata-list/gio
     ApiDocumentationV4EditFolderDialog,
     ApiDocumentationV4MainPagesTabComponent,
     ApiDocumentationV4AddPageButtonComponent,
+    ApiDocumentationV4NewtAiButtonComponent,
+    ApiDocumentationV4NewtAiDialogComponent,
     ApiDocumentationV4PagesListComponent,
     ApiDocumentationV4MetadataTabComponent,
   ],
@@ -91,7 +97,7 @@ import { GioApiMetadataListModule } from '../component/gio-api-metadata-list/gio
     MatSnackBarModule,
     MatTooltipModule,
     MatIconModule,
-
+    MatListModule,
     MarkdownModule.forRoot(),
 
     GioIconsModule,
@@ -117,6 +123,7 @@ import { GioApiMetadataListModule } from '../component/gio-api-metadata-list/gio
     ApiDocumentationV4ContentEditorComponent,
     ApiDocumentationV4BreadcrumbComponent,
     ApiDocumentationV4FileUploadComponent,
+    GioBannerModule,
   ],
 })
 export class ApiDocumentationV4Module {}

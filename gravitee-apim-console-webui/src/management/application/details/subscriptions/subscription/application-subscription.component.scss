@@ -23,4 +23,18 @@
 .subscriptionDetailsCard {
   margin-top: 8px;
   margin-bottom: 16px;
+
+  .kubernetes-origin-message {
+    margin: 15px 0 0 15px;
+    display: flex;
+
+    .matt-icon__origin {
+      color: #326de6;
+      margin-right: 5px;
+    }
+
+    p {
+      margin-top: 1px;
+    }
+  }
 }

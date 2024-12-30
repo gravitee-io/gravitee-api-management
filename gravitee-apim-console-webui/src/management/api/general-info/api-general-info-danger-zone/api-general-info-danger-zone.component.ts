@@ -217,7 +217,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
           return EMPTY;
         }),
         tap(() => this.reloadDetails.emit()),
-        map(() => this.snackBarService.success(`The API has been ${actionLabel[lifecycleState].toLowerCase()} with success.`)),
+        map(() => this.snackBarService.success(`The API has been ${lifecycleState.toLowerCase()} with success.`)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
@@ -233,7 +233,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
         width: '500px',
         data: {
           title: `Change visibility`,
-          content: `Are you sure you want to ${actionLabel[visibility].toLowerCase()} the API?`,
+          content: `Are you sure you want to make the API ${visibility.toLowerCase()}?`,
           confirmButton: `${actionLabel[visibility]}`,
         },
         role: 'alertdialog',
@@ -258,7 +258,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
           return EMPTY;
         }),
         tap(() => this.reloadDetails.emit()),
-        map(() => this.snackBarService.success(`The API has been ${actionLabel[visibility]} with success.`)),
+        map(() => this.snackBarService.success(`The API has been made ${visibility.toLowerCase()} with success.`)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();

@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ public class SearchAverageConnectionDurationQueryAdapter {
 
     public static String adapt(AverageConnectionDurationQuery query, boolean isEntrypointIdKeyword) {
         var jsonContent = new HashMap<String, Object>();
-        var esQuery = buildElasticQuery(Optional.ofNullable(query).orElse(AverageConnectionDurationQuery.builder().build()));
+        var esQuery = buildElasticQuery(Optional.ofNullable(query).orElse(new AverageConnectionDurationQuery()));
         jsonContent.put("size", 0);
         jsonContent.put("query", esQuery);
         jsonContent.put("aggs", buildAverageMessagesPerRequestPerEntrypointAggregate(isEntrypointIdKeyword));
@@ -57,11 +58,15 @@ public class SearchAverageConnectionDurationQueryAdapter {
 
         // Compute ended requests only
         terms.add(JsonObject.of("term", JsonObject.of("request-ended", "true")));
+        query.apiId().ifPresent(apiId -> terms.add(JsonObject.of("term", JsonObject.of("api-id", apiId))));
 
-        if (query.getApiId() != null) {
-            terms.add(JsonObject.of("term", JsonObject.of("api-id", query.getApiId())));
+        var timestamp = new JsonObject();
+        query.from().ifPresent(from -> timestamp.put("from", from.toEpochMilli()).put("include_lower", true));
+        query.to().ifPresent(to -> timestamp.put("to", to.toEpochMilli()).put("include_upper", true));
+
+        if (!timestamp.isEmpty()) {
+            terms.add(JsonObject.of("range", JsonObject.of("@timestamp", timestamp)));
         }
-
         return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(terms.toArray())));
     }
 }

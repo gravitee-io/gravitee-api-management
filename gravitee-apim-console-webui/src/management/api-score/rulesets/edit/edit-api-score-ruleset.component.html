@@ -1,0 +1,91 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<div class="edit-ruleset-page">
+  <h1 class="title">Rulesets & Functions</h1>
+  <div class="back-link">
+    <a mat-button routerLink="../..">
+      <mat-icon svgIcon="gio:arrow-left"></mat-icon>
+      Go back</a
+    >
+  </div>
+
+  @if (isLoading) {
+    <gio-loader></gio-loader>
+  } @else {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title class="mat-h3 card-title">Edit Ruleset</mat-card-title>
+        <mat-card-subtitle class="mat-body subtitle"
+          >Rulesets let you define rules that governs how your APIs behaves and interacts.
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <div class="separator-hr"></div>
+
+      <mat-card-content>
+        <form class="form" [formGroup]="form">
+          <div class="form-section">
+            <h3>Ruleset Information</h3>
+            <p class="mat-body">To update your ruleset, delete the current one and upload the new version.</p>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <input id="name" type="text" matInput formControlName="name" required="true" data-testid="name-input" />
+              <mat-label>Name</mat-label>
+              <mat-hint align="start" class="hint">Use this custom name to organize and identify specific ruleset more easily </mat-hint>
+              <mat-error *ngIf="form.get('name').hasError('maxlength')">Name can not exceed 50 characters. </mat-error>
+              <mat-error *ngIf="form.get('name').hasError('minlength')">Name has to be at least 1 characters long. </mat-error>
+              <mat-error *ngIf="form.get('name').hasError('required')">Name is required.</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="form-field">
+              <textarea
+                #input
+                matInput
+                formControlName="description"
+                maxlength="250"
+                rows="3"
+                data-testid="description"
+                id="description"
+              ></textarea>
+              <mat-label>Description</mat-label>
+              <mat-hint align="start" class="hint">{{ input.value.length }}/250</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <div class="form-section">
+            <h3>Raw file preview</h3>
+            <file-preview [payload]="filePreview"></file-preview>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="danger-card">
+      <mat-card-content>
+        <h3 class="danger-card__title">Danger Zone</h3>
+        <div class="danger-card__actions">
+          <div class="danger-action">
+            <span>Delete this ruleset</span>
+            <button mat-button color="warn" (click)="delete()" data-testid="delete-ruleset-button">Delete ruleset</button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+  <gio-save-bar *ngIf="form.dirty && form.valid" [form]="form" (resetClicked)="ngOnInit()" (submitted)="edit()"></gio-save-bar>
+</div>

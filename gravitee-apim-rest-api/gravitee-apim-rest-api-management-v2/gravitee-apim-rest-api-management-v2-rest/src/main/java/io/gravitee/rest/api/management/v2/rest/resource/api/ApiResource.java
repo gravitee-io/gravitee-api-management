@@ -19,10 +19,12 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
-import io.gravitee.apim.core.api.use_case.ExportCRDUseCase;
+import io.gravitee.apim.core.api.model.UpdateNativeApi;
+import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
+import io.gravitee.apim.core.api.use_case.UpdateNativeApiUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
@@ -45,6 +47,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiCRD;
 import io.gravitee.rest.api.management.v2.rest.model.ApiReview;
 import io.gravitee.rest.api.management.v2.rest.model.ApiRollback;
 import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
+import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
@@ -87,6 +90,7 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.security.utils.ImageUtils;
@@ -191,13 +195,16 @@ public class ApiResource extends AbstractResource {
     UpdateFederatedApiUseCase updateFederatedApiUseCase;
 
     @Inject
-    ExportCRDUseCase exportCRDUseCase;
+    ExportApiCRDUseCase exportApiCRDUseCase;
 
     @Inject
     private RollbackApiUseCase rollbackApiUseCase;
 
     @Inject
     private GetApiDefinitionUseCase getApiDefinitionUseCase;
+
+    @Inject
+    UpdateNativeApiUseCase updateNativeApiUseCase;
 
     @Context
     protected UriInfo uriInfo;
@@ -278,7 +285,7 @@ public class ApiResource extends AbstractResource {
         if (definitionVersion == io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4) {
             final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false);
             evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
-            if (!(currentEntity instanceof ApiEntity)) {
+            if (!(currentEntity instanceof ApiEntity) && !(currentEntity instanceof NativeApiEntity)) {
                 return Response.status(Response.Status.BAD_REQUEST).entity(apiInvalid(apiId)).build();
             }
             updatedApi = updateApiV4(currentEntity, (UpdateApiV4) updateApi);
@@ -325,6 +332,33 @@ public class ApiResource extends AbstractResource {
     }
 
     private GenericApiEntity updateApiV4(GenericApiEntity currentEntity, UpdateApiV4 updateApiV4) {
+        if (updateApiV4.getType() == ApiType.NATIVE) {
+            return updateNativeApiV4((NativeApiEntity) currentEntity, updateApiV4);
+        }
+        return updateHttpApiV4(currentEntity, updateApiV4);
+    }
+
+    private NativeApiEntity updateNativeApiV4(NativeApiEntity currentEntity, UpdateApiV4 updateApiV4) {
+        UpdateNativeApi apiToUpdate = ApiMapper.INSTANCE.mapToUpdateNativeApi(updateApiV4, currentEntity.getId());
+
+        if (
+            !hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_GATEWAY_DEFINITION,
+                currentEntity.getId(),
+                RolePermissionAction.UPDATE
+            ) &&
+            !Objects.equals(currentEntity.getPrimaryOwner().getId(), getAuthenticatedUser()) &&
+            !isAdmin()
+        ) {
+            apiToUpdate.setListeners(currentEntity.getListeners());
+        }
+
+        var result = updateNativeApiUseCase.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, getAuditInfo()));
+        return ApiAdapter.INSTANCE.toNativeApiEntity(result.updatedApi());
+    }
+
+    private ApiEntity updateHttpApiV4(GenericApiEntity currentEntity, UpdateApiV4 updateApiV4) {
         UpdateApiEntity apiToUpdate = ApiMapper.INSTANCE.map(updateApiV4, currentEntity.getId());
         // Force listeners if user is not the primary_owner or an administrator
         if (
@@ -406,7 +440,9 @@ public class ApiResource extends AbstractResource {
 
         var output = getApiDefinitionUseCase.execute(new GetApiDefinitionUseCase.Input(apiId));
         return switch (output.definitionVersion()) {
-            case V4 -> Response.ok(output.apiDefinitionV4()).build();
+            case V4 -> Response
+                .ok(output.apiDefinitionNativeV4() != null ? output.apiDefinitionNativeV4() : output.apiDefinitionHttpV4())
+                .build();
             case V2 -> Response.ok(output.apiDefinition()).build();
             default -> Response
                 .status(Response.Status.BAD_REQUEST)
@@ -468,7 +504,7 @@ public class ApiResource extends AbstractResource {
     public Response exportApiCRD(@PathParam("apiId") String apiId) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
-        var input = new ExportCRDUseCase.Input(
+        var input = new ExportApiCRDUseCase.Input(
             apiId,
             AuditInfo
                 .builder()
@@ -484,7 +520,7 @@ public class ApiResource extends AbstractResource {
                 )
                 .build()
         );
-        var output = exportCRDUseCase.execute(input);
+        var output = exportApiCRDUseCase.execute(input);
         var spec = ApiCRDMapper.INSTANCE.map(output.spec());
         return Response.ok(new ApiCRD(spec)).build();
     }
@@ -851,11 +887,17 @@ public class ApiResource extends AbstractResource {
         String backgroundUrl = uriBuilder.build().toString();
 
         if (apiEntity.getDefinitionVersion() == DefinitionVersion.V4) {
-            ApiEntity apiEntityV4 = (ApiEntity) apiEntity;
-            apiEntityV4.setPictureUrl(pictureUrl);
-            apiEntityV4.setPicture(null);
-            apiEntityV4.setBackgroundUrl(backgroundUrl);
-            apiEntityV4.setBackground(null);
+            if (apiEntity instanceof ApiEntity apiEntityV4) {
+                apiEntityV4.setPictureUrl(pictureUrl);
+                apiEntityV4.setPicture(null);
+                apiEntityV4.setBackgroundUrl(backgroundUrl);
+                apiEntityV4.setBackground(null);
+            } else if (apiEntity instanceof NativeApiEntity nativeApiEntityV4) {
+                nativeApiEntityV4.setPictureUrl(pictureUrl);
+                nativeApiEntityV4.setPicture(null);
+                nativeApiEntityV4.setBackgroundUrl(backgroundUrl);
+                nativeApiEntityV4.setBackground(null);
+            }
         }
         if (apiEntity.getDefinitionVersion() == DefinitionVersion.V2) {
             io.gravitee.rest.api.model.api.ApiEntity apiEntityV2 = (io.gravitee.rest.api.model.api.ApiEntity) apiEntity;
@@ -868,7 +910,11 @@ public class ApiResource extends AbstractResource {
 
     private void filterSensitiveData(GenericApiEntity apiEntity) {
         if (apiEntity.getDefinitionVersion() == DefinitionVersion.V4) {
-            filterSensitiveData((ApiEntity) apiEntity);
+            if (apiEntity instanceof ApiEntity asApiEntity) {
+                filterSensitiveData(asApiEntity);
+            } else if (apiEntity instanceof NativeApiEntity asNativeApiEntity) {
+                filterSensitiveData(asNativeApiEntity);
+            }
         }
         if (apiEntity.getDefinitionVersion() == DefinitionVersion.V2) {
             filterSensitiveData((io.gravitee.rest.api.model.api.ApiEntity) apiEntity);
@@ -895,6 +941,12 @@ public class ApiResource extends AbstractResource {
         apiEntity.setServices(null);
         apiEntity.setResources(null);
         apiEntity.setResponseTemplates(null);
+    }
+
+    private void filterSensitiveData(NativeApiEntity apiEntity) {
+        apiEntity.setProperties(null);
+        apiEntity.setServices(null);
+        apiEntity.setResources(null);
     }
 
     private void filterSensitiveData(io.gravitee.rest.api.model.api.ApiEntity apiEntity) {

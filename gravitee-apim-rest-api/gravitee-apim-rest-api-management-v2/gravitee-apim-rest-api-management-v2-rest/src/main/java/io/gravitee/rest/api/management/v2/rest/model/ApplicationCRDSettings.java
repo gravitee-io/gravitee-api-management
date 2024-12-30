@@ -31,6 +31,15 @@ public class ApplicationCRDSettings {
 
     private SimpleApplicationSettings app;
     private OAuthClientSettings oauth;
+    private TLSSettings tls;
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class TLSSettings {
+
+        private String clientCertificate;
+    }
 
     @Data
     @AllArgsConstructor

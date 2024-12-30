@@ -1,0 +1,42 @@
+[
+    {
+        "id": "function1",
+        "referenceId": "my-env",
+        "referenceType": "ENVIRONMENT",
+        "name": "Function 1",
+        "payload": "payload 1",
+        "createdAt": 1470157767000
+    },
+    {
+        "id": "function2",
+        "referenceId": "my-env",
+        "referenceType": "ENVIRONMENT",
+        "name": "Function 2",
+        "payload": "payload 2",
+        "createdAt": 1470157767000
+    },
+    {
+        "id": "to-delete",
+        "referenceId": "env1",
+        "referenceType": "ENVIRONMENT",
+        "name": "Function",
+        "payload": "payload",
+        "createdAt": 1470157767000
+    },
+    {
+        "id": "86adbd41-8a3f-45f3-b1ca-f980042db19d",
+        "referenceId": "ToBeDeleted",
+        "referenceType": "ENVIRONMENT",
+        "name": "Function",
+        "payload": "payload",
+        "createdAt": 1470157767000
+    },
+    {
+        "id": "b8c2ef52-ebb5-4d0f-be1e-a41cc5579fc8",
+        "referenceId": "ToBeDeleted",
+        "referenceType": "ENVIRONMENT",
+        "name": "Function",
+        "payload": "payload",
+        "createdAt": 1470157767000
+    }
+]

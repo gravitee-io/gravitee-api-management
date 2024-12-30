@@ -830,6 +830,19 @@
         </dependency>
         <dependency>
             <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-transform-status-code</artifactId>
+            <version>${gravitee-policy-transform-status-code.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-url-rewriting</artifactId>
             <version>${gravitee-policy-url-rewriting.version}</version>
             <type>zip</type>
@@ -1246,6 +1259,19 @@
                     </exclusions>
                     <type>zip</type>
                 </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.connector</groupId>
+                    <artifactId>gravitee-entrypoint-native-kafka</artifactId>
+                    <version>${gravitee-reactor-native-kafka.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
 
                 <!-- Endpoints -->
                 <dependency>
@@ -1291,6 +1317,19 @@
                     <groupId>com.graviteesource.endpoint</groupId>
                     <artifactId>gravitee-endpoint-azure-service-bus</artifactId>
                     <version>${gravitee-endpoint-azure-service-bus.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.connector</groupId>
+                    <artifactId>gravitee-endpoint-native-kafka</artifactId>
+                    <version>${gravitee-reactor-native-kafka.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
@@ -1395,6 +1434,45 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-data-cache</artifactId>
+                    <version>${gravitee-policy-data-cache.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-kafka-quota</artifactId>
+                    <version>${gravitee-policy-kafka-quota.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-kafka-topic-mapping</artifactId>
+                    <version>${gravitee-policy-kafka-topic-mapping.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
 
                 <!-- Reactors -->
                 <dependency>
@@ -1457,6 +1535,19 @@
                     <groupId>com.graviteesource.secretprovider</groupId>
                     <artifactId>gravitee-secret-provider-hc-vault</artifactId>
                     <version>${gravitee-secretprovider-hc-vault.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.service</groupId>
+                    <artifactId>gravitee-service-secrets</artifactId>
+                    <version>${gravitee-service-secrets.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
@@ -1704,19 +1795,6 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
-                <dependency>
-                    <groupId>com.graviteesource.policy</groupId>
-                    <artifactId>gravitee-policy-data-cache</artifactId>
-                    <version>${gravitee-policy-data-cache.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>*</groupId>
-                            <artifactId>*</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
 
                 <!-- Reporters -->
                 <dependency>
@@ -1816,6 +1894,21 @@
                     <groupId>io.gravitee.node</groupId>
                     <artifactId>gravitee-node-cluster-plugin-hazelcast</artifactId>
                     <version>${gravitee-node.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+
+                <!-- Secret providers -->
+                <dependency>
+                    <groupId>com.graviteesource.secretprovider</groupId>
+                    <artifactId>gravitee-secret-provider-aws</artifactId>
+                    <version>${gravitee-secretprovider-aws.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>

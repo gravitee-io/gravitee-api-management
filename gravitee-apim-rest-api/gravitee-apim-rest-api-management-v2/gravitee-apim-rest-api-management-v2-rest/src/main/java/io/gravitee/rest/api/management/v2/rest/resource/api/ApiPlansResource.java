@@ -21,6 +21,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase;
 import io.gravitee.apim.core.plan.use_case.UpdateFederatedPlanUseCase;
+import io.gravitee.apim.core.plan.use_case.UpdatePlanUseCase;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.http.MediaType;
@@ -44,10 +45,10 @@ import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
-import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -89,6 +90,9 @@ public class ApiPlansResource extends AbstractResource {
 
     @Inject
     private CreatePlanUseCase createPlanUseCase;
+
+    @Inject
+    private UpdatePlanUseCase updatePlanUseCase;
 
     @Inject
     private io.gravitee.rest.api.service.PlanService planServiceV2;
@@ -162,7 +166,7 @@ public class ApiPlansResource extends AbstractResource {
 
         return new PlansResponse()
             .data(planMapper.convert(paginationData))
-            .pagination(PaginationInfo.computePaginationInfo((long) plans.size(), paginationData.size(), paginationParam))
+            .pagination(PaginationInfo.computePaginationInfo(plans.size(), paginationData.size(), paginationParam))
             .links(computePaginationLinks(plans.size(), paginationParam));
     }
 
@@ -175,11 +179,12 @@ public class ApiPlansResource extends AbstractResource {
             var planV4 = (CreatePlanV4) createPlan;
             var executionContext = GraviteeContext.getExecutionContext();
             var userDetails = getAuthenticatedUserDetails();
+
             var output = createPlanUseCase.execute(
                 new CreatePlanUseCase.Input(
                     apiId,
-                    planMapper.map(planV4),
-                    flowMapper.map(planV4.getFlows()),
+                    api -> planMapper.map(planV4, api),
+                    api -> flowMapper.map(planV4.getFlows(), api),
                     AuditInfo
                         .builder()
                         .organizationId(executionContext.getOrganizationId())
@@ -242,11 +247,34 @@ public class ApiPlansResource extends AbstractResource {
 
         return switch (updatePlan.getDefinitionVersion()) {
             case V4 -> {
-                if (planEntity instanceof PlanEntity) {
-                    final UpdatePlanEntity updatePlanEntity = planMapper.map((UpdatePlanV4) updatePlan);
+                if (planEntity instanceof BasePlanEntity) {
+                    var updatePlanV4 = (UpdatePlanV4) updatePlan;
+                    var userDetails = getAuthenticatedUserDetails();
+                    var updatePlanEntity = planMapper.mapToPlanUpdates(updatePlanV4);
                     updatePlanEntity.setId(planId);
-                    PlanEntity responseEntity = planServiceV4.update(executionContext, updatePlanEntity);
-                    yield Response.ok(planMapper.map(responseEntity)).build();
+
+                    var output = updatePlanUseCase.execute(
+                        new UpdatePlanUseCase.Input(
+                            updatePlanEntity,
+                            api -> flowMapper.map(updatePlanV4.getFlows(), api),
+                            apiId,
+                            AuditInfo
+                                .builder()
+                                .organizationId(executionContext.getOrganizationId())
+                                .environmentId(executionContext.getEnvironmentId())
+                                .actor(
+                                    AuditActor
+                                        .builder()
+                                        .userId(userDetails.getUsername())
+                                        .userSource(userDetails.getSource())
+                                        .userSourceId(userDetails.getSourceId())
+                                        .build()
+                                )
+                                .build()
+                        )
+                    );
+
+                    yield Response.ok(planMapper.map(output.updated())).build();
                 } else {
                     yield Response.status(Response.Status.BAD_REQUEST).entity(planInvalid(planId)).build();
                 }
@@ -317,8 +345,8 @@ public class ApiPlansResource extends AbstractResource {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
-        if (planEntity instanceof PlanEntity) {
-            return Response.ok(planMapper.map(planServiceV4.publish(executionContext, planId))).build();
+        if (planEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4) {
+            return Response.ok(planMapper.mapToPlanV4(planServiceV4.publish(executionContext, planId))).build();
         }
 
         return Response.ok(planMapper.map(planServiceV2.publish(executionContext, planId))).build();
@@ -336,8 +364,8 @@ public class ApiPlansResource extends AbstractResource {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
-        if (planEntity instanceof PlanEntity) {
-            return Response.ok(planMapper.map(planServiceV4.deprecate(executionContext, planId))).build();
+        if (planEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4) {
+            return Response.ok(planMapper.mapToPlanV4(planServiceV4.deprecate(executionContext, planId))).build();
         }
 
         return Response.ok(planMapper.map(planServiceV2.deprecate(executionContext, planId))).build();

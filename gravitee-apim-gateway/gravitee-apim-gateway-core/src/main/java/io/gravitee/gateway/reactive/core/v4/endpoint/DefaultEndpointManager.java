@@ -22,8 +22,8 @@ import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateVariableProvider;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.endpoint.BaseEndpointConnector;
+import io.gravitee.gateway.reactive.api.connector.endpoint.BaseEndpointConnectorFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import java.util.ArrayList;
@@ -221,7 +221,7 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
         try {
             final String configuration = getEndpointConfiguration(endpoint);
             final String sharedConfiguration = getSharedConfiguration(managedEndpointGroup.getDefinition(), endpoint);
-            final EndpointConnectorFactory<EndpointConnector> connectorFactory = endpointConnectorPluginManager.getFactoryById(
+            final BaseEndpointConnectorFactory<BaseEndpointConnector<?>> connectorFactory = endpointConnectorPluginManager.getFactoryById(
                 endpoint.getType()
             );
 
@@ -234,7 +234,11 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
                 return;
             }
 
-            final EndpointConnector connector = connectorFactory.createConnector(deploymentContext, configuration, sharedConfiguration);
+            final BaseEndpointConnector<?> connector = connectorFactory.createConnector(
+                deploymentContext,
+                configuration,
+                sharedConfiguration
+            );
 
             if (connector == null) {
                 log.warn("Endpoint connector {} cannot be started. Skipped.", endpoint.getName());

@@ -16,56 +16,8 @@
 import { Component, EventEmitter, forwardRef, Output } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subject } from 'rxjs';
-import { utc } from 'moment';
 
-export type TimeRangeParams = {
-  id: string;
-  from: number;
-  to: number;
-  interval: number;
-};
-
-const timeFrameRangesParams: (id: string, interval: number, nbValuesByBucket?: number) => TimeRangeParams = (
-  id: string,
-  interval: number,
-  nbValuesByBucket = 30,
-) => {
-  const nowUtc = utc().valueOf();
-  return {
-    id,
-    from: nowUtc - interval,
-    to: nowUtc,
-    interval: interval / nbValuesByBucket,
-  };
-};
-
-export const timeFrames = [
-  {
-    label: 'last minute',
-    id: '1m',
-    timeFrameRangesParams: () => timeFrameRangesParams('1m', 1000 * 60),
-  },
-  {
-    label: 'last hour',
-    id: '1h',
-    timeFrameRangesParams: () => timeFrameRangesParams('1h', 1000 * 60 * 60),
-  },
-  {
-    label: 'last day',
-    id: '1d',
-    timeFrameRangesParams: () => timeFrameRangesParams('1d', 1000 * 60 * 60 * 24),
-  },
-  {
-    label: 'last week',
-    id: '1w',
-    timeFrameRangesParams: () => timeFrameRangesParams('1w', 1000 * 60 * 60 * 24 * 7),
-  },
-  {
-    label: 'last month',
-    id: '1M',
-    timeFrameRangesParams: () => timeFrameRangesParams('1M', 1000 * 60 * 60 * 24 * 30),
-  },
-];
+import { timeFrames } from '../../../../shared/utils/timeFrameRanges';
 
 @Component({
   selector: 'gio-quick-time-range',

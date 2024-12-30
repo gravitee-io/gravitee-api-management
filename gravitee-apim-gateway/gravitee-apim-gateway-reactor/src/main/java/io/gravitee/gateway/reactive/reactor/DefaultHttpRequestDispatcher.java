@@ -148,7 +148,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             );
             ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
             List<ProcessorHook> processHooks = gatewayTracingContext.isVerbose() ? List.of(tracingHook) : List.of();
-            return HookHelper
+            Completable handleNotFoundCompletable = HookHelper
                 .hook(
                     () -> preProcessorChain.execute(mutableCtx, ExecutionPhase.REQUEST),
                     preProcessorChain.getId(),
@@ -156,25 +156,30 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                     mutableCtx,
                     ExecutionPhase.REQUEST
                 )
-                .andThen(handleNotFound(mutableCtx, processHooks))
-                .doOnSubscribe(disposable -> {
-                    Span rootSpan = mutableCtx
-                        .getTracer()
-                        .startRootSpanFrom(new ObservableHttpServerRequest(httpServerRequest.getDelegate()));
-                    mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN, rootSpan);
-                })
-                .doOnError(throwable -> mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ERROR, throwable))
-                .doFinally(() -> {
-                    Span rootSpan = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
-                    Throwable throwable = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ERROR);
-                    mutableCtx
-                        .getTracer()
-                        .endWithResponseAndError(
-                            rootSpan,
-                            new ObservableHttpServerResponse(httpServerRequest.getDelegate().response()),
-                            throwable
-                        );
-                });
+                .andThen(handleNotFound(mutableCtx, processHooks));
+            if (gatewayTracingContext.isEnabled()) {
+                return handleNotFoundCompletable
+                    .doOnSubscribe(disposable -> {
+                        Span rootSpan = mutableCtx
+                            .getTracer()
+                            .startRootSpanFrom(new ObservableHttpServerRequest(httpServerRequest.getDelegate()));
+                        mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN, rootSpan);
+                    })
+                    .doOnError(throwable -> mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ERROR, throwable))
+                    .doFinally(() -> {
+                        Span rootSpan = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
+                        Throwable throwable = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ERROR);
+                        mutableCtx
+                            .getTracer()
+                            .endWithResponseAndError(
+                                rootSpan,
+                                new ObservableHttpServerResponse(httpServerRequest.getDelegate().response()),
+                                throwable
+                            );
+                    });
+            } else {
+                return handleNotFoundCompletable;
+            }
         } else if (httpAcceptor.reactor() instanceof ApiReactor<?> apiReactor) {
             MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest);
             mutableCtx.request().contextPath(httpAcceptor.path());
@@ -183,7 +188,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             mutableCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, apiReactor.api());
             ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
             List<ProcessorHook> processHooks = gatewayTracingContext.isVerbose() ? List.of(tracingHook) : List.of();
-            return HookHelper
+            Completable handleCompletable = HookHelper
                 .hook(
                     () -> preProcessorChain.execute(mutableCtx, ExecutionPhase.REQUEST),
                     preProcessorChain.getId(),
@@ -191,41 +196,50 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                     mutableCtx,
                     ExecutionPhase.REQUEST
                 )
-                .andThen(Completable.defer(() -> apiReactor.handle(mutableCtx)))
-                .doOnSubscribe(disposable -> {
-                    Span rootSpan = mutableCtx
-                        .getTracer()
-                        .startRootSpanFrom(new ObservableHttpServerRequest(httpServerRequest.getDelegate()));
-                    mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN, rootSpan);
-                })
-                .doOnError(throwable -> mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ERROR, throwable))
-                .doFinally(() -> {
-                    // Post action are dissociated from the main execution once the request has been handled and cover all the cases (error, success, cancel).
-                    ProcessorChain postProcessorChain = platformProcessorChainFactory.postProcessorChain();
-                    HookHelper
-                        .hook(
-                            () -> postProcessorChain.execute(mutableCtx, ExecutionPhase.RESPONSE),
-                            postProcessorChain.getId(),
-                            processHooks,
-                            mutableCtx,
-                            ExecutionPhase.RESPONSE
-                        )
-                        .subscribeOn(Schedulers.computation())
-                        .doOnError(throwable -> mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ERROR, throwable))
-                        .doFinally(() -> {
-                            Span rootSpan = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
-                            Throwable throwable = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ERROR);
-                            mutableCtx
+                .andThen(Completable.defer(() -> apiReactor.handle(mutableCtx)));
+
+            if (tracingContext.isEnabled()) {
+                handleCompletable =
+                    handleCompletable
+                        .doOnSubscribe(disposable -> {
+                            Span rootSpan = mutableCtx
                                 .getTracer()
-                                .endWithResponseAndError(
-                                    rootSpan,
-                                    new ObservableHttpServerResponse(httpServerRequest.getDelegate().response()),
-                                    throwable
-                                );
+                                .startRootSpanFrom(new ObservableHttpServerRequest(httpServerRequest.getDelegate()));
+                            mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN, rootSpan);
                         })
-                        .onErrorComplete()
-                        .subscribe();
-                });
+                        .doOnError(throwable -> mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ERROR, throwable));
+            }
+            return handleCompletable.doFinally(() -> {
+                // Post action are dissociated from the main execution once the request has been handled and cover all the cases (error, success, cancel).
+                ProcessorChain postProcessorChain = platformProcessorChainFactory.postProcessorChain();
+                Completable postProcessCompletable = HookHelper
+                    .hook(
+                        () -> postProcessorChain.execute(mutableCtx, ExecutionPhase.RESPONSE),
+                        postProcessorChain.getId(),
+                        processHooks,
+                        mutableCtx,
+                        ExecutionPhase.RESPONSE
+                    )
+                    .subscribeOn(Schedulers.computation());
+
+                if (tracingContext.isEnabled()) {
+                    postProcessCompletable =
+                        postProcessCompletable
+                            .doOnError(throwable -> mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ERROR, throwable))
+                            .doFinally(() -> {
+                                Span rootSpan = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
+                                Throwable throwable = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ERROR);
+                                mutableCtx
+                                    .getTracer()
+                                    .endWithResponseAndError(
+                                        rootSpan,
+                                        new ObservableHttpServerResponse(httpServerRequest.getDelegate().response()),
+                                        throwable
+                                    );
+                            });
+                }
+                postProcessCompletable.onErrorComplete().subscribe();
+            });
         }
         // V3 execution mode.
         return handleV3Request(httpServerRequest, httpAcceptor, vertxContext);

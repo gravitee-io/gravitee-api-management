@@ -22,6 +22,8 @@ import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
@@ -40,7 +42,7 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class InvokerAdapter implements Invoker, io.gravitee.gateway.api.Invoker {
+public class InvokerAdapter implements HttpInvoker, Invoker, io.gravitee.gateway.api.Invoker {
 
     private static final Logger log = LoggerFactory.getLogger(InvokerAdapter.class);
     static final String GATEWAY_CLIENT_CONNECTION_ERROR = "GATEWAY_CLIENT_CONNECTION_ERROR";
@@ -59,7 +61,12 @@ public class InvokerAdapter implements Invoker, io.gravitee.gateway.api.Invoker 
     }
 
     @Override
-    public Completable invoke(ExecutionContext ctx) {
+    public Completable invoke(ExecutionContext executionContext) {
+        return invoke((HttpExecutionContext) executionContext);
+    }
+
+    @Override
+    public Completable invoke(HttpExecutionContext ctx) {
         final ExecutionContextAdapter adaptedCtx = ExecutionContextAdapter.create(ctx);
         return Completable
             .create(nextEmitter -> {

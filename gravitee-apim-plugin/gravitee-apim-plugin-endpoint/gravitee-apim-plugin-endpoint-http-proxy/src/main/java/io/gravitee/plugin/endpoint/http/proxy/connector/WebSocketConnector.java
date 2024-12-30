@@ -24,8 +24,8 @@ import static io.gravitee.gateway.api.http.HttpHeaderNames.TRAILER;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
 import io.gravitee.gateway.reactive.http.vertx.ws.VertxWebSocket;
 import io.gravitee.node.api.opentelemetry.Span;
 import io.gravitee.node.api.opentelemetry.http.ObservableHttpClientRequest;
@@ -60,9 +60,9 @@ public class WebSocketConnector extends HttpConnector {
     @SuppressWarnings("ReactiveStreamsUnusedPublisher")
     // Use NOOP Subscriber on websocket close so return completable could be ignored
     @Override
-    public Completable connect(final ExecutionContext ctx) {
+    public Completable connect(final HttpExecutionContext ctx) {
         try {
-            final Request request = ctx.request();
+            final HttpRequest request = ctx.request();
             final RequestOptions options = buildRequestOptions(ctx);
             ObservableHttpClientRequest observableHttpClientRequest = new ObservableHttpClientRequest(options);
             Span httpRequestSpan = ctx.getTracer().startSpanFrom(observableHttpClientRequest);

@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -32,6 +33,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Optional;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,11 @@ public class ScoringRulesetCrudServiceImplTest {
     void setUp() {
         scoringRulesetRepository = mock(ScoringRulesetRepository.class);
         service = new ScoringRulesetCrudServiceImpl(scoringRulesetRepository);
+    }
+
+    @AfterEach
+    void tearDown() {
+        reset(scoringRulesetRepository);
     }
 
     @Nested
@@ -88,7 +95,6 @@ public class ScoringRulesetCrudServiceImplTest {
         @SneakyThrows
         void should_find_a_ruleset_by_id() {
             // Given
-            var ruleset = ScoringRulesetFixture.aRuleset();
             when(scoringRulesetRepository.findById("ruleset-id"))
                 .thenReturn(Optional.of(fixtures.repository.ScoringRulesetFixture.aRuleset()));
 
@@ -106,6 +112,7 @@ public class ScoringRulesetCrudServiceImplTest {
                         .payload("ruleset-payload")
                         .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                         .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
+                        .format(ScoringRuleset.Format.GRAVITEE_PROXY)
                         .referenceId("reference-id")
                         .build()
                 );
@@ -183,6 +190,39 @@ public class ScoringRulesetCrudServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalManagementException.class)
                 .hasMessage("Error when deleting Scoring Ruleset for [ENVIRONMENT:env-id]");
+        }
+    }
+
+    @Nested
+    class Update {
+
+        @Test
+        @SneakyThrows
+        void should_update_scoring_ruleset() {
+            // Given
+            var ruleset = ScoringRulesetFixture.aRuleset();
+            when(scoringRulesetRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            // When
+            var updated = service.update(ruleset);
+
+            // Then
+            assertThat(updated).isEqualTo(ruleset);
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            var ruleset = ScoringRulesetFixture.aRuleset();
+            when(scoringRulesetRepository.update(any())).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.update(ruleset));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("Error when updating Scoring Ruleset: ruleset-id");
         }
     }
 }

@@ -37,7 +37,10 @@ public class GenericApiMapper {
 
     public GenericApiEntity toGenericApi(final Api api, final PrimaryOwnerEntity primaryOwner) {
         return switch (getVersionOfDefault(api)) {
-            case V4 -> apiMapper.toEntity(api, primaryOwner);
+            case V4 -> switch (api.getType()) {
+                case NATIVE -> apiMapper.toNativeEntity(api, primaryOwner);
+                case MESSAGE, PROXY -> apiMapper.toEntity(api, primaryOwner);
+            };
             case FEDERATED -> apiMapper.federatedToEntity(api, primaryOwner);
             case V1, V2 -> apiConverter.toApiEntity(api, primaryOwner);
         };
@@ -45,7 +48,10 @@ public class GenericApiMapper {
 
     public GenericApiEntity toGenericApi(final ExecutionContext executionContext, final Api api, final PrimaryOwnerEntity primaryOwner) {
         return switch (getVersionOfDefault(api)) {
-            case V4 -> apiMapper.toEntity(executionContext, api, primaryOwner, true);
+            case V4 -> switch (api.getType()) {
+                case NATIVE -> apiMapper.toNativeEntity(executionContext, api, primaryOwner, true);
+                case MESSAGE, PROXY -> apiMapper.toEntity(executionContext, api, primaryOwner, true);
+            };
             case FEDERATED -> apiMapper.federatedToEntity(executionContext, api, primaryOwner);
             case V1, V2 -> apiConverter.toApiEntity(executionContext, api, primaryOwner, true);
         };

@@ -29,6 +29,7 @@ import org.mapstruct.factory.Mappers;
 public interface MemberAdapter {
     MemberAdapter INSTANCE = Mappers.getMapper(MemberAdapter.class);
 
+    ApiMember toApiMember(MemberEntity member);
     MemberEntity toEntity(ApiMember member);
     Set<MemberEntity> toEntities(Set<ApiMember> members);
 

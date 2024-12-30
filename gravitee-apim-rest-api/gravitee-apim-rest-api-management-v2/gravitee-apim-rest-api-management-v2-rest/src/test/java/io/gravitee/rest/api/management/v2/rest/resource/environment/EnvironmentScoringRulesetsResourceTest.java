@@ -91,6 +91,7 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
                 .name("ruleset-name")
                 .description("ruleset-description")
                 .payload("ruleset-payload")
+                .format(ImportScoringRuleset.FormatEnum.GRAVITEE_PROXY)
                 .build();
 
             // When
@@ -98,8 +99,8 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
 
             // Then
             assertThat(scoringRulesetCrudService.storage())
-                .extracting(ScoringRuleset::name, ScoringRuleset::description, ScoringRuleset::payload)
-                .containsExactly(tuple("ruleset-name", "ruleset-description", "ruleset-payload"));
+                .extracting(ScoringRuleset::name, ScoringRuleset::description, ScoringRuleset::payload, ScoringRuleset::format)
+                .containsExactly(tuple("ruleset-name", "ruleset-description", "ruleset-payload", ScoringRuleset.Format.GRAVITEE_PROXY));
         }
 
         @Test
@@ -111,6 +112,7 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
                 .name("ruleset-name")
                 .description("ruleset-description")
                 .payload("ruleset-payload")
+                .format(ImportScoringRuleset.FormatEnum.GRAVITEE_PROXY)
                 .build();
 
             // When
@@ -152,6 +154,7 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
                         .name("ruleset-name")
                         .description("ruleset-description")
                         .payload("ruleset-payload")
+                        .format(io.gravitee.rest.api.management.v2.rest.model.ScoringRuleset.FormatEnum.GRAVITEE_PROXY)
                         .referenceId(ENVIRONMENT)
                         .referenceType(io.gravitee.rest.api.management.v2.rest.model.ScoringRulesetReferenceType.ENVIRONMENT)
                         .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
@@ -162,6 +165,7 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
                         .name("ruleset-name")
                         .description("ruleset-description")
                         .payload("ruleset-payload")
+                        .format(io.gravitee.rest.api.management.v2.rest.model.ScoringRuleset.FormatEnum.GRAVITEE_PROXY)
                         .referenceId(ENVIRONMENT)
                         .referenceType(io.gravitee.rest.api.management.v2.rest.model.ScoringRulesetReferenceType.ENVIRONMENT)
                         .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))

@@ -28,7 +28,6 @@ import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.core.search.Indexer.IndexationContext;
 import io.gravitee.apim.core.search.model.IndexablePage;
 import java.time.ZoneId;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -51,10 +50,11 @@ public class UpdateApiDocumentationDomainService {
             ) {
                 pageRevisionCrudService.create(updatedPage);
             }
+            var context = new IndexationContext(auditInfo.organizationId(), auditInfo.environmentId());
             if (page.isPublished()) {
-                indexer.index(new IndexationContext(auditInfo.organizationId(), auditInfo.environmentId()), new IndexablePage(page));
+                indexer.index(context, new IndexablePage(page));
             } else {
-                indexer.delete(new IndexationContext(auditInfo.organizationId(), auditInfo.environmentId()), new IndexablePage(page));
+                indexer.delete(context, new IndexablePage(page));
             }
         }
 

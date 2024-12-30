@@ -22,6 +22,7 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.management.v2.rest.model.Listener;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -132,5 +133,43 @@ public class ListenerMapperTest {
             .asList()
             .hasSameSizeAs(httpListenerEntityV4.getServers())
             .contains(httpListenerEntityV4.getServers().toArray());
+    }
+
+    @Test
+    void shouldMapFromNativeListenerV4List() {
+        var modelKafkaListener = ListenerFixtures.aModelKafkaListener();
+
+        var listenerV4List = listenerMapper.mapFromNativeListenerV4List(List.of(modelKafkaListener));
+
+        assertThat(listenerV4List).asList().isNotNull().hasSize(1);
+
+        var kafkaListenerV4 = listenerV4List.get(0).getKafkaListener();
+        assertThat(kafkaListenerV4.getType()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.ListenerType.KAFKA);
+        assertThat(kafkaListenerV4.getEntrypoints()).isNotNull(); // Tested in EntrypointMapperTest
+        assertThat(kafkaListenerV4.getHost()).isEqualTo(modelKafkaListener.getHost());
+        assertThat(kafkaListenerV4.getPort()).isEqualTo(modelKafkaListener.getPort());
+        assertThat(kafkaListenerV4.getServers())
+            .asList()
+            .hasSameSizeAs(modelKafkaListener.getServers())
+            .contains(modelKafkaListener.getServers().toArray());
+    }
+
+    @Test
+    void shouldMapToNativeListenerV4List() {
+        var listenerV4 = ListenerFixtures.aKafkaListener();
+
+        var listenerV4List = listenerMapper.mapToNativeListenerV4List(List.of(new Listener(listenerV4)));
+
+        assertThat(listenerV4List).asList().isNotNull().hasSize(1);
+
+        var kafkaListenerV4 = (KafkaListener) listenerV4List.get(0);
+        assertThat(kafkaListenerV4.getType()).isEqualTo(ListenerType.KAFKA);
+        assertThat(kafkaListenerV4.getEntrypoints()).isNotNull(); // Tested in EntrypointMapperTest
+        assertThat(kafkaListenerV4.getHost()).isEqualTo(listenerV4.getHost());
+        assertThat(kafkaListenerV4.getPort()).isEqualTo(listenerV4.getPort());
+        assertThat(kafkaListenerV4.getServers())
+            .asList()
+            .hasSameSizeAs(listenerV4.getServers())
+            .contains(listenerV4.getServers().toArray());
     }
 }

@@ -44,8 +44,8 @@ describe('ApiAnalyticsProxyComponent', () => {
   let componentHarness: ApiAnalyticsProxyHarness;
   let httpTestingController: HttpTestingController;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  const initComponent = async (queryParams = {}) => {
+    TestBed.configureTestingModule({
       imports: [ApiAnalyticsProxyComponent, NoopAnimationsModule, MatIconTestingModule, GioTestingModule],
       providers: [
         {
@@ -53,26 +53,28 @@ describe('ApiAnalyticsProxyComponent', () => {
           useValue: {
             snapshot: {
               params: { apiId: API_ID },
+              queryParams: queryParams,
             },
           },
         },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
       ],
-    }).compileComponents();
+    });
 
     await TestBed.compileComponents();
     fixture = TestBed.createComponent(ApiAnalyticsProxyComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiAnalyticsProxyHarness);
-    fixture.autoDetectChanges(true);
-  });
+    fixture.detectChanges();
+  };
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
   it('should display loading', async () => {
+    await initComponent();
     expect(await componentHarness.isLoaderDisplayed()).toBeTruthy();
 
     httpTestingController.expectOne({
@@ -83,6 +85,7 @@ describe('ApiAnalyticsProxyComponent', () => {
 
   describe('GIVEN an API with analytics.enabled=false', () => {
     beforeEach(async () => {
+      await initComponent();
       expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: false } }));
     });
 
@@ -94,6 +97,7 @@ describe('ApiAnalyticsProxyComponent', () => {
 
   describe('GIVEN an API with analytics.enabled=true', () => {
     beforeEach(async () => {
+      await initComponent();
       expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
       expectApiGetResponseStatusOvertime();
       expectApiGetResponseTimeOverTime();
@@ -205,7 +209,9 @@ describe('ApiAnalyticsProxyComponent', () => {
       ]);
 
       const filtersBar = await componentHarness.getFiltersBarHarness();
+
       await filtersBar.refresh();
+
       expect(await requestStats.getValues()).toEqual([
         {
           label: 'Total Requests',
@@ -218,47 +224,79 @@ describe('ApiAnalyticsProxyComponent', () => {
           isLoading: true,
         },
       ]);
+
       expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
       expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
       expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
+      expectApiGetResponseStatusOvertime();
+      expectApiGetResponseTimeOverTime();
     });
   });
 
+  describe('Query parameters for enabled analytics', () => {
+    [
+      { input: {}, expected: 'Last day' },
+      { input: { period: '1M' }, expected: 'Last month' },
+      { input: { period: 'incorrect' }, expected: 'Last day' },
+      { input: { otherParameter: 'otherParameter' }, expected: 'Last day' },
+    ].forEach((testParams) => {
+      it(`should display "${testParams.expected}" time range if query parameter is ${JSON.stringify(testParams.input)}`, async () => {
+        await initComponent(testParams.input);
+        expectAllAnalyticsCall();
+
+        const filtersBar = await componentHarness.getFiltersBarHarness();
+
+        const matSelect = await filtersBar.getMatSelect();
+        const selectedValue = await matSelect.getValueText();
+
+        expect(selectedValue).toEqual(testParams.expected);
+      });
+    });
+
+    function expectAllAnalyticsCall() {
+      expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
+      expectApiGetResponseStatusOvertime();
+      expectApiGetResponseTimeOverTime();
+      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
+      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
+      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
+    }
+  });
+
   function expectApiGetRequest(api: ApiV4) {
-    httpTestingController
-      .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
-        method: 'GET',
-      })
-      .flush(api);
+    const res = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
+      method: 'GET',
+    });
+
+    res.flush(api);
+
     fixture.detectChanges();
   }
 
   function expectApiAnalyticsRequestsCountGetRequest(analyticsRequestsCount: AnalyticsRequestsCount) {
-    httpTestingController
-      .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/requests-count`,
-        method: 'GET',
-      })
-      .flush(analyticsRequestsCount);
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/requests-count`;
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(url);
+    });
+    req.flush(analyticsRequestsCount);
   }
 
   function expectApiAnalyticsAverageConnectionDurationGetRequest(analyticsAverageConnectionDuration: AnalyticsAverageConnectionDuration) {
-    httpTestingController
-      .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/average-connection-duration`,
-        method: 'GET',
-      })
-      .flush(analyticsAverageConnectionDuration);
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/average-connection-duration`;
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(url);
+    });
+    req.flush(analyticsAverageConnectionDuration);
   }
 
   function expectApiAnalyticsResponseStatusRangesGetRequest(analyticsResponseStatusRanges: AnalyticsResponseStatusRanges) {
-    httpTestingController
-      .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/response-status-ranges`,
-        method: 'GET',
-      })
-      .flush(analyticsResponseStatusRanges);
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/response-status-ranges`;
+
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(url);
+    });
+    req.flush(analyticsResponseStatusRanges);
   }
 
   function expectApiGetResponseStatusOvertime(res: AnalyticsResponseStatusOvertime = fakeAnalyticsResponseStatusOvertime()) {

@@ -16,7 +16,7 @@
 package io.gravitee.plugin.entrypoint.http.proxy;
 
 import io.gravitee.gateway.reactive.api.ListenerType;
-import io.gravitee.gateway.reactive.api.connector.entrypoint.sync.EntrypointSyncConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.sync.HttpEntrypointSyncConnectorFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @AllArgsConstructor
-public class HttpProxyEntrypointConnectorFactory implements EntrypointSyncConnectorFactory {
+public class HttpProxyEntrypointConnectorFactory implements HttpEntrypointSyncConnectorFactory {
 
     private PluginConfigurationHelper connectorFactoryHelper;
 

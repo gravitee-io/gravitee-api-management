@@ -30,6 +30,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactive.api.apiservice.ApiService;
+import io.gravitee.gateway.reactive.api.connector.endpoint.BaseEndpointConnector;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
@@ -215,7 +216,7 @@ public class HttpHealthCheckService implements ApiService {
     ) {
         // The endpoint is a http one. Reuse it for efficiency.
         return hcManagedEndpoint
-            .getConnector()
+            .<BaseEndpointConnector>getConnector()
             .connect(ctx)
             .onErrorResumeNext(error -> this.ignoreConnectionError(ctx, error))
             .andThen(evaluateAndReport(hcManagedEndpoint, ctx, hcConfiguration));

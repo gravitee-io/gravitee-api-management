@@ -26,8 +26,11 @@ import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -41,7 +44,11 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class SearchAverageConnectionDurationUseCaseTest {
 
-    public static final String ENV_ID = "environment-id";
+    private static final String ENV_ID = "environment-id";
+    private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
+    private static final Instant FROM = INSTANT_NOW.minus(1, ChronoUnit.DAYS);
+    private static final Instant TO = INSTANT_NOW;
+
     private final FakeAnalyticsQueryService analyticsQueryService = new FakeAnalyticsQueryService();
     private final ApiCrudServiceInMemory apiCrudServiceInMemory = new ApiCrudServiceInMemory();
     private SearchAverageConnectionDurationUseCase cut;
@@ -59,27 +66,38 @@ class SearchAverageConnectionDurationUseCaseTest {
     @Test
     void should_throw_if_no_api_does_not_belong_to_current_environment() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
-        assertThatThrownBy(() -> cut.execute(null, new SearchAverageConnectionDurationUseCase.Input(MY_API, "another-environment")))
+        assertThatThrownBy(() ->
+                cut.execute(
+                    null,
+                    new SearchAverageConnectionDurationUseCase.Input(MY_API, "another-environment", Optional.of(FROM), Optional.of(TO))
+                )
+            )
             .isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void should_throw_if_no_api_found() {
-        assertThatThrownBy(() -> cut.execute(null, new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID)))
+        assertThatThrownBy(() ->
+                cut.execute(null, new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO)))
+            )
             .isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void should_throw_if_api_definition_not_v4() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2()));
-        assertThatThrownBy(() -> cut.execute(null, new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID)))
+        assertThatThrownBy(() ->
+                cut.execute(null, new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO)))
+            )
             .isInstanceOf(ApiInvalidDefinitionVersionException.class);
     }
 
     @Test
     void should_throw_if_api_is_tcp() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aTcpApiV4()));
-        assertThatThrownBy(() -> cut.execute(null, new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID)))
+        assertThatThrownBy(() ->
+                cut.execute(null, new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO)))
+            )
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Analytics are not supported for TCP Proxy APIs");
     }
@@ -90,10 +108,9 @@ class SearchAverageConnectionDurationUseCaseTest {
         analyticsQueryService.averageMessagesPerRequest = new AverageMessagesPerRequest();
         final SearchAverageConnectionDurationUseCase.Output result = cut.execute(
             null,
-            new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID)
+            new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO))
         );
         assertThat(result.averageConnectionDuration())
-            .isNotEmpty()
             .hasValueSatisfying(averageConnectionDuration -> {
                 assertThat(averageConnectionDuration.getAveragesByEntrypoint()).isNull();
                 assertThat(averageConnectionDuration.getGlobalAverage()).isNull();
@@ -111,7 +128,7 @@ class SearchAverageConnectionDurationUseCaseTest {
                 .build();
         final SearchAverageConnectionDurationUseCase.Output result = cut.execute(
             null,
-            new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID)
+            new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO))
         );
         assertThat(result.averageConnectionDuration())
             .hasValueSatisfying(averageMessagesPerRequest -> {

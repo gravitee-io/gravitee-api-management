@@ -21,7 +21,6 @@ import static io.gravitee.definition.model.v4.listener.Listener.TCP_LABEL;
 import static io.gravitee.definition.model.v4.nativeapi.NativeListener.KAFKA_LABEL;
 
 import com.fasterxml.jackson.annotation.JsonValue;
-import io.gravitee.definition.model.v4.ConnectorMode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Map;
 import lombok.Getter;
