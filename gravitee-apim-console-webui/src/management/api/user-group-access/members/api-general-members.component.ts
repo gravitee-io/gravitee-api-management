@@ -19,7 +19,7 @@ import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
-import { isEmpty, uniqueId } from 'lodash';
+import { isEmpty, isEqual, uniqueId } from 'lodash';
 import { ActivatedRoute } from '@angular/router';
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
@@ -43,6 +43,7 @@ import {
 } from '../transfer-ownership/api-general-transfer-ownership.component';
 import { Role } from '../../../../entities/role/role';
 import { GioRoleService } from '../../../../shared/components/gio-role/gio-role.service';
+import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 
 class MemberDataSource {
   id: string;
@@ -50,11 +51,13 @@ class MemberDataSource {
   displayName: string;
   picture: string;
 }
+
 export interface GroupData {
   id: string;
   name?: string;
   isVisible?: boolean;
 }
+
 @Component({
   selector: 'api-general-members',
   templateUrl: './api-general-members.component.html',
@@ -93,6 +96,12 @@ export class ApiGeneralMembersComponent implements OnInit {
     private readonly gioRoleService: GioRoleService,
   ) {}
 
+  apisTableDSUnpaginatedLength = 0;
+  filters: GioTableWrapperFilters = {
+    pagination: { index: 1, size: 10 },
+    searchTerm: '',
+  };
+
   ngOnInit(): void {
     this.apiId = this.activatedRoute.snapshot.params.apiId;
 
@@ -100,11 +109,21 @@ export class ApiGeneralMembersComponent implements OnInit {
     if (this.permissionService.hasAnyMatching(['api-member-d']) && !this.displayedColumns.includes('delete')) {
       this.displayedColumns.push('delete');
     }
-    // Get group list, map id + name
+    this.getMembersWithPagination(this.filters.pagination.index, this.filters.pagination.size);
+  }
 
+  public onFiltersChanged(filters: GioTableWrapperFilters): void {
+    if (isEqual(this.filters, filters)) {
+      return;
+    }
+    this.filters = filters;
+    this.getMembersWithPagination(filters.pagination.index, filters.pagination.size);
+  }
+
+  private getMembersWithPagination(page = 1, perPage = 10): void {
     forkJoin([
       this.apiService.get(this.apiId),
-      this.apiMemberService.getMembers(this.apiId),
+      this.apiMemberService.getPagedMembers(this.apiId, page, perPage),
       this.roleService.list('API'),
       this.groupService.list(1, 9999),
     ])
@@ -123,6 +142,9 @@ export class ApiGeneralMembersComponent implements OnInit {
           }));
           this.initDataSource();
           this.initForm(api);
+          if (members?.pagination?.totalCount) {
+            this.apisTableDSUnpaginatedLength = members.pagination.totalCount;
+          }
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -327,7 +349,13 @@ export class ApiGeneralMembersComponent implements OnInit {
         role: this.defaultRole.name,
       },
     ];
-    const roleFormControl = new UntypedFormControl({ value: this.defaultRole?.name, disabled: this.isReadOnly }, [Validators.required]);
+    const roleFormControl = new UntypedFormControl(
+      {
+        value: this.defaultRole?.name,
+        disabled: this.isReadOnly,
+      },
+      [Validators.required],
+    );
     roleFormControl.markAsDirty();
     roleFormControl.markAsTouched();
     const membersForm = this.form.get('members') as UntypedFormGroup;
