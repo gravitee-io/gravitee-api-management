@@ -17,6 +17,8 @@ package io.gravitee.definition.model.v4.ssl.pkcs12;
 
 import io.gravitee.definition.model.v4.ssl.KeyStore;
 import io.gravitee.definition.model.v4.ssl.KeyStoreType;
+import io.gravitee.secrets.api.annotation.Secret;
+import io.gravitee.secrets.api.el.FieldKind;
 import java.io.Serial;
 import lombok.Builder;
 import lombok.Getter;
@@ -36,7 +38,10 @@ public class PKCS12KeyStore extends KeyStore {
 
     private String path;
     private String content;
+
+    @Secret(FieldKind.PASSWORD)
     private String password;
+
     private String alias;
 
     /**
