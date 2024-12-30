@@ -18,9 +18,14 @@ import { combineLatest, EMPTY, forkJoin, Observable, of, Subject, throwError } f
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
+<<<<<<< HEAD:gravitee-apim-console-webui/src/management/api/user-group-access/members/api-general-members.component.ts
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { isEmpty, uniqueId } from 'lodash';
 import { ActivatedRoute } from '@angular/router';
+=======
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { isEmpty, isEqual, uniqueId } from 'lodash';
+>>>>>>> c1544b5988 (fix: enable pagination for API member list):gravitee-apim-console-webui/src/management/api/general/user-group-access/members/api-general-members.component.ts
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { UsersService } from '../../../../services-ngx/users.service';
@@ -29,6 +34,7 @@ import { GioPermissionService } from '../../../../shared/components/gio-permissi
 import {
   GioUsersSelectorComponent,
   GioUsersSelectorData,
+<<<<<<< HEAD:gravitee-apim-console-webui/src/management/api/user-group-access/members/api-general-members.component.ts
 } from '../../../../shared/components/gio-users-selector/gio-users-selector.component';
 import { SearchableUser } from '../../../../entities/user/searchableUser';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
@@ -43,6 +49,15 @@ import {
 } from '../transfer-ownership/api-general-transfer-ownership.component';
 import { Role } from '../../../../entities/role/role';
 import { GioRoleService } from '../../../../shared/components/gio-role/gio-role.service';
+=======
+} from '../../../../../shared/components/gio-users-selector/gio-users-selector.component';
+import { SearchableUser } from '../../../../../entities/user/searchableUser';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { ApiMemberV2Service } from '../../../../../services-ngx/api-member-v2.service';
+import { Api, Member, Role } from '../../../../../entities/management-api-v2';
+import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
+import { GioTableWrapperFilters } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+>>>>>>> c1544b5988 (fix: enable pagination for API member list):gravitee-apim-console-webui/src/management/api/general/user-group-access/members/api-general-members.component.ts
 
 class MemberDataSource {
   id: string;
@@ -93,18 +108,38 @@ export class ApiGeneralMembersComponent implements OnInit {
     private readonly gioRoleService: GioRoleService,
   ) {}
 
+  apisTableDSUnpaginatedLength = 0;
+  filters: GioTableWrapperFilters = {
+    pagination: { index: 1, size: 10 },
+    searchTerm: '',
+  };
+
   ngOnInit(): void {
+<<<<<<< HEAD:gravitee-apim-console-webui/src/management/api/user-group-access/members/api-general-members.component.ts
     this.apiId = this.activatedRoute.snapshot.params.apiId;
 
     // Display the trash icon if the user is allowed to delete a member
+=======
+    this.apiId = this.ajsStateParams.apiId;
+>>>>>>> c1544b5988 (fix: enable pagination for API member list):gravitee-apim-console-webui/src/management/api/general/user-group-access/members/api-general-members.component.ts
     if (this.permissionService.hasAnyMatching(['api-member-d']) && !this.displayedColumns.includes('delete')) {
       this.displayedColumns.push('delete');
     }
-    // Get group list, map id + name
+    this.getMembersWithPagination(this.filters.pagination.index, this.filters.pagination.size);
+  }
 
+  public onFiltersChanged(filters: GioTableWrapperFilters): void {
+    if (isEqual(this.filters, filters)) {
+      return;
+    }
+    this.filters = filters;
+    this.getMembersWithPagination(filters.pagination.index, filters.pagination.size);
+  }
+
+  private getMembersWithPagination(page = 1, perPage = 10): void {
     forkJoin([
       this.apiService.get(this.apiId),
-      this.apiMemberService.getMembers(this.apiId),
+      this.apiMemberService.getPagedMembers(this.apiId, page, perPage),
       this.roleService.list('API'),
       this.groupService.list(1, 9999),
     ])
@@ -123,6 +158,9 @@ export class ApiGeneralMembersComponent implements OnInit {
           }));
           this.initDataSource();
           this.initForm(api);
+          if (members?.pagination?.totalCount) {
+            this.apisTableDSUnpaginatedLength = members.pagination.totalCount;
+          }
         }),
         takeUntil(this.unsubscribe$),
       )
