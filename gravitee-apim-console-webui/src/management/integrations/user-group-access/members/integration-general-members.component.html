@@ -49,6 +49,7 @@
         </div>
       </div>
 
+<<<<<<< HEAD:gravitee-apim-console-webui/src/management/integrations/user-group-access/members/integration-general-members.component.html
       <gio-form-slide-toggle class="card__enable-notification-toggle">
         Notify members when they are added to the integration
         <mat-slide-toggle
@@ -105,6 +106,68 @@
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
     </table>
+=======
+    <gio-form-slide-toggle class="card__enable-notification-toggle">
+      Notify members when they are added to the API
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="isNotificationsEnabled"
+        aria-label="Enable notifications when members are added to this API"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
+    <gio-table-wrapper
+      [disableSearchInput]="true"
+      [length]="apisTableDSUnpaginatedLength"
+      [filters]="filters"
+      (filtersChange)="onFiltersChanged($event)"
+      [paginationPageSizeOptions]="[10, 20, 50, 100]"
+    >
+      <table
+        mat-table
+        *ngIf="dataSource"
+        [dataSource]="dataSource"
+        class="card__table"
+        formGroupName="members"
+        aria-label="Direct members table"
+      >
+        <ng-container matColumnDef="picture">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let member">
+            <gio-avatar [src]="member.picture" [name]="member.displayName" size="24" [roundedBorder]="true"></gio-avatar>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="displayName">
+          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <td mat-cell *matCellDef="let member" [class.primary-owner-name]="member.role === 'PRIMARY_OWNER'">
+            {{ member.displayName }}
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="role">
+          <th mat-header-cell *matHeaderCellDef>Role</th>
+          <td mat-cell *matCellDef="let member">
+            <mat-form-field>
+              <mat-select [formControlName]="member.id">
+                <mat-option *ngFor="let role of roles" [value]="role" [disabled]="role === 'PRIMARY_OWNER'">{{ role }}</mat-option>
+              </mat-select>
+              <mat-error *ngIf="form.get('members').get(member.id).hasError('required')"> Role is required. </mat-error>
+            </mat-form-field>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="delete">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let member">
+            <div class="action-cell" *ngIf="member.role !== 'PRIMARY_OWNER'">
+              <button type="button" [disabled]="isKubernetesOrigin" mat-icon-button (click)="removeMember(member)">
+                <mat-icon svgIcon="gio:trash"></mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </gio-table-wrapper>
+>>>>>>> c1544b5988 (fix: enable pagination for API member list):gravitee-apim-console-webui/src/management/api/general/user-group-access/members/api-general-members.component.html
   </mat-card>
 
   <div *ngIf="groupData">
