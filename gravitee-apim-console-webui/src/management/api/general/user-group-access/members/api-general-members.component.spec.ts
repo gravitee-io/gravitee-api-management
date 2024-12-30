@@ -377,7 +377,9 @@ describe('ApiGeneralMembersComponent', () => {
   }
 
   function expectApiMembersGetRequest(members: MembersResponse = { data: [] }) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/members`, method: 'GET' }).flush(members);
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/members?page=1&perPage=10`, method: 'GET' })
+      .flush(members);
     fixture.detectChanges();
   }
 
