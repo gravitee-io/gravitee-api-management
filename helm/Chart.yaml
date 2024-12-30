@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.6.0-alpha.4
-appVersion: 4.6.0-alpha.4
+version: 4.7.0
+appVersion: 4.7.0
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -24,27 +24,4 @@ annotations:
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
   artifacthub.io/changes: |
-    - kind: added
-      description: 'Add support of heartbeat delay for the gateway'
-    - kind: fixed
-      description: 'add missing haproxy mapping attribute'
-      links:
-        - name: Github Issue
-          url: https://github.com/gravitee-io/issues/issues/10027
-    - kind: changed
-      description: 'Add support for new OpenTelemetry feature. BREAKING CHANGE: gravitee.services.tracing block of configuration has been replaced by gravitee.services.opentelemetry.'
-    - kind: fixed
-      description: 'allow users to overwrite the Elasticsearch or Opensearch rollover alias property name'
-      links:
-        - name: Github Issue
-          url: https://github.com/gravitee-io/issues/issues/10100
-    - kind: fixed
-      description: 'allow users to limit documentation content size in audit page when importing an API'
-      links:
-        - name: Github Issue
-          url: https://github.com/gravitee-io/issues/issues/10117
-    - kind: added
-      description: 'Add support of Kafka Gateway configuration'
-    - kind: added
-      description: 'Improve HPA by allowing custom annotation, custom metrics and define the behavior spec (APIM-8186)'
 
