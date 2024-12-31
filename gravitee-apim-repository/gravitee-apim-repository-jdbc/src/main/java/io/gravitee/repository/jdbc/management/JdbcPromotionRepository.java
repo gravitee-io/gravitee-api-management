@@ -144,6 +144,24 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
         }
     }
 
+    @Override
+    public List<String> deleteByApiId(String apiId) throws TechnicalException {
+        LOGGER.debug("JdbcPromotionRepository.deleteByApiId({})", apiId);
+        try {
+            final var rows = jdbcTemplate.queryForList("select id from " + this.tableName + " where api_id = ?", String.class, apiId);
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update("delete from " + this.tableName + " where api_id = ?", apiId);
+            }
+
+            LOGGER.debug("JdbcPromotionRepository.deleteByApiId({}) - Done", apiId);
+            return rows;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete Promotion by apiId: {}", apiId, ex);
+            throw new TechnicalException("Failed to delete Promotion by apiId", ex);
+        }
+    }
+
     void applySortable(Sortable sortable, StringBuilder query) {
         if (sortable != null && sortable.field() != null && sortable.field().length() > 0) {
             query.append(" order by ");

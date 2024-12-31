@@ -132,4 +132,20 @@ public class MongoQualityRuleRepository implements QualityRuleRepository {
             throw new TechnicalException(error);
         }
     }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(final String referenceId, final QualityRule.ReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("Delete quality rules by reference [{}, {}]", referenceType, referenceId);
+        try {
+            List<QualityRuleMongo> qualityRuleMongos = internalQualityRuleRepo.deleteByReferenceIdAndReferenceType(
+                referenceId,
+                referenceType.name()
+            );
+            LOGGER.debug("Delete quality rules by reference [{}, {}] - Done", referenceType, referenceId);
+            return qualityRuleMongos.stream().map(QualityRuleMongo::getId).toList();
+        } catch (Exception e) {
+            throw new TechnicalException("An error occurred while deleting quality rules", e);
+        }
+    }
 }

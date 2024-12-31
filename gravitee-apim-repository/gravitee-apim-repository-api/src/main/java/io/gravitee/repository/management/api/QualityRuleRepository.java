@@ -25,4 +25,13 @@ import java.util.List;
  */
 public interface QualityRuleRepository extends CrudRepository<QualityRule, String> {
     List<QualityRule> findByReference(QualityRule.ReferenceType referenceType, String referenceId) throws TechnicalException;
+
+    /**
+     * Delete quality rules by reference
+     * @param referenceId
+     * @param referenceType
+     * @return List of IDs for deleted quality rules
+     * @throws TechnicalException
+     */
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, QualityRule.ReferenceType referenceType) throws TechnicalException;
 }

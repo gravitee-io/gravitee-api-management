@@ -58,5 +58,35 @@
       "createdAt": 1000000000000,
       "updatedAt": 1111111111111,
       "enabled":false
-   }
+   },
+  {
+    "id":"notif-org-to-delete",
+    "scope": "API",
+    "hook": "MY_HOOK_3",
+    "referenceId": "org-to-delete",
+    "referenceType": "ORGANIZATION",
+    "name":"My notif 3",
+    "description": "Description for my notif 3",
+    "title": "Title of my notif email",
+    "content": "Content of my notif email",
+    "type": "EMAIL",
+    "createdAt": 1000000000000,
+    "updatedAt": 1111111111111,
+    "enabled":true
+  },
+  {
+    "id":"notif-org-to-delete-1",
+    "hook": "MY_HOOK_3",
+    "scope": "API",
+    "referenceId": "org-to-delete",
+    "referenceType": "ORGANIZATION",
+    "name":"My notif 3",
+    "description": "Description for my notif 3",
+    "title": "Title of my notif",
+    "content": "Content of my notif",
+    "type": "PORTAL",
+    "createdAt": 1000000000000,
+    "updatedAt": 1111111111111,
+    "enabled":false
+  }
 ]

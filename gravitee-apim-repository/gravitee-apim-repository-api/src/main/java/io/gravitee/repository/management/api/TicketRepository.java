@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.TicketCriteria;
 import io.gravitee.repository.management.model.Ticket;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -33,4 +34,8 @@ public interface TicketRepository extends FindAllRepository<Ticket> {
     Page<Ticket> search(TicketCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException;
 
     Optional<Ticket> findById(String ticketId) throws TechnicalException;
+
+    List<String> deleteByApiId(String apiId) throws TechnicalException;
+
+    List<String> deleteByApplicationId(String applicationId) throws TechnicalException;
 }

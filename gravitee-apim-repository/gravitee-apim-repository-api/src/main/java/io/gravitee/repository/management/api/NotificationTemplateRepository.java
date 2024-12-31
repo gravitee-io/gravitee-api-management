@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.NotificationTemplate;
 import io.gravitee.repository.management.model.NotificationTemplateReferenceType;
 import io.gravitee.repository.management.model.NotificationTemplateType;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -50,4 +51,7 @@ public interface NotificationTemplateRepository extends FindAllRepository<Notifi
         String referenceId,
         NotificationTemplateReferenceType referenceType
     ) throws TechnicalException;
+
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, NotificationTemplateReferenceType referenceType)
+        throws TechnicalException;
 }

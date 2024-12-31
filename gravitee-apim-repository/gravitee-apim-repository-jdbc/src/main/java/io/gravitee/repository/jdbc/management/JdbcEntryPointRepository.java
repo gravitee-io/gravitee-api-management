@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.toSet;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.EntrypointRepository;
+import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.repository.management.model.Entrypoint;
 import io.gravitee.repository.management.model.EntrypointReferenceType;
 import io.gravitee.repository.management.model.Tag;
@@ -101,6 +102,30 @@ public class JdbcEntryPointRepository extends JdbcAbstractCrudRepository<Entrypo
         } catch (final Exception ex) {
             LOGGER.error("Failed to find {} entrypoints referenceId and referenceType:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find " + getOrm().getTableName() + " entrypoints by referenceId and referenceType", ex);
+        }
+    }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(final String referenceId, final EntrypointReferenceType referenceType)
+        throws TechnicalException {
+        try {
+            final var rows = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where reference_id = ? and reference_type = ?",
+                String.class,
+                referenceId,
+                referenceType.name()
+            );
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " + tableName + " where reference_id = ? and reference_type = ?",
+                    referenceId,
+                    referenceType.name()
+                );
+            }
+            return rows;
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to delete entrypoints by reference", ex);
         }
     }
 }

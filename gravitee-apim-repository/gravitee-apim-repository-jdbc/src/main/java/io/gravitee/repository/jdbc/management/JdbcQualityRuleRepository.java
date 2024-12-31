@@ -77,4 +77,28 @@ public class JdbcQualityRuleRepository extends JdbcAbstractCrudRepository<Qualit
             throw new TechnicalException(error, ex);
         }
     }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(final String referenceId, final QualityRule.ReferenceType referenceType)
+        throws TechnicalException {
+        try {
+            final var rows = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where reference_id = ? and reference_type = ?",
+                String.class,
+                referenceId,
+                referenceType.name()
+            );
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " + tableName + " where reference_id = ? and reference_type = ?",
+                    referenceId,
+                    referenceType.name()
+                );
+            }
+            return rows;
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to delete quality rules by reference", ex);
+        }
+    }
 }
