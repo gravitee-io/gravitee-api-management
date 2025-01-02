@@ -230,7 +230,7 @@ class SaveScoringResponseUseCaseTest {
         // Then
         assertThat(scoringReportCrudService.storage())
             .extracting(ScoringReport::summary)
-            .contains((new ScoringReport.Summary(0.0D, 0L, 0L, 0L, 0L)));
+            .contains((new ScoringReport.Summary(-1.0D, 0L, 0L, 0L, 0L)));
     }
 
     @Test

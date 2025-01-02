@@ -117,7 +117,8 @@ class GetLatestReportUseCaseTest {
                     API_ID,
                     CREATED_AT,
                     List.of(new ScoringReportView.AssetView(PAGE_NAME, ASSET.type(), ASSET.diagnostics(), ASSET.errors())),
-                    new ScoringReportView.Summary(0.84D, 4L, 1L, 1L, 1L, 1L)
+                    new ScoringReportView.Summary(0.84D, 4L, 1L, 1L, 1L, 1L),
+                    new ScoringReportView.AdditionalStatuses(false, true, false, false)
                 )
             );
     }
@@ -151,7 +152,8 @@ class GetLatestReportUseCaseTest {
                     API_ID,
                     CREATED_AT,
                     List.of(new ScoringReportView.AssetView(null, ASSET.type(), ASSET.diagnostics(), ASSET.errors())),
-                    new ScoringReportView.Summary(0.84D, 4L, 1L, 1L, 1L, 1L)
+                    new ScoringReportView.Summary(0.84D, 4L, 1L, 1L, 1L, 1L),
+                    new ScoringReportView.AdditionalStatuses(false, true, false, false)
                 )
             );
     }
@@ -181,7 +183,32 @@ class GetLatestReportUseCaseTest {
                             VALIDATION_ERROR_ASSET.errors()
                         )
                     ),
-                    new ScoringReportView.Summary(0D, 0L, 0L, 0L, 0L)
+                    new ScoringReportView.Summary(0D, 0L, 0L, 0L, 0L),
+                    new ScoringReportView.AdditionalStatuses(true, false, false, false)
+                )
+            );
+    }
+
+    @Test
+    void should_return_report_with_no_scoreable_asset() {
+        // Given
+        givenExistingScoringReports(noScoreableAssetReport());
+
+        // When
+        var report = useCase.execute(new GetLatestReportUseCase.Input(API_ID));
+
+        // Then
+        Assertions
+            .assertThat(report)
+            .extracting(GetLatestReportUseCase.Output::report)
+            .isEqualTo(
+                new ScoringReportView(
+                    REPORT_ID,
+                    API_ID,
+                    CREATED_AT,
+                    List.of(),
+                    new ScoringReportView.Summary(-1.0D, 0L, 0L, 0L, 0L, 0L),
+                    new ScoringReportView.AdditionalStatuses(false, false, false, true)
                 )
             );
     }
@@ -207,6 +234,18 @@ class GetLatestReportUseCaseTest {
             .createdAt(CREATED_AT)
             .summary(new ScoringReport.Summary(0D, 0L, 0L, 0L, 0L))
             .assets(List.of(VALIDATION_ERROR_ASSET))
+            .build();
+    }
+
+    private static ScoringReport noScoreableAssetReport() {
+        return ScoringReportFixture
+            .aScoringReport()
+            .toBuilder()
+            .id(REPORT_ID)
+            .apiId(API_ID)
+            .createdAt(CREATED_AT)
+            .summary(new ScoringReport.Summary(-1.0D, 0L, 0L, 0L, 0L))
+            .assets(List.of())
             .build();
     }
 

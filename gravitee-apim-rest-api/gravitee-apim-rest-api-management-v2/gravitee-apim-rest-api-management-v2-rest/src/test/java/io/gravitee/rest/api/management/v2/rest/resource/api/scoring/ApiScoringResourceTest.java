@@ -29,6 +29,7 @@ import inmemory.InMemoryAlternative;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.ScoringReportQueryServiceInMemory;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoring;
+import io.gravitee.rest.api.management.v2.rest.model.ApiScoringAdditionalStatuses;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringAsset;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringAssetType;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringDiagnostic;
@@ -181,6 +182,15 @@ public class ApiScoringResourceTest extends ApiResourceTest {
                                     .build()
                             )
                         )
+                        .additionalStatuses(
+                            ApiScoringAdditionalStatuses
+                                .builder()
+                                .containsEvaluationErrors(false)
+                                .neverEvaluated(false)
+                                .noScoreableAssets(false)
+                                .containsDiagnostics(true)
+                                .build()
+                        )
                         .build()
                 );
         }
@@ -220,6 +230,46 @@ public class ApiScoringResourceTest extends ApiResourceTest {
                                     )
                                     .build()
                             )
+                        )
+                        .additionalStatuses(
+                            ApiScoringAdditionalStatuses
+                                .builder()
+                                .containsEvaluationErrors(true)
+                                .neverEvaluated(false)
+                                .noScoreableAssets(false)
+                                .containsDiagnostics(false)
+                                .build()
+                        )
+                        .build()
+                );
+        }
+
+        @Test
+        void should_return_200_response_with_no_scoreable_asset_info() {
+            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).build()));
+            pageCrudService.initWith(List.of(PageFixtures.aPage().toBuilder().referenceId(API).build()));
+            scoringReportQueryService.initWith(List.of(ScoringReportFixture.aScoringReportWithNoAssets().toBuilder().apiId(API).build()));
+
+            final Response response = latestReportTarget.request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiScoring.class)
+                .isEqualTo(
+                    ApiScoring
+                        .builder()
+                        .summary(ApiScoringSummary.builder().score(-1.0).all(0).errors(0).hints(0).infos(0).warnings(0).build())
+                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
+                        .assets(List.of())
+                        .additionalStatuses(
+                            ApiScoringAdditionalStatuses
+                                .builder()
+                                .containsEvaluationErrors(false)
+                                .neverEvaluated(false)
+                                .noScoreableAssets(true)
+                                .containsDiagnostics(false)
+                                .build()
                         )
                         .build()
                 );

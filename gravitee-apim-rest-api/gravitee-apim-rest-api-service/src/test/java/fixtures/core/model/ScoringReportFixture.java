@@ -73,4 +73,8 @@ public class ScoringReportFixture {
             )
             .build();
     }
+
+    public static ScoringReport aScoringReportWithNoAssets() {
+        return BASE.get().summary(new ScoringReport.Summary(-1.0, 0L, 0L, 0L, 0L)).assets(List.of()).build();
+    }
 }
