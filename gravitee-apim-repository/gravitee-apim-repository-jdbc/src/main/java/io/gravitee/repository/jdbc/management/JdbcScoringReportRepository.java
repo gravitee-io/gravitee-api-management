@@ -255,7 +255,7 @@ class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow>
         var result = jdbcTemplate.query(
             "select " +
             "environment_id, " +
-            "AVG(score) AS averageScore," +
+            "AVG(CASE WHEN score != -1 THEN score ELSE NULL END) AS averageScore," +
             "SUM(errors) AS totalErrors," +
             "SUM(warnings) AS totalWarnings," +
             "SUM(infos) AS totalInfos," +

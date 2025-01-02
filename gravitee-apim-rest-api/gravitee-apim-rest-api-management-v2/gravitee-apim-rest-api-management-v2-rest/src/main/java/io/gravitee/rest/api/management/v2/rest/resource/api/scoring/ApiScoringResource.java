@@ -20,17 +20,11 @@ import io.gravitee.apim.core.scoring.use_case.ScoreApiRequestUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ScoringReportMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoring;
-import io.gravitee.rest.api.management.v2.rest.model.ApiScoringAsset;
-import io.gravitee.rest.api.management.v2.rest.model.ApiScoringAssetType;
-import io.gravitee.rest.api.management.v2.rest.model.ApiScoringDiagnostic;
-import io.gravitee.rest.api.management.v2.rest.model.ApiScoringDiagnosticRange;
-import io.gravitee.rest.api.management.v2.rest.model.ApiScoringPosition;
-import io.gravitee.rest.api.management.v2.rest.model.ApiScoringSeverity;
+import io.gravitee.rest.api.management.v2.rest.model.ApiScoringAdditionalStatuses;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringSummary;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringTriggerResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ScoringStatus;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -48,6 +42,7 @@ public class ApiScoringResource extends AbstractResource {
         .builder()
         .summary(ApiScoringSummary.builder().all(0).errors(0).hints(0).infos(0).warnings(0).build())
         .assets(List.of())
+        .additionalStatuses(ApiScoringAdditionalStatuses.builder().neverEvaluated(true).build())
         .build();
 
     @Inject
