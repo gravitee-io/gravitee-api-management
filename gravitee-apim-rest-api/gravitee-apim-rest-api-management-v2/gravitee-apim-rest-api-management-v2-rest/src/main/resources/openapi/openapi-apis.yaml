@@ -2617,6 +2617,8 @@ paths:
             summary: Get API Scoring
             description: |-
                 Get API Scoring.
+                
+                Return a 404 HTTP Response status if API was never evaluated.
             operationId: getApiScoring
             responses:
                 "200":
@@ -7330,7 +7332,6 @@ components:
                     type: integer
                     description: An integer that represents the character position within the line where the issue starts or ends. The value is zero indexed.
                     example: 12
-
         # Async Jobs
         AsyncJob:
             type: object

@@ -181,9 +181,24 @@ class GetLatestReportUseCaseTest {
                             VALIDATION_ERROR_ASSET.errors()
                         )
                     ),
-                    new ScoringReportView.Summary(0D, 0L, 0L, 0L, 0L)
+                    null
                 )
             );
+    }
+
+    @Test
+    void should_return_no_summary_when_no_scoreable_asset() {
+        // Given
+        givenExistingScoringReports(noScoreableAssetReport());
+
+        // When
+        var report = useCase.execute(new GetLatestReportUseCase.Input(API_ID));
+
+        // Then
+        Assertions
+            .assertThat(report)
+            .extracting(GetLatestReportUseCase.Output::report)
+            .isEqualTo(new ScoringReportView(REPORT_ID, API_ID, CREATED_AT, List.of(), null));
     }
 
     private static ScoringReport aReport() {
@@ -205,8 +220,20 @@ class GetLatestReportUseCaseTest {
             .id(REPORT_ID)
             .apiId(API_ID)
             .createdAt(CREATED_AT)
-            .summary(new ScoringReport.Summary(0D, 0L, 0L, 0L, 0L))
+            .summary(new ScoringReport.Summary(-1.0D, 0L, 0L, 0L, 0L))
             .assets(List.of(VALIDATION_ERROR_ASSET))
+            .build();
+    }
+
+    private static ScoringReport noScoreableAssetReport() {
+        return ScoringReportFixture
+            .aScoringReport()
+            .toBuilder()
+            .id(REPORT_ID)
+            .apiId(API_ID)
+            .createdAt(CREATED_AT)
+            .summary(new ScoringReport.Summary(-1.0D, 0L, 0L, 0L, 0L))
+            .assets(List.of())
             .build();
     }
 

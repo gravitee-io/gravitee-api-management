@@ -105,9 +105,6 @@ public class ScoreApiRequestUseCase {
                     )
             )
             .flatMapCompletable(request -> {
-                if (request.assets().isEmpty()) {
-                    return Completable.complete();
-                }
                 var job = newScoringJob(request.jobId(), input.auditInfo, input.apiId);
                 return scoringProvider.requestScore(request).doOnComplete(() -> asyncJobCrudService.create(job));
             });

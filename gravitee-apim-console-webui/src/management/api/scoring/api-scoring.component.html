@@ -26,27 +26,30 @@
       <mat-card-title>
         {{ api.name }}
 
-        @if (apiScoring.summary.score == null) {
-          <span></span>
-        } @else if (apiScoring.summary.score >= 0.8) {
+        @if (apiScoreNeverEvaluated || !apiScoreAvailable) {
+          <span class="gio-badge-neutral">Not available</span>
+        } @else if (apiScoreAvailable && apiScoring?.summary.score >= 0.8) {
           <span class="gio-badge-success"
             ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ apiScoring.summary.score * 100 | number: '1.0-0' }}%
           </span>
-        } @else if (apiScoring.summary.score >= 0.4) {
+        } @else if (apiScoreAvailable && apiScoring?.summary.score >= 0.4) {
           <span class="gio-badge-warning"
             ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ apiScoring.summary.score * 100 | number: '1.0-0' }}%
           </span>
-        } @else if (apiScoring.summary.score >= 0) {
+        } @else if (apiScoreAvailable && apiScoring?.summary.score >= 0) {
           <span class="gio-badge-error"
             ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ apiScoring.summary.score * 100 | number: '1.0-0' }}%
           </span>
+        }
+        @if (this.evaluationErrors.length > 0) {
+          <span class="gio-badge-error"><mat-icon svgIcon="gio:shield-alert"></mat-icon></span>
         }
 
         <!-- Uncomment when BE ready -->
         <!-- <span class="gio-badge-success"><mat-icon class="gio-left" svgIcon="gio:trending-up"></mat-icon>+0.7</span>-->
       </mat-card-title>
 
-      @if (apiScoring.createdAt) {
+      @if (apiScoreAvailable && apiScoring.createdAt) {
         <mat-card-subtitle> Last evaluated {{ apiScoring.createdAt | dateAgo }}</mat-card-subtitle>
       }
 
@@ -66,7 +69,7 @@
         </gio-banner-warning>
       }
 
-      @if (apiScoring.summary.all !== 0) {
+      @if (apiScoreAvailable && apiScoring.summary.all !== 0) {
         <section>
           <mat-button-toggle-group
             [hideSingleSelectionIndicator]="true"
@@ -94,11 +97,23 @@
       }
 
       <section class="api-scores-lists">
-        @if (apiScoring.summary.all === 0) {
+        @if (apiScoreNeverEvaluated) {
+          <gio-card-empty-state
+            icon="search"
+            title="This API has never been scored before"
+            [subtitle]="'Click on the Evaluate button to get the first score.'"
+          ></gio-card-empty-state>
+        } @else if (apiScoreAvailable && apiScoring.summary.all === 0 && apiScoring.summary.score === 1) {
           <gio-card-empty-state
             icon="rocket"
             title="All clear"
             [subtitle]="'There is no recommendations or issues for your API. \n Everything looks great!'"
+          ></gio-card-empty-state>
+        } @else if (!apiScoreAvailable && evaluationErrors.length === 0) {
+          <gio-card-empty-state
+            icon="shield-minus"
+            title="No scorable assets"
+            [subtitle]="'This API\'s assets did not match any rulesets.'"
           ></gio-card-empty-state>
         }
         @for (asset of apiScoring.assets; track asset.name) {
