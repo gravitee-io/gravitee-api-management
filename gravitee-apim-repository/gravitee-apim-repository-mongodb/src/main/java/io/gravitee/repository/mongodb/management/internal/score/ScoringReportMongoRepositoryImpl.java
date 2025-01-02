@@ -19,6 +19,7 @@ import static com.mongodb.client.model.Accumulators.avg;
 import static com.mongodb.client.model.Accumulators.sum;
 import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.ne;
 import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
 
@@ -36,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -129,6 +129,7 @@ public class ScoringReportMongoRepositoryImpl implements ScoringReportMongoRepos
     public ScoringEnvironmentSummary getScoringEnvironmentSummary(String environmentId) {
         List<Bson> aggregations = new ArrayList<>();
         aggregations.add(match(eq("environmentId", environmentId)));
+        aggregations.add(match(ne("summary.score", -1)));
         aggregations.add(
             group(
                 "$environmentId",
