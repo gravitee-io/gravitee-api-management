@@ -20,6 +20,7 @@ import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.scoring.model.ScoringReportView;
 import io.gravitee.apim.core.scoring.query_service.ScoringReportQueryService;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -45,6 +46,12 @@ public class GetLatestReportUseCase {
             })
             .toList();
 
+        var containsEvaluationErrors = report.assets().stream().anyMatch(asset -> !asset.errors().isEmpty());
+        var containsDiagnostics = report.assets().stream().anyMatch(asset -> !asset.diagnostics().isEmpty());
+        var SCORE_NOT_AVAILABLE = -1.0;
+        var noScoreableAsset =
+            !containsDiagnostics && !containsEvaluationErrors && Objects.equals(report.summary().score(), SCORE_NOT_AVAILABLE);
+
         return new Output(
             new ScoringReportView(
                 report.id(),
@@ -57,7 +64,8 @@ public class GetLatestReportUseCase {
                     report.summary().warnings(),
                     report.summary().infos(),
                     report.summary().hints()
-                )
+                ),
+                new ScoringReportView.AdditionalStatuses(containsEvaluationErrors, containsDiagnostics, false, noScoreableAsset)
             )
         );
     }

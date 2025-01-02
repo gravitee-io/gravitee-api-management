@@ -26,8 +26,12 @@
       <mat-card-title>
         {{ api.name }}
 
-        @if (apiScoring.summary.score == null) {
-          <span></span>
+        @if (
+          apiScoring.additionalStatuses.neverEvaluated ||
+          apiScoring.additionalStatuses.noScoreableAssets ||
+          (apiScoring.additionalStatuses.containsEvaluationErrors && !apiScoring.additionalStatuses.containsDiagnostics)
+        ) {
+          <span class="gio-badge-neutral">Not available</span>
         } @else if (apiScoring.summary.score >= 0.8) {
           <span class="gio-badge-success"
             ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ apiScoring.summary.score * 100 | number: '1.0-0' }}%
@@ -40,6 +44,9 @@
           <span class="gio-badge-error"
             ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ apiScoring.summary.score * 100 | number: '1.0-0' }}%
           </span>
+        }
+        @if (apiScoring.additionalStatuses.containsEvaluationErrors) {
+          <span class="gio-badge-error"><mat-icon svgIcon="gio:shield-alert"></mat-icon></span>
         }
 
         <!-- Uncomment when BE ready -->
@@ -94,11 +101,23 @@
       }
 
       <section class="api-scores-lists">
-        @if (apiScoring.summary.all === 0) {
+        @if (apiScoring.additionalStatuses.neverEvaluated) {
+          <gio-card-empty-state
+            icon="search"
+            title="This API has never been scored before"
+            [subtitle]="'Click on the Evaluate button to get the first score.'"
+          ></gio-card-empty-state>
+        } @else if (apiScoring.summary.all === 0 && apiScoring.summary.score === 1) {
           <gio-card-empty-state
             icon="rocket"
             title="All clear"
             [subtitle]="'There is no recommendations or issues for your API. \n Everything looks great!'"
+          ></gio-card-empty-state>
+        } @else if (apiScoring.additionalStatuses.noScoreableAssets) {
+          <gio-card-empty-state
+            icon="shield-minus"
+            title="No scorable assets"
+            [subtitle]="'This API\'s assets did not match any rulesets.'"
           ></gio-card-empty-state>
         }
         @for (asset of apiScoring.assets; track asset.name) {

@@ -57,6 +57,12 @@ export const fakeApiScoring = (attributes?: Partial<ApiScoring>) => {
         ],
       },
     ],
+    additionalStatuses: {
+      containsDiagnostics: true,
+      containsEvaluationErrors: false,
+      neverEvaluated: false,
+      noScoreableAssets: false,
+    },
   };
 
   return {

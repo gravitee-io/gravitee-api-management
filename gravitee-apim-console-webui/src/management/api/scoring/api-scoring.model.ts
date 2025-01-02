@@ -40,6 +40,7 @@ export interface ApiScoring {
   createdAt: Date;
   summary: ApiScoringSummary;
   assets: ScoringAsset[];
+  additionalStatuses: AdditionalStatuses;
 }
 
 export interface ApiScoringSummary {
@@ -71,4 +72,11 @@ export interface ScoringDiagnostic {
 export interface ScoringError {
   code: string;
   path: string[];
+}
+
+export interface AdditionalStatuses {
+  containsEvaluationErrors?: boolean;
+  containsDiagnostics?: boolean;
+  neverEvaluated?: boolean;
+  noScoreableAssets?: boolean;
 }

@@ -7222,6 +7222,8 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/ApiScoringAsset"
+                additionalStatuses:
+                    $ref: "#/components/schemas/ApiScoringAdditionalStatuses"
         ApiScoringSummary:
             type: object
             properties:
@@ -7330,7 +7332,25 @@ components:
                     type: integer
                     description: An integer that represents the character position within the line where the issue starts or ends. The value is zero indexed.
                     example: 12
-
+        ApiScoringAdditionalStatuses:
+            type: object
+            properties:
+                containsEvaluationErrors:
+                    type: boolean
+                    description: Status triggered when the API contains any evaluation errors.
+                    example: true
+                containsDiagnostics:
+                    type: boolean
+                    description: Status triggered when the API contains diagnostics.
+                    example: true
+                neverEvaluated:
+                    type: boolean
+                    description: Status triggered when the API has never been evaluated.
+                    example: true
+                noScoreableAssets:
+                    type: boolean
+                    description: Status triggered when the API has no scoreable assets.
+                    example: true
         # Async Jobs
         AsyncJob:
             type: object
