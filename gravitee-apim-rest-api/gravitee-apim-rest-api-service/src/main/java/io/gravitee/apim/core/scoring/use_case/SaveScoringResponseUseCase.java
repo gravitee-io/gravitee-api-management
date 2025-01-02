@@ -29,7 +29,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -97,6 +96,7 @@ public class SaveScoringResponseUseCase {
                 );
             });
 
+        var SCORING_NOT_AVAILABLE = -1.0;
         var averageScore = BigDecimal
             .valueOf(
                 assetsSummary
@@ -104,7 +104,7 @@ public class SaveScoringResponseUseCase {
                     .filter(summary -> summary.score() != null)
                     .mapToDouble(ScoringReport.Summary::score)
                     .average()
-                    .orElse(0.0)
+                    .orElse(SCORING_NOT_AVAILABLE)
             )
             .setScale(2, RoundingMode.HALF_EVEN);
 

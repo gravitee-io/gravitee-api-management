@@ -51,6 +51,10 @@ export class ApiScoringComponent implements OnInit {
   public pendingScoreRequest: boolean;
   protected readonly ScoringSeverity = ScoringSeverity;
 
+  public apiScoreNeverEvaluated = false;
+  public apiScoreAvailable = false;
+  public evaluationErrors: ScoreEvaluationErrors[] = [];
+
   constructor(
     public readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
@@ -116,9 +120,14 @@ export class ApiScoringComponent implements OnInit {
           if (!this.pendingScoreRequest) {
             this.stopPolling$.next();
 
-            const evaluationErrors = this.getEvaluationErrors(apiScoring);
-            if (evaluationErrors.length) {
-              this.snackBarService.error(this.formatEvaluationErrors(evaluationErrors));
+            if (apiScoring === undefined) {
+              this.apiScoreNeverEvaluated = true;
+            } else {
+              this.evaluationErrors = this.getEvaluationErrors(apiScoring);
+              if (this.evaluationErrors.length) {
+                this.snackBarService.error(this.formatEvaluationErrors(this.evaluationErrors));
+              }
+              this.apiScoreAvailable = this.apiScoring.summary !== undefined;
             }
           }
         },

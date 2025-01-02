@@ -45,21 +45,17 @@ public class GetLatestReportUseCase {
             })
             .toList();
 
-        return new Output(
-            new ScoringReportView(
-                report.id(),
-                report.apiId(),
-                report.createdAt(),
-                assets,
-                new ScoringReportView.Summary(
-                    report.summary().score(),
-                    report.summary().errors(),
-                    report.summary().warnings(),
-                    report.summary().infos(),
-                    report.summary().hints()
-                )
+        var summary = report.summary().score() != -1
+            ? new ScoringReportView.Summary(
+                report.summary().score(),
+                report.summary().errors(),
+                report.summary().warnings(),
+                report.summary().infos(),
+                report.summary().hints()
             )
-        );
+            : null;
+
+        return new Output(new ScoringReportView(report.id(), report.apiId(), report.createdAt(), assets, summary));
     }
 
     public record Input(String apiId) {}
