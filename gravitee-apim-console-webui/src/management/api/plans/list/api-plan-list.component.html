@@ -49,8 +49,8 @@
 <mat-button-toggle-group class="plans__filters" aria-label="Plan status filters" [value]="status">
   <mat-button-toggle
     *ngFor="let planStatus of apiPlanStatus"
-    [attr.aria-label]="'Filter on' + planStatus.name + 'plans'"
-    [matTooltip]="'Filter on' + planStatus.name + 'plans'"
+    [attr.aria-label]="'Filter on ' + planStatus.name + ' plans'"
+    [matTooltip]="'Filter on ' + planStatus.name + ' plans'"
     [value]="planStatus.name"
     (click)="searchPlansByStatus(planStatus.name)"
   >
