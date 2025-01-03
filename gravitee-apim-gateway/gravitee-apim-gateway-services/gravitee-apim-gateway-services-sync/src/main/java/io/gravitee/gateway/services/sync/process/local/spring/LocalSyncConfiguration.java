@@ -19,17 +19,17 @@ import static io.gravitee.gateway.services.sync.SyncConfiguration.POOL_SIZE;
 import static io.gravitee.gateway.services.sync.SyncConfiguration.newThreadFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.gateway.api.service.ApiKeyService;
+import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
-import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.local.LocalSyncManager;
 import io.gravitee.gateway.services.sync.process.local.LocalSynchronizer;
+import io.gravitee.gateway.services.sync.process.local.mapper.ApiKeyMapper;
+import io.gravitee.gateway.services.sync.process.local.mapper.ApiMapper;
+import io.gravitee.gateway.services.sync.process.local.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.local.synchronizer.LocalApiSynchronizer;
-import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
-import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiKeyAppender;
-import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.PlanAppender;
-import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.SubscriptionAppender;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -68,29 +68,42 @@ public class LocalSyncConfiguration {
     }
 
     @Bean
+    public ApiMapper localApiMapper(ObjectMapper objectMapper, EnvironmentService environmentService) {
+        return new ApiMapper(objectMapper, environmentService);
+    }
+
+    @Bean
+    public SubscriptionMapper localSubscriptionMapper(ObjectMapper objectMapper) {
+        return new SubscriptionMapper(objectMapper);
+    }
+
+    @Bean
+    public ApiKeyMapper localApiKeyMapper() {
+        return new ApiKeyMapper();
+    }
+
+    @Bean
     public LocalApiSynchronizer localApiSynchronizer(
-        ObjectMapper objectMapper,
-        EnvironmentService environmentService,
+        ApiKeyMapper apiKeyMapper,
+        ApiKeyService apiKeyService,
         ApiManager apiManager,
         ApiMapper apiMapper,
-        PlanAppender planAppender,
-        SubscriptionAppender subscriptionAppender,
-        ApiKeyAppender apiKeyAppender,
-        DeployerFactory deployerFactory,
-        @Qualifier("syncLocalExecutor") ThreadPoolExecutor syncLocalExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
+        EnvironmentService environmentService,
+        ObjectMapper objectMapper,
+        SubscriptionMapper subscriptionMapper,
+        SubscriptionService subscriptionService,
+        @Qualifier("syncLocalExecutor") ThreadPoolExecutor syncLocalExecutor
     ) {
         return new LocalApiSynchronizer(
-            objectMapper,
-            environmentService,
+            apiKeyMapper,
+            apiKeyService,
             apiManager,
             apiMapper,
-            planAppender,
-            subscriptionAppender,
-            apiKeyAppender,
-            deployerFactory,
-            syncLocalExecutor,
-            syncDeployerExecutor
+            environmentService,
+            objectMapper,
+            subscriptionMapper,
+            subscriptionService,
+            syncLocalExecutor
         );
     }
 
