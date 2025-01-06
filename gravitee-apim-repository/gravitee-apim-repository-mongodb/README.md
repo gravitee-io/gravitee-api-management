@@ -45,6 +45,7 @@ repository.mongodb options :
 | port                                         |      9200 |
 | username                                     |           |
 | password                                     |           |
+| transactional                                |      true |
 | connectionPerHost                            |           |
 | connectTimeout                               |           |
 | writeConcern                                 |         1 |
@@ -70,3 +71,9 @@ repository.mongodb options :
 | keyPassword                                  |           |
 
 NB: writeConcern possible value are 1,2,3... (the number of node) or 'majority' 
+
+### Enable transaction management
+
+If you are running a standalone server with data intended for production, you should first convert the standalone server into a replica set and enable transactional on mongodb repository.
+
+To do so, you can follow the official documentation available here: [Convert a Standalone to a Replica Set](https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/).

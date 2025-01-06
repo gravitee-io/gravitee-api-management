@@ -34,6 +34,8 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.data.annotation.Persistent;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.data.mongodb.MongoTransactionManager;
 import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.lang.NonNull;
@@ -57,7 +59,15 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoClien
     @Override
     public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
         final ConfigurableListableBeanFactory beanFactory = getConfigurableApplicationContext(applicationContext).getBeanFactory();
-        beanFactory.registerSingleton("graviteeTransactionManager", new NoTransactionManager());
+        boolean isTransactional = environment.getProperty("management.mongodb.transactional", Boolean.class, true);
+        if (isTransactional) {
+            beanFactory.registerSingleton(
+                "graviteeTransactionManager",
+                new MongoTransactionManager(applicationContext.getBean(MongoDatabaseFactory.class))
+            );
+        } else {
+            beanFactory.registerSingleton("graviteeTransactionManager", new NoTransactionManager());
+        }
         this.applicationContext = applicationContext;
     }
 
