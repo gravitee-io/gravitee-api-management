@@ -16,10 +16,14 @@
 package io.gravitee.apim.core;
 
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
+import io.gravitee.rest.api.service.exceptions.TransactionRetryableService;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.springframework.dao.DataAccessException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -37,10 +41,10 @@ import org.springframework.transaction.annotation.Transactional;
  *      <ul>
  * </p>
  * <p>
- *      ⚠️ This annotation relies on Spring annotation which is an exception to the rule of not using Framework in core.
+ *      ⚠️ This annotation relies on Spring annotations which is an exception to the rule of not using Framework in core.
  * </p>
  * <p>
- *      ⚠️ Transactions only supported when using JDBC repositories.
+ *      ⚠️ If UseCase uses legacy services, @Retryable will be applied twice, first on the service itself and then on the use case.
  * </p>
  *
  * @see <a href="https://gravitee.slab.com/posts/%E2%9A%92%EF%B8%8F-better-software-architecture-of-the-management-api-yxtcvazk">https://gravitee.slab.com/posts/%E2%9A%92%EF%B8%8F-better-software-architecture-of-the-management-api-yxtcvazk</a>
@@ -50,5 +54,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Transactional(value = "graviteeTransactionManager", noRollbackFor = AbstractManagementException.class)
+@Retryable(
+    retryFor = DataAccessException.class,
+    exceptionExpression = TransactionRetryableService.EXPRESSION,
+    maxAttemptsExpression = "${management.transaction.retry.maxAttempts:5}",
+    backoff = @Backoff(
+        delayExpression = "${management.transaction.retry.delayMs:100}",
+        maxDelayExpression = "${management.transaction.retry.maxDelayMs:500}"
+    )
+)
 public @interface UseCase {
 }

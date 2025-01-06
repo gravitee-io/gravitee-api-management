@@ -109,12 +109,20 @@ http:
 # For more information about MongoDB configuration, please have a look to:
 # - http://mongodb.github.io/mongo-java-driver/4.1/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html
 management:
+# Override configuration for retryable exceptions (transient) such as transaction conflict.
+#  transaction:
+#    retry:
+#      maxAttempts: 5
+#      delayMs: 100
+#      maxDelayMs: 500
+
   type: mongodb                  # repository type
   mongodb:                       # mongodb repository
 #    prefix:                      # collections prefix
     dbname: ${ds.mongodb.dbname} # mongodb name (default gravitee)
     host: ${ds.mongodb.host}     # mongodb host (default localhost)
     port: ${ds.mongodb.port}     # mongodb port (default 27017)
+#    transactional: true         # whether to enable transaction or not, true by default
 
 ## Client settings
 #    description:                 # mongodb description (default gravitee.io)
