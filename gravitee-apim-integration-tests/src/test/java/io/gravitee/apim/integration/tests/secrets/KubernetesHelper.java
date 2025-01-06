@@ -18,17 +18,14 @@ package io.gravitee.apim.integration.tests.secrets;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import org.testcontainers.containers.Container;
-import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.containers.ContainerState;
 import org.testcontainers.images.builder.Transferable;
-import org.testcontainers.k3s.K3sContainer;
-import org.testcontainers.utility.DockerImageName;
 
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
@@ -36,54 +33,42 @@ import org.testcontainers.utility.DockerImageName;
  */
 public class KubernetesHelper {
 
-    public static final DockerImageName K3S_SERVER_DOCKER_IMAGE = DockerImageName.parse("rancher/k3s:v1.28.1-k3s1");
-
-    public static K3sContainer getK3sServer() {
-        K3sContainer k3sContainer = new K3sContainer(K3S_SERVER_DOCKER_IMAGE);
-        String k3sHost = k3sContainer.getHost();
-
-        return k3sContainer
-            .withCommand("server", "--disable", " traefik", "--tls-san=" + k3sHost)
-            .withStartupAttempts(2)
-            .waitingFor(Wait.forLogMessage(".*Node controller sync successful.*", 1).withStartupTimeout(Duration.ofMinutes(2)));
-    }
-
-    public static void createNamespace(K3sContainer k3sContainer, String name) throws IOException, InterruptedException {
-        Container.ExecResult execResult = k3sContainer.execInContainer("kubectl", "create", "namespace", name);
+    public static void createNamespace(ContainerState k8sContainer, String name) throws IOException, InterruptedException {
+        Container.ExecResult execResult = k8sContainer.execInContainer("kubectl", "create", "namespace", name);
         assertThat(execResult.getExitCode()).isZero();
         assertThat(execResult.getStdout()).contains("namespace/%s created".formatted(name));
     }
 
-    public static void createSecret(K3sContainer k3sContainer, String namespace, String name, Map<String, String> data)
+    public static void createSecret(ContainerState k8sContainer, String namespace, String name, Map<String, String> data)
         throws IOException, InterruptedException {
-        createSecret(k3sContainer, namespace, name, data, false);
+        createSecret(k8sContainer, namespace, name, data, false);
     }
 
-    public static void createSecret(K3sContainer k3sContainer, String namespace, String name, Map<String, String> data, boolean isTLS)
+    public static void createSecret(ContainerState k8sContainer, String namespace, String name, Map<String, String> data, boolean isTLS)
         throws IOException, InterruptedException {
         List<String> args = new ArrayList<>(List.of("kubectl", "create", "secret", isTLS ? "tls" : "generic", name, "-n", namespace));
         if (isTLS) {
-            String certPath = "/tmp/%s-tls.crt".formatted(UUID.randomUUID());
-            String keyPath = "/tmp/%s-tls.key".formatted(UUID.randomUUID());
-            k3sContainer.copyFileToContainer(Transferable.of(Objects.requireNonNull(data.get("tls.crt"))), certPath);
-            k3sContainer.copyFileToContainer(Transferable.of(Objects.requireNonNull(data.get("tls.key"))), keyPath);
+            String certPath = "/kindcontainer/%s-tls.crt".formatted(UUID.randomUUID());
+            String keyPath = "/kindcontainer/%s-tls.key".formatted(UUID.randomUUID());
+            k8sContainer.copyFileToContainer(Transferable.of(Objects.requireNonNull(data.get("tls.crt"))), certPath);
+            k8sContainer.copyFileToContainer(Transferable.of(Objects.requireNonNull(data.get("tls.key"))), keyPath);
             args.add("--cert=%s".formatted(certPath));
             args.add("--key=%s".formatted(keyPath));
         } else {
             data.entrySet().stream().map(entry -> "--from-literal=%s=%s".formatted(entry.getKey(), entry.getValue())).forEach(args::add);
         }
-        Container.ExecResult execResult = k3sContainer.execInContainer(args.toArray(new String[0]));
+        Container.ExecResult execResult = k8sContainer.execInContainer(args.toArray(new String[0]));
         assertThat(execResult.getStderr()).isEmpty();
         assertThat(execResult.getStdout()).contains("secret/%s created".formatted(name));
         assertThat(execResult.getExitCode()).isZero();
     }
 
-    public static void updateSecret(K3sContainer k3sContainer, String namespace, String name, Map<String, String> data, boolean isTLS)
+    public static void updateSecret(ContainerState k8sContainer, String namespace, String name, Map<String, String> data, boolean isTLS)
         throws IOException, InterruptedException {
         String[] args = { "kubectl", "delete", "secret", name, "-n", namespace };
-        Container.ExecResult execResult = k3sContainer.execInContainer(args);
+        Container.ExecResult execResult = k8sContainer.execInContainer(args);
         assertThat(execResult.getExitCode()).isZero();
         assertThat(execResult.getStdout()).contains("secret \"%s\" deleted".formatted(name));
-        createSecret(k3sContainer, namespace, name, data, isTLS);
+        createSecret(k8sContainer, namespace, name, data, isTLS);
     }
 }
