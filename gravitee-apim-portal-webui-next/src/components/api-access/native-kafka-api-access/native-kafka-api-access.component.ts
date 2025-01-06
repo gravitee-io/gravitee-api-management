@@ -59,7 +59,7 @@ ${this.trustStoreConfig}`,
   scram256Config = computed(
     () => `security.protocol=SASL_SSL
 sasl.mechanism=SCRAM-SHA-256
-sasl.jaas.config=org.apache.kafka.common.security.plain.ScramLoginModule required \\
+sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required \\
   username="${this.apiKeyConfigUsername()}" \\
   password="${this.apiKey()}";
 ${this.trustStoreConfig}`,
@@ -68,7 +68,7 @@ ${this.trustStoreConfig}`,
   scram512Config = computed(
     () => `security.protocol=SASL_SSL
 sasl.mechanism=SCRAM-SHA-512
-sasl.jaas.config=org.apache.kafka.common.security.plain.ScramLoginModule required \\
+sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required \\
   username="${this.apiKeyConfigUsername()}" \\
   password="${this.apiKey()}";
 ${this.trustStoreConfig}`,
