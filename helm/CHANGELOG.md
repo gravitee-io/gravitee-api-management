@@ -3,6 +3,10 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.5.6
+
+- Improve HPA by allowing custom annotation, custom metrics and define the behavior spec (APIM-8186)
+
 ### 4.5.1
 
 - Add support of heartbeat delay for the gateway

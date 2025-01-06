@@ -23,4 +23,5 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: 
+  artifacthub.io/changes: |
+    - "Improve HPA by allowing custom annotation, custom metrics and define the behavior spec (APIM-8186)"
