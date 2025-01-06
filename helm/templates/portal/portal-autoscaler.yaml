@@ -22,6 +22,11 @@ metadata:
     {{ $key }}: {{ $value | quote }}
     {{- end }}
     {{- end }}
+    {{- if .Values.portal.autoscaling.annotations }}
+    {{- range $key, $value := .Values.portal.autoscaling.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -29,6 +34,7 @@ spec:
     name: {{ template "gravitee.portal.fullname" . }}
   minReplicas: {{ .Values.portal.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.portal.autoscaling.maxReplicas }}
+{{- if not .Values.portal.autoscaling.metrics }}
   metrics:
 {{- if .Values.portal.autoscaling.targetMemoryAverageUtilization }}
   - type: Resource
@@ -52,4 +58,12 @@ spec:
       {{ else }}
       targetAverageUtilization: {{ .Values.portal.autoscaling.targetAverageUtilization }}
       {{- end -}}
+{{ else }}
+  metrics:
+    {{ toYaml .Values.portal.autoscaling.metrics | indent 4 | trim }}
+{{- end -}}
+{{- if .Values.portal.autoscaling.behavior }}
+  behavior:
+    {{ toYaml .Values.portal.autoscaling.behavior | indent 4 | trim }}
+{{- end -}}
 {{- end -}}
