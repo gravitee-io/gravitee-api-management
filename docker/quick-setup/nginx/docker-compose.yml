@@ -44,6 +44,7 @@ services:
     image: mongo:${MONGODB_VERSION:-6.0}
     container_name: gio_apim_mongodb
     restart: always
+    command: ["--replSet", "rs0" ]
     volumes:
       - data-mongo:/data/db
       - ./.logs/apim-mongodb:/var/log/mongodb
