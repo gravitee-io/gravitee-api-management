@@ -45,7 +45,7 @@ services:
   mongodb:
     image: mongo:${MONGODB_VERSION:-6.0}
     restart: always
-    command: [ "--quiet", "--logpath", "/dev/null" ]
+    command: ["--replSet", "rs0", "--quiet", "--logpath", "/dev/null" ]
     volumes:
       - data-mongo:/data/db
       - ./.logs/apim-mongodb:/var/log/mongodb
