@@ -11,6 +11,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - Allow users to overwrite the Elasticsearch or Opensearch rollover alias property name
 - Allow users to limit documentation content size in audit page when importing an API
 - Add support of Kafka Gateway configuration
+- Improve HPA by allowing custom annotation, custom metrics and define the behavior spec (APIM-8186)
 
 ### 4.5.0
 
