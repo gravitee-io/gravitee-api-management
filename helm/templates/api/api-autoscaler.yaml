@@ -22,6 +22,11 @@ metadata:
     {{ $key }}: {{ $value | quote }}
     {{- end }}
     {{- end }}
+    {{- if .Values.api.autoscaling.annotations }}
+    {{- range $key, $value := .Values.api.autoscaling.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -29,6 +34,7 @@ spec:
     name: {{ template "gravitee.api.fullname" . }}
   minReplicas: {{ .Values.api.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.api.autoscaling.maxReplicas }}
+{{- if not .Values.api.autoscaling.metrics }}
   metrics:
 {{- if .Values.api.autoscaling.targetMemoryAverageUtilization }}
   - type: Resource
@@ -52,4 +58,12 @@ spec:
       {{ else }}
       targetAverageUtilization: {{ .Values.api.autoscaling.targetAverageUtilization }}
       {{- end -}}
+{{ else }}
+  metrics:
+    {{ toYaml .Values.api.autoscaling.metrics | indent 4 | trim }}
+{{- end -}}
+{{- if .Values.api.autoscaling.behavior }}
+  behavior:
+    {{ toYaml .Values.api.autoscaling.behavior | indent 4 | trim }}
+{{- end -}}
 {{- end -}}
