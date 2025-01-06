@@ -586,7 +586,6 @@ components:
             enum:
                 - MESSAGE
                 - PROXY
-#              FIXME: Kafka Gateway - properly support it, it has just been added for mapstruct
                 - NATIVE
         ListenerType:
             type: string
@@ -596,7 +595,6 @@ components:
                 - HTTP
                 - SUBSCRIPTION
                 - TCP
-#                FIXME: Kafka Gateway: properly support it, it has just been added for mapstruct
                 - KAFKA
         ConnectorFeature:
             type: string

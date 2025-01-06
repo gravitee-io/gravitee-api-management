@@ -89,12 +89,7 @@ public class ApiManagerImpl implements ApiManager {
 
         List<Plugin> plugins;
         if (api.getDefinitionVersion() == DefinitionVersion.V4) {
-            plugins =
-                ((io.gravitee.definition.model.v4.AbstractApi) api.getDefinition()).getPlugins()
-                    // FIXME: Kafka Gateway - cheat to remove plugin containing "native" as they do not exist yet
-                    .stream()
-                    .filter(p -> !p.id().contains("native"))
-                    .toList();
+            plugins = ((io.gravitee.definition.model.v4.AbstractApi) api.getDefinition()).getPlugins();
         } else {
             plugins = ((io.gravitee.definition.model.Api) api.getDefinition()).getPlugins();
         }
