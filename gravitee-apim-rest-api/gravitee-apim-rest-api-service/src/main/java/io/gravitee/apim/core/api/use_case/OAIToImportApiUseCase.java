@@ -130,12 +130,7 @@ public class OAIToImportApiUseCase {
                     .getApiExport()
                     .toBuilder()
                     .endpointGroups(
-                        endpointGroups
-                            .stream()
-                            .map(endpointGroup -> endpointGroup.toBuilder().sharedConfiguration(sharedConfiguration).build())
-                            // FIXME: Kafka Gateway - Lombok builders not really good with abstraction, need to force cast
-                            .map(endpointGroup -> (EndpointGroup) endpointGroup)
-                            .toList()
+                        endpointGroups.stream().peek(endpointGroup -> endpointGroup.setSharedConfiguration(sharedConfiguration)).toList()
                     )
                     .build()
             )
