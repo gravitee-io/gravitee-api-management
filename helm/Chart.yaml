@@ -45,4 +45,6 @@ annotations:
           url: https://github.com/gravitee-io/issues/issues/10117
     - kind: added
       description: 'Add support of Kafka Gateway configuration'
+    - kind: added
+      description: 'Improve HPA by allowing custom annotation, custom metrics and define the behavior spec (APIM-8186)'
 

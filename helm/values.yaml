@@ -746,11 +746,21 @@ api:
 #    appProtocol: http
   # annotations:
   autoscaling:
+    # When api.autoscaling.enabled is true, a HorizontalPodAutoscaler is created
     enabled: true
     minReplicas: 1
     maxReplicas: 3
+    # warning: these two target utilization will be overwritten if api.autoscaling.metrics is defined.
     targetAverageUtilization: 50
     targetMemoryAverageUtilization: 80
+    # here you can add specific annotations to this HPA
+#    annotations:
+    # If default CPU and Memory utilisation is not enough, you can here overwrite the metrics with your settings
+    # @see: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+#    metrics:
+    # Optionnaly you can also add behavior
+    # @see: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#configurable-scaling-behavior
+#    behavior:
   ingress:
     management:
       enabled: true
@@ -1463,11 +1473,21 @@ gateway:
 #    appProtocol: http
   # annotations:
   autoscaling:
+    # When gateway.autoscaling.enabled is true, a HorizontalPodAutoscaler is created
     enabled: true
     minReplicas: 1
     maxReplicas: 3
+    # warning: these two target utilization will be overwritten if gateway.autoscaling.metrics is defined.
     targetAverageUtilization: 50
     targetMemoryAverageUtilization: 80
+    # here you can add specific annotations to this HPA
+#    annotations:
+    # If default CPU and Memory utilisation is not enough, you can here overwrite the metrics with your settings
+    # @see: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+#    metrics:
+    # Optionnaly you can also add behavior
+    # @see: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#configurable-scaling-behavior
+#    behavior:
   ingress:
     enabled: true
     pathType: Prefix
@@ -1623,11 +1643,21 @@ portal:
   #         name: special-config
   #         key: SPECIAL_LEVEL
   autoscaling:
+    # When portal.autoscaling.enabled is true, a HorizontalPodAutoscaler is created
     enabled: true
     minReplicas: 1
     maxReplicas: 3
+    # warning: these two target utilization will be overwritten if portal.autoscaling.metrics is defined.
     targetAverageUtilization: 50
     targetMemoryAverageUtilization: 80
+    # here you can add specific annotations to this HPA
+#    annotations:
+    # If default CPU and Memory utilisation is not enough, you can here overwrite the metrics with your settings
+    # @see: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+#    metrics:
+    # Optionnaly you can also add behavior
+    # @see: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#configurable-scaling-behavior
+#    behavior:
   service:
     name: nginx
     type: ClusterIP
@@ -1810,11 +1840,21 @@ ui:
   #         name: special-config
   #         key: SPECIAL_LEVEL
   autoscaling:
+    # When ui.autoscaling.enabled is true, a HorizontalPodAutoscaler is created
     enabled: true
     minReplicas: 1
     maxReplicas: 3
+    # warning: these two target utilization will be overwritten if ui.autoscaling.metrics is defined.
     targetAverageUtilization: 50
     targetMemoryAverageUtilization: 80
+    # here you can add specific annotations to this HPA
+#    annotations:
+    # If default CPU and Memory utilisation is not enough, you can here overwrite the metrics with your settings
+    # @see: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+#    metrics:
+    # Optionnaly you can also add behavior
+    # @see: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#configurable-scaling-behavior
+#    behavior:
   service:
     name: nginx
     type: ClusterIP
