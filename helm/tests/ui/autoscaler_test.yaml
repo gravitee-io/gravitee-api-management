@@ -48,3 +48,120 @@ tests:
       - hasDocuments:
           count: 0
 
+  - it: Check custom annotations
+    set:
+      global:
+        kubeVersion: 1.23.0
+      ui:
+        enabled: true
+        autoscaling:
+          enabled: true
+          annotations:
+            custom-annotation: "custom-value"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: HorizontalPodAutoscaler
+      - isAPIVersion:
+          of: autoscaling/v2
+      - isSubset:
+          path: metadata.annotations
+          content:
+            custom-annotation: "custom-value"
+
+  - it: Check metrics overwrite
+    set:
+      global:
+        kubeVersion: 1.23.0
+      ui:
+        enabled: true
+        autoscaling:
+          enabled: true
+          metrics:
+            - type: Resource
+              resource:
+                name: memory
+                target:
+                  type: Utilization
+                  averageUtilization: 50
+            - type: Resource
+              resource:
+                name: cpu
+                target:
+                  type: Utilization
+                  averageUtilization: 30
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: HorizontalPodAutoscaler
+      - isAPIVersion:
+          of: autoscaling/v2
+      - contains:
+          path: spec.metrics
+          content:
+            type: Resource
+            resource:
+              name: memory
+              target:
+                type: Utilization
+                averageUtilization: 50
+      - contains:
+          path: spec.metrics
+          content:
+            type: Resource
+            resource:
+              name: cpu
+              target:
+                type: Utilization
+                averageUtilization: 30
+
+  - it: Check behavior definition
+    set:
+      global:
+        kubeVersion: 1.23.0
+      ui:
+        enabled: true
+        autoscaling:
+          enabled: true
+          metrics:
+            - type: Resource
+              resource:
+                name: memory
+                target:
+                  type: Utilization
+                  averageUtilization: 50
+            - type: Resource
+              resource:
+                name: cpu
+                target:
+                  type: Utilization
+                  averageUtilization: 30
+          behavior:
+            scaleDown:
+              policies:
+                - type: Pods
+                  value: 4
+                  periodSeconds: 60
+                - type: Percent
+                  value: 10
+                  periodSeconds: 60
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: HorizontalPodAutoscaler
+      - isAPIVersion:
+          of: autoscaling/v2
+      - isSubset:
+          path: spec.behavior
+          content:
+            scaleDown:
+              policies:
+                - type: Pods
+                  value: 4
+                  periodSeconds: 60
+                - type: Percent
+                  value: 10
+                  periodSeconds: 60
