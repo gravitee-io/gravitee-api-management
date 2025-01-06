@@ -196,6 +196,19 @@ class DashboardTimeframeController {
   }
 
   $onInit() {
+    this.setTimeFrame();
+    this.$scope.$watch(
+      () => this.activatedRoute.snapshot.queryParams,
+      (newParams, oldParams) => {
+        if (newParams.dashboard !== oldParams.dashboard) {
+          this.setTimeFrame();
+        }
+      },
+      true, // Deep watch
+    );
+  }
+
+  setTimeFrame() {
     if (this.activatedRoute.snapshot.queryParams.from && this.activatedRoute.snapshot.queryParams.to) {
       this.update({
         from: this.activatedRoute.snapshot.queryParams.from,
