@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
+import com.dajudge.kindcontainer.KindContainer;
+import com.dajudge.kindcontainer.KindContainerVersion;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
@@ -64,7 +66,6 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
-import org.testcontainers.k3s.K3sContainer;
 
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
@@ -131,22 +132,22 @@ class KubernetesSecretProviderIntegrationTest {
                     """;
 
     static Path kubeConfigFile;
-    static K3sContainer k3sServer;
+    static KindContainer<?> kubeContainer;
 
     @BeforeAll
-    static void startK3s() throws IOException {
-        k3sServer = KubernetesHelper.getK3sServer();
-        k3sServer.start();
+    static void startK8s() throws IOException {
+        kubeContainer = new KindContainer<>(KindContainerVersion.VERSION_1_29_1);
+        kubeContainer.start();
         // write config so the secret provider can pick it up
         kubeConfigFile =
             Files.createTempDirectory(KubernetesSecretProviderIntegrationTest.class.getSimpleName()).resolve("kube_config.yml");
-        Files.writeString(kubeConfigFile, k3sServer.getKubeConfigYaml());
+        Files.writeString(kubeConfigFile, kubeContainer.getKubeconfig());
     }
 
     @AfterAll
     static void cleanup() throws IOException {
-        k3sServer.close();
-        Files.delete(kubeConfigFile);
+        kubeContainer.close();
+        Files.deleteIfExists(kubeConfigFile);
     }
 
     abstract static class AbstractKubernetesTest extends AbstractGatewayTest {
@@ -194,7 +195,7 @@ class KubernetesSecretProviderIntegrationTest {
 
         @Override
         void createSecrets() throws IOException, InterruptedException {
-            KubernetesHelper.createSecret(k3sServer, "default", "simple", Map.of("password", "simplepwd"));
+            KubernetesHelper.createSecret(kubeContainer, "default", "simple", Map.of("password", "simplepwd"));
         }
 
         @Override
@@ -216,11 +217,11 @@ class KubernetesSecretProviderIntegrationTest {
 
         @Override
         public void createSecrets() throws IOException, InterruptedException {
-            KubernetesHelper.createNamespace(k3sServer, "nondefaultns");
-            KubernetesHelper.createSecret(k3sServer, "nondefaultns", "bar", Map.of("password", "nonDefaultNSBar"));
-            KubernetesHelper.createSecret(k3sServer, "default", "bar", Map.of("password", "bar"));
-            KubernetesHelper.createSecret(k3sServer, "default", "foo", Map.of("password", "foo"));
-            KubernetesHelper.createSecret(k3sServer, "default", "watched", Map.of("password", "iwillchange"));
+            KubernetesHelper.createNamespace(kubeContainer, "nondefaultns");
+            KubernetesHelper.createSecret(kubeContainer, "nondefaultns", "bar", Map.of("password", "nonDefaultNSBar"));
+            KubernetesHelper.createSecret(kubeContainer, "default", "bar", Map.of("password", "bar"));
+            KubernetesHelper.createSecret(kubeContainer, "default", "foo", Map.of("password", "foo"));
+            KubernetesHelper.createSecret(kubeContainer, "default", "watched", Map.of("password", "iwillchange"));
         }
 
         @Override
@@ -252,7 +253,7 @@ class KubernetesSecretProviderIntegrationTest {
             assertThat(environment.getProperty("foo")).isEqualTo("foo");
             assertThat(environment.getProperty("watched")).isEqualTo("iwillchange");
 
-            KubernetesHelper.updateSecret(k3sServer, "default", "watched", Map.of("password", "iamchanged"), false);
+            KubernetesHelper.updateSecret(kubeContainer, "default", "watched", Map.of("password", "iamchanged"), false);
             await()
                 .atMost(Duration.ofSeconds(2))
                 .untilAsserted(() -> assertThat(environment.getProperty("watched")).isEqualTo("iamchanged"));
@@ -292,7 +293,7 @@ class KubernetesSecretProviderIntegrationTest {
 
         @Override
         public void createSecrets() throws IOException, InterruptedException {
-            KubernetesHelper.createSecret(k3sServer, "default", "tls-test-default", Map.of("tls.crt", CERT, "tls.key", KEY), true);
+            KubernetesHelper.createSecret(kubeContainer, "default", "tls-test-default", Map.of("tls.crt", CERT, "tls.key", KEY), true);
         }
 
         @Test
@@ -336,7 +337,7 @@ class KubernetesSecretProviderIntegrationTest {
 
         @Override
         public void createSecrets() throws IOException, InterruptedException {
-            KubernetesHelper.createSecret(k3sServer, "default", "tls-test-late", Map.of("tls.crt", CERT, "tls.key", KEY), true);
+            KubernetesHelper.createSecret(kubeContainer, "default", "tls-test-late", Map.of("tls.crt", CERT, "tls.key", KEY), true);
         }
 
         @Test
@@ -376,8 +377,8 @@ class KubernetesSecretProviderIntegrationTest {
 
         @Override
         public void createSecrets() throws IOException, InterruptedException {
-            KubernetesHelper.createNamespace(k3sServer, "test");
-            KubernetesHelper.createSecret(k3sServer, "test", "tls-test-custom", Map.of("cert", CERT, "key", KEY));
+            KubernetesHelper.createNamespace(kubeContainer, "test");
+            KubernetesHelper.createSecret(kubeContainer, "test", "tls-test-custom", Map.of("cert", CERT, "key", KEY));
         }
 
         @Test
@@ -468,7 +469,7 @@ class KubernetesSecretProviderIntegrationTest {
 
         @Override
         void createSecrets() throws IOException, InterruptedException {
-            KubernetesHelper.createSecret(k3sServer, "default", "tls-test", Map.of("tls.crt", CERT, "tls.key", KEY), true);
+            KubernetesHelper.createSecret(kubeContainer, "default", "tls-test", Map.of("tls.crt", CERT, "tls.key", KEY), true);
         }
 
         @Override
@@ -507,7 +508,7 @@ class KubernetesSecretProviderIntegrationTest {
                 .awaitDone(5, TimeUnit.SECONDS)
                 .assertComplete();
 
-            KubernetesHelper.updateSecret(k3sServer, "default", "tls-test", Map.of("tls.crt", NEW_CERT, "tls.key", NEW_KEY), true);
+            KubernetesHelper.updateSecret(kubeContainer, "default", "tls-test", Map.of("tls.crt", NEW_CERT, "tls.key", NEW_KEY), true);
 
             // create a new client to avoid sharing the connection
             var newHttpClient = getBean(Vertx.class)
