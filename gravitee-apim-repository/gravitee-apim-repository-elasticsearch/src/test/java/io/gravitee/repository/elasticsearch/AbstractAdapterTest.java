@@ -20,11 +20,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.elasticsearch.model.SearchHit;
 import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import lombok.SneakyThrows;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractAdapterTest {
 
