@@ -198,21 +198,21 @@ class SecuredVaultSecretProviderIntegrationTest {
         @Override
         public void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
             configurationBuilder
-                .setYamlProperty("test", "secret://vault/secret/test:password")
-                .setYamlProperty("foo", "secret://vault/secret/foo:password");
+                .setYamlProperty("foo", "secret://vault/secret/foo:password")
+                .setYamlProperty("bar", "secret://vault/secret/bar:password");
         }
 
         @Override
         void createSecrets() throws VaultException {
-            writeSecret("secret/test", Map.of("password", password1));
-            writeSecret("secret/foo", Map.of("password", password2));
+            writeSecret("secret/foo", Map.of("password", password1));
+            writeSecret("secret/bar", Map.of("password", password2));
         }
 
         @Test
         void should_be_able_to_resolve_secret() {
             Environment environment = getBean(Environment.class);
-            assertThat(environment.getProperty("test")).isEqualTo(password1);
-            assertThat(environment.getProperty("foo")).isEqualTo(password2);
+            assertThat(environment.getProperty("foo")).isEqualTo(password1);
+            assertThat(environment.getProperty("bar")).isEqualTo(password2);
         }
     }
 
@@ -315,7 +315,7 @@ class SecuredVaultSecretProviderIntegrationTest {
         @Override
         public void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
             configurationBuilder
-                .setYamlProperty("test", "secret://vault/secret/test:password?watch")
+                .setYamlProperty("watched", "secret://vault/secret/test:password?watch")
                 .setYamlProperty("secrets.vault.watch.enabled", true)
                 .setYamlProperty("secrets.vault.watch.pollIntervalSec", "1");
         }
@@ -328,11 +328,11 @@ class SecuredVaultSecretProviderIntegrationTest {
         @Test
         void should_be_able_to_watch_secret() throws VaultException {
             Environment environment = getBean(Environment.class);
-            assertThat(environment.getProperty("test")).isEqualTo("changeme");
+            assertThat(environment.getProperty("watched")).isEqualTo("changeme");
             writeSecret("secret/test", Map.of("password", "okiamchanged"));
             await()
                 .atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> assertThat(environment.getProperty("test")).isEqualTo("okiamchanged"));
+                .untilAsserted(() -> assertThat(environment.getProperty("watched")).isEqualTo("okiamchanged"));
         }
     }
 

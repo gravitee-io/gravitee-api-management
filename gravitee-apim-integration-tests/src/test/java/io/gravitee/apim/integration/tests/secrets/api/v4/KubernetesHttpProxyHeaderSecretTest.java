@@ -22,6 +22,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.dajudge.kindcontainer.KindContainer;
+import com.dajudge.kindcontainer.KindContainerVersion;
 import com.graviteesource.service.secrets.SecretsService;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
@@ -56,7 +58,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.k3s.K3sContainer;
 
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
@@ -67,22 +68,22 @@ import org.testcontainers.k3s.K3sContainer;
 class KubernetesHttpProxyHeaderSecretTest extends AbstractGatewayTest {
 
     static Path kubeConfigFile;
-    static K3sContainer k3sServer;
+    static KindContainer<?> kubeContainer;
     final String apiKey = UUID.randomUUID().toString();
 
     @AfterAll
     static void cleanup() throws IOException {
-        k3sServer.close();
-        Files.delete(kubeConfigFile);
+        kubeContainer.close();
+        Files.deleteIfExists(kubeConfigFile);
     }
 
     // not call by JUnit, as needs to be started before API is deployed
-    static void startK3s() throws IOException {
-        if (k3sServer == null) {
-            k3sServer = KubernetesHelper.getK3sServer();
-            k3sServer.start();
+    static void startK8s() throws IOException {
+        if (kubeContainer == null) {
+            kubeContainer = new KindContainer<>(KindContainerVersion.VERSION_1_29_1);
+            kubeContainer.start();
             // write config so the secret provider can pick it up
-            Files.writeString(kubeConfigFile, k3sServer.getKubeConfigYaml());
+            Files.writeString(kubeConfigFile, kubeContainer.getKubeconfig());
         }
     }
 
@@ -93,7 +94,7 @@ class KubernetesHttpProxyHeaderSecretTest extends AbstractGatewayTest {
         secretProviderPlugins.add(
             SecretProviderBuilder.build(KubernetesSecretProvider.PLUGIN_ID, KubernetesSecretProviderFactory.class, K8sConfig.class)
         );
-        startK3s();
+        startK8s();
         createSecrets();
     }
 
@@ -128,7 +129,7 @@ class KubernetesHttpProxyHeaderSecretTest extends AbstractGatewayTest {
 
     // @Override
     void createSecrets() throws IOException, InterruptedException {
-        KubernetesHelper.createSecret(k3sServer, "default", "test", Map.of("api-key", this.apiKey));
+        KubernetesHelper.createSecret(kubeContainer, "default", "test", Map.of("api-key", this.apiKey));
     }
 
     protected void callAndAssert(HttpClient httpClient) {

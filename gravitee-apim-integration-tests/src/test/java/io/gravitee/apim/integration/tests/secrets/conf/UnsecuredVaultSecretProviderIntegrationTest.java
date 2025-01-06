@@ -79,7 +79,7 @@ class UnsecuredVaultSecretProviderIntegrationTest {
             configurationBuilder.setYamlProperty("secrets.vault.ssl.enabled", false);
             configurationBuilder.setYamlProperty("secrets.vault.auth.method", "token");
             configurationBuilder.setYamlProperty("secrets.vault.auth.config.token", token);
-            configurationBuilder.setYamlProperty("test", "secret://vault/secret/test:top_secret");
+            configurationBuilder.setYamlProperty("secret", "secret://vault/secret/test:top_secret");
         }
 
         @Override
@@ -92,7 +92,7 @@ class UnsecuredVaultSecretProviderIntegrationTest {
         @Test
         void should_be_able_to_resolve_secret() {
             Environment environment = getBean(Environment.class);
-            assertThat(environment.getProperty("test")).isEqualTo("thatWillRemainOurDirtyLittleSecret");
+            assertThat(environment.getProperty("secret")).isEqualTo("thatWillRemainOurDirtyLittleSecret");
         }
     }
 }
