@@ -36,6 +36,7 @@
         <sol-jcsmp.version>10.22.0</sol-jcsmp.version>
         <solace-messaging-client.version>1.4.0</solace-messaging-client.version>
         <reactor-rabbitmq.version>1.5.6</reactor-rabbitmq.version>
+        <testcontainers-redis.version>2.2.2</testcontainers-redis.version>
         <kindcontainer.version>1.4.6</kindcontainer.version>
 
         <surefireArgLine>-Xmx1024m -XX:MaxMetaspaceSize=512m</surefireArgLine>
@@ -71,6 +72,12 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>hivemq</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.redis</groupId>
+            <artifactId>testcontainers-redis</artifactId>
+            <version>${testcontainers-redis.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -142,6 +149,11 @@
             <groupId>com.dajudge.kindcontainer</groupId>
             <artifactId>kindcontainer</artifactId>
             <version>${kindcontainer.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>vault</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -719,11 +731,7 @@
             <version>${gravitee-service-secrets.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>vault</artifactId>
-            <scope>test</scope>
-        </dependency>
+
     </dependencies>
 
     <build>
