@@ -51,9 +51,7 @@
         <gravitee-alert-api.version>2.0.0</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>3.7.0</gravitee-cockpit-api.version>
         <gravitee-cloud-initializer.version>2.1.0</gravitee-cloud-initializer.version>
-        <gravitee-spec-gen-api.version>1.1.0</gravitee-spec-gen-api.version>
         <gravitee-common.version>4.6.0</gravitee-common.version>
-        <gravitee-secret-api.version>1.0.0</gravitee-secret-api.version>
         <gravitee-connector-api.version>1.1.5</gravitee-connector-api.version>
         <gravitee-exchange.version>1.8.2</gravitee-exchange.version>
         <gravitee-expression-language.version>4.0.0</gravitee-expression-language.version>
@@ -74,7 +72,9 @@
         <gravitee-resource-content-provider-api.version>1.0.0</gravitee-resource-content-provider-api.version>
         <gravitee-resource-oauth2-provider-api.version>1.4.0</gravitee-resource-oauth2-provider-api.version>
         <gravitee-scoring-api.version>0.5.1</gravitee-scoring-api.version>
+        <gravitee-secret-api.version>1.0.0</gravitee-secret-api.version>
         <gravitee-service-discovery-api.version>1.1.1</gravitee-service-discovery-api.version>
+        <gravitee-spec-gen-api.version>1.1.0</gravitee-spec-gen-api.version>
 
         <!-- Other dependencies version -->
         <angus-activation.version>2.0.2</angus-activation.version>
