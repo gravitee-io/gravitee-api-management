@@ -166,6 +166,8 @@ secrets:
 #  # Routing Host Mode
 #  routingHostMode:
 #    brokerPrefix: broker- # default is broker-
+#    domainSeparator: - # Used to separate broker's name from api & defaultDomain. Default is '-'
+#
 #    # The default domain where the Kafka APIs are exposed. ex: `myapi` will be exposed as `myapi.mycompany.org`
 #    defaultDomain: mycompany.org # Should set according to the public wildcard DNS/Certificate. Default is empty
 #    defaultPort: 9092 # Default public port for Kafka APIs. Default is 9092
