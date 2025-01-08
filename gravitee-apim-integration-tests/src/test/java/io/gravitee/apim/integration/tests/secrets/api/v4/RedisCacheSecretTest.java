@@ -79,7 +79,7 @@ class RedisCacheSecretTest extends AbstractGatewayTest {
         if (redisContainer == null) {
             redisContainer =
                 new RedisContainer(DockerImageName.parse("redis:7.4.2"))
-                    .withCommand("redis-server", "--requirepass", "\"" + REDIS_PASSWORD + "\"")
+                        .withCommand("redis-server", "--appendonly", "yes", "--requirepass", REDIS_PASSWORD)
                     .withLogConsumer(f -> System.out.println(f.getUtf8String()));
             redisContainer.start();
         }
