@@ -44,4 +44,13 @@ export class ApiMemberV2Service {
   deleteMember(api: string, memberId: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.env.v2BaseURL}/apis/${api}/members/${memberId}`);
   }
+
+  getPagedMembers(api: string, page = 1, perPage = 10): Observable<MembersResponse> {
+    return this.http.get<MembersResponse>(`${this.constants.env.v2BaseURL}/apis/${api}/members`, {
+      params: {
+        page,
+        perPage,
+      },
+    });
+  }
 }
