@@ -24,4 +24,3 @@ annotations:
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
   artifacthub.io/changes: |
-
