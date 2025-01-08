@@ -23,8 +23,11 @@ tests:
           routingMode: host
           routingHostMode:
             brokerPrefix: fox-
+            domainSeparator: |
             defaultDomain: gravitee.io
             defaultPort: 42
+          apiKey:
+            securityMechanisms: SCRAM-SHA-512
           port: 9042
           host: 42.42.42.42
           idleTimeout: 42
@@ -40,8 +43,11 @@ tests:
               routingMode: host
               routingHostMode:
                 brokerPrefix: fox-
+                domainSeparator: |
                 defaultDomain: gravitee.io
                 defaultPort: 42
+              api-key:
+                securityMechanisms: SCRAM-SHA-512
               port: 9042
               host: 42.42.42.42
               idleTimeout: 42
