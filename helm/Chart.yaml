@@ -43,3 +43,6 @@ annotations:
       links:
         - name: Github Issue
           url: https://github.com/gravitee-io/issues/issues/10117
+    - kind: added
+      description: 'Add support of Kafka Gateway configuration'
+

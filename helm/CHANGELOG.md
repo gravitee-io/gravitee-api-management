@@ -6,7 +6,11 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 ### 4.6.0
 
 - Add support of heartbeat delay for the gateway
-- add missing haproxy mapping attribute
+- Add missing haproxy mapping attribute
+- Add support for new OpenTelemetry feature. BREAKING CHANGE: gravitee.services.tracing block of configuration has been replaced by gravitee.services.opentelemetry.
+- Allow users to overwrite the Elasticsearch or Opensearch rollover alias property name
+- Allow users to limit documentation content size in audit page when importing an API
+- Add support of Kafka Gateway configuration
 
 ### 4.5.0
 
