@@ -18,6 +18,15 @@ import { marked, Renderer, RendererObject } from 'marked';
 import { gfmHeadingId } from 'marked-gfm-heading-id';
 import { markedHighlight } from 'marked-highlight';
 import hljs from 'highlight.js';
+import markedAlert from 'marked-alert';
+import { markedEmoji } from 'marked-emoji';
+import * as emojiData from '@emoji-mart/data';
+import { Emoji } from '@emoji-mart/data';
+/*
+ * marked-extended-tables does not support proper typescript import so we need to import it like this pointing to the src/index file.
+ * Please do not change this import before checking if the issue is fixed in the library.
+ */
+import markedExtendedTables from 'marked-extended-tables/src/index';
 
 import { Page } from '../../../projects/portal-webclient-sdk/src/lib';
 
@@ -36,6 +45,9 @@ export class MarkdownService {
         },
       }),
     );
+    marked.use(markedAlertExtension);
+    marked.use(markedEmojiExtension());
+    marked.use(markedExtendedTables());
   }
 
   public renderer(baseUrl: string, pageBaseUrl: string, pages: Page[]): RendererObject {
@@ -151,4 +163,42 @@ const findPageId = (finalChildPageType: string, parentId: string, index: number,
   }
 
   return findingFinalChildPage ? page?.id : findPageId(finalChildPageType, page?.id, index + 1, path, pages);
+};
+
+const markedAlertExtension = markedAlert({
+  variants: [
+    {
+      type: 'note',
+      icon: '<gv-icon shape="action:info_outline" style="--gv-icon--s: 20px; margin-right: 4px"></gv-icon>',
+    },
+    {
+      type: 'tip',
+      icon: '<gv-icon shape="home:buld#1" style="--gv-icon--s: 20px; margin-right: 4px;"></gv-icon>',
+    },
+    {
+      type: 'important',
+      icon: '<gv-icon shape="action:announcement" style="--gv-icon--s: 20px; margin-right: 4px;"></gv-icon>',
+    },
+    {
+      type: 'warning',
+      icon: '<gv-icon shape="code:warning#2" style="--gv-icon--s: 20px; margin-right: 4px;"></gv-icon>',
+    },
+    {
+      type: 'caution',
+      icon: '<gv-icon shape="content:report" style="--gv-icon--s: 20px; margin-right: 4px;"></gv-icon>',
+    },
+  ],
+});
+
+const markedEmojiExtension = () => {
+  const nameToEmoji: Record<string, string> = {};
+  const data = emojiData as { emojis: Record<string, Emoji> };
+  Object.values(data.emojis).forEach(emoji => {
+    nameToEmoji[emoji.id] = emoji.skins[0].native;
+  });
+
+  return markedEmoji({
+    emojis: nameToEmoji,
+    renderer: token => token.emoji,
+  });
 };
