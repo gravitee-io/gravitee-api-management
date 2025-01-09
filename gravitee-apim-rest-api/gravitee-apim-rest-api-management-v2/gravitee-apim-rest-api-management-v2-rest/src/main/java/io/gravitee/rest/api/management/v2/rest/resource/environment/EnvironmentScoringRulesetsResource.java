@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
-import io.gravitee.apim.core.scoring.model.ScoreRequest;
-import io.gravitee.apim.core.scoring.model.ScoringRuleset;
 import io.gravitee.apim.core.scoring.use_case.GetEnvironmentRulesetsUseCase;
 import io.gravitee.apim.core.scoring.use_case.ImportEnvironmentRulesetUseCase;
 import io.gravitee.common.http.MediaType;

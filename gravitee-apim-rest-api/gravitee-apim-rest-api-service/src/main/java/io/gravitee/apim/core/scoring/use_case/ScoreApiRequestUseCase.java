@@ -35,6 +35,7 @@ import io.gravitee.apim.core.scoring.model.ScoringRuleset;
 import io.gravitee.apim.core.scoring.query_service.ScoringFunctionQueryService;
 import io.gravitee.apim.core.scoring.query_service.ScoringRulesetQueryService;
 import io.gravitee.apim.core.scoring.service_provider.ScoringProvider;
+import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -68,7 +69,7 @@ public class ScoreApiRequestUseCase {
                 scoringRulesetQueryService.findByReference(input.auditInfo.environmentId(), ScoringRuleset.ReferenceType.ENVIRONMENT)
             )
             .flatMap(Flowable::fromIterable)
-            .map(this::customRuleset)
+            .flatMapMaybe(this::customRuleset)
             .toList();
         var customFunctions$ = Flowable
             .fromCallable(() ->
@@ -143,12 +144,13 @@ public class ScoreApiRequestUseCase {
         );
     }
 
-    private ScoreRequest.CustomRuleset customRuleset(ScoringRuleset scoringRuleset) {
-        if (scoringRuleset.format() != null) {
-            return new ScoreRequest.CustomRuleset(scoringRuleset.payload(), format(scoringRuleset.format()));
+    private Maybe<ScoreRequest.CustomRuleset> customRuleset(ScoringRuleset scoringRuleset) {
+        if (StringUtils.isEmpty(scoringRuleset.payload())) {
+            return Maybe.empty();
         }
-
-        return new ScoreRequest.CustomRuleset(scoringRuleset.payload());
+        return scoringRuleset.format() != null
+            ? Maybe.just(new ScoreRequest.CustomRuleset(scoringRuleset.payload(), format(scoringRuleset.format())))
+            : Maybe.just(new ScoreRequest.CustomRuleset(scoringRuleset.payload()));
     }
 
     private ScoreRequest.Format format(ScoringRuleset.Format format) {
