@@ -19,7 +19,6 @@ package io.gravitee.apim.core.scoring.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.async_job.crud_service.AsyncJobCrudService;
 import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -29,13 +28,13 @@ import io.gravitee.apim.core.scoring.model.ScoringAssetType;
 import io.gravitee.apim.core.scoring.model.ScoringRuleset;
 import io.gravitee.apim.core.scoring.query_service.ScoringRulesetQueryService;
 import io.gravitee.apim.core.scoring.service_provider.ScoringProvider;
+import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -66,7 +65,7 @@ public class ScoreApiRequestUseCase {
                 scoringRulesetQueryService.findByReference(input.auditInfo.environmentId(), ScoringRuleset.ReferenceType.ENVIRONMENT)
             )
             .flatMap(Flowable::fromIterable)
-            .map(ScoringRuleset::payload)
+            .flatMapMaybe(this::customRuleset)
             .toList();
 
         return Maybe
@@ -94,6 +93,10 @@ public class ScoreApiRequestUseCase {
                 var job = newScoringJob(request.jobId(), input.auditInfo, input.apiId);
                 return scoringProvider.requestScore(request).doOnComplete(() -> asyncJobCrudService.create(job));
             });
+    }
+
+    private Maybe<String> customRuleset(ScoringRuleset scoringRuleset) {
+        return StringUtils.isEmpty(scoringRuleset.payload()) ? Maybe.empty() : Maybe.just(scoringRuleset.payload());
     }
 
     public AsyncJob newScoringJob(String id, AuditInfo auditInfo, String apiId) {
