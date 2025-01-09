@@ -142,6 +142,7 @@ public class ApiEntity implements GenericApiEntity {
     private Set<PlanEntity> plans = new HashSet<>();
 
     @Schema(description = "API's flow execution.")
+    @DeploymentRequired
     private FlowExecution flowExecution;
 
     @Schema(description = "A list of flows containing the policies configuration.")
