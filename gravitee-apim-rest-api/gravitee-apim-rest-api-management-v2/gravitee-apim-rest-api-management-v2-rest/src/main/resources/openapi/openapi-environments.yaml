@@ -592,12 +592,15 @@ components:
             properties:
                 name:
                     type: string
+                    minLength: 1
                     description: The name of ruleset
                 description:
                     type: string
+                    minLength: 1
                     description: The description of ruleset
                 payload:
                     type: string
+                    minLength: 1
                     description: The ruleset payload
                 format:
                     type: string
@@ -606,6 +609,11 @@ components:
                         - GRAVITEE_FEDERATION
                         - GRAVITEE_MESSAGE
                         - GRAVITEE_PROXY
+            required:
+              - name
+              - description
+              - payload
+              - format
         UpdateScoringRuleset:
             type: object
             description: The scoring ruleset to update
