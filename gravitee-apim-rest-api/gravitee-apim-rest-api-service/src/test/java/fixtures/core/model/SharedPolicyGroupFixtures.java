@@ -16,10 +16,12 @@
 package fixtures.core.model;
 
 import io.gravitee.apim.core.plugin.model.FlowPhase;
-import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.shared_policy_group.model.CreateSharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
+import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRD;
+import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRDStatus;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupPolicyPlugin;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import java.time.Instant;
@@ -52,6 +54,21 @@ public class SharedPolicyGroupFixtures {
 
     public static SharedPolicyGroup aSharedPolicyGroup() {
         return BASE.get().build();
+    }
+
+    private static final SharedPolicyGroupCRD.SharedPolicyGroupCRDBuilder CRD_BASE = SharedPolicyGroupCRD
+        .builder()
+        .crossId(UUID.random().toString())
+        .name("My Shared Policy Group CRD")
+        .apiType(io.gravitee.definition.model.v4.ApiType.PROXY)
+        .phase(io.gravitee.apim.core.plugin.model.FlowPhase.REQUEST);
+
+    public static SharedPolicyGroupCRD aSharedPolicyGroupCRD() {
+        return CRD_BASE.build();
+    }
+
+    public static SharedPolicyGroupCRDStatus aSharedPolicyGroupCRDStatus() {
+        return new SharedPolicyGroupCRDStatus(UUID.random().toString(), UUID.random().toString(), "organizationId", "environmentId", null);
     }
 
     private static final Supplier<CreateSharedPolicyGroup.CreateSharedPolicyGroupBuilder> CREATE_BASE = () ->

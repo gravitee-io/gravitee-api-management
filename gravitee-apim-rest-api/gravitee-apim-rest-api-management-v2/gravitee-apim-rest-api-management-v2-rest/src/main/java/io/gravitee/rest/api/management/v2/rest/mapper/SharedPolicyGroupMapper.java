@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRD;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.management.v2.rest.model.CreateSharedPolicyGroup;
 import io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroup;
@@ -26,17 +27,25 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class })
+@Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class, OriginContextMapper.class })
 public interface SharedPolicyGroupMapper {
     SharedPolicyGroupMapper INSTANCE = Mappers.getMapper(SharedPolicyGroupMapper.class);
 
     io.gravitee.apim.core.shared_policy_group.model.CreateSharedPolicyGroup map(CreateSharedPolicyGroup sharedPolicyGroup);
+
+    io.gravitee.apim.core.shared_policy_group.model.CreateSharedPolicyGroup map(SharedPolicyGroupCRD spec);
 
     List<SharedPolicyGroup> map(List<io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup> sharedPolicyGroups);
 
     SharedPolicyGroup map(io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup sharedPolicyGroup);
 
     io.gravitee.apim.core.shared_policy_group.model.UpdateSharedPolicyGroup map(UpdateSharedPolicyGroup sharedPolicyGroup);
+
+    SharedPolicyGroupCRD map(io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroupCRD spec);
+
+    io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup mapToModel(
+        io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroupCRD spec
+    );
 
     @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
     StepV4 mapStep(Step step);

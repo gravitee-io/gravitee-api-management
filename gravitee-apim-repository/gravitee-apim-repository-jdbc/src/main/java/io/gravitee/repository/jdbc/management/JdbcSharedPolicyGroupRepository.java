@@ -67,6 +67,7 @@ public class JdbcSharedPolicyGroupRepository
             .addColumn("prerequisite_message", Types.NVARCHAR, String.class)
             .addColumn("version", Types.INTEGER, Integer.class)
             .addColumn("api_type", Types.NVARCHAR, ApiType.class)
+            .addColumn("origin", Types.NVARCHAR, String.class)
             .addColumn("phase", Types.NVARCHAR, SharedPolicyGroup.FlowPhase.class)
             .addColumn("definition", Types.NVARCHAR, String.class)
             .addColumn("lifecycle_state", Types.NVARCHAR, SharedPolicyGroupLifecycleState.class)

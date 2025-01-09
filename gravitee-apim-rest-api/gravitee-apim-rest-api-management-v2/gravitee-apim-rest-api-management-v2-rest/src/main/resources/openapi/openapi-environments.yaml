@@ -395,6 +395,8 @@ components:
                     maxLength: 1024
                 apiType:
                     $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
+                originContext:
+                  $ref: "./openapi-apis.yaml#/components/schemas/BaseOriginContext"
                 phase:
                     $ref: "./openapi-plugins.yaml#/components/schemas/FlowPhase"
                 steps:
@@ -463,6 +465,8 @@ components:
                     example: 1
                 apiType:
                     $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
+                originContext:
+                  $ref: "./openapi-apis.yaml#/components/schemas/BaseOriginContext"
                 steps:
                     type: array
                     description: The list of steps (policies) in the shared policy group

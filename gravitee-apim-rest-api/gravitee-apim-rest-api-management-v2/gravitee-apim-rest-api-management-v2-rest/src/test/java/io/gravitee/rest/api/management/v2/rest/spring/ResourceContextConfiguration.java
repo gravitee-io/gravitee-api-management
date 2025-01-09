@@ -29,6 +29,7 @@ import inmemory.GroupCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
+import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
@@ -76,11 +77,13 @@ import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
+import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.DeleteSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.DeploySharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.GetSharedPolicyGroupPolicyPluginsUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.GetSharedPolicyGroupUseCase;
+import io.gravitee.apim.core.shared_policy_group.use_case.ImportSharedPolicyGroupCRDCRDUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.InitializeSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGroupHistoryUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGroupUseCase;
@@ -539,6 +542,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public ImportSharedPolicyGroupCRDCRDUseCase importSharedPolicyGroupCRDCRDUseCase() {
+        return mock(ImportSharedPolicyGroupCRDCRDUseCase.class);
+    }
+
+    @Bean
     public GetSharedPolicyGroupUseCase getSharedPolicyGroupUseCase() {
         return mock(GetSharedPolicyGroupUseCase.class);
     }
@@ -681,5 +689,10 @@ public class ResourceContextConfiguration {
         CRDMembersDomainService crdMembersDomainService
     ) {
         return new ImportGroupCRDUseCase(validateGroupCRDDomainService, groupQueryService, groupCrudService, crdMembersDomainService);
+    }
+
+    @Bean
+    public SharedPolicyGroupCrudService sharedPolicyGroupCrudService() {
+        return new SharedPolicyGroupCrudServiceInMemory();
     }
 }
