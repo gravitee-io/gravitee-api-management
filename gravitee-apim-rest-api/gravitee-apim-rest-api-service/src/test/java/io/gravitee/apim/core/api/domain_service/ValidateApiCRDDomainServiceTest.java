@@ -119,7 +119,7 @@ class ValidateApiCRDDomainServiceTest {
 
         when(
             membersValidator.validateAndSanitize(
-                new ValidateCRDMembersDomainService.Input(AUDIT_INFO, spec.getId(), MembershipReferenceType.APPLICATION, any())
+                new ValidateCRDMembersDomainService.Input(AUDIT_INFO, MembershipReferenceType.APPLICATION, any())
             )
         )
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));

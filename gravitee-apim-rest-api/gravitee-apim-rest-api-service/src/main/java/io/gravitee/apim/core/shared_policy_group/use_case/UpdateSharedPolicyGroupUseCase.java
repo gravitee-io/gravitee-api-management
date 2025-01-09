@@ -15,29 +15,26 @@
  */
 package io.gravitee.apim.core.shared_policy_group.use_case;
 
-import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
-import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
-import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupDuplicateCrossIdException;
+import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateUpdateSharedPolicyGroupDomainService;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEvent;
 import io.gravitee.apim.core.shared_policy_group.model.UpdateSharedPolicyGroup;
-import io.gravitee.definition.model.v4.flow.step.Step;
-import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.Map;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-@DomainService
+@UseCase
 public class UpdateSharedPolicyGroupUseCase {
 
     private final SharedPolicyGroupCrudService sharedPolicyGroupCrudService;
-    private final PolicyValidationDomainService policyValidationDomainService;
+    private final ValidateUpdateSharedPolicyGroupDomainService validateUpdateSharedPolicyGroupDomainService;
     private final AuditDomainService auditService;
 
     public Output execute(Input input) {
@@ -46,7 +43,7 @@ public class UpdateSharedPolicyGroupUseCase {
 
         var sharedPolicyGroupToUpdate = existingSharedPolicyGroup.update(input.sharedPolicyGroupToUpdate());
 
-        validateUpdateSharedPolicyGroup(sharedPolicyGroupToUpdate, input.auditInfo().environmentId());
+        validateUpdateSharedPolicyGroupDomainService.validate(sharedPolicyGroupToUpdate, input.auditInfo().environmentId());
 
         var updatedSharedPolicyGroup = this.sharedPolicyGroupCrudService.update(sharedPolicyGroupToUpdate);
         createAuditLog(existingSharedPolicyGroup, updatedSharedPolicyGroup, input.auditInfo());
@@ -57,37 +54,6 @@ public class UpdateSharedPolicyGroupUseCase {
     public record Input(String sharedPolicyGroupId, UpdateSharedPolicyGroup sharedPolicyGroupToUpdate, AuditInfo auditInfo) {}
 
     public record Output(SharedPolicyGroup sharedPolicyGroup) {}
-
-    private void validateUpdateSharedPolicyGroup(SharedPolicyGroup sharedPolicyGroup, String environmentId) {
-        if (!sharedPolicyGroup.hasName()) {
-            throw new InvalidDataException("Name is required.");
-        }
-
-        this.sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(environmentId, sharedPolicyGroup.getCrossId())
-            .filter(spg -> !spg.getId().equals(sharedPolicyGroup.getId()))
-            .ifPresent(spg -> {
-                throw new SharedPolicyGroupDuplicateCrossIdException(sharedPolicyGroup.getCrossId(), environmentId);
-            });
-
-        // Validate and sanitize policies configuration
-        if (sharedPolicyGroup.getSteps() != null) {
-            sharedPolicyGroup
-                .getSteps()
-                .stream()
-                .filter(Step::isEnabled)
-                .forEach(step ->
-                    step.setConfiguration(
-                        policyValidationDomainService.validateAndSanitizeConfiguration(step.getPolicy(), step.getConfiguration())
-                    )
-                );
-
-            policyValidationDomainService.validatePoliciesFlowPhase(
-                sharedPolicyGroup.getSteps().stream().map(Step::getPolicy).toList(),
-                sharedPolicyGroup.getApiType(),
-                sharedPolicyGroup.getPhase()
-            );
-        }
-    }
 
     private void createAuditLog(SharedPolicyGroup oldSharedPolicyGroup, SharedPolicyGroup sharedPolicyGroup, AuditInfo auditInfo) {
         auditService.createEnvironmentAuditLog(

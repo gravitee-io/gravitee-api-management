@@ -17,12 +17,16 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateSharedPolicyGroupCRDDomainService;
+import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRDStatus;
 import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.GetSharedPolicyGroupPolicyPluginsUseCase;
+import io.gravitee.apim.core.shared_policy_group.use_case.ImportSharedPolicyGroupCRDCRDUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGroupUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.SharedPolicyGroupMapper;
 import io.gravitee.rest.api.management.v2.rest.model.CreateSharedPolicyGroup;
+import io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroupCRD;
 import io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroupsResponse;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
@@ -39,6 +43,7 @@ import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
@@ -64,6 +69,12 @@ public class SharedPolicyGroupsResource extends AbstractResource {
 
     @Inject
     private GetSharedPolicyGroupPolicyPluginsUseCase getSharedPolicyGroupPolicyPluginsUseCase;
+
+    @Inject
+    private ImportSharedPolicyGroupCRDCRDUseCase importSharedPolicyGroupCRDCRDUseCase;
+
+    @Inject
+    private ValidateSharedPolicyGroupCRDDomainService validateSharedPolicyGroupCRDDomainService;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -95,6 +106,51 @@ public class SharedPolicyGroupsResource extends AbstractResource {
             .created(this.getLocationHeader(output.sharedPolicyGroup().getId()))
             .entity(SharedPolicyGroupMapper.INSTANCE.map(output.sharedPolicyGroup()))
             .build();
+    }
+
+    @PUT
+    @Path("/_import/crd")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.CREATE }) })
+    public Response createSharedPolicyGroupCrd(@Valid @NotNull final SharedPolicyGroupCRD spec, @QueryParam("dryRun") boolean dryRun) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var userDetails = getAuthenticatedUserDetails();
+
+        AuditInfo audit = AuditInfo
+            .builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(
+                AuditActor
+                    .builder()
+                    .userId(userDetails.getUsername())
+                    .userSource(userDetails.getSource())
+                    .userSourceId(userDetails.getSourceId())
+                    .build()
+            )
+            .build();
+
+        if (dryRun) {
+            var statusBuilder = SharedPolicyGroupCRDStatus.builder();
+            validateSharedPolicyGroupCRDDomainService
+                .validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(audit, SharedPolicyGroupMapper.INSTANCE.map(spec)))
+                .peek(
+                    sanitized ->
+                        statusBuilder
+                            .crossId(sanitized.crd().getCrossId())
+                            .organizationId(audit.organizationId())
+                            .environmentId(audit.environmentId()),
+                    errors -> statusBuilder.errors(SharedPolicyGroupCRDStatus.Errors.fromErrorList(errors))
+                );
+            return Response.ok(statusBuilder.build()).build();
+        }
+
+        var output = importSharedPolicyGroupCRDCRDUseCase.execute(
+            new ImportSharedPolicyGroupCRDCRDUseCase.Input(audit, SharedPolicyGroupMapper.INSTANCE.map(spec))
+        );
+
+        return Response.ok(output.status()).build();
     }
 
     @Path("{sharedPolicyGroupId}")

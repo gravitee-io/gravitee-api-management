@@ -44,7 +44,6 @@ public class ValidateApiCRDUseCase {
                         .crossId(sanitized.spec().getCrossId())
                         .organizationId(input.auditInfo().organizationId())
                         .environmentId(input.auditInfo().environmentId())
-                        .crossId(sanitized.spec().getCrossId())
                         .state(sanitized.spec().getState())
                         .plans(
                             sanitized

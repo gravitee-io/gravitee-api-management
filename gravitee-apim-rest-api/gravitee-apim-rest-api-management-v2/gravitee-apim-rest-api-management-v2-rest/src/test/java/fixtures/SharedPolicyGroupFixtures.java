@@ -15,6 +15,8 @@
  */
 package fixtures;
 
+import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRD;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.CreateSharedPolicyGroup;
 import io.gravitee.rest.api.management.v2.rest.model.FlowPhase;
@@ -42,5 +44,16 @@ public class SharedPolicyGroupFixtures {
 
     public static UpdateSharedPolicyGroup aUpdateSharedPolicyGroup() {
         return UPDATE_BASE.build();
+    }
+
+    private static final SharedPolicyGroupCRD.SharedPolicyGroupCRDBuilder CRD_BASE = SharedPolicyGroupCRD
+        .builder()
+        .crossId(UUID.random().toString())
+        .name("My Shared Policy Group CRD")
+        .apiType(io.gravitee.definition.model.v4.ApiType.PROXY)
+        .phase(io.gravitee.apim.core.plugin.model.FlowPhase.REQUEST);
+
+    public static SharedPolicyGroupCRD aSharedPolicyGroupCRD() {
+        return CRD_BASE.build();
     }
 }
