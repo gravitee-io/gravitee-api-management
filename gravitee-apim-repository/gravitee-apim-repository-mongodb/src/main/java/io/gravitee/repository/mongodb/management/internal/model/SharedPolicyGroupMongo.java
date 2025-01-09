@@ -45,6 +45,11 @@ public class SharedPolicyGroupMongo extends Auditable {
 
     private String apiType;
 
+    /**
+     * The origin of the api (management, kubernetes, ...).
+     */
+    private String origin;
+
     private String phase;
 
     private String definition;

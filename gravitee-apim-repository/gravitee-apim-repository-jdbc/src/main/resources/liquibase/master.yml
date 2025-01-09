@@ -229,3 +229,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_6_0/06_add_error_support_to_scoring_table.yml
     - include:
         - file: liquibase/changelogs/v4_6_0/07_add_ingested_mark_page_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_6_0/08-add_origin_to_shared_policy_groups_table.yml
