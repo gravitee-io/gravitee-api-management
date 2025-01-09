@@ -289,7 +289,7 @@
         <gravitee-service-secrets.version>1.0.0</gravitee-service-secrets.version>
         <gravitee-policy-interops.version>1.1.2</gravitee-policy-interops.version>
 
-        <gravitee-policy-kafka-quota.version>1.0.0</gravitee-policy-kafka-quota.version>
+        <gravitee-policy-kafka-quota.version>1.0.1</gravitee-policy-kafka-quota.version>
         <gravitee-policy-kafka-topic-mapping.version>1.0.0</gravitee-policy-kafka-topic-mapping.version>
         <gravitee-policy-kafka-acl.version>1.0.0-alpha.2</gravitee-policy-kafka-acl.version>
     </properties>
