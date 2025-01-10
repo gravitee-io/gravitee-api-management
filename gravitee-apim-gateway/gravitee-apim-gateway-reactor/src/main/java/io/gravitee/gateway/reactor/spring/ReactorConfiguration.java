@@ -41,6 +41,7 @@ import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPre
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactoryManager;
 import io.gravitee.gateway.reactive.reactor.v4.secrets.ApiV4DefinitionSecretRefsFinder;
+import io.gravitee.gateway.reactive.reactor.v4.secrets.NativeApiV4DefinitionSecretRefsFinder;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.AcceptorResolver;
 import io.gravitee.gateway.reactor.handler.ReactorEventListener;
@@ -265,5 +266,10 @@ public class ReactorConfiguration {
     @Bean
     public DefinitionSecretRefsFinder<?> v4ApiDefinitionSecretRefsFinder() {
         return new ApiV4DefinitionSecretRefsFinder();
+    }
+
+    @Bean
+    public DefinitionSecretRefsFinder<?> nativeV4ApiDefinitionSecretRefsFinder() {
+        return new NativeApiV4DefinitionSecretRefsFinder();
     }
 }
