@@ -18,7 +18,6 @@ package io.gravitee.gateway.reactive.core.context;
 import io.gravitee.common.util.ListUtils;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
-import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
@@ -35,7 +34,6 @@ import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,7 +45,6 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
     protected RQ request;
     protected RS response;
     protected Metrics metrics;
-    protected Collection<TemplateVariableProvider> templateVariableProviders;
 
     private EvaluableRequest evaluableRequest;
     private EvaluableResponse evaluableResponse;
