@@ -613,7 +613,6 @@ components:
               - name
               - description
               - payload
-              - format
         UpdateScoringRuleset:
             type: object
             description: The scoring ruleset to update
