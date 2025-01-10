@@ -17,10 +17,12 @@ package io.gravitee.gateway.reactive.core.context;
 
 import io.gravitee.common.util.ListUtils;
 import io.gravitee.el.TemplateEngine;
+import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +36,8 @@ public abstract class AbstractBaseExecutionContext implements BaseExecutionConte
     protected Map<String, Object> internalAttributes = new HashMap<>();
     protected ComponentProvider componentProvider;
     protected TemplateEngine templateEngine;
+    protected Collection<TemplateVariableProvider> templateVariableProviders;
+
     protected Tracer tracer;
     private final long timestamp = System.currentTimeMillis();
 
