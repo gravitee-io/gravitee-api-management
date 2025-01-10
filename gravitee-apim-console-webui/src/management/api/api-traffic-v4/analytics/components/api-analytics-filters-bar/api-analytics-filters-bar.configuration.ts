@@ -18,4 +18,8 @@ export enum FilterType {
   period = 'period',
 }
 
-export type FiltersApplied = { [key in FilterType]: string };
+export interface FiltersApplied {
+  period: string;
+  from?: number;
+  to?: number;
+}
