@@ -229,6 +229,25 @@
               aria-label="Use Tiles Mode for apis by default (if not overridden by user)"
             ></mat-slide-toggle>
           </gio-form-slide-toggle>
+          <gio-form-slide-toggle
+            formGroupName="documentationOnlyMode"
+            [matTooltip]="
+              'Toggling documentation-only mode restricts access to applications, dashboards, and API subscriptions in the developer portal.'
+            "
+            [matTooltipDisabled]="!isReadonly('portal.apis.documentationOnlyMode.enabled')"
+            class="portal__form__card__form-field"
+          >
+            <gio-form-label
+              >Use documentation-only mode to restrict access to applications, dashboards, and API subscriptions in the developer
+              portal</gio-form-label
+            >
+            <mat-slide-toggle
+              formControlName="enabled"
+              gioFormSlideToggle
+              aria-label="Toggling documentation-only mode restricts access to applications, dashboards, and API subscriptions in the developer portal."
+            >
+            </mat-slide-toggle>
+          </gio-form-slide-toggle>
         </div>
         <gio-form-slide-toggle
           formGroupName="support"

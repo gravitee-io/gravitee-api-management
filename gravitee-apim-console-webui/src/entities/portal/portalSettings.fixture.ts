@@ -29,6 +29,9 @@ export function fakePortalSettings(attributes?: Partial<PortalSettings>): Portal
         tilesMode: {
           enabled: true,
         },
+        documentationOnlyMode: {
+          enabled: false,
+        },
         categoryMode: {
           enabled: true,
         },
