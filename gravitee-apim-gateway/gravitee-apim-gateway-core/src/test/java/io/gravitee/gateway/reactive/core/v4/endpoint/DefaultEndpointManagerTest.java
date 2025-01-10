@@ -175,12 +175,12 @@ class DefaultEndpointManagerTest {
             verify(templateContext).setVariable(eq("endpoints"), endpointsCaptor.capture());
 
             assertThat(endpointsCaptor.getValue())
-                .containsEntry("group1", "group1:")
-                .containsEntry("endpoint1", "endpoint1:")
-                .containsEntry("endpoint2", "endpoint2:")
-                .containsEntry("group2", "group2:")
-                .containsEntry("endpoint3", "endpoint3:")
-                .containsEntry("endpoint4", "endpoint4:");
+                .containsEntry("group1", "group1")
+                .containsEntry("endpoint1", "endpoint1")
+                .containsEntry("endpoint2", "endpoint2")
+                .containsEntry("group2", "group2")
+                .containsEntry("endpoint3", "endpoint3")
+                .containsEntry("endpoint4", "endpoint4");
         }
 
         @Test

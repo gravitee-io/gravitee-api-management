@@ -250,8 +250,8 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
             final ManagedEndpoint managedEndpoint = new DefaultManagedEndpoint(endpoint, managedEndpointGroup, connector);
             managedEndpointGroup.addManagedEndpoint(managedEndpoint);
             endpointsByName.put(endpoint.getName(), managedEndpoint);
-            endpointVariables.put(endpoint.getName(), endpoint.getName() + ":");
-            endpointVariables.put(managedEndpointGroup.getDefinition().getName(), managedEndpointGroup.getDefinition().getName() + ":");
+            endpointVariables.put(endpoint.getName(), endpoint.getName());
+            endpointVariables.put(managedEndpointGroup.getDefinition().getName(), managedEndpointGroup.getDefinition().getName());
 
             listeners.values().forEach(l -> l.accept(Event.ADD, managedEndpoint));
         } catch (Exception e) {
