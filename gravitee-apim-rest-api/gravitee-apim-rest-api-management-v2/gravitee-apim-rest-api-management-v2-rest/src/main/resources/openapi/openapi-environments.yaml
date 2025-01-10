@@ -523,6 +523,20 @@ components:
               - name
               - description
               - payload
+<<<<<<< HEAD
+=======
+        UpdateScoringRuleset:
+            type: object
+            description: The scoring ruleset to update
+            properties:
+                name:
+                    type: string
+                    description: The name of ruleset
+                description:
+                    type: string
+                    description: The description of ruleset
+            required: ["name"]
+>>>>>>> 57f6096541 (fix: format is not mandatory)
         ScoringRuleset:
             type: object
             description: A scoring ruleset
