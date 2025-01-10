@@ -15,8 +15,6 @@
  */
 package io.gravitee.gateway.reactive.reactor.v4.secrets;
 
-import static io.gravitee.secrets.api.discovery.SecretRefsLocation.PLUGIN_KIND;
-
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
@@ -27,11 +25,9 @@ import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.secrets.api.discovery.Definition;
 import io.gravitee.secrets.api.discovery.DefinitionDescriptor;
 import io.gravitee.secrets.api.discovery.DefinitionMetadata;
-import io.gravitee.secrets.api.discovery.DefinitionSecretRefsFinder;
 import io.gravitee.secrets.api.discovery.DefinitionSecretRefsListener;
 import io.gravitee.secrets.api.discovery.SecretRefsLocation;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,13 +38,13 @@ import java.util.stream.Stream;
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiV4DefinitionSecretRefsFinder implements DefinitionSecretRefsFinder<Api> {
+public class ApiV4DefinitionSecretRefsFinder extends AbstractV4APISecretRefFinder<Api> {
 
     public static final String RESPONSE_TEMPLATES_KIND = "response-templates";
 
     @Override
     public boolean canHandle(Object definition) {
-        return definition != null && Api.class.isAssignableFrom(definition.getClass());
+        return canHandle(definition, Api.class);
     }
 
     @Override
@@ -61,23 +57,10 @@ public class ApiV4DefinitionSecretRefsFinder implements DefinitionSecretRefsFind
         // listeners
         safeStream(definition.getListeners())
             .flatMap(l -> safeStream(l.getEntrypoints()))
-            .forEach(entrypoint ->
-                listener.onCandidate(
-                    entrypoint.getConfiguration(),
-                    new SecretRefsLocation(PLUGIN_KIND, entrypoint.getType()),
-                    entrypoint::setConfiguration
-                )
-            );
+            .forEach(entrypoint -> processEntrypoint(listener, entrypoint));
 
         // resources
-        safeStream(definition.getResources())
-            .forEach(resource ->
-                listener.onCandidate(
-                    resource.getConfiguration(),
-                    new SecretRefsLocation(PLUGIN_KIND, resource.getType()),
-                    resource::setConfiguration
-                )
-            );
+        safeStream(definition.getResources()).forEach(resource -> processResource(listener, resource));
 
         // flows api and plan
         List<Flow> flows = safeList(definition.getPlans())
@@ -96,22 +79,9 @@ public class ApiV4DefinitionSecretRefsFinder implements DefinitionSecretRefsFind
                     flows.stream().flatMap(flow -> safeStream(flow.getSubscribe()))
                 )
             )
-            .forEach(step ->
-                listener.onCandidate(step.getConfiguration(), new SecretRefsLocation(PLUGIN_KIND, step.getPolicy()), step::setConfiguration)
-            );
+            .forEach(step -> processStep(listener, step));
 
-        safeStream(definition.getPlans())
-            .forEach(plan ->
-                Optional
-                    .ofNullable(plan.getSecurity())
-                    .ifPresent(security ->
-                        listener.onCandidate(
-                            security.getConfiguration(),
-                            new SecretRefsLocation(PLUGIN_KIND, security.getType()),
-                            security::setConfiguration
-                        )
-                    )
-            );
+        safeStream(definition.getPlans()).forEach(plan -> processPlanConfiguration(listener, plan));
 
         // endpoint groups
         safeStream(definition.getEndpointGroups())
@@ -124,62 +94,23 @@ public class ApiV4DefinitionSecretRefsFinder implements DefinitionSecretRefsFind
                 if (services.getHealthCheck() != null) {
                     list.add(services.getHealthCheck());
                 }
-                list
-                    .stream()
-                    .filter(Service::isEnabled)
-                    .forEach(service ->
-                        listener.onCandidate(
-                            service.getConfiguration(),
-                            new SecretRefsLocation(PLUGIN_KIND, service.getType()),
-                            service::setConfiguration
-                        )
-                    );
-                Optional
-                    .ofNullable(endpointGroup.getSharedConfiguration())
-                    .ifPresent(payload ->
-                        listener.onCandidate(
-                            payload,
-                            new SecretRefsLocation(PLUGIN_KIND, endpointGroup.getType()),
-                            endpointGroup::setSharedConfiguration
-                        )
-                    );
-                return safeStream(endpointGroup.getEndpoints());
+                list.stream().filter(Service::isEnabled).forEach(service -> processService(listener, service));
+                return processEndpointGroup(listener, endpointGroup);
             })
             .forEach(endpoint -> {
                 Optional
                     .ofNullable(endpoint.getServices())
                     .map(EndpointServices::getHealthCheck)
                     .filter(Service::isEnabled)
-                    .ifPresent(service ->
-                        listener.onCandidate(
-                            service.getConfiguration(),
-                            new SecretRefsLocation(PLUGIN_KIND, service.getType()),
-                            service::setConfiguration
-                        )
-                    );
-                listener.onCandidate(
-                    endpoint.getConfiguration(),
-                    new SecretRefsLocation(PLUGIN_KIND, endpoint.getType()),
-                    endpoint::setConfiguration
-                );
-                listener.onCandidate(
-                    endpoint.getSharedConfigurationOverride(),
-                    new SecretRefsLocation(PLUGIN_KIND, endpoint.getType()),
-                    endpoint::setSharedConfigurationOverride
-                );
+                    .ifPresent(service -> processService(listener, service));
+                processEndpoint(listener, endpoint);
             });
 
         // services
         Optional
             .ofNullable(definition.getServices())
             .map(ApiServices::getDynamicProperty)
-            .ifPresent(dynamicProperty ->
-                listener.onCandidate(
-                    dynamicProperty.getConfiguration(),
-                    new SecretRefsLocation(PLUGIN_KIND, dynamicProperty.getType()),
-                    dynamicProperty::setConfiguration
-                )
-            );
+            .ifPresent(dynamicProperty -> processService(listener, dynamicProperty));
 
         // response templates
         Map<String, Map<String, ResponseTemplate>> responseTemplates = definition.getResponseTemplates();
@@ -203,14 +134,6 @@ public class ApiV4DefinitionSecretRefsFinder implements DefinitionSecretRefsFind
                             );
                     })
             );
-    }
-
-    private <T> List<T> safeList(List<T> col) {
-        return col == null ? List.of() : col;
-    }
-
-    public <T> Stream<T> safeStream(Collection<T> col) {
-        return col == null ? Stream.empty() : col.stream();
     }
 
     public <K, V> Stream<K> safeKeySetStream(Map<K, V> map) {
