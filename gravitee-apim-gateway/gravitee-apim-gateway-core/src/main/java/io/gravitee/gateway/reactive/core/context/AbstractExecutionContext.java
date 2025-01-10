@@ -20,7 +20,6 @@ import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
@@ -37,7 +36,6 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,11 +46,7 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
 
     protected RQ request;
     protected RS response;
-    protected Map<String, Object> attributes = new ContextAttributeMap();
-    protected Map<String, Object> internalAttributes = new HashMap<>();
     protected Metrics metrics;
-    protected ComponentProvider componentProvider;
-    protected TemplateEngine templateEngine;
     protected Collection<TemplateVariableProvider> templateVariableProviders;
 
     private EvaluableRequest evaluableRequest;
