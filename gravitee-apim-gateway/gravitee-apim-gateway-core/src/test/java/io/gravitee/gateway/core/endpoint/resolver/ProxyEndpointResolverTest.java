@@ -66,6 +66,40 @@ public class ProxyEndpointResolverTest {
     }
 
     @Test
+    public void shouldResolveUserDefinedEndpoint() {
+        var endpointName = "my-endpoint";
+        var expectedUri = "http://endpoint:8080/test";
+
+        Endpoint endpoint = mock(Endpoint.class);
+        when(endpoint.name()).thenReturn(endpointName);
+        when(endpoint.target()).thenReturn(expectedUri);
+        referenceRegister.add(new EndpointReference(endpoint));
+
+        ProxyEndpoint proxyEndpoint = resolver.resolve(endpointName);
+        assertThat(proxyEndpoint).isNotNull();
+
+        ProxyRequest proxyRequest = proxyEndpoint.createProxyRequest(mock((Request.class)));
+        assertThat(proxyRequest.uri()).isEqualTo(expectedUri);
+    }
+
+    @Test
+    public void shouldResolveUserDefinedEndpoint_withPath() {
+        var endpointName = "my-endpoint";
+        var endpointTarget = "http://endpoint:8080/test";
+
+        Endpoint endpoint = mock(Endpoint.class);
+        when(endpoint.name()).thenReturn(endpointName);
+        when(endpoint.target()).thenReturn(endpointTarget);
+        referenceRegister.add(new EndpointReference(endpoint));
+
+        ProxyEndpoint proxyEndpoint = resolver.resolve(endpointName + ":/echo");
+        assertThat(proxyEndpoint).isNotNull();
+
+        ProxyRequest proxyRequest = proxyEndpoint.createProxyRequest(mock((Request.class)));
+        assertThat(proxyRequest.uri()).isEqualTo(endpointTarget + "/echo");
+    }
+
+    @Test
     // : is forbidden thanks to https://github.com/gravitee-io/issues/issues/1939
     public void shouldResolveUserDefinedEndpoint_withPointsInName() {
         String requestEndpoint = "lo:cal:";
