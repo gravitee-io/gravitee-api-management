@@ -3,13 +3,17 @@
   margin-bottom: 16px;
 }
 
-.filters {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
 .form {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
+
+  .custom-date {
+    width: 212px;
+  }
+}
+
+.errors {
+  width: 100%;
 }

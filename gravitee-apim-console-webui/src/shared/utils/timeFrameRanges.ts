@@ -16,10 +16,10 @@
 import { utc } from 'moment/moment';
 
 export interface TimeRangeParams {
-  id: string;
+  id?: string;
   from: number;
   to: number;
-  interval: number;
+  interval?: number;
 }
 
 export const timeInMilliseconds = {
@@ -69,5 +69,12 @@ export const timeFrames = [
     label: 'Last month',
     id: '1M',
     timeFrameRangesParams: getTimeFramesRangesParams,
+  },
+];
+
+export const customTimeFrames = [
+  {
+    label: 'Custom',
+    id: 'custom',
   },
 ];
