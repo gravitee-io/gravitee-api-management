@@ -513,7 +513,6 @@ components:
                     description: The name of ruleset
                 description:
                     type: string
-                    minLength: 1
                     description: The description of ruleset
                 payload:
                     type: string
@@ -521,7 +520,6 @@ components:
                     description: The ruleset payload
             required:
               - name
-              - description
               - payload
         ScoringRuleset:
             type: object

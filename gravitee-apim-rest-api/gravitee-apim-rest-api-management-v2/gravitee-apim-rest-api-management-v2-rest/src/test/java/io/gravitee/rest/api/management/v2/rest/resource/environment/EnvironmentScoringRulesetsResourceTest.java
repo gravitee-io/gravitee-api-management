@@ -103,6 +103,20 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_create_ruleset_without_description() {
+            // Given
+            var request = ImportScoringRuleset.builder().name("ruleset-name").payload("ruleset-payload").build();
+
+            // When
+            target.request().post(json(request));
+
+            // Then
+            assertThat(scoringRulesetCrudService.storage())
+                .extracting(ScoringRuleset::name, ScoringRuleset::payload)
+                .containsExactly(tuple("ruleset-name", "ruleset-payload"));
+        }
+
+        @Test
         void should_set_location_header_with_created_ruleset_url() {
             // Given
             UuidString.overrideGenerator(() -> "generated-id");
