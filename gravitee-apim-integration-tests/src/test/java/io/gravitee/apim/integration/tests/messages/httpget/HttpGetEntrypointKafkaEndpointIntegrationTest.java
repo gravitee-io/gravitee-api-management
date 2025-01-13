@@ -18,31 +18,52 @@ package io.gravitee.apim.integration.tests.messages.httpget;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.graviteesource.entrypoint.http.get.HttpGetEntrypointConnectorFactory;
+import com.graviteesource.secretprovider.hcvault.HCVaultSecretProvider;
+import com.graviteesource.secretprovider.hcvault.HCVaultSecretProviderFactory;
+import com.graviteesource.secretprovider.hcvault.config.manager.VaultConfig;
+import com.graviteesource.service.secrets.SecretsService;
+import io.github.jopenlibs.vault.VaultException;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
+import io.gravitee.apim.gateway.tests.sdk.secrets.SecretProviderBuilder;
 import io.gravitee.apim.integration.tests.messages.AbstractKafkaEndpointIntegrationTest;
+import io.gravitee.apim.integration.tests.secrets.SecuredVaultContainer;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.api.qos.Qos;
+import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.policy.assignattributes.AssignAttributesPolicy;
 import io.gravitee.policy.assignattributes.configuration.AssignAttributesPolicyConfiguration;
+import io.gravitee.secrets.api.plugin.SecretManagerConfiguration;
+import io.gravitee.secrets.api.plugin.SecretProviderFactory;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
+import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.testcontainers.containers.Container;
+import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.vault.VaultContainer;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -51,6 +72,18 @@ import org.junit.jupiter.params.provider.EnumSource;
 @GatewayTest
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpointIntegrationTest {
+
+    private static final String VAULT_TOKEN = UUID.randomUUID().toString();
+
+    @org.testcontainers.junit.jupiter.Container
+    protected static final VaultContainer vaultContainer = new VaultContainer<>("hashicorp/vault:1.13.3")
+        .withVaultToken(VAULT_TOKEN)
+        .dependsOn(kafka);
+
+    @AfterAll
+    static void cleanup() {
+        vaultContainer.close();
+    }
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
@@ -65,6 +98,49 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
             "assign-attributes",
             PolicyBuilder.build("assign-attributes", AssignAttributesPolicy.class, AssignAttributesPolicyConfiguration.class)
         );
+    }
+
+    @Override
+    public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
+        super.configureGateway(configurationBuilder);
+
+        // create a renewable token so the plugin does not start panicking
+        Container.ExecResult execResult;
+        try {
+            execResult = vaultContainer.execInContainer("vault", "token", "create", "-period=10m", "-field", "token");
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        String token = execResult.getStdout();
+
+        configurationBuilder.setYamlProperty("api.secrets.providers[0].plugin", "vault");
+        configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.enabled", true);
+        configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.host", vaultContainer.getHost());
+        configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.port", vaultContainer.getMappedPort(8200));
+        configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.ssl.enabled", "false");
+        configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.auth.method", "token");
+        configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.auth.config.token", token);
+
+        try {
+            vaultContainer.execInContainer("vault", "kv", "put", "secret/kafka", "bootstrap=" + kafka.getBootstrapServers());
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void configureSecretProviders(
+        Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
+    ) {
+        secretProviderPlugins.add(
+            SecretProviderBuilder.build(HCVaultSecretProvider.PLUGIN_ID, HCVaultSecretProviderFactory.class, VaultConfig.class)
+        );
+    }
+
+    @Override
+    public void configureServices(Set<Class<? extends AbstractService<?>>> services) {
+        super.configureServices(services);
+        services.add(SecretsService.class);
     }
 
     @Test
@@ -283,6 +359,44 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
             .assertValue(body -> {
                 final JsonObject jsonResponse = new JsonObject(body.toString());
                 assertThat(jsonResponse.getString("message")).isEqualTo("Invalid configuration");
+                return true;
+            });
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-secret.json" })
+    void should_receive_all_messages_with_bootstrap_servers_from_vault_secret(HttpClient client, Vertx vertx) {
+        Single
+            .fromCallable(() -> getKafkaProducer(vertx))
+            .flatMapCompletable(producer ->
+                publishToKafka(producer, "message1").andThen(publishToKafka(producer, "message2")).doFinally(producer::close)
+            )
+            .blockingAwait();
+
+        client
+            .rxRequest(HttpMethod.GET, "/test/test-secret")
+            .flatMap(request -> {
+                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+                return request.send();
+            })
+            .flatMap(response -> {
+                assertThat(response.statusCode()).isEqualTo(200);
+                return response.body();
+            })
+            .test()
+            .awaitDone(30, TimeUnit.SECONDS)
+            .assertValue(body -> {
+                final JsonObject jsonResponse = new JsonObject(body.toString());
+                final JsonArray items = jsonResponse.getJsonArray("items");
+                assertThat(items).hasSize(2);
+                final JsonObject message1 = items.getJsonObject(0);
+                assertThat(message1.getString("id")).isNull();
+                assertThat(message1.getJsonObject("metadata").getString("topic")).isEqualTo(TEST_TOPIC);
+                assertThat(message1.getString("content")).isEqualTo("message1");
+                final JsonObject message2 = items.getJsonObject(1);
+                assertThat(message2.getString("id")).isNull();
+                assertThat(message2.getJsonObject("metadata").getString("topic")).isEqualTo(TEST_TOPIC);
+                assertThat(message2.getString("content")).isEqualTo("message2");
                 return true;
             });
     }
