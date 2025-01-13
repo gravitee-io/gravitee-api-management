@@ -14,8 +14,15 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
+import * as emojiData from '@emoji-mart/data';
+import { Emoji } from '@emoji-mart/data';
 import hljs from 'highlight.js';
 import { marked, Renderer, RendererObject } from 'marked';
+import markedAlert from 'marked-alert';
+import { markedEmoji } from 'marked-emoji';
+// marked-extended-tables does not support proper typescript import so we need to import it like this pointing to the src/index file.
+// @ts-expect-error Please do not change this import before checking if the issue is fixed in the library.
+import markedExtendedTables from 'marked-extended-tables/src/index';
 import { gfmHeadingId } from 'marked-gfm-heading-id';
 import { markedHighlight } from 'marked-highlight';
 
@@ -36,6 +43,9 @@ export class MarkdownService {
         },
       }),
     );
+    marked.use(markedEmojiExtension());
+    marked.use(markedExtendedTables());
+    marked.use(markedAlertExtension());
   }
 
   public renderer(baseUrl: string, pageBaseUrl: string, pages: Page[]): RendererObject {
@@ -162,4 +172,45 @@ const findPageId = (
   }
 
   return findingFinalChildPage ? page?.id : findPageId(finalChildPageType, page?.id, index + 1, path, pages);
+};
+
+const markedEmojiExtension = () => {
+  const nameToEmoji: Record<string, string> = {};
+  const data = emojiData as { emojis: Record<string, Emoji> };
+  Object.values(data.emojis).forEach(emoji => {
+    nameToEmoji[emoji.id] = emoji.skins[0].native;
+  });
+
+  return markedEmoji({
+    emojis: nameToEmoji,
+    renderer: token => token.emoji,
+  });
+};
+
+const markedAlertExtension = () => {
+  const icon = (icon: string, type: string) => `<span class="mat-icon marked-alert-icons marked-alert-icons--${type}">${icon}</span>`;
+  return markedAlert({
+    variants: [
+      {
+        type: 'note',
+        icon: icon('info', 'note'),
+      },
+      {
+        type: 'tip',
+        icon: icon('lightbulb', 'tip'),
+      },
+      {
+        type: 'important',
+        icon: icon('error', 'important'),
+      },
+      {
+        type: 'warning',
+        icon: icon('warning', 'warning'),
+      },
+      {
+        type: 'caution',
+        icon: icon('report', 'caution'),
+      },
+    ],
+  });
 };
