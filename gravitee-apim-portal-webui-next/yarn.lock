@@ -3281,6 +3281,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@emoji-mart/data@npm:1.2.1":
+  version: 1.2.1
+  resolution: "@emoji-mart/data@npm:1.2.1"
+  checksum: 10c0/6784b97bf49a0d3ff110d8447bbd3b0449fcbc497294be3d1c3a6cb1609308776895c7520200be604cbecaa5e172c76927e47f34419c72ba8a76fd4e5a53674b
+  languageName: node
+  linkType: hard
+
 "@emotion/use-insertion-effect-with-fallbacks@npm:^1.0.1":
   version: 1.0.1
   resolution: "@emotion/use-insertion-effect-with-fallbacks@npm:1.0.1"
@@ -13030,6 +13037,7 @@ __metadata:
     "@asciidoctor/core": "npm:3.0.4"
     "@asyncapi/web-component": "npm:1.4.9"
     "@chromatic-com/storybook": "npm:1.2.26"
+    "@emoji-mart/data": "npm:1.2.1"
     "@storybook/addon-essentials": "npm:8.0.5"
     "@storybook/addon-interactions": "npm:8.0.5"
     "@storybook/addon-links": "npm:8.0.5"
@@ -13056,6 +13064,9 @@ __metadata:
     js-yaml: "npm:4.1.0"
     license-check-and-add: "npm:4.0.5"
     marked: "npm:12.0.2"
+    marked-alert: "npm:2.1.2"
+    marked-emoji: "npm:1.4.3"
+    marked-extended-tables: "npm:1.1.0"
     marked-gfm-heading-id: "npm:3.1.3"
     marked-highlight: "npm:2.1.1"
     ngx-infinite-scroll: "npm:17.0.0"
@@ -15680,6 +15691,33 @@ __metadata:
   peerDependencies:
     react: ">= 0.14.0"
   checksum: 10c0/191b9a9defeed02e12dd340cebf279f577266dac7b34574fa44ce4d64ee8536f9967d455b8303c853f84413feb473118290a6160d8221eeaf3b9e4961b8980e3
+  languageName: node
+  linkType: hard
+
+"marked-alert@npm:2.1.2":
+  version: 2.1.2
+  resolution: "marked-alert@npm:2.1.2"
+  peerDependencies:
+    marked: ">=7.0.0"
+  checksum: 10c0/61e39b8e2349e3986a3697930dfd8310400e8ed16d758bbdf84743d8c43fc272d8168edfadd3241b2716547d176030eb37fb85069fb11dc5d5cb91cef2cfee87
+  languageName: node
+  linkType: hard
+
+"marked-emoji@npm:1.4.3":
+  version: 1.4.3
+  resolution: "marked-emoji@npm:1.4.3"
+  peerDependencies:
+    marked: ">=4 <16"
+  checksum: 10c0/4a91fdb6440678d811000bdaee25b8327faa3d4c912d45cfffc7f966092447e9879169b47c7355a3d7959a876b4bfcec00afe5f8809a8b890d7aa6ecaff7871a
+  languageName: node
+  linkType: hard
+
+"marked-extended-tables@npm:1.1.0":
+  version: 1.1.0
+  resolution: "marked-extended-tables@npm:1.1.0"
+  peerDependencies:
+    marked: ">=3 <16"
+  checksum: 10c0/0e14f9732f567a0c86279a9092e05e0b86c6e3807bf996449cb6aecacbcb6f1d6fd7c7b01df3cfe76e0954308142ec9e1113f44a8800d0fdeaa72b09d9cef990
   languageName: node
   linkType: hard
 
