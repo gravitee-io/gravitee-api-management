@@ -26,6 +26,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { set } from 'lodash';
+import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
 
 import { ApiPortalSubscriptionCreationDialogHarness } from './api-portal-subscription-creation-dialog.harness';
 import {
@@ -704,6 +705,72 @@ describe('Subscription creation dialog', () => {
       expect(await harness.isEntrypointConfigurationFormDisplayed()).toBeTruthy();
     });
 
+    it('should not create subscription for invalid retry configuration in Push Plan', async () => {
+      const planV4 = fakePlanV4({ mode: 'PUSH', generalConditions: undefined, security: undefined });
+      const apiV4 = fakeApiV4({ listeners: [{ type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] }] });
+      component.plans = [planV4];
+      component.availableSubscriptionEntrypoints = apiV4.listeners[0].entrypoints;
+      await componentTestingOpenDialog();
+      expectListEntrypoints(entrypointsGetResponse);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionCreationDialogHarness);
+
+      await harness.searchApplication('withClientId');
+      expectApplicationsSearch('withClientId', [applicationWithClientId]);
+      await harness.selectApplication(applicationWithClientId.name);
+      expectSubscriptionsForApplication(applicationWithClientId.id, []);
+
+      await harness.choosePlan(planV4.name);
+
+      await harness.selectEntrypoint('Webhook');
+      expectEntrypointSubscriptionSchema('webhook');
+
+      expect(await harness.isEntrypointConfigurationFormDisplayed()).toBeTruthy();
+
+      // Invalid retry configuration: Initial Delay > Max Delay
+      await harness.addInitialDelay('10');
+      await harness.addMaxDelay('5');
+
+      await harness.createSubscription();
+
+      // Should not create subscription
+      const snackBar = await loader.getAllHarnesses(MatSnackBarHarness);
+      expect(snackBar.length).toBe(1); // Snack Bar Error
+    });
+
+    it('should create subscription for valid retry configuration in Push Plan', async () => {
+      const planV4 = fakePlanV4({ mode: 'PUSH', generalConditions: undefined, security: undefined });
+      const apiV4 = fakeApiV4({ listeners: [{ type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] }] });
+      component.plans = [planV4];
+      component.availableSubscriptionEntrypoints = apiV4.listeners[0].entrypoints;
+      await componentTestingOpenDialog();
+      expectListEntrypoints(entrypointsGetResponse);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionCreationDialogHarness);
+
+      await harness.searchApplication('withClientId');
+      expectApplicationsSearch('withClientId', [applicationWithClientId]);
+      await harness.selectApplication(applicationWithClientId.name);
+      expectSubscriptionsForApplication(applicationWithClientId.id, []);
+
+      await harness.choosePlan(planV4.name);
+
+      await harness.selectEntrypoint('Webhook');
+      expectEntrypointSubscriptionSchema('webhook');
+
+      expect(await harness.isEntrypointConfigurationFormDisplayed()).toBeTruthy();
+
+      // Valid retry configuration: Initial Delay > Max Delay
+      await harness.addInitialDelay('10');
+      await harness.addMaxDelay('15');
+
+      await harness.createSubscription();
+
+      // Should create subscription without errors
+      const snackBar = await loader.getAllHarnesses(MatSnackBarHarness);
+      expect(snackBar.length).toBe(0); // No Error
+    });
+
     it('should remove Push Plan configuration form when select another plan', async () => {
       const pushPlanV4 = fakePlanV4({ name: 'push plan', mode: 'PUSH', generalConditions: undefined, security: undefined });
       const jwtPlanV4 = fakePlanV4({ name: 'JWT plan', mode: 'STANDARD', security: { type: 'JWT' }, generalConditions: undefined });
@@ -851,8 +918,22 @@ describe('Subscription creation dialog', () => {
       $schema: 'http://json-schema.org/draft-07/schema#',
       type: 'object',
       properties: {
-        foo: {
-          type: 'string',
+        retry: {
+          type: 'object',
+          properties: {
+            retryOption: {
+              type: 'string',
+              default: 'Retry On Fail',
+            },
+            initialDelaySeconds: {
+              type: 'integer',
+              minimum: 1,
+            },
+            maxDelaySeconds: {
+              type: 'integer',
+              minimum: 1,
+            },
+          },
         },
       },
     };
