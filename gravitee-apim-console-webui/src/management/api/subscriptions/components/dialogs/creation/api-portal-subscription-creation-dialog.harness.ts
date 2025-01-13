@@ -43,6 +43,19 @@ export class ApiPortalSubscriptionCreationDialogHarness extends MatDialogHarness
   protected getCancelButton = this.locatorFor(MatButtonHarness.with({ selector: '.actions__cancelBtn' }));
   public getCreateButton = this.locatorFor(MatButtonHarness.with({ selector: '.actions__createBtn' }));
 
+  protected getInitialDelayInput = this.locatorForOptional(MatInputHarness.with({ selector: '[id*="initialDelaySeconds"]' }));
+  protected getMaxDelayInput = this.locatorForOptional(MatInputHarness.with({ selector: '[id*="maxDelaySeconds"]' }));
+
+  public async addInitialDelay(initialDelay: string) {
+    const matInputHarness = await this.getInitialDelayInput();
+    return await matInputHarness.setValue(initialDelay);
+  }
+
+  public async addMaxDelay(maxDelay: string) {
+    const matInputHarness = await this.getMaxDelayInput();
+    return await matInputHarness.setValue(maxDelay);
+  }
+
   // Applications
   public async searchApplication(applicationNameToSearch: string) {
     const matInputHarness = await this.getInputApplicationSearch();
