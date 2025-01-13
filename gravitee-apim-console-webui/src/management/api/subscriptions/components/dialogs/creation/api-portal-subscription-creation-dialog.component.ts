@@ -31,6 +31,7 @@ import { ConnectorPluginsV2Service } from '../../../../../../services-ngx/connec
 import { IconService } from '../../../../../../services-ngx/icon.service';
 import { SubscriptionService } from '../../../../../../services-ngx/subscription.service';
 import { SubscriptionPage } from '../../../../../../entities/subscription/subscription';
+import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
 
 export type ApiPortalSubscriptionCreationDialogData = {
   availableSubscriptionEntrypoints?: Entrypoint[];
@@ -74,6 +75,7 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
     private readonly subscriptionService: SubscriptionService,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly iconService: IconService,
+    private readonly snackBarService: SnackBarService,
   ) {
     this.plans = dialogData.plans.filter((plan) => plan.security?.type !== 'KEY_LESS');
     this.availableSubscriptionEntrypoints = dialogData.availableSubscriptionEntrypoints.map((entrypoint) => ({ type: entrypoint.type }));
@@ -122,7 +124,17 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
           : undefined),
       },
     };
-    this.dialogRef.close(dialogResult);
+    // Validate retry configuration
+    const retryConfiguration = this.form.getRawValue().entrypointConfiguration?.retry;
+    if (
+      retryConfiguration &&
+      retryConfiguration?.retryOption === 'Retry On Fail' &&
+      retryConfiguration?.initialDelaySeconds > retryConfiguration?.maxDelaySeconds
+    ) {
+      this.snackBarService.error('Initial retry delay should be less than maximum delay between attempts.');
+    } else {
+      this.dialogRef.close(dialogResult);
+    }
   }
 
   ngOnDestroy() {
