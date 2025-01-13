@@ -13,9 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { TestBed } from '@angular/core/testing';
 
-export interface ApiAnalyticsFilters {
-  period: string;
-  from: number;
-  to: number;
-}
+import { HomeService } from './home.service';
+
+describe('HomeService', () => {
+  let service: HomeService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(HomeService);
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+});

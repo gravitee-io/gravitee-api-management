@@ -26,16 +26,13 @@ import { AnalyticsResponseStatusRanges } from '../entities/management-api-v2/ana
 import { AnalyticsResponseStatusOvertime } from '../entities/management-api-v2/analytics/analyticsResponseStatusOvertime';
 import { AnalyticsResponseTimeOverTime } from '../entities/management-api-v2/analytics/analyticsResponseTimeOverTime';
 import { TimeRangeParams } from '../shared/utils/timeFrameRanges';
-
-export interface DefaultFilters {
-  period: string;
-}
+import { ApiAnalyticsFilters } from '../management/api/api-traffic-v4/analytics/components/api-analytics-filters-bar/api-analytics-filters-bar.configuration';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiAnalyticsV2Service {
-  public readonly defaultFilters: DefaultFilters = { period: '1d' };
+  public readonly defaultFilters: ApiAnalyticsFilters = { period: '1d', from: null, to: null };
   private timeRangeFilter$: BehaviorSubject<TimeRangeParams> = new BehaviorSubject<TimeRangeParams>(null);
 
   constructor(

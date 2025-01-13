@@ -16,77 +16,41 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController, TestRequest } from '@angular/common/http/testing';
-import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { OwlNativeDateTimeModule } from '@danielmoncada/angular-datetime-picker';
 
 import { HomeOverviewComponent } from './home-overview.component';
+import { HomeOverviewHarness } from './home-overview.harness';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { HomeModule } from '../home.module';
-import { GioQuickTimeRangeHarness } from '../components/gio-quick-time-range/gio-quick-time-range.harness';
-import { GioRequestStatsHarness } from '../components/gio-request-stats/gio-request-stats.harness';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
-import { DashboardV4ApiRequestStatsHarness } from '../components/dashboard-v4-api-request-stats/dashboard-v4-api-request-stats.harness';
 
 describe('HomeOverviewComponent', () => {
   let fixture: ComponentFixture<HomeOverviewComponent>;
-  let loader: HarnessLoader;
+  let componentHarness: HomeOverviewHarness;
   let httpTestingController: HttpTestingController;
+
+  const init = async () => {
+    await TestBed.configureTestingModule({
+      imports: [HomeModule, OwlNativeDateTimeModule, NoopAnimationsModule, MatIconTestingModule, GioTestingModule],
+      providers: [{ provide: GioTestingPermissionProvider, useValue: ['environment-platform-r'] }],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(HomeOverviewComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, HomeOverviewHarness);
+    fixture.detectChanges();
+  };
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  describe('with environment-platform-read permission', () => {
-    beforeEach(() => {
-      TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioTestingModule, HomeModule, MatIconTestingModule],
-        providers: [{ provide: GioTestingPermissionProvider, useValue: ['environment-platform-r'] }],
-      });
-      fixture = TestBed.createComponent(HomeOverviewComponent);
-      loader = TestbedHarnessEnvironment.loader(fixture);
-
-      httpTestingController = TestBed.inject(HttpTestingController);
-      fixture.detectChanges();
-    });
-
-    it('should show request stats', async () => {
-      expectApiLifecycleStateRequest();
-      expectApiStateRequest();
-      expectResponseStatusRequest();
-      expectRequestStatsRequest();
-      expectTopApiRequest();
-      expectCountApiRequest();
-      expectCountApplicationRequest();
-      expectSearchApiEventsRequest();
-      expectConsoleSettingsGetRequest();
-      expectTopApisGetRequest();
-      expectGetRequestStatsForV4();
-
-      const stats = await loader.getHarness(GioRequestStatsHarness);
-      expect(await stats.getAverage()).toEqual('8.43 ms');
-    });
-
-    it('should show v4 APIs request stats', async () => {
-      expectApiLifecycleStateRequest();
-      expectApiStateRequest();
-      expectResponseStatusRequest();
-      expectRequestStatsRequest();
-      expectTopApiRequest();
-      expectCountApiRequest();
-      expectCountApplicationRequest();
-      expectSearchApiEventsRequest();
-      expectConsoleSettingsGetRequest();
-      expectTopApisGetRequest();
-      expectGetRequestStatsForV4();
-
-      const stats = await loader.getHarness(DashboardV4ApiRequestStatsHarness);
-      expect(await stats.getRequestsPerSecond()).toEqual('< 0.1 ');
-      expect(await stats.getTotalRequests()).toEqual('17 ');
-      expect(await stats.getMinResponseTime()).toEqual('25.12 ms ');
-      expect(await stats.getMaxResponseTime()).toEqual('20,123.13 ms ');
-      expect(await stats.getAverageResponseTime()).toEqual('234.76 ms ');
+  describe('with permissions', () => {
+    beforeEach(async () => {
+      await init();
     });
 
     it('should load request stats when changing date range', async () => {
@@ -102,8 +66,9 @@ describe('HomeOverviewComponent', () => {
       expectTopApisGetRequest();
       expectGetRequestStatsForV4();
 
-      const timeRangeHarness = await loader.getHarness(GioQuickTimeRangeHarness);
-      await timeRangeHarness.selectTimeRangeByText('Last hour');
+      const timeRangeHarness = await componentHarness.getDashboardFiltersBarHarness();
+      const input = await timeRangeHarness.matSelectLocator();
+      await input.clickOptions({ text: 'Last hour' });
       let req = expectApiLifecycleStateRequest();
       expect(req.request.url).toContain('interval=120000');
 
@@ -130,22 +95,50 @@ describe('HomeOverviewComponent', () => {
       expectTopApisGetRequest();
       expectGetRequestStatsForV4();
     });
-  });
 
-  describe('without environment-platform-read permission', () => {
-    beforeEach(() => {
-      TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioTestingModule, HomeModule, MatIconTestingModule],
-        providers: [{ provide: GioTestingPermissionProvider, useValue: [] }],
-      });
-      fixture = TestBed.createComponent(HomeOverviewComponent);
-      loader = TestbedHarnessEnvironment.loader(fixture);
+    it('should select custom date range', async () => {
+      expectRequests();
 
-      httpTestingController = TestBed.inject(HttpTestingController);
-      fixture.detectChanges();
+      const dashboardFiltersBarHarness = await componentHarness.getDashboardFiltersBarHarness();
+      const matSelect = await dashboardFiltersBarHarness.matSelectLocator();
+      await matSelect.clickOptions({ text: 'Custom' });
+
+      const applyButtonHarness = await dashboardFiltersBarHarness.applyButtonLocator();
+      expect(await applyButtonHarness.isDisabled()).toEqual(true);
+
+      const fromDate = '2023-10-09 15:21:00';
+      const toDate = '2023-10-24 15:21:00';
+      const fromDateInMilliSeconds = new Date(fromDate).getTime();
+      const toDateInMilliseconds = new Date(toDate).getTime();
+
+      await dashboardFiltersBarHarness.setFromDate(fromDate);
+      const from = await dashboardFiltersBarHarness.fromInputLocator();
+      expect(await from.getValue()).toEqual(fromDate);
+
+      await dashboardFiltersBarHarness.setToDate(toDate);
+      const to = await dashboardFiltersBarHarness.toInputLocator();
+      expect(await to.getValue()).toEqual(toDate);
+
+      expect(await applyButtonHarness.isDisabled()).toEqual(false);
+
+      await dashboardFiltersBarHarness.applyClick();
+
+      const req = expectApiLifecycleStateRequest();
+      expect(req.request.url).toContain(`from=${fromDateInMilliSeconds}&to=${toDateInMilliseconds}`);
+
+      expectApiStateRequest();
+      expectResponseStatusRequest();
+      expectRequestStatsRequest();
+      expectTopApiRequest();
+      expectCountApiRequest();
+      expectCountApplicationRequest();
+      expectSearchApiEventsRequest();
+      expectConsoleSettingsGetRequest();
+      expectTopApisGetRequest();
+      expectGetRequestStatsForV4();
     });
 
-    it('should not load api events', async () => {
+    it('should show request stats', async () => {
       expectApiLifecycleStateRequest();
       expectApiStateRequest();
       expectResponseStatusRequest();
@@ -153,15 +146,50 @@ describe('HomeOverviewComponent', () => {
       expectTopApiRequest();
       expectCountApiRequest();
       expectCountApplicationRequest();
+      expectSearchApiEventsRequest();
       expectConsoleSettingsGetRequest();
       expectTopApisGetRequest();
       expectGetRequestStatsForV4();
 
-      const stats = await loader.getHarness(GioRequestStatsHarness);
+      const stats = await componentHarness.getGioRequestStatsHarness();
       expect(await stats.getAverage()).toEqual('8.43 ms');
+    });
+
+    it('should show v4 APIs request stats', async () => {
+      expectApiLifecycleStateRequest();
+      expectApiStateRequest();
+      expectResponseStatusRequest();
+      expectRequestStatsRequest();
+      expectTopApiRequest();
+      expectCountApiRequest();
+      expectCountApplicationRequest();
+      expectSearchApiEventsRequest();
+      expectConsoleSettingsGetRequest();
+      expectTopApisGetRequest();
+      expectGetRequestStatsForV4();
+
+      const stats = await componentHarness.getDashboardV4ApiRequestStatsHarness();
+      expect(await stats.getRequestsPerSecond()).toEqual('< 0.1 ');
+      expect(await stats.getTotalRequests()).toEqual('17 ');
+      expect(await stats.getMinResponseTime()).toEqual('25.12 ms ');
+      expect(await stats.getMaxResponseTime()).toEqual('20,123.13 ms ');
+      expect(await stats.getAverageResponseTime()).toEqual('234.76 ms ');
     });
   });
 
+  function expectRequests() {
+    expectApiLifecycleStateRequest();
+    expectApiStateRequest();
+    expectResponseStatusRequest();
+    expectRequestStatsRequest();
+    expectTopApiRequest();
+    expectCountApiRequest();
+    expectCountApplicationRequest();
+    expectSearchApiEventsRequest();
+    expectConsoleSettingsGetRequest();
+    expectTopApisGetRequest();
+    expectGetRequestStatsForV4();
+  }
   function expectRequestStatsRequest(): TestRequest {
     const req = httpTestingController.expectOne((req) => {
       return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=stats&field=response-time`);
@@ -178,7 +206,6 @@ describe('HomeOverviewComponent', () => {
     });
     return req;
   }
-
   function expectApiLifecycleStateRequest(): TestRequest {
     const req = httpTestingController.expectOne((req) => {
       return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=group_by&field=lifecycle_state`);
@@ -190,7 +217,6 @@ describe('HomeOverviewComponent', () => {
     });
     return req;
   }
-
   function expectResponseStatusRequest(): TestRequest {
     const req = httpTestingController.expectOne((req) => {
       return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=group_by&field=status`);
@@ -203,7 +229,6 @@ describe('HomeOverviewComponent', () => {
     });
     return req;
   }
-
   function expectApiStateRequest(): TestRequest {
     const req = httpTestingController.expectOne((req) => {
       return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=group_by&field=state`);
@@ -213,7 +238,6 @@ describe('HomeOverviewComponent', () => {
     });
     return req;
   }
-
   function expectTopApiRequest(): TestRequest {
     const req = httpTestingController.expectOne((req) => {
       return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=group_by&field=api`);
@@ -223,7 +247,6 @@ describe('HomeOverviewComponent', () => {
     });
     return req;
   }
-
   function expectCountApiRequest(): TestRequest {
     const req = httpTestingController.expectOne((req) => {
       return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=count&field=api`);
@@ -233,7 +256,6 @@ describe('HomeOverviewComponent', () => {
     });
     return req;
   }
-
   function expectCountApplicationRequest(): TestRequest {
     const req = httpTestingController.expectOne((req) => {
       return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=count&field=application`);
@@ -243,7 +265,6 @@ describe('HomeOverviewComponent', () => {
     });
     return req;
   }
-
   function expectSearchApiEventsRequest(): TestRequest {
     const req = httpTestingController.expectOne((req) => {
       return (
@@ -268,7 +289,6 @@ describe('HomeOverviewComponent', () => {
     req.flush({ requests: {} });
     expect(req.request.method).toEqual('GET');
   }
-
   function expectTopApisGetRequest() {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/analytics/top-hits`;
     const req = httpTestingController.expectOne((req) => {
@@ -277,7 +297,6 @@ describe('HomeOverviewComponent', () => {
     req.flush({ data: [] });
     expect(req.request.method).toEqual('GET');
   }
-
   function expectGetRequestStatsForV4() {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/analytics/request-response-time`;
     const req = httpTestingController.expectOne((req) => {
