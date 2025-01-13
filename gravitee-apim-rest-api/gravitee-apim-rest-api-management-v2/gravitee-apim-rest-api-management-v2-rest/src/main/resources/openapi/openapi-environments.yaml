@@ -596,7 +596,6 @@ components:
                     description: The name of ruleset
                 description:
                     type: string
-                    minLength: 1
                     description: The description of ruleset
                 payload:
                     type: string
@@ -611,7 +610,6 @@ components:
                         - GRAVITEE_PROXY
             required:
               - name
-              - description
               - payload
         UpdateScoringRuleset:
             type: object
