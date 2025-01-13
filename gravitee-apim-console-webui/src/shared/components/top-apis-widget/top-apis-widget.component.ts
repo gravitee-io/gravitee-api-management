@@ -27,6 +27,7 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { GioTableWrapperModule } from '../gio-table-wrapper/gio-table-wrapper.module';
 import { GioTableWrapperFilters } from '../gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../gio-table-wrapper/gio-table-wrapper.util';
+import { TimeRangeParams } from '../../utils/timeFrameRanges';
 
 export interface TopApisV4 {
   id: string;
@@ -53,7 +54,7 @@ export interface TopApisV4 {
 })
 export class TopApisWidgetComponent implements OnChanges {
   @Input() data: TopApisV4[];
-  @Input() period: string;
+  @Input() period: TimeRangeParams;
 
   displayedColumns = ['name', 'count'];
   filteredTableData: TopApisV4[];
@@ -73,9 +74,11 @@ export class TopApisWidgetComponent implements OnChanges {
   }
 
   navigateToApi(apiKey: string): void {
+    const customTimeframeParams = this.period.id === 'custom' ? { from: this.period.from, to: this.period.to } : {};
+
     this.router.navigate(['../../', 'apis', apiKey, 'v4', 'analytics'], {
       relativeTo: this.activatedRoute,
-      queryParams: { period: this.period },
+      queryParams: { period: this.period.id, ...customTimeframeParams },
     });
   }
 

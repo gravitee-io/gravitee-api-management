@@ -13,9 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 
-export interface ApiAnalyticsFilters {
-  period: string;
-  from: number;
-  to: number;
+import { timeFrames, TimeRangeParams } from '../shared/utils/timeFrameRanges';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class HomeService {
+  private initialTimeRange = timeFrames.find((frame) => frame.id === '1m').timeFrameRangesParams();
+  private timeRangeParams$ = new BehaviorSubject<TimeRangeParams>(this.initialTimeRange);
+
+  public timeRangeParams() {
+    return this.timeRangeParams$.asObservable();
+  }
+
+  public setTimeRangeParams(value: TimeRangeParams): void {
+    this.timeRangeParams$.next(value);
+  }
 }

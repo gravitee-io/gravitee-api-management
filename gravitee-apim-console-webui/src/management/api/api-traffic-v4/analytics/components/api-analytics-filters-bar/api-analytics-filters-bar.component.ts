@@ -28,7 +28,7 @@ import { MatInputModule } from '@angular/material/input';
 import { OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
 import moment, { Moment } from 'moment/moment';
 
-import { FiltersApplied } from './api-analytics-filters-bar.configuration';
+import { ApiAnalyticsFilters } from './api-analytics-filters-bar.configuration';
 
 import { timeFrames, customTimeFrames, TimeRangeParams } from '../../../../../../shared/utils/timeFrameRanges';
 import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analytics-v2.service';
@@ -54,9 +54,10 @@ import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analyt
 export class ApiAnalyticsFiltersBarComponent implements OnInit, OnDestroy {
   protected readonly timeFrames = [...timeFrames, ...customTimeFrames];
   public form: FormGroup;
-  public activeFilters: FiltersApplied;
+  public activeFilters: ApiAnalyticsFilters;
   public minDate: Moment;
   public nowDate: Moment = moment().add(1, 'd');
+  public customPeriod: string = 'custom';
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -68,6 +69,15 @@ export class ApiAnalyticsFiltersBarComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.initActiveFilters();
     this.initForm();
+
+    if (
+      this.form.get('period').value === this.customPeriod &&
+      this.form.valid &&
+      this.form.get('from').value &&
+      this.form.get('to').value
+    ) {
+      this.applyCustomTimeframe();
+    }
   }
 
   ngOnDestroy() {
@@ -81,8 +91,8 @@ export class ApiAnalyticsFiltersBarComponent implements OnInit, OnDestroy {
   private initForm() {
     this.form = this.formBuilder.group({
       period: this.activeFilters.period,
-      from: null,
-      to: null,
+      from: this.activeFilters.from ? moment(this.activeFilters.from) : null,
+      to: this.activeFilters.to ? moment(this.activeFilters.to) : null,
     });
 
     this.form
@@ -90,7 +100,7 @@ export class ApiAnalyticsFiltersBarComponent implements OnInit, OnDestroy {
       .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((period) => {
         this.activeFilters = { ...this.activeFilters, period };
-        if (period !== 'custom') {
+        if (period !== this.customPeriod) {
           this.apiAnalyticsV2Service.setTimeRangeFilter(this.getPeriodTimeRangeParams());
         }
       });
@@ -120,11 +130,16 @@ export class ApiAnalyticsFiltersBarComponent implements OnInit, OnDestroy {
   }
 
   private initActiveFilters() {
-    const periodFromQueryParam = this.activatedRoute.snapshot.queryParams.period;
-    const validPeriod = timeFrames.find((timeFrame) => timeFrame.id === periodFromQueryParam);
+    const { period, from, to } = this.activatedRoute.snapshot.queryParams;
+    const validPeriod = timeFrames.find((timeFrame) => timeFrame.id === period);
+
+    if (period === this.customPeriod) {
+      this.activeFilters = { period, from: +from, to: +to };
+      return;
+    }
 
     if (validPeriod) {
-      this.activeFilters = { period: periodFromQueryParam };
+      this.activeFilters = { period, from: null, to: null };
       this.apiAnalyticsV2Service.setTimeRangeFilter(this.getPeriodTimeRangeParams());
       return;
     }
