@@ -21,6 +21,7 @@ import static org.mockito.Mockito.spy;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fakes.spring.FakeConfiguration;
 import inmemory.ApiCRDExportDomainServiceInMemory;
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
@@ -40,6 +41,7 @@ import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
@@ -470,12 +472,14 @@ public class ResourceContextConfiguration {
         ValidatePageSourceDomainService validatePageSourceDomainService,
         ValidatePageAccessControlsDomainService validatePageAccessControlsDomainService,
         DocumentationValidationDomainService validationDomainService,
-        RoleQueryServiceInMemory roleQueryService
+        RoleQueryServiceInMemory roleQueryService,
+        ApiQueryServiceInMemory apiQueryService
     ) {
         return new ValidateApiCRDUseCase(
             new ValidateApiCRDDomainService(
                 new ValidateCategoryIdsDomainService(categoryQueryService),
                 verifyApiPathDomainService,
+                new VerifyApiHostsDomainService(apiQueryService),
                 new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
                 new ValidateGroupsDomainService(groupQueryService),
                 validateResourceDomainService,

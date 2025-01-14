@@ -47,6 +47,8 @@ class ValidateApiCRDDomainServiceTest {
 
     VerifyApiPathDomainService pathValidator = mock(VerifyApiPathDomainService.class);
 
+    VerifyApiHostsDomainService apiHostValidator = mock(VerifyApiHostsDomainService.class);
+
     ValidateCRDMembersDomainService membersValidator = mock(ValidateCRDMembersDomainService.class);
 
     ValidateGroupsDomainService groupsValidator = mock(ValidateGroupsDomainService.class);
@@ -58,6 +60,7 @@ class ValidateApiCRDDomainServiceTest {
     ValidateApiCRDDomainService cut = new ValidateApiCRDDomainService(
         categoryIdsValidator,
         pathValidator,
+        apiHostValidator,
         membersValidator,
         groupsValidator,
         resourceValidator,
@@ -95,6 +98,42 @@ class ValidateApiCRDDomainServiceTest {
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         var expected = spec.toBuilder().categories(Set.of("id-1", "id-2")).build();
+
+        cut
+            .validateAndSanitize(input)
+            .peek(
+                sanitized -> Assertions.assertThat(sanitized.spec()).isEqualTo(expected),
+                errors -> Assertions.assertThat(errors).isEmpty()
+            );
+    }
+
+    @Test
+    void should_return_input_with_the_host_no_errors() {
+        var spec = ApiCRDFixtures.BASE_NATIVE_SPEC.build();
+        var input = new ValidateApiCRDDomainService.Input(AuditInfo.builder().environmentId(ENV_ID).build(), spec);
+
+        when(apiHostValidator.checkApiHosts(any(), any(), any(), any())).thenReturn(true);
+
+        when(categoryIdsValidator.validateAndSanitize(new ValidateCategoryIdsDomainService.Input(ENV_ID, spec.getCategories())))
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        when(
+            membersValidator.validateAndSanitize(
+                new ValidateCRDMembersDomainService.Input(AUDIT_INFO, spec.getId(), MembershipReferenceType.APPLICATION, any())
+            )
+        )
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        when(groupsValidator.validateAndSanitize(new ValidateGroupsDomainService.Input(ENV_ID, any(), null)))
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        when(resourceValidator.validateAndSanitize(new ValidateResourceDomainService.Input(ENV_ID, any())))
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), any())))
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        var expected = spec.toBuilder().build();
 
         cut
             .validateAndSanitize(input)

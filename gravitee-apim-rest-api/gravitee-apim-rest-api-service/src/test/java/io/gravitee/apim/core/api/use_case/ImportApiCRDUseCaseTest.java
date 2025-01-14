@@ -87,6 +87,7 @@ import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateNativeApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.model.Api;
@@ -244,6 +245,7 @@ class ImportApiCRDUseCaseTest {
     ApiCategoryQueryServiceInMemory apiCategoryQueryService = new ApiCategoryQueryServiceInMemory();
     ApiStateDomainService apiStateDomainService = mock(ApiStateDomainService.class);
     VerifyApiPathDomainService verifyApiPathDomainService = mock(VerifyApiPathDomainService.class);
+    VerifyApiHostsDomainService verifyApiHostsDomainService = mock(VerifyApiHostsDomainService.class);
     ValidateResourceDomainServiceInMemory validateResourceDomainService = new ValidateResourceDomainServiceInMemory();
     DocumentationValidationDomainService validationDomainService = mock(DocumentationValidationDomainService.class);
     CRDMembersDomainServiceInMemory crdMembersDomainService = new CRDMembersDomainServiceInMemory();
@@ -379,6 +381,7 @@ class ImportApiCRDUseCaseTest {
         var crdValidator = new ValidateApiCRDDomainService(
             new ValidateCategoryIdsDomainService(categoryQueryService),
             verifyApiPathDomainService,
+            verifyApiHostsDomainService,
             new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
             new ValidateGroupsDomainService(groupQueryService),
             validateResourceDomainService,
@@ -540,6 +543,7 @@ class ImportApiCRDUseCaseTest {
         );
 
         when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(verifyApiHostsDomainService.checkApiHosts(any(), any(), any(), any())).thenReturn(true);
     }
 
     private CreateApiDomainService buildCreateApiDomainService(
