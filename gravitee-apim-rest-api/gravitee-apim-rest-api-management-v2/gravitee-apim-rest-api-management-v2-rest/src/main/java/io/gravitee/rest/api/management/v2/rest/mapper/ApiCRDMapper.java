@@ -20,18 +20,25 @@ import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+<<<<<<< HEAD
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
+=======
+import io.gravitee.definition.model.v4.flow.Flow;
+>>>>>>> d318a8b8d6 (fix: add mapping for FlowV4)
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLifecycleState;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
+<<<<<<< HEAD
 import io.gravitee.rest.api.management.v2.rest.model.EndpointV4;
+=======
+>>>>>>> d318a8b8d6 (fix: add mapping for FlowV4)
 import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.model.Listener;
 import io.gravitee.rest.api.management.v2.rest.model.PageCRD;
@@ -64,6 +71,12 @@ public interface ApiCRDMapper {
     ApiCRDMapper INSTANCE = Mappers.getMapper(ApiCRDMapper.class);
 
     @Mapping(target = "lifecycleState", qualifiedByName = "mapLifecycleState")
+<<<<<<< HEAD
+=======
+    @Mapping(target = "listeners", expression = "java(mapApiCRDListeners(coreSpec))")
+    @Mapping(target = "endpointGroups", expression = "java(mapApiCRDEndpointGroups(coreSpec))")
+    @Mapping(target = "flows", expression = "java(mapApiCRDFlows(coreSpec))")
+>>>>>>> d318a8b8d6 (fix: add mapping for FlowV4)
     ApiCRDSpec map(io.gravitee.apim.core.api.model.crd.ApiCRDSpec coreSpec);
 
     @Mapping(target = "security.type", qualifiedByName = "mapSecurityType")
@@ -133,5 +146,17 @@ public interface ApiCRDMapper {
         }
 
         return flowV4;
+    }
+
+    default List<FlowV4> mapApiCRDFlows(io.gravitee.apim.core.api.model.crd.ApiCRDSpec spec) {
+        if (CollectionUtils.isEmpty(spec.getFlows())) {
+            return List.of();
+        }
+
+        if (ApiType.NATIVE.name().equalsIgnoreCase(spec.getType())) {
+            return FlowMapper.INSTANCE.mapFromNativeV4((List<NativeFlow>) spec.getFlows());
+        } else {
+            return FlowMapper.INSTANCE.mapFromHttpV4((List<Flow>) spec.getFlows());
+        }
     }
 }
