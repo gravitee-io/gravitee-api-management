@@ -18,11 +18,14 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLifecycleState;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
+import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.model.Listener;
 import io.gravitee.rest.api.management.v2.rest.model.PageCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
@@ -56,6 +59,7 @@ public interface ApiCRDMapper {
     @Mapping(target = "lifecycleState", qualifiedByName = "mapLifecycleState")
     @Mapping(target = "listeners", expression = "java(mapApiCRDListeners(coreSpec))")
     @Mapping(target = "endpointGroups", expression = "java(mapApiCRDEndpointGroups(coreSpec))")
+    @Mapping(target = "flows", expression = "java(mapApiCRDFlows(coreSpec))")
     ApiCRDSpec map(io.gravitee.apim.core.api.model.crd.ApiCRDSpec coreSpec);
 
     @Mapping(target = "security.type", qualifiedByName = "mapSecurityType")
@@ -100,6 +104,18 @@ public interface ApiCRDMapper {
             return EndpointMapper.INSTANCE.mapEndpointGroupNativeV4((List<NativeEndpointGroup>) spec.getEndpointGroups());
         } else {
             return EndpointMapper.INSTANCE.mapEndpointGroupHttpV4((List<EndpointGroup>) spec.getEndpointGroups());
+        }
+    }
+
+    default List<FlowV4> mapApiCRDFlows(io.gravitee.apim.core.api.model.crd.ApiCRDSpec spec) {
+        if (CollectionUtils.isEmpty(spec.getFlows())) {
+            return List.of();
+        }
+
+        if (ApiType.NATIVE.name().equalsIgnoreCase(spec.getType())) {
+            return FlowMapper.INSTANCE.mapFromNativeV4((List<NativeFlow>) spec.getFlows());
+        } else {
+            return FlowMapper.INSTANCE.mapFromHttpV4((List<Flow>) spec.getFlows());
         }
     }
 }
