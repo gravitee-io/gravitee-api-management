@@ -105,13 +105,17 @@ public class DebugSyncApiReactor extends SyncApiReactor {
     @Override
     public List<Acceptor<?>> acceptors() {
         try {
-            return api
-                .getDefinition()
-                .getProxy()
-                .getVirtualHosts()
-                .stream()
-                .map(virtualHost -> new DefaultHttpAcceptor(null, virtualHost.getPath(), this, null))
-                .collect(Collectors.toList());
+            if (acceptors == null) {
+                acceptors =
+                    api
+                        .getDefinition()
+                        .getProxy()
+                        .getVirtualHosts()
+                        .stream()
+                        .map(virtualHost -> new DefaultHttpAcceptor(null, virtualHost.getPath(), this, null))
+                        .collect(Collectors.toList());
+            }
+            return acceptors;
         } catch (Exception ex) {
             return Collections.emptyList();
         }
