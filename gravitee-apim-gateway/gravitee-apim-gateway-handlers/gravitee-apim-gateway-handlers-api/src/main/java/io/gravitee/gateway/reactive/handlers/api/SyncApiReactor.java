@@ -120,6 +120,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     private final long pendingRequestsTimeout;
     protected AnalyticsContext analyticsContext;
     protected HttpSecurityChain httpSecurityChain;
+    protected List<Acceptor<?>> acceptors;
 
     public SyncApiReactor(
         final Api api,
@@ -388,31 +389,36 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     @Override
     public List<Acceptor<?>> acceptors() {
         try {
-            return api
-                .getDefinition()
-                .getProxy()
-                .getVirtualHosts()
-                .stream()
-                .map(virtualHost -> {
-                    if (virtualHost.getHost() != null) {
-                        return new DefaultHttpAcceptor(
-                            virtualHost.getHost(),
-                            virtualHost.getPath(),
-                            this,
-                            api.getDefinition().getProxy().getServers()
-                        );
-                    } else {
-                        return new AccessPointHttpAcceptor(
-                            eventManager,
-                            api.getEnvironmentId(),
-                            accessPointManager.getByEnvironmentId(api.getEnvironmentId()),
-                            virtualHost.getPath(),
-                            this,
-                            api.getDefinition().getProxy().getServers()
-                        );
-                    }
-                })
-                .collect(Collectors.toList());
+            if (acceptors == null) {
+                acceptors =
+                    api
+                        .getDefinition()
+                        .getProxy()
+                        .getVirtualHosts()
+                        .stream()
+                        .map(virtualHost -> {
+                            if (virtualHost.getHost() != null) {
+                                return new DefaultHttpAcceptor(
+                                    virtualHost.getHost(),
+                                    virtualHost.getPath(),
+                                    this,
+                                    api.getDefinition().getProxy().getServers()
+                                );
+                            } else {
+                                return new AccessPointHttpAcceptor(
+                                    eventManager,
+                                    api.getEnvironmentId(),
+                                    accessPointManager.getByEnvironmentId(api.getEnvironmentId()),
+                                    virtualHost.getPath(),
+                                    this,
+                                    api.getDefinition().getProxy().getServers()
+                                );
+                            }
+                        })
+                        .collect(Collectors.toList());
+            }
+
+            return acceptors;
         } catch (Exception ex) {
             return Collections.emptyList();
         }
