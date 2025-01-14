@@ -79,6 +79,8 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
 
     private final AtomicInteger pendingRequests = new AtomicInteger(0);
 
+    private List<Acceptor<?>> acceptors;
+
     private long pendingRequestsTimeout;
     private final Configuration configuration;
     private final AccessPointManager accessPointManager;
@@ -444,30 +446,35 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
 
     @Override
     public List<Acceptor<?>> acceptors() {
-        return reactable
-            .getDefinition()
-            .getProxy()
-            .getVirtualHosts()
-            .stream()
-            .map(virtualHost -> {
-                if (virtualHost.getHost() != null) {
-                    return new DefaultHttpAcceptor(
-                        virtualHost.getHost(),
-                        virtualHost.getPath(),
-                        this,
-                        reactable.getDefinition().getProxy().getServers()
-                    );
-                } else {
-                    return new AccessPointHttpAcceptor(
-                        eventManager,
-                        reactable.getEnvironmentId(),
-                        accessPointManager.getByEnvironmentId(reactable.getEnvironmentId()),
-                        virtualHost.getPath(),
-                        this,
-                        reactable.getDefinition().getProxy().getServers()
-                    );
-                }
-            })
-            .collect(Collectors.toList());
+        if (acceptors == null) {
+            acceptors =
+                reactable
+                    .getDefinition()
+                    .getProxy()
+                    .getVirtualHosts()
+                    .stream()
+                    .map(virtualHost -> {
+                        if (virtualHost.getHost() != null) {
+                            return new DefaultHttpAcceptor(
+                                virtualHost.getHost(),
+                                virtualHost.getPath(),
+                                this,
+                                reactable.getDefinition().getProxy().getServers()
+                            );
+                        } else {
+                            return new AccessPointHttpAcceptor(
+                                eventManager,
+                                reactable.getEnvironmentId(),
+                                accessPointManager.getByEnvironmentId(reactable.getEnvironmentId()),
+                                virtualHost.getPath(),
+                                this,
+                                reactable.getDefinition().getProxy().getServers()
+                            );
+                        }
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        return acceptors;
     }
 }
