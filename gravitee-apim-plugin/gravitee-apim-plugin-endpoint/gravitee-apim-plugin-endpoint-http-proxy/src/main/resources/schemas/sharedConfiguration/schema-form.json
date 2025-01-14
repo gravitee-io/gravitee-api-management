@@ -303,12 +303,12 @@
                         "username":{
                             "type":"string",
                             "title":"Proxy username",
-                            "description":"Optional proxy username"
+                            "description":"Optional proxy username (supports EL and Secrets)"
                         },
                         "password":{
                             "type":"string",
                             "title":"Proxy password",
-                            "description":"Optional proxy password",
+                            "description":"Optional proxy password (supports EL and Secrets)",
                             "format":"password"
                         }
                     },
@@ -335,7 +335,7 @@
         "sslTrustStorePassword":{
             "type":"string",
             "title":"Password",
-            "description":"Truststore password",
+            "description":"Truststore password (supports EL and Secrets)",
             "format":"password",
             "gioConfig":{
                 "banner":{
@@ -347,60 +347,62 @@
         "sslTrustStorePath":{
             "type":"string",
             "title":"Path to truststore",
-            "description":"Path to the truststore file"
+            "description":"Path to the truststore file (supports EL and Secrets)"
         },
         "sslTrustStoreContent":{
             "type":"string",
             "title":"Content",
-            "description":"Binary content as Base64",
+            "description":"Binary content as Base64 (supports EL and Secrets)",
             "format":"text"
         },
         "sslKeyStorePassword":{
             "type":"string",
             "title":"Password",
-            "description":"Password to use to open the key store",
+            "description":"Password to use to open the key store (supports EL and Secrets)",
             "format":"password"
         },
         "sslKeyStoreAlias":{
             "type":"string",
             "title":"Alias for the key",
-            "description":"Alias of the key to use in case the key store contains more than one key"
+            "description":"Alias of the key to use in case the key store contains more than one key (supports EL and Secrets)"
         },
         "sslKeyStoreKeyPassword":{
             "type":"string",
             "title":"Key Password",
-            "description":"Password to use to access the key when protected by password",
+            "description":"Password to use to access the key when protected by password (supports EL and Secrets)",
             "format":"password"
         },
         "sslKeyStorePath":{
             "type":"string",
             "title":"Path to key store",
-            "description":"Path to the key store file"
+            "description":"Path to the key store file (supports EL and Secrets)"
         },
         "sslKeyStoreContent":{
             "type":"string",
             "title":"Content",
-            "description":"Binary content as Base64",
+            "description":"Binary content as Base64 (supports EL and Secrets)",
             "format":"text"
         },
         "sslKeyStoreCertPath":{
             "type":"string",
             "title":"Path to cert file",
-            "description":"Path to cert file (.PEM)"
+            "description":"Path to cert file (.PEM) (supports EL and Secrets)"
         },
         "sslKeyStoreCertContent":{
             "type":"string",
             "title":"Certificate",
+            "description": "(supports EL and Secrets)",
             "format":"text"
         },
         "sslKeyStoreKeyPath":{
             "type":"string",
             "title":"Path to private key file",
-            "description":"Path to private key file (.PEM)"
+            "description":"Path to private key file (.PEM) (supports EL and Secrets)"
         },
         "sslKeyStoreKeyContent":{
             "type":"string",
             "title":"Private key",
+            "description": "(supports EL and Secrets)",
             "format":"text"
         },
         "ssl":{
