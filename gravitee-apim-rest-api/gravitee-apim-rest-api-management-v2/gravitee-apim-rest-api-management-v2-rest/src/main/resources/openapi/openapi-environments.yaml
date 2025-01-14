@@ -603,14 +603,17 @@ components:
                     description: The ruleset payload
                 format:
                     type: string
-                    description: Format is required only for rulesets that should be applied to a Gravitee definition. For native oas/async api rulesets this property must be null.
+                    description: The format of the ruleset
                     enum:
                         - GRAVITEE_FEDERATION
                         - GRAVITEE_MESSAGE
                         - GRAVITEE_PROXY
+                        - OPENAPI
+                        - ASYNCAPI
             required:
               - name
               - payload
+              - format
         UpdateScoringRuleset:
             type: object
             description: The scoring ruleset to update
@@ -645,6 +648,8 @@ components:
                         - GRAVITEE_FEDERATION
                         - GRAVITEE_MESSAGE
                         - GRAVITEE_PROXY
+                        - OPENAPI
+                        - ASYNCAPI
                 createdAt:
                     type: string
                     format: date-time

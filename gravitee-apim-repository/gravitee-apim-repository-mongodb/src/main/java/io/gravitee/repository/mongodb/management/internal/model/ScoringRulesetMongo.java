@@ -31,6 +31,8 @@ public class ScoringRulesetMongo extends Auditable {
         GRAVITEE_FEDERATION,
         GRAVITEE_MESSAGE,
         GRAVITEE_PROXY,
+        OPENAPI,
+        ASYNCAPI,
     }
 
     @Id

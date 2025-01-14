@@ -49,5 +49,7 @@ public final class ScoringRuleset {
         GRAVITEE_FEDERATION,
         GRAVITEE_MESSAGE,
         GRAVITEE_PROXY,
+        OPENAPI,
+        ASYNCAPI,
     }
 }

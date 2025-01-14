@@ -39,5 +39,7 @@ public record ScoringRuleset(
         GRAVITEE_FEDERATION,
         GRAVITEE_MESSAGE,
         GRAVITEE_PROXY,
+        OPENAPI,
+        ASYNCAPI,
     }
 }
