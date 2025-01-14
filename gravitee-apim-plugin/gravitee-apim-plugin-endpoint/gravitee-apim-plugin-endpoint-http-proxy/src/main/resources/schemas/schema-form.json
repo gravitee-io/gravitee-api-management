@@ -4,7 +4,7 @@
     "definitions":{
         "target":{
             "title":"Target url",
-            "description":"The target url to use to contact the backend",
+            "description":"The target url to use to contact the backend (supports EL and Secrets)",
             "type":"string",
             "pattern": "^\\S+$"
         }
