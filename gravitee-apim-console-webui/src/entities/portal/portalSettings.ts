@@ -16,7 +16,11 @@
 /**
  * TODO: to complete, contains only one part used in the Ui console
  */
-export interface PortalSettings {
+export interface PortalSettings extends PortalConfiguration {
+  cors?: PortalSettingsCors;
+}
+
+export interface PortalConfiguration {
   portal?: PortalSettingsPortal;
   metadata?: PortalSettingsMetadata;
   application?: PortalSettingsApplication;
@@ -86,4 +90,12 @@ export interface PortalSettingsPortal {
       enabled: boolean;
     };
   };
+}
+
+export interface PortalSettingsCors {
+  allowOrigin: string[];
+  allowMethods: string[];
+  allowHeaders: string[];
+  exposedHeaders: string[];
+  maxAge: number;
 }
