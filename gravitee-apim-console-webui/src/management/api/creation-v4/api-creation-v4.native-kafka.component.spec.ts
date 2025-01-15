@@ -174,6 +174,9 @@ describe('ApiCreationV4Component - Native Kafka', () => {
       await stepperHelper.validateStep4_1_SecurityPlansList();
 
       discardPeriodicTasks();
+
+      httpExpects.expectApiGetPortalConfiguration();
+
       const step5Harness = await harnessLoader.getHarness(Step5SummaryHarness);
       const step1Summary = await step5Harness.getStepSummaryTextContent(1);
       expect(step1Summary).toContain('API name:' + 'API');
@@ -181,7 +184,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
       expect(step1Summary).toContain('Description:' + ' Description');
 
       const step2Summary = await step5Harness.getStepSummaryTextContent(2);
-      expect(step2Summary).toContain('Host:' + 'kafka-host');
+      expect(step2Summary).toContain('Host:' + 'kafka-host.kafka.domain:9092');
       expect(step2Summary).toContain('Type:' + 'KAFKA');
       expect(step2Summary).toContain('Entrypoints:' + ' Native Kafka Entrypoint');
 
@@ -206,6 +209,9 @@ describe('ApiCreationV4Component - Native Kafka', () => {
       await plansList.clickValidate();
 
       discardPeriodicTasks();
+
+      httpExpects.expectApiGetPortalConfiguration();
+
       const step5Harness = await harnessLoader.getHarness(Step5SummaryHarness);
       const step1Summary = await step5Harness.getStepSummaryTextContent(1);
       expect(step1Summary).toContain('API name:' + 'API');
@@ -213,7 +219,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
       expect(step1Summary).toContain('Description:' + ' Description');
 
       const step2Summary = await step5Harness.getStepSummaryTextContent(2);
-      expect(step2Summary).toContain('Host:' + 'kafka-host');
+      expect(step2Summary).toContain('Host:' + 'kafka-host.kafka.domain:9092');
       expect(step2Summary).toContain('Type:' + 'KAFKA');
       expect(step2Summary).toContain('Entrypoints:' + ' Native Kafka Entrypoint');
 
@@ -238,6 +244,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
 
       discardPeriodicTasks();
       const step5Harness = await harnessLoader.getHarness(Step5SummaryHarness);
+      httpExpects.expectApiGetPortalConfiguration();
       await step5Harness.clickDeployMyApiButton();
       httpExpects.expectCallsForApiDeployment('api-id', 'plan-id');
       flush();
@@ -255,6 +262,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
 
       discardPeriodicTasks();
       const step5Harness = await harnessLoader.getHarness(Step5SummaryHarness);
+      httpExpects.expectApiGetPortalConfiguration();
       expect(await step5Harness.getDeployMyApiButton().then((btn) => btn.isDisabled())).toEqual(true);
     }));
   });
