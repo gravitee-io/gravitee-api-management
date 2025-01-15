@@ -23,7 +23,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { GioFormListenersContextPathComponent } from './gio-form-listeners-context-path.component';
 import { GioFormListenersContextPathModule } from './gio-form-listeners-context-path.module';
 
-import { PortalSettingsService } from '../../../../../services-ngx/portal-settings.service';
+import { PortalConfigurationService } from '../../../../../services-ngx/portal-configuration.service';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 
 export default {
@@ -33,7 +33,7 @@ export default {
     moduleMetadata({
       imports: [BrowserAnimationsModule, GioFormListenersContextPathModule, FormsModule, ReactiveFormsModule, HttpClientModule],
       providers: [
-        { provide: PortalSettingsService, useValue: { get: () => of({ portal: { entrypoint: '' } }) } },
+        { provide: PortalConfigurationService, useValue: { get: () => of({ portal: { entrypoint: '' } }) } },
         { provide: ApiV2Service, useValue: { verifyPath: () => of() } },
       ],
     }),
