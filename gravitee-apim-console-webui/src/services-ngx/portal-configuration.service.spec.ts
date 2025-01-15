@@ -19,7 +19,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { PortalConfigurationService } from './portal-configuration.service';
 
 import { fakePortalConfiguration } from '../entities/portal/portalSettings.fixture';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 
 describe('PortalConfigurationService', () => {
   let service: PortalConfigurationService;
@@ -27,11 +27,11 @@ describe('PortalConfigurationService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);
-    service = TestBed.inject(PortalConfigurationService);
+    service = TestBed.inject<PortalConfigurationService>(PortalConfigurationService);
   });
 
   describe('getEnvConfiguration', () => {
