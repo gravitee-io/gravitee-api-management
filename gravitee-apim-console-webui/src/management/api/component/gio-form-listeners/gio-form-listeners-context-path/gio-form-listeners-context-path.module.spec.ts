@@ -80,7 +80,7 @@ describe('GioFormListenersContextPathModule', () => {
 
   const expectGetPortalSettings = () => {
     const settings: PortalSettings = { portal: { entrypoint: 'localhost' } };
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/settings`, method: 'GET' }).flush(settings);
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/portal`, method: 'GET' }).flush(settings);
   };
 
   const expectApiVerify = (inError = false) => {

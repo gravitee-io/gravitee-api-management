@@ -27,10 +27,7 @@ import { PortalConfiguration } from '../entities/portal/portalSettings';
   providedIn: 'root',
 })
 export class PortalConfigurationService {
-  constructor(
-    private readonly http: HttpClient,
-    @Inject('Constants') private readonly constants: Constants,
-  ) {}
+  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   get(): Observable<PortalConfiguration> {
     return this.http.get<PortalConfiguration>(`${this.constants.env.baseURL}/portal`);

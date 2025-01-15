@@ -469,7 +469,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       },
     };
     httpTestingController
-      .match({ url: `${CONSTANTS_TESTING.env.baseURL}/settings`, method: 'GET' })
+      .match({ url: `${CONSTANTS_TESTING.env.baseURL}/portal`, method: 'GET' })
       .filter((r) => !r.cancelled)
       .forEach((r) => r.flush(settings));
     fixture.detectChanges();

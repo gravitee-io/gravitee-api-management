@@ -1678,7 +1678,7 @@ describe('ApiCreationV4Component', () => {
         entrypoint: 'entrypoint',
       },
     };
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/settings`, method: 'GET' }).flush(settings);
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/portal`, method: 'GET' }).flush(settings);
   }
 
   function expectVerifyContextPathGetRequest() {
