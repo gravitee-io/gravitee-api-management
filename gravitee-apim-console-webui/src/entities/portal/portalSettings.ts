@@ -16,7 +16,11 @@
 /**
  * TODO: to complete, contains only one part used in the Ui console
  */
-export interface PortalSettings {
+export interface PortalSettings extends PortalConfiguration {
+  cors?: PortalSettingsCors;
+}
+
+export interface PortalConfiguration {
   portal?: PortalSettingsPortal;
   metadata?: PortalSettingsMetadata;
   application?: PortalSettingsApplication;
@@ -30,7 +34,6 @@ export interface PortalSettings {
   scheduler?: PortalSettingsScheduler;
   documentation?: PortalSettingsDocumentation;
   openAPIDocViewer?: PortalSettingsOpenAPIDocViewer;
-  cors?: PortalSettingsCors;
   email?: PortalSettingsEmail;
   portalNext?: PortalSettingsPortalNext;
 }
