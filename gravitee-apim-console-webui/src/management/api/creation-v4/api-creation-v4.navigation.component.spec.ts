@@ -308,7 +308,7 @@ describe('ApiCreationV4Component - Navigation', () => {
       httpExpects.expectRestrictedDomainsGetRequest([]);
       httpExpects.expectSchemaGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }]);
       httpExpects.expectVerifyContextPath();
-      httpExpects.expectApiGetPortalSettings();
+      httpExpects.expectApiGetPortalConfiguration();
     }));
 
     it('should display only async entrypoints in the list for MESSAGE architecture', async () => {
@@ -341,7 +341,7 @@ describe('ApiCreationV4Component - Navigation', () => {
         // Init Step 2 config and go back to Step 2 list 1
         httpExpects.expectRestrictedDomainsGetRequest([]);
         httpExpects.expectSchemaGetRequest(httpProxyEntrypoints);
-        httpExpects.expectApiGetPortalSettings();
+        httpExpects.expectApiGetPortalConfiguration();
         httpExpects.expectVerifyContextPath();
         const entrypointsConfigHarness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
         await entrypointsConfigHarness.clickPrevious();
@@ -375,7 +375,7 @@ describe('ApiCreationV4Component - Navigation', () => {
         // Init Step 2 config
         httpExpects.expectRestrictedDomainsGetRequest([]);
         httpExpects.expectSchemaGetRequest(httpProxyEntrypoints);
-        httpExpects.expectApiGetPortalSettings();
+        httpExpects.expectApiGetPortalConfiguration();
         httpExpects.expectVerifyContextPath();
 
         expect(component.currentStep.payload).toEqual({
@@ -426,7 +426,7 @@ describe('ApiCreationV4Component - Navigation', () => {
         // Init Step 2 config and go back to Step 2 list 1
         httpExpects.expectRestrictedDomainsGetRequest([]);
         httpExpects.expectSchemaGetRequest(httpProxyEntrypoints);
-        httpExpects.expectApiGetPortalSettings();
+        httpExpects.expectApiGetPortalConfiguration();
         httpExpects.expectVerifyContextPath();
         const entrypointsConfigHarness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
         await entrypointsConfigHarness.clickPrevious();
@@ -476,7 +476,7 @@ describe('ApiCreationV4Component - Navigation', () => {
         // Init Step 2 config and go back to Step 2 list 1
         httpExpects.expectRestrictedDomainsGetRequest([]);
         httpExpects.expectSchemaGetRequest(httpProxyEntrypoints);
-        httpExpects.expectApiGetPortalSettings();
+        httpExpects.expectApiGetPortalConfiguration();
         httpExpects.expectVerifyContextPath();
         const entrypointsConfigHarness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
         await entrypointsConfigHarness.clickPrevious();
@@ -502,7 +502,7 @@ describe('ApiCreationV4Component - Navigation', () => {
         // Init Step 2 config
         httpExpects.expectRestrictedDomainsGetRequest([]);
         httpExpects.expectSchemaGetRequest(httpProxyEntrypoints);
-        httpExpects.expectApiGetPortalSettings();
+        httpExpects.expectApiGetPortalConfiguration();
         httpExpects.expectVerifyContextPath();
 
         expect(component.currentStep.payload).toEqual({
@@ -556,7 +556,7 @@ describe('ApiCreationV4Component - Navigation', () => {
         // Init Step 2 config and go back to Step 2 list 1
         httpExpects.expectRestrictedDomainsGetRequest([]);
         httpExpects.expectSchemaGetRequest(httpProxyEntrypoints);
-        httpExpects.expectApiGetPortalSettings();
+        httpExpects.expectApiGetPortalConfiguration();
         httpExpects.expectVerifyContextPath();
         const entrypointsConfigHarness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
         await entrypointsConfigHarness.clickPrevious();
@@ -640,7 +640,7 @@ describe('ApiCreationV4Component - Navigation', () => {
           { id: 'http-post', name: 'HTTP Post' },
           { id: 'http-get', name: 'HTTP Get' },
         ]);
-        httpExpects.expectApiGetPortalSettings();
+        httpExpects.expectApiGetPortalConfiguration();
         httpExpects.expectVerifyContextPath();
         const entrypointsConfigHarness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
         await entrypointsConfigHarness.clickPrevious();
@@ -670,7 +670,7 @@ describe('ApiCreationV4Component - Navigation', () => {
           { id: 'http-post', name: 'HTTP Post' },
           { id: 'http-get', name: 'HTTP Get' },
         ]);
-        httpExpects.expectApiGetPortalSettings();
+        httpExpects.expectApiGetPortalConfiguration();
         httpExpects.expectVerifyContextPath();
 
         expect(component.currentStep.payload).toEqual({
@@ -733,7 +733,7 @@ describe('ApiCreationV4Component - Navigation', () => {
           { id: 'http-post', name: 'HTTP Post' },
           { id: 'http-get', name: 'HTTP Get' },
         ]);
-        httpExpects.expectApiGetPortalSettings();
+        httpExpects.expectApiGetPortalConfiguration();
         httpExpects.expectVerifyContextPath();
         const entrypointsConfigHarness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
         await entrypointsConfigHarness.clickPrevious();
@@ -762,7 +762,7 @@ describe('ApiCreationV4Component - Navigation', () => {
         // Init Step 2 config
         httpExpects.expectRestrictedDomainsGetRequest([]);
         httpExpects.expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
-        httpExpects.expectApiGetPortalSettings();
+        httpExpects.expectApiGetPortalConfiguration();
         httpExpects.expectVerifyContextPath();
 
         expect(component.currentStep.payload).toEqual({
@@ -808,7 +808,7 @@ describe('ApiCreationV4Component - Navigation', () => {
         { id: 'entrypoint-1', name: 'initial entrypoint' },
         { id: 'entrypoint-2', name: 'new entrypoint' },
       ]);
-      httpExpects.expectApiGetPortalSettings();
+      httpExpects.expectApiGetPortalConfiguration();
       httpExpects.expectVerifyContextPath();
       expect(component.currentStep.payload.paths).toEqual([
         {
