@@ -13,10 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PortalSettings } from './portalSettings';
+import { PortalConfiguration, PortalSettings } from './portalSettings';
 
 export function fakePortalSettings(attributes?: Partial<PortalSettings>): PortalSettings {
   const base: PortalSettings = {
+    ...fakePortalConfiguration(),
+    cors: {
+      allowOrigin: ['test.entrypoint.dev', 'test.entrypoint.dev2'],
+      allowHeaders: ['Cache-Control', 'Pragma'],
+      allowMethods: ['GET', 'DELETE'],
+      exposedHeaders: ['ETag', 'X-Xsrf-Token'],
+      maxAge: 1728000,
+    },
+  };
+
+  return {
+    ...base,
+    ...attributes,
+  };
+}
+
+export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration>): PortalConfiguration {
+  const base: PortalConfiguration = {
     portal: {
       entrypoint: 'https://api.company.com',
       apikeyHeader: 'X-Gravitee-Api-Key',
