@@ -19,8 +19,14 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
+import io.gravitee.apim.core.group.use_case.ValidateGroupCRDUseCase;
+import io.gravitee.rest.api.management.v2.rest.mapper.GroupCRDMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.GroupMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
+import io.gravitee.rest.api.management.v2.rest.model.GroupCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.model.GroupsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.MembersResponse;
@@ -46,6 +52,7 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -59,7 +66,13 @@ public class GroupsResource extends AbstractResource {
     @Inject
     private GroupService groupService;
 
-    private final GroupMapper mapper = GroupMapper.INSTANCE;
+    @Inject
+    private ValidateGroupCRDUseCase validateGroupCRD;
+
+    @Inject
+    private ImportGroupCRDUseCase importGroupCRD;
+
+    private static final GroupMapper MAPPER = GroupMapper.INSTANCE;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -70,7 +83,7 @@ public class GroupsResource extends AbstractResource {
         List<GroupEntity> groupsSubset = computePaginationData(groups, paginationParam);
 
         return new GroupsResponse()
-            .data(mapper.map(groupsSubset))
+            .data(MAPPER.map(groupsSubset))
             .pagination(PaginationInfo.computePaginationInfo(groups.size(), groupsSubset.size(), paginationParam))
             .links(computePaginationLinks(groups.size(), paginationParam));
     }
@@ -132,5 +145,35 @@ public class GroupsResource extends AbstractResource {
         } else {
             return Map.of();
         }
+    }
+
+    @PUT
+    @Path("/_import/crd")
+    @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.CREATE) })
+    public Response importGroupCRD(@Valid GroupCRDSpec spec, @QueryParam("dryRun") boolean dryRun) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var userDetails = getAuthenticatedUserDetails();
+
+        var input = new ImportGroupCRDUseCase.Input(
+            AuditInfo
+                .builder()
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(
+                    AuditActor
+                        .builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build()
+                )
+                .build(),
+            GroupCRDMapper.INSTANCE.toCore(spec)
+        );
+
+        var output = dryRun ? validateGroupCRD.execute(input) : importGroupCRD.execute(input);
+
+        return Response.ok(output.status()).build();
     }
 }

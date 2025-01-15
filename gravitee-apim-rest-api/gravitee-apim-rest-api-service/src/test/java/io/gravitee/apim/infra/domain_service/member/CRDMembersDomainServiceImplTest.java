@@ -90,6 +90,12 @@ class CRDMembersDomainServiceImplTest {
 
             when(roleService.findById("role-2")).thenReturn(RoleEntity.builder().id("role-2").build());
 
+            when(membershipService.getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-1"))
+                .thenReturn(Set.of(RoleEntity.builder().id("role-1").scope(RoleScope.API).build()));
+
+            when(membershipService.getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-2"))
+                .thenReturn(Set.of(RoleEntity.builder().id("role-2").scope(RoleScope.API).build()));
+
             cut.updateApiMembers(
                 AUDIT_INFO,
                 API_ID,
@@ -100,13 +106,7 @@ class CRDMembersDomainServiceImplTest {
             );
 
             verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    API_ID,
-                    MembershipMemberType.USER,
-                    "id-1"
-                );
+                .removeRole(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-1", "role-1");
 
             verify(membershipService, times(1))
                 .addRoleToMemberOnReference(
@@ -119,13 +119,7 @@ class CRDMembersDomainServiceImplTest {
                 );
 
             verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    API_ID,
-                    MembershipMemberType.USER,
-                    "id-2"
-                );
+                .removeRole(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-2", "role-2");
 
             verify(membershipService, times(1))
                 .addRoleToMemberOnReference(
@@ -151,6 +145,12 @@ class CRDMembersDomainServiceImplTest {
             when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId()))
                 .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
 
+            when(membershipService.getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-1"))
+                .thenReturn(Set.of(RoleEntity.builder().id("role-1").scope(RoleScope.API).build()));
+
+            when(membershipService.getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-2"))
+                .thenReturn(Set.of(RoleEntity.builder().id("role-2").scope(RoleScope.API).build()));
+
             cut.updateApiMembers(
                 AUDIT_INFO,
                 API_ID,
@@ -161,13 +161,7 @@ class CRDMembersDomainServiceImplTest {
             );
 
             verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    API_ID,
-                    MembershipMemberType.USER,
-                    "id-1"
-                );
+                .removeRole(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-1", "role-1");
 
             verify(membershipService, times(1))
                 .addRoleToMemberOnReference(
@@ -180,13 +174,7 @@ class CRDMembersDomainServiceImplTest {
                 );
 
             verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    API_ID,
-                    MembershipMemberType.USER,
-                    "id-2"
-                );
+                .removeRole(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-2", "role-2");
 
             verify(membershipService, times(1))
                 .addRoleToMemberOnReference(
@@ -208,6 +196,12 @@ class CRDMembersDomainServiceImplTest {
 
             when(roleService.findById("role-2")).thenThrow(new RoleNotFoundException("role-2"));
 
+            when(membershipService.getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-1"))
+                .thenReturn(Set.of(RoleEntity.builder().id("role-1").scope(RoleScope.API).build()));
+
+            when(membershipService.getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-2"))
+                .thenReturn(Set.of(RoleEntity.builder().id("role-2").scope(RoleScope.API).build()));
+
             cut.updateApiMembers(
                 AUDIT_INFO,
                 API_ID,
@@ -218,14 +212,7 @@ class CRDMembersDomainServiceImplTest {
             );
 
             verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    API_ID,
-                    MembershipMemberType.USER,
-                    "id-1"
-                );
-
+                .removeRole(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-1", "role-1");
             verify(membershipService, times(1))
                 .addRoleToMemberOnReference(
                     new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
@@ -237,13 +224,7 @@ class CRDMembersDomainServiceImplTest {
                 );
 
             verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    API_ID,
-                    MembershipMemberType.USER,
-                    "id-2"
-                );
+                .removeRole(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-1", "role-1");
 
             verify(membershipService, times(1))
                 .addRoleToMemberOnReference(
@@ -359,6 +340,12 @@ class CRDMembersDomainServiceImplTest {
 
             when(roleService.findById("role-2")).thenReturn(RoleEntity.builder().id("role-2").build());
 
+            when(membershipService.getRoles(MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-1"))
+                .thenReturn(Set.of(RoleEntity.builder().id("role-1").scope(RoleScope.APPLICATION).build()));
+
+            when(membershipService.getRoles(MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-2"))
+                .thenReturn(Set.of(RoleEntity.builder().id("role-2").scope(RoleScope.APPLICATION).build()));
+
             cut.updateApplicationMembers(
                 AUDIT_INFO,
                 APPLICATION_ID,
@@ -369,13 +356,7 @@ class CRDMembersDomainServiceImplTest {
             );
 
             verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    MembershipMemberType.USER,
-                    "id-1"
-                );
+                .removeRole(MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-1", "role-1");
 
             verify(membershipService, times(1))
                 .addRoleToMemberOnReference(
@@ -388,14 +369,7 @@ class CRDMembersDomainServiceImplTest {
                 );
 
             verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    MembershipMemberType.USER,
-                    "id-2"
-                );
-
+                .removeRole(MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-2", "role-2");
             verify(membershipService, times(1))
                 .addRoleToMemberOnReference(
                     new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
@@ -412,6 +386,12 @@ class CRDMembersDomainServiceImplTest {
             when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId()))
                 .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
 
+            when(membershipService.getRoles(MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-1"))
+                .thenReturn(Set.of(RoleEntity.builder().id("role-1").scope(RoleScope.APPLICATION).build()));
+
+            when(membershipService.getRoles(MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-2"))
+                .thenReturn(Set.of(RoleEntity.builder().id("role-2").scope(RoleScope.APPLICATION).build()));
+
             cut.updateApplicationMembers(
                 AUDIT_INFO,
                 APPLICATION_ID,
@@ -422,13 +402,7 @@ class CRDMembersDomainServiceImplTest {
             );
 
             verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    MembershipMemberType.USER,
-                    "id-1"
-                );
+                .removeRole(MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-1", "role-1");
 
             verify(membershipService, times(1))
                 .addRoleToMemberOnReference(
@@ -441,13 +415,7 @@ class CRDMembersDomainServiceImplTest {
                 );
 
             verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    MembershipMemberType.USER,
-                    "id-2"
-                );
+                .removeRole(MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-2", "role-2");
 
             verify(membershipService, times(1))
                 .addRoleToMemberOnReference(
@@ -469,6 +437,12 @@ class CRDMembersDomainServiceImplTest {
 
             when(roleService.findById("role-2")).thenThrow(new RoleNotFoundException("role-2"));
 
+            when(membershipService.getRoles(MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-1"))
+                .thenReturn(Set.of(RoleEntity.builder().id("role-1").scope(RoleScope.APPLICATION).build()));
+
+            when(membershipService.getRoles(MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-2"))
+                .thenReturn(Set.of(RoleEntity.builder().id("role-2").scope(RoleScope.APPLICATION).build()));
+
             cut.updateApplicationMembers(
                 AUDIT_INFO,
                 APPLICATION_ID,
@@ -479,13 +453,7 @@ class CRDMembersDomainServiceImplTest {
             );
 
             verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    MembershipMemberType.USER,
-                    "id-1"
-                );
+                .removeRole(MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-1", "role-1");
 
             verify(membershipService, times(1))
                 .addRoleToMemberOnReference(
@@ -498,13 +466,7 @@ class CRDMembersDomainServiceImplTest {
                 );
 
             verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    MembershipMemberType.USER,
-                    "id-2"
-                );
+                .removeRole(MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-1", "role-1");
 
             verify(membershipService, times(1))
                 .addRoleToMemberOnReference(

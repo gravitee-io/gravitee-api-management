@@ -16,6 +16,7 @@
 package inmemory;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.group.model.crd.GroupCRDSpec;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import java.util.HashMap;
@@ -29,6 +30,7 @@ public class CRDMembersDomainServiceInMemory implements CRDMembersDomainService 
 
     private final HashMap<String, Set<MemberCRD>> apiMembers = new HashMap<>();
     private final HashMap<String, Set<MemberCRD>> applicationMembers = new HashMap<>();
+    private final HashMap<String, Set<GroupCRDSpec.Member>> groupMembers = new HashMap<>();
 
     @Override
     public void updateApiMembers(AuditInfo auditInfo, String apiId, Set<MemberCRD> members) {
@@ -40,9 +42,15 @@ public class CRDMembersDomainServiceInMemory implements CRDMembersDomainService 
         applicationMembers.put(applicationId, members);
     }
 
+    @Override
+    public void updateGroupMembers(AuditInfo auditInfo, String groupId, Set<GroupCRDSpec.Member> members) {
+        groupMembers.put(groupId, members);
+    }
+
     public void reset() {
         apiMembers.clear();
         applicationMembers.clear();
+        groupMembers.clear();
     }
 
     public Set<MemberCRD> getApiMembers(String id) {
@@ -51,5 +59,9 @@ public class CRDMembersDomainServiceInMemory implements CRDMembersDomainService 
 
     public Set<MemberCRD> getApplicationMembers(String id) {
         return applicationMembers.getOrDefault(id, Set.of());
+    }
+
+    public Set<GroupCRDSpec.Member> getGroupMembers(String id) {
+        return groupMembers.getOrDefault(id, Set.of());
     }
 }

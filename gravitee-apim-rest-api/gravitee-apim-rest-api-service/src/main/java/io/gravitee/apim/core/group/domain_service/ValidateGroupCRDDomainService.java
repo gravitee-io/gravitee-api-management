@@ -13,23 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.member.model.crd;
+package io.gravitee.apim.core.group.domain_service;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.group.model.crd.GroupCRDSpec;
+import io.gravitee.apim.core.validation.Validator;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
-@Builder(toBuilder = true)
-@EqualsAndHashCode(of = { "id", "source", "sourceId", "role" })
-public class MemberCRD {
-
-    private String id;
-    private String source;
-    private String sourceId;
-    private String role;
+/**
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public interface ValidateGroupCRDDomainService extends Validator<ValidateGroupCRDDomainService.Input> {
+    record Input(AuditInfo auditInfo, GroupCRDSpec spec) implements Validator.Input {}
 }
