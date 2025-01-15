@@ -111,6 +111,9 @@ describe('ApiPortalHeaderComponent', () => {
             apiHeaderShowTags: {
               enabled: true,
             },
+            documentationOnlyMode: {
+              enabled: true,
+            },
             apiHeaderShowCategories: {
               enabled: false,
             },
@@ -162,6 +165,9 @@ describe('ApiPortalHeaderComponent', () => {
         portal: {
           apis: {
             apiHeaderShowTags: {
+              enabled: true,
+            },
+            documentationOnlyMode: {
               enabled: true,
             },
             apiHeaderShowCategories: {
@@ -218,6 +224,9 @@ describe('ApiPortalHeaderComponent', () => {
               enabled: true,
             },
             tilesMode: {
+              enabled: true,
+            },
+            documentationOnlyMode: {
               enabled: true,
             },
             categoryMode: {
@@ -295,6 +304,9 @@ describe('ApiPortalHeaderComponent', () => {
             tilesMode: {
               enabled: true,
             },
+            documentationOnlyMode: {
+              enabled: true,
+            },
             categoryMode: {
               enabled: true,
             },
@@ -368,6 +380,9 @@ describe('ApiPortalHeaderComponent', () => {
             tilesMode: {
               enabled: true,
             },
+            documentationOnlyMode: {
+              enabled: true,
+            },
             categoryMode: {
               enabled: true,
             },
@@ -439,6 +454,9 @@ describe('ApiPortalHeaderComponent', () => {
               enabled: true,
             },
             tilesMode: {
+              enabled: true,
+            },
+            documentationOnlyMode: {
               enabled: true,
             },
             categoryMode: {
