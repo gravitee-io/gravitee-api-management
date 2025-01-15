@@ -53,7 +53,7 @@ import { GioPermissionService } from '../../../shared/components/gio-permission/
 import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 import { RestrictedDomainService } from '../../../services-ngx/restricted-domain.service';
 import { TcpHost } from '../../../entities/management-api-v2/api/v4/tcpHost';
-import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
+import { PortalConfigurationService } from '../../../services-ngx/portal-configuration.service';
 import { PortalSettingsPortal } from '../../../entities/portal/portalSettings';
 
 type EntrypointVM = {
@@ -103,14 +103,14 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
     private readonly permissionService: GioPermissionService,
     private readonly changeDetector: ChangeDetectorRef,
     private readonly licenseService: GioLicenseService,
-    private readonly portalSettingsService: PortalSettingsService,
+    private readonly portalConfigurationService: PortalConfigurationService,
   ) {
     this.apiId = this.activatedRoute.snapshot.params.apiId;
     this.envId = this.activatedRoute.snapshot.params.envHrid;
   }
 
   ngOnInit(): void {
-    this.portalSettings$ = this.portalSettingsService.getByEnvironmentId(this.envId).pipe(map(({ portal }) => portal));
+    this.portalSettings$ = this.portalConfigurationService.getByEnvironmentId(this.envId).pipe(map(({ portal }) => portal));
 
     forkJoin([this.restrictedDomainService.get(), this.apiService.get(this.apiId), this.connectorPluginsV2Service.listEntrypointPlugins()])
       .pipe(takeUntil(this.unsubscribe$))

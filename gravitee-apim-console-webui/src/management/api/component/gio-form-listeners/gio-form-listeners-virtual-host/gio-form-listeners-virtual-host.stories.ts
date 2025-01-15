@@ -22,7 +22,7 @@ import { of } from 'rxjs';
 import { GioFormListenersVirtualHostComponent } from './gio-form-listeners-virtual-host.component';
 import { GioFormListenersVirtualHostModule } from './gio-form-listeners-virtual-host.module';
 
-import { PortalSettingsService } from '../../../../../services-ngx/portal-settings.service';
+import { PortalConfigurationService } from '../../../../../services-ngx/portal-configuration.service';
 import { ApiService } from '../../../../../services-ngx/api.service';
 export default {
   title: 'API / Listeners / HTTP / Form listeners virtual host',
@@ -31,7 +31,7 @@ export default {
     moduleMetadata({
       imports: [BrowserAnimationsModule, GioFormListenersVirtualHostModule, FormsModule, ReactiveFormsModule],
       providers: [
-        { provide: PortalSettingsService, useValue: { get: () => of({ portal: { entrypoint: '' } }) } },
+        { provide: PortalConfigurationService, useValue: { get: () => of({ portal: { entrypoint: '' } }) } },
         { provide: ApiService, useValue: { verify: () => of() } },
       ],
     }),
