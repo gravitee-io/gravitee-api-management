@@ -916,7 +916,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
 
   function expectGetPortalSettings(): void {
     const settings: PortalSettings = { portal: { entrypoint: 'localhost', kafkaDomain: 'kafka.domain', kafkaPort: 9092 } };
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/settings`, method: 'GET' }).flush(settings);
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/portal`, method: 'GET' }).flush(settings);
   }
 
   function expectApiPathVerify(): void {
