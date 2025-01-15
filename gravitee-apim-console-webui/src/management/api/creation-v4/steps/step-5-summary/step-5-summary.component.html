@@ -62,7 +62,12 @@
             </div>
             <div class="step-5-summary__step__info__row" *ngIf="host?.length > 0">
               <span class="step-5-summary__step__info__key">Host:</span>
-              <span class="step-5-summary__step__info__value">{{ host }}</span>
+              <span>
+                <span class="step-5-summary__step__info__value">{{ host }}</span>
+                @if (kafkaDomainAndPort$ | async; as kafkaDomainAndPort) {
+                  <span class="step-5-summary__step__info__key">{{ kafkaDomainAndPort }}</span>
+                }
+              </span>
             </div>
             <div class="step-5-summary__step__info__row">
               <span class="step-5-summary__step__info__key">Type:</span>
