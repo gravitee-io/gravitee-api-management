@@ -4838,6 +4838,8 @@ components:
             properties:
                 tilesMode:
                     $ref: "#/components/schemas/Enabled"
+                documentationOnlyMode:
+                    $ref: "#/components/schemas/Enabled"
                 categoryMode:
                     $ref: "#/components/schemas/Enabled"
                 promotedApiMode:

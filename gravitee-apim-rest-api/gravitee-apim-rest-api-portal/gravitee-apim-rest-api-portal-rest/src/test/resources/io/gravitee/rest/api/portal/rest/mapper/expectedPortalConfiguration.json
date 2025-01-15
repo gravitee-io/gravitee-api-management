@@ -15,6 +15,9 @@
       "tilesMode" : {
         "enabled" : true
       },
+      "documentationOnlyMode": {
+        "enabled": false
+      },
       "categoryMode" : {
         "enabled" : true
       },

@@ -174,6 +174,7 @@ public class ConfigurationMapper {
         configuration.setApiHeaderShowTags(convert(apis.getApiHeaderShowTags()));
         configuration.setApiHeaderShowCategories(convert(apis.getApiHeaderShowCategories()));
         configuration.setTilesMode(convert(apis.getTilesMode()));
+        configuration.setDocumentationOnlyMode(convert(apis.getDocumentationOnlyMode()));
         configuration.setCategoryMode(convert(apis.getCategoryMode()));
         configuration.setPromotedApiMode(convert(apis.getPromotedApiMode()));
         return configuration;
