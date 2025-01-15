@@ -33,7 +33,7 @@ export class JdbcTestContainerJob extends AbstractTestContainerJob {
         command: `cd gravitee-apim-repository
 mvn -pl 'gravitee-apim-repository-jdbc' -am -s ../${config.maven.settingsFile} clean package --no-transfer-progress -Dskip.validation=true -DjdbcType=<< parameters.jdbcType>> -T 2C`,
       }),
-      UbuntuExecutor.create('medium', true),
+      UbuntuExecutor.create('medium', true, '2024.08.1'),
     );
   }
 }
