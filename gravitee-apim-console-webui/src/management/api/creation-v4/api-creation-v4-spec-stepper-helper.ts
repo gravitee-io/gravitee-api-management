@@ -130,11 +130,11 @@ export class ApiCreationV4SpecStepperHelper {
     } else if (
       entrypoints.some((entrypoint) => entrypoint.supportedListenerType !== 'SUBSCRIPTION' && entrypoint.supportedApiType !== 'NATIVE')
     ) {
-      this.httpExpects.expectApiGetPortalSettings();
+      this.httpExpects.expectApiGetPortalConfiguration();
       await entrypointsConfig.fillPaths(...paths);
       this.httpExpects.expectVerifyContextPath();
     } else if (entrypoints.some((entrypoint) => entrypoint.supportedListenerType === 'KAFKA')) {
-      this.httpExpects.expectApiGetPortalSettings();
+      this.httpExpects.expectApiGetPortalConfiguration();
       await entrypointsConfig.fillHost(host);
       this.httpExpects.expectVerifyHosts([host]);
     }

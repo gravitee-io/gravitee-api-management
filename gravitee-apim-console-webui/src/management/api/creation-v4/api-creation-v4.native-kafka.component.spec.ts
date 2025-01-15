@@ -131,7 +131,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
 
       httpExpects.expectRestrictedDomainsGetRequest([]);
       httpExpects.expectSchemaGetRequest(nativeKafkaEntrypoint);
-      httpExpects.expectApiGetPortalSettings();
+      httpExpects.expectApiGetPortalConfiguration();
 
       const entrypointsConfig = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
       expect(await entrypointsConfig.hasKafkaListenersForm()).toEqual(true);
@@ -154,7 +154,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
 
         httpExpects.expectRestrictedDomainsGetRequest([]);
         httpExpects.expectSchemaGetRequest(nativeKafkaEntrypoint);
-        httpExpects.expectApiGetPortalSettings();
+        httpExpects.expectApiGetPortalConfiguration();
 
         await entrypointsConfig.fillHost(contextPath);
         httpExpects.expectVerifyContextPath();
