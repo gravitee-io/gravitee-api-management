@@ -17,11 +17,13 @@ package io.gravitee.apim.core.metadata.crud_service;
 
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.metadata.model.MetadataId;
+import java.util.Collection;
 import java.util.Optional;
 
 public interface MetadataCrudService {
     Metadata create(Metadata metadata);
     Optional<Metadata> findById(MetadataId id);
+    Collection<Metadata> findByApiId(String id);
     Metadata update(Metadata metadata);
     void delete(MetadataId metadataId);
 }

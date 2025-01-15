@@ -17,8 +17,10 @@ package io.gravitee.repository.utils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.TimeZone;
+import org.assertj.core.api.Condition;
 
 public class DateUtils {
 
@@ -53,5 +55,13 @@ public class DateUtils {
 
     public static boolean compareDate(long expectedTimestamp, long actualTimestamp) {
         return Math.abs(expectedTimestamp - actualTimestamp) < 3;
+    }
+
+    public static Condition<Date> close(String expected) {
+        return new Condition<>(
+            v -> v != null && compareDate(v.getTime(), Instant.parse(expected).toEpochMilli()),
+            "is close to %s",
+            expected
+        );
     }
 }

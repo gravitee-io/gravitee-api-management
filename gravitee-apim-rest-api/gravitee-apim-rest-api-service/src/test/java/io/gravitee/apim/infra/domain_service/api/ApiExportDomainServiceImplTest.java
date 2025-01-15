@@ -17,23 +17,36 @@ package io.gravitee.apim.infra.domain_service.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
-import io.gravitee.apim.core.api.model.import_definition.PlanExport;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.documentation.query_service.PageQueryService;
+import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.metadata.crud_service.MetadataCrudService;
+import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.workflow.crud_service.WorkflowCrudService;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.plan.PlanSecurity;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
-import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanType;
-import io.gravitee.rest.api.service.v4.ApiImportExportService;
-import java.util.Set;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.MediaService;
+import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.EnumSet;
+import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -42,30 +55,118 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ApiExportDomainServiceImplTest {
 
     @Mock
-    ApiImportExportService exportService;
+    PermissionService permissionService;
+
+    @Mock
+    MediaService mediaService;
+
+    @Mock
+    WorkflowCrudService workflowCrudService;
+
+    @Mock
+    MembershipCrudService membershipCrudService;
+
+    @Mock
+    MetadataCrudService metadataCrudService;
+
+    @Mock
+    PageQueryService pageQueryService;
+
+    @Mock
+    ApiCrudService apiCrudService;
+
+    @Mock
+    ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
+
+    @Mock
+    PlanCrudService planCrudService;
 
     @InjectMocks
     ApiExportDomainServiceImpl sut;
+
+    @BeforeEach
+    void setUp() {
+        lenient()
+            .when(
+                permissionService.hasPermission(
+                    any(ExecutionContext.class),
+                    any(RolePermission.class),
+                    anyString(),
+                    ArgumentMatchers.<RolePermissionAction>any()
+                )
+            )
+            .thenReturn(true);
+    }
 
     @Test
     void exportServiceMustMapTypeWhenExportV4() {
         // Given
         String apiId = UUID.randomUUID().toString();
-        ApiEntity api = new ApiEntity();
-        api.setType(ApiType.PROXY);
-        BasePlanEntity plan = new BasePlanEntity();
-        plan.setId(UUID.randomUUID().toString());
-        plan.setSecurity(new PlanSecurity());
-        plan.setType(PlanType.API);
-        when(exportService.exportApi(any(), any(), any(), any()))
-            .thenReturn(new ExportApiEntity(api, null, null, null, Set.of(plan), null));
+        var definition = new io.gravitee.definition.model.v4.Api();
+        Api api = Api
+            .builder()
+            .id(apiId)
+            .type(ApiType.PROXY)
+            .definitionVersion(DefinitionVersion.V4)
+            .apiDefinitionHttpV4(definition)
+            .build();
+        when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
 
         // When
-        GraviteeDefinition export = sut.export(apiId, AuditInfo.builder().build());
+        GraviteeDefinition export = sut.export(apiId, AuditInfo.builder().build(), EnumSet.noneOf(ApiExportDomainService.Excludable.class));
 
         // Then
-        assertThat(export.getApi().getType()).isEqualTo(ApiType.PROXY);
-        assertThat(export.getPlans()).map(PlanExport::getType).first().isEqualTo(Plan.PlanType.API);
-        assertThat(export.getPlans()).map(PlanExport::getSecurity).first().isNotNull();
+        assertThat(export.api().type()).isEqualTo(ApiType.PROXY);
+    }
+
+    @Test
+    void exportServiceMustMapTypeWhenExportV4WithoutPermissions() {
+        // Given
+        String apiId = UUID.randomUUID().toString();
+        var definition = new io.gravitee.definition.model.v4.Api();
+        Api api = Api
+            .builder()
+            .id(apiId)
+            .type(ApiType.PROXY)
+            .definitionVersion(DefinitionVersion.V4)
+            .apiDefinitionHttpV4(definition)
+            .build();
+        when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
+        when(
+            permissionService.hasPermission(
+                any(ExecutionContext.class),
+                any(RolePermission.class),
+                anyString(),
+                ArgumentMatchers.<RolePermissionAction>any()
+            )
+        )
+            .thenReturn(false);
+
+        // When
+        GraviteeDefinition export = sut.export(apiId, AuditInfo.builder().build(), EnumSet.noneOf(ApiExportDomainService.Excludable.class));
+
+        // Then
+        assertThat(export.api().type()).isEqualTo(ApiType.PROXY);
+    }
+
+    @Test
+    void exportServiceMustMapTypeWhenExportV4Native() {
+        // Given
+        String apiId = UUID.randomUUID().toString();
+        var definition = new NativeApi();
+        Api api = Api
+            .builder()
+            .id(apiId)
+            .type(ApiType.NATIVE)
+            .definitionVersion(DefinitionVersion.V4)
+            .apiDefinitionNativeV4(definition)
+            .build();
+        when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
+
+        // When
+        GraviteeDefinition export = sut.export(apiId, AuditInfo.builder().build(), EnumSet.noneOf(ApiExportDomainService.Excludable.class));
+
+        // Then
+        assertThat(export.api().type()).isEqualTo(ApiType.NATIVE);
     }
 }

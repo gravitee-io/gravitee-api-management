@@ -16,7 +16,9 @@
 package io.gravitee.apim.core.workflow.crud_service;
 
 import io.gravitee.apim.core.workflow.model.Workflow;
+import java.util.Collection;
 
 public interface WorkflowCrudService {
     Workflow create(Workflow workflow);
+    Collection<Workflow> findByApiId(String apiId);
 }

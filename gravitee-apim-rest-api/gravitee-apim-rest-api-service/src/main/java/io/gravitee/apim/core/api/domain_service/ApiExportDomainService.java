@@ -16,9 +16,17 @@
 package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
-import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import java.util.Collection;
 
 public interface ApiExportDomainService {
-    GraviteeDefinition export(String apiId, AuditInfo auditInfo);
+    enum Excludable {
+        GROUPS,
+        PLANS,
+        MEMBERS,
+        PAGES_MEDIA,
+        METADATA,
+    }
+
+    GraviteeDefinition export(String apiId, AuditInfo auditInfo, Collection<ApiExportDomainService.Excludable> excludeAdditionalData);
 }

@@ -41,6 +41,8 @@ public interface MembershipRepository extends FindAllRepository<Membership> {
      */
     List<String> deleteByReferenceIdAndReferenceType(String referenceId, MembershipReferenceType referenceType) throws TechnicalException;
 
+    List<Membership> findByReferenceIdAndReferenceType(String referenceId, MembershipReferenceType referenceType) throws TechnicalException;
+
     /**
      * find membership by id.
      * @param membershipId the membership id

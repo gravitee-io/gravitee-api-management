@@ -15,12 +15,17 @@
  */
 package io.gravitee.apim.infra.crud_service.workflow;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.workflow.crud_service.WorkflowCrudService;
 import io.gravitee.apim.core.workflow.model.Workflow;
 import io.gravitee.apim.infra.adapter.WorkflowAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.WorkflowRepository;
+import io.gravitee.rest.api.model.WorkflowReferenceType;
+import io.gravitee.rest.api.model.WorkflowType;
+import java.util.Collection;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -47,6 +52,16 @@ public class WorkflowCrudServiceImpl implements WorkflowCrudService {
                 ),
                 e
             );
+        }
+    }
+
+    public Collection<Workflow> findByApiId(String apiId) {
+        try {
+            return stream(workflowRepository.findByReferenceAndType(WorkflowReferenceType.API.name(), apiId, WorkflowType.REVIEW.name()))
+                .map(WorkflowAdapter.INSTANCE::toEntity)
+                .toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error to find workflows of [apiId=%s]".formatted(apiId), e);
         }
     }
 }

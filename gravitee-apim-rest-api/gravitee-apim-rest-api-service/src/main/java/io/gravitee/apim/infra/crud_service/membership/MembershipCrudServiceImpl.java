@@ -15,12 +15,16 @@
  */
 package io.gravitee.apim.infra.crud_service.membership;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.infra.adapter.MembershipAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.model.MembershipReferenceType;
+import java.util.Collection;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -49,6 +53,17 @@ public class MembershipCrudServiceImpl implements MembershipCrudService {
             membershipRepository.delete(id);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to delete the membership: " + id, e);
+        }
+    }
+
+    @Override
+    public Collection<Membership> findByApiId(String apiId) {
+        try {
+            return stream(membershipRepository.findByReferenceIdAndReferenceType(apiId, MembershipReferenceType.API))
+                .map(MembershipAdapter.INSTANCE::toEntity)
+                .toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to create the membership: " + apiId, e);
         }
     }
 }

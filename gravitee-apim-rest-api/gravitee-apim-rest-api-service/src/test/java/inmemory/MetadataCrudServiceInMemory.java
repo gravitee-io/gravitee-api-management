@@ -19,6 +19,7 @@ import io.gravitee.apim.core.metadata.crud_service.MetadataCrudService;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.metadata.model.MetadataId;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -45,6 +46,11 @@ public class MetadataCrudServiceInMemory implements MetadataCrudService, InMemor
                 Objects.equals(m.getReferenceType(), id.getReferenceType())
             )
             .findFirst();
+    }
+
+    @Override
+    public Collection<Metadata> findByApiId(String id) {
+        return storage.stream().filter(m -> Metadata.ReferenceType.API == m.getReferenceType() && id.equals(m.getReferenceId())).toList();
     }
 
     @Override

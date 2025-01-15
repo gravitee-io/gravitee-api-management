@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import static io.gravitee.repository.mongodb.utils.CollectionUtils.stream;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Membership;
@@ -118,6 +120,20 @@ public class MongoMembershipRepository implements MembershipRepository {
     }
 
     @Override
+    public List<Membership> findByReferenceIdAndReferenceType(String referenceId, MembershipReferenceType referenceType)
+        throws TechnicalException {
+        logger.debug("Find memberships by reference [{}/{}]", referenceId, referenceType);
+        try {
+            return stream(internalMembershipRepo.findReferenceIdAndReferenceType(referenceId, referenceType.name()))
+                .map(this::map)
+                .toList();
+        } catch (Exception ex) {
+            logger.error("Failed to find memberships by ref: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to find memberships by ref");
+        }
+    }
+
+    @Override
     public Optional<Membership> findById(String membershipId) throws TechnicalException {
         logger.debug("Find membership by ID [{}]", membershipId);
 
@@ -186,7 +202,7 @@ public class MongoMembershipRepository implements MembershipRepository {
         String memberId,
         MembershipMemberType memberType,
         MembershipReferenceType referenceType
-    ) throws TechnicalException {
+    ) {
         return internalMembershipRepo.findRefIdsByMemberIdAndMemberTypeAndReferenceType(memberId, memberType.name(), referenceType.name());
     }
 
@@ -297,9 +313,9 @@ public class MongoMembershipRepository implements MembershipRepository {
         MembershipMemberType memberType,
         MembershipReferenceType referenceType,
         Collection<String> roleIds
-    ) throws TechnicalException {
+    ) {
         logger.debug(
-            "Find membership by user and referenceType and referenceId and roleId in [{}, {}, {}, {}, {}]",
+            "Find membership by user and referenceType and referenceId and roleId in [{}, {}, {}, {}]",
             memberId,
             memberType,
             referenceType,
@@ -311,7 +327,7 @@ public class MongoMembershipRepository implements MembershipRepository {
             .map(this::map)
             .collect(Collectors.toSet());
         logger.debug(
-            "Find membership by user and referenceType and referenceId, roleId in [{}, {}, {}, {}, {}] = {}",
+            "Find membership by user and referenceType and referenceId, roleId in [{}, {}, {}, {}] = {}",
             memberId,
             memberType,
             referenceType,
@@ -327,9 +343,9 @@ public class MongoMembershipRepository implements MembershipRepository {
         MembershipMemberType memberType,
         MembershipReferenceType referenceType,
         Collection<String> roleIds
-    ) throws TechnicalException {
+    ) {
         logger.debug(
-            "Find membership by user and referenceType and referenceId and roleId in [{}, {}, {}, {}, {}]",
+            "Find membership by user and referenceType and referenceId and roleId in [{}, {}, {}, {}]",
             memberId,
             memberType,
             referenceType,
@@ -341,7 +357,7 @@ public class MongoMembershipRepository implements MembershipRepository {
             .map(MembershipMongo::getReferenceId)
             .collect(Collectors.toSet());
         logger.debug(
-            "Find membership by user and referenceType and referenceId, roleId in [{}, {}, {}, {}, {}] = {}",
+            "Find membership by user and referenceType and referenceId, roleId in [{}, {}, {}, {}] = {}",
             memberId,
             memberType,
             referenceType,
