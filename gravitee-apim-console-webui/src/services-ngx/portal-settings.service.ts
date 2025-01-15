@@ -23,6 +23,11 @@ import { EnvironmentSettingsService } from './environment-settings.service';
 import { Constants } from '../entities/Constants';
 import { PortalSettings } from '../entities/portal/portalSettings';
 
+/**
+ *  Portal Settings Service is used to return the settings for users that have the READ permission for settings at the org or env level
+ *
+ *  Use {@link PortalConfigurationService} to access settings open to all users.
+ */
 @Injectable({
   providedIn: 'root',
 })
