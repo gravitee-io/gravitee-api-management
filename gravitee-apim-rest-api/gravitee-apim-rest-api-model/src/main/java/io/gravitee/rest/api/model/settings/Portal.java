@@ -109,6 +109,9 @@ public class Portal {
         @ParameterKey(Key.PORTAL_APIS_TILESMODE_ENABLED)
         private Enabled tilesMode;
 
+        @ParameterKey(Key.PORTAL_APIS_DOCUMENTATIONONLYMODE_ENABLED)
+        private Enabled documentationOnlyMode;
+
         @ParameterKey(Key.PORTAL_APIS_CATEGORY_ENABLED)
         private Enabled categoryMode;
 

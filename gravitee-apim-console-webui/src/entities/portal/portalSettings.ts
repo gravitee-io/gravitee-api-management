@@ -70,6 +70,9 @@ export interface PortalSettingsPortal {
     tilesMode: {
       enabled: boolean;
     };
+    documentationOnlyMode: {
+      enabled: boolean;
+    };
     categoryMode: {
       enabled: boolean;
     };

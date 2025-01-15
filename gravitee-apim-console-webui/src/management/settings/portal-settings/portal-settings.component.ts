@@ -77,6 +77,9 @@ interface PortalForm {
       tilesMode: FormGroup<{
         enabled: FormControl<boolean>;
       }>;
+      documentationOnlyMode: FormGroup<{
+        enabled: FormControl<boolean>;
+      }>;
     }>;
     support: FormGroup<{
       enabled: FormControl<boolean>;
@@ -313,6 +316,12 @@ export class PortalSettingsComponent implements OnInit {
             enabled: new FormControl({
               value: this.settings.portal.apis.tilesMode.enabled,
               disabled: this.isReadonly('portal.apis.tilesMode.enabled'),
+            }),
+          }),
+          documentationOnlyMode: new FormGroup({
+            enabled: new FormControl({
+              value: this.settings.portal.apis.documentationOnlyMode.enabled,
+              disabled: this.isReadonly('portal.apis.documentationOnlyMode.enabled'),
             }),
           }),
         }),
