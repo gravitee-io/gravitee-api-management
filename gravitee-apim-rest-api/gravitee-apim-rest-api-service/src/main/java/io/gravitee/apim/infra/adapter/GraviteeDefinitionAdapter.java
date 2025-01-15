@@ -16,7 +16,6 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
-import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
