@@ -1,0 +1,16 @@
+{
+  "id": "2868ef55-561e-4b99-a981-450015a248d9",
+  "name": "with-one-member",
+  "notifyMembers": false,
+  "members": [
+    {
+      "source": "memory",
+      "sourceId": "api1",
+      "roles": {
+        "API": "OWNER",
+        "APPLICATION": "OWNER",
+        "INTEGRATION": "USER"
+      }
+    }
+  ]
+}

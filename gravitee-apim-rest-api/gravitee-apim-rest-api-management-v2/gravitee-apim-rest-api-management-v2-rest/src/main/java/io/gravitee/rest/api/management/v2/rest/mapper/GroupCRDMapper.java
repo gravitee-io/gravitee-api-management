@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.member.model.crd;
+package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import io.gravitee.rest.api.management.v2.rest.model.GroupCRDSpec;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
-@Builder(toBuilder = true)
-@EqualsAndHashCode(of = { "id", "source", "sourceId", "role" })
-public class MemberCRD {
+/**
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+@Mapper
+public interface GroupCRDMapper {
+    GroupCRDMapper INSTANCE = Mappers.getMapper(GroupCRDMapper.class);
 
-    private String id;
-    private String source;
-    private String sourceId;
-    private String role;
+    io.gravitee.apim.core.group.model.crd.GroupCRDSpec toCore(GroupCRDSpec coreSpec);
+
+    GroupCRDSpec toRest(io.gravitee.apim.core.group.model.crd.GroupCRDSpec restSpec);
 }

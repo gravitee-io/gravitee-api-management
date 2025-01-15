@@ -17,14 +17,16 @@ package io.gravitee.apim.infra.domain_service.member;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.group.model.crd.GroupCRDSpec;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
+import io.gravitee.apim.core.member.model.RoleScope;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.apim.core.utils.StringUtils;
+import io.gravitee.apim.infra.adapter.GroupCRDAdapter;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -65,6 +67,21 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
         transferOwnerShip(auditInfo, applicationId, RoleScope.APPLICATION, MembershipReferenceType.APPLICATION);
     }
 
+    @Override
+    public void updateGroupMembers(AuditInfo auditInfo, String groupId, Set<GroupCRDSpec.Member> members) {
+        var apiMembers = GroupCRDAdapter.INSTANCE.toApiMemberCRDSet(members);
+        var applicationMembers = GroupCRDAdapter.INSTANCE.toApplicationMemberCRDSet(members);
+        var integrationMembers = GroupCRDAdapter.INSTANCE.toIntegrationMemberCRDSet(members);
+
+        updateMembers(auditInfo, groupId, RoleScope.API, MembershipReferenceType.GROUP, apiMembers);
+        updateMembers(auditInfo, groupId, RoleScope.APPLICATION, MembershipReferenceType.GROUP, applicationMembers);
+        updateMembers(auditInfo, groupId, RoleScope.INTEGRATION, MembershipReferenceType.GROUP, integrationMembers);
+
+        deleteOrphans(auditInfo, groupId, RoleScope.API, MembershipReferenceType.GROUP, apiMembers);
+        deleteOrphans(auditInfo, groupId, RoleScope.APPLICATION, MembershipReferenceType.GROUP, applicationMembers);
+        deleteOrphans(auditInfo, groupId, RoleScope.INTEGRATION, MembershipReferenceType.GROUP, integrationMembers);
+    }
+
     private void updateMembers(
         AuditInfo auditInfo,
         String referenceId,
@@ -73,20 +90,22 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
         Set<MemberCRD> members
     ) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
-        var defaultRole = roleService.findDefaultRoleByScopes(auditInfo.organizationId(), roleScope).iterator().next();
+
+        var defaultRole = roleService.findDefaultRoleByScopes(auditInfo.organizationId(), mapRoleScope(roleScope)).iterator().next();
 
         for (var member : members) {
             if (StringUtils.isEmpty(member.getRole())) {
                 log.warn("There is no role associated with member [{}]. Default role will be applied", member.getSourceId());
             }
 
-            membershipService.deleteReferenceMember(
-                executionContext,
-                referenceType,
-                referenceId,
-                MembershipMemberType.USER,
-                member.getId()
-            );
+            membershipService
+                .getRoles(referenceType, referenceId, MembershipMemberType.USER, member.getId())
+                .stream()
+                .filter(role -> role.getScope().name().equals(roleScope.name()))
+                .findFirst()
+                .ifPresent(role ->
+                    membershipService.removeRole(referenceType, referenceId, MembershipMemberType.USER, member.getId(), role.getId())
+                );
 
             var memberRoleEntity = StringUtils.isEmpty(member.getRole())
                 ? defaultRole
@@ -116,7 +135,9 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
 
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
 
-        var poRole = roleService.findPrimaryOwnerRoleByOrganization(auditInfo.organizationId(), roleScope);
+        var scope = io.gravitee.rest.api.model.permissions.RoleScope.valueOf(roleScope.name());
+
+        var poRole = roleService.findPrimaryOwnerRoleByOrganization(auditInfo.organizationId(), scope);
 
         var givenMemberIds = members.stream().map(MemberCRD::getId).collect(Collectors.toSet());
 
@@ -159,11 +180,15 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
     private RoleEntity findRoleEntity(String organizationId, RoleScope roleScope, String roleNameOrId, RoleEntity defaultRole) {
         try {
             return roleService
-                .findByScopeAndName(roleScope, roleNameOrId, organizationId)
+                .findByScopeAndName(mapRoleScope(roleScope), roleNameOrId, organizationId)
                 .orElseGet(() -> roleService.findById(roleNameOrId));
         } catch (RoleNotFoundException e) {
-            log.warn("Unable to find role [{}]. Using default role [{}]", roleNameOrId, defaultRole.getName());
+            log.warn("Unable to find role [{}]. Using default role [{}]", roleNameOrId, defaultRole);
             return defaultRole;
         }
+    }
+
+    private io.gravitee.rest.api.model.permissions.RoleScope mapRoleScope(RoleScope roleScope) {
+        return roleScope == null ? null : io.gravitee.rest.api.model.permissions.RoleScope.valueOf(roleScope.name());
     }
 }

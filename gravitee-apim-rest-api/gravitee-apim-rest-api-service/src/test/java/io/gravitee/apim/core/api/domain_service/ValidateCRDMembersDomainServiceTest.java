@@ -107,7 +107,7 @@ class ValidateCRDMembersDomainServiceTest {
         var members = Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(USER_ID).role("USER").build());
         var expectedMembers = Set.of(MemberCRD.builder().id(USER_ID).source(USER_SOURCE).sourceId(USER_ID).role("USER").build());
         var result = cut.validateAndSanitize(
-            new ValidateCRDMembersDomainService.Input(AUDIT_INFO, "app_id", MembershipReferenceType.APPLICATION, members)
+            new ValidateCRDMembersDomainService.Input(AUDIT_INFO, MembershipReferenceType.APPLICATION, members)
         );
 
         result.peek(
@@ -124,7 +124,7 @@ class ValidateCRDMembersDomainServiceTest {
         );
         var expectedMembers = Set.of(MemberCRD.builder().id(USER_ID).source(USER_SOURCE).sourceId(USER_ID).role("USER").build());
         var result = cut.validateAndSanitize(
-            new ValidateCRDMembersDomainService.Input(AUDIT_INFO, "", MembershipReferenceType.APPLICATION, members)
+            new ValidateCRDMembersDomainService.Input(AUDIT_INFO, MembershipReferenceType.APPLICATION, members)
         );
 
         result.peek(
@@ -142,7 +142,7 @@ class ValidateCRDMembersDomainServiceTest {
     void should_return_warning_with_unknown_member_role(MembershipReferenceType referenceType) {
         var members = Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(USER_ID).role("UNKNOWN").build());
         var expectedMembers = Set.copyOf(members);
-        var result = cut.validateAndSanitize(new ValidateCRDMembersDomainService.Input(AUDIT_INFO, "", referenceType, members));
+        var result = cut.validateAndSanitize(new ValidateCRDMembersDomainService.Input(AUDIT_INFO, referenceType, members));
 
         result.peek(
             sanitized -> assertThat(Set.copyOf(sanitized.members())).isEqualTo(expectedMembers),
@@ -155,7 +155,7 @@ class ValidateCRDMembersDomainServiceTest {
     void should_not_return_warning_with_known_member_role(MembershipReferenceType referenceType) {
         var members = Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(USER_ID).role(ROLE_ID).build());
         var expectedMembers = Set.copyOf(members);
-        var result = cut.validateAndSanitize(new ValidateCRDMembersDomainService.Input(AUDIT_INFO, "", referenceType, members));
+        var result = cut.validateAndSanitize(new ValidateCRDMembersDomainService.Input(AUDIT_INFO, referenceType, members));
 
         result.peek(
             sanitized -> assertThat(Set.copyOf(sanitized.members())).isEqualTo(expectedMembers),
@@ -168,7 +168,7 @@ class ValidateCRDMembersDomainServiceTest {
     void should_return_error_with_primary_owner_role(MembershipReferenceType referenceType) {
         var members = Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(USER_ID).role("PRIMARY_OWNER").build());
         var expectedMembers = Set.of();
-        var result = cut.validateAndSanitize(new ValidateCRDMembersDomainService.Input(AUDIT_INFO, "", referenceType, members));
+        var result = cut.validateAndSanitize(new ValidateCRDMembersDomainService.Input(AUDIT_INFO, referenceType, members));
 
         result.peek(
             sanitized -> assertThat(Set.copyOf(sanitized.members())).isEqualTo(expectedMembers),
@@ -185,7 +185,7 @@ class ValidateCRDMembersDomainServiceTest {
         );
         var members = Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(ACTOR_USER_ID).role("USER").build());
         var expectedMembers = Set.of();
-        var result = cut.validateAndSanitize(new ValidateCRDMembersDomainService.Input(AUDIT_INFO, "test", referenceType, members));
+        var result = cut.validateAndSanitize(new ValidateCRDMembersDomainService.Input(AUDIT_INFO, referenceType, members));
 
         result.peek(
             sanitized -> assertThat(Set.copyOf(sanitized.members())).isEqualTo(expectedMembers),
@@ -197,7 +197,7 @@ class ValidateCRDMembersDomainServiceTest {
     void should_return_no_warning_with_null_members() {
         var expectedMembers = Set.of();
         var result = cut.validateAndSanitize(
-            new ValidateCRDMembersDomainService.Input(AUDIT_INFO, "", MembershipReferenceType.APPLICATION, null)
+            new ValidateCRDMembersDomainService.Input(AUDIT_INFO, MembershipReferenceType.APPLICATION, null)
         );
 
         result.peek(sanitized -> assertThat(sanitized.members()).isEqualTo(expectedMembers), errors -> assertThat(errors).isEmpty());

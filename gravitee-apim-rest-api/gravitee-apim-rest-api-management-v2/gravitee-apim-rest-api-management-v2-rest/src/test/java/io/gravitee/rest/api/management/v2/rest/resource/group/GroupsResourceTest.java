@@ -27,6 +27,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.group.model.crd.GroupCRDStatus;
+import io.gravitee.apim.core.membership.model.Role;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.mapper.GroupMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
@@ -46,14 +49,20 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.apache.commons.io.IOUtils;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -289,6 +298,184 @@ public class GroupsResourceTest extends AbstractResourceTest {
                         .links(Links.builder().self(target.getUri().toString()).build())
                         .build()
                 );
+        }
+    }
+
+    @Nested
+    class ImportCRD {
+
+        WebTarget target;
+
+        @BeforeEach
+        void setUp() {
+            target = rootTarget().path("/_import/crd");
+            groupQueryServiceInMemory.reset();
+            groupCrudServiceInMemory.reset();
+            userDomainServiceInMemory.reset();
+            userCrudService.reset();
+
+            userDomainServiceInMemory.initWith(
+                List.of(
+                    BaseUserEntity
+                        .builder()
+                        .organizationId(ORGANIZATION)
+                        .sourceId("api1")
+                        .source("memory")
+                        .id("46f5c533-f083-4885-bbac-7bd9907d9aec")
+                        .build()
+                )
+            );
+
+            roleQueryService.initWith(
+                List.of(
+                    Role
+                        .builder()
+                        .name("OWNER")
+                        .referenceType(Role.ReferenceType.ORGANIZATION)
+                        .referenceId(ORGANIZATION)
+                        .id("e3b00195-b7ea-432a-a416-3bc41ee5cf2e")
+                        .scope(Role.Scope.API)
+                        .build(),
+                    Role
+                        .builder()
+                        .name("OWNER")
+                        .referenceType(Role.ReferenceType.ORGANIZATION)
+                        .referenceId(ORGANIZATION)
+                        .id("1c826553-6589-42cd-9e93-f9b098d857c8")
+                        .scope(Role.Scope.APPLICATION)
+                        .build(),
+                    Role
+                        .builder()
+                        .name("USER")
+                        .referenceType(Role.ReferenceType.ORGANIZATION)
+                        .referenceId(ORGANIZATION)
+                        .id("70ebba73-21f2-41a2-b108-aa19cf50f644")
+                        .scope(Role.Scope.INTEGRATION)
+                        .build(),
+                    Role
+                        .builder()
+                        .name("PRIMARY_OWNER")
+                        .referenceType(Role.ReferenceType.ORGANIZATION)
+                        .referenceId(ORGANIZATION)
+                        .id("07d1195b-1281-4c33-8cfd-e1d564be6067")
+                        .scope(Role.Scope.API)
+                        .build(),
+                    Role
+                        .builder()
+                        .name("PRIMARY_OWNER")
+                        .referenceType(Role.ReferenceType.ORGANIZATION)
+                        .referenceId(ORGANIZATION)
+                        .id("7de95e80-8630-4acb-9c40-013bcfe466c6")
+                        .scope(Role.Scope.APPLICATION)
+                        .build()
+                )
+            );
+        }
+
+        @Test
+        void should_return_no_error_and_add_one_member() {
+            var crdStatus = doImport("/crd/group/with-one-member.json", false);
+            SoftAssertions.assertSoftly(soft -> {
+                soft
+                    .assertThat(crdStatus)
+                    .isEqualTo(
+                        GroupCRDStatus
+                            .builder()
+                            .id("2868ef55-561e-4b99-a981-450015a248d9")
+                            .errors(GroupCRDStatus.Errors.EMPTY)
+                            .members(1)
+                            .build()
+                    );
+
+                soft.assertThat(groupCrudServiceInMemory.storage()).hasSize(1);
+            });
+        }
+
+        @Test
+        void should_return_warning_with_unknown_member_and_dry_run() {
+            var crdStatus = doImport("/crd/group/with-unknown-member.json", true);
+            SoftAssertions.assertSoftly(soft -> {
+                soft
+                    .assertThat(crdStatus)
+                    .isEqualTo(
+                        GroupCRDStatus
+                            .builder()
+                            .id("2868ef55-561e-4b99-a981-450015a248d9")
+                            .errors(
+                                GroupCRDStatus.Errors
+                                    .builder()
+                                    .warning(List.of("member [unknown] of source [memory] could not be found in organization [fake-org]"))
+                                    .severe(List.of())
+                                    .build()
+                            )
+                            .build()
+                    );
+
+                soft.assertThat(groupCrudServiceInMemory.storage()).isEmpty();
+            });
+        }
+
+        @Test
+        void should_return_sever_error_with_api_primary_owner_and_dry_run() {
+            var crdStatus = doImport("/crd/group/with-api-primary-owner.json", true);
+            SoftAssertions.assertSoftly(soft -> {
+                soft
+                    .assertThat(crdStatus)
+                    .isEqualTo(
+                        GroupCRDStatus
+                            .builder()
+                            .id("2868ef55-561e-4b99-a981-450015a248d9")
+                            .errors(
+                                GroupCRDStatus.Errors
+                                    .builder()
+                                    .warning(List.of())
+                                    .severe(List.of("setting a member with the primary owner role is not allowed"))
+                                    .build()
+                            )
+                            .build()
+                    );
+
+                soft.assertThat(groupCrudServiceInMemory.storage()).isEmpty();
+            });
+        }
+
+        @Test
+        void should_return_sever_error_with_application_primary_owner_and_dry_run() {
+            var crdStatus = doImport("/crd/group/with-application-primary-owner.json", true);
+            SoftAssertions.assertSoftly(soft -> {
+                soft
+                    .assertThat(crdStatus)
+                    .isEqualTo(
+                        GroupCRDStatus
+                            .builder()
+                            .id("2868ef55-561e-4b99-a981-450015a248d9")
+                            .errors(
+                                GroupCRDStatus.Errors
+                                    .builder()
+                                    .warning(List.of())
+                                    .severe(List.of("setting a member with the primary owner role is not allowed"))
+                                    .build()
+                            )
+                            .build()
+                    );
+
+                soft.assertThat(groupCrudServiceInMemory.storage()).isEmpty();
+            });
+        }
+
+        private GroupCRDStatus doImport(String crdResource, boolean dryRun) {
+            try (var response = target.queryParam("dryRun", dryRun).request().put(Entity.json(readJSON(crdResource)))) {
+                Assertions.assertThat(response.getStatus()).isEqualTo(200);
+                return response.readEntity(GroupCRDStatus.class);
+            }
+        }
+
+        private String readJSON(String resource) {
+            try (var reader = this.getClass().getResourceAsStream(resource)) {
+                return IOUtils.toString(reader, Charset.defaultCharset());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }
