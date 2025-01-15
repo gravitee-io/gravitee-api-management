@@ -19,6 +19,7 @@ import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.infra.adapter.GraviteeDefinitionAdapter;
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import java.util.Set;
@@ -35,6 +36,10 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
     public GraviteeDefinition export(String apiId, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
         var exportEntity = exportService.exportApi(executionContext, apiId, null, Set.of());
-        return GraviteeDefinitionAdapter.INSTANCE.map(exportEntity);
+        var graviteeDefinition = GraviteeDefinitionAdapter.INSTANCE.map(exportEntity);
+        if (exportEntity.getApiEntity() instanceof ApiEntity v4) {
+            graviteeDefinition.getApi().setType(v4.getType());
+        }
+        return graviteeDefinition;
     }
 }
