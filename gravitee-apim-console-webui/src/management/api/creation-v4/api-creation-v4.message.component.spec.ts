@@ -150,7 +150,7 @@ describe('ApiCreationV4Component - Message', () => {
       ]);
       httpExpects.expectRestrictedDomainsGetRequest([]);
       httpExpects.expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
-      httpExpects.expectApiGetPortalSettings();
+      httpExpects.expectApiGetPortalConfiguration();
       const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
       expect(await step21Harness.hasListenersForm()).toEqual(true);
       expect(await step21Harness.hasValidationDisabled()).toEqual(true);
@@ -172,7 +172,7 @@ describe('ApiCreationV4Component - Message', () => {
       ]);
       httpExpects.expectRestrictedDomainsGetRequest([]);
       httpExpects.expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
-      httpExpects.expectApiGetPortalSettings();
+      httpExpects.expectApiGetPortalConfiguration();
       const step22Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
       await step22Harness.fillPaths('bad-path');
       expect(await step22Harness.hasValidationDisabled()).toEqual(true);
@@ -201,7 +201,7 @@ describe('ApiCreationV4Component - Message', () => {
         { id: 'sse', name: 'SSE' },
         { id: 'webhook', name: 'Webhook' },
       ]);
-      httpExpects.expectApiGetPortalSettings();
+      httpExpects.expectApiGetPortalConfiguration();
       tick(500);
 
       const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
@@ -270,10 +270,10 @@ describe('ApiCreationV4Component - Message', () => {
       ]);
       httpExpects.expectRestrictedDomainsGetRequest([]);
       httpExpects.expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
-      httpExpects.expectApiGetPortalSettings();
+      httpExpects.expectApiGetPortalConfiguration();
       const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
       await step21Harness.clickListenerType();
-      httpExpects.expectApiGetPortalSettings();
+      httpExpects.expectApiGetPortalConfiguration();
 
       await step21Harness.fillVirtualHosts({ host: '', path: '/api/my-api-3' });
       httpExpects.expectVerifyContextPath();
@@ -296,10 +296,10 @@ describe('ApiCreationV4Component - Message', () => {
       ]);
       httpExpects.expectRestrictedDomainsGetRequest([]);
       httpExpects.expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
-      httpExpects.expectApiGetPortalSettings();
+      httpExpects.expectApiGetPortalConfiguration();
       const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
       await step21Harness.clickListenerType();
-      httpExpects.expectApiGetPortalSettings();
+      httpExpects.expectApiGetPortalConfiguration();
 
       await step21Harness.fillVirtualHosts({ host: 'hostname', path: '/api/my-api-3' });
       httpExpects.expectVerifyContextPath();
@@ -347,12 +347,12 @@ describe('ApiCreationV4Component - Message', () => {
       ]);
       httpExpects.expectRestrictedDomainsGetRequest(fakeRestrictedDomains(['domain.com', 'domain.net']));
       httpExpects.expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
-      httpExpects.expectApiGetPortalSettings();
+      httpExpects.expectApiGetPortalConfiguration();
       httpExpects.expectVerifyContextPath();
 
       const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
       expect(await step21Harness.canSwitchListenerMode()).toEqual(false);
-      httpExpects.expectApiGetPortalSettings();
+      httpExpects.expectApiGetPortalConfiguration();
     }));
   });
 

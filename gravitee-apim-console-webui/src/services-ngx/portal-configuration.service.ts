@@ -29,7 +29,7 @@ import { PortalConfiguration } from '../entities/portal/portalSettings';
 export class PortalConfigurationService {
   constructor(
     private readonly http: HttpClient,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
   ) {}
 
   get(): Observable<PortalConfiguration> {

@@ -129,7 +129,7 @@ describe('ApiCreationV4Component - HTTP Proxy', () => {
       const entrypointsConfig = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
       httpExpects.expectRestrictedDomainsGetRequest([]);
       httpExpects.expectSchemaGetRequest(httpProxyEntrypoint);
-      httpExpects.expectApiGetPortalSettings();
+      httpExpects.expectApiGetPortalConfiguration();
       await entrypointsConfig.fillPaths('/path1', '/path1');
       httpExpects.expectVerifyContextPath();
 
@@ -149,7 +149,7 @@ describe('ApiCreationV4Component - HTTP Proxy', () => {
 
         httpExpects.expectRestrictedDomainsGetRequest([]);
         httpExpects.expectSchemaGetRequest(httpProxyEntrypoint);
-        httpExpects.expectApiGetPortalSettings();
+        httpExpects.expectApiGetPortalConfiguration();
         await entrypointsConfig.fillPaths(contextPath);
         httpExpects.expectVerifyContextPath();
         expect(await entrypointsConfig.hasValidationDisabled()).toBeTruthy();
@@ -166,10 +166,10 @@ describe('ApiCreationV4Component - HTTP Proxy', () => {
       const entrypointsConfig = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
       httpExpects.expectRestrictedDomainsGetRequest(fakeRestrictedDomains(['domain.com', 'domain.net']));
       httpExpects.expectSchemaGetRequest(httpProxyEntrypoint);
-      httpExpects.expectApiGetPortalSettings();
+      httpExpects.expectApiGetPortalConfiguration();
       httpExpects.expectVerifyContextPath();
       expect(await entrypointsConfig.canSwitchListenerMode()).toEqual(false);
-      httpExpects.expectApiGetPortalSettings();
+      httpExpects.expectApiGetPortalConfiguration();
     }));
   });
   describe('API Creation', () => {
