@@ -47,10 +47,14 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.resource.ResourcePlugin;
+import io.gravitee.policy.basicauth.BasicAuthenticationPolicy;
+import io.gravitee.policy.basicauth.configuration.BasicAuthenticationPolicyConfiguration;
 import io.gravitee.policy.cache.CachePolicy;
 import io.gravitee.policy.cache.configuration.CachePolicyConfiguration;
 import io.gravitee.policy.oauth2.configuration.OAuth2PolicyConfiguration;
 import io.gravitee.policy.v3.oauth2.Oauth2PolicyV3;
+import io.gravitee.resource.authprovider.ldap.LdapAuthenticationProviderResource;
+import io.gravitee.resource.authprovider.ldap.configuration.LdapAuthenticationProviderResourceConfiguration;
 import io.gravitee.resource.cache.redis.RedisCacheResource;
 import io.gravitee.resource.cache.redis.configuration.RedisCacheResourceConfiguration;
 import io.gravitee.resource.oauth2.generic.OAuth2GenericResource;
@@ -69,6 +73,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
@@ -77,6 +82,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 import org.testcontainers.utility.DockerImageName;
 
 /**
@@ -89,16 +96,20 @@ class ResourceSecretTest extends AbstractGatewayTest {
 
     private static final String REDIS_PASSWORD = "thisIsTheRedisPassword";
     private static final String CLIENT_SECRET = "adminPassword";
+    private static final String LDAP_PASSWORD = "GoodNewsEveryone";
+    static final int LDAP_PORT = 10389;
     static Path kubeConfigFile;
     static KindContainer<?> kubeContainer;
 
     static RedisContainer redisContainer;
+    private static GenericContainer<?> ldapServer;
 
     @AfterAll
     static void cleanup() throws IOException {
         kubeContainer.close();
         Files.deleteIfExists(kubeConfigFile);
         redisContainer.close();
+        ldapServer.close();
     }
 
     // not call by JUnit, as needs to be started before API is deployed
@@ -114,6 +125,13 @@ class ResourceSecretTest extends AbstractGatewayTest {
             kubeContainer.start();
             // write config so the secret provider can pick it up
             Files.writeString(kubeConfigFile, kubeContainer.getKubeconfig());
+        }
+        if (ldapServer == null) {
+            ldapServer =
+                new GenericContainer<>("ghcr.io/rroemhild/docker-test-openldap:master")
+                    .withExposedPorts(LDAP_PORT)
+                    .waitingFor(new LogMessageWaitStrategy().withRegEx(".*slapd starting.*"));
+            ldapServer.start();
         }
     }
 
@@ -160,12 +178,28 @@ class ResourceSecretTest extends AbstractGatewayTest {
             ResourceBuilder.build("cache-redis", RedisCacheResource.class, RedisCacheResourceConfiguration.class)
         );
         resources.putIfAbsent("oauth2", ResourceBuilder.build("oauth2", OAuth2GenericResource.class, OAuth2ResourceConfiguration.class));
+        resources.putIfAbsent(
+            "auth-provider-ldap-resource",
+            ResourceBuilder.build(
+                "auth-provider-ldap-resource",
+                LdapAuthenticationProviderResource.class,
+                LdapAuthenticationProviderResourceConfiguration.class
+            )
+        );
     }
 
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
         policies.putIfAbsent("cache", PolicyBuilder.build("cache", CachePolicy.class, CachePolicyConfiguration.class));
         policies.putIfAbsent("oauth2", PolicyBuilder.build("oauth2", Oauth2PolicyV3.class, OAuth2PolicyConfiguration.class));
+        policies.putIfAbsent(
+            "policy-basic-authentication",
+            PolicyBuilder.build(
+                "policy-basic-authentication",
+                BasicAuthenticationPolicy.class,
+                BasicAuthenticationPolicyConfiguration.class
+            )
+        );
     }
 
     @Override
@@ -176,11 +210,18 @@ class ResourceSecretTest extends AbstractGatewayTest {
     void createSecrets() throws IOException, InterruptedException {
         KubernetesHelper.createSecret(kubeContainer, "default", "redis", Map.of("password", REDIS_PASSWORD));
         KubernetesHelper.createSecret(kubeContainer, "default", "oauth", Map.of("clientSecret", CLIENT_SECRET));
+        KubernetesHelper.createSecret(
+            kubeContainer,
+            "default",
+            "ldap",
+            Map.of("username", "cn=admin,dc=planetexpress,dc=com", "password", LDAP_PASSWORD)
+        );
     }
 
     @Override
     public void configurePlaceHolderVariables(Map<String, String> variables) {
         variables.put("REDIS_PORT", String.valueOf(redisContainer.getRedisPort()));
+        variables.put("LDAP_PORT", String.valueOf(ldapServer.getMappedPort(LDAP_PORT)));
     }
 
     @Test
@@ -230,6 +271,14 @@ class ResourceSecretTest extends AbstractGatewayTest {
         callApi(httpClient, Map.of("Authorization", "Bearer " + jwt));
 
         wiremock.verify(1, getRequestedFor(urlPathEqualTo("/oauth/check_token")));
+        wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
+    }
+
+    @Test
+    @DeployApi("/apis/v4/http/secrets/resources/api-with-ldap.json")
+    void should_call_and_authenticate_user_using_ldap(HttpClient httpClient) {
+        wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
+        callApi(httpClient, Map.of("Authorization", "Basic " + Base64.getEncoder().encodeToString("fry:fry".getBytes())));
         wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
     }
 
