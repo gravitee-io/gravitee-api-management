@@ -19,8 +19,12 @@ import { Executor } from '@circleci/circleci-config-sdk/dist/src/lib/Components/
 import { MachineResourceClass } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Executors/types/MachineExecutor.types';
 
 export class UbuntuExecutor {
-  public static create(resource: MachineResourceClass = 'medium', useDockerLayerCaching: boolean = false): Executor {
-    const image = `ubuntu-${config.executor.ubuntu.version}:${config.executor.ubuntu.tag}`;
+  public static create(
+    resource: MachineResourceClass = 'medium',
+    useDockerLayerCaching: boolean = false,
+    imageTag: string = config.executor.ubuntu.tag,
+  ): Executor {
+    const image = `ubuntu-${config.executor.ubuntu.version}:${imageTag}`;
     return new executors.MachineExecutor(resource, image, useDockerLayerCaching);
   }
 }
