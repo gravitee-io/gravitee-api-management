@@ -17,12 +17,14 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 import { Constants } from '../../../../../entities/Constants';
 import { ApiCreationCommonService } from '../../services/api-creation-common.service';
+import { PortalConfigurationService } from '../../../../../services-ngx/portal-configuration.service';
 
 @Component({
   selector: 'step-5-summary',
@@ -45,15 +47,24 @@ export class Step5SummaryComponent implements OnInit {
   public hasReviewEnabled = this.constants.env?.settings?.apiReview?.enabled ?? false;
   public hasInvalidNativeKafkaPlans: boolean;
   public deployTooltipMessage: string;
+  public kafkaDomainAndPort$: Observable<string>;
 
   constructor(
     private readonly stepService: ApiCreationStepService,
     public readonly licenseService: GioLicenseService,
+    public readonly portalConfigurationService: PortalConfigurationService,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
   ngOnInit(): void {
     this.currentStepPayload = this.stepService.payload;
+
+    this.kafkaDomainAndPort$ = this.portalConfigurationService.get().pipe(
+      map(({ portal }) => {
+        const kafkaDomain = portal.kafkaDomain?.length ? `.${portal.kafkaDomain}` : '';
+        return `${kafkaDomain}:${portal.kafkaPort}`;
+      }),
+    );
 
     this.paths = this.currentStepPayload.paths?.map((path) => path.path);
     this.hosts = this.currentStepPayload.hosts?.map((host) => host.host);
