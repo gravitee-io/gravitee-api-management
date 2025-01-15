@@ -107,7 +107,7 @@ export class ApiCreationV4SpecStepperHelper {
       await entrypointsConfig.fillHosts(...hosts);
       this.httpExpects.expectVerifyHosts(hosts);
     } else if (entrypoints.some((entrypoint) => entrypoint.supportedListenerType !== 'SUBSCRIPTION')) {
-      this.httpExpects.expectApiGetPortalSettings();
+      this.httpExpects.expectApiGetPortalConfiguration();
       await entrypointsConfig.fillPaths(...paths);
       this.httpExpects.expectVerifyContextPath();
     }
