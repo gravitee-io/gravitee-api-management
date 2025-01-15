@@ -77,7 +77,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
         LOGGER.debug("JdbcMembershipRepository.deleteByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
         try {
             List<String> rows = jdbcTemplate.queryForList(
-                "select id from " + this.tableName + " where reference_type = ?" + " and reference_id = ?",
+                "select id from " + this.tableName + " where reference_type = ? and reference_id = ?",
                 String.class,
                 referenceType.name(),
                 referenceId
@@ -85,7 +85,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " + this.tableName + " where reference_type = ?" + " and reference_id = ?",
+                    "delete from " + this.tableName + " where reference_type = ? and reference_id = ?",
                     referenceType.name(),
                     referenceId
                 );
@@ -95,6 +95,28 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
         } catch (final Exception ex) {
             LOGGER.error("Failed to delete memberships for refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete memberships by reference", ex);
+        }
+    }
+
+    @Override
+    public List<Membership> findByReferenceIdAndReferenceType(String referenceId, MembershipReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("JdbcMembershipRepository.findByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
+        try {
+            return jdbcTemplate.query(
+                """
+                            %s
+                            where reference_type = '%s' and reference_id = '%s'
+                            """.formatted(
+                        getOrm().getSelectAllSql(),
+                        referenceType.name(),
+                        referenceId
+                    ),
+                getOrm().getRowMapper()
+            );
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find memberships for refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to find memberships by reference", ex);
         }
     }
 
@@ -127,7 +149,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
     }
 
     @Override
-    public Set<Membership> findByRoleId(String roleId) throws TechnicalException {
+    public Set<Membership> findByRoleId(String roleId) {
         LOGGER.debug("JdbcMembershipRepository.findByRoleId({})", roleId);
         final StringBuilder query = new StringBuilder("select m.* from " + this.tableName + " m");
         initializeWhereClause(null, null, roleId, query);

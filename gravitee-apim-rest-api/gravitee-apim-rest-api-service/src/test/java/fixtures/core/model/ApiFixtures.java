@@ -50,11 +50,12 @@ public class ApiFixtures {
     private ApiFixtures() {}
 
     public static final String MY_API = "my-api";
+    public static final String MY_API_NAME = "My Api";
     private static final Supplier<Api.ApiBuilder> BASE = () ->
         Api
             .builder()
             .id(MY_API)
-            .name("My Api")
+            .name(MY_API_NAME)
             .environmentId("environment-id")
             .crossId("my-api-crossId")
             .description("api-description")
@@ -82,7 +83,7 @@ public class ApiFixtures {
                 io.gravitee.definition.model.v4.Api
                     .builder()
                     .id(MY_API)
-                    .name("My Api")
+                    .name(MY_API_NAME)
                     .apiVersion("1.0.0")
                     .analytics(Analytics.builder().enabled(false).build())
                     .failover(Failover.builder().enabled(false).build())

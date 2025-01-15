@@ -20,10 +20,10 @@ import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import jakarta.validation.constraints.NotEmpty;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -55,9 +55,12 @@ public abstract class AbstractFlow implements Serializable {
 
     @JsonIgnore
     protected List<Plugin> computePlugins(List<Step> step) {
-        return Optional
+        return Stream
             .ofNullable(step)
-            .map(r -> r.stream().filter(Step::isEnabled).map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
-            .orElse(List.of());
+            .flatMap(Collection::stream)
+            .filter(Step::isEnabled)
+            .map(Step::getPlugins)
+            .flatMap(List::stream)
+            .toList();
     }
 }

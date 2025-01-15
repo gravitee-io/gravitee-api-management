@@ -20,6 +20,7 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -44,6 +45,11 @@ public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlterna
     @Override
     public Optional<Plan> findById(String planId) {
         return storage.stream().filter(plan -> planId.equals(plan.getId())).findFirst();
+    }
+
+    @Override
+    public Collection<Plan> findByApiId(String apiId) {
+        return storage.stream().filter(plan -> plan.getApiId().equals(apiId)).toList();
     }
 
     @Override

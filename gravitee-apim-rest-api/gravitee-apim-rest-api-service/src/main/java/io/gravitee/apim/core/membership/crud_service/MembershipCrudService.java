@@ -16,8 +16,10 @@
 package io.gravitee.apim.core.membership.crud_service;
 
 import io.gravitee.apim.core.membership.model.Membership;
+import java.util.Collection;
 
 public interface MembershipCrudService {
     Membership create(Membership membership);
     void delete(String id);
+    Collection<Membership> findByApiId(String apiId);
 }

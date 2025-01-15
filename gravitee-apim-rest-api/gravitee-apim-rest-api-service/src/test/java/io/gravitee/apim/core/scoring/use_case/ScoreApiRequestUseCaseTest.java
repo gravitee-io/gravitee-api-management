@@ -17,6 +17,9 @@ package io.gravitee.apim.core.scoring.use_case;
 
 import static assertions.CoreAssertions.assertThat;
 import static fixtures.core.model.ApiFixtures.MY_API;
+import static fixtures.core.model.ApiFixtures.MY_API_NAME;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,7 +37,7 @@ import inmemory.ScoringProviderInMemory;
 import inmemory.ScoringRulesetQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.import_definition.ApiExport;
+import io.gravitee.apim.core.api.model.import_definition.ApiDescriptor;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -45,15 +48,17 @@ import io.gravitee.apim.core.scoring.model.ScoringAssetType;
 import io.gravitee.apim.core.scoring.model.ScoringRuleset;
 import io.gravitee.apim.infra.json.jackson.GraviteeDefinitionJacksonJsonSerializer;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
+import io.vertx.core.json.JsonObject;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+import org.assertj.core.api.Condition;
+import org.assertj.core.data.Index;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -88,6 +93,7 @@ class ScoreApiRequestUseCaseTest {
     ApiExportDomainService apiExportDomainService = mock(ApiExportDomainService.class);
 
     ScoreApiRequestUseCase scoreApiRequestUseCase;
+    private Condition<JsonObject> REQUEST_API_CONDITION;
 
     @BeforeAll
     static void beforeAll() {
@@ -115,13 +121,12 @@ class ScoreApiRequestUseCaseTest {
                 scoringFunctionQueryService
             );
 
-        when(apiExportDomainService.export("my-api", AUDIT_INFO))
-            .thenReturn(
-                GraviteeDefinition
-                    .builder()
-                    .api(ApiExport.builder().id(MY_API).name("My Api").definitionVersion(DefinitionVersion.FEDERATED).build())
-                    .build()
-            );
+        GraviteeDefinition build = GraviteeDefinition.GraviteeDefinitionFederated
+            .builder()
+            .api(ApiDescriptor.ApiDescriptorFederated.builder().id(MY_API).name(MY_API_NAME).build())
+            .build();
+        when(apiExportDomainService.export(eq("my-api"), eq(AUDIT_INFO), anyCollection())).thenReturn(build);
+        REQUEST_API_CONDITION = is(MY_API, MY_API_NAME);
     }
 
     @AfterEach
@@ -146,23 +151,29 @@ class ScoreApiRequestUseCaseTest {
 
         // Then
         assertThat(scoringProvider.pendingRequests())
-            .containsExactly(
-                new ScoreRequest(
-                    "generated-id",
-                    ORGANIZATION_ID,
-                    ENVIRONMENT_ID,
+            .hasSize(1)
+            .first()
+            .usingRecursiveComparison()
+            .ignoringFields("assets")
+            .isEqualTo(new ScoreRequest("generated-id", ORGANIZATION_ID, ENVIRONMENT_ID, api.getId(), null));
+        assertThat(scoringProvider.pendingRequests().get(0).assets())
+            .first()
+            .usingRecursiveComparison()
+            .ignoringFields("content")
+            .isEqualTo(
+                new ScoreRequest.AssetToScore(
                     api.getId(),
-                    List.of(
-                        new ScoreRequest.AssetToScore(
-                            api.getId(),
-                            new ScoreRequest.AssetType(ScoringAssetType.GRAVITEE_DEFINITION, ScoreRequest.Format.GRAVITEE_FEDERATED),
-                            api.getName(),
-                            """
-                                        {"api":{"id":"my-api","name":"My Api","definitionVersion":"FEDERATED","tags":[],"properties":[],"resources":[],"responseTemplates":{},"state":"STOPPED","originContext":{"origin":"MANAGEMENT"},"disableMembershipNotifications":false}}"""
-                        )
-                    )
+                    new ScoreRequest.AssetType(ScoringAssetType.GRAVITEE_DEFINITION, ScoreRequest.Format.GRAVITEE_FEDERATED),
+                    api.getName(),
+                    """
+                                                            {"api":{"id":"my-api","name":"My Api","definitionVersion":"FEDERATED","tags":[],"properties":[],"resources":[],"responseTemplates":{},"state":"STOPPED","originContext":{"origin":"MANAGEMENT"},"disableMembershipNotifications":false}}"""
                 )
             );
+        assertThat(scoringProvider.pendingRequests().get(0).assets())
+            .map(ScoreRequest.AssetToScore::content)
+            .map(JsonObject::new)
+            .first()
+            .is(REQUEST_API_CONDITION);
         assertThat(asyncJobCrudService.storage())
             .containsExactly(
                 AsyncJob
@@ -184,7 +195,8 @@ class ScoreApiRequestUseCaseTest {
     public void should_trigger_scoring_for_unsupported_version_of_gravitee_definition() {
         // Given
         var api = givenExistingApi(ApiFixtures.aFederatedApi());
-        when(apiExportDomainService.export("my-api", AUDIT_INFO)).thenThrow(new ApiDefinitionVersionNotSupportedException("UNKNOW"));
+        when(apiExportDomainService.export(eq("my-api"), eq(AUDIT_INFO), anyCollection()))
+            .thenThrow(new ApiDefinitionVersionNotSupportedException("UNKNOW"));
 
         // When
         scoreApiRequestUseCase
@@ -369,17 +381,38 @@ class ScoreApiRequestUseCaseTest {
                     .hasJobId("generated-id")
                     .hasOrganizationId(ORGANIZATION_ID)
                     .hasEnvironmentId(ENVIRONMENT_ID)
-                    .hasApiId(api.getId())
-                    .hasOnlyAssets(
+                    .hasApiId(api.getId());
+                assertThat(request.assets())
+                    .hasSize(1)
+                    .first()
+                    .usingRecursiveComparison()
+                    .ignoringFields("content")
+                    .isEqualTo(
                         new ScoreRequest.AssetToScore(
                             api.getId(),
                             new ScoreRequest.AssetType(ScoringAssetType.GRAVITEE_DEFINITION, ScoreRequest.Format.GRAVITEE_FEDERATED),
                             api.getName(),
-                            """
-                                       {"api":{"id":"my-api","name":"My Api","definitionVersion":"FEDERATED","tags":[],"properties":[],"resources":[],"responseTemplates":{},"state":"STOPPED","originContext":{"origin":"MANAGEMENT"},"disableMembershipNotifications":false}}"""
+                            null
                         )
                     );
+                assertThat(request.assets())
+                    .map(ScoreRequest.AssetToScore::content)
+                    .map(JsonObject::new)
+                    .hasSize(1)
+                    .has(REQUEST_API_CONDITION, Index.atIndex(0));
             });
+    }
+
+    private static Condition<JsonObject> is(String id, String name) {
+        return new Condition<>(
+            json -> {
+                JsonObject api = json.getJsonObject("api");
+                return name.equals(api.getString("name")) && id.equals(api.getString("id"));
+            },
+            "should have name %s and id %s",
+            name,
+            id
+        );
     }
 
     private Api givenExistingApi(Api api) {

@@ -18,6 +18,7 @@ package inmemory;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.apim.core.membership.model.Membership;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -34,6 +35,14 @@ public class MembershipCrudServiceInMemory implements MembershipCrudService, InM
     @Override
     public void delete(String id) {
         storage.removeIf(s -> s.getId().equals(id));
+    }
+
+    @Override
+    public Collection<Membership> findByApiId(String apiId) {
+        return storage
+            .stream()
+            .filter(m -> m.getReferenceType() == Membership.ReferenceType.API && apiId.equals(m.getReferenceId()))
+            .toList();
     }
 
     @Override

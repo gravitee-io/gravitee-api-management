@@ -16,12 +16,15 @@
 package io.gravitee.apim.core.plan.crud_service;
 
 import io.gravitee.apim.core.plan.model.Plan;
+import java.util.Collection;
 import java.util.Optional;
 
 public interface PlanCrudService {
     Plan getById(String planId);
 
     Optional<Plan> findById(String planId);
+
+    Collection<Plan> findByApiId(String apiId);
 
     Plan create(Plan plan);
 

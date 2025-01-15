@@ -16,12 +16,12 @@
 package fixtures.core.model;
 
 import io.gravitee.apim.core.api.model.NewApiMetadata;
-import io.gravitee.apim.core.api.model.import_definition.ApiExport;
+import io.gravitee.apim.core.api.model.import_definition.ApiDescriptor;
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.api.model.import_definition.PageExport;
-import io.gravitee.apim.core.api.model.import_definition.PlanExport;
+import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.plan.model.Plan;
@@ -67,8 +67,8 @@ public class GraviteeDefinitionFixtures {
 
     private GraviteeDefinitionFixtures() {}
 
-    public static final Supplier<GraviteeDefinition.GraviteeDefinitionBuilder> BASE = () ->
-        GraviteeDefinition
+    public static final Supplier<GraviteeDefinition.V4.V4Builder> BASE = () ->
+        GraviteeDefinition.V4
             .builder()
             .members(
                 Set.of(
@@ -95,13 +95,12 @@ public class GraviteeDefinitionFixtures {
             .apiPicture("data:image/png;base64,picture")
             .apiBackground("data:image/png;base64,background");
 
-    public static GraviteeDefinition aGraviteeDefinitionProxy() {
+    public static GraviteeDefinition.V4 aGraviteeDefinitionProxy() {
         return BASE
             .get()
             .api(
-                ApiExport
+                ApiDescriptor.ApiDescriptorV4
                     .builder()
-                    .definitionVersion(DefinitionVersion.V4)
                     .type(ApiType.PROXY)
                     .listeners(
                         List.of(
@@ -250,7 +249,7 @@ public class GraviteeDefinitionFixtures {
             )
             .plans(
                 Set.of(
-                    PlanExport
+                    PlanDescriptor.PlanDescriptorV4
                         .builder()
                         .id("plan-id")
                         .name("Default Keyless (UNSECURED)")

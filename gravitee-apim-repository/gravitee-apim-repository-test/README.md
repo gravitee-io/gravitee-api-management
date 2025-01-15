@@ -8,7 +8,7 @@ This repository is used to ensure repository test coverage and to provide a mini
 
 The minimum requirement is :
  * Maven3 
- * Jdk8
+ * Jdk21
 
 For user gravitee snapshot, You need the declare the following repository in you maven settings :
 
@@ -19,7 +19,7 @@ https://oss.sonatype.org/content/repositories/snapshots
 
 ```
 $ git clone https://github.com/gravitee-io/gravitee-repository-test.git
-$ cd gravitee-repository-test
+$ cd gravitee-apim-repository/gravitee-apim-repository-test
 $ mvn clean package
 ```
 

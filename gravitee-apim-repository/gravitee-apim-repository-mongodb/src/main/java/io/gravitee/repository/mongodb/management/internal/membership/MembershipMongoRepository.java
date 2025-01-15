@@ -105,6 +105,9 @@ public interface MembershipMongoRepository extends MongoRepository<MembershipMon
     @Query("{ 'memberId' : ?0, 'memberType' : ?1 }")
     Set<MembershipMongo> findByMemberIdAndMemberType(String memberId, String memberType);
 
+    @Query("{ 'referenceId' : ?0, 'referenceType' : ?1 }")
+    Set<MembershipMongo> findReferenceIdAndReferenceType(String referenceId, String referenceType);
+
     @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", fields = "{ _id : 1 }", delete = true)
     List<MembershipMongo> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType);
 }

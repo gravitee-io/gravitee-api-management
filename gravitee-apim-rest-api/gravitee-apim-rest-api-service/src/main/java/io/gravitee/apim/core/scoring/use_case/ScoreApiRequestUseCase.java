@@ -20,6 +20,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.api.model.import_definition.ApiDescriptor;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.async_job.crud_service.AsyncJobCrudService;
 import io.gravitee.apim.core.async_job.model.AsyncJob;
@@ -37,12 +38,13 @@ import io.gravitee.apim.core.scoring.query_service.ScoringRulesetQueryService;
 import io.gravitee.apim.core.scoring.service_provider.ScoringProvider;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
+import jakarta.annotation.Nullable;
+import java.util.EnumSet;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
@@ -80,7 +82,9 @@ public class ScoreApiRequestUseCase {
             .toList();
 
         var export$ = Flowable
-            .fromCallable(() -> apiExportDomainService.export(input.apiId, input.auditInfo))
+            .fromCallable(() ->
+                apiExportDomainService.export(input.apiId, input.auditInfo, EnumSet.noneOf(ApiExportDomainService.Excludable.class))
+            )
             .map(this::assetToScore)
             // export service throw error in some case (like if API isn't V4)
             .onErrorResumeNext(th -> Flowable.empty());
@@ -120,39 +124,35 @@ public class ScoreApiRequestUseCase {
     }
 
     private ScoreRequest.AssetToScore assetToScore(GraviteeDefinition definition) throws JsonProcessingException {
-        if (definition.getApi().getEndpointGroups() != null) {
-            // remove shared configuration because this produce some errors in scoring (invalid reference: APIM-7877)
-            definition.getApi().getEndpointGroups().forEach(endpoint -> endpoint.setSharedConfiguration((String) null));
-        }
         return new ScoreRequest.AssetToScore(
-            definition.getApi().getId(),
-            new ScoreRequest.AssetType(
-                ScoringAssetType.GRAVITEE_DEFINITION,
-                definition.getApi().getDefinitionVersion() == DefinitionVersion.FEDERATED
-                    ? ScoreRequest.Format.GRAVITEE_FEDERATED
-                    : switch (definition.getApi().getType()) {
-                        case PROXY -> ScoreRequest.Format.GRAVITEE_PROXY;
-                        case MESSAGE -> ScoreRequest.Format.GRAVITEE_MESSAGE;
-                        default -> null;
-                    }
-            ),
-            definition.getApi().getName(),
+            definition.api().id(),
+            new ScoreRequest.AssetType(ScoringAssetType.GRAVITEE_DEFINITION, getFormat(definition)),
+            definition.api().name(),
             graviteeDefinitionSerializer.serialize(definition)
         );
     }
 
-    private Maybe<ScoreRequest.CustomRuleset> customRuleset(ScoringRuleset scoringRuleset) {
-        if (StringUtils.isEmpty(scoringRuleset.payload())) {
-            return Maybe.empty();
+    @Nullable
+    private static ScoreRequest.Format getFormat(GraviteeDefinition definition) {
+        if (definition.api() instanceof ApiDescriptor.ApiDescriptorFederated) {
+            return ScoreRequest.Format.GRAVITEE_FEDERATED;
         }
-        return Maybe.just(new ScoreRequest.CustomRuleset(scoringRuleset.payload(), format(scoringRuleset.format())));
+        return switch (definition.api().type()) {
+            case PROXY -> ScoreRequest.Format.GRAVITEE_PROXY;
+            case MESSAGE -> ScoreRequest.Format.GRAVITEE_MESSAGE;
+            default -> null;
+        };
+    }
+
+    private Maybe<ScoreRequest.CustomRuleset> customRuleset(ScoringRuleset scoringRuleset) {
+        return StringUtils.isEmpty(scoringRuleset.payload())
+            ? Maybe.empty()
+            : Maybe.just(new ScoreRequest.CustomRuleset(scoringRuleset.payload(), format(scoringRuleset.format())));
     }
 
     private ScoreRequest.Format format(ScoringRuleset.Format format) {
-        if (format == null) {
-            return null;
-        }
         return switch (format) {
+            case null -> null;
             case GRAVITEE_FEDERATION -> ScoreRequest.Format.GRAVITEE_FEDERATED;
             case GRAVITEE_MESSAGE -> ScoreRequest.Format.GRAVITEE_MESSAGE;
             case GRAVITEE_PROXY -> ScoreRequest.Format.GRAVITEE_PROXY;

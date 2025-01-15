@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.adapter;
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
 import io.gravitee.apim.core.member.model.Member;
+import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import java.util.List;
@@ -29,7 +30,7 @@ import org.mapstruct.factory.Mappers;
 public interface MemberAdapter {
     MemberAdapter INSTANCE = Mappers.getMapper(MemberAdapter.class);
 
-    ApiMember toApiMember(MemberEntity member);
+    ApiMember toApiMember(Membership member);
     MemberEntity toEntity(ApiMember member);
     Set<MemberEntity> toEntities(Set<ApiMember> members);
 

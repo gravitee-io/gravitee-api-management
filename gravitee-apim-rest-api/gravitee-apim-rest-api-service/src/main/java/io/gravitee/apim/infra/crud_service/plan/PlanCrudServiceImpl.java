@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.infra.crud_service.plan;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
@@ -22,6 +24,7 @@ import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
+import java.util.Collection;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -57,6 +60,16 @@ public class PlanCrudServiceImpl implements PlanCrudService {
             return planRepository.findById(planId).map(PlanAdapter.INSTANCE::fromRepository);
         } catch (TechnicalException ex) {
             throw new TechnicalDomainException(String.format("An error occurs while trying to find a plan by id: %s", planId), ex);
+        }
+    }
+
+    @Override
+    public Collection<Plan> findByApiId(String apiId) {
+        try {
+            log.debug("Find a plan by API id : {}", apiId);
+            return stream(planRepository.findByApi(apiId)).map(PlanAdapter.INSTANCE::fromRepository).toList();
+        } catch (TechnicalException ex) {
+            throw new TechnicalDomainException(String.format("An error occurs while trying to find a plan by id: %s", apiId), ex);
         }
     }
 

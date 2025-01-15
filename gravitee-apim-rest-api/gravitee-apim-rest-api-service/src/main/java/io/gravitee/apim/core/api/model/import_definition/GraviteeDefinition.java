@@ -16,37 +16,113 @@
 package io.gravitee.apim.core.api.model.import_definition;
 
 import io.gravitee.apim.core.api.model.NewApiMetadata;
-import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.media.model.Media;
-import io.gravitee.apim.core.plan.model.PlanWithFlows;
+import io.gravitee.common.util.Version;
+import io.gravitee.common.utils.TimeProvider;
+import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * Represents the definition of an exported API.
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
-@Builder(toBuilder = true)
-public class GraviteeDefinition {
+public sealed interface GraviteeDefinition {
+    Export export();
+    ApiDescriptor api();
+    Set<ApiMember> members();
+    Set<NewApiMetadata> metadata();
+    List<PageExport> pages();
+    Collection<? extends PlanDescriptor> plans();
+    List<Media> apiMedia();
+    String apiPicture();
+    String apiBackground();
 
-    private ApiExport api;
+    @Builder(toBuilder = true)
+    record V4(
+        Export export,
+        ApiDescriptor.ApiDescriptorV4 api,
+        Set<ApiMember> members,
+        Set<NewApiMetadata> metadata,
+        List<PageExport> pages,
+        Collection<PlanDescriptor.PlanDescriptorV4> plans,
+        List<Media> apiMedia,
+        String apiPicture,
+        String apiBackground
+    )
+        implements GraviteeDefinition {
+        public V4(
+            ApiDescriptor.ApiDescriptorV4 api,
+            Set<ApiMember> members,
+            Set<NewApiMetadata> metadata,
+            List<PageExport> pages,
+            Collection<PlanDescriptor.PlanDescriptorV4> plans,
+            List<Media> apiMedia,
+            String apiPicture,
+            String apiBackground
+        ) {
+            this(new Export(), api, members, metadata, pages, plans, apiMedia, apiPicture, apiBackground);
+        }
+    }
 
-    private Set<ApiMember> members;
+    @Builder(toBuilder = true)
+    record Native(
+        Export export,
+        ApiDescriptor.ApiDescriptorNative api,
+        Set<ApiMember> members,
+        Set<NewApiMetadata> metadata,
+        List<PageExport> pages,
+        Collection<PlanDescriptor.PlanDescriptorV4> plans,
+        List<Media> apiMedia,
+        String apiPicture,
+        String apiBackground
+    )
+        implements GraviteeDefinition {
+        public Native(
+            ApiDescriptor.ApiDescriptorNative api,
+            Set<ApiMember> members,
+            Set<NewApiMetadata> metadata,
+            List<PageExport> pages,
+            Collection<PlanDescriptor.PlanDescriptorV4> plans,
+            List<Media> apiMedia,
+            String apiPicture,
+            String apiBackground
+        ) {
+            this(new Export(), api, members, metadata, pages, plans, apiMedia, apiPicture, apiBackground);
+        }
+    }
 
-    private Set<NewApiMetadata> metadata;
+    @Builder(toBuilder = true)
+    record GraviteeDefinitionFederated(
+        Export export,
+        ApiDescriptor.ApiDescriptorFederated api,
+        Set<ApiMember> members,
+        Set<NewApiMetadata> metadata,
+        List<PageExport> pages,
+        Collection<PlanDescriptor.PlanDescriptorV4> plans,
+        List<Media> apiMedia,
+        String apiPicture,
+        String apiBackground
+    )
+        implements GraviteeDefinition {
+        public GraviteeDefinitionFederated(
+            ApiDescriptor.ApiDescriptorFederated api,
+            Set<ApiMember> members,
+            Set<NewApiMetadata> metadata,
+            List<PageExport> pages,
+            Collection<PlanDescriptor.PlanDescriptorV4> plans,
+            List<Media> apiMedia,
+            String apiPicture,
+            String apiBackground
+        ) {
+            this(new Export(), api, members, metadata, pages, plans, apiMedia, apiPicture, apiBackground);
+        }
+    }
 
-    private List<PageExport> pages;
-
-    private Set<PlanExport> plans;
-
-    private List<Media> apiMedia;
-
-    private String apiPicture;
-    private String apiBackground;
+    record Export(Instant date, String exportVersion, String apimVersion) {
+        public Export() {
+            this(TimeProvider.instantNow(), "1", Version.RUNTIME_VERSION.MAJOR_VERSION);
+        }
+    }
 }

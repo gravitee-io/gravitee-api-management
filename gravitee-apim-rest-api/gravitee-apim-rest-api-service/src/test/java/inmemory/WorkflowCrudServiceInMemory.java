@@ -18,6 +18,7 @@ package inmemory;
 import io.gravitee.apim.core.workflow.crud_service.WorkflowCrudService;
 import io.gravitee.apim.core.workflow.model.Workflow;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,14 @@ public class WorkflowCrudServiceInMemory implements WorkflowCrudService, InMemor
     public Workflow create(Workflow entity) {
         storage.add(entity);
         return entity;
+    }
+
+    @Override
+    public Collection<Workflow> findByApiId(String apiId) {
+        return storage
+            .stream()
+            .filter(w -> w.getReferenceType() == Workflow.ReferenceType.API && apiId.equals(w.getReferenceId()))
+            .toList();
     }
 
     @Override
