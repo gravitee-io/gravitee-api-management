@@ -31,10 +31,10 @@ describe('PortalConfigurationService', () => {
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);
-    service = TestBed.inject(PortalConfigurationService);
+    service = TestBed.inject<PortalConfigurationService>(PortalConfigurationService);
   });
 
-  describe('getEnvConfiguration', () => {
+  describe('get', () => {
     it('should call the API', (done) => {
       const portalConfigurationToGet = fakePortalConfiguration();
 
@@ -43,7 +43,30 @@ describe('PortalConfigurationService', () => {
         done();
       });
 
-      httpTestingController.expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/portal` }).flush(portalConfigurationToGet);
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/portal`,
+        })
+        .flush(portalConfigurationToGet);
+    });
+  });
+
+  describe('getByEnvConfiguration', () => {
+    it('should call the API', (done) => {
+      const portalConfigurationToGet = fakePortalConfiguration();
+
+      service.getByEnvironmentId('custom_env').subscribe((portalSettings) => {
+        expect(portalSettings).toMatchObject(portalConfigurationToGet);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.org.baseURL}/environments/custom_env/portal`,
+        })
+        .flush(portalConfigurationToGet);
     });
   });
 });

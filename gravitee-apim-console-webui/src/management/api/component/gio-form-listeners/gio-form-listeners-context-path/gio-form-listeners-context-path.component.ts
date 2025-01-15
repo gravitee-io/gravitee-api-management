@@ -30,7 +30,7 @@ import { filter, map, observeOn, startWith, take, takeUntil, tap } from 'rxjs/op
 import { FocusMonitor } from '@angular/cdk/a11y';
 import { asyncScheduler, Observable, Subject } from 'rxjs';
 
-import { PortalSettingsService } from '../../../../../services-ngx/portal-settings.service';
+import { PortalConfigurationService } from '../../../../../services-ngx/portal-configuration.service';
 import { PathV4 } from '../../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { contextPathModePathSyncValidator } from '../../../../../shared/validators/context-path/context-path-sync-validator.directive';
@@ -76,7 +76,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
     private readonly fm: FocusMonitor,
     private readonly elRef: ElementRef,
     protected readonly apiV2Service: ApiV2Service,
-    private readonly portalSettingsService: PortalSettingsService,
+    private readonly portalConfigurationService: PortalConfigurationService,
   ) {}
 
   ngOnInit(): void {
@@ -86,7 +86,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
       listeners: this.listenerFormArray,
     });
 
-    this.portalSettingsService
+    this.portalConfigurationService
       .get()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((settings) => {

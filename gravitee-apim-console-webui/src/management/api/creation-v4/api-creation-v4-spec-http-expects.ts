@@ -27,32 +27,21 @@ import {
 } from '../../../entities/management-api-v2';
 import { CONSTANTS_TESTING } from '../../../shared/testing';
 import { License } from '../../../entities/license/License';
-import { PortalConfiguration, PortalSettings } from '../../../entities/portal/portalSettings';
+import { PortalConfiguration } from '../../../entities/portal/portalSettings';
 import { RestrictedDomain } from '../../../entities/restricted-domain/restrictedDomain';
 
 export class ApiCreationV4SpecHttpExpects {
   constructor(private httpTestingController: HttpTestingController) {}
 
-  expectApiGetPortalSettings() {
-    const settings: PortalSettings = {
-      portal: {
-        entrypoint: 'entrypoint',
-        kafkaDomain: 'kafka.domain',
-        kafkaPort: 9092,
-      },
-    };
-    this.httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/settings`, method: 'GET' }).flush(settings);
-  }
-
   expectApiGetPortalConfiguration() {
-    const configuration: PortalConfiguration = {
+    const portalConfig: PortalConfiguration = {
       portal: {
         entrypoint: 'entrypoint',
         kafkaDomain: 'kafka.domain',
         kafkaPort: 9092,
       },
     };
-    this.httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/portal`, method: 'GET' }).flush(configuration);
+    this.httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/portal`, method: 'GET' }).flush(portalConfig);
   }
 
   expectVerifyContextPath(invalidPath = false) {

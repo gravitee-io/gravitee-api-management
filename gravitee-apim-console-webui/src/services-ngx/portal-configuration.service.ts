@@ -35,4 +35,8 @@ export class PortalConfigurationService {
   get(): Observable<PortalConfiguration> {
     return this.http.get<PortalConfiguration>(`${this.constants.env.baseURL}/portal`);
   }
+
+  getByEnvironmentId(environmentId: string): Observable<PortalConfiguration> {
+    return this.http.get<PortalConfiguration>(`${this.constants.org.baseURL}/environments/${environmentId}/portal`);
+  }
 }
