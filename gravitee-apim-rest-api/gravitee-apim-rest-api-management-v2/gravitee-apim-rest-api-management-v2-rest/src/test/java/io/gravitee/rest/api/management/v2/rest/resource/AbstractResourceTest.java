@@ -24,6 +24,7 @@ import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ApplicationMetadataCrudServiceInMemory;
 import inmemory.ApplicationMetadataQueryServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
+import inmemory.GroupCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.ImportApplicationCRDDomainServiceInMemory;
 import inmemory.InMemoryAlternative;
@@ -32,6 +33,7 @@ import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PrimaryOwnerDomainServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
+import inmemory.UserDomainServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
@@ -181,6 +183,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected UserCrudServiceInMemory userCrudService;
 
     @Autowired
+    protected UserDomainServiceInMemory userDomainServiceInMemory;
+
+    @Autowired
     protected ApiCrudServiceInMemory apiCrudService;
 
     @Autowired
@@ -215,6 +220,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected ApiExportDomainService apiExportDomainService;
+
+    @Autowired
+    protected GroupCrudServiceInMemory groupCrudServiceInMemory;
 
     @BeforeEach
     public void setUp() {

@@ -13,23 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.member.model.crd;
+package io.gravitee.apim.core.group.crud_service;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import io.gravitee.apim.core.group.model.Group;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
-@Builder(toBuilder = true)
-@EqualsAndHashCode(of = { "id", "source", "sourceId", "role" })
-public class MemberCRD {
-
-    private String id;
-    private String source;
-    private String sourceId;
-    private String role;
+/**
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public interface GroupCrudService {
+    Group create(Group group);
+    Group update(Group group);
 }

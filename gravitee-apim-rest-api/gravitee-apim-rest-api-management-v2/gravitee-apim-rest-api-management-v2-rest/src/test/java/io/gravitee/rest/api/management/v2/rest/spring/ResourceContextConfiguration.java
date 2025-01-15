@@ -24,6 +24,7 @@ import inmemory.ApiCRDExportDomainServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
+import inmemory.GroupCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
@@ -56,9 +57,13 @@ import io.gravitee.apim.core.documentation.domain_service.DocumentationValidatio
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessControlsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
+import io.gravitee.apim.core.group.crud_service.GroupCrudService;
+import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
+import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
+import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
@@ -92,6 +97,7 @@ import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
+import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDSpecDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
@@ -651,5 +657,25 @@ public class ResourceContextConfiguration {
     @Bean
     public UpdatePlanDomainService updatePlanDomainService() {
         return mock(UpdatePlanDomainService.class);
+    }
+
+    @Bean
+    public GroupCrudServiceInMemory groupCrudService() {
+        return new GroupCrudServiceInMemory();
+    }
+
+    @Bean
+    public ValidateGroupCRDDomainService validateGroupCRDDomainService(ValidateCRDMembersDomainService validateCRDMembersDomainService) {
+        return new ValidateGroupCRDDomainServiceImpl(validateCRDMembersDomainService);
+    }
+
+    @Bean
+    public ImportGroupCRDUseCase importGroupCRDUseCase(
+        ValidateGroupCRDDomainService validateGroupCRDDomainService,
+        GroupQueryService groupQueryService,
+        GroupCrudService groupCrudService,
+        CRDMembersDomainService crdMembersDomainService
+    ) {
+        return new ImportGroupCRDUseCase(validateGroupCRDDomainService, groupQueryService, groupCrudService, crdMembersDomainService);
     }
 }

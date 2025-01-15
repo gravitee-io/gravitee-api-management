@@ -13,19 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.member.domain_service;
+package inmemory;
 
-import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.group.model.crd.GroupCRDSpec;
-import io.gravitee.apim.core.member.model.crd.MemberCRD;
-import java.util.Set;
+import io.gravitee.apim.core.group.crud_service.GroupCrudService;
+import io.gravitee.apim.core.group.model.Group;
+import java.util.HashMap;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface CRDMembersDomainService {
-    void updateApiMembers(AuditInfo auditInfo, String apiId, Set<MemberCRD> members);
-    void updateApplicationMembers(AuditInfo auditInfo, String applicationId, Set<MemberCRD> members);
-    void updateGroupMembers(AuditInfo auditInfo, String groupId, Set<GroupCRDSpec.Member> members);
+public class GroupCrudServiceInMemory implements GroupCrudService {
+
+    private final HashMap<String, Group> groups = new HashMap<>();
+
+    @Override
+    public Group create(Group group) {
+        groups.put(group.getId(), group);
+        return group;
+    }
+
+    @Override
+    public Group update(Group group) {
+        groups.put(group.getId(), group);
+        return group;
+    }
+
+    public HashMap<String, Group> storage() {
+        return groups;
+    }
+
+    public void reset() {
+        groups.clear();
+    }
 }

@@ -26,6 +26,8 @@ public interface GroupAdapter {
 
     Group toModel(io.gravitee.repository.management.model.Group group);
 
+    io.gravitee.repository.management.model.Group toRepository(Group group);
+
     Group.GroupEvent mapEvent(GroupEvent source);
     GroupEvent mapEvent(Group.GroupEvent source);
 }
