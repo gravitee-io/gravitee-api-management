@@ -56,6 +56,11 @@ public enum Key {
     PORTAL_ANALYTICS_ENABLED("portal.analytics.enabled", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PORTAL_ANALYTICS_TRACKINGID("portal.analytics.trackingId", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PORTAL_APIS_TILESMODE_ENABLED("portal.apis.tilesMode.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_APIS_DOCUMENTATIONONLYMODE_ENABLED(
+        "portal.apis.documentationOnlyMode.enabled",
+        "false",
+        Set.of(ENVIRONMENT, ORGANIZATION, SYSTEM)
+    ),
     PORTAL_APIS_CATEGORY_ENABLED(
         "portal.apis.categoryMode.enabled",
         "true",
