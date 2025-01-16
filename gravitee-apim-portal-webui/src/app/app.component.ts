@@ -334,10 +334,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   isHomepageUrl(url) {
     const tree: UrlTree = this.router.parseUrl(url);
     const g: UrlSegmentGroup = tree.root.children[PRIMARY_OUTLET];
-    if (g == null) {
-      return true;
-    }
-    return false;
+    return g == null;
   }
 
   private _onNavigationEnd(event: NavigationEnd) {
