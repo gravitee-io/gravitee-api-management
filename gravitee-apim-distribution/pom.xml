@@ -1595,21 +1595,6 @@
                 </property>
             </activation>
             <dependencies>
-                <!-- Connectors -->
-                <dependency>
-                    <groupId>io.gravitee.connector</groupId>
-                    <artifactId>gravitee-connector-kafka</artifactId>
-                    <version>${gravitee-connector-kafka.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>*</groupId>
-                            <artifactId>*</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-
                 <!-- Endpoints -->
                 <dependency>
                     <groupId>com.graviteesource.endpoint</groupId>
