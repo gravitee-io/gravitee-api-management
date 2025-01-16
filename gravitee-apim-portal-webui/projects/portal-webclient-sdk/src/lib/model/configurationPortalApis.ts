@@ -11,8 +11,9 @@
 import { Enabled } from './enabled';
 
 
-export interface ConfigurationPortalApis { 
+export interface ConfigurationPortalApis {
     tilesMode?: Enabled;
+    documentationOnlyMode?: Enabled;
     categoryMode?: Enabled;
     promotedApiMode?: Enabled;
     apiHeaderShowTags?: Enabled;
