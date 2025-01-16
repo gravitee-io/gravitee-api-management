@@ -21,15 +21,19 @@ import static org.assertj.core.api.Assertions.withPrecision;
 
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
+import io.gravitee.repository.elasticsearch.TimeProvider;
 import io.gravitee.repository.healthcheck.v4.model.ApiFieldPeriod;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertimeQuery;
 import io.gravitee.repository.healthcheck.v4.model.HealthCheckLogQuery;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import jakarta.annotation.PostConstruct;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
@@ -55,13 +59,22 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
     @Autowired
     private HealthCheckElasticsearchRepository repository;
 
+    @Autowired
+    private TimeProvider timeProvider;
+
+    private Instant now;
+
+    @PostConstruct
+    public void init() {
+        now = timeProvider.getNow();
+    }
+
     @Nested
     class AverageResponseTime {
 
         @Test
         void should_return_average_response_time_grouped_by_endpoint() {
             // Given
-            var now = Instant.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = from.plus(Duration.ofDays(1));
 
@@ -78,7 +91,6 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
         @Test
         void should_return_average_response_time_grouped_by_gateway() {
             // Given
-            var now = Instant.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = from.plus(Duration.ofDays(1));
 
@@ -99,7 +111,6 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
         @Test
         void should_return_average_response_time_overtime() {
             // Given
-            var now = Instant.now();
             var from = now.truncatedTo(ChronoUnit.DAYS);
             var to = from.plus(Duration.ofDays(1));
             Duration interval = Duration.ofMinutes(10);
@@ -115,14 +126,20 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
             // Then
             long nbBuckets = Duration.between(from, to).dividedBy(interval);
 
+            var nowDateTime = now.truncatedTo(ChronoUnit.MINUTES).atOffset(ZoneOffset.UTC);
+            int minuteNow = nowDateTime.getMinute();
+            minuteNow = (minuteNow / 10) * 10;
+
+            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC);
+            String expectedTime = timeFormatter.format(nowDateTime.withMinute(minuteNow));
+
             assertThat(requireNonNull(responseTime).buckets().entrySet())
                 .hasSize((int) nbBuckets + 1)
-                .haveExactly(1, bucketOfTimeHaveValue("17:20:00.000Z", 7L))
-                .haveExactly(1, bucketOfTimeHaveValue("17:30:00.000Z", 8L));
+                .haveExactly(1, bucketOfTimeHaveValue(expectedTime, 7L));
         }
 
         private static Condition<Map.Entry<String, Long>> bucketOfTimeHaveValue(String timeSuffix, long value) {
-            return bucket(key -> key.endsWith(timeSuffix), d -> d == value, "entre for '%s' with value %d".formatted(timeSuffix, value));
+            return bucket(key -> key.endsWith(timeSuffix), d -> d == value, "entry for '%s' with value %d".formatted(timeSuffix, value));
         }
 
         private static Condition<Map.Entry<String, Long>> bucket(
@@ -140,7 +157,6 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
         @Test
         void should_return_health_check_logs() {
             // Given
-            var now = Instant.now();
             var from = now.truncatedTo(ChronoUnit.DAYS);
             var to = from.plus(Duration.ofDays(1));
 
@@ -162,13 +178,7 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
                     .containsExactly(
                         new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog(
                             "AVsGgxUsooztmMPf1gOp",
-                            LocalDateTime
-                                .now()
-                                .withHour(15)
-                                .withMinute(28)
-                                .withSecond(20)
-                                .truncatedTo(ChronoUnit.SECONDS)
-                                .toInstant(ZoneOffset.UTC),
+                            now.truncatedTo(ChronoUnit.SECONDS),
                             "bf19088c-f2c7-4fec-9908-8cf2c75fece4",
                             "other",
                             "gw2",
@@ -194,13 +204,7 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
                         ),
                         new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog(
                             "AVsGg7GYooztmMPf1gO2",
-                            LocalDateTime
-                                .now()
-                                .withHour(17)
-                                .withMinute(29)
-                                .withSecond(10)
-                                .truncatedTo(ChronoUnit.SECONDS)
-                                .toInstant(ZoneOffset.UTC),
+                            now.truncatedTo(ChronoUnit.SECONDS),
                             "bf19088c-f2c7-4fec-9908-8cf2c75fece4",
                             "default",
                             "gw1",
@@ -243,7 +247,6 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
         @Test
         void should_return_rate_of_availability_grouped_by_endpoint() {
             // Given
-            var now = Instant.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = from.plus(Duration.ofDays(1));
 
@@ -270,7 +273,6 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
         @Test
         void should_return_rate_of_availability_grouped_by_gateway() {
             // Given
-            var now = Instant.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = from.plus(Duration.ofDays(1));
 
