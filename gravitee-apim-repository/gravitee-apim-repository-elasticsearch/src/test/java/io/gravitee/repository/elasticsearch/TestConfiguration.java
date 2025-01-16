@@ -64,8 +64,13 @@ public class TestConfiguration {
     }
 
     @Bean
-    public DatabaseHydrator databaseHydrator(Client client, FreeMarkerComponent freeMarkerComponent) {
-        return new DatabaseHydrator(client, freeMarkerComponent, elasticsearchVersion);
+    public TimeProvider timeProvider() {
+        return new TimeProvider();
+    }
+
+    @Bean
+    public DatabaseHydrator databaseHydrator(Client client, FreeMarkerComponent freeMarkerComponent, TimeProvider timeProvider) {
+        return new DatabaseHydrator(client, freeMarkerComponent, elasticsearchVersion, timeProvider);
     }
 
     @Bean
