@@ -19,6 +19,7 @@ import { orbs } from '../orbs';
 import { config } from '../config';
 import { ReusedCommand } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Reusable';
 import { keeper } from '../orbs/keeper';
+import { awsCli } from '../orbs/aws-cli';
 import { awsS3 } from '../orbs/aws-s3';
 import { GraviteeioVersion, parse } from '../utils';
 import { InstallYarnCommand } from '../commands';
@@ -29,6 +30,7 @@ export class PackageBundleJob {
   public static create(dynamicConfig: Config, graviteeioVersion: string, isDryRun: boolean) {
     dynamicConfig.importOrb(keeper);
     dynamicConfig.importOrb(awsS3);
+    dynamicConfig.importOrb(awsCli);
 
     const installYarnCmd = InstallYarnCommand.get();
     dynamicConfig.addReusableCommand(installYarnCmd);
@@ -70,6 +72,10 @@ export class PackageBundleJob {
       new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
         'secret-url': config.secrets.awsSecretAccessKey,
         'var-name': 'AWS_SECRET_ACCESS_KEY',
+      }),
+      new reusable.ReusedCommand(orbs.awsCli.commands.setup, {
+        region: 'cloudfront',
+        version: `${config.awsCliVersion}`,
       }),
       PackageBundleJob.getSyncCommand(parsedGraviteeioVersion, isDryRun),
     ]);
