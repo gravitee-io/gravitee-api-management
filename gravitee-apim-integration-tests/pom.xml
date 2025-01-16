@@ -538,13 +538,6 @@
             <version>${gravitee-reactor-native-kafka.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- V3 Connectors -->
-        <dependency>
-            <groupId>io.gravitee.connector</groupId>
-            <artifactId>gravitee-connector-kafka</artifactId>
-            <version>${gravitee-connector-kafka.version}</version>
-            <scope>test</scope>
-        </dependency>
         <!-- Entrypoints -->
         <dependency>
             <groupId>com.graviteesource.entrypoint</groupId>
