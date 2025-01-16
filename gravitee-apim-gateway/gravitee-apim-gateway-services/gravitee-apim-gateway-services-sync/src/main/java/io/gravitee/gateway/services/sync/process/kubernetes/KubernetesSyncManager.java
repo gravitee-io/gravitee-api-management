@@ -71,7 +71,7 @@ public class KubernetesSyncManager extends AbstractService<SyncManager> implemen
                         synced.set(true);
                     })
                     .andThen(watch())
-                    .doOnError(throwable -> log.error("An error occurred during Kubernetes synchronization. Restarting ...", throwable))
+                    .doOnError(throwable -> log.debug("An error occurred during Kubernetes synchronization. Restarting ...", throwable))
                     .retryWhen(
                         RxHelper.retryExponentialBackoff(
                             EXPONENTIAL_BACKOFF_RETRY_INITIAL_DELAY_MS,
