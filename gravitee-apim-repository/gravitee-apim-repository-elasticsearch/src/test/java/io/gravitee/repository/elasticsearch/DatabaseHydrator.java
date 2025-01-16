@@ -22,27 +22,27 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.buffer.Buffer;
 import jakarta.annotation.PostConstruct;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 
 public class DatabaseHydrator {
 
-    private static final DateTimeFormatter FORMATTER_WITH_DASH = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
-    private static final DateTimeFormatter FORMATTER_WITH_DOT = DateTimeFormatter.ofPattern("yyyy.MM.dd").withZone(ZoneId.systemDefault());
-
     Client client;
     FreeMarkerComponent freeMarkerComponent;
     String elasticMajorVersion;
+    private final TimeProvider timeProvider;
 
-    public DatabaseHydrator(Client client, FreeMarkerComponent freeMarkerComponent, String elasticsearchVersion) {
+    public DatabaseHydrator(
+        Client client,
+        FreeMarkerComponent freeMarkerComponent,
+        String elasticsearchVersion,
+        TimeProvider timeProvider
+    ) {
         this.client = client;
         this.freeMarkerComponent = freeMarkerComponent;
         this.elasticMajorVersion = elasticsearchVersion.split("\\.")[0];
+        this.timeProvider = timeProvider;
     }
 
     @PostConstruct
@@ -83,27 +83,20 @@ public class DatabaseHydrator {
     }
 
     private List<Buffer> prepareData(List<String> types) {
-        final Instant now = Instant.now();
-        final Instant yesterday = now.minus(1, ChronoUnit.DAYS);
-
-        final String dateToday = FORMATTER_WITH_DASH.format(now);
-        final String dateYesterday = FORMATTER_WITH_DASH.format(yesterday);
-
-        final String todayWithDot = FORMATTER_WITH_DOT.format(now);
-        final String yesterdayWithDot = FORMATTER_WITH_DOT.format(yesterday);
-
         return types
             .stream()
             .map(type -> {
                 Map<String, Object> data = Map.ofEntries(
-                    Map.entry("dateToday", dateToday),
-                    Map.entry("dateYesterday", dateYesterday),
-                    Map.entry("indexNameToday", indexTemplate(type, todayWithDot)),
-                    Map.entry("indexNameTodayEntrypoint", indexTemplate(type, todayWithDot, "entrypoint")),
-                    Map.entry("indexNameTodayEndpoint", indexTemplate(type, todayWithDot, "endpoint")),
-                    Map.entry("indexNameYesterday", indexTemplate(type, yesterdayWithDot)),
-                    Map.entry("indexNameYesterdayEntrypoint", indexTemplate(type, yesterdayWithDot, "entrypoint")),
-                    Map.entry("indexNameYesterdayEndpoint", indexTemplate(type, yesterdayWithDot, "endpoint"))
+                    Map.entry("dateToday", this.timeProvider.getDateToday()),
+                    Map.entry("dateYesterday", this.timeProvider.getDateYesterday()),
+                    Map.entry("dateTimeToday", this.timeProvider.getDateTimeToday()),
+                    Map.entry("dateTimeYesterday", this.timeProvider.getDateTimeYesterday()),
+                    Map.entry("indexNameToday", indexTemplate(type, this.timeProvider.getTodayWithDot())),
+                    Map.entry("indexNameTodayEntrypoint", indexTemplate(type, this.timeProvider.getTodayWithDot(), "entrypoint")),
+                    Map.entry("indexNameTodayEndpoint", indexTemplate(type, this.timeProvider.getTodayWithDot(), "endpoint")),
+                    Map.entry("indexNameYesterday", indexTemplate(type, this.timeProvider.getYesterdayWithDot())),
+                    Map.entry("indexNameYesterdayEntrypoint", indexTemplate(type, this.timeProvider.getYesterdayWithDot(), "entrypoint")),
+                    Map.entry("indexNameYesterdayEndpoint", indexTemplate(type, this.timeProvider.getYesterdayWithDot(), "endpoint"))
                 );
                 var filename = type + ".ftl";
                 return freeMarkerComponent.generateFromTemplate(filename, data);
