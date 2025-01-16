@@ -82,8 +82,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.mockito.stubbing.OngoingStubbing;
 
 /**
@@ -520,6 +523,8 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
     }
 
     @Nested
+    //Need to add test order since last test (should_retry_and_fail_on_connection_exception) is stopping wiremock which is messing with the other tests
+    @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
     @GatewayTest
     class OnlyOneEndpointInGroup extends FailoverV4EmulationIntegrationTest.OnlyOneEndpointInGroup {
 
@@ -535,6 +540,7 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
         @Override
         @DeployApi("/apis/v4/http/failover/api-only-one-endpoint.json")
+        @Order(1)
         @Test
         void should_retry_and_fail_on_slow_call_posting_payload(HttpClient client) {
             super.should_retry_and_fail_on_slow_call_posting_payload(client);
@@ -542,6 +548,7 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
         @Override
         @DeployApi("/apis/v4/http/failover/api-only-one-endpoint.json")
+        @Order(2)
         @Test
         void should_not_retry_on_fast_call(HttpClient client) {
             super.should_not_retry_on_fast_call(client);
@@ -549,6 +556,7 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
         @Override
         @DeployApi("/apis/v4/http/failover/api-only-one-endpoint.json")
+        @Order(3)
         @Test
         void should_retry_and_fail_on_slow_call(HttpClient client) {
             super.should_retry_and_fail_on_slow_call(client);
@@ -556,6 +564,7 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
         @Override
         @DeployApi("/apis/v4/http/failover/api-only-one-endpoint.json")
+        @Order(5)
         @Test
         void should_retry_and_fail_on_connection_exception(HttpClient client, Vertx vertx) {
             super.should_retry_and_fail_on_connection_exception(client, vertx);
@@ -563,6 +572,7 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
         @Override
         @DeployApi("/apis/v4/http/failover/api-only-one-endpoint.json")
+        @Order(4)
         @Test
         void should_success_on_first_retry(HttpClient client) {
             super.should_success_on_first_retry(client);
