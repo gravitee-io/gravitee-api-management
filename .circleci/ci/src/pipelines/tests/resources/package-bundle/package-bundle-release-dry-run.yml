@@ -57,6 +57,9 @@ jobs:
       - keeper/env-export:
           secret-url: keeper://3-pU56sIqcyWWw7HxhxjaQ/field/password
           var-name: AWS_SECRET_ACCESS_KEY
+      - aws-cli/setup:
+          region: cloudfront
+          version: 2.22.35
       - aws-s3/sync:
           arguments: --endpoint-url https://cellar-c2.services.clever-cloud.com --acl public-read
           from: ./release/.tmp/4.1.0/dist
@@ -69,4 +72,5 @@ workflows:
             - cicd-orchestrator
 orbs:
   keeper: gravitee-io/keeper@0.6.3
-  aws-s3: circleci/aws-s3@3.0.0
+  aws-s3: circleci/aws-s3@4.1.0
+  aws-cli: circleci/aws-cli@5.1.2
