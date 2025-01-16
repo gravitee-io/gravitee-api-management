@@ -13,7 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { orb } from '@circleci/circleci-config-sdk';
+import { orb, parameters } from '@circleci/circleci-config-sdk';
 import { config } from '../config';
 
-export const awsCli = new orb.OrbImport('aws-cli', 'circleci', 'aws-cli', config.orbs.awsCli);
+export const awsCli = new orb.OrbImport('aws-cli', 'circleci', 'aws-cli', config.orbs.awsCli, undefined, {
+  jobs: {},
+  executors: {},
+  commands: {
+    setup: new parameters.CustomParametersList(),
+  },
+});
