@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.3.21
-appVersion: 4.3.21
+version: 4.3.22
+appVersion: 4.3.22
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -23,5 +23,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: |
-    - "Improve HPA by allowing custom annotation, custom metrics and define the behavior spec (APIM-8186)"
+  artifacthub.io/changes: 
