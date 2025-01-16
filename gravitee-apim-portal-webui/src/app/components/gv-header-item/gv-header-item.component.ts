@@ -22,6 +22,7 @@ import { CurrentUserService } from '../../services/current-user.service';
 import { EventService } from '../../services/event.service';
 import { NavRouteService } from '../../services/nav-route.service';
 import { applicationResolver } from '../../resolvers/application.resolver';
+import { ConfigurationService } from '../../services/configuration.service';
 
 @Component({
   selector: 'app-gv-header-item',
@@ -45,6 +46,7 @@ export class GvHeaderItemComponent implements OnInit, OnDestroy {
     public navRouteService: NavRouteService,
     public currentUserService: CurrentUserService,
     public portalService: PortalService,
+    public config: ConfigurationService,
     public eventService: EventService,
   ) {}
 
@@ -108,7 +110,9 @@ export class GvHeaderItemComponent implements OnInit, OnDestroy {
   }
 
   canSubscribe() {
-    return this._subscribeUrl && !this.router.isActive(this._subscribeUrl, true);
+    return (
+      this._subscribeUrl && !this.router.isActive(this._subscribeUrl, true) && !this.config.get('portal.apis.documentationOnlyMode.enabled')
+    );
   }
 
   onSubscribe() {

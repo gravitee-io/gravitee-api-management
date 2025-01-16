@@ -140,9 +140,10 @@ export const routes: Routes = [
           {
             path: 'subscribe',
             component: ApiSubscribeComponent,
-            canActivate: [SubscribeGuardService],
+            canActivate: [SubscribeGuardService, featureGuard],
             data: {
               title: 'route.catalogApiSubscribe',
+              isDisabledInDocumentationOnlyMode: true,
             },
           },
         ],
