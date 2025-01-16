@@ -180,7 +180,7 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
         );
 
         assertThat(response).isNotNull();
-        assertThat(response.getCount()).isEqualTo(4);
+        assertThat(response.getCount()).isEqualTo(7);
     }
 
     @Test
