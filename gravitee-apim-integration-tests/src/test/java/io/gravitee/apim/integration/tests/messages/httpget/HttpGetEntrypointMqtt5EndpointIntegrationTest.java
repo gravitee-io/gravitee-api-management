@@ -18,17 +18,27 @@ package io.gravitee.apim.integration.tests.messages.httpget;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.graviteesource.entrypoint.http.get.HttpGetEntrypointConnectorFactory;
+import com.graviteesource.secretprovider.hcvault.HCVaultSecretProvider;
+import com.graviteesource.secretprovider.hcvault.HCVaultSecretProviderFactory;
+import com.graviteesource.secretprovider.hcvault.config.manager.VaultConfig;
+import com.graviteesource.service.secrets.SecretsService;
 import com.hivemq.client.mqtt.datatypes.MqttQos;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.secrets.SecretProviderBuilder;
 import io.gravitee.apim.integration.tests.fake.MessageFlowReadyPolicy;
 import io.gravitee.apim.integration.tests.messages.AbstractMqtt5EndpointIntegrationTest;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.api.qos.Qos;
+import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
+import io.gravitee.secrets.api.plugin.SecretManagerConfiguration;
+import io.gravitee.secrets.api.plugin.SecretProviderFactory;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
@@ -41,19 +51,24 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.testcontainers.containers.Container;
+import org.testcontainers.vault.VaultContainer;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -63,9 +78,61 @@ import org.junit.jupiter.params.provider.MethodSource;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointIntegrationTest {
 
+    private static final String VAULT_TOKEN = java.util.UUID.randomUUID().toString();
+
+    @org.testcontainers.junit.jupiter.Container
+    protected static final VaultContainer vaultContainer = new VaultContainer<>("hashicorp/vault:1.13.3")
+        .withVaultToken(VAULT_TOKEN)
+        .dependsOn(mqtt5);
+
+    @AfterAll
+    static void cleanup() {
+        vaultContainer.close();
+    }
+
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
         entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+    }
+
+    @Override
+    public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
+        super.configureGateway(configurationBuilder);
+        // create a renewable token so the plugin does not start panicking
+        Container.ExecResult execResult;
+        try {
+            execResult = vaultContainer.execInContainer("vault", "token", "create", "-period=10m", "-field", "token");
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        String token = execResult.getStdout();
+        configurationBuilder.setYamlProperty("api.secrets.providers[0].plugin", "vault");
+        configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.enabled", true);
+        configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.host", vaultContainer.getHost());
+        configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.port", vaultContainer.getMappedPort(8200));
+        configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.ssl.enabled", "false");
+        configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.auth.method", "token");
+        configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.auth.config.token", token);
+        try {
+            vaultContainer.execInContainer("vault", "kv", "put", "secret/mqtt5", "host=" + mqtt5.getHost());
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void configureSecretProviders(
+        Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
+    ) {
+        secretProviderPlugins.add(
+            SecretProviderBuilder.build(HCVaultSecretProvider.PLUGIN_ID, HCVaultSecretProviderFactory.class, VaultConfig.class)
+        );
+    }
+
+    @Override
+    public void configureServices(Set<Class<? extends AbstractService<?>>> services) {
+        super.configureServices(services);
+        services.add(SecretsService.class);
     }
 
     @ParameterizedTest
@@ -214,6 +281,28 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
 
                 return true;
             });
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/mqtt5/mqtt5-endpoint-secret.json" })
+    void should_receive_messages_with_secret(HttpClient httpClient) {
+        final int messageCount = 10;
+        final List<Completable> readyObs = new ArrayList<>();
+
+        final Single<HttpClientResponse> get = createGetRequest("/test-secret", UUID.random().toString(), httpClient, readyObs);
+
+        final TestSubscriber<JsonObject> obs = Flowable
+            .fromSingle(get.doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200)))
+            .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-secret", MqttQos.AT_LEAST_ONCE))
+            .flatMap(response -> response.rxBody().flatMapPublisher(buffer -> extractMessages(buffer, extractTransactionId(response))))
+            .take(messageCount)
+            .test()
+            .awaitDone(30, TimeUnit.SECONDS)
+            .assertValueCount(messageCount);
+
+        verifyMessagesAreOrdered(messageCount, obs);
+        verifyMessagesAreUniques(messageCount, obs);
+        verifyMessagesAreBetweenRange(0, messageCount, obs);
     }
 
     @NonNull
