@@ -149,7 +149,12 @@ public abstract class AbstractMqtt5EndpointIntegrationTest extends AbstractGatew
                 .flatMap(eg -> eg.getEndpoints().stream())
                 .filter(endpoint -> endpoint.getType().equals("mqtt5"))
                 .forEach(endpoint ->
-                    endpoint.setConfiguration(endpoint.getConfiguration().replace("mqtt5-port", Integer.toString(mqtt5.getMqttPort())))
+                    endpoint.setConfiguration(
+                        endpoint
+                            .getConfiguration()
+                            .replace("mqtt5-host", mqtt5.getHost())
+                            .replace("mqtt5-port", Integer.toString(mqtt5.getMqttPort()))
+                    )
                 );
         }
     }
