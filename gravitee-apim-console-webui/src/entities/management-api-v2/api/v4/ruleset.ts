@@ -44,17 +44,8 @@ export enum RulesetFormat {
   GRAVITEE_FEDERATION = 'GRAVITEE_FEDERATION',
   GRAVITEE_MESSAGE = 'GRAVITEE_MESSAGE',
   GRAVITEE_PROXY = 'GRAVITEE_PROXY',
-}
-
-export function mapToRulesetFormat(formValue: string) {
-  switch (formValue) {
-    case 'Gravitee Proxy API':
-      return RulesetFormat.GRAVITEE_PROXY;
-    case 'Gravitee Message API':
-      return RulesetFormat.GRAVITEE_MESSAGE;
-    default:
-      return null;
-  }
+  OPENAPI = 'OPENAPI',
+  ASYNCAPI = 'ASYNCAPI',
 }
 
 export interface ScoringFunctionsResponse {

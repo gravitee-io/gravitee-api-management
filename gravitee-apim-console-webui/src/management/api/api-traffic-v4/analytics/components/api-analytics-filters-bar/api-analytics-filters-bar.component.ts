@@ -23,14 +23,15 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatOption } from '@angular/material/autocomplete';
 import { MatSelect } from '@angular/material/select';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatInputModule } from '@angular/material/input';
-import { OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
+import { OWL_DATE_TIME_FORMATS, OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
 import moment, { Moment } from 'moment/moment';
+import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 
 import { ApiAnalyticsFilters } from './api-analytics-filters-bar.configuration';
 
-import { timeFrames, customTimeFrames, TimeRangeParams } from '../../../../../../shared/utils/timeFrameRanges';
+import { timeFrames, customTimeFrames, TimeRangeParams, DATE_TIME_FORMATS } from '../../../../../../shared/utils/timeFrameRanges';
 import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analytics-v2.service';
 
 @Component({
@@ -47,7 +48,9 @@ import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analyt
     MatSelect,
     MatInputModule,
     OwlDateTimeModule,
+    OwlMomentDateTimeModule,
   ],
+  providers: [{ provide: OWL_DATE_TIME_FORMATS, useValue: DATE_TIME_FORMATS }],
   templateUrl: './api-analytics-filters-bar.component.html',
   styleUrl: './api-analytics-filters-bar.component.scss',
 })
@@ -64,6 +67,7 @@ export class ApiAnalyticsFiltersBarComponent implements OnInit, OnDestroy {
     private readonly destroyRef: DestroyRef,
     private readonly apiAnalyticsV2Service: ApiAnalyticsV2Service,
     private readonly activatedRoute: ActivatedRoute,
+    private readonly router: Router,
   ) {}
 
   ngOnInit() {
@@ -135,12 +139,27 @@ export class ApiAnalyticsFiltersBarComponent implements OnInit, OnDestroy {
 
     if (period === this.customPeriod) {
       this.activeFilters = { period, from: +from, to: +to };
+      this.router.navigate([], {
+        queryParams: {
+          from: null,
+          to: null,
+          period: null,
+        },
+        queryParamsHandling: 'merge',
+      });
       return;
     }
 
     if (validPeriod) {
       this.activeFilters = { period, from: null, to: null };
       this.apiAnalyticsV2Service.setTimeRangeFilter(this.getPeriodTimeRangeParams());
+
+      this.router.navigate([], {
+        queryParams: {
+          period: null,
+        },
+        queryParamsHandling: 'merge',
+      });
       return;
     }
 

@@ -66,8 +66,8 @@ describe('NewRulesetComponent', () => {
 
   it('should send request with values selected in form for OpenAPI, Async API format', async () => {
     const definitionFormat = await componentHarness.locatorForDefinitionFormatRadioGroup();
-    await definitionFormat.select('OpenAPI, Async API');
-    expect(await definitionFormat.getSelectedValue()).toEqual('OpenAPI, Async API');
+    await definitionFormat.select('OPENAPI');
+    expect(await definitionFormat.getSelectedValue()).toEqual('OPENAPI');
 
     await componentHarness.setName('Test ruleset name');
     await componentHarness.setDescription('Test description');
@@ -86,6 +86,7 @@ describe('NewRulesetComponent', () => {
     const data = {
       description: 'Test description',
       name: 'Test ruleset name',
+      format: RulesetFormat.OPENAPI,
       payload: '"test"',
     };
 
@@ -94,7 +95,7 @@ describe('NewRulesetComponent', () => {
 
   it('should not send empty file', async () => {
     const definitionFormat = await componentHarness.locatorForDefinitionFormatRadioGroup();
-    await definitionFormat.select('OpenAPI, Async API');
+    await definitionFormat.select('ASYNCAPI');
 
     await componentHarness.setName('Name');
     await componentHarness.setDescription('Description');
@@ -109,8 +110,8 @@ describe('NewRulesetComponent', () => {
   });
 
   [
-    { input: { selectedFormat: 'Gravitee Message API' }, expected: RulesetFormat.GRAVITEE_MESSAGE },
-    { input: { selectedFormat: 'Gravitee Proxy API' }, expected: RulesetFormat.GRAVITEE_PROXY },
+    { input: { selectedFormat: 'GRAVITEE_MESSAGE' }, expected: RulesetFormat.GRAVITEE_MESSAGE },
+    { input: { selectedFormat: 'GRAVITEE_PROXY' }, expected: RulesetFormat.GRAVITEE_PROXY },
   ].forEach((testParams) => {
     it('should send request with values selected in form for GraviteeAPI format: ' + testParams.input.selectedFormat, async () => {
       const definitionFormat = await componentHarness.locatorForDefinitionFormatRadioGroup();
