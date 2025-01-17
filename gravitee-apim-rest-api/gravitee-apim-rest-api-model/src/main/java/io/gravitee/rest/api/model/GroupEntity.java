@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import java.util.Date;
 import java.util.List;
@@ -80,4 +81,6 @@ public class GroupEntity {
 
     @JsonProperty("primary_owner")
     private boolean primaryOwner;
+
+    private String origin = OriginContext.Origin.MANAGEMENT.name();
 }

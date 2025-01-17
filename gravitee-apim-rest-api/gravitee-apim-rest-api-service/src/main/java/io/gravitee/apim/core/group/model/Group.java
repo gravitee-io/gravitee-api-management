@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.group.model;
 
+import io.gravitee.definition.model.Origin;
 import java.time.ZonedDateTime;
 import java.util.List;
 import lombok.Builder;
@@ -41,6 +42,9 @@ public class Group {
 
     /** User id that will be the PrimaryOwner of API */
     private String apiPrimaryOwner;
+
+    @Builder.Default
+    private String origin = Origin.MANAGEMENT.name();
 
     public record GroupEventRule(GroupEvent event) {}
 

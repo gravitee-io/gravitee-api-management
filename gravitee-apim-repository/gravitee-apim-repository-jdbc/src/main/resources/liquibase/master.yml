@@ -230,4 +230,6 @@ databaseChangeLog:
     - include:
         - file: liquibase/changelogs/v4_6_0/07_add_ingested_mark_page_table.yml
     - include:
-        - file: liquibase/changelogs/v4_6_0/08-add_origin_to_shared_policy_groups_table.yml
+        - file: liquibase/changelogs/v4_7_0/00_add_origin_to_shared_policy_groups_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_7_0/01_add_origin_to_groups_table.yml
