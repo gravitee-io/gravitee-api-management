@@ -68,6 +68,7 @@ class PortalThemeController {
       "Monaco, 'DejaVu Sans Mono', 'Lucida Console', 'Andale Mono', monospace",
       "Times, 'Times New Roman', 'Liberation Serif', FreeSerif, serif",
       "Georgia, 'DejaVu Serif', Norasi, serif",
+      '"Montserrat", sans-serif',
     ];
 
     $scope.hasPreview = () => {
