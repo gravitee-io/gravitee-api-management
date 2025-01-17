@@ -275,6 +275,7 @@ class GroupQueryServiceImplTest {
                         .emailInvitation(true)
                         .disableMembershipNotifications(true)
                         .apiPrimaryOwner("api-po-id")
+                        .origin("MANAGEMENT")
                         .build()
                 );
         }
@@ -295,6 +296,7 @@ class GroupQueryServiceImplTest {
             .systemInvitation(true)
             .emailInvitation(true)
             .disableMembershipNotifications(true)
-            .apiPrimaryOwner("api-po-id");
+            .apiPrimaryOwner("api-po-id")
+            .origin("MANAGEMENT");
     }
 }
