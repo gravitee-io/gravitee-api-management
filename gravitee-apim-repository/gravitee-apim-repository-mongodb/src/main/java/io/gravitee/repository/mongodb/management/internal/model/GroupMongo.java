@@ -44,4 +44,5 @@ public class GroupMongo extends Auditable {
     private boolean emailInvitation;
     private boolean disableMembershipNotifications;
     private String apiPrimaryOwner;
+    private String origin;
 }

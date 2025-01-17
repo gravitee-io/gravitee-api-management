@@ -17,6 +17,7 @@ package io.gravitee.apim.core.group.model.crd;
 
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.member.model.RoleScope;
+import io.gravitee.definition.model.Origin;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,9 +44,13 @@ public class GroupCRDSpec {
 
     private boolean notifyMembers;
 
+    @Builder.Default
+    private String origin = Origin.KUBERNETES.name();
+
     public Group toGroup(String environmentId) {
         return Group
             .builder()
+            .origin(origin)
             .id(id)
             .name(name)
             .environmentId(environmentId)

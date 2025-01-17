@@ -65,6 +65,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
             .addColumn("email_invitation", Types.BIT, boolean.class)
             .addColumn("disable_membership_notifications", Types.BIT, boolean.class)
             .addColumn("api_primary_owner", Types.NVARCHAR, String.class)
+            .addColumn("origin", Types.NVARCHAR, String.class)
             .build();
     }
 
