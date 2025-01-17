@@ -1,20 +1,18 @@
 {
-    "$schema":"http://json-schema.org/draft-07/schema#",
-    "type":"object",
-    "definitions":{
-        "target":{
-            "title":"Target url",
-            "description":"The target url to use to contact the backend (supports EL and Secrets)",
-            "type":"string",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "definitions": {
+        "target": {
+            "title": "Target url",
+            "description": "The target url to use to contact the backend. (Supports EL and secrets)",
+            "type": "string",
             "pattern": "^\\S+$"
         }
     },
-    "properties":{
-        "target":{
-            "$ref":"#/definitions/target"
+    "properties": {
+        "target": {
+            "$ref": "#/definitions/target"
         }
     },
-    "required":[
-        "target"
-    ]
+    "required": ["target"]
 }
