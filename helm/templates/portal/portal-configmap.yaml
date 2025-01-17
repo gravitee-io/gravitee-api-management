@@ -43,4 +43,15 @@ data:
         }
       }
     }
+  config-next.json: |
+    {
+      {{- if .Values.portal.enforceEnvironmentId }}
+      "environmentId": "{{ .Values.portal.enforceEnvironmentId }}",
+      {{- end }}
+      {{- if .Values.portal.baseURL }}
+      "baseURL": "{{ .Values.portal.baseURL }}"
+      {{- else }}
+      "baseURL": "{{ .Values.api.ingress.portal.scheme }}://{{ index .Values.api.ingress.portal.hosts 0 }}{{ .Values.api.ingress.portal.path }}"
+      {{- end }}
+    }
 {{- end -}}
