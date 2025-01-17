@@ -16,7 +16,10 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
+import io.gravitee.apim.core.api.model.import_definition.PlanExport;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
+import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -30,4 +33,7 @@ public interface GraviteeDefinitionAdapter {
 
     @Mapping(target = "api", source = "apiEntity")
     GraviteeDefinition map(ExportApiEntity source);
+
+    @Mapping(target = "type", source = "planType")
+    PlanExport genericPlanMap(GenericPlanEntity source);
 }

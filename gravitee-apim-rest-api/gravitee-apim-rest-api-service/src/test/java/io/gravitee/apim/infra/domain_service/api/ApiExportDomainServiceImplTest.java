@@ -20,11 +20,17 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
+import io.gravitee.apim.core.api.model.import_definition.PlanExport;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
+import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanType;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,12 +53,19 @@ class ApiExportDomainServiceImplTest {
         String apiId = UUID.randomUUID().toString();
         ApiEntity api = new ApiEntity();
         api.setType(ApiType.PROXY);
-        when(exportService.exportApi(any(), any(), any(), any())).thenReturn(new ExportApiEntity(api, null, null, null, null, null));
+        BasePlanEntity plan = new BasePlanEntity();
+        plan.setId(UUID.randomUUID().toString());
+        plan.setSecurity(new PlanSecurity());
+        plan.setType(PlanType.API);
+        when(exportService.exportApi(any(), any(), any(), any()))
+            .thenReturn(new ExportApiEntity(api, null, null, null, Set.of(plan), null));
 
         // When
         GraviteeDefinition export = sut.export(apiId, AuditInfo.builder().build());
 
         // Then
         assertThat(export.getApi().getType()).isEqualTo(ApiType.PROXY);
+        assertThat(export.getPlans()).map(PlanExport::getType).first().isEqualTo(Plan.PlanType.API);
+        assertThat(export.getPlans()).map(PlanExport::getSecurity).first().isNotNull();
     }
 }
