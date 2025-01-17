@@ -116,8 +116,10 @@
             [subtitle]="'This API\'s assets did not match any rulesets.'"
           ></gio-card-empty-state>
         }
-        @for (asset of apiScoring.assets; track asset.name) {
-          <app-api-scoring-list [asset]="asset"></app-api-scoring-list>
+        @if (apiScoreAvailable) {
+          @for (asset of apiScoring.assets; track asset.name) {
+            <app-api-scoring-list [asset]="asset"></app-api-scoring-list>
+          }
         }
       </section>
     </mat-card-content>
