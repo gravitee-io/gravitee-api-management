@@ -10,7 +10,7 @@ This endpoint works at *request and response* level and does not allow dealing w
 
 |===
 |Plugin version | APIM version
-
+|4.x | 4.x
 |1.x and upper                  | 3.20.x to latest
 |===
 
@@ -182,7 +182,9 @@ By default, when specifying a relative url, the path is appended to the endpoint
 
 Bellow you will find a full `http-proxy` endpoint configuration example:
 
-```json
+
+[source,json]
+----
 {
     "name": "default",
     "type": "http-proxy",
@@ -240,5 +242,5 @@ Bellow you will find a full `http-proxy` endpoint configuration example:
         }
     }
 }
-```
+----
 
