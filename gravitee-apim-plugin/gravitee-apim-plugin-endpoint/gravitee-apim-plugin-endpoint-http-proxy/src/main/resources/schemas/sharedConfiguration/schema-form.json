@@ -1,11 +1,11 @@
 {
-    "$schema":"http://json-schema.org/draft-07/schema#",
-    "type":"object",
-    "definitions":{
-        "clearTextUpgrade":{
-            "title":"Allow h2c Clear Text Upgrade",
-            "type":"boolean",
-            "default":true,
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "definitions": {
+        "clearTextUpgrade": {
+            "title": "Allow h2c Clear Text Upgrade",
+            "type": "boolean",
+            "default": true,
             "gioConfig": {
                 "banner": {
                     "title": "HTTP/2 Cleartext (H2C)",
@@ -13,9 +13,9 @@
                 }
             }
         },
-        "keepAlive":{
-            "title":"Enable keep-alive",
-            "type":"boolean",
+        "keepAlive": {
+            "title": "Enable keep-alive",
+            "type": "boolean",
             "default": true,
             "gioConfig": {
                 "banner": {
@@ -30,15 +30,15 @@
             "description": "Maximum time a connection will remain unused in the pool in milliseconds. Once the timeout has elapsed, the unused connection will be evicted.",
             "default": 30000
         },
-        "connectTimeout":{
-            "type":"integer",
-            "title":"Connect timeout (ms)",
-            "description":"Maximum time to connect to the backend in milliseconds.",
-            "default":3000
+        "connectTimeout": {
+            "type": "integer",
+            "title": "Connect timeout (ms)",
+            "description": "Maximum time to connect to the backend in milliseconds.",
+            "default": 3000
         },
-        "pipelining":{
-            "title":"Enable HTTP pipelining",
-            "type":"boolean",
+        "pipelining": {
+            "title": "Enable HTTP pipelining",
+            "type": "boolean",
             "default": false,
             "gioConfig": {
                 "banner": {
@@ -47,14 +47,14 @@
                 }
             }
         },
-        "readTimeout":{
-            "type":"integer",
-            "title":"Read timeout (ms)",
-            "description":"Maximum time given to the backend to complete the request (including response) in milliseconds.",
-            "default":10000
+        "readTimeout": {
+            "type": "integer",
+            "title": "Read timeout (ms)",
+            "description": "Maximum time given to the backend to complete the request (including response) in milliseconds.",
+            "default": 10000
         },
-        "useCompression":{
-            "title":"Enable compression (gzip, deflate)",
+        "useCompression": {
+            "title": "Enable compression (gzip, deflate)",
             "type": "boolean",
             "default": true,
             "gioConfig": {
@@ -64,8 +64,8 @@
                 }
             }
         },
-        "propagateClientAcceptEncoding":{
-            "title":"Propagate client Accept-Encoding header",
+        "propagateClientAcceptEncoding": {
+            "title": "Propagate client Accept-Encoding header",
             "description": "Accept-Encoding can only be propagated if \"Enable compression\" is disabled.",
             "type": "boolean",
             "gioConfig": {
@@ -75,9 +75,9 @@
                 }
             }
         },
-        "idleTimeout":{
-            "type":"integer",
-            "title":"Idle timeout (ms)",
+        "idleTimeout": {
+            "type": "integer",
+            "title": "Idle timeout (ms)",
             "default": 60000,
             "gioConfig": {
                 "banner": {
@@ -86,9 +86,9 @@
                 }
             }
         },
-        "followRedirects":{
-            "title":"Follow HTTP redirects",
-            "type":"boolean",
+        "followRedirects": {
+            "title": "Follow HTTP redirects",
+            "type": "boolean",
             "default": false,
             "gioConfig": {
                 "banner": {
@@ -97,16 +97,16 @@
                 }
             }
         },
-        "maxConcurrentConnections":{
-            "type":"integer",
-            "title":"Max Concurrent Connections",
-            "description":"Maximum pool size for connections.",
-            "default":20
+        "maxConcurrentConnections": {
+            "type": "integer",
+            "title": "Max Concurrent Connections",
+            "description": "Maximum pool size for connections.",
+            "default": 20
         },
-        "http2MultiplexingLimit":{
-            "type":"integer",
-            "title":"Max concurrent stream for an HTTP/2 connection",
-            "default":-1,
+        "http2MultiplexingLimit": {
+            "type": "integer",
+            "title": "Max concurrent stream for an HTTP/2 connection",
+            "default": -1,
             "gioConfig": {
                 "banner": {
                     "title": "Max concurrent stream for an HTTP/2 connection",
@@ -114,604 +114,548 @@
                 }
             }
         },
-        "http":{
-            "type":"object",
-            "title":"Security configuration",
-            "oneOf":[
+        "http": {
+            "type": "object",
+            "title": "Security configuration",
+            "oneOf": [
                 {
-                    "title":"HTTP 1.1",
-                    "properties":{
-                        "version":{
-                            "const":"HTTP_1_1"
+                    "title": "HTTP 1.1",
+                    "properties": {
+                        "version": {
+                            "const": "HTTP_1_1"
                         },
-                        "keepAlive":{
-                            "$ref":"#/definitions/keepAlive"
+                        "keepAlive": {
+                            "$ref": "#/definitions/keepAlive"
                         },
-                        "keepAliveTimeout":{
-                            "$ref":"#/definitions/keepAliveTimeout"
+                        "keepAliveTimeout": {
+                            "$ref": "#/definitions/keepAliveTimeout"
                         },
-                        "connectTimeout":{
-                            "$ref":"#/definitions/connectTimeout"
+                        "connectTimeout": {
+                            "$ref": "#/definitions/connectTimeout"
                         },
-                        "pipelining":{
-                            "$ref":"#/definitions/pipelining"
+                        "pipelining": {
+                            "$ref": "#/definitions/pipelining"
                         },
-                        "readTimeout":{
-                            "$ref":"#/definitions/readTimeout"
+                        "readTimeout": {
+                            "$ref": "#/definitions/readTimeout"
                         },
-                        "useCompression":{
-                            "$ref":"#/definitions/useCompression"
+                        "useCompression": {
+                            "$ref": "#/definitions/useCompression"
                         },
-                        "propagateClientAcceptEncoding":{
-                            "$ref":"#/definitions/propagateClientAcceptEncoding"
+                        "propagateClientAcceptEncoding": {
+                            "$ref": "#/definitions/propagateClientAcceptEncoding"
                         },
-                        "idleTimeout":{
-                            "$ref":"#/definitions/idleTimeout"
+                        "idleTimeout": {
+                            "$ref": "#/definitions/idleTimeout"
                         },
-                        "followRedirects":{
-                            "$ref":"#/definitions/followRedirects"
+                        "followRedirects": {
+                            "$ref": "#/definitions/followRedirects"
                         },
-                        "maxConcurrentConnections":{
-                            "$ref":"#/definitions/maxConcurrentConnections"
+                        "maxConcurrentConnections": {
+                            "$ref": "#/definitions/maxConcurrentConnections"
                         }
                     },
-                    "required":[
-                        "connectTimeout",
-                        "readTimeout",
-                        "idleTimeout",
-                        "maxConcurrentConnections"
-                    ],
-                    "additionalProperties":false
+                    "required": ["connectTimeout", "readTimeout", "idleTimeout", "maxConcurrentConnections"],
+                    "additionalProperties": false
                 },
                 {
-                    "title":"HTTP 2",
-                    "properties":{
-                        "version":{
-                            "const":"HTTP_2"
+                    "title": "HTTP 2",
+                    "properties": {
+                        "version": {
+                            "const": "HTTP_2"
                         },
-                        "clearTextUpgrade":{
-                            "$ref":"#/definitions/clearTextUpgrade"
+                        "clearTextUpgrade": {
+                            "$ref": "#/definitions/clearTextUpgrade"
                         },
-                        "keepAlive":{
-                            "$ref":"#/definitions/keepAlive"
+                        "keepAlive": {
+                            "$ref": "#/definitions/keepAlive"
                         },
-                        "keepAliveTimeout":{
-                            "$ref":"#/definitions/keepAliveTimeout"
+                        "keepAliveTimeout": {
+                            "$ref": "#/definitions/keepAliveTimeout"
                         },
-                        "connectTimeout":{
-                            "$ref":"#/definitions/connectTimeout"
+                        "connectTimeout": {
+                            "$ref": "#/definitions/connectTimeout"
                         },
-                        "pipelining":{
-                            "$ref":"#/definitions/pipelining"
+                        "pipelining": {
+                            "$ref": "#/definitions/pipelining"
                         },
-                        "readTimeout":{
-                            "$ref":"#/definitions/readTimeout"
+                        "readTimeout": {
+                            "$ref": "#/definitions/readTimeout"
                         },
-                        "useCompression":{
-                            "$ref":"#/definitions/useCompression"
+                        "useCompression": {
+                            "$ref": "#/definitions/useCompression"
                         },
-                        "propagateClientAcceptEncoding":{
-                            "$ref":"#/definitions/propagateClientAcceptEncoding"
+                        "propagateClientAcceptEncoding": {
+                            "$ref": "#/definitions/propagateClientAcceptEncoding"
                         },
-                        "idleTimeout":{
-                            "$ref":"#/definitions/idleTimeout"
+                        "idleTimeout": {
+                            "$ref": "#/definitions/idleTimeout"
                         },
-                        "followRedirects":{
-                            "$ref":"#/definitions/followRedirects"
+                        "followRedirects": {
+                            "$ref": "#/definitions/followRedirects"
                         },
-                        "maxConcurrentConnections":{
-                            "$ref":"#/definitions/maxConcurrentConnections"
+                        "maxConcurrentConnections": {
+                            "$ref": "#/definitions/maxConcurrentConnections"
                         },
-                        "http2MultiplexingLimit":{
-                            "$ref":"#/definitions/http2MultiplexingLimit"
+                        "http2MultiplexingLimit": {
+                            "$ref": "#/definitions/http2MultiplexingLimit"
                         }
                     },
-                    "required":[
-                        "connectTimeout",
-                        "readTimeout",
-                        "idleTimeout",
-                        "maxConcurrentConnections"
-                    ],
-                    "additionalProperties":false
+                    "required": ["connectTimeout", "readTimeout", "idleTimeout", "maxConcurrentConnections"],
+                    "additionalProperties": false
                 }
             ]
         },
-        "headers":{
-            "type":"array",
-            "title":"HTTP Headers",
-            "description":"Default HTTP headers added or overridden by the API gateway to upstream",
-            "items":{
-                "type":"object",
-                "title":"Header",
-                "properties":{
-                    "name":{
-                        "type":"string",
-                        "title":"Name"
+        "headers": {
+            "type": "array",
+            "title": "HTTP Headers",
+            "description": "Default HTTP headers added or overridden by the API gateway to upstream. Supports EL and secrets.",
+            "items": {
+                "type": "object",
+                "title": "Header",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
                     },
-                    "value":{
-                        "type":"string",
-                        "title":"Value"
+                    "value": {
+                        "type": "string",
+                        "title": "Value"
                     }
                 },
-                "required":[
-                    "name",
-                    "value"
-                ]
+                "required": ["name", "value"]
             },
             "gioConfig": {
                 "uiType": "gio-headers-array"
             }
         },
-        "proxy":{
-            "type":"object",
-            "title":"Proxy Options",
-            "oneOf":[
+        "proxy": {
+            "type": "object",
+            "title": "Proxy Options",
+            "oneOf": [
                 {
-                    "title":"No proxy",
-                    "properties":{
-                        "enabled":{
-                            "const":false
+                    "title": "No proxy",
+                    "properties": {
+                        "enabled": {
+                            "const": false
                         },
-                        "useSystemProxy":{
-                            "const":false
+                        "useSystemProxy": {
+                            "const": false
                         }
                     },
-                    "additionalProperties":false
+                    "additionalProperties": false
                 },
                 {
-                    "title":"Use proxy configured at system level",
-                    "properties":{
-                        "enabled":{
-                            "const":true
+                    "title": "Use proxy configured at system level",
+                    "properties": {
+                        "enabled": {
+                            "const": true
                         },
-                        "useSystemProxy":{
-                            "const":true
+                        "useSystemProxy": {
+                            "const": true
                         }
                     },
-                    "additionalProperties":false
+                    "additionalProperties": false
                 },
                 {
-                    "title":"Use proxy for client connections",
-                    "properties":{
-                        "enabled":{
-                            "const":true
+                    "title": "Use proxy for client connections",
+                    "properties": {
+                        "enabled": {
+                            "const": true
                         },
-                        "useSystemProxy":{
-                            "const":false
+                        "useSystemProxy": {
+                            "const": false
                         },
-                        "type":{
-                            "type":"string",
-                            "title":"Proxy Type",
-                            "description":"The type of the proxy",
-                            "default":"HTTP",
-                            "enum":[
-                                "HTTP",
-                                "SOCKS4",
-                                "SOCKS5"
-                            ]
+                        "type": {
+                            "type": "string",
+                            "title": "Proxy Type",
+                            "description": "The type of the proxy",
+                            "default": "HTTP",
+                            "enum": ["HTTP", "SOCKS4", "SOCKS5"]
                         },
-                        "host":{
-                            "type":"string",
-                            "title":"Proxy host",
-                            "description":"Proxy host to connect to"
+                        "host": {
+                            "type": "string",
+                            "title": "Proxy host",
+                            "description": "Proxy host to connect to. Supports EL."
                         },
-                        "port":{
-                            "type":"integer",
-                            "title":"Proxy port",
-                            "description":"Proxy port to connect to"
+                        "port": {
+                            "type": "integer",
+                            "title": "Proxy port",
+                            "description": "Proxy port to connect to"
                         },
-                        "username":{
-                            "type":"string",
-                            "title":"Proxy username",
-                            "description":"Optional proxy username (supports EL and Secrets)"
+                        "username": {
+                            "type": "string",
+                            "title": "Proxy username",
+                            "description": "Optional proxy username. (Supports EL and secrets)"
                         },
-                        "password":{
-                            "type":"string",
-                            "title":"Proxy password",
-                            "description":"Optional proxy password (supports EL and Secrets)",
-                            "format":"password"
+                        "password": {
+                            "type": "string",
+                            "title": "Proxy password",
+                            "description": "Optional proxy password. (Supports EL and secrets)",
+                            "format": "password"
                         }
                     },
-                    "required":[
-                        "host",
-                        "port"
-                    ],
-                    "additionalProperties":false
+                    "required": ["host", "port"],
+                    "additionalProperties": false
                 }
             ]
         },
-        "sslTrustStoreHostnameVerifier":{
-            "title":"Verify Host",
-            "description":"Use to enable host name verification",
-            "type":"boolean",
-            "default":true
+        "sslTrustStoreHostnameVerifier": {
+            "title": "Verify Host",
+            "description": "Use to enable host name verification",
+            "type": "boolean",
+            "default": true
         },
-        "sslTrustStoreTrustAll":{
-            "title":"Trust all",
-            "description":"Use this with caution (if over Internet). The gateway must trust any origin certificates. The connection will still be encrypted but this mode is vulnerable to 'man in the middle' attacks.",
-            "type":"boolean",
-            "default":false
+        "sslTrustStoreTrustAll": {
+            "title": "Trust all",
+            "description": "Use this with caution (if over Internet). The gateway must trust any origin certificates. The connection will still be encrypted but this mode is vulnerable to 'man in the middle' attacks.",
+            "type": "boolean",
+            "default": false
         },
-        "sslTrustStorePassword":{
-            "type":"string",
-            "title":"Password",
-            "description":"Truststore password (supports EL and Secrets)",
-            "format":"password",
-            "gioConfig":{
-                "banner":{
-                    "title":"SSL truststore password",
-                    "text":"The password for the truststore file. If a password is not set, truststore file configured will still be used, but integrity checking is disabled. Truststore password is not supported for PEM format."
+        "sslTrustStorePassword": {
+            "type": "string",
+            "title": "Password",
+            "description": "Truststore password",
+            "format": "password",
+            "gioConfig": {
+                "banner": {
+                    "title": "SSL truststore password",
+                    "text": "The password for the truststore file. If a password is not set, truststore file configured will still be used, but integrity checking is disabled. Truststore password is not supported for PEM format."
                 }
             }
         },
-        "sslTrustStorePath":{
-            "type":"string",
-            "title":"Path to truststore",
-            "description":"Path to the truststore file (supports EL and Secrets)"
+        "sslTrustStorePath": {
+            "type": "string",
+            "title": "Path to truststore",
+            "description": "Path to the truststore file"
         },
-        "sslTrustStoreContent":{
-            "type":"string",
-            "title":"Content",
-            "description":"Binary content as Base64 (supports EL and Secrets)",
-            "format":"text"
+        "sslTrustStoreContent": {
+            "type": "string",
+            "title": "Content",
+            "description": "Binary content as Base64",
+            "format": "text"
         },
-        "sslKeyStorePassword":{
-            "type":"string",
-            "title":"Password",
-            "description":"Password to use to open the key store (supports EL and Secrets)",
-            "format":"password"
+        "sslKeyStorePassword": {
+            "type": "string",
+            "title": "Password",
+            "description": "Password to use to open the key store",
+            "format": "password"
         },
-        "sslKeyStoreAlias":{
-            "type":"string",
-            "title":"Alias for the key",
-            "description":"Alias of the key to use in case the key store contains more than one key (supports EL and Secrets)"
+        "sslKeyStoreAlias": {
+            "type": "string",
+            "title": "Alias for the key",
+            "description": "Alias of the key to use in case the key store contains more than one key"
         },
-        "sslKeyStoreKeyPassword":{
-            "type":"string",
-            "title":"Key Password",
-            "description":"Password to use to access the key when protected by password (supports EL and Secrets)",
-            "format":"password"
+        "sslKeyStoreKeyPassword": {
+            "type": "string",
+            "title": "Key Password",
+            "description": "Password to use to access the key when protected by password",
+            "format": "password"
         },
-        "sslKeyStorePath":{
-            "type":"string",
-            "title":"Path to key store",
-            "description":"Path to the key store file (supports EL and Secrets)"
+        "sslKeyStorePath": {
+            "type": "string",
+            "title": "Path to key store",
+            "description": "Path to the key store file"
         },
-        "sslKeyStoreContent":{
-            "type":"string",
-            "title":"Content",
-            "description":"Binary content as Base64 (supports EL and Secrets)",
-            "format":"text"
+        "sslKeyStoreContent": {
+            "type": "string",
+            "title": "Content",
+            "description": "Binary content as Base64",
+            "format": "text"
         },
-        "sslKeyStoreCertPath":{
-            "type":"string",
-            "title":"Path to cert file",
-            "description":"Path to cert file (.PEM) (supports EL and Secrets)"
+        "sslKeyStoreCertPath": {
+            "type": "string",
+            "title": "Path to cert file",
+            "description": "Path to cert file (.PEM)"
         },
-        "sslKeyStoreCertContent":{
-            "type":"string",
-            "title":"Certificate",
-            "description": "(supports EL and Secrets)",
-            "format":"text"
+        "sslKeyStoreCertContent": {
+            "type": "string",
+            "title": "Certificate",
+            "format": "text"
         },
-        "sslKeyStoreKeyPath":{
-            "type":"string",
-            "title":"Path to private key file",
-            "description":"Path to private key file (.PEM) (supports EL and Secrets)"
+        "sslKeyStoreKeyPath": {
+            "type": "string",
+            "title": "Path to private key file",
+            "description": "Path to private key file (.PEM)"
         },
-        "sslKeyStoreKeyContent":{
-            "type":"string",
-            "title":"Private key",
-            "description": "(supports EL and Secrets)",
-            "format":"text"
+        "sslKeyStoreKeyContent": {
+            "type": "string",
+            "title": "Private key",
+            "format": "text"
         },
-        "ssl":{
-            "type":"object",
-            "title":"SSL Options",
-            "properties":{
-                "hostnameVerifier":{
-                    "$ref":"#/definitions/sslTrustStoreHostnameVerifier"
+        "ssl": {
+            "type": "object",
+            "title": "SSL Options",
+            "properties": {
+                "hostnameVerifier": {
+                    "$ref": "#/definitions/sslTrustStoreHostnameVerifier"
                 },
-                "trustAll":{
-                    "$ref":"#/definitions/sslTrustStoreTrustAll"
+                "trustAll": {
+                    "$ref": "#/definitions/sslTrustStoreTrustAll"
                 },
-                "trustStore":{
-                    "type":"object",
-                    "title":"Truststore",
-                    "oneOf":[
+                "trustStore": {
+                    "type": "object",
+                    "title": "Truststore",
+                    "description": "All fields supports EL and secrets",
+                    "oneOf": [
                         {
-                            "type":"object",
-                            "title":"None",
-                            "properties":{
-                                "type":{
-                                    "const":""
+                            "type": "object",
+                            "title": "None",
+                            "properties": {
+                                "type": {
+                                    "const": ""
                                 }
                             }
                         },
                         {
-                            "type":"object",
-                            "title":"JKS with path",
-                            "properties":{
-                                "type":{
-                                    "const":"JKS"
+                            "type": "object",
+                            "title": "JKS with path",
+                            "properties": {
+                                "type": {
+                                    "const": "JKS"
                                 },
-                                "password":{
-                                    "$ref":"#/definitions/sslTrustStorePassword"
+                                "password": {
+                                    "$ref": "#/definitions/sslTrustStorePassword"
                                 },
-                                "path":{
-                                    "$ref":"#/definitions/sslTrustStorePath"
+                                "path": {
+                                    "$ref": "#/definitions/sslTrustStorePath"
                                 }
                             },
-                            "required":[
-                                "password",
-                                "path"
-                            ]
+                            "required": ["password", "path"]
                         },
                         {
-                            "type":"object",
-                            "title":"JKS with content",
-                            "properties":{
-                                "type":{
-                                    "const":"JKS"
+                            "type": "object",
+                            "title": "JKS with content",
+                            "properties": {
+                                "type": {
+                                    "const": "JKS"
                                 },
-                                "password":{
-                                    "$ref":"#/definitions/sslTrustStorePassword"
+                                "password": {
+                                    "$ref": "#/definitions/sslTrustStorePassword"
                                 },
-                                "content":{
-                                    "$ref":"#/definitions/sslTrustStoreContent"
+                                "content": {
+                                    "$ref": "#/definitions/sslTrustStoreContent"
                                 }
                             },
-                            "required":[
-                                "password",
-                                "content"
-                            ]
+                            "required": ["password", "content"]
                         },
                         {
-                            "type":"object",
-                            "title":"PKCS#12 / PFX with path",
-                            "properties":{
-                                "type":{
-                                    "const":"PKCS12"
+                            "type": "object",
+                            "title": "PKCS#12 / PFX with path",
+                            "properties": {
+                                "type": {
+                                    "const": "PKCS12"
                                 },
-                                "password":{
-                                    "$ref":"#/definitions/sslTrustStorePassword"
+                                "password": {
+                                    "$ref": "#/definitions/sslTrustStorePassword"
                                 },
-                                "path":{
-                                    "$ref":"#/definitions/sslTrustStorePath"
+                                "path": {
+                                    "$ref": "#/definitions/sslTrustStorePath"
                                 }
                             },
-                            "required":[
-                                "password",
-                                "path"
-                            ]
+                            "required": ["password", "path"]
                         },
                         {
-                            "type":"object",
-                            "title":"PKCS#12 / PFX with content",
-                            "properties":{
-                                "type":{
-                                    "const":"PKCS12"
+                            "type": "object",
+                            "title": "PKCS#12 / PFX with content",
+                            "properties": {
+                                "type": {
+                                    "const": "PKCS12"
                                 },
-                                "password":{
-                                    "$ref":"#/definitions/sslTrustStorePassword"
+                                "password": {
+                                    "$ref": "#/definitions/sslTrustStorePassword"
                                 },
-                                "content":{
-                                    "$ref":"#/definitions/sslTrustStoreContent"
+                                "content": {
+                                    "$ref": "#/definitions/sslTrustStoreContent"
                                 }
                             },
-                            "required":[
-                                "password",
-                                "content"
-                            ]
+                            "required": ["password", "content"]
                         },
                         {
-                            "type":"object",
-                            "title":"PEM with path",
-                            "properties":{
-                                "type":{
-                                    "const":"PEM"
+                            "type": "object",
+                            "title": "PEM with path",
+                            "properties": {
+                                "type": {
+                                    "const": "PEM"
                                 },
-                                "password":{
-                                    "$ref":"#/definitions/sslTrustStorePassword"
+                                "password": {
+                                    "$ref": "#/definitions/sslTrustStorePassword"
                                 },
-                                "path":{
-                                    "$ref":"#/definitions/sslTrustStorePath"
+                                "path": {
+                                    "$ref": "#/definitions/sslTrustStorePath"
                                 }
                             },
-                            "required":[
-                                "password",
-                                "path"
-                            ]
+                            "required": ["password", "path"]
                         },
                         {
-                            "type":"object",
-                            "title":"PEM with content",
-                            "properties":{
-                                "type":{
-                                    "const":"PEM"
+                            "type": "object",
+                            "title": "PEM with content",
+                            "properties": {
+                                "type": {
+                                    "const": "PEM"
                                 },
-                                "password":{
-                                    "$ref":"#/definitions/sslTrustStorePassword"
+                                "password": {
+                                    "$ref": "#/definitions/sslTrustStorePassword"
                                 },
-                                "content":{
-                                    "$ref":"#/definitions/sslTrustStoreContent"
+                                "content": {
+                                    "$ref": "#/definitions/sslTrustStoreContent"
                                 }
                             },
-                            "required":[
-                                "password",
-                                "content"
-                            ]
+                            "required": ["password", "content"]
                         }
                     ]
                 },
-                "keyStore":{
-                    "type":"object",
-                    "title":"Key store",
-                    "oneOf":[
+                "keyStore": {
+                    "type": "object",
+                    "title": "Key store",
+                    "description": "All fields supports EL and secrets",
+                    "oneOf": [
                         {
-                            "type":"object",
-                            "title":"None",
-                            "properties":{
-                                "type":{
-                                    "const":""
+                            "type": "object",
+                            "title": "None",
+                            "properties": {
+                                "type": {
+                                    "const": ""
                                 }
                             }
                         },
                         {
-                            "type":"object",
-                            "title":"JKS with path",
-                            "properties":{
-                                "type":{
-                                    "const":"JKS"
+                            "type": "object",
+                            "title": "JKS with path",
+                            "properties": {
+                                "type": {
+                                    "const": "JKS"
                                 },
-                                "password":{
-                                    "$ref":"#/definitions/sslKeyStorePassword"
+                                "password": {
+                                    "$ref": "#/definitions/sslKeyStorePassword"
                                 },
-                                "alias":{
-                                    "$ref":"#/definitions/sslKeyStoreAlias"
+                                "alias": {
+                                    "$ref": "#/definitions/sslKeyStoreAlias"
                                 },
-                                "keyPassword":{
-                                    "$ref":"#/definitions/sslKeyStoreKeyPassword"
+                                "keyPassword": {
+                                    "$ref": "#/definitions/sslKeyStoreKeyPassword"
                                 },
-                                "path":{
-                                    "$ref":"#/definitions/sslKeyStorePath"
+                                "path": {
+                                    "$ref": "#/definitions/sslKeyStorePath"
                                 }
                             },
-                            "required":[
-                                "password",
-                                "path"
-                            ]
+                            "required": ["password", "path"]
                         },
                         {
-                            "type":"object",
-                            "title":"JKS with content",
-                            "properties":{
-                                "type":{
-                                    "const":"JKS"
+                            "type": "object",
+                            "title": "JKS with content",
+                            "properties": {
+                                "type": {
+                                    "const": "JKS"
                                 },
-                                "password":{
-                                    "$ref":"#/definitions/sslKeyStorePassword"
+                                "password": {
+                                    "$ref": "#/definitions/sslKeyStorePassword"
                                 },
-                                "alias":{
-                                    "$ref":"#/definitions/sslKeyStoreAlias"
+                                "alias": {
+                                    "$ref": "#/definitions/sslKeyStoreAlias"
                                 },
-                                "keyPassword":{
-                                    "$ref":"#/definitions/sslKeyStoreKeyPassword"
+                                "keyPassword": {
+                                    "$ref": "#/definitions/sslKeyStoreKeyPassword"
                                 },
-                                "content":{
-                                    "$ref":"#/definitions/sslKeyStoreContent"
+                                "content": {
+                                    "$ref": "#/definitions/sslKeyStoreContent"
                                 }
                             },
-                            "required":[
-                                "password",
-                                "content"
-                            ]
+                            "required": ["password", "content"]
                         },
                         {
-                            "type":"object",
-                            "title":"PKCS#12 / PFX with path",
-                            "properties":{
-                                "type":{
-                                    "const":"PKCS12"
+                            "type": "object",
+                            "title": "PKCS#12 / PFX with path",
+                            "properties": {
+                                "type": {
+                                    "const": "PKCS12"
                                 },
-                                "password":{
-                                    "$ref":"#/definitions/sslKeyStorePassword"
+                                "password": {
+                                    "$ref": "#/definitions/sslKeyStorePassword"
                                 },
-                                "alias":{
-                                    "$ref":"#/definitions/sslKeyStoreAlias"
+                                "alias": {
+                                    "$ref": "#/definitions/sslKeyStoreAlias"
                                 },
-                                "keyPassword":{
-                                    "$ref":"#/definitions/sslKeyStoreKeyPassword"
+                                "keyPassword": {
+                                    "$ref": "#/definitions/sslKeyStoreKeyPassword"
                                 },
-                                "path":{
-                                    "$ref":"#/definitions/sslKeyStorePath"
+                                "path": {
+                                    "$ref": "#/definitions/sslKeyStorePath"
                                 }
                             },
-                            "required":[
-                                "password",
-                                "path"
-                            ]
+                            "required": ["password", "path"]
                         },
                         {
-                            "type":"object",
-                            "title":"PKCS#12 / PFX with content",
-                            "properties":{
-                                "type":{
-                                    "const":"PKCS12"
+                            "type": "object",
+                            "title": "PKCS#12 / PFX with content",
+                            "properties": {
+                                "type": {
+                                    "const": "PKCS12"
                                 },
-                                "password":{
-                                    "$ref":"#/definitions/sslKeyStorePassword"
+                                "password": {
+                                    "$ref": "#/definitions/sslKeyStorePassword"
                                 },
-                                "alias":{
-                                    "$ref":"#/definitions/sslKeyStoreAlias"
+                                "alias": {
+                                    "$ref": "#/definitions/sslKeyStoreAlias"
                                 },
-                                "keyPassword":{
-                                    "$ref":"#/definitions/sslKeyStoreKeyPassword"
+                                "keyPassword": {
+                                    "$ref": "#/definitions/sslKeyStoreKeyPassword"
                                 },
-                                "content":{
-                                    "$ref":"#/definitions/sslKeyStoreContent"
+                                "content": {
+                                    "$ref": "#/definitions/sslKeyStoreContent"
                                 }
                             },
-                            "required":[
-                                "password",
-                                "content"
-                            ]
+                            "required": ["password", "content"]
                         },
                         {
-                            "type":"object",
-                            "title":"PEM with path",
-                            "properties":{
-                                "type":{
-                                    "const":"PEM"
+                            "type": "object",
+                            "title": "PEM with path",
+                            "properties": {
+                                "type": {
+                                    "const": "PEM"
                                 },
-                                "certPath":{
-                                    "$ref":"#/definitions/sslKeyStoreCertPath"
+                                "certPath": {
+                                    "$ref": "#/definitions/sslKeyStoreCertPath"
                                 },
-                                "keyPath":{
-                                    "$ref":"#/definitions/sslKeyStoreKeyPath"
+                                "keyPath": {
+                                    "$ref": "#/definitions/sslKeyStoreKeyPath"
                                 }
                             },
-                            "required":[
-                                "certPath",
-                                "keyPath"
-                            ]
+                            "required": ["certPath", "keyPath"]
                         },
                         {
-                            "type":"object",
-                            "title":"PEM with content",
-                            "properties":{
-                                "type":{
-                                    "const":"PEM"
+                            "type": "object",
+                            "title": "PEM with content",
+                            "properties": {
+                                "type": {
+                                    "const": "PEM"
                                 },
-                                "certContent":{
-                                    "$ref":"#/definitions/sslKeyStoreCertContent"
+                                "certContent": {
+                                    "$ref": "#/definitions/sslKeyStoreCertContent"
                                 },
-                                "keyContent":{
-                                    "$ref":"#/definitions/sslKeyStoreKeyContent"
+                                "keyContent": {
+                                    "$ref": "#/definitions/sslKeyStoreKeyContent"
                                 }
                             },
-                            "required":[
-                                "certContent",
-                                "keyContent"
-                            ]
+                            "required": ["certContent", "keyContent"]
                         }
                     ]
                 }
             }
         }
     },
-    "properties":{
-        "http":{
-            "$ref":"#/definitions/http"
+    "properties": {
+        "http": {
+            "$ref": "#/definitions/http"
         },
-        "headers":{
-            "$ref":"#/definitions/headers"
+        "headers": {
+            "$ref": "#/definitions/headers"
         },
-        "proxy":{
-            "$ref":"#/definitions/proxy"
+        "proxy": {
+            "$ref": "#/definitions/proxy"
         },
-        "ssl":{
-            "$ref":"#/definitions/ssl"
+        "ssl": {
+            "$ref": "#/definitions/ssl"
         }
     }
 }
