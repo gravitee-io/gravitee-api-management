@@ -25,4 +25,8 @@ annotations:
   ###########
   artifacthub.io/changes: |
     - "Improve HPA by allowing custom annotation, custom metrics and define the behavior spec (APIM-8186)"
-
+    - kind: fixed
+      description: 'allow users to handle properly baseUrl in portal next for multi tenant installations'
+      links:
+        - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/10204
