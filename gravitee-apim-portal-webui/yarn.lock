@@ -3643,6 +3643,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fontsource/montserrat@npm:5.1.1":
+  version: 5.1.1
+  resolution: "@fontsource/montserrat@npm:5.1.1"
+  checksum: 10c0/755d3af7026094cbc1cfffb45cd9f06dbf4ef3d0399aa1e18f2a3055c370cdf80f5c6b6a42a98a492244b9207f45da61364c437dba71423fae2a130ab2a6c37c
+  languageName: node
+  linkType: hard
+
 "@formatjs/ecma402-abstract@npm:1.11.3":
   version: 1.11.3
   resolution: "@formatjs/ecma402-abstract@npm:1.11.3"
@@ -3740,6 +3747,7 @@ __metadata:
     "@babel/preset-env": "npm:7.16.11"
     "@emoji-mart/data": "npm:1.2.1"
     "@fontsource/ibm-plex-sans": "npm:4.5.13"
+    "@fontsource/montserrat": "npm:5.1.1"
     "@gravitee/ui-components": "npm:4.2.6"
     "@highcharts/map-collection": "npm:2.0.0"
     "@messageformat/core": "npm:3.3.0"
