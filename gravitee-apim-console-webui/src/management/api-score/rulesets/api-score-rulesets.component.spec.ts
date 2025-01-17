@@ -48,7 +48,7 @@ describe('ApiScoreRulesetsComponent', () => {
   });
 
   [
-    { input: {}, expected: 'Test ruleset name OpenAPI - AsyncAPI' },
+    { input: {}, expected: 'Test ruleset name' },
     { input: { format: RulesetFormat.GRAVITEE_MESSAGE }, expected: 'Test ruleset name Gravitee Message API' },
     { input: { format: RulesetFormat.GRAVITEE_PROXY }, expected: 'Test ruleset name Gravitee Proxy API' },
   ].forEach((testParams) => {

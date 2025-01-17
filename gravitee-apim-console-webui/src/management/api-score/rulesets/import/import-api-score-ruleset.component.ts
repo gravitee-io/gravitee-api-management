@@ -21,7 +21,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { RulesetV2Service } from '../../../../services-ngx/ruleset-v2.service';
-import { CreateRulesetRequestData, mapToRulesetFormat } from '../../../../entities/management-api-v2/api/v4/ruleset';
+import { CreateRulesetRequestData, RulesetFormat } from '../../../../entities/management-api-v2/api/v4/ruleset';
 
 @Component({
   selector: 'import-api-score-ruleset',
@@ -30,6 +30,8 @@ import { CreateRulesetRequestData, mapToRulesetFormat } from '../../../../entiti
 })
 export class ImportApiScoreRulesetComponent implements OnInit {
   protected importType: string;
+  protected readonly RulesetFormat = RulesetFormat;
+
   public isLoading = false;
 
   public form: FormGroup = this.formBuilder.group({
@@ -85,18 +87,19 @@ export class ImportApiScoreRulesetComponent implements OnInit {
   public importRuleset() {
     this.isLoading = true;
 
-    let data: CreateRulesetRequestData = {
+    let payload: CreateRulesetRequestData = {
+      format: this.form.value.definitionFormat,
       name: this.form.value.name,
       description: this.form.value.description,
       payload: this.form.value.fileContent,
     };
 
     if (this.graviteeApiFormat?.value) {
-      data = { ...data, format: mapToRulesetFormat(this.graviteeApiFormat.value) };
+      payload = { ...payload, format: this.graviteeApiFormat.value };
     }
 
     this.rulesetV2Service
-      .createRuleset(data)
+      .createRuleset(payload)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {

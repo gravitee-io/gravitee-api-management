@@ -25,11 +25,17 @@ import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
-import { OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
+import { OWL_DATE_TIME_FORMATS, OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
 import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 import moment, { Moment } from 'moment/moment';
 
-import { customTimeFrames, timeFrameRangesParams, timeFrames, TimeRangeParams } from '../../../../shared/utils/timeFrameRanges';
+import {
+  customTimeFrames,
+  DATE_TIME_FORMATS,
+  timeFrameRangesParams,
+  timeFrames,
+  TimeRangeParams,
+} from '../../../../shared/utils/timeFrameRanges';
 import { HomeService } from '../../../../services-ngx/home.service';
 
 @Component({
@@ -50,6 +56,7 @@ import { HomeService } from '../../../../services-ngx/home.service';
     OwlDateTimeModule,
     OwlMomentDateTimeModule,
   ],
+  providers: [{ provide: OWL_DATE_TIME_FORMATS, useValue: DATE_TIME_FORMATS }],
   templateUrl: './dashboard-filters-bar.component.html',
   styleUrl: './dashboard-filters-bar.component.scss',
 })

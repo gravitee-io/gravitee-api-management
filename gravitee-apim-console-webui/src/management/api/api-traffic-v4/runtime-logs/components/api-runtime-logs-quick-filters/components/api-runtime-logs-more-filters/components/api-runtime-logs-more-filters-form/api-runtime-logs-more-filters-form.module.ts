@@ -29,7 +29,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { ApiRuntimeLogsMoreFiltersFormComponent } from './api-runtime-logs-more-filters-form.component';
 import { ApplicationsFilterModule } from './components';
 
-import { DATE_TIME_FORMATS } from '../../../../../../models';
+import { DATE_TIME_FORMATS } from '../../../../../../../../../../shared/utils/timeFrameRanges';
 
 @NgModule({
   declarations: [ApiRuntimeLogsMoreFiltersFormComponent],

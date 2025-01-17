@@ -38,13 +38,21 @@
       <mat-card-content>
         <form class="form" [formGroup]="form">
           <div class="form-section">
-            <h3>Definition Format</h3>
+            <h3 class="form-section__title title-spacer">Asset Format</h3>
+            <p class="form-section__subtitle">Choose the format for which the ruleset will apply to.</p>
             <gio-form-selection-inline data-testid="definition-format-selection" formControlName="definitionFormat">
-              <gio-form-selection-inline-card value="OpenAPI, Async API">
+              <gio-form-selection-inline-card [value]="RulesetFormat.OPENAPI">
                 <gio-form-selection-inline-card-content icon="gio:page">
-                  <gio-card-content-title>OpenAPI, Async API</gio-card-content-title>
+                  <gio-card-content-title>OpenAPI</gio-card-content-title>
                 </gio-form-selection-inline-card-content>
               </gio-form-selection-inline-card>
+
+              <gio-form-selection-inline-card [value]="RulesetFormat.ASYNCAPI">
+                <gio-form-selection-inline-card-content icon="gio:page">
+                  <gio-card-content-title>AsyncAPI</gio-card-content-title>
+                </gio-form-selection-inline-card-content>
+              </gio-form-selection-inline-card>
+
               <gio-form-selection-inline-card value="GraviteeAPI">
                 <gio-form-selection-inline-card-content icon="gio:gravitee">
                   <gio-card-content-title>Gravitee API</gio-card-content-title>
@@ -55,14 +63,14 @@
 
           @if (definitionFormatValue.value === 'GraviteeAPI') {
             <div class="form-section">
-              <h3>Gravitee API Format</h3>
+              <h3 class="form-section__title">Gravitee API Format</h3>
               <gio-form-selection-inline data-testid="gravitee-api-format-selection" formControlName="graviteeApiFormat">
-                <gio-form-selection-inline-card value="Gravitee Proxy API">
+                <gio-form-selection-inline-card [value]="RulesetFormat.GRAVITEE_PROXY">
                   <gio-form-selection-inline-card-content icon="gio:laptop">
                     <gio-card-content-title>Gravitee Proxy API</gio-card-content-title>
                   </gio-form-selection-inline-card-content>
                 </gio-form-selection-inline-card>
-                <gio-form-selection-inline-card value="Gravitee Message API">
+                <gio-form-selection-inline-card [value]="RulesetFormat.GRAVITEE_MESSAGE">
                   <gio-form-selection-inline-card-content icon="gio:message-text">
                     <gio-card-content-title>Gravitee Message API</gio-card-content-title>
                   </gio-form-selection-inline-card-content>
@@ -72,7 +80,7 @@
           }
 
           <div class="form-section">
-            <h3>Ruleset Information</h3>
+            <h3 class="form-section__title">Ruleset Information</h3>
             <mat-form-field appearance="outline" class="form-field">
               <input id="name" type="text" matInput formControlName="name" required="true" data-testid="name-input" />
               <mat-label>Set Your Custom Name</mat-label>
@@ -97,7 +105,7 @@
           </div>
 
           <div class="form-section">
-            <h3>File</h3>
+            <h3 class="form-section__title">File</h3>
             <api-import-file-picker [allowedFileExtensions]="['yml', 'yaml', 'json']" (onFilePicked)="onImportFile($event)">
               <div class="file-picker">
                 <mat-icon svgIcon="gio:upload"></mat-icon>

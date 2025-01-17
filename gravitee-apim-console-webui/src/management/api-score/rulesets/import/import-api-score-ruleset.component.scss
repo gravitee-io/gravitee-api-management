@@ -68,6 +68,17 @@ textarea {
   gap: 32px;
 }
 
+.form-section {
+  &__title {
+    font-size: 16px;
+  }
+
+  &__subtitle {
+    margin-bottom: 16px;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+  }
+}
+
 .form-actions {
   margin: 16px 0;
   display: flex;
@@ -85,4 +96,8 @@ gio-form-file-picker {
     width: 48px;
     height: 48px;
   }
+}
+
+.title-spacer {
+  margin-bottom: 4px;
 }
