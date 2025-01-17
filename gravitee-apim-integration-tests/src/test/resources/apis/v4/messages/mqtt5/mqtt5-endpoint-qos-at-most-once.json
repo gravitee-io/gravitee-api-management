@@ -51,7 +51,7 @@
           "weight": 1,
           "inheritConfiguration": false,
           "configuration": {
-            "serverHost": "localhost",
+            "serverHost": "mqtt5-host",
             "serverPort": "mqtt5-port"
           },
           "sharedConfigurationOverride": {
