@@ -40,6 +40,7 @@ import { PolicyV2Service } from '../../../../services-ngx/policy-v2.service';
 import { ResourceTypeService } from '../../../../shared/components/form-json-schema-extended/resource-type.service';
 import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
 import { SharedPolicyGroupsService } from '../../../../services-ngx/shared-policy-groups.service';
+import { getApiProtocolTypeFromApi } from '../../../../entities/management-api-v2/plugin/apiProtocolType';
 
 @Component({
   selector: 'api-v4-policy-studio-design',
@@ -62,9 +63,9 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
 
   public trialURL: string;
 
-  public policySchemaFetcher: PolicySchemaFetcher = (policy) => this.policyV2Service.getSchema(policy.id);
+  public policySchemaFetcher: PolicySchemaFetcher;
 
-  public policyDocumentationFetcher: PolicyDocumentationFetcher = (policy) => this.policyV2Service.getDocumentation(policy.id);
+  public policyDocumentationFetcher: PolicyDocumentationFetcher;
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -102,6 +103,9 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
       .subscribe(([api, entrypoints, endpoints, plans, policies, sharedPolicyGroupPolicyPlugins]) => {
         this.apiType = api.type;
         this.flowExecution = api.flowExecution;
+
+        this.policySchemaFetcher = (policy) => this.policyV2Service.getSchema(policy.id, getApiProtocolTypeFromApi(api));
+        this.policyDocumentationFetcher = (policy) => this.policyV2Service.getDocumentation(policy.id, getApiProtocolTypeFromApi(api));
 
         this.entrypointsInfo = api.listeners.flatMap((listener) =>
           listener.entrypoints.map((entrypoint) => {
