@@ -392,6 +392,7 @@ export function fakeProxyApiV4(modifier?: Partial<ApiV4> | ((baseApi: ApiV4) => 
             name: 'Default Endpoint HTTP proxy',
             type: 'http-proxy',
             weight: 1,
+            tenants: [],
             inheritConfiguration: true,
             configuration: {
               target: 'https://api.gravitee.io/echo',
@@ -475,6 +476,7 @@ export function fakeProxyTcpApiV4(modifier?: Partial<ApiV4> | ((baseApi: ApiV4) 
             type: 'tcp-proxy',
             secondary: false,
             weight: 1,
+            tenants: [],
             inheritConfiguration: true,
             configuration: {
               target: {

@@ -18,6 +18,7 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatTabHarness } from '@angular/material/tabs/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 
 export class ApiEndpointHarness extends ComponentHarness {
   static hostSelector = 'api-endpoint';
@@ -27,6 +28,7 @@ export class ApiEndpointHarness extends ComponentHarness {
   private getPreviousButton = this.locatorFor(MatButtonHarness.with({ text: 'Previous' }));
   private getConfigurationToggle = this.locatorFor(MatSlideToggleHarness);
   private getWeightButton = this.locatorFor(MatInputHarness.with({ selector: '#weight' }));
+  private getTenantsSelect = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName=tenants]' }));
   private getConfigurationTab = this.locatorFor(MatTabHarness.with({ label: 'Configuration' }));
   private getHealthCheckTab = this.locatorFor(MatTabHarness.with({ label: 'Health-check' }));
   private getHealthCheckInheritToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName=inherit]' }));
@@ -89,5 +91,9 @@ export class ApiEndpointHarness extends ComponentHarness {
     return this.getHealthCheckTab()
       .then((_) => true)
       .catch((_) => false);
+  }
+
+  public async selectTenant(tenant: string): Promise<void> {
+    return this.getTenantsSelect().then((select) => select.clickOptions({ text: tenant }));
   }
 }

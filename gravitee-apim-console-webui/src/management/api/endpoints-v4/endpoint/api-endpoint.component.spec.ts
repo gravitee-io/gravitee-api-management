@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { Tenant } from 'src/entities/tenant/tenant';
+
 import { Component, ViewChild } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
@@ -66,6 +68,7 @@ class TestComponent {
 
 describe('ApiEndpointComponent', () => {
   const API_ID = 'apiId';
+  const TENANT: Tenant = { id: 'tenant-id', name: 'tenant-name', description: '' };
 
   let fixture: ComponentFixture<TestComponent>;
   let httpTestingController: HttpTestingController;
@@ -106,6 +109,7 @@ describe('ApiEndpointComponent', () => {
     expectEndpointsSharedConfigurationSchemaGetRequest(api.endpointGroups[0].type);
     expectEndpointPluginGetRequest(api.endpointGroups[0].type);
     expectHealthCheckSchemaGet(fixture, httpTestingController);
+    expectTenantsGetRequest();
   };
 
   afterEach(() => {
@@ -157,6 +161,7 @@ describe('ApiEndpointComponent', () => {
                   inheritConfiguration: true,
                   sharedConfigurationOverride: {},
                   name: 'endpoint-name',
+                  tenants: [TENANT.id],
                   type: 'kafka',
                   weight: 10,
                 },
@@ -175,6 +180,7 @@ describe('ApiEndpointComponent', () => {
 
         await componentHarness.fillInputName(' endpoint-name  ');
         await componentHarness.fillWeightButton(10);
+        await componentHarness.selectTenant(TENANT.name);
       });
 
       it('should add a new endpoint', async () => {
@@ -198,6 +204,7 @@ describe('ApiEndpointComponent', () => {
 
         await componentHarness.fillInputName('endpoint-name');
         await componentHarness.fillWeightButton(10);
+        await componentHarness.selectTenant(TENANT.name);
       });
     });
 
@@ -219,6 +226,9 @@ describe('ApiEndpointComponent', () => {
 
         expect(await componentHarness.getEndpointName()).toStrictEqual('endpoint-name updated');
 
+        await componentHarness.selectTenant(TENANT.name);
+        fixture.detectChanges();
+
         await componentHarness.clickSaveButton();
 
         expectApiGetRequest(apiV4);
@@ -232,6 +242,7 @@ describe('ApiEndpointComponent', () => {
                 {
                   ...apiV4.endpointGroups[0].endpoints[0],
                   name: 'endpoint-name updated',
+                  tenants: [TENANT.id],
                   sharedConfigurationOverride: {
                     test: undefined,
                   },
@@ -290,6 +301,7 @@ describe('ApiEndpointComponent', () => {
                   name: 'dlq-endpoint',
                   type: 'kafka',
                   weight: 1,
+                  tenants: null,
                   inheritConfiguration: false,
                   configuration: {
                     bootstrapServers: 'localhost:9092',
@@ -391,6 +403,7 @@ describe('ApiEndpointComponent', () => {
                   },
                   inheritConfiguration: null,
                   weight: null,
+                  tenants: null,
                 },
               ],
             },
@@ -653,5 +666,10 @@ describe('ApiEndpointComponent', () => {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints/${pluginId}`, method: 'GET' })
       .flush([fakeConnectorPlugin({ id: pluginId, name: pluginId })]);
+  }
+
+  function expectTenantsGetRequest() {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tenants`, method: 'GET' }).flush([TENANT]);
+    fixture.detectChanges();
   }
 });

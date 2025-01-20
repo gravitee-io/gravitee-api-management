@@ -31,6 +31,8 @@ import { getMatchingDlqEntrypoints, updateDlqEntrypoint } from '../api-endpoint-
 import { ApiServicePluginsV2Service } from '../../../../services-ngx/apiservice-plugins-v2.service';
 import { ApiHealthCheckV4FormComponent } from '../../component/health-check-v4-form/api-health-check-v4-form.component';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { Tenant } from '../../../../entities/tenant/tenant';
+import { TenantService } from '../../../../services-ngx/tenant.service';
 
 export type EndpointHealthCheckFormType = FormGroup<{
   enabled: FormControl<boolean>;
@@ -60,6 +62,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
   public isHttpProxyApi: boolean;
   public isNativeKafkaApi: boolean;
   public healthCheckForm: EndpointHealthCheckFormType;
+  public tenants: Tenant[];
 
   constructor(
     private readonly router: Router,
@@ -71,6 +74,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     private readonly matDialog: MatDialog,
     private readonly permissionService: GioPermissionService,
     private readonly apiServicePluginsV2Service: ApiServicePluginsV2Service,
+    private readonly tenantService: TenantService,
   ) {}
 
   public ngOnInit(): void {
@@ -105,15 +109,17 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
             this.connectorPluginsV2Service.getEndpointPluginSharedConfigurationSchema(this.endpointGroup.type),
             this.connectorPluginsV2Service.getEndpointPlugin(this.endpointGroup.type),
             this.apiServicePluginsV2Service.getApiServicePluginSchema(ApiHealthCheckV4FormComponent.HTTP_HEALTH_CHECK),
+            this.tenantService.list(),
           ]);
         }),
-        tap(([config, sharedConfig, connectorPlugin, healthCheckSchema]) => {
+        tap(([config, sharedConfig, connectorPlugin, healthCheckSchema, tenants]) => {
           this.endpointSchema = {
             config: GioFormJsonSchemaComponent.isDisplayable(config) ? config : null,
             sharedConfig: GioFormJsonSchemaComponent.isDisplayable(sharedConfig) ? sharedConfig : null,
           };
           this.connectorPlugin = { ...connectorPlugin, icon: this.iconService.registerSvg(connectorPlugin.id, connectorPlugin.icon) };
           this.healthCheckSchema = healthCheckSchema;
+          this.tenants = tenants;
           this.initForm();
         }),
         takeUntil(this.unsubscribe$),
@@ -133,6 +139,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
       type: this.endpointGroup.type,
       name: this.formGroup.get('name').value.trim(),
       weight: this.formGroup.get('weight').value,
+      tenants: this.formGroup.get('tenants').value,
       configuration: this.formGroup.get('configuration').value,
       sharedConfigurationOverride: inheritConfiguration ? {} : this.formGroup.get('sharedConfigurationOverride').value,
       inheritConfiguration,
@@ -242,6 +249,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     // Inherit configuration only if there is a sharedConfiguration (that is not the case of mock endppoint)
     let inheritConfiguration = !!sharedConfigurationOverride;
     let weight = null;
+    let tenants = null;
 
     if (this.mode === 'edit') {
       this.endpointIndex = +this.activatedRoute.snapshot.params.endpointIndex;
@@ -255,6 +263,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
 
       name = this.endpoint.name;
       weight = this.endpoint.weight;
+      tenants = this.endpoint.tenants;
       inheritConfiguration = this.endpoint.inheritConfiguration;
       configuration = this.endpoint.configuration;
       if (!inheritConfiguration) {
@@ -317,6 +326,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
           : isEndpointNameUnique(this.api),
       ]),
       weight: new UntypedFormControl(weight),
+      tenants: new UntypedFormControl(tenants),
       inheritConfiguration: new UntypedFormControl(inheritConfiguration),
       configuration: new UntypedFormControl(configuration),
       sharedConfigurationOverride: new UntypedFormControl({ value: sharedConfigurationOverride, disabled: inheritConfiguration }),

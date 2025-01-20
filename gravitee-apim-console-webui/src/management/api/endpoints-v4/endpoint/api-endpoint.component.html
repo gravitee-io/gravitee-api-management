@@ -51,6 +51,17 @@
                 <div class="endpoint-card__form__field">
                   <gio-form-json-schema formControlName="configuration" [jsonSchema]="endpointSchema?.config"></gio-form-json-schema>
                 </div>
+
+                @if (!isNativeKafkaApi) {
+                  <mat-form-field class="endpoint-card__form__field">
+                    <mat-label>Tenants</mat-label>
+                    <mat-select aria-label="Endpoint tenants" formControlName="tenants" multiple>
+                      <mat-option *ngFor="let tenant of tenants" [value]="tenant.id">
+                        <span class="card__group-endpoint__row__tenant__name" [matTooltip]="tenant.description">{{ tenant.name }}</span>
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                }
               </div>
               @if (!isNativeKafkaApi) {
                 <div class="endpoint-card__form__section">

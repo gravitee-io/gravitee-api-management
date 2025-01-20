@@ -37,6 +37,7 @@ export interface EndpointV4 {
   sharedConfigurationOverride?: any;
   services?: EndpointServices;
   secondary?: boolean;
+  tenants?: string[];
 }
 
 export const EndpointV4Default = {
