@@ -29,6 +29,7 @@ import io.gravitee.rest.api.management.v2.rest.model.PageMedia;
 import io.gravitee.rest.api.management.v2.rest.model.PageSource;
 import io.gravitee.rest.api.management.v2.rest.model.Revision;
 import io.gravitee.rest.api.management.v2.rest.model.SourceConfiguration;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationAsciiDoc;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationAsyncApi;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationMarkdown;
@@ -120,6 +121,9 @@ public interface PageMapper {
     io.gravitee.apim.core.documentation.model.Page map(
         io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationAsyncApi createDocumentationAsyncApi
     );
+    io.gravitee.apim.core.documentation.model.Page map(
+        io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationAsciiDoc createDocumentationAsciiDoc
+    );
 
     Breadcrumb map(io.gravitee.apim.core.documentation.model.Breadcrumb breadcrumb);
     List<Breadcrumb> map(List<io.gravitee.apim.core.documentation.model.Breadcrumb> breadcrumbList);
@@ -143,6 +147,13 @@ public interface PageMapper {
 
     ApiUpdateDocumentationPageUseCase.Input map(
         UpdateDocumentationAsyncApi updateDocumentationAsyncApi,
+        String apiId,
+        String pageId,
+        AuditInfo auditInfo
+    );
+
+    ApiUpdateDocumentationPageUseCase.Input map(
+        UpdateDocumentationAsciiDoc updateDocumentationAsciiDoc,
         String apiId,
         String pageId,
         AuditInfo auditInfo
