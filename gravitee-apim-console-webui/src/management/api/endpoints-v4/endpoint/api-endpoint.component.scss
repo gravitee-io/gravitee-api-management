@@ -12,25 +12,17 @@
 }
 
 .endpoint-card {
-  margin-bottom: 24px;
-
   &__header {
-    margin-bottom: 16px;
-
     &__group-name {
       display: flex;
       flex-direction: row;
       margin-bottom: 16px;
 
-      .mat-h3 {
-        margin: auto 0;
-      }
-
       .gio-badge-primary {
         margin: auto 8px;
       }
 
-      .mat-h2 {
+      .mat-h3 {
         margin: auto 0;
       }
 
@@ -41,26 +33,16 @@
   }
 
   &__form {
-    &__name {
+    &__field {
       width: 100%;
-      padding-bottom: 0;
+      padding-bottom: 12px;
     }
 
-    &__config,
-    &__shared-config {
-      margin-bottom: 16px;
-    }
-
-    &__lb {
+    &__section {
+      padding: 8px;
       margin-bottom: 16px;
       border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
       border-radius: 8px;
-      padding: 8px;
-    }
-
-    &__weight {
-      width: 100%;
-      margin-top: 24px;
     }
 
     &__tab-content {
