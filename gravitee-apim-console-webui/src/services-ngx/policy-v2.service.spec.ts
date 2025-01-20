@@ -65,6 +65,23 @@ describe('PolicyV2Service', () => {
 
       req.flush(policySchema);
     });
+
+    it('should call the API with apiProtocolType', (done) => {
+      const policyId = 'policy#1';
+      const policySchema = {};
+
+      policyService.getSchema(policyId, 'NATIVE_KAFKA').subscribe((response) => {
+        expect(response).toStrictEqual(policySchema);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(
+        `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/policy#1/schema?apiProtocolType=NATIVE_KAFKA`,
+      );
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(policySchema);
+    });
   });
 
   describe('getDocumentation', () => {
@@ -78,6 +95,23 @@ describe('PolicyV2Service', () => {
       });
 
       const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/policy#1/documentation`);
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(policyDocumentation);
+    });
+
+    it('should call the API with apiProtocolType', (done) => {
+      const policyId = 'policy#1';
+      const policyDocumentation = 'The Doc';
+
+      policyService.getDocumentation(policyId, 'NATIVE_KAFKA').subscribe((response) => {
+        expect(response).toStrictEqual(policyDocumentation);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(
+        `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/policy#1/documentation?apiProtocolType=NATIVE_KAFKA`,
+      );
       expect(req.request.method).toEqual('GET');
 
       req.flush(policyDocumentation);
