@@ -91,6 +91,7 @@ const GroupComponentAjs: ng.IComponentOptions = {
           ])
             .then(([groupsResponse, apiRolesResponse, applicationRolesResponse, integrationRolesResponse, invitationsResponse]) => {
               this.group = groupsResponse.data;
+              this.isReadonly = this.group.origin === 'KUBERNETES';
               this.apiRoles = [{ scope: 'API', name: '', system: false }].concat(apiRolesResponse);
               this.applicationRoles = [{ scope: 'APPLICATION', name: '', system: false }].concat(applicationRolesResponse);
               this.integrationRoles = [{ scope: 'INTEGRATION', name: '', system: false }].concat(integrationRolesResponse);

@@ -7,3 +7,17 @@ md-select.md-table-select {
     }
   }
 }
+
+.group___origin-kubernetes {
+  margin: 10px 0 0 0;
+  display: flex;
+
+  .group___origin-kubernetes_icon {
+    --gv-icon--s: 24px;
+  }
+
+  p.group___origin-kubernetes_desc {
+    --gv-icon--s: 24px;
+    margin: 1px 0 0 5px;
+  }
+}

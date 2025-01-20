@@ -22,13 +22,22 @@
     <a ng-click="$ctrl.backToList()">Back to groups</a>
   </div>
 
+  <ng-container ng-if="$ctrl.group.origin === 'KUBERNETES'">
+    <div class="group___origin-kubernetes">
+      <gv-icon class="group___origin-kubernetes_icon" shape="thirdparty:kubernetes"></gv-icon>
+      <p class="group___origin-kubernetes_desc">
+        This group was created by the Kubernetes Operator and cannot be managed through the console.
+      </p>
+    </div>
+  </ng-container>
+
   <form name="formGroup" class="gv-form" ng-submit="$ctrl.update()">
     <h2>General</h2>
     <div class="gv-form-content" layout="column">
       <div layout-gt-sm="row">
         <md-input-container class="md-block" flex-gt-sm>
           <label>Name</label>
-          <input ng-model="$ctrl.group.name" type="text" required name="name" maxlength="50" />
+          <input ng-model="$ctrl.group.name" type="text" required name="name" maxlength="50" ng-disabled="$ctrl.isReadonly" />
           <div class="hint" ng-if="$ctrl.formGroup.name.$valid || $ctrl.formGroup.name.$pristine">Group Name</div>
           <div ng-messages="$ctrl.formGroup.name.$error">
             <div ng-message="required">Group name is required.</div>
@@ -48,7 +57,7 @@
             class="gv-input-number"
             ng-model="$ctrl.selectedApiRole"
             aria-label="Default API Role"
-            ng-disabled="!$ctrl.canChangeDefaultApiRole"
+            ng-disabled="$ctrl.isReadonly || !$ctrl.canChangeDefaultApiRole"
           >
             <md-option ng-value="role.name" ng-repeat="role in $ctrl.apiRoles" ng-disabled="role.system">{{role.name}} </md-option>
           </md-select>
@@ -60,7 +69,7 @@
             ng-model="$ctrl.selectedApplicationRole"
             class="gv-input-number"
             aria-label="Default Application Role"
-            ng-disabled="!$ctrl.canChangeDefaultApplicationRole"
+            ng-disabled="$ctrl.isReadonly || !$ctrl.canChangeDefaultApplicationRole"
           >
             <md-option ng-value="role.name" ng-repeat="role in $ctrl.applicationRoles" ng-disabled="role.system">{{role.name}} </md-option>
           </md-select>
@@ -71,12 +80,24 @@
         <div layout="column">
           <md-input-container class="gv-input-number">
             <label>Max members (default unlimited)</label>
-            <input ng-model="$ctrl.group.max_invitation" type="number" min="0" max="99999" />
+            <input ng-model="$ctrl.group.max_invitation" type="number" min="0" max="99999" ng-disabled="$ctrl.isReadonly" />
           </md-input-container>
-          <md-checkbox ng-model="$ctrl.group.system_invitation" aria-label="Allows system invitation" class="md-align-top-left" flex>
+          <md-checkbox
+            ng-model="$ctrl.group.system_invitation"
+            aria-label="Allows system invitation"
+            class="md-align-top-left"
+            flex
+            ng-disabled="$ctrl.isReadonly"
+          >
             Allows invitation via user search
           </md-checkbox>
-          <md-checkbox ng-model="$ctrl.group.email_invitation" aria-label="Allows email invitation" class="md-align-top-left" flex>
+          <md-checkbox
+            ng-model="$ctrl.group.email_invitation"
+            aria-label="Allows email invitation"
+            class="md-align-top-left"
+            flex
+            ng-disabled="$ctrl.isReadonly"
+          >
             Allows email invitation
           </md-checkbox>
           <md-checkbox
@@ -86,6 +107,7 @@
             aria-label="Change default API role"
             class="md-align-top-left"
             flex
+            ng-disabled="$ctrl.isReadonly"
           >
             Allows the group admin to change the API role
           </md-checkbox>
@@ -96,6 +118,7 @@
             aria-label="Change default Application role"
             class="md-align-top-left"
             flex
+            ng-disabled="$ctrl.isReadonly"
           >
             Allows the group admin to change the application role
           </md-checkbox>
@@ -106,6 +129,7 @@
             aria-label="Enables notifications when members are added to this group"
             class="md-align-top-left"
             flex
+            ng-disabled="$ctrl.isReadonly"
           >
             Enables notifications when members are added to this group
           </md-checkbox>
@@ -122,6 +146,7 @@
           aria-label="Associate to every new API"
           class="md-primary md-align-top-left"
           flex
+          ng-disabled="$ctrl.isReadonly"
         >
           Associate automatically to every new API
         </md-checkbox>
@@ -130,12 +155,18 @@
           aria-label="Associate to every new application"
           class="md-primary md-align-top-left"
           flex
+          ng-disabled="$ctrl.isReadonly"
         >
           Associate automatically to every new application
         </md-checkbox>
       </div>
       <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.updateMode">
-        <md-button aria-label="Associate to existing APIs" ng-click="$ctrl.associateToApis()" class="md-actions md-raised md-primary">
+        <md-button
+          aria-label="Associate to existing APIs"
+          ng-click="$ctrl.associateToApis()"
+          class="md-actions md-raised md-primary"
+          ng-disabled="$ctrl.isReadonly"
+        >
           Associate to existing APIs
         </md-button>
 
@@ -143,6 +174,7 @@
           aria-label="Associate to existing applications"
           ng-click="$ctrl.associateToApplications()"
           class="md-actions md-raised md-primary"
+          ng-disabled="$ctrl.isReadonly"
         >
           Associate to existing applications
         </md-button>
@@ -156,7 +188,7 @@
           ng-if="$ctrl.updateMode"
           class="md-raised md-primary"
           type="submit"
-          ng-disabled="formGroup.$invalid || formGroup.$pristine"
+          ng-disabled="$ctrl.isReadonly || formGroup.$invalid || formGroup.$pristine"
           permission
           permission-only="['environment-group-u']"
         >
@@ -167,14 +199,19 @@
           ng-if="!$ctrl.updateMode"
           class="md-raised md-primary"
           type="submit"
-          ng-disabled="formGroup.$invalid || formGroup.$pristine"
+          ng-disabled="$ctrl.isReadonly || formGroup.$invalid || formGroup.$pristine"
           permission
           permission-only="['environment-group-c']"
         >
           Create
         </md-button>
 
-        <md-button class="md-raised" type="button" ng-click="$ctrl.reset()" ng-disabled="formGroup.$invalid || formGroup.$pristine">
+        <md-button
+          class="md-raised"
+          type="button"
+          ng-click="$ctrl.reset()"
+          ng-disabled="$ctrl.isReadonly || formGroup.$invalid || formGroup.$pristine"
+        >
           Reset
         </md-button>
       </div>
@@ -234,7 +271,7 @@
                         ng-model="member.roles['API']"
                         aria-label="API Role"
                         ng-change="$ctrl.updateRole(member)"
-                        ng-disabled="!$ctrl.canChangeDefaultApiRole"
+                        ng-disabled="$ctrl.isReadonly || !$ctrl.canChangeDefaultApiRole"
                       >
                         <md-option ng-value="role.name" ng-repeat="role in $ctrl.apiRoles" ng-disabled="$ctrl.isApiRoleDisabled(role)"
                           >{{role.name}}</md-option
@@ -246,7 +283,7 @@
                         ng-model="member.roles['APPLICATION']"
                         aria-label="Application Role"
                         ng-change="$ctrl.updateRole(member)"
-                        ng-disabled="!$ctrl.canChangeDefaultApplicationRole"
+                        ng-disabled="$ctrl.isReadonly || !$ctrl.canChangeDefaultApplicationRole"
                       >
                         <md-option ng-value="role.name" ng-repeat="role in $ctrl.applicationRoles" ng-disabled="role.system"
                           >{{role.name}}</md-option
@@ -258,7 +295,7 @@
                         ng-model="member.roles['INTEGRATION']"
                         aria-label="Integration Role"
                         ng-change="$ctrl.updateRole(member)"
-                        ng-disabled="!$ctrl.canChangeDefaultIntegrationRole"
+                        ng-disabled="$ctrl.isReadonly || !$ctrl.canChangeDefaultIntegrationRole"
                       >
                         <md-option ng-value="role.name" ng-repeat="role in $ctrl.integrationRoles" ng-disabled="role.system"
                           >{{role.name}}</md-option
@@ -267,7 +304,9 @@
                     </td>
                     <td md-cell ng-click="$event.stopPropagation()">
                       <div layout="row" layout-align="end center">
-                        <span ng-if="$ctrl.isSuperAdmin || ($ctrl.group.manageable && $ctrl.currentUserId !== member.id)">
+                        <span
+                          ng-if="!$ctrl.isReadonly && ($ctrl.isSuperAdmin || ($ctrl.group.manageable && $ctrl.currentUserId !== member.id))"
+                        >
                           <md-tooltip md-direction="top">delete</md-tooltip>
                           <ng-md-icon icon="delete" ng-click="$ctrl.removeUser($event, member)" aria-label="delete-user"></ng-md-icon>
                         </span>
@@ -416,7 +455,7 @@
   class="md-scale md-fab-bottom-right md-fab-scrollable"
   ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
 >
-  <md-fab-trigger>
+  <md-fab-trigger ng-if="!$ctrl.isReadonly">
     <!-- The button is always displayed, but is disabled if the current user is a group admin and the maximum number of members has been reached -->
     <md-button aria-label="menu" class="md-fab md-success" ng-disabled="!$ctrl.isSuperAdmin && $ctrl.isMaxInvitationReached()">
       <md-tooltip md-direction="top" md-visible="false"
