@@ -61,6 +61,18 @@
                     <mat-error *ngIf="formGroup.get('weight').hasError('required')"> Weight is required. </mat-error>
                   </mat-form-field>
                 </div>
+
+                <div class="endpoint-card__form__section">
+                  <span class="mat-h3">Configure tenants</span>
+                  <mat-form-field class="endpoint-card__form__field">
+                    <mat-label>Tenants</mat-label>
+                    <mat-select aria-label="Endpoint tenants" formControlName="tenants" multiple>
+                      <mat-option *ngFor="let tenant of tenants" [value]="tenant.id">
+                        <span class="card__group-endpoint__row__tenant__name" [matTooltip]="tenant.description">{{ tenant.name }}</span>
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
               }
             </div>
           </mat-tab>

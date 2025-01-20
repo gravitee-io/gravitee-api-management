@@ -61,6 +61,7 @@ export function fakeUpdateApiV4(modifier?: Partial<UpdateApiV4> | ((base: Update
             name: 'default',
             type: 'kafka',
             weight: 1,
+            tenants: [],
             inheritConfiguration: false,
             configuration: {
               bootstrapServers: 'localhost:9092',
