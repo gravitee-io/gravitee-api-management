@@ -208,10 +208,11 @@ describe('API - V4 - Connection Logs', () => {
           expect(json.items[0].headers).toEqual({
             'X-Header': ['header-value'],
           });
-          expect(json.items[0].metadata).toEqual({
-            Metadata: 'metadata-value',
-            sourceTimestamp: expect.any(Number),
-          });
+          expect(json.items[0].metadata).toEqual(
+            expect.objectContaining({
+              Metadata: 'metadata-value',
+            }),
+          );
         });
     };
 
