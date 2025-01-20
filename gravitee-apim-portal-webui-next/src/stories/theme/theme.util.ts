@@ -17,30 +17,6 @@ import { Args } from '@storybook/angular';
 
 import { addPropertyToDocument, addHslToDocument } from '../../services/theme.service';
 
-const CUSTOMIZATION_ARGS = {
-  primary: {
-    control: 'color',
-  },
-  secondary: {
-    control: 'color',
-  },
-  tertiary: {
-    control: 'color',
-  },
-  error: {
-    control: 'color',
-  },
-  background: {
-    control: 'color',
-  },
-  bannerBackground: {
-    control: 'color',
-  },
-  bannerText: {
-    control: 'color',
-  },
-};
-
 export interface CustomizationConfig {
   primary?: string;
   secondary?: string;
@@ -75,10 +51,10 @@ const computeAndInjectThemeForStory = (args: Args): void => {
 };
 
 const computePalette = (config: CustomizationConfig) => {
-  addHslToDocument(CSS_VAR.primary, '#613CB0', config.primary);
-  addHslToDocument(CSS_VAR.secondary, '#958BA9', config.secondary);
-  addHslToDocument(CSS_VAR.tertiary, '#B7818F', config.tertiary);
-  addHslToDocument(CSS_VAR.error, '#EC6152', config.error);
+  addHslToDocument(CSS_VAR.primary, config.primary ?? '#613CB0');
+  addHslToDocument(CSS_VAR.secondary, config.secondary ?? '#958BA9');
+  addHslToDocument(CSS_VAR.tertiary, config.tertiary ?? '#B7818F');
+  addHslToDocument(CSS_VAR.error, config.error ?? '#EC6152');
 };
 
 const computeStyles = (theme: CustomizationConfig): void => {
@@ -94,4 +70,4 @@ const resetTheme = (): void => {
   computePalette({});
 };
 
-export { computeAndInjectThemeForStory, resetTheme, CUSTOMIZATION_ARGS };
+export { computeAndInjectThemeForStory, resetTheme };
