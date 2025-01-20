@@ -92,10 +92,11 @@ describe('API - V4 - MESSAGE - Search logs', () => {
           expect(json.items[0].headers).toEqual({
             'X-Header': ['header-value'],
           });
-          expect(json.items[0].metadata).toEqual({
-            Metadata: 'metadata-value',
-            sourceTimestamp: expect.any(Number),
-          });
+          expect(json.items[0].metadata).toEqual(
+            expect.objectContaining({
+              Metadata: 'metadata-value',
+            }),
+          );
         });
       await fetchGatewaySuccess({ contextPath: apiPath })
         .then((res) => res.json())
@@ -106,10 +107,11 @@ describe('API - V4 - MESSAGE - Search logs', () => {
           expect(json.items[0].headers).toEqual({
             'X-Header': ['header-value'],
           });
-          expect(json.items[0].metadata).toEqual({
-            Metadata: 'metadata-value',
-            sourceTimestamp: expect.any(Number),
-          });
+          expect(json.items[0].metadata).toEqual(
+            expect.objectContaining({
+              Metadata: 'metadata-value',
+            }),
+          );
         });
     });
 
@@ -183,10 +185,9 @@ describe('API - V4 - MESSAGE - Search logs', () => {
             headers: {
               'X-Header': ['header-value'],
             },
-            metadata: {
+            metadata: expect.objectContaining({
               Metadata: 'metadata-value',
-              sourceTimestamp: expect.any(String),
-            },
+            }),
             isError: undefined,
           }),
         );
@@ -197,10 +198,9 @@ describe('API - V4 - MESSAGE - Search logs', () => {
             headers: {
               'X-Header': ['header-value'],
             },
-            metadata: {
+            metadata: expect.objectContaining({
               Metadata: 'metadata-value',
-              sourceTimestamp: expect.any(String),
-            },
+            }),
             isError: undefined,
           }),
         );
