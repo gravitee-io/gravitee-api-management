@@ -61,6 +61,7 @@ export function fakeCreateApiV4(modifier?: Partial<CreateApiV4> | ((baseApi: Cre
             name: 'default',
             type: 'kafka',
             weight: 1,
+            tenants: [],
             inheritConfiguration: false,
             configuration: {
               bootstrapServers: 'localhost:9092',
