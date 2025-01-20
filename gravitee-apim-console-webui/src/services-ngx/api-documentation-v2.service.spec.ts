@@ -110,11 +110,12 @@ describe('ApiDocumentationV2Service', () => {
       const folder = fakeFolder();
       const swagger = fakeSwagger();
       const asyncApi = fakeAsyncApi();
+      const asciiDoc = fakePage({ type: 'ASCIIDOC' });
       const fakeResponse = {
         pages: [
           markdown,
           folder,
-          fakePage({ type: 'ASCIIDOC' }),
+          asciiDoc,
           asyncApi,
           fakePage({ type: 'MARKDOWN_TEMPLATE' }),
           fakePage({ type: 'SYSTEM_FOLDER' }),
@@ -127,7 +128,7 @@ describe('ApiDocumentationV2Service', () => {
 
       service.getApiPages(API_ID, 'ROOT').subscribe((response) => {
         expect(response).toEqual({
-          pages: [markdown, folder, asyncApi, swagger],
+          pages: [markdown, folder, asciiDoc, asyncApi, swagger],
           breadcrumb: [],
         });
         done();
