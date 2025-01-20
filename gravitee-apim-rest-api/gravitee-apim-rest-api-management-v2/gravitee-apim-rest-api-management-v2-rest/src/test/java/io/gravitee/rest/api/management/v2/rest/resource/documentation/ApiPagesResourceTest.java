@@ -1094,6 +1094,35 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        public void should_create_asciidoc_page() {
+            var pageToCreate = CreateDocumentationAsciiDoc
+                .builder()
+                .name("created page")
+                .homepage(true)
+                .content("= AsciiDoc content")
+                .type(CreateDocumentation.TypeEnum.ASCIIDOC)
+                .parentId(null)
+                .visibility(Visibility.PUBLIC)
+                .build();
+
+            final Response response = rootTarget().request().post(Entity.json(pageToCreate));
+            var createdPage = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Page.class);
+
+            assertThat(createdPage)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("type", PageType.ASCIIDOC)
+                .hasFieldOrPropertyWithValue("name", pageToCreate.getName())
+                .hasFieldOrPropertyWithValue("homepage", pageToCreate.getHomepage())
+                .hasFieldOrPropertyWithValue("content", pageToCreate.getContent())
+                .hasFieldOrPropertyWithValue("order", 0)
+                .hasFieldOrPropertyWithValue("parentId", pageToCreate.getParentId())
+                .hasFieldOrPropertyWithValue("visibility", pageToCreate.getVisibility());
+
+            assertThat(createdPage.getId()).isNotNull();
+            assertThat(createdPage.getUpdatedAt()).isNotNull();
+        }
+
+        @Test
         public void should_create_folder() {
             var folderToCreate = CreateDocumentationFolder
                 .builder()
@@ -1455,6 +1484,50 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             assertThat(createdPage.getId()).isNotNull();
             assertThat(createdPage.getUpdatedAt()).isNotNull();
+        }
+
+        @Test
+        public void should_update_asciidoc_page() {
+            var request = UpdateDocumentationAsciiDoc
+                .builder()
+                .name("updated page")
+                .homepage(true)
+                .content("= Updated AsciiDoc content")
+                .type(UpdateDocumentation.TypeEnum.ASCIIDOC)
+                .order(1)
+                .visibility(Visibility.PUBLIC)
+                .build();
+            var oldPage = Page
+                .builder()
+                .id(PAGE_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .name("old name")
+                .content("= Old AsciiDoc content")
+                .visibility(Page.Visibility.PRIVATE)
+                .order(2)
+                .published(false)
+                .type(Page.Type.ASCIIDOC)
+                .homepage(false)
+                .build();
+            givenApiPagesQuery(List.of(oldPage));
+
+            final Response response = rootTarget().path(PAGE_ID).request().put(Entity.json(request));
+            var updatedPage = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Page.class);
+
+            assertThat(updatedPage)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                .hasFieldOrPropertyWithValue("published", false)
+                .hasFieldOrPropertyWithValue("type", PageType.ASCIIDOC)
+                .hasFieldOrPropertyWithValue("name", request.getName())
+                .hasFieldOrPropertyWithValue("homepage", request.getHomepage())
+                .hasFieldOrPropertyWithValue("content", request.getContent())
+                .hasFieldOrPropertyWithValue("order", request.getOrder())
+                .hasFieldOrPropertyWithValue("visibility", request.getVisibility());
+
+            assertThat(updatedPage.getId()).isNotNull();
+            assertThat(updatedPage.getUpdatedAt()).isNotNull();
         }
 
         @Test
