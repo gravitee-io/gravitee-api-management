@@ -13,4 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ApiV4 } from '../api';
+
 export type ApiProtocolType = 'HTTP_PROXY' | 'HTTP_MESSAGE' | 'NATIVE_KAFKA';
+
+export const getApiProtocolTypeFromApi = (api: ApiV4): ApiProtocolType => {
+  switch (api.type) {
+    case 'PROXY':
+      return 'HTTP_PROXY';
+    case 'MESSAGE':
+      return 'HTTP_MESSAGE';
+    case 'NATIVE':
+      return 'NATIVE_KAFKA';
+  }
+};
