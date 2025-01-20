@@ -21,7 +21,7 @@
 
 <mat-card class="endpoint-card">
   <mat-card-content>
-    <div class="endpoint-card__header">
+    <div>
       <div class="endpoint-card__header__group-name">
         <span class="mat-h3">{{ endpointGroup?.name }}</span>
         <span class="gio-badge-primary">
@@ -38,21 +38,24 @@
         <mat-tab-group animationDuration="0ms">
           <mat-tab label="General">
             <div class="endpoint-card__form__tab-content">
-              <mat-form-field appearance="outline" class="endpoint-card__form__name">
-                <input id="name" type="text" matInput formControlName="name" required="true" />
-                <mat-label>Endpoint name</mat-label>
-                <mat-error *ngIf="formGroup.controls.name.errors?.required">Endpoint name is required</mat-error>
-                <mat-error *ngIf="formGroup.controls.name.errors?.isUnique">
-                  This name is used by another endpoint or endpoint group.
-                </mat-error>
-              </mat-form-field>
-              <div class="endpoint-card__form__config">
-                <gio-form-json-schema formControlName="configuration" [jsonSchema]="endpointSchema?.config"></gio-form-json-schema>
+              <div class="endpoint-card__form__section">
+                <mat-form-field appearance="outline" class="endpoint-card__form__field">
+                  <input id="name" type="text" matInput formControlName="name" required="true" />
+                  <mat-label>Endpoint name</mat-label>
+                  <mat-error *ngIf="formGroup.controls.name.errors?.required">Endpoint name is required</mat-error>
+                  <mat-error *ngIf="formGroup.controls.name.errors?.isUnique">
+                    This name is used by another endpoint or endpoint group.
+                  </mat-error>
+                </mat-form-field>
+
+                <div class="endpoint-card__form__field">
+                  <gio-form-json-schema formControlName="configuration" [jsonSchema]="endpointSchema?.config"></gio-form-json-schema>
+                </div>
               </div>
               @if (!isNativeKafkaApi) {
-                <div class="endpoint-card__form__lb">
+                <div class="endpoint-card__form__section">
                   <span class="mat-h3">Configure the load balancer</span>
-                  <mat-form-field class="endpoint-card__form__weight">
+                  <mat-form-field class="endpoint-card__form__field">
                     <mat-label>Weight</mat-label>
                     <input id="weight" type="number" aria-label="Endpoint weight input" matInput formControlName="weight" required />
                     <mat-error *ngIf="formGroup.get('weight').hasError('required')"> Weight is required. </mat-error>
@@ -71,7 +74,7 @@
                 (change)="onInheritConfigurationChange()"
               ></mat-slide-toggle>
             </gio-form-slide-toggle>
-            <div class="endpoint-card__form__shared-config">
+            <div class="endpoint-card__form__field">
               <gio-form-json-schema
                 formControlName="sharedConfigurationOverride"
                 [jsonSchema]="endpointSchema?.sharedConfig"
