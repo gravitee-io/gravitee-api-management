@@ -26,7 +26,6 @@ import { Plan } from '../../../../entities/plan/plan';
   imports: [PlanCardComponent, BannerComponent, MatIcon],
   templateUrl: './subscribe-to-api-choose-plan.component.html',
   styleUrl: './subscribe-to-api-choose-plan.component.scss',
-  standalone: true,
 })
 export class SubscribeToApiChoosePlanComponent {
   @Input() plans!: Plan[];

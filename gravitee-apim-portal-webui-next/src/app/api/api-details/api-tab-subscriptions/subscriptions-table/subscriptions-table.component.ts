@@ -32,7 +32,6 @@ import { SubscriptionService } from '../../../../../services/subscription.servic
 
 @Component({
   selector: 'app-subscriptions-table',
-  standalone: true,
   imports: [
     AsyncPipe,
     MatTableModule,

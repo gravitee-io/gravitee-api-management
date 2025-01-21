@@ -22,7 +22,6 @@ import { PictureComponent } from '../picture/picture.component';
 
 @Component({
   selector: 'app-api-card',
-  standalone: true,
   imports: [MatCardModule, MatButtonModule, PictureComponent, RouterModule],
   templateUrl: './api-card.component.html',
   styleUrl: './api-card.component.scss',

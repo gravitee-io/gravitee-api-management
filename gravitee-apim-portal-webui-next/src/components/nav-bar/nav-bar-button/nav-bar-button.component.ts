@@ -20,7 +20,6 @@ import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-nav-bar-button',
-  standalone: true,
   imports: [RouterModule, MatButton, CommonModule],
   templateUrl: './nav-bar-button.component.html',
 })

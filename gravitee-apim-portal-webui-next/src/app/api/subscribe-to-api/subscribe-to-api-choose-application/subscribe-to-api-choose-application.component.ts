@@ -33,7 +33,6 @@ export interface ApplicationsPagination {
   imports: [RadioCardComponent, MatIcon, MatIconButton, MatButton],
   templateUrl: './subscribe-to-api-choose-application.component.html',
   styleUrl: './subscribe-to-api-choose-application.component.scss',
-  standalone: true,
 })
 export class SubscribeToApiChooseApplicationComponent {
   @Input()

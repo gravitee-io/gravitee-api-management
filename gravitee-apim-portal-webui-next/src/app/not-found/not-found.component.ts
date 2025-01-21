@@ -20,7 +20,6 @@ import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-not-found',
-  standalone: true,
   imports: [MatCard, MatCardTitle, MatCardActions, MatCardContent, MatButton, RouterModule, MatCardHeader],
   templateUrl: './not-found.component.html',
   styleUrl: './not-found.component.scss',

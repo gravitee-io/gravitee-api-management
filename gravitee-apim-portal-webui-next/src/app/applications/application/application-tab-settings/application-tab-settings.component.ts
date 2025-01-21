@@ -29,7 +29,6 @@ import { ApplicationService } from '../../../../services/application.service';
 
 @Component({
   selector: 'app-application-tab-settings',
-  standalone: true,
   imports: [MatButtonModule, NgIf, ApplicationTabSettingsEditComponent, ApplicationTabSettingsReadComponent, AsyncPipe, MatDialogModule],
   templateUrl: './application-tab-settings.component.html',
 })

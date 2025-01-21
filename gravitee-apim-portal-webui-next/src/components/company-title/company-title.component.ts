@@ -19,7 +19,6 @@ import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-company-title',
-  standalone: true,
   imports: [NgOptimizedImage, RouterLink],
   templateUrl: './company-title.component.html',
   styleUrl: './company-title.component.scss',

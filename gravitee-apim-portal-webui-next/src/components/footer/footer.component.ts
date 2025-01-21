@@ -19,7 +19,6 @@ import { CompanyTitleComponent } from '../company-title/company-title.component'
 
 @Component({
   selector: 'app-footer',
-  standalone: true,
   imports: [CompanyTitleComponent],
   templateUrl: './footer.component.html',
   styleUrl: './footer.component.scss',

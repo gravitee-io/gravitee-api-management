@@ -39,7 +39,6 @@ interface FlatNode {
 
 @Component({
   selector: 'app-page-tree',
-  standalone: true,
   imports: [MatTreeModule, MatButtonModule, MatIconModule, NgClass],
   templateUrl: './page-tree.component.html',
   styleUrl: './page-tree.component.scss',

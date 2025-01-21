@@ -37,9 +37,6 @@ export class CurrentUserService {
       () => {
         this.isUserAuthenticated.set(!isEmpty(this.user()));
       },
-      {
-        allowSignalWrites: true,
-      },
     );
   }
 

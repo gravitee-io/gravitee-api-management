@@ -81,7 +81,6 @@ interface CheckoutData {
   ],
   templateUrl: './subscribe-to-api.component.html',
   styleUrl: './subscribe-to-api.component.scss',
-  standalone: true,
 })
 export class SubscribeToApiComponent implements OnInit {
   @Input() api!: Api;

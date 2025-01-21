@@ -30,7 +30,6 @@ import { PortalMenuLinksService } from '../../services/portal-menu-links.service
 
 @Component({
   selector: 'app-log-in',
-  standalone: true,
   imports: [MatCardModule, MatFormField, MatInput, MatButtonModule, MatLabel, ReactiveFormsModule, MatError, RouterLink, MatAnchor],
   templateUrl: './log-in.component.html',
   styleUrl: './log-in.component.scss',

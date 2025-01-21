@@ -22,7 +22,6 @@ import { CopyCodeComponent } from '../../copy-code/copy-code.component';
 
 @Component({
   selector: 'app-native-kafka-api-access',
-  standalone: true,
   imports: [CopyCodeComponent, MatIcon, MatTabGroup, MatTab],
   templateUrl: './native-kafka-api-access.component.html',
   styleUrl: './native-kafka-api-access.component.scss',

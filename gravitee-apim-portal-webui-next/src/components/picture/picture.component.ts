@@ -18,7 +18,6 @@ import { toSvg } from 'jdenticon';
 
 @Component({
   selector: 'app-picture',
-  standalone: true,
   imports: [],
   template: `
     <img

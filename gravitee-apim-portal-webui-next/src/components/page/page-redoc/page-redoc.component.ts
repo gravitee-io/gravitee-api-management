@@ -20,7 +20,6 @@ import { RedocService } from '../../../services/redoc.service';
 
 @Component({
   selector: 'app-page-redoc',
-  standalone: true,
   imports: [],
   template: `<div id="redoc"></div>`,
 })

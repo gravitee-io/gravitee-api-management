@@ -18,7 +18,6 @@ import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-application-tab-logs',
-  standalone: true,
   imports: [RouterOutlet],
   template: `<router-outlet></router-outlet>`,
 })

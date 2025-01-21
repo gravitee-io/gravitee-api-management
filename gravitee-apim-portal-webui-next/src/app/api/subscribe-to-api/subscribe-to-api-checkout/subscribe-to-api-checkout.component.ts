@@ -43,7 +43,6 @@ import { Subscription } from '../../../../entities/subscription/subscription';
   templateUrl: './subscribe-to-api-checkout.component.html',
   styleUrl: './subscribe-to-api-checkout.component.scss',
   providers: [],
-  standalone: true,
 })
 export class SubscribeToApiCheckoutComponent implements OnInit {
   @Input()

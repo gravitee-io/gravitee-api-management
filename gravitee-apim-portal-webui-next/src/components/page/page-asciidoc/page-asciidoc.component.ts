@@ -19,7 +19,6 @@ import Processor from 'asciidoctor';
 
 @Component({
   selector: 'app-page-asciidoc',
-  standalone: true,
   imports: [],
   styleUrl: './page-asciidoc.component.scss',
   encapsulation: ViewEncapsulation.ShadowDom,

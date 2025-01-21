@@ -20,7 +20,6 @@ import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'app-copy-code-icon',
-  standalone: true,
   imports: [MatIcon, CdkCopyToClipboard, MatIconButton],
   template: `
     <button
