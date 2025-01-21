@@ -214,6 +214,7 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
                     iterator.remove();
                 } else {
                     ((ObjectNode) pageJsonNode.getValue()).remove("content");
+                    ((ObjectNode) pageJsonNode.getValue()).remove("metadata");
                 }
             } else if (
                 PageType.FOLDER.name().equals(page.getType()) &&
@@ -228,6 +229,7 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
                 ("http-fetcher".equals(page.getSource().getType()))
             ) {
                 ((ObjectNode) pageJsonNode.getValue()).remove("content");
+                ((ObjectNode) pageJsonNode.getValue()).remove("metadata");
             }
         }
     }
