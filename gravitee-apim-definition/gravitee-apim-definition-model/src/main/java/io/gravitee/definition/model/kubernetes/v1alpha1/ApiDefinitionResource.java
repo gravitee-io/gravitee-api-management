@@ -96,6 +96,8 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
 
     private static final String ENDPOINTS_FIELD = "endpoints";
 
+    private static final String STATE_FIELD = "state";
+
     public ApiDefinitionResource(String name, ObjectNode apiDefinition) {
         super(GIO_V1_ALPHA_1_API_DEFINITION, new ObjectMeta(name), apiDefinition);
         removeUnsupportedFields();
@@ -121,9 +123,22 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
         return getSpec().hasNonNull(MEMBERS_FIELD);
     }
 
+    public boolean hasPages() {
+        return getSpec().hasNonNull(PAGES_FIELD);
+    }
+
+    public void setState(String state) {
+        getSpec().put(STATE_FIELD, state);
+    }
+
     @JsonIgnore
     public ArrayNode getMembers() {
         return (ArrayNode) getSpec().get(MEMBERS_FIELD);
+    }
+
+    @JsonIgnore
+    public ObjectNode getPages() {
+        return (ObjectNode) getSpec().get(PAGES_FIELD);
     }
 
     public void removeIds() {
@@ -163,11 +178,7 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
 
     private void removeUnsupportedEndpointGroupFields(JsonNode group) {
         if (group.hasNonNull(ENDPOINTS_FIELD)) {
-            group
-                .get(ENDPOINTS_FIELD)
-                .forEach(endpoint -> {
-                    ((ObjectNode) endpoint).remove(UNSUPPORTED_ENDPOINT_FIELDS);
-                });
+            group.get(ENDPOINTS_FIELD).forEach(endpoint -> ((ObjectNode) endpoint).remove(UNSUPPORTED_ENDPOINT_FIELDS));
         }
     }
 
