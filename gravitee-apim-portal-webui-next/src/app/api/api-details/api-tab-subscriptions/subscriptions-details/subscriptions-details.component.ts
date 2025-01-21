@@ -79,7 +79,6 @@ interface SubscriptionDetailsData {
   ],
   providers: [CapitalizeFirstPipe],
   selector: 'app-subscriptions-details',
-  standalone: true,
   styleUrl: './subscriptions-details.component.scss',
   templateUrl: './subscriptions-details.component.html',
 })

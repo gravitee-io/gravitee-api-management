@@ -15,7 +15,7 @@
  */
 import { DATE_PIPE_DEFAULT_OPTIONS } from '@angular/common';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { APP_INITIALIZER, ApplicationConfig } from '@angular/core';
+import { ApplicationConfig, inject, provideAppInitializer } from '@angular/core';
 import { MAT_RIPPLE_GLOBAL_OPTIONS } from '@angular/material/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, Router, withComponentInputBinding, withRouterConfig } from '@angular/router';
@@ -59,12 +59,16 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding(), withRouterConfig({ paramsInheritanceStrategy: 'always' })),
     provideHttpClient(withInterceptors([httpRequestInterceptor, csrfInterceptor])),
     provideAnimations(),
-    {
-      provide: APP_INITIALIZER,
-      useFactory: initApp,
-      deps: [ConfigService, ThemeService, CurrentUserService, PortalMenuLinksService, Router],
-      multi: true,
-    },
+    provideAppInitializer(() => {
+      const initializerFn = initApp(
+        inject(ConfigService),
+        inject(ThemeService),
+        inject(CurrentUserService),
+        inject(PortalMenuLinksService),
+        inject(Router),
+      );
+      return initializerFn();
+    }),
     // Ripple does not work with hsl mixing
     {
       provide: MAT_RIPPLE_GLOBAL_OPTIONS,

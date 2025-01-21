@@ -34,7 +34,6 @@ export interface ApplicationPaginatorVM {
 
 @Component({
   selector: 'app-applications',
-  standalone: true,
   imports: [ApiCardComponent, AsyncPipe, InfiniteScrollModule, LoaderComponent, MatCard, MatCardContent, ApplicationCardComponent],
   templateUrl: './applications.component.html',
   styleUrl: './applications.component.scss',

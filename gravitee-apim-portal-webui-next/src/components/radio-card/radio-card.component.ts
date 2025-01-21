@@ -23,7 +23,6 @@ import { PictureComponent } from '../picture/picture.component';
 
 @Component({
   selector: 'app-radio-card',
-  standalone: true,
   imports: [MatCard, MatCardHeader, MatCardContent, MatTooltip, MatRadioButton, MatRadioGroup, PictureComponent, MatIcon],
   templateUrl: './radio-card.component.html',
   styleUrl: './radio-card.component.scss',

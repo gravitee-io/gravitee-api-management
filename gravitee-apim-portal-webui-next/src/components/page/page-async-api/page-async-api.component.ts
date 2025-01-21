@@ -17,7 +17,6 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA, Input } from '@angular/core';
 
 @Component({
   selector: 'app-page-async-api',
-  standalone: true,
   imports: [],
   template: `<asyncapi-component id="#async-api" [schema]="content ?? ''" cssImportPath="assets/asyncapi/default.min.css">
   </asyncapi-component>`,

@@ -22,7 +22,6 @@ import { User } from '../../entities/user/user';
 
 @Component({
   selector: 'app-user-avatar',
-  standalone: true,
   imports: [MatButton, MatMenuTrigger, MatMenu, MatMenuItem, RouterModule],
   templateUrl: 'user-avatar.component.html',
   styleUrl: './user-avatar.component.scss',

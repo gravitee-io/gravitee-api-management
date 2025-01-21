@@ -23,7 +23,6 @@ import { CopyCodeIconComponent } from './copy-code-icon/copy-code-icon/copy-code
 
 @Component({
   selector: 'app-copy-code',
-  standalone: true,
   imports: [MatIcon, MatIconButton, MatSuffix, CdkCopyToClipboard, CopyCodeIconComponent],
   templateUrl: './copy-code.component.html',
   styleUrl: './copy-code.component.scss',

@@ -27,7 +27,6 @@ export interface TermsAndConditionsDialogData {
 
 @Component({
   selector: 'app-terms-and-conditions-dialog',
-  standalone: true,
   imports: [MatDialogTitle, MatDialogContent, MatDialogActions, MatButton, PageComponent],
   templateUrl: './terms-and-conditions-dialog.component.html',
 })

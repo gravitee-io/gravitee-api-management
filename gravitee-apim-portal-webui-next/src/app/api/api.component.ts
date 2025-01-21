@@ -23,7 +23,6 @@ import { CurrentUserService } from '../../services/current-user.service';
 
 @Component({
   selector: 'app-details',
-  standalone: true,
   imports: [RouterModule, BreadcrumbNavigationComponent],
   templateUrl: './api.component.html',
 })

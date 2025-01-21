@@ -25,7 +25,6 @@ import { CopyCodeComponent } from '../copy-code/copy-code.component';
 
 @Component({
   selector: 'app-api-access',
-  standalone: true,
   imports: [MatCard, MatCardContent, MatCardHeader, CopyCodeComponent, NativeKafkaApiAccessComponent],
   templateUrl: './api-access.component.html',
   styleUrl: './api-access.component.scss',

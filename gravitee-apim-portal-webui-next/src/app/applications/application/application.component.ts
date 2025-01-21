@@ -30,7 +30,6 @@ import { CurrentUserService } from '../../../services/current-user.service';
 
 @Component({
   selector: 'app-application',
-  standalone: true,
   imports: [
     BreadcrumbNavigationComponent,
     RouterOutlet,

@@ -61,7 +61,6 @@ interface ApplicationGrantTypeVM {
 
 @Component({
   selector: 'app-application-tab-settings-edit',
-  standalone: true,
   imports: [
     CopyCodeComponent,
     MatButtonModule,

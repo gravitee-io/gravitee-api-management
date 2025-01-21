@@ -23,7 +23,6 @@ import { ToPeriodTimeUnitLabelPipe } from '../../pipe/time-unit.pipe';
 
 @Component({
   selector: 'app-subscription-info',
-  standalone: true,
   imports: [CapitalizeFirstPipe, MatCard, MatCardContent, MatCardHeader, ToPeriodTimeUnitLabelPipe],
   templateUrl: './subscription-info.component.html',
   styleUrl: './subscription-info.component.scss',

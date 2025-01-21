@@ -22,7 +22,6 @@ import { RadioCardComponent } from '../../radio-card/radio-card.component';
 
 @Component({
   selector: 'app-plan-card',
-  standalone: true,
   imports: [ToPeriodTimeUnitLabelPipe, RadioCardComponent],
   templateUrl: './plan-card.component.html',
   providers: [ToPeriodTimeUnitLabelPipe],

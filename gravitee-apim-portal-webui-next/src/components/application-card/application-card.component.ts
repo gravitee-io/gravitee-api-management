@@ -24,7 +24,6 @@ import { PictureComponent } from '../picture/picture.component';
 
 @Component({
   selector: 'app-application-card',
-  standalone: true,
   imports: [MatButton, MatCard, MatCardActions, MatCardContent, PictureComponent, RouterLink, MatTooltip],
   templateUrl: './application-card.component.html',
   styleUrl: './application-card.component.scss',

@@ -23,7 +23,6 @@ import { MarkdownService } from '../../../services/markdown.service';
 
 @Component({
   selector: 'app-page-markdown',
-  standalone: true,
   imports: [InnerLinkDirective],
   template: `<div id="#markdown" [innerHTML]="markdownHtml" appInnerLink></div>`,
   encapsulation: ViewEncapsulation.ShadowDom,

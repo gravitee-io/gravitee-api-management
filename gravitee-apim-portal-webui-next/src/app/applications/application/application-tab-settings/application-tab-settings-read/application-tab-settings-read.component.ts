@@ -36,7 +36,6 @@ interface ReadOnlyApplicationSettingsVM {
 
 @Component({
   selector: 'app-application-tab-settings-read',
-  standalone: true,
   imports: [CopyCodeComponent, MatButtonModule, MatCardModule, NgIf],
   templateUrl: './application-tab-settings-read.component.html',
   styleUrl: './application-tab-settings-read.component.scss',

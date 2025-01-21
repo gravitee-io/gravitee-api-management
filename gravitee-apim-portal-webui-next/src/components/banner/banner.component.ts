@@ -18,7 +18,6 @@ import { MatCard, MatCardContent } from '@angular/material/card';
 
 @Component({
   selector: 'app-banner',
-  standalone: true,
   imports: [MatCard, MatCardContent],
   template: `
     <mat-card class="banner">

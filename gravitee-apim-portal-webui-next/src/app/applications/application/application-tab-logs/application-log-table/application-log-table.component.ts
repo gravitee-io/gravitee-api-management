@@ -79,7 +79,6 @@ interface FiltersVM {
 
 @Component({
   selector: 'app-application-log-table',
-  standalone: true,
   imports: [
     AsyncPipe,
     LoaderComponent,

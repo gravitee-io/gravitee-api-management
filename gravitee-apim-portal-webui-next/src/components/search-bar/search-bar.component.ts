@@ -24,7 +24,6 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
   selector: 'app-search-bar',
-  standalone: true,
   imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, FormsModule, MatIconModule, MatButtonModule],
   templateUrl: './search-bar.component.html',
   styleUrl: './search-bar.component.scss',

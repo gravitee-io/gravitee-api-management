@@ -19,7 +19,6 @@ import { BreadcrumbComponent, BreadcrumbItemDirective } from 'xng-breadcrumb';
 
 @Component({
   selector: 'app-breadcrumb-navigation',
-  standalone: true,
   imports: [BreadcrumbComponent, BreadcrumbItemDirective, MatIcon],
   templateUrl: './breadcrumb-navigation.component.html',
   styleUrl: './breadcrumb-navigation.component.scss',

@@ -35,7 +35,6 @@ import { PlanService } from '../../../services/plan.service';
 
 @Component({
   selector: 'app-api-details',
-  standalone: true,
   imports: [
     ApiCardComponent,
     PictureComponent,

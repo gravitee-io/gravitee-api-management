@@ -28,7 +28,6 @@ import { PageService } from '../../services/page.service';
 
 @Component({
   selector: 'app-guides',
-  standalone: true,
   imports: [AsyncPipe, LoaderComponent, PageComponent, PageTreeComponent, MatCard, MatCardContent],
   templateUrl: './guides.component.html',
   styleUrl: './guides.component.scss',

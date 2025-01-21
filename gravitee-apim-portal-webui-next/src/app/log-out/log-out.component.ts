@@ -24,7 +24,6 @@ import { PortalMenuLinksService } from '../../services/portal-menu-links.service
 
 @Component({
   selector: 'app-log-out',
-  standalone: true,
   imports: [],
   template: '',
 })

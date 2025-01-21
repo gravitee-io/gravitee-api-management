@@ -51,7 +51,6 @@ export interface MoreFiltersDialogData {
   ],
   providers: [provideNativeDateAdapter(), { provide: MAT_DATE_FORMATS, useValue: MAT_NATIVE_DATE_FORMATS }],
   selector: 'app-more-filters-dialog',
-  standalone: true,
   styleUrl: './more-filters-dialog.component.scss',
   templateUrl: './more-filters-dialog.component.html',
 })

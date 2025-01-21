@@ -35,7 +35,6 @@ interface HomepageData {
 
 @Component({
   selector: 'app-api-tab-details',
-  standalone: true,
   imports: [MarkdownDescriptionPipe, AsyncPipe, DatePipe, PageComponent, LoaderComponent, MatCard],
   templateUrl: './api-tab-details.component.html',
   styleUrl: './api-tab-details.component.scss',

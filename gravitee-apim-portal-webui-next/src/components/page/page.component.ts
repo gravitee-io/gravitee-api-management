@@ -24,7 +24,6 @@ import { Page } from '../../entities/page/page';
 
 @Component({
   selector: 'app-page',
-  standalone: true,
   imports: [PageSwaggerComponent, PageMarkdownComponent, PageAsciidocComponent, PageAsyncApiComponent, PageRedocComponent],
   templateUrl: './page.component.html',
   styleUrl: './page.component.scss',

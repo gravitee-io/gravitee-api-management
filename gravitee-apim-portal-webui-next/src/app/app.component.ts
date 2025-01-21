@@ -27,7 +27,6 @@ import { ThemeService } from '../services/theme.service';
 
 @Component({
   selector: 'app-root',
-  standalone: true,
   imports: [RouterOutlet, NavBarComponent, FooterComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
