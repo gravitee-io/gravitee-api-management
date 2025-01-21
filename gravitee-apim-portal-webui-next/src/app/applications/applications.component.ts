@@ -20,7 +20,6 @@ import { InfiniteScrollModule } from 'ngx-infinite-scroll';
 import { BehaviorSubject, EMPTY, map, Observable, scan, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { ApiCardComponent } from '../../components/api-card/api-card.component';
 import { ApplicationCardComponent } from '../../components/application-card/application-card.component';
 import { LoaderComponent } from '../../components/loader/loader.component';
 import { Application } from '../../entities/application/application';
@@ -34,7 +33,7 @@ export interface ApplicationPaginatorVM {
 
 @Component({
   selector: 'app-applications',
-  imports: [ApiCardComponent, AsyncPipe, InfiniteScrollModule, LoaderComponent, MatCard, MatCardContent, ApplicationCardComponent],
+  imports: [AsyncPipe, InfiniteScrollModule, LoaderComponent, MatCard, MatCardContent, ApplicationCardComponent],
   templateUrl: './applications.component.html',
   styleUrl: './applications.component.scss',
 })

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CdkCopyToClipboard } from '@angular/cdk/clipboard';
 import { Component, computed, Input, Signal, signal } from '@angular/core';
 import { MatIconButton } from '@angular/material/button';
 import { MatSuffix } from '@angular/material/form-field';
@@ -23,7 +22,7 @@ import { CopyCodeIconComponent } from './copy-code-icon/copy-code-icon/copy-code
 
 @Component({
   selector: 'app-copy-code',
-  imports: [MatIcon, MatIconButton, MatSuffix, CdkCopyToClipboard, CopyCodeIconComponent],
+  imports: [MatIcon, MatIconButton, MatSuffix, CopyCodeIconComponent],
   templateUrl: './copy-code.component.html',
   styleUrl: './copy-code.component.scss',
 })

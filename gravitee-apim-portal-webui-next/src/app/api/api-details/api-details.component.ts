@@ -24,9 +24,7 @@ import { RouterModule } from '@angular/router';
 import { catchError, map, Observable } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { ApiCardComponent } from '../../../components/api-card/api-card.component';
 import { BannerComponent } from '../../../components/banner/banner.component';
-import { BreadcrumbNavigationComponent } from '../../../components/breadcrumb-navigation/breadcrumb-navigation.component';
 import { PictureComponent } from '../../../components/picture/picture.component';
 import { Api } from '../../../entities/api/api';
 import { Plan } from '../../../entities/plan/plan';
@@ -36,7 +34,6 @@ import { PlanService } from '../../../services/plan.service';
 @Component({
   selector: 'app-api-details',
   imports: [
-    ApiCardComponent,
     PictureComponent,
     MatButton,
     MatCardModule,
@@ -45,7 +42,6 @@ import { PlanService } from '../../../services/plan.service';
     MatIconModule,
     AsyncPipe,
     RouterModule,
-    BreadcrumbNavigationComponent,
     FormsModule,
   ],
   templateUrl: './api-details.component.html',

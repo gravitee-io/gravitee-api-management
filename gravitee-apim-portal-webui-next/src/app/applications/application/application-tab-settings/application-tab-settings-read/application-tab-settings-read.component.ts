@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgIf } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -36,7 +35,7 @@ interface ReadOnlyApplicationSettingsVM {
 
 @Component({
   selector: 'app-application-tab-settings-read',
-  imports: [CopyCodeComponent, MatButtonModule, MatCardModule, NgIf],
+  imports: [CopyCodeComponent, MatButtonModule, MatCardModule],
   templateUrl: './application-tab-settings-read.component.html',
   styleUrl: './application-tab-settings-read.component.scss',
 })

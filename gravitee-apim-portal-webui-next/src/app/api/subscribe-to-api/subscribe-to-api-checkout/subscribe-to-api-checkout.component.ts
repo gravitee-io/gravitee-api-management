@@ -17,7 +17,6 @@ import { Component, input, Input, InputSignal, OnInit, WritableSignal } from '@a
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
-import { MatRadioGroup } from '@angular/material/radio';
 
 import { ApiAccessComponent } from '../../../../components/api-access/api-access.component';
 import { RadioCardComponent } from '../../../../components/radio-card/radio-card.component';
@@ -29,17 +28,7 @@ import { Subscription } from '../../../../entities/subscription/subscription';
 
 @Component({
   selector: 'app-subscribe-to-api-checkout',
-  imports: [
-    SubscriptionInfoComponent,
-    ApiAccessComponent,
-    MatCard,
-    MatCardContent,
-    MatFormField,
-    MatInput,
-    MatLabel,
-    MatRadioGroup,
-    RadioCardComponent,
-  ],
+  imports: [SubscriptionInfoComponent, ApiAccessComponent, MatCard, MatCardContent, MatFormField, MatInput, MatLabel, RadioCardComponent],
   templateUrl: './subscribe-to-api-checkout.component.html',
   styleUrl: './subscribe-to-api-checkout.component.scss',
   providers: [],
