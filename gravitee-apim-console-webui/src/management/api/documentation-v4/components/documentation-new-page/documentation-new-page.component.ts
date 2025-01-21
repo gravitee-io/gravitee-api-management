@@ -285,7 +285,7 @@ export class DocumentationNewPageComponent implements OnInit {
   private createPage(): Observable<Page> {
     const formValue = this.form.getRawValue();
     // Only Markdown, Swagger, AsyncAPI, and AsciiDoc pages can be created
-    if (SUPPORTED_FOR_EDIT.includes(this.pageType) === false) {
+    if (!SUPPORTED_FOR_EDIT.includes(this.pageType)) {
       this.snackBarService.error(`Cannot create page with type [${this.pageType}]`);
       return EMPTY;
     }
