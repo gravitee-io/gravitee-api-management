@@ -18,6 +18,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatButtonModule } from '@angular/material/button';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
@@ -27,7 +28,9 @@ import { DeleteConfirmDialogHarness } from './delete-confirm-dialog.harness';
 
 @Component({
   selector: 'app-delete-confirm-dialog-test',
+  imports: [MatButtonModule],
   template: `<button mat-button id="open-confirm-dialog" (click)="openConfirmDialog()">Open confirm dialog</button>`,
+  standalone: true,
 })
 class TestComponent {
   public confirmed?: boolean;
@@ -51,8 +54,7 @@ describe('DeleteConfirmDialogComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [TestComponent],
-      imports: [NoopAnimationsModule],
+      imports: [TestComponent, NoopAnimationsModule],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
