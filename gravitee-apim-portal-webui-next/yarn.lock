@@ -12188,7 +12188,7 @@ __metadata:
     marked-extended-tables: "npm:1.1.1"
     marked-gfm-heading-id: "npm:3.2.0"
     marked-highlight: "npm:2.2.1"
-    ngx-infinite-scroll: "npm:18.0.0"
+    ngx-infinite-scroll: "npm:19.0.0"
     prettier: "npm:3.5.3"
     prettier-eslint: "npm:16.3.0"
     rxjs: "npm:7.8.2"
@@ -15494,15 +15494,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ngx-infinite-scroll@npm:18.0.0":
-  version: 18.0.0
-  resolution: "ngx-infinite-scroll@npm:18.0.0"
+"ngx-infinite-scroll@npm:19.0.0":
+  version: 19.0.0
+  resolution: "ngx-infinite-scroll@npm:19.0.0"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/common": ">=18.0.0 <19.0.0"
-    "@angular/core": ">=18.0.0 <19.0.0"
-  checksum: 10c0/2af768cf20c35cfc8ea5cfd9719d83a7a376b741913f7a1f9a997a0d950785bf4195ee09865312d545950f5b57879c4a3c5ae6594c42d8a54a6f7e539744613b
+    "@angular/common": ">=19.0.0 <20.0.0"
+    "@angular/core": ">=19.0.0 <20.0.0"
+  checksum: 10c0/219c1d6734899f7d25e5a66d5154a1722373ab06078f60f2c1bc64ad6d074416e7996a822c06093513e08a66eeafe0f25cdba7d5c7d699155ad77c95a1311628
   languageName: node
   linkType: hard
 
