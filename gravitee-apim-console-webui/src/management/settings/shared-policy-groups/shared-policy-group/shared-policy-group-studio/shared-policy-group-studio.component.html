@@ -26,7 +26,7 @@
       </mat-card-title>
       <mat-card-subtitle>{{ sharedPolicyGroup.description }}</mat-card-subtitle>
       <div class="shared-policy-group-studio__headerRightBtn">
-        @if (!isReadOnly) {
+        @if (!isReadOnly && !sharedPolicyGroup.isReadOnly) {
           <button mat-stroked-button (click)="onEdit()" matTooltip="Edit general info">
             <mat-icon svgIcon="gio:edit-pencil">edit</mat-icon>
           </button>
@@ -38,16 +38,16 @@
           >
             <mat-icon svgIcon="gio:cloud-unpublished">undeploy</mat-icon>
           </button>
+          <button
+            *gioPermission="{ anyOf: ['environment-shared_policy_group-d'] }"
+            matTooltip="Delete"
+            mat-stroked-button
+            (click)="onDelete()"
+          >
+            <mat-icon svgIcon="gio:trash">delete</mat-icon>
+          </button>
         }
-        <button
-          *gioPermission="{ anyOf: ['environment-shared_policy_group-d'] }"
-          matTooltip="Delete"
-          mat-stroked-button
-          (click)="onDelete()"
-        >
-          <mat-icon svgIcon="gio:trash">delete</mat-icon>
-        </button>
-        @if (!isReadOnly) {
+        @if (!isReadOnly && !sharedPolicyGroup.isReadOnly) {
           <button
             [disabled]="!enableSaveButton"
             color="primary"
@@ -73,7 +73,7 @@
       @if (policies$ | async; as policies) {
         <gio-policy-group-studio
           [policies]="policies"
-          [readOnly]="isReadOnly"
+          [readOnly]="isReadOnly || sharedPolicyGroup.isReadOnly"
           [apiType]="sharedPolicyGroup.apiType"
           [flowPhase]="sharedPolicyGroup.phase"
           [policyDocumentationFetcher]="policyDocumentationFetcher"

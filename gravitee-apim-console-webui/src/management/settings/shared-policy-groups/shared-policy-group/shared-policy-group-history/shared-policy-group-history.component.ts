@@ -54,6 +54,7 @@ import { SharedPolicyGroup, SharedPolicyGroupHistoriesSortByParam, toReadableFlo
 import { GioTableWrapperModule } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 type PageTableVM = {
   items: {
@@ -93,6 +94,7 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
   private readonly sharedPolicyGroupsService = inject(SharedPolicyGroupsService);
   private readonly matDialog = inject(MatDialog);
   private readonly snackBarService = inject(SnackBarService);
+  private readonly permissionService = inject(GioPermissionService);
 
   protected sharedPolicyGroup = toSignal(this.sharedPolicyGroupsService.get(this.activatedRoute.snapshot.params.sharedPolicyGroupId));
 
@@ -196,6 +198,9 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
       .open<HistoryStudioDialogComponent, HistoryStudioDialogData, HistoryStudioDialogResult>(HistoryStudioDialogComponent, {
         data: {
           sharedPolicyGroup,
+          isReadOnly:
+            sharedPolicyGroup.originContext?.origin === 'KUBERNETES' ||
+            !this.permissionService.hasAnyMatching(['environment-shared_policy_group-u']),
         },
         width: GIO_DIALOG_WIDTH.LARGE,
         role: 'dialog',
