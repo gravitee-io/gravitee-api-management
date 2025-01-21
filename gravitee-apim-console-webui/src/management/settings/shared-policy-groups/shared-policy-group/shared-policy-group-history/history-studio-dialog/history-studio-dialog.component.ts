@@ -30,6 +30,7 @@ import { SharedPolicyGroup } from '../../../../../../entities/management-api-v2'
 
 export interface HistoryStudioDialogData {
   sharedPolicyGroup: SharedPolicyGroup;
+  isReadOnly: boolean;
 }
 
 export type HistoryStudioDialogResult = false | 'RESTORE_VERSION';
@@ -60,6 +61,7 @@ export class HistoryStudioDialogComponent {
   private readonly iconService = inject(IconService);
 
   protected sharedPolicyGroup = this.data.sharedPolicyGroup;
+  protected isReadOnly = this.data.isReadOnly;
 
   protected policySchemaFetcher: PolicySchemaFetcher = (policy) => this.policyV2Service.getSchema(policy.id);
   protected policyDocumentationFetcher: PolicyDocumentationFetcher = (policy) => this.policyV2Service.getDocumentation(policy.id);
