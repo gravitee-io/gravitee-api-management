@@ -15,7 +15,7 @@
  */
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
-import { getLogoForPageType, getTitleForPageType, PageType } from '../../../../../entities/management-api-v2';
+import { getLogoForPageType, getTitleForPageType, PageType, SUPPORTED_FOR_EDIT } from '../../../../../entities/management-api-v2';
 
 interface PageTypeVM {
   pageType: PageType;
@@ -41,7 +41,7 @@ export class ApiDocumentationV4AddPageButtonComponent {
   @Output()
   addPage = new EventEmitter<PageType>();
 
-  private pageTypes: PageType[] = ['MARKDOWN', 'SWAGGER', 'ASYNCAPI'];
+  private pageTypes: PageType[] = SUPPORTED_FOR_EDIT;
 
   pageTypesVm: PageTypeVM[] = this.pageTypes.map((pageType) => ({
     pageType,

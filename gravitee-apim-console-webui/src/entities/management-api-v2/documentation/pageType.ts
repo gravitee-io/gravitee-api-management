@@ -26,6 +26,7 @@ const PageTypeEnum = {
   TRANSLATION: 'TRANSLATION',
 } as const;
 export type PageType = (typeof PageTypeEnum)[keyof typeof PageTypeEnum];
+export const SUPPORTED_FOR_EDIT: PageType[] = ['MARKDOWN', 'SWAGGER', 'ASYNCAPI', 'ASCIIDOC'];
 
 export function getTooltipForPageType(pageType: PageType) {
   switch (pageType) {
