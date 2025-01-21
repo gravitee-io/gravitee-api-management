@@ -31,6 +31,7 @@ import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.el.TemplateEngine;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.gateway.reactive.core.v4.endpoint.DefaultEndpointManager;
@@ -53,6 +54,7 @@ import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.consul.ConsulClient;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.*;
@@ -80,6 +82,9 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
     @Mock
     private DeploymentContext deploymentContext;
 
+    @Mock
+    GatewayConfiguration gatewayConfiguration;
+
     private ConsulClient client;
     private Api api;
     private EndpointManager endpointManager;
@@ -105,6 +110,7 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
         when(deploymentContext.getComponent(Vertx.class)).thenReturn(vertx);
         when(deploymentContext.getComponent(PluginConfigurationHelper.class)).thenReturn(pluginConfigurationHelper);
         when(deploymentContext.getTemplateEngine()).thenReturn(TemplateEngine.templateEngine());
+        when(gatewayConfiguration.tenant()).thenReturn(Optional.empty());
     }
 
     @AfterEach
@@ -127,7 +133,8 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
                 new DefaultEndpointManager(
                     api.getDefinition(),
                     endpointConnectorPluginManager(EndpointBuilder.build(HTTP_PROXY, HttpProxyEndpointConnectorFactory.class)),
-                    deploymentContext
+                    deploymentContext,
+                    gatewayConfiguration
                 )
                     .start();
             when(deploymentContext.getComponent(EndpointManager.class)).thenReturn(endpointManager);

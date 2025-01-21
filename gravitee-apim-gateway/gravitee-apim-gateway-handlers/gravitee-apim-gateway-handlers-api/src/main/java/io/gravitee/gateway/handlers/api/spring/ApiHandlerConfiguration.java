@@ -253,7 +253,8 @@ public class ApiHandlerConfiguration {
         EventManager eventManager,
         OpenTelemetryConfiguration openTelemetryConfiguration,
         OpenTelemetryFactory openTelemetryFactory,
-        @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories
+        @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories,
+        GatewayConfiguration gatewayConfiguration
     ) {
         return new DefaultApiReactorFactory(
             applicationContext,
@@ -272,7 +273,8 @@ public class ApiHandlerConfiguration {
             eventManager,
             openTelemetryConfiguration,
             openTelemetryFactory,
-            instrumenterTracerFactories
+            instrumenterTracerFactories,
+            gatewayConfiguration
         );
     }
 
@@ -283,7 +285,8 @@ public class ApiHandlerConfiguration {
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         OpenTelemetryConfiguration openTelemetryConfiguration,
         OpenTelemetryFactory openTelemetryFactory,
-        @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories
+        @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories,
+        GatewayConfiguration gatewayConfiguration
     ) {
         return new TcpApiReactorFactory(
             configuration,
@@ -293,7 +296,8 @@ public class ApiHandlerConfiguration {
             requestTimeoutConfiguration,
             openTelemetryConfiguration,
             openTelemetryFactory,
-            instrumenterTracerFactories
+            instrumenterTracerFactories,
+            gatewayConfiguration
         );
     }
 }
