@@ -1139,7 +1139,7 @@ describe('ApplicationLogTableComponent', () => {
   });
 
   function expectGetApplicationLogs(logsResponse: LogsResponse, page: number = 1, query?: string, to?: number, from?: number) {
-    const toInMilliseconds = to ?? new Date().getTime();
+    const toInMilliseconds = to ?? Date.now();
     const fromInMilliseconds = from ?? toInMilliseconds - 86400000;
     httpTestingController
       .expectOne(
