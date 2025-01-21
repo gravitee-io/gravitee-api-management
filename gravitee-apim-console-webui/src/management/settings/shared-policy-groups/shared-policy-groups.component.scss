@@ -23,6 +23,18 @@
   &__headerRightBtn {
     margin: auto 0 auto auto;
   }
+
+  &__origin-kubernetes {
+    display: flex;
+    align-items: center;
+    margin: auto;
+
+    color: #326de6;
+
+    mat-icon {
+      width: 24px;
+    }
+  }
 }
 
 .mat-column-actions {

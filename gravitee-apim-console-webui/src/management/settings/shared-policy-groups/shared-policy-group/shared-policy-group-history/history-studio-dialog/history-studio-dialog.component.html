@@ -61,7 +61,7 @@
         <button mat-raised-button color="primary" (click)="onRestore()">Save</button>
       </div>
     </gio-banner-info>
-  } @else {
+  } @else if (!isReadOnly) {
     <button mat-flat-button color="primary" (click)="startRestore = true">Restore version</button>
   }
   <button mat-flat-button cdkFocusInitial [mat-dialog-close]="false">Close</button>
