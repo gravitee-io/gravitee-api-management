@@ -19,7 +19,14 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
-import { CreateDocumentation, Breadcrumb, Page, EditDocumentation, ApiLifecycleState } from '../entities/management-api-v2';
+import {
+  CreateDocumentation,
+  Breadcrumb,
+  Page,
+  EditDocumentation,
+  ApiLifecycleState,
+  SUPPORTED_FOR_EDIT,
+} from '../entities/management-api-v2';
 
 export interface ApiDocumentationPageResult {
   pages: Page[];
@@ -43,11 +50,8 @@ export class ApiDocumentationV2Service {
 
     return this.http.get<ApiDocumentationPageResult>(url).pipe(
       map((result: ApiDocumentationPageResult) => {
-        // TODO: update this filter with new supported types
         const filteredResult: ApiDocumentationPageResult = {
-          pages: result.pages.filter(
-            (page) => page.type === 'FOLDER' || page.type === 'MARKDOWN' || page.type === 'SWAGGER' || page.type === 'ASYNCAPI',
-          ),
+          pages: result.pages.filter((page) => page.type === 'FOLDER' || SUPPORTED_FOR_EDIT.includes(page.type)),
           breadcrumb: result.breadcrumb,
         };
         return filteredResult;
