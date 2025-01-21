@@ -36,6 +36,7 @@ import io.gravitee.el.TemplateVariableProviderFactory;
 import io.gravitee.el.TemplateVariableScope;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
@@ -142,6 +143,9 @@ class DefaultApiReactorFactoryTest {
     @Mock
     private OpenTelemetryFactory openTelemetryFactory;
 
+    @Mock
+    private GatewayConfiguration gatewayConfiguration;
+
     @BeforeEach
     void init() {
         lenient().when(applicationContext.getBeanFactory()).thenReturn(applicationContextListable);
@@ -164,7 +168,8 @@ class DefaultApiReactorFactoryTest {
                 eventManager,
                 openTelemetryConfiguration,
                 openTelemetryFactory,
-                List.of()
+                List.of(),
+                gatewayConfiguration
             );
     }
 

@@ -22,6 +22,7 @@ import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateVariableProvider;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactive.api.connector.endpoint.BaseEndpointConnector;
 import io.gravitee.gateway.reactive.api.connector.endpoint.BaseEndpointConnectorFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
@@ -29,6 +30,7 @@ import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
@@ -53,11 +55,13 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
     private final Set<ManagedEndpoint> disabledEndpoints;
     private final Map<String, String> endpointVariables;
     private final Map<String, BiConsumer<Event, ManagedEndpoint>> listeners;
+    private final Optional<String> tenant;
 
     public DefaultEndpointManager(
         final Api api,
         final EndpointConnectorPluginManager endpointConnectorPluginManager,
-        final DeploymentContext deploymentContext
+        final DeploymentContext deploymentContext,
+        final GatewayConfiguration gatewayConfiguration
     ) {
         this.api = api;
         this.endpointsByName = new ConcurrentHashMap<>(1);
@@ -67,6 +71,7 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
         this.endpointConnectorPluginManager = endpointConnectorPluginManager;
         this.deploymentContext = deploymentContext;
         this.disabledEndpoints = ConcurrentHashMap.newKeySet(0);
+        this.tenant = gatewayConfiguration.tenant();
     }
 
     @Override
@@ -185,7 +190,9 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
         }
 
         log.info("Start endpoint [{}] for group [{}]", endpoint.getName(), groupName);
-        createAndStartEndpoint(group, endpoint);
+        if (isTenantApplicable(tenant.orElse(null), endpoint)) {
+            createAndStartEndpoint(group, endpoint);
+        }
     }
 
     @Override
@@ -211,7 +218,9 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
         groupsByName.put(endpointGroup.getName(), managedEndpointGroup);
 
         for (Endpoint endpoint : endpointGroup.getEndpoints()) {
-            createAndStartEndpoint(managedEndpointGroup, endpoint);
+            if (isTenantApplicable(tenant.orElse(null), endpoint)) {
+                createAndStartEndpoint(managedEndpointGroup, endpoint);
+            }
         }
 
         return managedEndpointGroup;
@@ -265,5 +274,9 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
 
     private String getSharedConfiguration(EndpointGroup endpointGroup, Endpoint endpoint) {
         return endpoint.isInheritConfiguration() ? endpointGroup.getSharedConfiguration() : endpoint.getSharedConfigurationOverride();
+    }
+
+    private boolean isTenantApplicable(String tenant, Endpoint endpoint) {
+        return tenant == null || endpoint.getTenants() == null || endpoint.getTenants().isEmpty() || endpoint.getTenants().contains(tenant);
     }
 }
