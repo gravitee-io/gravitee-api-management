@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { MatCard } from '@angular/material/card';
 import { catchError, map, Observable, of, switchMap, tap } from 'rxjs';
 
 import { LoaderComponent } from '../../../../components/loader/loader.component';
 import { PageComponent } from '../../../../components/page/page.component';
-import { MarkdownDescriptionPipe } from '../../../../components/pipe/markdown-description.pipe';
 import { Api } from '../../../../entities/api/api';
 import { ApiInformation } from '../../../../entities/api/api-information';
 import { Page } from '../../../../entities/page/page';
@@ -35,7 +34,7 @@ interface HomepageData {
 
 @Component({
   selector: 'app-api-tab-details',
-  imports: [MarkdownDescriptionPipe, AsyncPipe, DatePipe, PageComponent, LoaderComponent, MatCard],
+  imports: [AsyncPipe, PageComponent, LoaderComponent, MatCard],
   templateUrl: './api-tab-details.component.html',
   styleUrl: './api-tab-details.component.scss',
 })

@@ -33,11 +33,9 @@ export class CurrentUserService {
     private http: HttpClient,
     private configuration: ConfigService,
   ) {
-    effect(
-      () => {
-        this.isUserAuthenticated.set(!isEmpty(this.user()));
-      },
-    );
+    effect(() => {
+      this.isUserAuthenticated.set(!isEmpty(this.user()));
+    });
   }
 
   public isAuthenticated(): boolean {

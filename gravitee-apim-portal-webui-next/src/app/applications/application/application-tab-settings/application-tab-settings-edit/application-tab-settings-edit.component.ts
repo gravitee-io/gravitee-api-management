@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AsyncPipe, NgForOf, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -71,8 +71,6 @@ interface ApplicationGrantTypeVM {
     MatInput,
     MatLabel,
     MatSelectModule,
-    NgForOf,
-    NgIf,
     PictureComponent,
     ReactiveFormsModule,
     AsyncPipe,

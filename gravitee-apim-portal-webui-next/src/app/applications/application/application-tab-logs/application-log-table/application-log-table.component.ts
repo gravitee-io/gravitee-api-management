@@ -42,7 +42,7 @@ import { of } from 'rxjs/internal/observable/of';
 import { LoaderComponent } from '../../../../../components/loader/loader.component';
 import { PaginationComponent } from '../../../../../components/pagination/pagination.component';
 import { Application } from '../../../../../entities/application/application';
-import { LogsResponse, LogsResponseMetadataApi, LogsResponseMetadataTotalData } from '../../../../../entities/log/log';
+import { LogsResponse, LogsResponseMetadataApi, LogsResponseMetadataTotalData } from '../../../../../entities/log';
 import { ApplicationLogService, ResponseTimeRange } from '../../../../../services/application-log.service';
 import { SubscriptionService } from '../../../../../services/subscription.service';
 import { ApplicationTabLogsService, HttpStatusVM, PeriodVM, ResponseTimeVM } from '../application-tab-logs.service';

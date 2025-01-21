@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -29,7 +29,7 @@ import { ApplicationService } from '../../../../services/application.service';
 
 @Component({
   selector: 'app-application-tab-settings',
-  imports: [MatButtonModule, NgIf, ApplicationTabSettingsEditComponent, ApplicationTabSettingsReadComponent, AsyncPipe, MatDialogModule],
+  imports: [MatButtonModule, ApplicationTabSettingsEditComponent, ApplicationTabSettingsReadComponent, AsyncPipe, MatDialogModule],
   templateUrl: './application-tab-settings.component.html',
 })
 export class ApplicationTabSettingsComponent implements OnInit {

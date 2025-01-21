@@ -15,7 +15,7 @@
  */
 import { AsyncPipe } from '@angular/common';
 import { Component, computed, effect, input, InputSignal, OnInit } from '@angular/core';
-import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { map, Observable } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 import { BreadcrumbService } from 'xng-breadcrumb';
@@ -29,7 +29,7 @@ import { CatalogBannerComponent } from '../../components/catalog-banner/catalog-
 @Component({
   selector: 'app-category-apis',
   standalone: true,
-  imports: [BreadcrumbNavigationComponent, RouterOutlet, ApisListComponent, AsyncPipe, CatalogBannerComponent],
+  imports: [BreadcrumbNavigationComponent, ApisListComponent, AsyncPipe, CatalogBannerComponent],
   templateUrl: './category-apis.component.html',
   styleUrl: './category-apis.component.scss',
 })

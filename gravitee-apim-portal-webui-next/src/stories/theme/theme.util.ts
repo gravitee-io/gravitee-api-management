@@ -15,7 +15,7 @@
  */
 import { Args } from '@storybook/angular';
 
-import { addPropertyToDocument, addHslToDocument } from '../../services/theme.service';
+import { addHslToDocument, addPropertyToDocument } from '../../services/theme.service';
 
 export interface CustomizationConfig {
   primary?: string;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness, HarnessPredicate, BaseHarnessFilters } from '@angular/cdk/testing';
+import { BaseHarnessFilters, ComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
 
 export interface ApplicationCardHarnessFilters extends BaseHarnessFilters {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 
 import { RadioCardComponent } from '../../../../components/radio-card/radio-card.component';
@@ -30,7 +30,7 @@ export interface ApplicationsPagination {
 
 @Component({
   selector: 'app-subscribe-to-api-choose-application',
-  imports: [RadioCardComponent, MatIcon, MatIconButton, MatButton],
+  imports: [RadioCardComponent, MatIcon, MatIconButton],
   templateUrl: './subscribe-to-api-choose-application.component.html',
   styleUrl: './subscribe-to-api-choose-application.component.scss',
 })
