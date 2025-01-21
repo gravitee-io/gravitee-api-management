@@ -26,6 +26,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.reactor.handler.TcpAcceptor;
 import io.gravitee.node.api.Node;
@@ -78,6 +79,9 @@ class TcpApiReactorFactoryTest {
     @Mock
     OpenTelemetryFactory openTelemetryFactory;
 
+    @Mock
+    GatewayConfiguration gatewayConfiguration;
+
     @BeforeEach
     void before() {
         cut =
@@ -89,7 +93,8 @@ class TcpApiReactorFactoryTest {
                 timeoutConfig,
                 openTelemetryConfiguration,
                 openTelemetryFactory,
-                List.of()
+                List.of(),
+                gatewayConfiguration
             );
     }
 

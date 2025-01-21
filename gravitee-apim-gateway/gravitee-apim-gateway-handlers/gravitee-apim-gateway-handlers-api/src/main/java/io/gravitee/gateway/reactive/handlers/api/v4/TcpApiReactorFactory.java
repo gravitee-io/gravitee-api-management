@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.handlers.api.v4;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
@@ -49,6 +50,7 @@ public class TcpApiReactorFactory implements ReactorFactory<Api> {
     private final OpenTelemetryConfiguration openTelemetryConfiguration;
     private final OpenTelemetryFactory openTelemetryFactory;
     private final List<InstrumenterTracerFactory> instrumenterTracerFactories;
+    private final GatewayConfiguration gatewayConfiguration;
 
     @Override
     public boolean support(final Class<? extends Reactable> clazz) {
@@ -71,7 +73,8 @@ public class TcpApiReactorFactory implements ReactorFactory<Api> {
         final DefaultEndpointManager endpointManager = new DefaultEndpointManager(
             api.getDefinition(),
             endpointConnectorPluginManager,
-            deploymentContext
+            deploymentContext,
+            gatewayConfiguration
         );
 
         return new TcpApiReactor(

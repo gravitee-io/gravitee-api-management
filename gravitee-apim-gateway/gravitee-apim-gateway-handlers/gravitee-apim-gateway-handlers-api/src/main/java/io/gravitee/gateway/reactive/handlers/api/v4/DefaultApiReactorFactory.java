@@ -24,6 +24,7 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.opentelemetry.TracingContext;
@@ -41,7 +42,6 @@ import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFa
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChainFactory;
-import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
@@ -93,6 +93,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
     protected final FlowResolverFactory v4FlowResolverFactory;
     protected final RequestTimeoutConfiguration requestTimeoutConfiguration;
     protected final ReporterService reporterService;
+    protected final GatewayConfiguration gatewayConfiguration;
     private final Logger logger = LoggerFactory.getLogger(DefaultApiReactorFactory.class);
 
     public DefaultApiReactorFactory(
@@ -112,7 +113,8 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         final EventManager eventManager,
         final OpenTelemetryConfiguration openTelemetryConfiguration,
         final OpenTelemetryFactory openTelemetryFactory,
-        final List<InstrumenterTracerFactory> instrumenterTracerFactories
+        final List<InstrumenterTracerFactory> instrumenterTracerFactories,
+        final GatewayConfiguration gatewayConfiguration
     ) {
         super(applicationContext, policyFactoryManager, configuration);
         this.node = node;
@@ -124,6 +126,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         this.accessPointManager = accessPointManager;
         this.eventManager = eventManager;
         this.openTelemetryConfiguration = openTelemetryConfiguration;
+        this.gatewayConfiguration = gatewayConfiguration;
         this.apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, reporterService);
         this.flowResolverFactory = flowResolverFactory;
         this.v4FlowResolverFactory = flowResolverFactory();
@@ -151,7 +154,8 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         final EventManager eventManager,
         final OpenTelemetryConfiguration openTelemetryConfiguration,
         final OpenTelemetryFactory openTelemetryFactory,
-        final List<InstrumenterTracerFactory> instrumenterTracerFactories
+        final List<InstrumenterTracerFactory> instrumenterTracerFactories,
+        final GatewayConfiguration gatewayConfiguration
     ) {
         super(applicationContext, new PolicyFactoryManager(new HashSet<>(Set.of(policyFactory))), configuration);
         this.node = node;
@@ -163,6 +167,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         this.accessPointManager = accessPointManager;
         this.eventManager = eventManager;
         this.openTelemetryConfiguration = openTelemetryConfiguration;
+        this.gatewayConfiguration = gatewayConfiguration;
         this.apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, reporterService);
         this.flowResolverFactory = flowResolverFactory;
         this.v4FlowResolverFactory = flowResolverFactory();
@@ -207,7 +212,8 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         final DefaultEndpointManager endpointManager = new DefaultEndpointManager(
             reactableApi.getDefinition(),
             endpointConnectorPluginManager,
-            deploymentContext
+            deploymentContext,
+            gatewayConfiguration
         );
 
         customComponentProvider.add(EndpointManager.class, endpointManager);
