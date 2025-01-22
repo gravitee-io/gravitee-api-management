@@ -120,6 +120,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.ssl.enabled", "false");
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.auth.method", "token");
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.auth.config.token", token);
+        configurationBuilder.set("tenant", "tenant-1");
 
         try {
             vaultContainer.execInContainer("vault", "kv", "put", "secret/kafka", "bootstrap=" + kafka.getBootstrapServers());
@@ -609,6 +610,68 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
                 final JsonObject metadata = error.getJsonObject("metadata");
                 assertThat(metadata.getString("key")).isEqualTo("FAILURE_ENDPOINT_CONFIGURATION_INVALID");
 
+                return true;
+            });
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-with-tenants.json" })
+    void should_receive_all_messages_from_endpoint_with_tenant_1_only(HttpClient client, Vertx vertx) {
+        // In order to simplify the test, Kafka endpoint's consumer is configured with "autoOffsetReset": "earliest"
+        // It allows us to publish the messages in the topic before opening the api connection.
+        Single
+            .fromCallable(() -> getKafkaProducer(vertx))
+            .flatMapCompletable(producer ->
+                publishToKafka(producer, "test-topic-1", "message1")
+                    .andThen(publishToKafka(producer, "test-topic-1", "message2"))
+                    .andThen(publishToKafka(producer, "test-topic-2", "message3"))
+                    .doFinally(producer::close)
+            )
+            .blockingAwait();
+
+        // First request should receive 2 messages
+        client
+            .rxRequest(HttpMethod.GET, "/test")
+            .flatMap(request -> {
+                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+                return request.send();
+            })
+            .flatMap(response -> {
+                assertThat(response.statusCode()).isEqualTo(200);
+                return response.body();
+            })
+            .test()
+            .awaitDone(30, TimeUnit.SECONDS)
+            .assertValue(body -> {
+                final JsonObject jsonResponse = new JsonObject(body.toString());
+                final JsonArray items = jsonResponse.getJsonArray("items");
+                assertThat(items).hasSize(2);
+                final JsonObject message = items.getJsonObject(0);
+                assertThat(message.getString("id")).isNull();
+                assertThat(message.getString("content")).isEqualTo("message1");
+                final JsonObject message2 = items.getJsonObject(1);
+                assertThat(message2.getString("id")).isNull();
+                assertThat(message2.getString("content")).isEqualTo("message2");
+                return true;
+            });
+
+        // second request should not receive anything as the tenant is different in the second endpoint so only the first endpoint is deployed
+        client
+            .rxRequest(HttpMethod.GET, "/test")
+            .flatMap(request -> {
+                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+                return request.send();
+            })
+            .flatMap(response -> {
+                assertThat(response.statusCode()).isEqualTo(200);
+                return response.body();
+            })
+            .test()
+            .awaitDone(30, TimeUnit.SECONDS)
+            .assertValue(body -> {
+                final JsonObject jsonResponse = new JsonObject(body.toString());
+                final JsonArray items = jsonResponse.getJsonArray("items");
+                assertThat(items).isEmpty();
                 return true;
             });
     }
