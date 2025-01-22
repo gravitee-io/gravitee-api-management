@@ -211,7 +211,7 @@ public class VaultHttpProxyHeaderSecretTest {
 
         @Test
         @DeployApi("/apis/v4/http/secrets/vault/api-static-ref.json")
-        void should_call_api_with_k8s_api_key_from_static_ref(HttpClient httpClient) {
+        void should_call_api_with_vault_api_key_from_static_ref(HttpClient httpClient) {
             callAndAssert(httpClient);
         }
     }
@@ -222,7 +222,7 @@ public class VaultHttpProxyHeaderSecretTest {
 
         @Test
         @DeployApi("/apis/v4/http/secrets/vault/api-el-key-ref.json")
-        void should_call_api_with_k8s_api_key_from_static_ref_and_el_key(HttpClient httpClient) {
+        void should_call_api_with_vault_api_key_from_static_ref_and_el_key(HttpClient httpClient) {
             callAndAssert(httpClient);
         }
     }
@@ -233,7 +233,7 @@ public class VaultHttpProxyHeaderSecretTest {
 
         @Test
         @DeployApi("/apis/v4/http/secrets/vault/api-el-ref.json")
-        void should_call_api_with_k8s_api_key_el_ref(HttpClient httpClient) {
+        void should_call_api_with_vault_api_key_el_ref(HttpClient httpClient) {
             callAndAssert(httpClient);
         }
     }
