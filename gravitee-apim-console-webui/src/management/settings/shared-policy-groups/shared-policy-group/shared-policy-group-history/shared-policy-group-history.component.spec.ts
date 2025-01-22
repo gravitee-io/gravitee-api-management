@@ -35,6 +35,7 @@ import {
 } from '../../../../../services-ngx/shared-policy-groups.service.spec';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { fakePagedResult, fakePoliciesPlugin, fakePolicyPlugin, fakeSharedPolicyGroup } from '../../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('SharedPolicyGroupHistoryComponent', () => {
   const SHARED_POLICY_GROUP_ID = 'sharedPolicyGroupId';
@@ -50,6 +51,15 @@ describe('SharedPolicyGroupHistoryComponent', () => {
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { params: { sharedPolicyGroupId: SHARED_POLICY_GROUP_ID } } },
+        },
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: [
+            'environment-shared_policy_group-c',
+            'environment-shared_policy_group-r',
+            'environment-shared_policy_group-u',
+            'environment-shared_policy_group-d',
+          ],
         },
       ],
     })
