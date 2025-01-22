@@ -1,0 +1,129 @@
+{
+    "id": "el-key-secret-api-v4",
+    "name": "my-secret-api-v4",
+    "gravitee": "4.0.0",
+    "type": "proxy",
+    "listeners": [
+        {
+            "type": "http",
+            "paths": [
+                {
+                    "path": "/test"
+                }
+            ],
+            "entrypoints": [
+                {
+                    "type": "http-proxy"
+                }
+            ]
+        }
+    ],
+    "endpointGroups": [
+        {
+            "name": "default-group",
+            "type": "http-proxy",
+            "endpoints": [
+                {
+                    "name": "default",
+                    "type": "http-proxy",
+                    "weight": 1,
+                    "inheritConfiguration": false,
+                    "configuration": {
+                        "target": "http://localhost:8080/endpoint"
+                    }
+                }
+            ]
+        }
+    ],
+    "flows": [
+        {
+            "name": "flow-1",
+            "enabled": true,
+            "selectors": [
+                {
+                    "type": "http",
+                    "path": "/",
+                    "pathOperator": "START_WITH",
+                    "methods": ["GET"]
+                }
+            ],
+            "request": [
+                {
+                    "name": "Assign attributes",
+                    "enabled": true,
+                    "policy": "policy-assign-attributes",
+                    "configuration": {
+                        "scope": "REQUEST",
+                        "attributes": [
+                            {
+                                "name": "test",
+                                "value": "this is an attribute"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Transform Headers",
+                    "enabled": true,
+                    "policy": "transform-headers",
+                    "configuration": {
+                        "whitelistHeaders": [],
+                        "addHeaders": [
+                            {
+                                "name": "X-Dictionary",
+                                "value": "{#dictionaries['test']['test']}"
+                            },
+                            {
+                                "name": "X-Node-Version",
+                                "value": "{#node.version}"
+                            },
+                            {
+                                "name": "X-Api-Property",
+                                "value": "{#api.properties['test']}"
+                            },
+                            {
+                                "name": "X-Context-Attributes",
+                                "value": "{#context.attributes['test']}"
+                            },
+                            {
+                                "name": "X-Request-Path",
+                                "value": "{#request.contextPath}"
+                            }
+                        ],
+                        "scope": "REQUEST",
+                        "removeHeaders": []
+                    }
+                }
+            ],
+            "response": [
+                {
+                    "name": "Transform Headers",
+                    "enabled": true,
+                    "policy": "transform-headers",
+                    "configuration": {
+                        "whitelistHeaders": [],
+                        "addHeaders": [
+                            {
+                                "name": "X-Response-Content",
+                                "value": "{#response.content}"
+                            }
+                        ],
+                        "scope": "REQUEST",
+                        "removeHeaders": []
+                    }
+                }
+            ]
+        }
+    ],
+    "properties": [
+        {
+            "key": "test",
+            "value": "this is an API property",
+            "encrypted": false,
+            "dynamic": false
+        }
+    ],
+    "analytics": {
+        "enabled": false
+    }
+}
