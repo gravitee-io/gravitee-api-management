@@ -27,11 +27,13 @@ import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuil
 import io.gravitee.apim.gateway.tests.sdk.plugin.PluginRegister;
 import io.gravitee.apim.gateway.tests.sdk.runner.ApiConfigurer;
 import io.gravitee.apim.gateway.tests.sdk.runner.ApiDeployer;
+import io.gravitee.apim.gateway.tests.sdk.runner.DictionaryDeployer;
 import io.gravitee.apim.gateway.tests.sdk.runner.OrganizationConfigurer;
 import io.gravitee.apim.gateway.tests.sdk.runner.SharedPolicyGroupDeployer;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.gateway.dictionary.model.Dictionary;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
@@ -45,13 +47,16 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.rxjava3.core.Vertx;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.platform.commons.PreconditionViolationException;
 import org.mockito.Mockito;
@@ -73,10 +78,18 @@ import org.springframework.util.StringUtils;
 @ExtendWith(VertxExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public abstract class AbstractGatewayTest
-    implements PluginRegister, ApiConfigurer, ApiDeployer, OrganizationConfigurer, ApplicationContextAware, SharedPolicyGroupDeployer {
+    implements
+        PluginRegister,
+        ApiConfigurer,
+        ApiDeployer,
+        OrganizationConfigurer,
+        DictionaryDeployer,
+        ApplicationContextAware,
+        SharedPolicyGroupDeployer {
 
     private static final ObjectMapper objectMapper = new GraviteeMapper();
     protected static final PlaceholderSymbols DEFAULT_PLACEHOLDER_SYMBOLS = new PlaceholderSymbols("${", "}");
+    public static final String DEFAULT_ID = "DEFAULT";
 
     @Getter
     private int wiremockHttpsPort;
@@ -87,7 +100,7 @@ public abstract class AbstractGatewayTest
     /**
      * The wiremock used by the deployed apis as a backend.
      */
-    protected static WireMockServer wiremock;
+    protected WireMockServer wiremock;
 
     protected ApplicationContext applicationContext;
 
@@ -257,6 +270,9 @@ public abstract class AbstractGatewayTest
     public void configureOrganization(ReactableOrganization reactableOrganization) {}
 
     @Override
+    public void configureDictionaries(List<Dictionary> dictionaries) {}
+
+    @Override
     public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {}
 
     @Override
@@ -323,7 +339,7 @@ public abstract class AbstractGatewayTest
      */
     public void ensureMinimalRequirementForOrganization(ReactableOrganization reactableOrganization) {
         if (!StringUtils.hasText(reactableOrganization.getId())) {
-            reactableOrganization.getDefinition().setId("DEFAULT");
+            reactableOrganization.getDefinition().setId(DEFAULT_ID);
         }
     }
 
@@ -334,7 +350,7 @@ public abstract class AbstractGatewayTest
      */
     public void ensureMinimalRequirementForOrganization(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
         if (!StringUtils.hasText(reactableSharedPolicyGroup.getEnvironmentId())) {
-            reactableSharedPolicyGroup.getDefinition().setEnvironmentId("DEFAULT");
+            reactableSharedPolicyGroup.getDefinition().setEnvironmentId(DEFAULT_ID);
         }
     }
 
@@ -442,7 +458,7 @@ public abstract class AbstractGatewayTest
      * @param organizationConsumer a consumer modifying the current deployed organization.
      */
     protected final void updateOrganization(Consumer<ReactableOrganization> organizationConsumer) {
-        updateOrganization("DEFAULT", organizationConsumer);
+        updateOrganization(DEFAULT_ID, organizationConsumer);
     }
 
     /**
