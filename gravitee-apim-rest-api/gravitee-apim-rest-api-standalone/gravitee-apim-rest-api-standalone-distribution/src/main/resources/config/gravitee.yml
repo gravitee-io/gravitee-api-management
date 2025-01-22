@@ -115,7 +115,6 @@ management:
     dbname: ${ds.mongodb.dbname} # mongodb name (default gravitee)
     host: ${ds.mongodb.host}     # mongodb host (default localhost)
     port: ${ds.mongodb.port}     # mongodb port (default 27017)
-#    transactional: true         # whether to enable transaction or not, true by default
 
 ## Client settings
 #    description:                 # mongodb description (default gravitee.io)
