@@ -26,7 +26,7 @@
       </mat-card-title>
       <mat-card-subtitle>{{ sharedPolicyGroup.description }}</mat-card-subtitle>
       <div class="shared-policy-group-studio__headerRightBtn">
-        @if (!isReadOnly && !sharedPolicyGroup.isReadOnly) {
+        @if (!isReadOnly && !sharedPolicyGroup.isKubernetesOrigin) {
           <button mat-stroked-button (click)="onEdit()" matTooltip="Edit general info">
             <mat-icon svgIcon="gio:edit-pencil">edit</mat-icon>
           </button>
@@ -47,7 +47,7 @@
             <mat-icon svgIcon="gio:trash">delete</mat-icon>
           </button>
         }
-        @if (!isReadOnly && !sharedPolicyGroup.isReadOnly) {
+        @if (!isReadOnly && !sharedPolicyGroup.isKubernetesOrigin) {
           <button
             [disabled]="!enableSaveButton"
             color="primary"
@@ -73,7 +73,7 @@
       @if (policies$ | async; as policies) {
         <gio-policy-group-studio
           [policies]="policies"
-          [readOnly]="isReadOnly || sharedPolicyGroup.isReadOnly"
+          [readOnly]="isReadOnly || sharedPolicyGroup.isKubernetesOrigin"
           [apiType]="sharedPolicyGroup.apiType"
           [flowPhase]="sharedPolicyGroup.phase"
           [policyDocumentationFetcher]="policyDocumentationFetcher"
