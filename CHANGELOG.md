@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.4.0...1.4.1) (2025-01-23)
+
+
+### Bug Fixes
+
+* csv format file reporter ([#37](https://github.com/gravitee-io/gravitee-reporter-common/issues/37)) ([896819a](https://github.com/gravitee-io/gravitee-reporter-common/commit/896819a4393aece338089d017306d886e703b769))
+
 # [1.4.0](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.3.0...1.4.0) (2024-12-05)
 
 
