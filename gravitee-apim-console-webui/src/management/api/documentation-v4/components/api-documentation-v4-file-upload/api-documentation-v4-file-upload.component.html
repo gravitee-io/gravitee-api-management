@@ -52,6 +52,9 @@
       @case ('ASYNCAPI') {
         <gio-async-api [schema]="importFileContent"></gio-async-api>
       }
+      @case ('ASCIIDOC') {
+        <gio-asciidoctor [content]="importFileContent"></gio-asciidoctor>
+      }
     }
   </div>
 }
