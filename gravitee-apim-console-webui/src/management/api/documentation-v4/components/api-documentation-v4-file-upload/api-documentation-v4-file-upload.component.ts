@@ -18,13 +18,14 @@ import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/f
 import { GioFormFilePickerModule, NewFile } from '@gravitee/ui-particles-angular';
 import { MatIcon } from '@angular/material/icon';
 import { MarkdownComponent } from 'ngx-markdown';
+import { GioAsciidoctorModule } from '@gravitee/ui-particles-angular/gio-asciidoctor';
 
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { PageType } from '../../../../../entities/management-api-v2';
 import { GioSwaggerUiModule } from '../../../../../components/documentation/gio-swagger-ui/gio-swagger-ui.module';
 import { GioAsyncApiModule } from '../../../../../components/documentation/gio-async-api/gio-async-api-module';
 
-const allowedFileExtensions = ['md', 'markdown', 'txt', 'json', 'yml', 'yaml'] as const;
+const allowedFileExtensions = ['md', 'markdown', 'txt', 'json', 'yml', 'yaml', 'adoc', 'ad', 'asc', 'asciidoc'] as const;
 type FileExtension = (typeof allowedFileExtensions)[number];
 
 @Component({
@@ -39,7 +40,7 @@ type FileExtension = (typeof allowedFileExtensions)[number];
     },
   ],
   standalone: true,
-  imports: [GioFormFilePickerModule, MatIcon, FormsModule, MarkdownComponent, GioSwaggerUiModule, GioAsyncApiModule],
+  imports: [GioFormFilePickerModule, MatIcon, FormsModule, MarkdownComponent, GioSwaggerUiModule, GioAsyncApiModule, GioAsciidoctorModule],
 })
 export class ApiDocumentationV4FileUploadComponent implements OnInit, ControlValueAccessor {
   @Input()
@@ -60,7 +61,17 @@ export class ApiDocumentationV4FileUploadComponent implements OnInit, ControlVal
   constructor(private readonly snackBarService: SnackBarService) {}
 
   ngOnInit(): void {
-    this.acceptedFileExtensions = this.pageType === 'MARKDOWN' ? ['md', 'markdown', 'txt'] : ['json', 'yml', 'yaml'];
+    this.acceptedFileExtensions = ['json', 'yml', 'yaml'];
+    switch (this.pageType) {
+      case 'MARKDOWN':
+        this.acceptedFileExtensions = ['md', 'markdown', 'txt'];
+        break;
+      case 'ASCIIDOC':
+        this.acceptedFileExtensions = ['txt', 'adoc', 'ad', 'asc', 'asciidoc'];
+        break;
+      default:
+        break;
+    }
     // To work in file picker, accept must have . before file type
     this.accept = this.acceptedFileExtensions.map((e) => '.' + e).join();
   }
