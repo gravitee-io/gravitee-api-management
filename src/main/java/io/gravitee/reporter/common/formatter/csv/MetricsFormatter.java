@@ -27,7 +27,9 @@ import java.util.Map;
 public final class MetricsFormatter extends SingleValueFormatter<Metrics> {
 
   public Buffer format0(Metrics metrics) {
-    final Map<String, String> customMetrics = metrics.getCustomMetrics();
+    final Map<String, String> customMetrics = metrics.getCustomMetrics() == null
+      ? Map.of()
+      : metrics.getCustomMetrics();
 
     final Buffer buffer = Buffer.buffer();
 
