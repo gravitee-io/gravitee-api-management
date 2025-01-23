@@ -1,3 +1,10 @@
+## [3.2.3](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.2.2...3.2.3) (2025-01-23)
+
+
+### Bug Fixes
+
+* bump gravitee-reporter-common version ([#97](https://github.com/gravitee-io/gravitee-reporter-file/issues/97)) ([9eabf0d](https://github.com/gravitee-io/gravitee-reporter-file/commit/9eabf0d58e60932e969f01e807772684f302a1ec))
+
 ## [3.2.2](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.2.1...3.2.2) (2024-06-04)
 
 
