@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host {
-  display: flex;
-  gap: 36px;
-}
+import { NgClass } from '@angular/common';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { MatIcon } from '@angular/material/icon';
 
-.api-tab-documentation {
-  &__side-bar {
-    min-width: 276px;
-    transition: margin-left 350ms ease-in-out;
+@Component({
+  selector: 'app-drawer',
+  standalone: true,
+  imports: [NgClass, MatIcon],
+  templateUrl: './drawer.component.html',
+  styleUrl: './drawer.component.scss',
+})
+export class DrawerComponent {
+  @Input({ required: true }) isOpen: boolean = true;
+  @Output() collapse: EventEmitter<boolean> = new EventEmitter();
 
-    &--hidden {
-      min-width: unset;
-    }
-
-    &__tree {
-      position: sticky;
-      top: 96px;
-    }
+  close(): void {
+    this.collapse.emit(!this.isOpen);
   }
 }
