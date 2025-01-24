@@ -73,7 +73,10 @@ public class ImportGroupCRDUseCaseTest {
     void setUp() {
         cut =
             new ImportGroupCRDUseCase(
-                new ValidateGroupCRDDomainServiceImpl(new ValidateCRDMembersDomainService(userDomainService, roleQueryService)),
+                new ValidateGroupCRDDomainServiceImpl(
+                    new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
+                    roleService
+                ),
                 groupQueryService,
                 groupCrudService,
                 membersService

@@ -15,18 +15,13 @@
  */
 package io.gravitee.apim.infra.adapter;
 
-import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.model.crd.GroupCRDSpec;
 import io.gravitee.apim.core.member.model.RoleScope;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -76,11 +71,5 @@ public interface GroupCRDAdapter {
                     .map(roleEntry -> new MemberCRD(member.getId(), member.getSource(), member.getSourceId(), roleEntry.getValue()))
             )
             .collect(Collectors.toSet());
-    }
-
-    private static Map<RoleScope, String> initRoles(RoleScope roleScope, String roleName) {
-        var roles = new HashMap<RoleScope, String>();
-        roles.put(roleScope, roleName);
-        return roles;
     }
 }

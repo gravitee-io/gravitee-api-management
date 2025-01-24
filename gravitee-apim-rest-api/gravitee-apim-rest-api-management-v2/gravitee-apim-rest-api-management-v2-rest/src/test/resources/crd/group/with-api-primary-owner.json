@@ -7,7 +7,9 @@
       "source": "memory",
       "sourceId": "api1",
       "roles": {
-        "API": "PRIMARY_OWNER"
+        "API": "PRIMARY_OWNER",
+        "APPLICATION": "OWNER",
+        "INTEGRATION": "OWNER"
       }
     }
   ]

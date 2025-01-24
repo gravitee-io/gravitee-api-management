@@ -43,6 +43,7 @@ import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.GroupEventRuleEntity;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -106,10 +107,10 @@ public class GroupsResourceTest extends AbstractResourceTest {
         public void should_control_permissions() {
             when(
                 permissionService.hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.ENVIRONMENT_GROUP),
-                    eq(ENVIRONMENT),
-                    eq(RolePermissionAction.READ)
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_GROUP,
+                    ENVIRONMENT,
+                    RolePermissionAction.READ
                 )
             )
                 .thenReturn(false);
@@ -314,6 +315,33 @@ public class GroupsResourceTest extends AbstractResourceTest {
             userDomainServiceInMemory.reset();
             userCrudService.reset();
 
+            when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.API, RoleScope.APPLICATION, RoleScope.INTEGRATION))
+                .thenReturn(
+                    List.of(
+                        RoleEntity
+                            .builder()
+                            .id("e3b00195-b7ea-432a-a416-3bc41ee5cf2e")
+                            .scope(RoleScope.API)
+                            .defaultRole(true)
+                            .name("OWNER")
+                            .build(),
+                        RoleEntity
+                            .builder()
+                            .id("1c826553-6589-42cd-9e93-f9b098d857c8")
+                            .scope(RoleScope.APPLICATION)
+                            .defaultRole(true)
+                            .name("OWNER")
+                            .build(),
+                        RoleEntity
+                            .builder()
+                            .id("70ebba73-21f2-41a2-b108-aa19cf50f644")
+                            .scope(RoleScope.INTEGRATION)
+                            .defaultRole(true)
+                            .name("OWNER")
+                            .build()
+                    )
+                );
+
             userDomainServiceInMemory.initWith(
                 List.of(
                     BaseUserEntity
@@ -354,6 +382,14 @@ public class GroupsResourceTest extends AbstractResourceTest {
                         .build(),
                     Role
                         .builder()
+                        .name("OWNER")
+                        .referenceType(Role.ReferenceType.ORGANIZATION)
+                        .referenceId(ORGANIZATION)
+                        .id("72efc643-f638-4d3f-94ba-3605e8993d12")
+                        .scope(Role.Scope.INTEGRATION)
+                        .build(),
+                    Role
+                        .builder()
                         .name("PRIMARY_OWNER")
                         .referenceType(Role.ReferenceType.ORGANIZATION)
                         .referenceId(ORGANIZATION)
@@ -370,6 +406,55 @@ public class GroupsResourceTest extends AbstractResourceTest {
                         .build()
                 )
             );
+        }
+
+        @Test
+        void should_return_severe_error_with_no_name() {
+            var crdStatus = doImport("/crd/group/with-no-name.json", true);
+            SoftAssertions.assertSoftly(soft -> {
+                soft
+                    .assertThat(crdStatus)
+                    .isEqualTo(
+                        GroupCRDStatus
+                            .builder()
+                            .id("2868ef55-561e-4b99-a981-450015a248d9")
+                            .members(1)
+                            .errors(
+                                GroupCRDStatus.Errors
+                                    .builder()
+                                    .warning(List.of())
+                                    .severe(List.of("property [name] must not be empty"))
+                                    .build()
+                            )
+                            .build()
+                    );
+
+                soft.assertThat(groupCrudServiceInMemory.storage()).isEmpty();
+            });
+        }
+
+        @Test
+        void should_return_severe_error_with_no_id() {
+            var crdStatus = doImport("/crd/group/with-no-id.json", true);
+            SoftAssertions.assertSoftly(soft -> {
+                soft
+                    .assertThat(crdStatus)
+                    .isEqualTo(
+                        GroupCRDStatus
+                            .builder()
+                            .members(1)
+                            .errors(
+                                GroupCRDStatus.Errors
+                                    .builder()
+                                    .warning(List.of())
+                                    .severe(List.of("property [id] must be a valid UUID"))
+                                    .build()
+                            )
+                            .build()
+                    );
+
+                soft.assertThat(groupCrudServiceInMemory.storage()).isEmpty();
+            });
         }
 
         @Test
@@ -401,6 +486,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                         GroupCRDStatus
                             .builder()
                             .id("2868ef55-561e-4b99-a981-450015a248d9")
+                            .members(0)
                             .errors(
                                 GroupCRDStatus.Errors
                                     .builder()
@@ -416,7 +502,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_return_sever_error_with_api_primary_owner_and_dry_run() {
+        void should_return_severe_error_with_api_primary_owner_and_dry_run() {
             var crdStatus = doImport("/crd/group/with-api-primary-owner.json", true);
             SoftAssertions.assertSoftly(soft -> {
                 soft
@@ -425,6 +511,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                         GroupCRDStatus
                             .builder()
                             .id("2868ef55-561e-4b99-a981-450015a248d9")
+                            .members(1)
                             .errors(
                                 GroupCRDStatus.Errors
                                     .builder()
@@ -440,7 +527,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_return_sever_error_with_application_primary_owner_and_dry_run() {
+        void should_return_severe_error_with_application_primary_owner_and_dry_run() {
             var crdStatus = doImport("/crd/group/with-application-primary-owner.json", true);
             SoftAssertions.assertSoftly(soft -> {
                 soft
@@ -449,6 +536,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                         GroupCRDStatus
                             .builder()
                             .id("2868ef55-561e-4b99-a981-450015a248d9")
+                            .members(1)
                             .errors(
                                 GroupCRDStatus.Errors
                                     .builder()
@@ -472,9 +560,12 @@ public class GroupsResourceTest extends AbstractResourceTest {
 
         private String readJSON(String resource) {
             try (var reader = this.getClass().getResourceAsStream(resource)) {
+                if (reader == null) {
+                    throw new IllegalArgumentException("unable to read resource " + resource);
+                }
                 return IOUtils.toString(reader, Charset.defaultCharset());
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new IllegalArgumentException(e);
             }
         }
     }
