@@ -106,7 +106,7 @@ export class ApiPathMappingsAddDialogComponent implements OnInit {
 
   private initFormGroup(): UntypedFormGroup {
     return new UntypedFormGroup({
-      path: new UntypedFormControl(null, [Validators.required, isUnique(this.api.pathMappings), Validators.pattern('^/[a-zA-Z0-9:/]+')]),
+      path: new UntypedFormControl(null, [Validators.required, isUnique(this.api.pathMappings), Validators.pattern('^/[a-zA-Z0-9:/._-]+')]),
     });
   }
 }
