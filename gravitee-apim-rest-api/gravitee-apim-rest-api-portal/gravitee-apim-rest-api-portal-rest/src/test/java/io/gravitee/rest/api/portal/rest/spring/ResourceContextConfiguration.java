@@ -820,8 +820,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ValidateGroupCRDDomainService validateGroupCRDDomainService(ValidateCRDMembersDomainService validateCRDMembersDomainService) {
-        return new ValidateGroupCRDDomainServiceImpl(validateCRDMembersDomainService);
+    public ValidateGroupCRDDomainService validateGroupCRDDomainService(
+        ValidateCRDMembersDomainService validateCRDMembersDomainService,
+        RoleService roleService
+    ) {
+        return new ValidateGroupCRDDomainServiceImpl(validateCRDMembersDomainService, roleService);
     }
 
     @Bean

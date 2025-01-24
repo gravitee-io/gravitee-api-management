@@ -1,15 +1,14 @@
 {
-  "id": "2868ef55-561e-4b99-a981-450015a248d9",
-  "name": "with-api-primary-owner",
+  "name": "with-no-id",
   "notifyMembers": false,
   "members": [
     {
       "source": "memory",
       "sourceId": "api1",
       "roles": {
-        "APPLICATION": "PRIMARY_OWNER",
         "API": "OWNER",
-        "INTEGRATION": "OWNER"
+        "APPLICATION": "OWNER",
+        "INTEGRATION": "USER"
       }
     }
   ]
