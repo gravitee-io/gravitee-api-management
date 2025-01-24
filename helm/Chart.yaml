@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.4.18
-appVersion: 4.4.18
+version: 4.4.19
+appVersion: 4.4.19
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -23,9 +23,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: |
-    - kind: fixed
-      description: 'allow users to handle properly baseUrl in portal next for multi tenant installations'
-      links:
-        - name: Github Issue
-          url: https://github.com/gravitee-io/issues/issues/10204
+  artifacthub.io/changes: 
