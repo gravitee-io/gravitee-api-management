@@ -44,59 +44,6 @@
   </app-banner>
 }
 
-@if (filterList$ | async; as filterList) {
-  <div class="catalog__filters">
-    @if (filterList.length) {
-      <mat-tab-group (selectedTabChange)="onFilterSelection($event)" [selectedIndex]="selectedFilterIndex()" [mat-stretch-tabs]="false">
-        <mat-tab label="All" />
-        @for (f of filterList; track f.id) {
-          <mat-tab [label]="f.name ?? ''" />
-        }
-      </mat-tab-group>
-    }
-
-    <div class="catalog__filters__bottom-row">
-      <div class="catalog__filters__bottom-row__filter-labels">
-        @if (filterAsCategory(); as category) {
-          <div class="m3-headline-medium">{{ category.name }}</div>
-          @if (category.description) {
-            <div class="m3-label-large">{{ category.description }}</div>
-          }
-        } @else {
-          <div class="m3-headline-medium" i18n="@@allApisLabel">All</div>
-          <div class="m3-label-large" i18n="@@allApisDescription">Explore all available APIs</div>
-        }
-      </div>
-      <app-search-bar (searchTerm)="onSearchResults($event)" [searchParam]="query" />
-    </div>
-  </div>
-}
-
-@if (apiPaginator$ | async; as apis) {
-  @if (apis.data.length > 0) {
-    <div class="api-list__container" infiniteScroll (scrolled)="loadMoreApis(apis)">
-      @for (api of apis.data; track api.id) {
-        <app-api-card [id]="api.id" [title]="api.title" [version]="api.version" [content]="api.content" [picture]="api.picture" />
-      }
-    </div>
-  } @else if (!loadingPage) {
-    <mat-card id="no-apis" appearance="outlined">
-      <mat-card-content>
-        <div>
-          @if (query || filter()) {
-            <p i18n="@@noFilteredApisAvailable">
-              Your search didn't return any APIs. Please try again with different keywords or categories.
-            </p>
-          } @else {
-            <p i18n="@@noApisAvailable">Sorry, there are no APIs listed yet.</p>
-            <p i18n="@@moreApisComingSoon">Our API catalog is currently being updated. More APIs will be available soon.</p>
-          }
-        </div>
-      </mat-card-content>
-    </mat-card>
-  }
-}
-
-@if (loadingPage) {
-  <app-loader />
+@if (categories$ | async; as categories) {
+  <app-tabs-view [categories]="categories" />
 }

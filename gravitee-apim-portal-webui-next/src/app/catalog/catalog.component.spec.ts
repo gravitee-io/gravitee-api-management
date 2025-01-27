@@ -19,18 +19,14 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatCardHarness } from '@angular/material/card/testing';
-import { MatTabGroupHarness, MatTabHarness } from '@angular/material/tabs/testing';
 import { By } from '@angular/platform-browser';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 
 import { CatalogComponent } from './catalog.component';
-import { ApiCardHarness } from '../../components/api-card/api-card.harness';
-import { fakeApi, fakeApisResponse } from '../../entities/api/api.fixtures';
+import { fakeApisResponse } from '../../entities/api/api.fixtures';
 import { ApisResponse } from '../../entities/api/apis-response';
-import { Categories } from '../../entities/categories/categories';
-import { fakeCategoriesResponse, fakeCategory } from '../../entities/categories/categories.fixture';
+import { fakeCategoriesResponse } from '../../entities/categories/categories.fixture';
 import { BannerButton } from '../../entities/configuration/configuration-portal-next';
 import { ConfigService } from '../../services/config.service';
 import { CurrentUserService } from '../../services/current-user.service';
@@ -40,7 +36,6 @@ describe('CatalogComponent', () => {
   let fixture: ComponentFixture<CatalogComponent>;
   let harnessLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
-  let routerNavigateSpy: jest.SpyInstance;
 
   const initBase = async (
     params: Partial<{
@@ -99,269 +94,30 @@ describe('CatalogComponent', () => {
     fixture = TestBed.createComponent(CatalogComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
-    const router = TestBed.inject(Router);
-    routerNavigateSpy = jest.spyOn(router, 'navigate');
 
     fixture.detectChanges();
   };
   const init = async (
     params: Partial<{
-      apisResponse: ApisResponse;
-      page: number;
-      size: number;
-      query: string;
-      categoryId: string;
-      categoriesResponse: Categories;
       userIsConnected: boolean;
       primaryButton: BannerButton;
       secondaryButton: BannerButton;
     }> = {
-      apisResponse: fakeApisResponse(),
-      page: 1,
-      size: 18,
-      query: '',
-      categoryId: '',
-      categoriesResponse: fakeCategoriesResponse(),
       userIsConnected: false,
       primaryButton: { enabled: false },
       secondaryButton: { enabled: false },
     },
   ) => {
     await initBase(params);
-    expectApiList(params.apisResponse, params.page, params.size, params.query, params.categoryId);
-    expectCategoriesList(params.categoriesResponse);
+    expectCategoriesList(fakeCategoriesResponse());
+    fixture.detectChanges();
+
+    expectApiList(fakeApisResponse(), 1, 18, '');
     fixture.detectChanges();
   };
 
   afterEach(() => {
     httpTestingController.verify();
-  });
-
-  describe('populated api list', () => {
-    beforeEach(async () => {
-      await init({
-        apisResponse: fakeApisResponse({
-          data: [
-            fakeApi({
-              id: '1',
-              name: 'Test title',
-              version: 'v.1.2',
-              description:
-                'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
-            }),
-          ],
-          metadata: {
-            pagination: {
-              current_page: 1,
-              total_pages: 2,
-            },
-          },
-        }),
-      });
-    });
-
-    it('should render banner text', () => {
-      const compiled = fixture.nativeElement as HTMLElement;
-      expect(compiled.querySelector('app-banner')?.textContent).toContain('Welcome to Gravitee Developer Portal!');
-    });
-
-    it('should show API list', async () => {
-      const apiCard = await harnessLoader.getHarness(ApiCardHarness);
-      expect(apiCard).toBeDefined();
-      expect(await apiCard.getTitle()).toEqual('Test title');
-      expect(await apiCard.getDescription()).toEqual(
-        'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
-      );
-      expect(await apiCard.getVersion()).toEqual('v.1.2');
-    });
-
-    it('should call second page after scrolled event', async () => {
-      const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
-      expect(apiCard).toBeDefined();
-      expect(apiCard.length).toEqual(1);
-      expect(await apiCard[0].getTitle()).toEqual('Test title');
-
-      document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
-      fixture.detectChanges();
-
-      expectApiList(
-        fakeApisResponse({
-          data: [fakeApi({ id: 'second-page-api', name: 'second page api', version: '24' })],
-          metadata: {
-            pagination: {
-              current_page: 3,
-              total_pages: 3,
-            },
-          },
-        }),
-        3,
-        9,
-        '',
-      );
-      fixture.detectChanges();
-
-      const allHarnesses = await harnessLoader.getAllHarnesses(ApiCardHarness);
-      expect(allHarnesses.length).toEqual(2);
-
-      const secondPageApi = await harnessLoader.getHarnessOrNull(ApiCardHarness.with({ selector: '[ng-reflect-id="second-page-api"]' }));
-      expect(secondPageApi).toBeTruthy();
-    });
-
-    it('should call API list with search query', async () => {
-      const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
-      expect(apiCard).toBeDefined();
-      expect(apiCard.length).toEqual(1);
-      expect(await apiCard[0].getTitle()).toEqual('Test title');
-
-      document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
-      fixture.detectChanges();
-
-      expectApiList(
-        fakeApisResponse({
-          data: [fakeApi({ id: 'second-page-api', name: 'second page api', version: '24' })],
-          metadata: {
-            pagination: {
-              current_page: 3,
-              total_pages: 5,
-            },
-          },
-        }),
-        3,
-        9,
-        '',
-      );
-      fixture.detectChanges();
-    });
-
-    it('should not call page if on last page', async () => {
-      const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
-      expect(apiCard.length).toEqual(1);
-
-      document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
-      fixture.detectChanges();
-
-      expectApiList(
-        fakeApisResponse({
-          data: [fakeApi({ id: 'second-page-api' })],
-          metadata: {
-            pagination: {
-              current_page: 3,
-              total_pages: 3,
-            },
-          },
-        }),
-        3,
-        9,
-        '',
-      );
-      fixture.detectChanges();
-
-      const allHarnesses = await harnessLoader.getAllHarnesses(ApiCardHarness);
-      expect(allHarnesses.length).toEqual(2);
-
-      document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
-      fixture.detectChanges();
-
-      httpTestingController.expectNone(`${TESTING_BASE_URL}/apis?page=3&size=9`);
-    });
-  });
-
-  describe('empty component', () => {
-    describe('when no results', () => {
-      beforeEach(async () => {
-        await init({ apisResponse: fakeApisResponse({ data: [] }) });
-      });
-
-      it('should show empty API list', async () => {
-        const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
-        expect(noApiCard).toBeTruthy();
-        expect(await noApiCard.getText()).toContain(`Sorry, there are no APIs listed yet.`);
-      });
-    });
-
-    describe('when error occurs', () => {
-      it('should show empty API list if no search params', async () => {
-        await initBase();
-        expectCategoriesList();
-        httpTestingController
-          .expectOne(`${TESTING_BASE_URL}/apis/_search?page=1&category=&size=18&q=`)
-          .flush({ error: { message: 'Error occurred' } }, { status: 500, statusText: 'Internal Error' });
-        fixture.detectChanges();
-
-        const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
-        expect(noApiCard).toBeTruthy();
-        expect(await noApiCard.getText()).toContain(`Sorry, there are no APIs listed yet.`);
-      });
-
-      it('should show empty API list if search params in request', async () => {
-        await initBase({ categoryId: 'my-category' });
-        expectCategoriesList(fakeCategoriesResponse({ data: [fakeCategory({ id: 'my-category' })] }));
-        httpTestingController
-          .expectOne(`${TESTING_BASE_URL}/apis/_search?page=1&category=my-category&size=18&q=`)
-          .flush({ error: { message: 'Error occurred' } }, { status: 500, statusText: 'Internal Error' });
-        fixture.detectChanges();
-
-        const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
-        expect(noApiCard).toBeTruthy();
-        expect(await noApiCard.getText()).toContain(`Your search didn't return any APIs`);
-      });
-    });
-  });
-
-  describe('Category filters', () => {
-    const CATEGORY_1 = fakeCategory({ id: 'category-1', name: 'Category 1' });
-    const CATEGORY_2 = fakeCategory({ id: 'category-2', name: 'Category 2' });
-    describe('With no categories', () => {
-      beforeEach(async () => {
-        await init({ categoriesResponse: fakeCategoriesResponse({ data: [] }) });
-      });
-      it('should not show filters if no categories', async () => {
-        const categoryTabs = await harnessLoader.getHarnessOrNull(MatTabGroupHarness);
-        expect(categoryTabs).toBeNull();
-      });
-    });
-
-    describe('With no filter defined in params', () => {
-      beforeEach(async () => {
-        await init({ categoriesResponse: fakeCategoriesResponse({ data: [CATEGORY_1, CATEGORY_2] }) });
-      });
-      it('should categories + All as filters', async () => {
-        const tabs = await harnessLoader.getAllHarnesses(MatTabHarness);
-        expect(tabs).toHaveLength(3);
-        expect(await tabs[0].getLabel()).toEqual('All');
-        expect(await tabs[1].getLabel()).toEqual(CATEGORY_1.name);
-        expect(await tabs[2].getLabel()).toEqual(CATEGORY_2.name);
-      });
-      it('should navigate to category', async () => {
-        const category1Tab = await harnessLoader.getHarness(MatTabHarness.with({ label: CATEGORY_1.name }));
-        await category1Tab.select();
-
-        expect(routerNavigateSpy).toHaveBeenCalledWith([''], {
-          queryParams: { filter: CATEGORY_1.id, query: undefined },
-          relativeTo: expect.anything(),
-        });
-      });
-    });
-
-    describe('With specified filter in params', () => {
-      beforeEach(async () => {
-        await init({ categoryId: CATEGORY_2.id, categoriesResponse: fakeCategoriesResponse({ data: [CATEGORY_1, CATEGORY_2] }) });
-      });
-
-      it('should navigate to All', async () => {
-        const allTab = await harnessLoader.getHarness(MatTabHarness.with({ label: 'All' }));
-        await allTab.select();
-
-        expect(routerNavigateSpy).toHaveBeenCalledWith([''], {
-          queryParams: { filter: '', query: undefined },
-          relativeTo: expect.anything(),
-        });
-      });
-      it('should have category selected if query defined', async () => {
-        const category2Tab = await harnessLoader.getHarness(MatTabHarness.with({ label: CATEGORY_2.name }));
-        expect(await category2Tab.isSelected()).toEqual(true);
-      });
-    });
   });
 
   describe('Banner', () => {
@@ -417,15 +173,9 @@ describe('CatalogComponent', () => {
     });
   });
 
-  function expectApiList(
-    apisResponse: ApisResponse = fakeApisResponse(),
-    page: number = 1,
-    size: number = 18,
-    q: string = '',
-    category: string = '',
-  ) {
+  function expectApiList(apisResponse: ApisResponse = fakeApisResponse(), page: number = 1, size: number = 18, category: string = '') {
     httpTestingController
-      .expectOne(`${TESTING_BASE_URL}/apis/_search?page=${page}&category=${category}&size=${size}&q=${q}`)
+      .expectOne(`${TESTING_BASE_URL}/apis/_search?page=${page}&category=${category}&size=${size}&q=`)
       .flush(apisResponse);
   }
 
