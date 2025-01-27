@@ -55,7 +55,7 @@ class ApiExportDomainServiceImplTest {
         api.setType(ApiType.PROXY);
         BasePlanEntity plan = new BasePlanEntity();
         plan.setId(UUID.randomUUID().toString());
-        plan.setSecurity(new PlanSecurity());
+        plan.setSecurity(new PlanSecurity().withType("api-key").withConfiguration("{}"));
         plan.setType(PlanType.API);
         when(exportService.exportApi(any(), any(), any(), any()))
             .thenReturn(new ExportApiEntity(api, null, null, null, Set.of(plan), null));
@@ -66,6 +66,6 @@ class ApiExportDomainServiceImplTest {
         // Then
         assertThat(export.getApi().getType()).isEqualTo(ApiType.PROXY);
         assertThat(export.getPlans()).map(PlanExport::getType).first().isEqualTo(Plan.PlanType.API);
-        assertThat(export.getPlans()).map(PlanExport::getSecurity).first().isNotNull();
+        assertThat(export.getPlans()).map(PlanExport::getSecurity).first().isEqualTo(new PlanSecurity("API_KEY", "{}"));
     }
 }
