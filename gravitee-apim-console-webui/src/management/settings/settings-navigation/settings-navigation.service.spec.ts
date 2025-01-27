@@ -58,7 +58,7 @@ describe('SettingsNavigationService', () => {
           'Metadata',
           'Settings',
           'Theme',
-          'Top APIs',
+          'Featured APIs',
           'API Logging',
           'Dictionaries',
           'Shared Policy Groups',
