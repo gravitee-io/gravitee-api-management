@@ -21,15 +21,18 @@
 .api-tab-documentation {
   &__side-bar {
     min-width: 276px;
-    transition: margin-left 350ms ease-in-out;
-
-    &--hidden {
-      min-width: unset;
-    }
 
     &__tree {
       position: sticky;
       top: 96px;
+    }
+  }
+
+  &__page-content {
+    width: 100%;
+
+    &__container {
+      min-width: 0;
     }
   }
 }

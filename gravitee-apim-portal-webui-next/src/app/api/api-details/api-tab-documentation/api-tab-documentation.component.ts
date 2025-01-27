@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgClass } from '@angular/common';
-import { Component, Input, OnInit, signal, WritableSignal } from '@angular/core';
-import { MatSidenavModule } from '@angular/material/sidenav';
+import { AsyncPipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { marked } from 'marked';
-import { Observable, of } from 'rxjs';
-import { BreadcrumbService } from 'xng-breadcrumb';
+import { catchError, map, Observable, of } from 'rxjs';
 
-import { ApiDocumentationComponent } from './components/api-documentation/api-documentation.component';
-import { DrawerComponent } from '../../../../components/drawer/drawer.component';
+import { LoaderComponent } from '../../../../components/loader/loader.component';
+import { PageComponent } from '../../../../components/page/page.component';
 import { PageTreeComponent, PageTreeNode } from '../../../../components/page-tree/page-tree.component';
 import { Page } from '../../../../entities/page/page';
 import { PageService } from '../../../../services/page.service';
@@ -35,38 +33,49 @@ interface SelectedPageData {
 @Component({
   selector: 'app-api-tab-documentation',
   standalone: true,
-  imports: [PageTreeComponent, RouterModule, ApiDocumentationComponent, MatSidenavModule, DrawerComponent, NgClass],
+  imports: [PageTreeComponent, AsyncPipe, PageComponent, RouterModule, LoaderComponent],
   templateUrl: './api-tab-documentation.component.html',
   styleUrl: './api-tab-documentation.component.scss',
 })
-export class ApiTabDocumentationComponent implements OnInit {
+export class ApiTabDocumentationComponent implements OnInit, OnChanges {
+  @Input()
+  page!: string;
   @Input()
   apiId!: string;
   @Input()
   pages!: Page[];
   pageNodes: PageTreeNode[] = [];
   selectedPageData$: Observable<SelectedPageData> = of();
-  pageId = signal<string | undefined>(undefined);
-  isSidebarExpanded: WritableSignal<boolean> = signal(true);
-  protected readonly marked = marked;
 
   constructor(
-    private readonly pageService: PageService,
-    private readonly router: Router,
-    private readonly activatedRoute: ActivatedRoute,
-    private readonly breadcrumbService: BreadcrumbService,
+    private pageService: PageService,
+    private router: Router,
+    private activatedRoute: ActivatedRoute,
   ) {}
 
   ngOnInit() {
     this.pageNodes = this.pageService.mapToPageTreeNode(undefined, this.pages);
-    this.breadcrumbService.set('@documentation', 'Documentation');
-    if (this.pageNodes.length == 1) {
-      this.isSidebarExpanded.set(false);
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['page'] && !!changes['page'].currentValue) {
+      this.selectedPageData$ = this.getSelectedPage$(changes['page'].currentValue);
     }
   }
 
-  showPage(pageId: string) {
-    this.pageId.set(pageId);
-    this.router.navigate(['.', pageId], { relativeTo: this.activatedRoute });
+  showPage(page: string) {
+    this.router.navigate(['.'], { queryParams: { page }, relativeTo: this.activatedRoute });
+  }
+
+  private getSelectedPage$(pageId: string): Observable<SelectedPageData> {
+    return this.pageService.getByApiIdAndId(this.apiId, pageId, true).pipe(
+      map(result => ({ result })),
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 404) {
+          this.router.navigate(['404']);
+        }
+        return of({ error });
+      }),
+    );
   }
 }
