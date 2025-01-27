@@ -13,23 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host {
-  display: flex;
-  gap: 36px;
-}
 
-.api-tab-documentation {
-  &__side-bar {
-    min-width: 276px;
-    transition: margin-left 350ms ease-in-out;
+.drawer-container {
+  &__content {
+    transition: all 300ms;
 
     &--hidden {
-      min-width: unset;
-    }
-
-    &__tree {
-      position: sticky;
-      top: 96px;
+      display: none;
     }
   }
 }
