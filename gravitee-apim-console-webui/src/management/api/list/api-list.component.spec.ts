@@ -93,9 +93,7 @@ describe('ApisListComponent', () => {
         await initComponent([api]);
 
         const { rowCells } = await computeApisTableCells();
-        expect(rowCells).toEqual([
-          ['', '🪐 Planets (1.0)', 'V4 - Message Gravitee', '', 'No access with this configuration', '', '', 'admin', 'public', 'edit'],
-        ]);
+        expect(rowCells).toEqual([['', '🪐 Planets (1.0)', 'V4 - Message Gravitee', '', '', '', '', 'admin', 'public', 'edit']]);
         expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
       }));
 
