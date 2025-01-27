@@ -75,6 +75,7 @@ export class PageTreeComponent implements OnInit, OnChanges {
 
   ngOnInit() {
     this.dataSource.data = this.pages;
+    this.treeControl.expandAll();
   }
 
   ngOnChanges(changes: SimpleChanges): void {

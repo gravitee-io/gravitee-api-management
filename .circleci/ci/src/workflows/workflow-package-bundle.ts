@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
-import { PackageBundleJob, SetupJob } from '../jobs';
-import { config } from '../config';
+import { PackageBundleJob } from '../jobs';
 
 export class PackageBundleWorkflow {
   static create(dynamicConfig: Config, graviteeioVersion: string, isDryRun: boolean) {
-    const setupJob = SetupJob.create(dynamicConfig);
-    dynamicConfig.addJob(setupJob);
-
     const bundleJob = PackageBundleJob.create(dynamicConfig, graviteeioVersion, isDryRun);
     dynamicConfig.addJob(bundleJob);
-    return new Workflow('package_bundle', [
-      new workflow.WorkflowJob(setupJob, { context: config.jobContext, name: 'Setup' }),
-      new workflow.WorkflowJob(bundleJob, { context: config.jobContext, name: 'Package bundle', requires: ['Setup'] }),
-    ]);
+    return new Workflow('package_bundle', [new workflow.WorkflowJob(bundleJob, { context: ['cicd-orchestrator'] })]);
   }
 }

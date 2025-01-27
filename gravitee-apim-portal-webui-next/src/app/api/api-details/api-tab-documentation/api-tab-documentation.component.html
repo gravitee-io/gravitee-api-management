@@ -16,18 +16,26 @@
 
 -->
 @if (pages.length) {
-  <div [ngClass]="isSidebarExpanded() ? 'api-tab-documentation__side-bar' : 'api-tab-documentation__side-bar--hidden'">
-    <app-drawer [isOpen]="isSidebarExpanded()" (collapse)="isSidebarExpanded.set($event)">
-      <app-page-tree
-        class="api-tab-documentation__side-bar__tree"
-        [activePage]="pageId()"
-        [pages]="pageNodes"
-        (openFile)="showPage($event)" />
-    </app-drawer>
+  <div class="api-tab-documentation__side-bar">
+    <app-page-tree class="api-tab-documentation__side-bar__tree" [activePage]="page" [pages]="pageNodes" (openFile)="showPage($event)" />
   </div>
-  @if (apiId && pageId(); as pageId) {
-    <app-api-documentation [apiId]="apiId" [pages]="pages" [pageId]="pageId"></app-api-documentation>
-  }
+
+  <div class="api-tab-documentation__page-content">
+    @if (selectedPageData$ | async; as selectedPageData) {
+      @if (selectedPageData.result) {
+        <app-page
+          class="api-tab-documentation__page-content__container"
+          [page]="selectedPageData.result"
+          [pages]="pages"
+          [apiId]="apiId"></app-page>
+      }
+      @if (selectedPageData.error) {
+        <div i18n="@@apiDocumentationError">An error has occurred.</div>
+      }
+    } @else {
+      <app-loader />
+    }
+  </div>
 } @else {
   <div i18n="@@apiDocumentationEmpty" class="api-tab-documentation__empty">Documentation for this API is missing.</div>
 }
