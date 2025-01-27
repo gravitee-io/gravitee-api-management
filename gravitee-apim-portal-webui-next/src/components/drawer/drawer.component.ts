@@ -15,12 +15,13 @@
  */
 import { NgClass } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'app-drawer',
   standalone: true,
-  imports: [NgClass, MatIcon],
+  imports: [NgClass, MatIcon, MatButtonModule],
   templateUrl: './drawer.component.html',
   styleUrl: './drawer.component.scss',
 })

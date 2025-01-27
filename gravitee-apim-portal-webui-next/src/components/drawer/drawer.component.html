@@ -15,16 +15,14 @@
     limitations under the License.
 
 -->
-<div class="drawer-container">
-  <button class="btn_container" (click)="close()">
-    <div class="btn_container__btn">
-      <mat-icon>
-        <span>{{ isOpen ? 'keyboard_double_arrow_left' : 'keyboard_double_arrow_right' }}</span>
-      </mat-icon>
-    </div>
-  </button>
-
-  <div [ngClass]="isOpen ? 'drawer-container__content' : 'drawer-container__content--hidden'">
-    <ng-content></ng-content>
+<button mat-icon-button class="btn_container" (click)="close()">
+  <div class="btn_container__btn">
+    <mat-icon>
+      {{ isOpen ? 'keyboard_double_arrow_left' : 'menu' }}
+    </mat-icon>
   </div>
+</button>
+
+<div [ngClass]="isOpen ? 'drawer-container__content' : 'drawer-container__content--hidden'">
+  <ng-content></ng-content>
 </div>

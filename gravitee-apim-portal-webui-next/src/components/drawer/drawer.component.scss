@@ -13,28 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.drawer-container {
-  &__content {
-    transition: all 300ms;
 
-    &--hidden {
-      display: none;
+:host {
+  .drawer-container {
+    &__content {
+      transition: all 300ms;
+
+      &--hidden {
+        display: none;
+      }
     }
-  }
-
-  .btn_container {
-    display: flex;
-    justify-content: right;
-    margin: 10px 0;
-
-    &__btn {
-      cursor: pointer;
-    }
-  }
-
-  button {
-    position: relative;
-    display: flex;
-    justify-content: space-evenly;
   }
 }

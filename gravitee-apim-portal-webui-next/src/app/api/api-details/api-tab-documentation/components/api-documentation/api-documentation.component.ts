@@ -61,9 +61,6 @@ export class ApiDocumentationComponent {
       }),
       map(result => ({ result })),
       catchError((error: HttpErrorResponse) => {
-        if (error.status === 404) {
-          this.router.navigate(['404']);
-        }
         return of({ error });
       }),
     );
