@@ -13,23 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host {
-  display: flex;
-  gap: 36px;
-}
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-.api-tab-documentation {
-  &__side-bar {
-    min-width: 276px;
-    transition: margin-left 350ms ease-in-out;
+import { DrawerComponent } from './drawer.component';
 
-    &--hidden {
-      min-width: unset;
-    }
+describe('DrawerComponent', () => {
+  let component: DrawerComponent;
+  let fixture: ComponentFixture<DrawerComponent>;
 
-    &__tree {
-      position: sticky;
-      top: 96px;
-    }
-  }
-}
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [DrawerComponent],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(DrawerComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});

@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.infra.domain_service.subscription;
 
-import static fixtures.core.model.MembershipFixtures.anApiPrimaryOwnerUserMembership;
 import static fixtures.core.model.MembershipFixtures.anApplicationPrimaryOwnerUserMembership;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;

@@ -60,14 +60,14 @@ describe('PageTreeComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should be expanded by default', async () => {
+  it('should not be expanded by default', async () => {
     const fileTree = await harnessLoader.getHarness(MatTreeHarness);
-    expect(await fileTree.getNodes().then(nodes => nodes[0].isExpanded())).toEqual(true);
+    expect(await fileTree.getNodes().then(nodes => nodes[0].isExpanded())).toEqual(false);
   });
 
   it('should create a node for each page', async () => {
     const fileTree = await harnessLoader.getHarness(MatTreeHarness);
-    expect(await fileTree.getNodes().then(nodes => nodes.length)).toEqual(5);
+    expect(await fileTree.getNodes().then(nodes => nodes.length)).toEqual(2);
   });
 
   it('should select file when page has no children', async () => {
@@ -79,7 +79,7 @@ describe('PageTreeComponent', () => {
     const clickableNode = await fileTree.getNodes().then(nodes => nodes[1].host());
     await clickableNode.click();
 
-    expect(emitted).toEqual('child');
+    expect(emitted).toEqual('lone-node');
   });
 
   it('should not select file when a page has children', async () => {
