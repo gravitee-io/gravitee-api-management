@@ -21,7 +21,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fakes.spring.FakeConfiguration;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
+import inmemory.GroupCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
+import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
@@ -45,9 +47,15 @@ import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
+import io.gravitee.apim.core.group.crud_service.GroupCrudService;
+import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
+import io.gravitee.apim.core.group.query_service.GroupQueryService;
+import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
+import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
+import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
@@ -55,6 +63,7 @@ import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.DeleteSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.DeploySharedPolicyGroupUseCase;
@@ -75,6 +84,7 @@ import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
 import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
+import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDSpecDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
@@ -102,6 +112,7 @@ import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ThemeMapper;
 import io.gravitee.rest.api.portal.rest.mapper.TicketMapper;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
+import io.gravitee.rest.api.portal.rest.resource.ApiMetricsResourceTest;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
@@ -794,7 +805,32 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public SharedPolicyGroupCrudService sharedPolicyGroupCrudService() {
+        return new SharedPolicyGroupCrudServiceInMemory();
+    }
+
+    @Bean
     public DataEncryptor dataEncryptor() {
         return mock(DataEncryptor.class);
+    }
+
+    @Bean
+    public GroupCrudServiceInMemory groupCrudService() {
+        return new GroupCrudServiceInMemory();
+    }
+
+    @Bean
+    public ValidateGroupCRDDomainService validateGroupCRDDomainService(ValidateCRDMembersDomainService validateCRDMembersDomainService) {
+        return new ValidateGroupCRDDomainServiceImpl(validateCRDMembersDomainService);
+    }
+
+    @Bean
+    public ImportGroupCRDUseCase importGroupCRDUseCase(
+        ValidateGroupCRDDomainService validateGroupCRDDomainService,
+        GroupQueryService groupQueryService,
+        GroupCrudService groupCrudService,
+        CRDMembersDomainService crdMembersDomainService
+    ) {
+        return new ImportGroupCRDUseCase(validateGroupCRDDomainService, groupQueryService, groupCrudService, crdMembersDomainService);
     }
 }

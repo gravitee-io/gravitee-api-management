@@ -19,6 +19,8 @@ const aqua = {
 
 const artifactoryUrl = 'https://odbxikk7vo-artifactory.services.clever-cloud.com';
 
+const awsCliVersion = '2.22.35';
+
 const cache = {
   prefix: 'gravitee-api-management-v11',
 };
@@ -59,7 +61,7 @@ const executor = {
   },
   openjdk: {
     image: 'cimg/openjdk',
-    version: '17.0.8', // starting with 17.0.9, node version becomes 20.9.0, which breaks the build.
+    version: '21.0.5',
   },
   node: {
     image: 'cimg/node',
@@ -93,8 +95,8 @@ const yarn = {
 const orbs = {
   aquasec: '1.0.4',
   artifactory: '1.0.1',
-  awsCli: '2.0.6',
-  awsS3: '3.0.0',
+  awsCli: '5.1.2',
+  awsS3: '4.1.0',
   github: '1.0.5',
   gravitee: 'dev:4.5.0',
   helm: '3.0.0',
@@ -153,6 +155,7 @@ const docker = {
 export const config = {
   aqua,
   artifactoryUrl,
+  awsCliVersion,
   cache,
   dockerImages,
   executor,

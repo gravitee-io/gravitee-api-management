@@ -18,6 +18,7 @@ import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/f
 import { GioMonacoEditorModule } from '@gravitee/ui-particles-angular';
 import { MarkdownComponent } from 'ngx-markdown';
 import { MatButtonModule } from '@angular/material/button';
+import { GioAsciidoctorModule } from '@gravitee/ui-particles-angular/gio-asciidoctor';
 
 import { PageType } from '../../../../../entities/management-api-v2';
 import { GioSwaggerUiModule } from '../../../../../components/documentation/gio-swagger-ui/gio-swagger-ui.module';
@@ -35,7 +36,15 @@ import { GioAsyncApiModule } from '../../../../../components/documentation/gio-a
     },
   ],
   standalone: true,
-  imports: [FormsModule, GioMonacoEditorModule, MarkdownComponent, GioSwaggerUiModule, GioAsyncApiModule, MatButtonModule],
+  imports: [
+    FormsModule,
+    GioMonacoEditorModule,
+    MarkdownComponent,
+    GioSwaggerUiModule,
+    GioAsyncApiModule,
+    MatButtonModule,
+    GioAsciidoctorModule,
+  ],
 })
 export class ApiDocumentationV4ContentEditorComponent implements ControlValueAccessor {
   @Input()

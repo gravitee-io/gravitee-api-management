@@ -16,15 +16,32 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 
 export class ApiAnalyticsFiltersBarHarness extends ComponentHarness {
   static hostSelector = 'api-analytics-filters-bar';
 
-  private getRefreshButton = this.locatorFor(MatButtonHarness.with({ text: /Refresh/ }));
+  private getRefreshButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid=refresh-button]' }));
+  public getApplyButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid=apply-button]' }));
+
+  public getFromInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="from"]' }));
+  public getToInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="to"]' }));
+
+  async setFromDate(date: string) {
+    return this.getFromInput().then((input: MatInputHarness) => input.setValue(date));
+  }
+
+  async setToDate(date: string) {
+    return this.getToInput().then((input: MatInputHarness) => input.setValue(date));
+  }
 
   async refresh(): Promise<void> {
     return (await this.getRefreshButton()).click();
   }
 
-  getMatSelect = this.locatorFor(MatSelectHarness);
+  async apply(): Promise<void> {
+    return (await this.getApplyButton()).click();
+  }
+
+  public getMatSelect = this.locatorFor(MatSelectHarness);
 }

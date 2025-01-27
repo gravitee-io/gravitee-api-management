@@ -21,7 +21,7 @@ import { Args, Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { of } from 'rxjs/internal/observable/of';
 import { BreadcrumbService } from 'xng-breadcrumb';
 
-import { computeAndInjectThemeForStory, CUSTOMIZATION_ARGS } from './theme.util';
+import { computeAndInjectThemeForStory } from './theme.util';
 import { ApiDetailsComponent } from '../../app/api/api-details/api-details.component';
 import { ApiCardComponent } from '../../components/api-card/api-card.component';
 import { BannerComponent } from '../../components/banner/banner.component';
@@ -67,7 +67,29 @@ export default {
 } as Meta;
 
 export const Default: StoryObj = {
-  argTypes: CUSTOMIZATION_ARGS,
+  argTypes: {
+    primary: {
+      control: { type: 'color' },
+    },
+    secondary: {
+      control: { type: 'color' },
+    },
+    tertiary: {
+      control: { type: 'color' },
+    },
+    error: {
+      control: { type: 'color' },
+    },
+    background: {
+      control: { type: 'color' },
+    },
+    bannerBackground: {
+      control: { type: 'color' },
+    },
+    bannerText: {
+      control: { type: 'color' },
+    },
+  },
   render: (args: Args) => {
     computeAndInjectThemeForStory(args);
     return {

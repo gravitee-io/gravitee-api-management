@@ -25,7 +25,10 @@ import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainServi
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -42,6 +45,8 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
 
     private final VerifyApiPathDomainService apiPathValidator;
 
+    private final VerifyApiHostsDomainService apiHostValidator;
+
     private final ValidateCRDMembersDomainService membersValidator;
 
     private final ValidateGroupsDomainService groupsValidator;
@@ -55,10 +60,10 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
         var errors = new ArrayList<Error>();
         var sanitizedBuilder = input.spec().toBuilder();
 
-        if (!input.spec.isNative()) {
-            validateAndSanitizeHttpV4ForCreation(input, sanitizedBuilder, errors);
-        } else {
+        if (input.spec.isNative()) {
             validateAndSanitizeNativeV4ForCreation(input, sanitizedBuilder, errors);
+        } else {
+            validateAndSanitizeHttpV4ForCreation(input, sanitizedBuilder, errors);
         }
 
         categoryIdsValidator
@@ -69,12 +74,7 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
 
         membersValidator
             .validateAndSanitize(
-                new ValidateCRDMembersDomainService.Input(
-                    input.auditInfo(),
-                    input.spec.getId(),
-                    MembershipReferenceType.API,
-                    input.spec().getMembers()
-                )
+                new ValidateCRDMembersDomainService.Input(input.auditInfo(), MembershipReferenceType.API, input.spec().getMembers())
             )
             .peek(sanitized -> sanitizedBuilder.members(sanitized.members()), errors::addAll);
 
@@ -111,5 +111,29 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
         Input input,
         ApiCRDSpec.ApiCRDSpecBuilder sanitizedBuilder,
         ArrayList<Error> errors
-    ) {}
+    ) {
+        var listeners = new ArrayList<KafkaListener>();
+
+        input.spec
+            .getListeners()
+            .forEach(listener -> {
+                try {
+                    KafkaListener kafkaListener = (KafkaListener) listener;
+                    if (
+                        apiHostValidator.checkApiHosts(
+                            input.auditInfo.environmentId(),
+                            input.spec.getId(),
+                            List.of(kafkaListener.getHost()),
+                            ListenerType.KAFKA
+                        )
+                    ) {
+                        listeners.add((KafkaListener) listener);
+                    }
+                } catch (Exception e) {
+                    errors.add(Error.severe(e.getMessage()));
+                }
+            });
+
+        sanitizedBuilder.listeners(listeners);
+    }
 }

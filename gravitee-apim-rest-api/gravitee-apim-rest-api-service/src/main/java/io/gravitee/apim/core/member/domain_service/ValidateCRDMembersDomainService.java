@@ -48,10 +48,9 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
     private final UserDomainService userDomainService;
     private final RoleQueryService roleQueryService;
 
-    public record Input(AuditInfo auditInfo, String referenceId, MembershipReferenceType referenceType, Set<MemberCRD> members)
-        implements Validator.Input {
+    public record Input(AuditInfo auditInfo, MembershipReferenceType referenceType, Set<MemberCRD> members) implements Validator.Input {
         Input sanitized(Set<MemberCRD> sanitizedMembers) {
-            return new Input(auditInfo, referenceId, referenceType, sanitizedMembers);
+            return new Input(auditInfo, referenceType, sanitizedMembers);
         }
     }
 
@@ -109,6 +108,7 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
             return switch (scope) {
                 case API -> roleQueryService.findApiRole(role, context);
                 case APPLICATION -> roleQueryService.findApplicationRole(role, context);
+                case INTEGRATION -> roleQueryService.findIntegrationRole(role, context);
                 default -> throw new TechnicalDomainException(String.format("Role scope [%s] is not supported", scope));
             };
         }

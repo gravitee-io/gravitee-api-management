@@ -105,9 +105,6 @@ public class ScoreApiRequestUseCase {
                     )
             )
             .flatMapCompletable(request -> {
-                if (request.assets().isEmpty()) {
-                    return Completable.complete();
-                }
                 var job = newScoringJob(request.jobId(), input.auditInfo, input.apiId);
                 return scoringProvider.requestScore(request).doOnComplete(() -> asyncJobCrudService.create(job));
             });
@@ -148,16 +145,18 @@ public class ScoreApiRequestUseCase {
         if (StringUtils.isEmpty(scoringRuleset.payload())) {
             return Maybe.empty();
         }
-        return scoringRuleset.format() != null
-            ? Maybe.just(new ScoreRequest.CustomRuleset(scoringRuleset.payload(), format(scoringRuleset.format())))
-            : Maybe.just(new ScoreRequest.CustomRuleset(scoringRuleset.payload()));
+        return Maybe.just(new ScoreRequest.CustomRuleset(scoringRuleset.payload(), format(scoringRuleset.format())));
     }
 
     private ScoreRequest.Format format(ScoringRuleset.Format format) {
+        if (format == null) {
+            return null;
+        }
         return switch (format) {
             case GRAVITEE_FEDERATION -> ScoreRequest.Format.GRAVITEE_FEDERATED;
             case GRAVITEE_MESSAGE -> ScoreRequest.Format.GRAVITEE_MESSAGE;
             case GRAVITEE_PROXY -> ScoreRequest.Format.GRAVITEE_PROXY;
+            case OPENAPI, ASYNCAPI -> null;
         };
     }
 

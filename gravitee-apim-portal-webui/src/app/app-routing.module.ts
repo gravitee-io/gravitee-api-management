@@ -60,8 +60,14 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     component: DashboardComponent,
-    data: { title: 'route.dashboard', expectedRole: Role.AUTH_USER, animation: { type: 'fade' }, menu: {} },
-    canActivate: [authGuard],
+    data: {
+      title: 'route.dashboard',
+      expectedRole: Role.AUTH_USER,
+      animation: { type: 'fade' },
+      menu: {},
+      isDisabledInDocumentationOnlyMode: true,
+    },
+    canActivate: [authGuard, featureGuard],
   },
   {
     path: 'catalog',
@@ -134,9 +140,10 @@ export const routes: Routes = [
           {
             path: 'subscribe',
             component: ApiSubscribeComponent,
-            canActivate: [SubscribeGuardService],
+            canActivate: [SubscribeGuardService, featureGuard],
             data: {
               title: 'route.catalogApiSubscribe',
+              isDisabledInDocumentationOnlyMode: true,
             },
           },
         ],
@@ -314,18 +321,18 @@ export const routes: Routes = [
       { path: ':rootDir', component: DocumentationComponent, data: { animation: { type: 'fade' } } },
     ],
   },
-
   { path: 'pages/:pageId', component: SinglePageComponent },
   {
     path: 'applications',
     loadChildren: () => import('./pages/applications/applications.module').then(m => m.ApplicationsModule),
-    canActivate: [authGuard, permissionGuard],
+    canActivate: [authGuard, featureGuard, permissionGuard],
     data: {
       title: 'route.applications',
       menu: { hiddenPaths: ['creation'] },
       expectedRole: Role.AUTH_USER,
       animation: {},
       expectedPermissions: ['APPLICATION-R'],
+      isDisabledInDocumentationOnlyMode: true,
     },
   },
   { path: 'cookies', component: CookiesComponent, data: { title: 'route.cookies' } },

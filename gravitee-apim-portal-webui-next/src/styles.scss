@@ -24,7 +24,7 @@
 @use './scss/theme';
 
 @include mat.core();
-@include matx.color-variants-back-compat(theme.$light-theme);
+@include mat.color-variants-backwards-compatibility(theme.$light-theme);
 
 html {
   @include mat.all-component-themes(theme.$light-theme);

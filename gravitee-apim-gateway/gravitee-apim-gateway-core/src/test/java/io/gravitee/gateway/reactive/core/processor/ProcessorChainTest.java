@@ -22,21 +22,20 @@ import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
 class ProcessorChainTest {
 
+    @Mock
     private Processor mockProcessor;
-
-    @BeforeEach
-    public void init() {
-        mockProcessor = mock(Processor.class);
-    }
 
     @Test
     public void shouldCompleteWithNullProcessors() {

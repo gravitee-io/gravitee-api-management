@@ -34,6 +34,7 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.AsyncJobRepository;
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.CategoryRepository;
+import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.CustomUserFieldsRepository;
 import io.gravitee.repository.management.api.DashboardRepository;
@@ -52,6 +53,8 @@ import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.PortalMenuLinkRepository;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
+import io.gravitee.repository.management.api.PromotionRepository;
+import io.gravitee.repository.management.api.QualityRuleRepository;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.RoleRepository;
@@ -62,6 +65,7 @@ import io.gravitee.repository.management.api.SharedPolicyGroupHistoryRepository;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.ThemeRepository;
+import io.gravitee.repository.management.api.TicketRepository;
 import io.gravitee.repository.management.api.WorkflowRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
@@ -76,6 +80,7 @@ import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.ParameterReferenceType;
+import io.gravitee.repository.management.model.QualityRule;
 import io.gravitee.repository.management.model.RatingReferenceType;
 import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.ThemeReferenceType;
@@ -119,6 +124,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final AuditRepository auditRepository;
     private final CategoryRepository categoryRepository;
     private final CommandRepository commandRepository;
+    private final ClientRegistrationProviderRepository clientRegistrationProviderRepository;
     private final CustomUserFieldsRepository customUserFieldsRepository;
     private final DashboardRepository dashboardRepository;
     private final DictionaryRepository dictionaryRepository;
@@ -141,6 +147,8 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final PlanRepository planRepository;
     private final PortalMenuLinkRepository portalMenuLinkRepository;
     private final PortalNotificationConfigRepository portalNotificationConfigRepository;
+    private final PromotionRepository promotionRepository;
+    private final QualityRuleRepository qualityRuleRepository;
     private final RatingAnswerRepository ratingAnswerRepository;
     private final RatingRepository ratingRepository;
     private final RoleRepository roleRepository;
@@ -152,6 +160,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final ThemeRepository themeRepository;
+    private final TicketRepository ticketRepository;
     private final WorkflowRepository workflowRepository;
 
     public DeleteEnvironmentCommandHandler(
@@ -165,6 +174,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         @Lazy AsyncJobRepository asyncJobRepository,
         @Lazy AuditRepository auditRepository,
         @Lazy CategoryRepository categoryRepository,
+        @Lazy ClientRegistrationProviderRepository clientRegistrationProviderRepository,
         @Lazy CommandRepository commandRepository,
         @Lazy CustomUserFieldsRepository customUserFieldsRepository,
         @Lazy DashboardRepository dashboardRepository,
@@ -184,6 +194,8 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         @Lazy PlanRepository planRepository,
         @Lazy PortalMenuLinkRepository portalMenuLinkRepository,
         @Lazy PortalNotificationConfigRepository portalNotificationConfigRepository,
+        @Lazy PromotionRepository promotionRepository,
+        @Lazy QualityRuleRepository qualityRuleRepository,
         @Lazy RatingAnswerRepository ratingAnswerRepository,
         @Lazy RatingRepository ratingRepository,
         @Lazy RoleRepository roleRepository,
@@ -194,6 +206,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         @Lazy SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository,
         @Lazy SubscriptionRepository subscriptionRepository,
         @Lazy ThemeRepository themeRepository,
+        @Lazy TicketRepository ticketRepository,
         @Lazy WorkflowRepository workflowRepository,
         AccessPointCrudService accessPointService,
         AlertService alertService,
@@ -217,6 +230,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.applicationRepository = applicationRepository;
         this.auditRepository = auditRepository;
         this.categoryRepository = categoryRepository;
+        this.clientRegistrationProviderRepository = clientRegistrationProviderRepository;
         this.commandRepository = commandRepository;
         this.customUserFieldsRepository = customUserFieldsRepository;
         this.dashboardRepository = dashboardRepository;
@@ -240,6 +254,8 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.planRepository = planRepository;
         this.portalMenuLinkRepository = portalMenuLinkRepository;
         this.portalNotificationConfigRepository = portalNotificationConfigRepository;
+        this.promotionRepository = promotionRepository;
+        this.qualityRuleRepository = qualityRuleRepository;
         this.ratingAnswerRepository = ratingAnswerRepository;
         this.ratingRepository = ratingRepository;
         this.roleRepository = roleRepository;
@@ -251,6 +267,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.sharedPolicyGroupHistoryRepository = sharedPolicyGroupHistoryRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.themeRepository = themeRepository;
+        this.ticketRepository = ticketRepository;
         this.workflowRepository = workflowRepository;
     }
 
@@ -368,6 +385,8 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         metadataRepository.deleteByReferenceIdAndReferenceType(environment.getId(), MetadataReferenceType.ENVIRONMENT);
         environmentService.delete(environment.getId());
         auditRepository.deleteByReferenceIdAndReferenceType(environment.getId(), Audit.AuditReferenceType.ENVIRONMENT);
+        clientRegistrationProviderRepository.deleteByEnvironmentId(environment.getId());
+        qualityRuleRepository.deleteByReferenceIdAndReferenceType(environment.getId(), QualityRule.ReferenceType.ENVIRONMENT);
     }
 
     private void deleteApis(ExecutionContext executionContext) throws TechnicalException {
@@ -389,7 +408,9 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
                     membershipRepository.deleteByReferenceIdAndReferenceType(apiId, MembershipReferenceType.API);
                     metadataRepository.deleteByReferenceIdAndReferenceType(apiId, MetadataReferenceType.API);
                     portalNotificationConfigRepository.deleteByReferenceIdAndReferenceType(apiId, NotificationReferenceType.API);
+                    promotionRepository.deleteByApiId(apiId);
                     scoringReportRepository.deleteByApi(apiId);
+                    ticketRepository.deleteByApiId(apiId);
                     workflowRepository.deleteByReferenceIdAndReferenceType(apiId, Workflow.ReferenceType.API.name());
                     deleteRatings(apiId, RatingReferenceType.API);
                 } catch (TechnicalException e) {
@@ -446,6 +467,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
                     );
                     workflowRepository.deleteByReferenceIdAndReferenceType(applicationId, Workflow.ReferenceType.APPLICATION.name());
                     auditRepository.deleteByReferenceIdAndReferenceType(applicationId, Audit.AuditReferenceType.APPLICATION);
+                    ticketRepository.deleteByApplicationId(applicationId);
                 } catch (TechnicalException e) {
                     throw new TechnicalManagementException(e);
                 }

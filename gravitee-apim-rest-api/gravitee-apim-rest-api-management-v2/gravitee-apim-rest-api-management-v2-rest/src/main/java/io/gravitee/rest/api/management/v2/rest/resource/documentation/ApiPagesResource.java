@@ -29,11 +29,13 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PageMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiDocumentationPagesResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentation;
+import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationAsciiDoc;
 import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationAsyncApi;
 import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationMarkdown;
 import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationSwagger;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentation;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationAsciiDoc;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationAsyncApi;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationMarkdown;
@@ -113,6 +115,8 @@ public class ApiPagesResource extends AbstractResource {
             pageToCreate = mapper.map(swagger);
         } else if (createDocumentation instanceof CreateDocumentationAsyncApi asyncApi) {
             pageToCreate = mapper.map(asyncApi);
+        } else if (createDocumentation instanceof CreateDocumentationAsciiDoc asciiDoc) {
+            pageToCreate = mapper.map(asciiDoc);
         }
 
         if (pageToCreate != null) {
@@ -160,6 +164,8 @@ public class ApiPagesResource extends AbstractResource {
             input = mapper.map(swagger, apiId, pageId, auditInfo);
         } else if (updateDocumentation instanceof UpdateDocumentationAsyncApi asyncApi) {
             input = mapper.map(asyncApi, apiId, pageId, auditInfo);
+        } else if (updateDocumentation instanceof UpdateDocumentationAsciiDoc asciiDoc) {
+            input = mapper.map(asciiDoc, apiId, pageId, auditInfo);
         }
 
         if (input != null) {

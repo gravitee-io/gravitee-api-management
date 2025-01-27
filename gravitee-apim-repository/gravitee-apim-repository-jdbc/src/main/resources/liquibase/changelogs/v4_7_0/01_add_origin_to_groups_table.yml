@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.7.0_01-add_origin_shared_policy_groups
+      author: GraviteeSource Team
+      changes:
+        # ################
+        # Application Changes: Kubernetes Operator
+        # ################
+        - addColumn:
+            tableName: ${gravitee_prefix}groups
+            columns:
+              - column:
+                  name: origin
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true

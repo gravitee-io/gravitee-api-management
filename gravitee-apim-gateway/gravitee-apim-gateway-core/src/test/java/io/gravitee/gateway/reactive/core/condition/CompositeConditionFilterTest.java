@@ -54,34 +54,26 @@ class CompositeConditionFilterTest {
 
     @Test
     void shouldNotFilterWhenAllEvaluatorsReturnTheValue() {
-        final CompositeConditionFilter<BaseExecutionContext, ConditionSupplier> cut = new CompositeConditionFilter<>(
-            evaluator1,
-            evaluator2,
-            evaluator3
-        );
+        final var cut = new CompositeConditionFilter<>(evaluator1, evaluator2, evaluator3);
 
         mockFilter(evaluator1);
         mockFilter(evaluator2);
         mockFilter(evaluator3);
 
-        final TestObserver<ConditionSupplier> obs = cut.filter(ctx, conditionSupplier).test();
+        final var obs = cut.filter(ctx, conditionSupplier).test();
 
         obs.assertResult(conditionSupplier);
     }
 
     @Test
     void shouldFilterWhenOneEvaluatorReturnsEmpty() {
-        final CompositeConditionFilter<BaseExecutionContext, ConditionSupplier> cut = new CompositeConditionFilter<>(
-            evaluator1,
-            evaluator2,
-            evaluator3
-        );
+        final var cut = new CompositeConditionFilter<>(evaluator1, evaluator2, evaluator3);
 
         mockFilter(evaluator1);
         mockFilter(evaluator2);
         mockFilterEmpty(evaluator3);
 
-        final TestObserver<ConditionSupplier> obs = cut.filter(ctx, conditionSupplier).test();
+        final var obs = cut.filter(ctx, conditionSupplier).test();
 
         obs.assertResult();
         obs.assertNoValues();
@@ -89,17 +81,13 @@ class CompositeConditionFilterTest {
 
     @Test
     void shouldErrorWhenOneEvaluatorReturnsError() {
-        final CompositeConditionFilter<BaseExecutionContext, ConditionSupplier> cut = new CompositeConditionFilter<>(
-            evaluator1,
-            evaluator2,
-            evaluator3
-        );
+        final var cut = new CompositeConditionFilter<>(evaluator1, evaluator2, evaluator3);
 
         mockFilter(evaluator1);
         mockFilter(evaluator2);
         mockFilterError(evaluator3);
 
-        final TestObserver<ConditionSupplier> obs = cut.filter(ctx, conditionSupplier).test();
+        final var obs = cut.filter(ctx, conditionSupplier).test();
 
         obs.assertError(RuntimeException.class);
         obs.assertError(t -> MOCK_EXCEPTION.equals(t.getMessage()));
@@ -107,15 +95,11 @@ class CompositeConditionFilterTest {
 
     @Test
     void shouldNotContinueWhenReturnsEmpty() {
-        final CompositeConditionFilter<BaseExecutionContext, ConditionSupplier> cut = new CompositeConditionFilter<>(
-            evaluator1,
-            evaluator2,
-            evaluator3
-        );
+        final var cut = new CompositeConditionFilter<>(evaluator1, evaluator2, evaluator3);
 
         mockFilterEmpty(evaluator1);
 
-        final TestObserver<ConditionSupplier> obs = cut.filter(ctx, conditionSupplier).test();
+        final var obs = cut.filter(ctx, conditionSupplier).test();
 
         obs.assertResult();
         obs.assertNoValues();

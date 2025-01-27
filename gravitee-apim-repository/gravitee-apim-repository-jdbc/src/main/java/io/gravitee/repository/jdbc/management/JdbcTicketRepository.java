@@ -127,4 +127,44 @@ public class JdbcTicketRepository extends JdbcAbstractCrudRepository<Ticket, Str
             query.append(" order by created_at desc ");
         }
     }
+
+    @Override
+    public List<String> deleteByApiId(String apiId) throws TechnicalException {
+        LOGGER.debug("JdbcTicketRepository.deleteByApiId({})", apiId);
+        try {
+            final var rows = jdbcTemplate.queryForList("select id from " + this.tableName + " where api = ?", String.class, apiId);
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update("delete from " + tableName + " where api = ?", apiId);
+            }
+
+            LOGGER.debug("JdbcTicketRepository.deleteByApiId({}) - Done", apiId);
+            return rows;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete tickets by apiId: {}", apiId, ex);
+            throw new TechnicalException("Failed to delete tickets by api", ex);
+        }
+    }
+
+    @Override
+    public List<String> deleteByApplicationId(String applicationId) throws TechnicalException {
+        LOGGER.debug("JdbcTicketRepository.deleteByApplicationId({})", applicationId);
+        try {
+            final var rows = jdbcTemplate.queryForList(
+                "select id from " + this.tableName + " where application = ?",
+                String.class,
+                applicationId
+            );
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update("delete from " + tableName + " where application = ?", applicationId);
+            }
+
+            LOGGER.debug("JdbcTicketRepository.deleteByApplicationId({}) - Done", applicationId);
+            return rows;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete tickets by applicationId: {}", applicationId, ex);
+            throw new TechnicalException("Failed to delete tickets by application", ex);
+        }
+    }
 }

@@ -29,4 +29,7 @@ import org.springframework.stereotype.Repository;
 public interface QualityRuleMongoRepository extends MongoRepository<QualityRuleMongo, String> {
     @Query("{ 'referenceType': ?0, 'referenceId': ?1 }")
     List<QualityRuleMongo> findByReference(String referenceType, String referenceId);
+
+    @Query(value = "{'referenceId': ?0,  'referenceType': ?1, }", delete = true)
+    List<QualityRuleMongo> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType);
 }

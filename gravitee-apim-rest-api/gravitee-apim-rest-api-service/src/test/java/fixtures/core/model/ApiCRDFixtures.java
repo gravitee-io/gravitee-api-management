@@ -24,7 +24,6 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
-import io.gravitee.definition.model.v4.nativeapi.NativeEntrypoint;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import java.util.List;
@@ -78,6 +77,7 @@ public class ApiCRDFixtures {
     public static ApiCRDSpecBuilder BASE_NATIVE_SPEC = ApiCRDSpec
         .builder()
         .id(API_ID)
+        .type("native")
         .crossId(API_CROSS_ID)
         .name(API_NAME)
         .listeners(List.of(KafkaListener.builder().host("local.kafka").port(9092).build()))

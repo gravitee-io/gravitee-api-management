@@ -15,12 +15,10 @@
  */
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { forkJoin, Subject } from 'rxjs';
-import { UntypedFormControl, Validators } from '@angular/forms';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import { toNumber } from 'lodash';
 
 import { AnalyticsService } from '../../../services-ngx/analytics.service';
-import { GioQuickTimeRangeComponent } from '../components/gio-quick-time-range/gio-quick-time-range.component';
 import { TopApisData } from '../components/gio-top-apis-table/gio-top-apis-table.component';
 import { RequestStats } from '../components/gio-request-stats/gio-request-stats.component';
 import { ApiResponseStatusData } from '../components/gio-api-response-status/gio-api-response-status.component';
@@ -31,6 +29,7 @@ import { TopApisV4 } from '../../../shared/components/top-apis-widget/top-apis-w
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { TimeRangeParams } from '../../../shared/utils/timeFrameRanges';
 import { v4ApisRequestStats } from '../components/dashboard-v4-api-request-stats/dashboard-v4-api-request-stats';
+import { HomeService } from '../../../services-ngx/home.service';
 
 @Component({
   selector: 'home-overview',
@@ -38,33 +37,42 @@ import { v4ApisRequestStats } from '../components/dashboard-v4-api-request-stats
   styleUrls: ['./home-overview.component.scss'],
 })
 export class HomeOverviewComponent implements OnInit, OnDestroy {
-  loading = false;
-
-  private fetchAnalyticsRequest$ = new Subject<TimeRangeParams>();
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
+  public loading = false;
+  public topApis: TopApisData;
+  public topApisV4: TopApisV4[];
+  public requestStats: RequestStats;
+  public requestStatsV4: v4ApisRequestStats;
+  public apiResponseStatus: ApiResponseStatusData;
+  public v4ApiAnalyticsResponseStatusRanges: ApiAnalyticsResponseStatusRanges;
+  public apiState: ApiStateData;
+  public apiLifecycleState?: ApiLifecycleStateData;
+  public apiNb: number;
+  public applicationNb: number;
+  public timeRangeParams: TimeRangeParams;
+
   constructor(
+    private readonly homeService: HomeService,
     private readonly statsService: AnalyticsService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly snackBarService: SnackBarService,
   ) {}
 
-  topApis?: TopApisData;
-  topApisV4: TopApisV4[];
-  requestStats?: RequestStats;
-  requestStatsV4?: v4ApisRequestStats;
-  apiResponseStatus?: ApiResponseStatusData;
-  v4ApiAnalyticsResponseStatusRanges: ApiAnalyticsResponseStatusRanges;
-  apiState?: ApiStateData;
-  apiLifecycleState?: ApiLifecycleStateData;
-  apiNb?: number;
-  applicationNb?: number;
-
-  timeRangeControl = new UntypedFormControl('1m', Validators.required);
-  timeRangeParams: TimeRangeParams;
-
   ngOnInit(): void {
+    this.homeService
+      .timeRangeParams()
+      .pipe(
+        tap((timeRangeParams) => {
+          this.timeRangeParams = timeRangeParams;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+
     // Summary
-    this.fetchAnalyticsRequest$
+    this.homeService
+      .timeRangeParams()
       .pipe(
         tap(() => {
           this.apiNb = undefined;
@@ -95,7 +103,8 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
       .subscribe(() => this.changeDetectorRef.markForCheck());
 
     // API lifecycle state
-    this.fetchAnalyticsRequest$
+    this.homeService
+      .timeRangeParams()
       .pipe(
         tap(() => (this.apiLifecycleState = undefined)),
         switchMap((val) =>
@@ -112,7 +121,8 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
       .subscribe(() => this.changeDetectorRef.markForCheck());
 
     // API state
-    this.fetchAnalyticsRequest$
+    this.homeService
+      .timeRangeParams()
       .pipe(
         tap(() => (this.apiState = undefined)),
         switchMap((val) =>
@@ -129,7 +139,8 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
       .subscribe(() => this.changeDetectorRef.markForCheck());
 
     // API response status
-    this.fetchAnalyticsRequest$
+    this.homeService
+      .timeRangeParams()
       .pipe(
         tap(() => (this.apiResponseStatus = undefined)),
         switchMap((val) =>
@@ -147,7 +158,8 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
       .subscribe(() => this.changeDetectorRef.markForCheck());
 
     // V4 API response status
-    this.fetchAnalyticsRequest$
+    this.homeService
+      .timeRangeParams()
       .pipe(
         tap(() => (this.v4ApiAnalyticsResponseStatusRanges = undefined)),
         switchMap((val) => this.statsService.getV4ApiResponseStatus(val.from, val.to)),
@@ -167,7 +179,8 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
       });
 
     // Top APIs
-    this.fetchAnalyticsRequest$
+    this.homeService
+      .timeRangeParams()
       .pipe(
         tap(() => (this.topApis = undefined)),
         switchMap((val) => this.statsService.getGroupBy({ field: 'api', interval: val.interval, from: val.from, to: val.to })),
@@ -177,7 +190,8 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
       .subscribe(() => this.changeDetectorRef.markForCheck());
 
     // Top APIs V4
-    this.fetchAnalyticsRequest$
+    this.homeService
+      .timeRangeParams()
       .pipe(
         tap(() => (this.topApisV4 = undefined)),
         switchMap((val) => this.statsService.getV4TopApis(val.from, val.to)),
@@ -194,7 +208,8 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
       });
 
     // Request Stats
-    this.fetchAnalyticsRequest$
+    this.homeService
+      .timeRangeParams()
       .pipe(
         tap(() => (this.requestStats = undefined)),
         switchMap((val) => this.statsService.getStats({ field: 'response-time', interval: val.interval, from: val.from, to: val.to })),
@@ -204,7 +219,8 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
       .subscribe(() => this.changeDetectorRef.markForCheck());
 
     // Request Stats v4
-    this.fetchAnalyticsRequest$
+    this.homeService
+      .timeRangeParams()
       .pipe(
         tap(() => (this.requestStatsV4 = undefined)),
         switchMap((val) => this.statsService.getV4RequestResponseStats(val.from, val.to)),
@@ -212,27 +228,10 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.changeDetectorRef.markForCheck());
-
-    // Fetch Analytics when timeRange change
-    this.timeRangeControl.valueChanges
-      .pipe(
-        tap(() => this.fetchAnalyticsRequest()),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe(() => this.changeDetectorRef.markForCheck());
-
-    // First fetch
-    this.fetchAnalyticsRequest();
   }
 
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
-  }
-
-  fetchAnalyticsRequest() {
-    const timeRange = this.timeRangeControl.value;
-    this.timeRangeParams = GioQuickTimeRangeComponent.getTimeFrameRangesParams(timeRange);
-    this.fetchAnalyticsRequest$.next(this.timeRangeParams);
   }
 }

@@ -16,9 +16,9 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.json.JsonDeserializer;
-import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupDefinition;
+import io.gravitee.rest.api.model.context.OriginContext;
 import java.io.IOException;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.InjectionStrategy;
@@ -41,8 +41,10 @@ public abstract class SharedPolicyGroupAdapter {
 
     private final Logger LOGGER = LoggerFactory.getLogger(SharedPolicyGroupAdapter.class);
 
+    @Mapping(target = "originContext", expression = "java(toOriginContextEnum(sharedPolicyGroup.getOrigin()))")
     public abstract SharedPolicyGroup toEntity(io.gravitee.repository.management.model.SharedPolicyGroup sharedPolicyGroup);
 
+    @Mapping(target = "origin", expression = "java(toOriginString(sharedPolicyGroupEntity.getOriginContext()))")
     @Mapping(target = "definition", source = ".", qualifiedByName = "serializeDefinition")
     public abstract io.gravitee.repository.management.model.SharedPolicyGroup fromEntity(SharedPolicyGroup sharedPolicyGroupEntity);
 
@@ -83,5 +85,23 @@ public abstract class SharedPolicyGroupAdapter {
                 ioe
             );
         }
+    }
+
+    public OriginContext toOriginContextEnum(String origin) {
+        if (origin == null) {
+            return null;
+        }
+
+        if ("MANAGEMENT".equalsIgnoreCase(origin)) {
+            return new OriginContext.Management();
+        } else if ("KUBERNETES".equalsIgnoreCase(origin)) {
+            return new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED);
+        }
+
+        return null;
+    }
+
+    public String toOriginString(OriginContext originContext) {
+        return originContext.name();
     }
 }

@@ -17,7 +17,8 @@
 -->
 <div class="home-overview">
   <div class="home-overview__time-selector">
-    <gio-quick-time-range [formControl]="timeRangeControl" (onRefreshClicked)="fetchAnalyticsRequest()"></gio-quick-time-range>
+    <!--    <gio-quick-time-range></gio-quick-time-range>-->
+    <app-dashboard-filters-bar></app-dashboard-filters-bar>
   </div>
   <div class="home-overview__row-cards">
     <mat-card class="card flex">
@@ -90,7 +91,7 @@
       [responseStatusRanges]="v4ApiAnalyticsResponseStatusRanges"
     ></api-analytics-response-status-ranges>
 
-    <app-top-apis-widget [data]="topApisV4" [period]="this.timeRangeParams.id"></app-top-apis-widget>
+    <app-top-apis-widget [data]="topApisV4" [period]="this.timeRangeParams"></app-top-apis-widget>
     <dashboard-v4-api-request-stats [data]="requestStatsV4"></dashboard-v4-api-request-stats>
   </div>
 </div>

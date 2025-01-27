@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.logging.utils;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.Api;
@@ -28,6 +28,8 @@ import io.gravitee.gateway.core.logging.LoggingContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -50,41 +52,23 @@ class LoggingUtilsTest {
         ReflectionTestUtils.setField(LoggingUtils.class, "EXCLUDED_CONTENT_TYPES_PATTERN", null);
     }
 
-    @Test
-    void shouldLogByDefault() throws Exception {
-        assertTrue(LoggingUtils.isContentTypeLoggable("application/json", executionContext));
+    @ParameterizedTest
+    @ValueSource(strings = { "application/json", "foo/bar" })
+    void shouldLogImageByDefault(String input) {
+        assertThat(LoggingUtils.isContentTypeLoggable(input, executionContext)).isTrue();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "image/png", "audio/ogg", "video/ogg", "application/pdf" })
+    void shouldNotLogImageByDefault(String input) {
+        assertThat(LoggingUtils.isContentTypeLoggable(input, executionContext)).isFalse();
     }
 
     @Test
-    void shouldNotLogImageByDefault() throws Exception {
-        assertFalse(LoggingUtils.isContentTypeLoggable("image/png", executionContext));
-    }
-
-    @Test
-    void shouldNotLogAudioByDefault() throws Exception {
-        assertFalse(LoggingUtils.isContentTypeLoggable("audio/ogg", executionContext));
-    }
-
-    @Test
-    void shouldNotLogVideoByDefault() throws Exception {
-        assertFalse(LoggingUtils.isContentTypeLoggable("video/ogg", executionContext));
-    }
-
-    @Test
-    void shouldNotLogPDFByDefault() throws Exception {
-        assertFalse(LoggingUtils.isContentTypeLoggable("application/pdf", executionContext));
-    }
-
-    @Test
-    void shouldNotLogCustom() throws Exception {
+    void shouldNotLogCustom() {
         when(loggingContext.getExcludedResponseTypes()).thenReturn("foo/bar");
         when(executionContext.getAttribute(LoggingContext.LOGGING_ATTRIBUTE)).thenReturn(loggingContext);
-        assertFalse(LoggingUtils.isContentTypeLoggable("foo/bar", executionContext));
-    }
-
-    @Test
-    void shouldLogCustom() throws Exception {
-        assertTrue(LoggingUtils.isContentTypeLoggable("foo/bar", executionContext));
+        assertThat(LoggingUtils.isContentTypeLoggable("foo/bar", executionContext)).isFalse();
     }
 
     @Test
@@ -94,7 +78,7 @@ class LoggingUtilsTest {
 
         LoggingUtils.appendBuffer(buffer, chunk, -1);
 
-        assertEquals("Existing buffer Chunk to append", buffer.toString());
+        assertThat(buffer).hasToString("Existing buffer Chunk to append");
     }
 
     @Test
@@ -104,7 +88,7 @@ class LoggingUtilsTest {
 
         LoggingUtils.appendBuffer(buffer, chunk, 50);
 
-        assertEquals("Existing buffer Chunk to append", buffer.toString());
+        assertThat(buffer).hasToString("Existing buffer Chunk to append");
     }
 
     @Test
@@ -114,7 +98,7 @@ class LoggingUtilsTest {
 
         LoggingUtils.appendBuffer(buffer, chunk, 21);
 
-        assertEquals("Existing buffer Chunk", buffer.toString());
+        assertThat(buffer).hasToString("Existing buffer Chunk");
     }
 
     @Test
@@ -124,7 +108,7 @@ class LoggingUtilsTest {
 
         LoggingUtils.appendBuffer(buffer, chunk, 1);
 
-        assertEquals("Existing buffer ", buffer.toString());
+        assertThat(buffer).hasToString("Existing buffer ");
     }
 
     @Test
@@ -137,9 +121,9 @@ class LoggingUtilsTest {
         api.setProxy(proxy);
 
         final LoggingContext loggingContext = LoggingUtils.getLoggingContext(api);
-        assertNotNull(loggingContext);
-        assertTrue(loggingContext.clientMode());
-        assertTrue(loggingContext.proxyMode());
+        assertThat(loggingContext).isNotNull();
+        assertThat(loggingContext.clientMode()).isTrue();
+        assertThat(loggingContext.proxyMode()).isTrue();
     }
 
     @Test
@@ -149,8 +133,7 @@ class LoggingUtilsTest {
         proxy.setLogging(null);
         api.setProxy(proxy);
 
-        final LoggingContext loggingContext = LoggingUtils.getLoggingContext(api);
-        assertNull(loggingContext);
+        assertThat(LoggingUtils.getLoggingContext(api)).isNull();
     }
 
     @Test
@@ -162,14 +145,13 @@ class LoggingUtilsTest {
         proxy.setLogging(logging);
         api.setProxy(proxy);
 
-        final LoggingContext loggingContext = LoggingUtils.getLoggingContext(api);
-        assertNull(loggingContext);
+        assertThat(LoggingUtils.getLoggingContext(api)).isNull();
     }
 
     @Test
     void shouldReturnInfiniteMaxSizeLogMessageWhenLoggingContextIsNull() {
         when(executionContext.getAttribute(LoggingContext.LOGGING_ATTRIBUTE)).thenReturn(null);
-        assertEquals(-1, LoggingUtils.getMaxSizeLogMessage(executionContext));
+        assertThat(LoggingUtils.getMaxSizeLogMessage(executionContext)).isEqualTo(-1);
     }
 
     @Test
@@ -178,12 +160,12 @@ class LoggingUtilsTest {
         when(loggingContext.getMaxSizeLogMessage()).thenReturn(maxSizeLogMessage);
         when(executionContext.getAttribute(LoggingContext.LOGGING_ATTRIBUTE)).thenReturn(loggingContext);
 
-        assertEquals(maxSizeLogMessage, LoggingUtils.getMaxSizeLogMessage(executionContext));
+        assertThat(LoggingUtils.getMaxSizeLogMessage(executionContext)).isEqualTo(maxSizeLogMessage);
     }
 
     @Test
     void shouldReturnInfiniteMaxSizeLogMessageWhenExceptionOccurs() {
         when(executionContext.getAttribute(LoggingContext.LOGGING_ATTRIBUTE)).thenThrow(new RuntimeException("Mock Exception"));
-        assertEquals(-1, LoggingUtils.getMaxSizeLogMessage(executionContext));
+        assertThat(LoggingUtils.getMaxSizeLogMessage(executionContext)).isEqualTo(-1);
     }
 }

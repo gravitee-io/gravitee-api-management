@@ -74,6 +74,9 @@ class ScoreApiRequestUseCaseTest {
         .aRuleset("ruleset1", ScoringRuleset.Format.GRAVITEE_FEDERATION)
         .withReferenceId(ENVIRONMENT_ID);
     private static final ScoringRuleset CUSTOM_RULESET_2 = ScoringRulesetFixture.aRuleset("ruleset2", null).withReferenceId(ENVIRONMENT_ID);
+    private static final ScoringRuleset CUSTOM_RULESET_3 = ScoringRulesetFixture
+        .aRuleset("ruleset3", ScoringRuleset.Format.ASYNCAPI)
+        .withReferenceId(ENVIRONMENT_ID);
 
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     AsyncJobCrudServiceInMemory asyncJobCrudService = new AsyncJobCrudServiceInMemory();
@@ -178,7 +181,7 @@ class ScoreApiRequestUseCaseTest {
     }
 
     @Test
-    public void should_not_trigger_scoring_for_unsupported_version_of_gravitee_definition() {
+    public void should_trigger_scoring_for_unsupported_version_of_gravitee_definition() {
         // Given
         var api = givenExistingApi(ApiFixtures.aFederatedApi());
         when(apiExportDomainService.export("my-api", AUDIT_INFO)).thenThrow(new ApiDefinitionVersionNotSupportedException("UNKNOW"));
@@ -191,8 +194,29 @@ class ScoreApiRequestUseCaseTest {
             .assertComplete();
 
         // Then
-        assertThat(scoringProvider.pendingRequests()).isEmpty();
-        assertThat(asyncJobCrudService.storage()).isEmpty();
+        assertThat(scoringProvider.pendingRequests())
+            .satisfiesOnlyOnce(request -> {
+                assertThat(request)
+                    .hasJobId("generated-id")
+                    .hasOrganizationId(ORGANIZATION_ID)
+                    .hasEnvironmentId(ENVIRONMENT_ID)
+                    .hasApiId(api.getId());
+            });
+        assertThat(asyncJobCrudService.storage())
+            .containsExactly(
+                AsyncJob
+                    .builder()
+                    .id("generated-id")
+                    .sourceId(api.getId())
+                    .environmentId(ENVIRONMENT_ID)
+                    .initiatorId(USER_ID)
+                    .type(AsyncJob.Type.SCORING_REQUEST)
+                    .status(AsyncJob.Status.PENDING)
+                    .upperLimit(1L)
+                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                    .build()
+            );
     }
 
     @Test
@@ -297,7 +321,7 @@ class ScoreApiRequestUseCaseTest {
     public void should_trigger_scoring_with_custom_rulesets() {
         // Given
         var api = givenExistingApi(ApiFixtures.aFederatedApi());
-        givenExistingRulesets(CUSTOM_RULESET_1, CUSTOM_RULESET_2);
+        givenExistingRulesets(CUSTOM_RULESET_1, CUSTOM_RULESET_2, CUSTOM_RULESET_3);
 
         // When
         scoreApiRequestUseCase
@@ -316,7 +340,8 @@ class ScoreApiRequestUseCaseTest {
                     .hasApiId(api.getId())
                     .hasCustomRulesets(
                         new ScoreRequest.CustomRuleset(CUSTOM_RULESET_1.payload(), ScoreRequest.Format.GRAVITEE_FEDERATED),
-                        new ScoreRequest.CustomRuleset(CUSTOM_RULESET_2.payload())
+                        new ScoreRequest.CustomRuleset(CUSTOM_RULESET_2.payload()),
+                        new ScoreRequest.CustomRuleset(CUSTOM_RULESET_3.payload())
                     );
             });
     }

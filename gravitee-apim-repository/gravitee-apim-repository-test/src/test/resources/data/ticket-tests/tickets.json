@@ -6,7 +6,7 @@
     "subject": "subject0",
     "content": "This is the ticket 0 content",
     "fromUser": "user1",
-    "createdAt": 1439022010883
+    "createdAt": 1439022010885
   },
   {
     "id": "ticket1",
@@ -15,7 +15,7 @@
     "subject": "subject1",
     "content": "This is the ticket 1 content",
     "fromUser": "user0",
-    "createdAt": 1439022010883
+    "createdAt": 1439022010884
   },
   {
     "id": "ticket2",
@@ -33,6 +33,42 @@
     "subject": "subject3",
     "content": "This is the ticket 3 content",
     "fromUser": "user0",
-    "createdAt": 1439022010883
+    "createdAt": 1439022010882
+  },
+  {
+    "id": "ticket#api-to-delete",
+    "api": "api-to-delete",
+    "application": "app",
+    "subject": "Subject2",
+    "content": "This is the ticket 2 content",
+    "fromUser": "user0",
+    "createdAt": 1439022010875
+  },
+  {
+    "id": "ticket2#api-to-delete",
+    "api": "api-to-delete",
+    "application": "app",
+    "subject": "subject3",
+    "content": "This is the ticket 3 content",
+    "fromUser": "user0",
+    "createdAt": 1439022010876
+  },
+  {
+    "id": "ticket#app-to-delete",
+    "api": "api",
+    "application": "app-to-delete",
+    "subject": "Subject2",
+    "content": "This is the ticket 2 content",
+    "fromUser": "user0",
+    "createdAt": 1439022010877
+  },
+  {
+    "id": "ticket2#app-to-delete",
+    "api": "api",
+    "application": "app-to-delete",
+    "subject": "subject3",
+    "content": "This is the ticket 3 content",
+    "fromUser": "user0",
+    "createdAt": 1439022010878
   }
 ]

@@ -40,6 +40,20 @@ import lombok.With;
 public class SharedPolicyGroup {
 
     /**
+     * Indicates that this shared policy group comes from Gravitee Kubernetes Operator.
+     */
+    public static final String ORIGIN_KUBERNETES = "kubernetes";
+
+    /**
+     * Indicates that this shared policy group comes from Gravitee Management Console.
+     */
+    public static final String ORIGIN_MANAGEMENT = "management";
+    /**
+     * Indicates that this shared policy group comes from an integration.
+     */
+    public static final String ORIGIN_INTEGRATION = "integration";
+
+    /**
      * The shared policy group ID
      */
     private String id;
@@ -77,6 +91,13 @@ public class SharedPolicyGroup {
      * Tha API type compatible with the shared policy group
      */
     private ApiType apiType;
+
+    /**
+     * The origin of the shared policy group
+     */
+    @Builder.Default
+    private String origin = ORIGIN_MANAGEMENT;
+
     /**
      * The shared policy group phase
      */
@@ -114,6 +135,7 @@ public class SharedPolicyGroup {
         this.createdAt = cloned.createdAt;
         this.updatedAt = cloned.updatedAt;
         this.lifecycleState = cloned.lifecycleState;
+        this.origin = cloned.origin;
     }
 
     @Override

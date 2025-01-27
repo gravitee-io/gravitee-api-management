@@ -53,6 +53,7 @@ import {
   Page,
   PageSource,
   PageType,
+  SUPPORTED_FOR_EDIT,
   Visibility,
 } from '../../../../../entities/management-api-v2';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
@@ -283,8 +284,8 @@ export class DocumentationNewPageComponent implements OnInit {
 
   private createPage(): Observable<Page> {
     const formValue = this.form.getRawValue();
-    // Only Markdown, Swagger, and AsyncAPI pages can be created
-    if (this.pageType !== 'MARKDOWN' && this.pageType !== 'SWAGGER' && this.pageType !== 'ASYNCAPI') {
+    // Only Markdown, Swagger, AsyncAPI, and AsciiDoc pages can be created
+    if (!SUPPORTED_FOR_EDIT.includes(this.pageType)) {
       this.snackBarService.error(`Cannot create page with type [${this.pageType}]`);
       return EMPTY;
     }

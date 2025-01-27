@@ -41,10 +41,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class HookHelperTest {
 
-    @Mock
+    @Mock(strictness = Mock.Strictness.LENIENT)
     private PolicyMessageHook mockHook;
 
-    @Mock
+    @Mock(strictness = Mock.Strictness.LENIENT)
     private PolicyMessageHook mockHook2;
 
     @Mock
@@ -52,16 +52,16 @@ class HookHelperTest {
 
     @BeforeEach
     public void beforeEach() {
-        lenient().when(mockHook.pre(any(), any(), any())).thenReturn(Completable.complete());
-        lenient().when(mockHook.post(any(), any(), any())).thenReturn(Completable.complete());
-        lenient().when(mockHook.error(any(), any(), any(), any())).thenReturn(Completable.complete());
-        lenient().when(mockHook.interrupt(any(), any(), any())).thenReturn(Completable.complete());
-        lenient().when(mockHook.interruptWith(any(), any(), any(), any())).thenReturn(Completable.complete());
-        lenient().when(mockHook2.pre(any(), any(), any())).thenReturn(Completable.complete());
-        lenient().when(mockHook2.post(any(), any(), any())).thenReturn(Completable.complete());
-        lenient().when(mockHook2.error(any(), any(), any(), any())).thenReturn(Completable.complete());
-        lenient().when(mockHook2.interrupt(any(), any(), any())).thenReturn(Completable.complete());
-        lenient().when(mockHook2.interruptWith(any(), any(), any(), any())).thenReturn(Completable.complete());
+        when(mockHook.pre(any(), any(), any())).thenReturn(Completable.complete());
+        when(mockHook.post(any(), any(), any())).thenReturn(Completable.complete());
+        when(mockHook.error(any(), any(), any(), any())).thenReturn(Completable.complete());
+        when(mockHook.interrupt(any(), any(), any())).thenReturn(Completable.complete());
+        when(mockHook.interruptWith(any(), any(), any(), any())).thenReturn(Completable.complete());
+        when(mockHook2.pre(any(), any(), any())).thenReturn(Completable.complete());
+        when(mockHook2.post(any(), any(), any())).thenReturn(Completable.complete());
+        when(mockHook2.error(any(), any(), any(), any())).thenReturn(Completable.complete());
+        when(mockHook2.interrupt(any(), any(), any())).thenReturn(Completable.complete());
+        when(mockHook2.interruptWith(any(), any(), any(), any())).thenReturn(Completable.complete());
     }
 
     @Test

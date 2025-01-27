@@ -19,16 +19,15 @@ import static java.util.Collections.emptyList;
 import static java.util.Optional.ofNullable;
 
 import io.gravitee.apim.core.plugin.model.FlowPhase;
-import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -75,6 +74,10 @@ public class SharedPolicyGroup {
      * Tha API type compatible with the shared policy group
      */
     private ApiType apiType;
+    /**
+     * Tha the shared policy group Origin Context
+     */
+    private OriginContext originContext = new OriginContext.Management();
     /**
      * The shared policy group phase
      */
@@ -142,6 +145,7 @@ public class SharedPolicyGroup {
             .prerequisiteMessage(this.prerequisiteMessage)
             .version(this.version)
             .apiType(this.apiType)
+            .originContext(this.originContext)
             .phase(this.phase)
             .steps(this.steps)
             .deployedAt(this.deployedAt)
@@ -175,6 +179,7 @@ public class SharedPolicyGroup {
             .description(createSharedPolicyGroup.getDescription())
             .prerequisiteMessage(createSharedPolicyGroup.getPrerequisiteMessage())
             .apiType(createSharedPolicyGroup.getApiType())
+            .originContext(createSharedPolicyGroup.getOriginContext())
             .phase(createSharedPolicyGroup.getPhase())
             .steps(ofNullable(createSharedPolicyGroup.getSteps()).orElse(emptyList()))
             .build();
@@ -235,6 +240,7 @@ public class SharedPolicyGroup {
         private String prerequisiteMessage;
         private Integer version;
         private ApiType apiType;
+        private OriginContext originContext;
         private FlowPhase phase;
         private List<Step> steps;
         private ZonedDateTime deployedAt;
@@ -289,6 +295,11 @@ public class SharedPolicyGroup {
             return this;
         }
 
+        public SharedPolicyGroupBuilder originContext(OriginContext originContext) {
+            this.originContext = originContext;
+            return this;
+        }
+
         public SharedPolicyGroupBuilder phase(FlowPhase phase) {
             this.phase = phase;
             return this;
@@ -320,6 +331,10 @@ public class SharedPolicyGroup {
         }
 
         public SharedPolicyGroup build() {
+            if (this.originContext == null) {
+                this.originContext = new OriginContext.Management();
+            }
+
             return new SharedPolicyGroup(
                 this.id,
                 this.environmentId,
@@ -330,6 +345,7 @@ public class SharedPolicyGroup {
                 this.prerequisiteMessage,
                 this.version,
                 this.apiType,
+                this.originContext,
                 this.phase,
                 this.steps,
                 this.deployedAt,
@@ -359,6 +375,8 @@ public class SharedPolicyGroup {
                 this.version +
                 ", apiType=" +
                 this.apiType +
+                ", originContext=" +
+                this.originContext +
                 ", phase=" +
                 this.phase +
                 ", steps=" +

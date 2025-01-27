@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.member.domain_service;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.group.model.crd.GroupCRDSpec;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import java.util.Set;
 
@@ -26,4 +27,5 @@ import java.util.Set;
 public interface CRDMembersDomainService {
     void updateApiMembers(AuditInfo auditInfo, String apiId, Set<MemberCRD> members);
     void updateApplicationMembers(AuditInfo auditInfo, String applicationId, Set<MemberCRD> members);
+    void updateGroupMembers(AuditInfo auditInfo, String groupId, Set<GroupCRDSpec.Member> members);
 }

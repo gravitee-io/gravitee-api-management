@@ -2943,6 +2943,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@emoji-mart/data@npm:1.2.1":
+  version: 1.2.1
+  resolution: "@emoji-mart/data@npm:1.2.1"
+  checksum: 10c0/6784b97bf49a0d3ff110d8447bbd3b0449fcbc497294be3d1c3a6cb1609308776895c7520200be604cbecaa5e172c76927e47f34419c72ba8a76fd4e5a53674b
+  languageName: node
+  linkType: hard
+
 "@esbuild/aix-ppc64@npm:0.19.12":
   version: 0.19.12
   resolution: "@esbuild/aix-ppc64@npm:0.19.12"
@@ -3636,6 +3643,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fontsource/montserrat@npm:5.1.1":
+  version: 5.1.1
+  resolution: "@fontsource/montserrat@npm:5.1.1"
+  checksum: 10c0/755d3af7026094cbc1cfffb45cd9f06dbf4ef3d0399aa1e18f2a3055c370cdf80f5c6b6a42a98a492244b9207f45da61364c437dba71423fae2a130ab2a6c37c
+  languageName: node
+  linkType: hard
+
 "@formatjs/ecma402-abstract@npm:1.11.3":
   version: 1.11.3
   resolution: "@formatjs/ecma402-abstract@npm:1.11.3"
@@ -3731,7 +3745,9 @@ __metadata:
     "@asciidoctor/core": "npm:3.0.4"
     "@asyncapi/web-component": "npm:1.2.23"
     "@babel/preset-env": "npm:7.16.11"
+    "@emoji-mart/data": "npm:1.2.1"
     "@fontsource/ibm-plex-sans": "npm:4.5.13"
+    "@fontsource/montserrat": "npm:5.1.1"
     "@gravitee/ui-components": "npm:4.2.6"
     "@highcharts/map-collection": "npm:2.0.0"
     "@messageformat/core": "npm:3.3.0"
@@ -3766,6 +3782,9 @@ __metadata:
     js-yaml: "npm:4.1.0"
     license-check-and-add: "npm:4.0.3"
     marked: "npm:12.0.0"
+    marked-alert: "npm:2.1.2"
+    marked-emoji: "npm:1.4.3"
+    marked-extended-tables: "npm:1.1.0"
     marked-gfm-heading-id: "npm:3.1.3"
     marked-highlight: "npm:2.1.1"
     ng-packagr: "npm:17.0.2"
@@ -13773,6 +13792,33 @@ __metadata:
   version: 8.11.1
   resolution: "mark.js@npm:8.11.1"
   checksum: 10c0/5e69e776db61abdd857b5cbb7070c8a3b1b0e5c12bf077fcd5a8c6f17b1f85ed65275aba5662b57136d1b9f82b54bb34d4ef4220f7703c9a7ab806ae1e208cff
+  languageName: node
+  linkType: hard
+
+"marked-alert@npm:2.1.2":
+  version: 2.1.2
+  resolution: "marked-alert@npm:2.1.2"
+  peerDependencies:
+    marked: ">=7.0.0"
+  checksum: 10c0/61e39b8e2349e3986a3697930dfd8310400e8ed16d758bbdf84743d8c43fc272d8168edfadd3241b2716547d176030eb37fb85069fb11dc5d5cb91cef2cfee87
+  languageName: node
+  linkType: hard
+
+"marked-emoji@npm:1.4.3":
+  version: 1.4.3
+  resolution: "marked-emoji@npm:1.4.3"
+  peerDependencies:
+    marked: ">=4 <16"
+  checksum: 10c0/4a91fdb6440678d811000bdaee25b8327faa3d4c912d45cfffc7f966092447e9879169b47c7355a3d7959a876b4bfcec00afe5f8809a8b890d7aa6ecaff7871a
+  languageName: node
+  linkType: hard
+
+"marked-extended-tables@npm:1.1.0":
+  version: 1.1.0
+  resolution: "marked-extended-tables@npm:1.1.0"
+  peerDependencies:
+    marked: ">=3 <16"
+  checksum: 10c0/0e14f9732f567a0c86279a9092e05e0b86c6e3807bf996449cb6aecacbcb6f1d6fd7c7b01df3cfe76e0954308142ec9e1113f44a8800d0fdeaa72b09d9cef990
   languageName: node
   linkType: hard
 

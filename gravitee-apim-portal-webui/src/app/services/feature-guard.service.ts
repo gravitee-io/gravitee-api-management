@@ -34,7 +34,11 @@ export function canAccessFeature(route: ActivatedRouteSnapshot, config: Configur
       return router.parseUrl(route.data.fallbackRedirectTo);
     }
   }
-  return true;
+  return canAccessFeatureInDocumentationOnlyMode(config, route);
+}
+
+function canAccessFeatureInDocumentationOnlyMode(config: ConfigurationService, route: ActivatedRouteSnapshot) {
+  return !(config.get('portal.apis.documentationOnlyMode.enabled') && route.data['isDisabledInDocumentationOnlyMode']);
 }
 
 export const featureGuard = ((route: ActivatedRouteSnapshot): boolean | UrlTree => {

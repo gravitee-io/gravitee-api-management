@@ -106,9 +106,19 @@ public class ProxyEndpointResolver implements EndpointResolver {
         } else {
             int refSeparatorIdx = uri.indexOf(':');
 
+            String endpointName;
+            String uriPath;
+
+            if (refSeparatorIdx > 0) {
+                endpointName = uri.substring(0, refSeparatorIdx);
+                uriPath = uri.substring(refSeparatorIdx + 1);
+            } else {
+                endpointName = uri;
+                uriPath = "";
+            }
+
             // Get the full reference
-            String sRef = uri.substring(0, refSeparatorIdx);
-            final Reference reference = referenceRegister.lookup(sRef);
+            final Reference reference = referenceRegister.lookup(endpointName);
 
             // A null reference has been found (unknown reference ?), returning null to the caller
             if (reference == null) {
@@ -122,7 +132,7 @@ public class ProxyEndpointResolver implements EndpointResolver {
                 return null;
             }
 
-            return new UserDefinedProxyEndpoint(endpoint, getMergedTarget(endpoint.target(), uri.substring(refSeparatorIdx + 1)));
+            return new UserDefinedProxyEndpoint(endpoint, getMergedTarget(endpoint.target(), uriPath));
         }
     }
 

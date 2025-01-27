@@ -31,6 +31,12 @@
           <tbody md-body>
             <tr md-row ng-repeat="group in $ctrl.groups | orderBy: orderGrp">
               <td md-cell>
+                <gv-icon
+                  ng-if="group.origin === 'KUBERNETES'"
+                  class="group___origin-kubernetes_icon"
+                  shape="thirdparty:kubernetes"
+                  style="--gv-icon--s: 24px"
+                ></gv-icon>
                 <a ng-click="$ctrl.selectGroupUrl(group)"> {{group.name}} </a>
                 <span ng-if="group.primary_owner" flex class="badge" style="background-color: #039be5">Primary Owner</span>
               </td>
@@ -41,7 +47,7 @@
                 <ng-md-icon ng-if="$ctrl.hasEvent(group, 'APPLICATION_CREATE')" icon="done"></ng-md-icon>
               </td>
               <td md-cell ng-click="$event.stopPropagation()" layout="row" style="padding: 10px 0">
-                <span ng-if="group.manageable && !group.primary_owner && $ctrl.canRemoveGroup">
+                <span ng-if="group.origin != 'KUBERNETES' && group.manageable && !group.primary_owner && $ctrl.canRemoveGroup">
                   <md-tooltip md-direction="top">Delete</md-tooltip>
                   <ng-md-icon
                     icon="delete"

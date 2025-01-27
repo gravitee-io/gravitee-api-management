@@ -16,10 +16,9 @@
 package io.gravitee.apim.core.shared_policy_group.model;
 
 import io.gravitee.apim.core.plugin.model.FlowPhase;
-import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
-import java.time.ZonedDateTime;
+import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -54,6 +53,10 @@ public class CreateSharedPolicyGroup {
      * Tha API type compatible with the shared policy group
      */
     private ApiType apiType;
+    /**
+     * Tha the shared policy group Origin Context
+     */
+    private OriginContext originContext;
     /**
      * The shared policy group phase
      */

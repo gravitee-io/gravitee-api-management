@@ -15,8 +15,9 @@
  */
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { GioBreadcrumbModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
+import { GioBreadcrumbModule, GioIconsModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 
 import { SettingsRoutingModule } from './settings-routing.module';
 import { SettingsAnalyticsComponent } from './analytics/settings-analytics.component';
@@ -47,6 +48,8 @@ import { DocumentationModule } from '../../components/documentation/documentatio
     ApiQualityRulesModule,
     SettingsRoutingModule,
     RouterModule,
+    MatIconModule,
+    GioIconsModule,
     GioSubmenuModule,
     GioBreadcrumbModule,
     CommonModule,

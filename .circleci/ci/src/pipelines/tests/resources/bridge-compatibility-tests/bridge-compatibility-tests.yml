@@ -126,7 +126,7 @@ jobs:
             - .gravitee.settings.xml
   job-validate:
     docker:
-      - image: cimg/openjdk:17.0.8
+      - image: cimg/openjdk:21.0.5
     resource_class: small
     steps:
       - checkout
@@ -142,7 +142,7 @@ jobs:
           jobName: job-validate
   job-build:
     docker:
-      - image: cimg/openjdk:17.0.8
+      - image: cimg/openjdk:21.0.5
     resource_class: large
     steps:
       - checkout
@@ -176,7 +176,7 @@ jobs:
             - ./gateway-docker-context
   job-e2e-generate-sdk:
     docker:
-      - image: cimg/openjdk:17.0.8-node
+      - image: cimg/openjdk:21.0.5-node
     resource_class: small
     steps:
       - checkout
@@ -326,10 +326,12 @@ workflows:
               database:
                 - bridge
               apim_client_tag:
+                - master-latest
                 - 4.6.x-latest
                 - 4.5.x-latest
                 - 4.4.x-latest
-                - 4.3.x-latest
+                - graviteeio@4.5.6
+                - graviteeio@4.4.17
 orbs:
   keeper: gravitee-io/keeper@0.6.3
   slack: circleci/slack@4.12.5

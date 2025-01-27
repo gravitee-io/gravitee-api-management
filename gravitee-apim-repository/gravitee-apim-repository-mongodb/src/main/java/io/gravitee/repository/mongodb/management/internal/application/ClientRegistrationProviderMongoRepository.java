@@ -29,4 +29,7 @@ import org.springframework.stereotype.Repository;
 public interface ClientRegistrationProviderMongoRepository extends MongoRepository<ClientRegistrationProviderMongo, String> {
     @Query("{ 'environmentId': ?0 }")
     List<ClientRegistrationProviderMongo> findByEnvironmentId(String environmentId);
+
+    @Query(value = "{ 'environmentId': ?0 }", delete = true)
+    List<ClientRegistrationProviderMongo> deleteByEnvironmentId(String environmentId);
 }

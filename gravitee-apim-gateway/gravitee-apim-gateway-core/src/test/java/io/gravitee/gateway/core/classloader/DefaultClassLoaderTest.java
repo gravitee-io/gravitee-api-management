@@ -16,7 +16,7 @@
 package io.gravitee.gateway.core.classloader;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
@@ -125,7 +125,7 @@ class DefaultClassLoaderTest {
         final Policy policy = instantiatePolicy();
 
         when(ctx.getComponent(ResourceManager.class)).thenReturn(resourceManager);
-        assertThrows(NoClassDefFoundError.class, () -> policy.onRequest(ctx));
+        assertThatThrownBy(() -> policy.onRequest(ctx)).isInstanceOf(NoClassDefFoundError.class);
     }
 
     @Test

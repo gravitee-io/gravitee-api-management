@@ -20,6 +20,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ActivatedRoute } from '@angular/router';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { OwlNativeDateTimeModule } from '@danielmoncada/angular-datetime-picker';
 
 import { ApiAnalyticsMessageComponent } from './api-analytics-message.component';
 import { ApiAnalyticsMessageHarness } from './api-analytics-message.component.harness';
@@ -48,7 +49,7 @@ describe('ApiAnalyticsMessageComponent', () => {
 
   const initComponent = async (queryParams = {}) => {
     TestBed.configureTestingModule({
-      imports: [ApiAnalyticsMessageComponent, NoopAnimationsModule, MatIconTestingModule, GioTestingModule],
+      imports: [ApiAnalyticsMessageComponent, OwlNativeDateTimeModule, NoopAnimationsModule, MatIconTestingModule, GioTestingModule],
       providers: [
         {
           provide: ActivatedRoute,
@@ -374,6 +375,56 @@ describe('ApiAnalyticsMessageComponent', () => {
       expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
       expectApiAnalyticsAverageMessagesPerRequestGetRequest(fakeAnalyticsAverageMessagesPerRequest());
       expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
+    });
+
+    it('should select custom date range', async () => {
+      expect(await componentHarness.isLoaderDisplayed()).toBeFalsy();
+
+      expectApiAnalyticsRequestsCountGetReq(fakeAnalyticsRequestsCount());
+      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
+      expectApiAnalyticsAverageMessagesPerRequestGetRequest(fakeAnalyticsAverageMessagesPerRequest());
+      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
+
+      const filtersBarHarness = await componentHarness.getFiltersBarHarness();
+      const matSelect = await filtersBarHarness.getMatSelect();
+      await matSelect.clickOptions({ text: 'Custom' });
+
+      const applyButton = await filtersBarHarness.getApplyButton();
+
+      expect(await applyButton.isDisabled()).toEqual(true);
+
+      const fromDate = '2023-10-09 15:21:00';
+      const toDate = '2023-10-24 15:21:00';
+      const fromDateInMilliSeconds = new Date(fromDate).getTime();
+      const toDateInMilliseconds = new Date(toDate).getTime();
+
+      await filtersBarHarness.setFromDate(fromDate);
+      await filtersBarHarness.setToDate(toDate);
+
+      expect(await applyButton.isDisabled()).toEqual(false);
+
+      await filtersBarHarness.apply();
+
+      httpTestingController
+        .expectOne(
+          `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/requests-count?from=${fromDateInMilliSeconds}&to=${toDateInMilliseconds}`,
+        )
+        .flush(fakeAnalyticsRequestsCount());
+      httpTestingController
+        .expectOne(
+          `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/average-connection-duration?from=${fromDateInMilliSeconds}&to=${toDateInMilliseconds}`,
+        )
+        .flush(fakeAnalyticsAverageConnectionDuration());
+      httpTestingController
+        .expectOne(
+          `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/average-messages-per-request?from=${fromDateInMilliSeconds}&to=${toDateInMilliseconds}`,
+        )
+        .flush(fakeAnalyticsAverageMessagesPerRequest());
+      httpTestingController
+        .expectOne(
+          `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/response-status-ranges?from=${fromDateInMilliSeconds}&to=${toDateInMilliseconds}`,
+        )
+        .flush(fakeAnalyticsResponseStatusRanges());
     });
   });
 

@@ -124,10 +124,10 @@ public class ApiScoringResourceTest extends ApiResourceTest {
     class GetLatestReport {
 
         @Test
-        void should_return_empty_response_if_no_report_found() {
+        void should_return_404_response_if_no_report_found() {
             final Response response = latestReportTarget.request().get();
 
-            MAPIAssertions.assertThat(response).hasStatus(OK_200).asEntity(ApiScoring.class).isEqualTo(ApiScoringResource.EMPTY_REPORT);
+            MAPIAssertions.assertThat(response).hasStatus(NOT_FOUND_404);
         }
 
         @Test

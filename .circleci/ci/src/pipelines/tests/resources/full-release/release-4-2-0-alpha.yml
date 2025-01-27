@@ -324,7 +324,7 @@ jobs:
       ARTIFACTORY_URL: https://odbxikk7vo-artifactory.services.clever-cloud.com
   job-backend-build-and-publish-artifactory:
     docker:
-      - image: cimg/openjdk:17.0.8
+      - image: cimg/openjdk:21.0.5
     resource_class: large
     steps:
       - checkout
@@ -407,7 +407,7 @@ jobs:
             git push --tags  origin 4.2.x
   job-package-bundle:
     docker:
-      - image: cimg/openjdk:17.0.8-node
+      - image: cimg/openjdk:21.0.5-node
     resource_class: medium
     steps:
       - keeper/env-export:
@@ -439,6 +439,9 @@ jobs:
       - keeper/env-export:
           secret-url: keeper://3-pU56sIqcyWWw7HxhxjaQ/field/password
           var-name: AWS_SECRET_ACCESS_KEY
+      - aws-cli/setup:
+          region: cloudfront
+          version: 2.22.35
       - aws-s3/sync:
           arguments: --endpoint-url https://cellar-c2.services.clever-cloud.com --acl public-read
           from: ./release/.tmp/4.2.0-alpha.1/dist
@@ -635,7 +638,7 @@ jobs:
             }
   job-nexus-staging:
     docker:
-      - image: cimg/openjdk:17.0.8
+      - image: cimg/openjdk:21.0.5
     resource_class: xlarge
     steps:
       - checkout
@@ -754,6 +757,7 @@ orbs:
   slack: circleci/slack@4.12.5
   aquasec: gravitee-io/aquasec@1.0.4
   artifactory-orb: jfrog/artifactory-orb@1.0.1
-  aws-s3: circleci/aws-s3@3.0.0
+  aws-s3: circleci/aws-s3@4.1.0
+  aws-cli: circleci/aws-cli@5.1.2
   helm: circleci/helm@3.0.0
   gh: circleci/github-cli@1.0.5

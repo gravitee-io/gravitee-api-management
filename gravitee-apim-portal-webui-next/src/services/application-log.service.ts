@@ -70,12 +70,12 @@ export class ApplicationLogService {
     paramsList.push(`page=${params.page ?? 1}`);
     paramsList.push(`size=${params.size ?? 10}`);
 
-    const currentDate = new Date();
+    const currentDate = Date.now();
     const yesterdayDate = new Date();
     yesterdayDate.setDate(yesterdayDate.getDate() - 1);
 
     paramsList.push(`from=${params.from ?? yesterdayDate.getTime()}`);
-    paramsList.push(`to=${params.to ?? currentDate.getTime()}`);
+    paramsList.push(`to=${params.to ?? currentDate}`);
     paramsList.push(`order=${params.order ?? 'DESC'}`);
 
     paramsList.push(`field=${params.field ?? '@timestamp'}`);

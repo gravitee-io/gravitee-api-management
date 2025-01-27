@@ -32,7 +32,7 @@ import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-licen
 import { RestrictedDomainService } from '../../../../../services-ngx/restricted-domain.service';
 import { TcpHost } from '../../../../../entities/management-api-v2/api/v4/tcpHost';
 import { KafkaHostData } from '../../../component/gio-form-listeners/gio-form-listeners-kafka/gio-form-listeners-kafka-host.component';
-import { PortalSettingsService } from '../../../../../services-ngx/portal-settings.service';
+import { PortalConfigurationService } from '../../../../../services-ngx/portal-configuration.service';
 import { PortalSettingsPortal } from '../../../../../entities/portal/portalSettings';
 
 @Component({
@@ -67,7 +67,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     private readonly restrictedDomainService: RestrictedDomainService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly licenseService: GioLicenseService,
-    private readonly portalSettingsService: PortalSettingsService,
+    private readonly portalConfigurationService: PortalConfigurationService,
     private readonly activatedRoute: ActivatedRoute,
   ) {
     this.envId = this.activatedRoute.snapshot.params.envHrid;
@@ -76,7 +76,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
     this.apiType = currentStepPayload.type;
-    this.portalSettings$ = this.portalSettingsService.getByEnvironmentId(this.envId).pipe(map(({ portal }) => portal));
+    this.portalSettings$ = this.portalConfigurationService.getByEnvironmentId(this.envId).pipe(map(({ portal }) => portal));
 
     const paths = currentStepPayload.paths ?? [];
     const tcpHosts = currentStepPayload.hosts ?? [];

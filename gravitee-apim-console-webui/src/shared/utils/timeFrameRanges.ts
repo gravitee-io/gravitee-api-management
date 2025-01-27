@@ -16,10 +16,10 @@
 import { utc } from 'moment/moment';
 
 export interface TimeRangeParams {
-  id: string;
+  id?: string;
   from: number;
   to: number;
-  interval: number;
+  interval?: number;
 }
 
 export const timeInMilliseconds = {
@@ -71,3 +71,20 @@ export const timeFrames = [
     timeFrameRangesParams: getTimeFramesRangesParams,
   },
 ];
+
+export const customTimeFrames = [
+  {
+    label: 'Custom',
+    id: 'custom',
+  },
+];
+
+export const DATE_TIME_FORMATS = {
+  parseInput: 'Y-M-DD HH:mm:ss',
+  fullPickerInput: 'Y-M-DD HH:mm:ss',
+  datePickerInput: 'Y-M-D',
+  timePickerInput: 'HH:mm:ss',
+  monthYearLabel: 'MMM y',
+  dateA11yLabel: 'Y-M-D',
+  monthYearA11yLabel: 'Y MMMM',
+};

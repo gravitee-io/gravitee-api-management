@@ -28,6 +28,7 @@ import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.policy.exception.UnexpectedPoliciesException;
+import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateUpdateSharedPolicyGroupDomainService;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupDuplicateCrossIdException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEvent;
@@ -68,6 +69,9 @@ public class UpdateSharedPolicyGroupUseCaseTest {
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final FakePolicyValidationDomainService policyValidationDomainService = new FakePolicyValidationDomainService();
+
+    private final ValidateUpdateSharedPolicyGroupDomainService validateUpdateSharedPolicyGroupDomainService =
+        new ValidateUpdateSharedPolicyGroupDomainService(sharedPolicyGroupCrudService, policyValidationDomainService);
     private UpdateSharedPolicyGroupUseCase updateSharedPolicyGroupUseCase;
 
     @BeforeAll
@@ -87,7 +91,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
 
         updateSharedPolicyGroupUseCase =
-            new UpdateSharedPolicyGroupUseCase(sharedPolicyGroupCrudService, policyValidationDomainService, auditService);
+            new UpdateSharedPolicyGroupUseCase(sharedPolicyGroupCrudService, validateUpdateSharedPolicyGroupDomainService, auditService);
     }
 
     @Test

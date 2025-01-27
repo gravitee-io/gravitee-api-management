@@ -1,4 +1,4 @@
-@use 'src/scss/gio-layout' as gio-layout;
+@use '../../../scss/gio-layout' as gio-layout;
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
@@ -16,7 +16,7 @@
 }
 
 .mat-column-picture {
-  width: 0%;
+  width: 0;
 }
 .mat-column-states {
   width: 124px;
@@ -35,7 +35,7 @@
     }
 
     &__api-origin {
-      color: #326de6;
+      color: #326ce5;
     }
 
     &__api-is-not-synced {
@@ -58,7 +58,7 @@
   }
 }
 .mat-column-actions {
-  width: 0%;
+  width: 0;
 }
 
 .apiHCReportBanner {

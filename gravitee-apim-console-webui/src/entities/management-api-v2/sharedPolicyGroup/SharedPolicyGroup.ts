@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ApiType, StepV4 } from '../api';
+import { ApiType, OriginContext, StepV4 } from '../api';
 import { FlowPhase } from '../plugin';
 
 export interface SharedPolicyGroup {
@@ -31,4 +31,5 @@ export interface SharedPolicyGroup {
   deployedAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
+  originContext?: OriginContext;
 }

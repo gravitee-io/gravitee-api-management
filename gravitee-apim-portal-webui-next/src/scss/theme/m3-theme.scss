@@ -1,3 +1,5 @@
+@use '@angular/material' as mat;
+
 /*
  * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
  *
@@ -120,7 +122,7 @@ NOTE: This file is to be deleted once material 3 has an easier way to create pal
 
 @function generate-m3-light-theme() {
   $config: -config();
-  @return matx.define-theme(
+  @return mat.define-theme(
     (
       color: (
         theme-type: light,
@@ -136,7 +138,7 @@ NOTE: This file is to be deleted once material 3 has an easier way to create pal
 
 @function generate-m3-dark-theme() {
   $config: -config();
-  @return matx.define-theme(
+  @return mat.define-theme(
     (
       color: (
         theme-type: dark,

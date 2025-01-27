@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-export enum FilterType {
-  period = 'period',
+export interface ApiAnalyticsFilters {
+  period: string;
+  from: number;
+  to: number;
 }
-
-export type FiltersApplied = { [key in FilterType]: string };

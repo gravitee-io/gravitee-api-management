@@ -92,7 +92,6 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
             .validateAndSanitize(
                 new ValidateCRDMembersDomainService.Input(
                     auditInfo,
-                    api.getId(),
                     MembershipReferenceType.API,
                     ApiCRDEntityAdapter.INSTANCE.toMemberCRDs(api.getMembers())
                 )

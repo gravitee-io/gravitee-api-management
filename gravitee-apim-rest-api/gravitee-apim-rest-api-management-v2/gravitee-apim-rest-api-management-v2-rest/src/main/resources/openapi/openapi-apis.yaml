@@ -2617,6 +2617,8 @@ paths:
             summary: Get API Scoring
             description: |-
                 Get API Scoring.
+                
+                Return a 404 HTTP Response status if API was never evaluated.
             operationId: getApiScoring
             responses:
                 "200":
@@ -6832,6 +6834,7 @@ components:
                         - FOLDER
                         - SWAGGER
                         - ASYNCAPI
+                        - ASCIIDOC
                 visibility:
                     $ref: "#/components/schemas/Visibility"
                 parentId:
@@ -6856,6 +6859,7 @@ components:
                     MARKDOWN: "#/components/schemas/CreateDocumentationMarkdown"
                     SWAGGER: "#/components/schemas/CreateDocumentationSwagger"
                     ASYNCAPI: "#/components/schemas/CreateDocumentationAsyncApi"
+                    ASCIIDOC: "#/components/schemas/CreateDocumentationAsciiDoc"
 
         CreateDocumentationFolder:
             title: "CreateDocumentationFolder"
@@ -6929,6 +6933,26 @@ components:
             required:
                 - name
                 - type
+        CreateDocumentationAsciiDoc:
+            title: "CreateDocumentationAsciiDoc"
+            description: Create documentation AsciiDoc.
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/CreateDocumentation"
+                - properties:
+                    content:
+                        type: string
+                        description: Page's content.
+                        example: My Page content
+                    homepage:
+                        type: boolean
+                        description: Page's homepage status.
+                        example: true
+                    source:
+                        $ref: "#/components/schemas/SourceConfiguration"
+            required:
+                - name
+                - type
 
         SourceConfiguration:
             type: object
@@ -6953,6 +6977,7 @@ components:
                         - MARKDOWN
                         - SWAGGER
                         - ASYNCAPI
+                        - ASCIIDOC
                 name:
                     type: string
                     description: Page's name.
@@ -6991,6 +7016,7 @@ components:
                     MARKDOWN: "#/components/schemas/UpdateDocumentationMarkdown"
                     SWAGGER: "#/components/schemas/UpdateDocumentationSwagger"
                     ASYNCAPI: "#/components/schemas/UpdateDocumentationAsyncApi"
+                    ASCIIDOC: "#/components/schemas/UpdateDocumentationAsciiDoc"
 
         UpdateDocumentationFolder:
             title: "UpdateDocumentationFolder"
@@ -7034,6 +7060,22 @@ components:
         UpdateDocumentationAsyncApi:
             title: "UpdateDocumentationAsyncApi"
             description: Update documentation Async API.
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/UpdateDocumentation"
+                - properties:
+                      content:
+                          type: string
+                          description: Page's content.
+                          example: My Page content
+                      homepage:
+                          type: boolean
+                          description: Page's homepage status.
+                          example: true
+
+        UpdateDocumentationAsciiDoc:
+            title: "UpdateDocumentationAsciiDoc"
+            description: Update documentation AsciiDoc.
             type: object
             allOf:
                 - $ref: "#/components/schemas/UpdateDocumentation"
@@ -7330,7 +7372,6 @@ components:
                     type: integer
                     description: An integer that represents the character position within the line where the issue starts or ends. The value is zero indexed.
                     example: 12
-
         # Async Jobs
         AsyncJob:
             type: object

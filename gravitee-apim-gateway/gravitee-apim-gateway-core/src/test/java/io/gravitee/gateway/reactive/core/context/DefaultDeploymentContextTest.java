@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.reactive.core.context;
 
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -25,6 +24,7 @@ import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import java.util.List;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -75,8 +75,10 @@ class DefaultDeploymentContextTest {
     void shouldInitializeTemplateEngineOnlyOnce() {
         final TemplateEngine templateEngine = cut.getTemplateEngine();
 
+        var soft = new SoftAssertions();
         for (int i = 0; i < 10; i++) {
-            assertSame(templateEngine, cut.getTemplateEngine());
+            soft.assertThat(templateEngine).as("check %d th getTemplate()", i).isSameAs(cut.getTemplateEngine());
         }
+        soft.assertAll();
     }
 }

@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.core.endpoint.resolver;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.endpoint.Endpoint;
@@ -28,20 +28,21 @@ import io.gravitee.gateway.core.endpoint.ref.EndpointReference;
 import io.gravitee.gateway.core.endpoint.ref.GroupReference;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
 import io.gravitee.gateway.core.endpoint.ref.impl.DefaultReferenceRegister;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ProxyEndpointResolverTest {
 
     private ProxyEndpointResolver resolver;
@@ -49,16 +50,14 @@ public class ProxyEndpointResolverTest {
     @Spy
     private final ReferenceRegister referenceRegister = new DefaultReferenceRegister();
 
-    @Mock
+    @Mock(strictness = Mock.Strictness.LENIENT)
     private GroupManager groupManager;
 
-    @Mock
+    @Mock(strictness = Mock.Strictness.LENIENT)
     private LoadBalancedEndpointGroup loadBalancedEndpointGroup;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        initMocks(this);
-
         resolver = new ProxyEndpointResolver(referenceRegister, groupManager);
 
         LoadBalancedEndpointGroup group = mock(LoadBalancedEndpointGroup.class);
@@ -67,72 +66,44 @@ public class ProxyEndpointResolverTest {
     }
 
     @Test
-    public void shouldResolveUserDefinedEndpointAndKeepLastSlash_selectFirstEndpoint() {
-        resolveUserDefinedEndpoint("http://host:8080/test/", "http://host:8080/test/", "endpoint", "http://endpoint:8080/test/");
+    public void shouldResolveUserDefinedEndpoint() {
+        var endpointName = "my-endpoint";
+        var expectedUri = "http://endpoint:8080/test";
+
+        Endpoint endpoint = mock(Endpoint.class);
+        when(endpoint.name()).thenReturn(endpointName);
+        when(endpoint.target()).thenReturn(expectedUri);
+        referenceRegister.add(new EndpointReference(endpoint));
+
+        ProxyEndpoint proxyEndpoint = resolver.resolve(endpointName);
+        assertThat(proxyEndpoint).isNotNull();
+
+        ProxyRequest proxyRequest = proxyEndpoint.createProxyRequest(mock((Request.class)));
+        assertThat(proxyRequest.uri()).isEqualTo(expectedUri);
     }
 
     @Test
-    public void shouldResolveUserDefinedEndpoint_selectFirstEndpoint() {
-        resolveUserDefinedEndpoint("http://host:8080/test", "http://host:8080/test", "endpoint", "http://endpoint:8080/test");
-    }
+    public void shouldResolveUserDefinedEndpoint_withPath() {
+        var endpointName = "my-endpoint";
+        var endpointTarget = "http://endpoint:8080/test";
 
-    @Test
-    public void shouldResolveUserDefinedEndpoint_withEncodedTargetURI() {
-        resolveUserDefinedEndpoint(
-            "http://host:8080/test toto  tété/titi",
-            "http://host:8080/test toto  tété/titi",
-            "endpoint",
-            "http://host:8080/test"
-        );
-    }
+        Endpoint endpoint = mock(Endpoint.class);
+        when(endpoint.name()).thenReturn(endpointName);
+        when(endpoint.target()).thenReturn(endpointTarget);
+        referenceRegister.add(new EndpointReference(endpoint));
 
-    @Test
-    public void shouldResolveUserDefinedEndpointAndKeepLastSlash_withEncodedTargetURI() {
-        resolveUserDefinedEndpoint(
-            "http://host:8080/test/ toto  tété/titi",
-            "http://host:8080/test/ toto  tété/titi",
-            "endpoint",
-            "http://host:8080/test"
-        );
-    }
+        ProxyEndpoint proxyEndpoint = resolver.resolve(endpointName + ":/echo");
+        assertThat(proxyEndpoint).isNotNull();
 
-    @Test
-    public void shouldResolveUserDefinedEndpoint_startingWithSlash() {
-        resolveUserDefinedEndpoint("http://endpoint:8080/test/myendpoint", "/myendpoint", "endpoint", "http://endpoint:8080/test");
-    }
-
-    @Test
-    public void shouldResolveUserDefinedEndpointAndKeepLastSlash_startingWithSlash() {
-        resolveUserDefinedEndpoint("http://endpoint:8080/test/myendpoint", "/myendpoint", "endpoint", "http://endpoint:8080/test/");
-    }
-
-    @Test
-    public void shouldResolveUserDefinedEndpoint_withDynamicRouting() {
-        resolveUserDefinedEndpoint("http://host:8080/test", "local:", "local", "http://host:8080/test");
-    }
-
-    @Test
-    public void shouldResolveUserDefinedEndpointAndKeepLastSlash_withDynamicRouting() {
-        resolveUserDefinedEndpoint("http://host:8080/test/", "local:", "local", "http://host:8080/test/");
-    }
-
-    @Test
-    public void shouldResolveUserDefinedEndpoint_withSlashInName() {
-        resolveUserDefinedEndpoint("http://host:8080/test", "lo/cal:", "lo/cal", "http://host:8080/test");
-    }
-
-    @Test
-    public void shouldResolveUserDefinedEndpoint_withParenthesisInName() {
-        resolveUserDefinedEndpoint("http://host:8080/test", "lo(cal:", "lo(cal", "http://host:8080/test");
+        ProxyRequest proxyRequest = proxyEndpoint.createProxyRequest(mock((Request.class)));
+        assertThat(proxyRequest.uri()).isEqualTo(endpointTarget + "/echo");
     }
 
     @Test
     // : is forbidden thanks to https://github.com/gravitee-io/issues/issues/1939
     public void shouldResolveUserDefinedEndpoint_withPointsInName() {
-        String expectedURI = "http://host:8080/test";
         String requestEndpoint = "lo:cal:";
         String endpointName = "lo:cal";
-        String endpointTarget = "http://host:8080/test";
 
         Endpoint endpoint = mock(Endpoint.class);
         when(endpoint.name()).thenReturn(endpointName);
@@ -140,7 +111,7 @@ public class ProxyEndpointResolverTest {
 
         ProxyEndpoint connectorEndpoint = resolver.resolve(requestEndpoint);
 
-        Assert.assertNull(connectorEndpoint);
+        assertThat(connectorEndpoint).isNull();
         verify(endpoint, never()).target();
         verify(endpoint, never()).available();
 
@@ -148,118 +119,34 @@ public class ProxyEndpointResolverTest {
         verify(loadBalancedEndpointGroup, never()).next();
     }
 
-    @Test
-    public void shouldResolveUserDefinedEndpoint_withParenthesisInQuery() {
-        resolveUserDefinedEndpoint("http://host:8080/test(q=1)", "local:(q=1)", "local", "http://host:8080/test");
-    }
-
-    @Test
-    public void shouldResolveUserDefinedEndpoint_withSlashParenthesisInQuery() {
-        resolveUserDefinedEndpoint("http://host:8080/test/(q=1)", "local:/(q=1)", "local", "http://host:8080/test");
-    }
-
-    @Test
-    public void shouldResolveUserDefinedEndpoint_withSpacesInName() {
-        resolveUserDefinedEndpoint("http://host:8080/test", "lo cal:", "lo cal", "http://host:8080/test");
-    }
-
-    @Test
-    public void shouldResolveUserDefinedEndpoint_withDashInName() {
-        resolveUserDefinedEndpoint("http://host:8080/test", "lo-cal:", "lo-cal", "http://host:8080/test");
-    }
-
-    @Test
-    public void shouldResolveUserDefinedEndpoint_withSlashInTargetAndPath() {
-        resolveUserDefinedEndpoint("http://host:8080/method", "local:/method", "local", "http://host:8080/");
-    }
-
-    @Test
-    public void shouldResolveUserDefinedEndpointAndKeepLastSlash_withSlashInTargetAndPath() {
-        resolveUserDefinedEndpoint("http://host:8080/method/", "local:/method/", "local", "http://host:8080/");
-    }
-
-    @Test
-    public void shouldResolveUserDefinedEndpoint_withPrefixAndEncodedTargetURI() {
-        resolveUserDefinedEndpoint("http://host:8080/test toto  tété/titi", "local:test toto  tété/titi", "local", "http://host:8080/");
-    }
-
-    @Test
-    public void shouldResolveUserDefinedEndpoint_withEndpointDiscoveryName() {
-        resolveUserDefinedEndpoint("http://host:8080/test", "consul#endpoint_id:", "consul#endpoint_id", "http://host:8080/test");
-    }
-
-    @Test
-    public void shouldUseTheRawPath_withEncodedTargetURI() {
-        resolveUserDefinedEndpoint("http://host:8080/foo%2f%3fbar", "http://host:8080/foo%2f%3fbar", "endpoint", "http://host:8080/test");
-    }
-
-    @Test
-    public void shouldResolveEndpoint_withColonInPath() {
-        resolveUserDefinedEndpoint("http://host:8080/foo:", "endpoint:/foo:", "endpoint", "http://host:8080/");
-    }
-
-    /*
-    @Test
-    public void shouldResolveUserDefinedEndpoint_withQueryParamsInTarget() {
-        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
-        parameters.add("endpointParam", "v");
-        resolveUserDefinedEndpoint(
-                "http://host:8080/test",
-                parameters,
-                "local:",
-                "local",
-                "http://host:8080/test?endpointParam=v"
-        );
-    }
-
-    @Test
-    public void shouldResolveUserDefinedEndpoint_withQueryParamsInDynRout() {
-        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
-        parameters.add("dynroutParam", "v");
-        resolveUserDefinedEndpoint(
-                "http://host:8080/test",
-                parameters,
-                "local:?dynroutParam=v",
-                "local",
-                "http://host:8080/test"
-        );
-    }
-
-    @Test
-    public void shouldResolveUserDefinedEndpoint_withQueryParamsEverywhere() {
-        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
-        parameters.add("dynroutParam", "v");
-        parameters.add("endpointParam", "v");
-        resolveUserDefinedEndpoint(
-                "http://host:8080/test",
-                parameters,
-                "local:?dynroutParam=v",
-                "local",
-                "http://host:8080/test?endpointParam=v"
-        );
-    }
-
-    @Test
-    public void shouldResolveUserDefinedEndpoint_withQueryParamsEverywhereAnPath() {
-        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
-        parameters.add("dynroutParam", "v");
-        parameters.add("endpointParam", "v");
-        resolveUserDefinedEndpoint(
-                "http://host:8080/test/my/path",
-                parameters,
-                "local:/my/path?dynroutParam=v",
-                "local",
-                "http://host:8080/test?endpointParam=v"
-        );
-    }
-    */
-
-    @Test
-    public void shouldResolveUserDefinedEndpointAndKeepLastSlash_selectFirstEndpoint_wss() {
-        resolveUserDefinedEndpoint("wss://host:8080/test/", "wss://host:8080/test/", "endpoint", "wss://endpoint:8080/test/");
-    }
-
-    private void resolveUserDefinedEndpoint(String expectedURI, String requestEndpoint, String endpointName, String endpointTarget) {
+    @ParameterizedTest
+    @CsvSource(
+        delimiterString = "|",
+        textBlock = """
+                    http://endpoint:8080/test/myendpoint|/myendpoint|endpoint|http://endpoint:8080/test
+                    http://endpoint:8080/test/myendpoint|/myendpoint|endpoint|http://endpoint:8080/test/
+                    http://host:8080/test|local:|local|http://host:8080/test
+                    http://host:8080/test/|local:|local|http://host:8080/test/
+                    http://host:8080/test|lo/cal:|lo/cal|http://host:8080/test
+                    http://host:8080/test|lo(cal:|lo(cal|http://host:8080/test
+                    http://host:8080/test/|http://host:8080/test/|endpoint|http://endpoint:8080/test/
+                    http://host:8080/test|http://host:8080/test|endpoint|http://endpoint:8080/test
+                    http://host:8080/test(q=1)|local:(q=1)|local|http://host:8080/test
+                    http://host:8080/test/(q=1)|local:/(q=1)|local|http://host:8080/test
+                    http://host:8080/test|lo cal:|lo cal|http://host:8080/test
+                    http://host:8080/test|lo-cal:|lo-cal|http://host:8080/test
+                    http://host:8080/method|local:/method|local|http://host:8080/
+                    http://host:8080/method/|local:/method/|local|http://host:8080/
+                    http://host:8080/test toto  tété/titi|local:test toto  tété/titi|local|http://host:8080/
+                    http://host:8080/test|consul#endpoint_id:|consul#endpoint_id|http://host:8080/test
+                    http://host:8080/foo%2f%3fbar|http://host:8080/foo%2f%3fbar|endpoint|http://host:8080/test
+                    http://host:8080/foo:|endpoint:/foo:|endpoint|http://host:8080/
+                    wss://host:8080/test/|wss://host:8080/test/|endpoint|wss://endpoint:8080/test/
+                    http://host:8080/test toto  tété/titi|http://host:8080/test toto  tété/titi|endpoint|http://host:8080/test
+                    http://host:8080/test/ toto  tété/titi|http://host:8080/test/ toto  tété/titi|endpoint|http://host:8080/test
+                    """
+    )
+    void resolveUserDefinedEndpoint(String expectedURI, String requestEndpoint, String endpointName, String endpointTarget) {
         Endpoint endpoint = mock(Endpoint.class);
         when(endpoint.name()).thenReturn(endpointName);
         when(endpoint.target()).thenReturn(endpointTarget);
@@ -269,9 +156,9 @@ public class ProxyEndpointResolverTest {
         when(loadBalancedEndpointGroup.next()).thenReturn(endpoint);
 
         ProxyEndpoint proxyEndpoint = resolver.resolve(requestEndpoint);
-        Assert.assertNotNull(proxyEndpoint);
+        assertThat(proxyEndpoint).isNotNull();
 
         ProxyRequest proxyRequest = proxyEndpoint.createProxyRequest(mock((Request.class)));
-        Assert.assertEquals(expectedURI, proxyRequest.uri());
+        assertThat(proxyRequest.uri()).isEqualTo(expectedURI);
     }
 }

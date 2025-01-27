@@ -16,13 +16,23 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.utils.CollectionUtils;
-import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.listener.AbstractListener;
+import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLifecycleState;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
+import io.gravitee.rest.api.management.v2.rest.model.EndpointV4;
+import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.model.Listener;
 import io.gravitee.rest.api.management.v2.rest.model.PageCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
@@ -54,8 +64,6 @@ public interface ApiCRDMapper {
     ApiCRDMapper INSTANCE = Mappers.getMapper(ApiCRDMapper.class);
 
     @Mapping(target = "lifecycleState", qualifiedByName = "mapLifecycleState")
-    @Mapping(target = "listeners", expression = "java(mapApiCRDListeners(coreSpec))")
-    @Mapping(target = "endpointGroups", expression = "java(mapApiCRDEndpointGroups(coreSpec))")
     ApiCRDSpec map(io.gravitee.apim.core.api.model.crd.ApiCRDSpec coreSpec);
 
     @Mapping(target = "security.type", qualifiedByName = "mapSecurityType")
@@ -77,29 +85,41 @@ public interface ApiCRDMapper {
         return ApiLifecycleState.PUBLISHED.name().equals(lifecycleState) ? ApiLifecycleState.PUBLISHED : ApiLifecycleState.UNPUBLISHED;
     }
 
-    default List<Listener> mapApiCRDListeners(io.gravitee.apim.core.api.model.crd.ApiCRDSpec spec) {
-        if (CollectionUtils.isEmpty(spec.getListeners())) {
+    default List<Listener> mapAbstractListeners(List<? extends AbstractListener<? extends AbstractEntrypoint>> listeners) {
+        if (CollectionUtils.isEmpty(listeners)) {
             return List.of();
         }
 
-        if (ApiType.NATIVE.name().equalsIgnoreCase(spec.getType())) {
-            return ListenerMapper.INSTANCE.mapFromNativeListenerV4List((List<NativeListener>) spec.getListeners());
-        } else {
-            return ListenerMapper.INSTANCE.mapFromListenerEntityV4List(
-                (List<io.gravitee.definition.model.v4.listener.Listener>) spec.getListeners()
-            );
+        if (listeners.getFirst() instanceof NativeListener) {
+            return ListenerMapper.INSTANCE.mapFromNativeListenerV4List((List<NativeListener>) listeners);
+        } else if (listeners.getFirst() instanceof io.gravitee.definition.model.v4.listener.Listener) {
+            return ListenerMapper.INSTANCE.mapFromListenerEntityV4List((List<io.gravitee.definition.model.v4.listener.Listener>) listeners);
         }
+
+        return List.of();
     }
 
-    default List<EndpointGroupV4> mapApiCRDEndpointGroups(io.gravitee.apim.core.api.model.crd.ApiCRDSpec spec) {
-        if (CollectionUtils.isEmpty(spec.getEndpointGroups())) {
-            return List.of();
-        }
+    default EndpointV4 mapAbstractEndpoint(AbstractEndpoint abstractEndpoint) {
+        return switch (abstractEndpoint) {
+            case NativeEndpoint nativeEndpoint -> EndpointMapper.INSTANCE.mapFromNativeV4(nativeEndpoint);
+            case Endpoint endpoint -> EndpointMapper.INSTANCE.mapFromHttpV4(endpoint);
+            case null, default -> null;
+        };
+    }
 
-        if (ApiType.NATIVE.name().equalsIgnoreCase(spec.getType())) {
-            return EndpointMapper.INSTANCE.mapEndpointGroupNativeV4((List<NativeEndpointGroup>) spec.getEndpointGroups());
-        } else {
-            return EndpointMapper.INSTANCE.mapEndpointGroupHttpV4((List<EndpointGroup>) spec.getEndpointGroups());
-        }
+    default EndpointGroupV4 mapAbstractEndpointGroups(AbstractEndpointGroup<? extends AbstractEndpoint> abstractEndpointGroup) {
+        return switch (abstractEndpointGroup) {
+            case NativeEndpointGroup nativeEndpointGroup -> EndpointMapper.INSTANCE.mapEndpointGroupNativeV4(nativeEndpointGroup);
+            case EndpointGroup endpointGroup -> EndpointMapper.INSTANCE.mapEndpointGroupHttpV4(endpointGroup);
+            case null, default -> null;
+        };
+    }
+
+    default FlowV4 mapAbstractFlow(AbstractFlow abstractFlow) {
+        return switch (abstractFlow) {
+            case NativeFlow nativeFlow -> FlowMapper.INSTANCE.mapFromNativeV4(nativeFlow);
+            case Flow flow -> FlowMapper.INSTANCE.mapFromHttpV4(flow);
+            case null, default -> null;
+        };
     }
 }

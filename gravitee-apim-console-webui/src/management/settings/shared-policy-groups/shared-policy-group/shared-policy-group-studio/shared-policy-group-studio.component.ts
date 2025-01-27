@@ -86,6 +86,7 @@ export class SharedPolicyGroupStudioComponent {
         ...sharedPolicyGroup,
         // Restore unsaved steps if any
         steps: this.enableSaveButton ? this.sharedPolicyGroup().steps : sharedPolicyGroup.steps,
+        isKubernetesOrigin: sharedPolicyGroup.originContext?.origin === 'KUBERNETES',
       })),
     ),
   );

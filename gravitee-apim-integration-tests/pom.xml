@@ -37,7 +37,9 @@
         <solace-messaging-client.version>1.4.0</solace-messaging-client.version>
         <reactor-rabbitmq.version>1.5.6</reactor-rabbitmq.version>
         <testcontainers-redis.version>2.2.2</testcontainers-redis.version>
-        <kindcontainer.version>1.4.6</kindcontainer.version>
+        <kindcontainer.version>1.4.7</kindcontainer.version>
+
+        <surefireArgLine>-Xmx1024m -XX:MaxMetaspaceSize=512m</surefireArgLine>
     </properties>
 
     <dependencies>
@@ -534,13 +536,6 @@
             <groupId>com.graviteesource.reactor</groupId>
             <artifactId>gravitee-reactor-native-kafka</artifactId>
             <version>${gravitee-reactor-native-kafka.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <!-- V3 Connectors -->
-        <dependency>
-            <groupId>io.gravitee.connector</groupId>
-            <artifactId>gravitee-connector-kafka</artifactId>
-            <version>${gravitee-connector-kafka.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- Entrypoints -->

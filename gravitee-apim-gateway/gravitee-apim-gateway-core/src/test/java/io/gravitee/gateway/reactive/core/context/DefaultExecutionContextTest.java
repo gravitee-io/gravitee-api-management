@@ -18,21 +18,18 @@ package io.gravitee.gateway.reactive.core.context;
 import static io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext.TEMPLATE_ATTRIBUTE_CONTEXT;
 import static io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST;
 import static io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE;
+import static java.lang.Double.parseDouble;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.offset;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
-import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
@@ -89,7 +86,7 @@ class DefaultExecutionContextTest {
         }
 
         for (int i = 0; i < 10; i++) {
-            assertEquals(ATTRIBUTE_VALUE + i, cut.getAttribute(ATTRIBUTE_KEY + i));
+            assertThat(cut.getAttribute(ATTRIBUTE_KEY + i).toString()).isEqualTo(ATTRIBUTE_VALUE + i);
         }
     }
 
@@ -102,7 +99,7 @@ class DefaultExecutionContextTest {
         final Map<String, Object> attributes = cut.getAttributes();
 
         for (int i = 0; i < 10; i++) {
-            assertEquals(ATTRIBUTE_VALUE + i, attributes.get(ATTRIBUTE_KEY + i));
+            assertThat(attributes).containsEntry(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
         }
     }
 
@@ -113,11 +110,11 @@ class DefaultExecutionContextTest {
             cut.putAttribute(ContextAttributes.ATTR_PREFIX + ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
         }
 
-        final Map<String, Object> attributes = cut.getAttributes();
+        final var attributes = cut.getAttributes();
 
         for (int i = 0; i < 10; i++) {
             // Get attribute without prefix.
-            assertEquals(ATTRIBUTE_VALUE + i, attributes.get(ATTRIBUTE_KEY + i));
+            assertThat(attributes).containsEntry(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
         }
     }
 
@@ -129,38 +126,36 @@ class DefaultExecutionContextTest {
 
         for (int i = 0; i < 10; i++) {
             cut.removeAttribute(ATTRIBUTE_KEY + i);
-            assertNull(cut.getAttribute(ATTRIBUTE_KEY + i));
+            assertThat((Object) cut.getAttribute(ATTRIBUTE_KEY + i)).isNull();
         }
     }
 
     @Test
     void should_get_cast_attributes() {
         cut.putAttribute(ATTRIBUTE_KEY, 1.0f);
-        assertEquals(1.0f, (float) cut.getAttribute(ATTRIBUTE_KEY));
+        assertThat((float) cut.getAttribute(ATTRIBUTE_KEY)).isEqualTo(1.0f);
 
         cut.putAttribute(ATTRIBUTE_KEY, ATTRIBUTE_VALUE);
-        assertEquals(ATTRIBUTE_VALUE, cut.getAttribute(ATTRIBUTE_KEY));
+        assertThat((String) cut.getAttribute(ATTRIBUTE_KEY)).isEqualTo(ATTRIBUTE_VALUE);
 
-        final Object object = mock(Object.class);
+        final Object object = new Object();
         cut.putAttribute(ATTRIBUTE_KEY, object);
-        assertEquals(object, cut.getAttribute(ATTRIBUTE_KEY));
+        assertThat((Object) cut.getAttribute(ATTRIBUTE_KEY)).isEqualTo(object);
     }
 
     @Test
     void should_return_class_cast_exception_when_invalid_cast_attribute() {
         cut.putAttribute(ATTRIBUTE_KEY, ATTRIBUTE_VALUE);
 
-        assertThrows(
-            ClassCastException.class,
-            () -> {
+        assertThatThrownBy(() -> {
                 final Float value = cut.getAttribute(ATTRIBUTE_KEY);
-            }
-        );
+            })
+            .isInstanceOf(ClassCastException.class);
     }
 
     @Test
     void should_return_null_when_get_unknown_attribute() {
-        assertNull(cut.getAttribute(ATTRIBUTE_KEY));
+        assertThat((Object) cut.getAttribute(ATTRIBUTE_KEY)).isNull();
     }
 
     @Test
@@ -170,7 +165,7 @@ class DefaultExecutionContextTest {
         }
 
         for (int i = 0; i < 10; i++) {
-            assertEquals(ATTRIBUTE_VALUE + i, cut.getInternalAttribute(ATTRIBUTE_KEY + i));
+            assertThat(cut.getInternalAttribute(ATTRIBUTE_KEY + i).toString()).isEqualTo(ATTRIBUTE_VALUE + i);
         }
     }
 
@@ -183,7 +178,7 @@ class DefaultExecutionContextTest {
         final Map<String, Object> internalAttributes = cut.getInternalAttributes();
 
         for (int i = 0; i < 10; i++) {
-            assertEquals(ATTRIBUTE_VALUE + i, internalAttributes.get(ATTRIBUTE_KEY + i));
+            assertThat(internalAttributes).containsEntry(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
         }
     }
 
@@ -195,38 +190,36 @@ class DefaultExecutionContextTest {
 
         for (int i = 0; i < 10; i++) {
             cut.removeInternalAttribute(ATTRIBUTE_KEY + i);
-            assertNull(cut.getInternalAttribute(ATTRIBUTE_KEY + i));
+            assertThat((Object) cut.getAttribute(ATTRIBUTE_KEY + i)).isNull();
         }
     }
 
     @Test
     void should_get_cast_internal_attributes() {
         cut.putInternalAttribute(ATTRIBUTE_KEY, 1.0f);
-        assertEquals(1.0f, (float) cut.getInternalAttribute(ATTRIBUTE_KEY));
+        assertThat((float) cut.getInternalAttribute(ATTRIBUTE_KEY)).isEqualTo(1.0f);
 
         cut.putInternalAttribute(ATTRIBUTE_KEY, ATTRIBUTE_VALUE);
-        assertEquals(ATTRIBUTE_VALUE, cut.getInternalAttribute(ATTRIBUTE_KEY));
+        assertThat(cut.getInternalAttribute(ATTRIBUTE_KEY).toString()).isEqualTo(ATTRIBUTE_VALUE);
 
-        final Object object = mock(Object.class);
+        final Object object = new Object();
         cut.putInternalAttribute(ATTRIBUTE_KEY, object);
-        assertEquals(object, cut.getInternalAttribute(ATTRIBUTE_KEY));
+        assertThat((Object) cut.getInternalAttribute(ATTRIBUTE_KEY)).isEqualTo(object);
     }
 
     @Test
     void should_return_class_cast_exception_when_invalid_cast_internal_attribute() {
         cut.putInternalAttribute(ATTRIBUTE_KEY, ATTRIBUTE_VALUE);
 
-        assertThrows(
-            ClassCastException.class,
-            () -> {
+        assertThatThrownBy(() -> {
                 final Float value = cut.getInternalAttribute(ATTRIBUTE_KEY);
-            }
-        );
+            })
+            .isInstanceOf(ClassCastException.class);
     }
 
     @Test
     void should_return_null_when_get_unknown_internal_attribute() {
-        assertNull(cut.getInternalAttribute(ATTRIBUTE_KEY));
+        assertThat((Object) cut.getAttribute(ATTRIBUTE_KEY)).isNull();
     }
 
     @Test
@@ -234,9 +227,9 @@ class DefaultExecutionContextTest {
         final TemplateEngine templateEngine = cut.getTemplateEngine();
         final TemplateContext templateContext = templateEngine.getTemplateContext();
 
-        assertNotNull(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST));
-        assertNotNull(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_RESPONSE));
-        assertNotNull(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_CONTEXT));
+        Stream
+            .of(TEMPLATE_ATTRIBUTE_REQUEST, TEMPLATE_ATTRIBUTE_RESPONSE, TEMPLATE_ATTRIBUTE_RESPONSE)
+            .forEach(attribute -> assertThat(templateContext.lookupVariable(attribute)).isNotNull());
     }
 
     @Test
@@ -244,7 +237,7 @@ class DefaultExecutionContextTest {
         final TemplateEngine templateEngine = cut.getTemplateEngine();
 
         for (int i = 0; i < 10; i++) {
-            assertEquals(templateEngine, cut.getTemplateEngine());
+            assertThat(cut.getTemplateEngine()).isEqualTo(templateEngine);
         }
     }
 
@@ -329,7 +322,7 @@ class DefaultExecutionContextTest {
         final TemplateEngine templateEngine = cut.getTemplateEngine();
 
         for (int i = 0; i < 10; i++) {
-            assertSame(templateEngine, cut.getTemplateEngine());
+            assertThat(cut.getTemplateEngine()).isSameAs(templateEngine);
         }
     }
 
@@ -343,28 +336,19 @@ class DefaultExecutionContextTest {
             final TemplateContext otherTemplateContext = otherTemplateEngine.getTemplateContext();
 
             // Template engine and template context are per message.
-            assertNotSame(templateEngine, otherTemplateEngine);
-            assertNotSame(templateContext, otherTemplateContext);
+            assertThat(templateEngine).isNotSameAs(otherTemplateEngine);
+            assertThat(templateContext).isNotSameAs(otherTemplateContext);
 
             // But evaluable request/response/context are common.
-            assertSame(
-                templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST),
-                otherTemplateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)
-            );
-            assertSame(
-                templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_RESPONSE),
-                otherTemplateContext.lookupVariable(TEMPLATE_ATTRIBUTE_RESPONSE)
-            );
-            assertSame(
-                templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_CONTEXT),
-                otherTemplateContext.lookupVariable(TEMPLATE_ATTRIBUTE_CONTEXT)
-            );
+            Stream
+                .of(TEMPLATE_ATTRIBUTE_REQUEST, TEMPLATE_ATTRIBUTE_RESPONSE, TEMPLATE_ATTRIBUTE_CONTEXT)
+                .forEach(key -> assertThat(otherTemplateContext.lookupVariable(key)).isSameAs(otherTemplateContext.lookupVariable(key)));
         }
     }
 
     @Test
     void should_provide_template_variables_when_providers_are_specified() {
-        final ExecutionContextTemplateVariableProvider templateVariableProvider = mock(ExecutionContextTemplateVariableProvider.class);
+        final var templateVariableProvider = mock(ExecutionContextTemplateVariableProvider.class);
         cut.templateVariableProviders(List.of(templateVariableProvider));
 
         cut.getTemplateEngine();
@@ -381,27 +365,23 @@ class DefaultExecutionContextTest {
 
     static Stream<Arguments> listableAttribute() {
         return Stream.of(
-            Arguments.arguments("a,b,c", List.of("a", "b", "c")),
-            Arguments.arguments("a , b, c ", List.of("a", "b", "c")),
-            Arguments.arguments(" a , b, c ", List.of("a", "b", "c")),
-            Arguments.arguments("a   ,   b,    c    ", List.of("a", "b", "c")),
-            Arguments.arguments("a\t,\tb,\tc\t", List.of("a", "b", "c")),
-            Arguments.arguments("a\t\t,\t\tb,\t\tc\t\t", List.of("a", "b", "c")),
-            Arguments.arguments("a b c", List.of("a b c")),
-            Arguments.arguments(" a b c ", List.of("a b c")),
-            Arguments.arguments("[\"a\", \"b\", \"c\"]", List.of("a", "b", "c")),
-            Arguments.arguments("[\"a\", {}, \"c\"]", List.of("a", "{}", "c")),
-            Arguments.arguments("[\"a\", 1, \"c\"]", List.of("a", "1", "c")),
-            Arguments.arguments(
-                "[\"a\", 123456789123456789123456789123456789, \"c\"]",
-                List.of("a", "123456789123456789123456789123456789", "c")
-            ),
-            Arguments.arguments("[\"a\", 123456789123456789.123456789123456789, \"c\"]", List.of("a", "1.23456789123456784E17", "c")),
-            Arguments.arguments("[\"a\", true, \"c\"]", List.of("a", "true", "c")),
-            Arguments.arguments(List.of("a", "b", "c"), List.of("a", "b", "c")),
-            Arguments.arguments(new ArrayList<>(List.of(1, 2, 3)), List.of(1, 2, 3)),
-            Arguments.arguments(Collections.emptyList(), Collections.emptyList()),
-            Arguments.arguments(1, List.of(1))
+            arguments("a,b,c", List.of("a", "b", "c")),
+            arguments("a , b, c ", List.of("a", "b", "c")),
+            arguments(" a , b, c ", List.of("a", "b", "c")),
+            arguments("a   ,   b,    c    ", List.of("a", "b", "c")),
+            arguments("a\t,\tb,\tc\t", List.of("a", "b", "c")),
+            arguments("a\t\t,\t\tb,\t\tc\t\t", List.of("a", "b", "c")),
+            arguments("a b c", List.of("a b c")),
+            arguments(" a b c ", List.of("a b c")),
+            arguments("[\"a\", \"b\", \"c\"]", List.of("a", "b", "c")),
+            arguments("[\"a\", {}, \"c\"]", List.of("a", "{}", "c")),
+            arguments("[\"a\", 1, \"c\"]", List.of("a", "1", "c")),
+            arguments("[\"a\", 123456789123456789123456789123456789, \"c\"]", List.of("a", "123456789123456789123456789123456789", "c")),
+            arguments("[\"a\", true, \"c\"]", List.of("a", "true", "c")),
+            arguments(List.of("a", "b", "c"), List.of("a", "b", "c")),
+            arguments(new ArrayList<>(List.of(1, 2, 3)), List.of(1, 2, 3)),
+            arguments(Collections.emptyList(), Collections.emptyList()),
+            arguments(1, List.of(1))
         );
     }
 
@@ -412,6 +392,31 @@ class DefaultExecutionContextTest {
         List<Object> actual = cut.getAttributeAsList(ATTRIBUTE_KEY);
         assertThat(actual).containsAll(expectedList);
         assertThat(actual).isNotSameAs(expectedList);
+        assertThatCode(() -> actual.add(new Object())).isOfAnyClassIn(UnsupportedOperationException.class);
+    }
+
+    /**
+     * Use a dedicated test to use specific floating point assertions methods.
+     * The previous test was broken since JDK19 because of <a href="https://bugs.openjdk.org/browse/JDK-4511638">JDK-4511638</a>
+     * (cf: <a href="https://inside.java/2022/09/23/quality-heads-up/">Quality Outreach Heads-up - JDK 19 - Double.toString() and Float.toString() changes</a>)
+     */
+    @Test
+    void should_fetch_attribute_as_list_float_with_great_precision() {
+        // Given
+        String attributeValue = "[\"a\", 123456789123456789.123456789123456789, \"c\"]";
+
+        // When
+        cut.putAttribute(ATTRIBUTE_KEY, attributeValue);
+        List<Object> actual = cut.getAttributeAsList(ATTRIBUTE_KEY);
+
+        // Then
+        var expectedList = List.of("a", "1.23456789123456784E17", "c");
+        assertThat(actual).isNotSameAs(expectedList);
+        assertThat(actual).hasSize(3);
+        assertThat(actual.get(0)).isEqualTo("a");
+        assertThat(actual.get(2)).isEqualTo("c");
+        assertThat(parseDouble(actual.get(1).toString()))
+            .isEqualTo(123_456_789_123_456_789.123_456_789_123_456_789, offset(0.000_000_000_000_000_1d));
         assertThatCode(() -> actual.add(new Object())).isOfAnyClassIn(UnsupportedOperationException.class);
     }
 }
