@@ -91,6 +91,18 @@ const GroupComponentAjs: ng.IComponentOptions = {
           ])
             .then(([groupsResponse, apiRolesResponse, applicationRolesResponse, integrationRolesResponse, invitationsResponse]) => {
               this.group = groupsResponse.data;
+
+              /*
+              It is written in the members list: "Enable email invitation and/or user search to allow the group administrator to add users."
+              It means that to add members, the group must be manageable (i.e. the current user is a group admin) and the group must have email invitation or system invitation enabled.
+             */
+              /*
+              It is possible to add members only when a group is first created, otherwise we can't associate members to the group (without id)
+             */
+              this.canAddMembers =
+                this.updateMode &&
+                (this.isSuperAdmin || (this.group.manageable && (this.group.system_invitation || this.group.email_invitation)));
+
               this.apiRoles = [{ scope: 'API', name: '', system: false }].concat(apiRolesResponse);
               this.applicationRoles = [{ scope: 'APPLICATION', name: '', system: false }].concat(applicationRolesResponse);
               this.integrationRoles = [{ scope: 'INTEGRATION', name: '', system: false }].concat(integrationRolesResponse);
@@ -127,17 +139,6 @@ const GroupComponentAjs: ng.IComponentOptions = {
         this.canChangeDefaultApiRole = this.isSuperAdmin || !this.group.lock_api_role;
         this.canChangeDefaultApplicationRole = this.isSuperAdmin || !this.group.lock_application_role;
         this.canChangeDefaultIntegrationRole = this.isSuperAdmin;
-
-        /*
-        It is written in the members list: "Enable email invitation and/or user search to allow the group administrator to add users."
-        It means that to add members, the group must be manageable (i.e. the current user is a group admin) and the group must have email invitation or system invitation enabled.
-       */
-        /*
-        It is possible to add members only when a group is first created, otherwise we can't associate members to the group (without id)
-       */
-        this.canAddMembers =
-          this.updateMode &&
-          (this.isSuperAdmin || (this.group.manageable && (this.group.system_invitation || this.group.email_invitation)));
 
         this.loadGroupApis();
       };
