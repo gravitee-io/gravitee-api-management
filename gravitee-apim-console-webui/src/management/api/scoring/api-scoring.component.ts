@@ -120,9 +120,8 @@ export class ApiScoringComponent implements OnInit {
           if (!this.pendingScoreRequest) {
             this.stopPolling$.next();
 
-            if (apiScoring === undefined) {
-              this.apiScoreNeverEvaluated = true;
-            } else {
+            this.apiScoreNeverEvaluated = apiScoring === undefined;
+            if (!this.apiScoreNeverEvaluated) {
               this.evaluationErrors = this.getEvaluationErrors(apiScoring);
               if (this.evaluationErrors.length) {
                 this.snackBarService.error(this.formatEvaluationErrors(this.evaluationErrors));
