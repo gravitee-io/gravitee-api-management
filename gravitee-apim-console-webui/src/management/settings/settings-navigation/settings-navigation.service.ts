@@ -91,7 +91,7 @@ export class SettingsNavigationService {
             permissions: ['environment-theme-r'],
           },
           {
-            displayName: 'Top APIs',
+            displayName: 'Featured APIs',
             routerLink: './top-apis',
             permissions: ['environment-top_apis-r'],
           },
