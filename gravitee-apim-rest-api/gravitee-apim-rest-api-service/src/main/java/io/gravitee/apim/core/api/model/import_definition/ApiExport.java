@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api.model.import_definition;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.Api.ApiBuilder;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
@@ -104,6 +105,8 @@ public class ApiExport {
     private Instant createdAt;
     private Instant deployedAt;
     private Instant updatedAt;
+
+    PrimaryOwnerEntity primaryOwner;
 
     public ApiBuilder toApiBuilder() {
         return Api

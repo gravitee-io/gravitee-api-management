@@ -68,7 +68,6 @@ public class PlanExport {
     private boolean commentRequired;
     private String commentMessage;
     private String generalConditions;
-    private ApiType apiType;
 
     private List<Flow> flows;
 }
