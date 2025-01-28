@@ -40,6 +40,8 @@ import { redirectGuard } from '../guards/redirect.guard';
 import { apiResolver } from '../resolvers/api.resolver';
 import { applicationPermissionResolver, applicationResolver, applicationTypeResolver } from '../resolvers/application.resolver';
 import { pagesResolver } from '../resolvers/pages.resolver';
+import { ResetPasswordComponent } from './reset-password/reset-password.component';
+import { ResetPasswordConfirmationComponent } from './reset-password-confirmation/reset-password-confirmation.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'catalog', pathMatch: 'full' },
@@ -149,6 +151,12 @@ export const routes: Routes = [
     component: GuidesComponent,
   },
   { path: 'log-in', component: LogInComponent, canActivate: [redirectGuard, anonymousGuard] },
+  { path: 'reset-password', component: ResetPasswordComponent, canActivate: [redirectGuard, anonymousGuard] },
+  {
+    path: 'reset-password/confirm/:token',
+    component: ResetPasswordConfirmationComponent,
+    canActivate: [redirectGuard, anonymousGuard],
+  },
   { path: 'log-out', component: LogOutComponent, canActivate: [redirectGuard, authGuard] },
   { path: '404', component: NotFoundComponent },
   {
