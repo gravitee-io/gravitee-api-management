@@ -108,8 +108,8 @@ describe('GuidesComponent', () => {
 
       const tree = await harnessLoader.getHarness(PageTreeHarness);
       const displayedItems = await tree.displayedItems();
-      expect(displayedItems).toHaveLength(2);
-      expect(displayedItems).toEqual(['a valid folder', 'valid page']);
+      expect(displayedItems).toHaveLength(1);
+      expect(displayedItems).toEqual(['a valid folder']);
     });
     it('should not show page with parentId defined but invalid', async () => {
       expectGetPages(
@@ -137,7 +137,7 @@ describe('GuidesComponent', () => {
       const markdown = await harnessLoader.getHarnessOrNull(PageMarkdownHarness);
       expect(markdown).toBeTruthy();
     });
-    it('should show folder + inner page', async () => {
+    it('should not show folder + inner page', async () => {
       expectGetPages(
         fakePagesResponse({
           data: [
@@ -151,8 +151,8 @@ describe('GuidesComponent', () => {
 
       const tree = await harnessLoader.getHarness(PageTreeHarness);
       const displayedItems = await tree.displayedItems();
-      expect(displayedItems).toHaveLength(2);
-      expect(displayedItems).toEqual(['valid folder', 'valid page']);
+      expect(displayedItems).toHaveLength(1);
+      expect(displayedItems).toEqual(['valid folder']);
 
       const markdown = await harnessLoader.getHarnessOrNull(PageMarkdownHarness);
       expect(markdown).toBeTruthy();
