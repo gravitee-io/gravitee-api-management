@@ -65,6 +65,7 @@ export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
   subscriptionListOptions: any;
   entrypointOptions: { label: string; value: string }[];
   selectedEntrypointSchema: Record<string, unknown>;
+  apiId?: any;
 
   private updateStepsTimer: any;
   private unsubscribe$ = new Subject();
@@ -241,6 +242,7 @@ export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
 
   async onSelectApi({ detail }) {
     const api = this.apiList.find(a => a.id === detail.id).data;
+    this.apiId = api.id;
     this.planForm.get('apiId').setValue(api.id);
     this.planForm.get('channel').reset();
     this.planForm.get('entrypoint').reset();
