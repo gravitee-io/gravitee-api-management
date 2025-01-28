@@ -17,11 +17,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButton } from '@angular/material/button';
+import { MatAnchor, MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatError, MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { switchMap, tap } from 'rxjs';
 
 import { AuthService } from '../../services/auth.service';
@@ -31,7 +31,7 @@ import { PortalMenuLinksService } from '../../services/portal-menu-links.service
 @Component({
   selector: 'app-log-in',
   standalone: true,
-  imports: [MatCardModule, MatFormField, MatInput, MatButton, MatLabel, ReactiveFormsModule, MatError],
+  imports: [MatCardModule, MatFormField, MatInput, MatButtonModule, MatLabel, ReactiveFormsModule, MatError, RouterLink, MatAnchor],
   templateUrl: './log-in.component.html',
   styleUrl: './log-in.component.scss',
 })

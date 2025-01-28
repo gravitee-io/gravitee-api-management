@@ -35,6 +35,8 @@ import { CategoryApisComponent } from './catalog/categories-view/category-apis/c
 import { TabsViewComponent } from './catalog/tabs-view/tabs-view.component';
 import { GuidesComponent } from './guides/guides.component';
 import { LogInComponent } from './log-in/log-in.component';
+import { ResetPasswordConfirmationComponent } from './log-in/reset-password/reset-password-confirmation/reset-password-confirmation.component';
+import { ResetPasswordComponent } from './log-in/reset-password/reset-password.component';
 import { LogOutComponent } from './log-out/log-out.component';
 import { NotFoundComponent } from './not-found/not-found.component';
 import { ServiceUnavailableComponent } from './service-unavailable/service-unavailable.component';
@@ -199,7 +201,27 @@ export const routes: Routes = [
     path: 'guides',
     component: GuidesComponent,
   },
-  { path: 'log-in', component: LogInComponent, canActivate: [redirectGuard, anonymousGuard] },
+  {
+    path: 'log-in',
+    canActivate: [redirectGuard, anonymousGuard],
+    children: [
+      { path: '', pathMatch: 'full', component: LogInComponent },
+      {
+        path: 'reset-password',
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            component: ResetPasswordComponent,
+          },
+          {
+            path: 'confirm/:token',
+            component: ResetPasswordConfirmationComponent,
+          },
+        ],
+      },
+    ],
+  },
   { path: 'log-out', component: LogOutComponent, canActivate: [redirectGuard, authGuard] },
   { path: '404', component: NotFoundComponent },
   { path: '503', component: ServiceUnavailableComponent },
