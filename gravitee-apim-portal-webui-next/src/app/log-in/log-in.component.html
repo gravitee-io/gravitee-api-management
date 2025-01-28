@@ -21,26 +21,27 @@
       <mat-card-title i18n="@@logInTitle">Log in</mat-card-title>
     </mat-card-header>
     <mat-card-content class="log-in__form">
-      <mat-form-field class="log-in__form__input">
-        <mat-label i18n="@@logInUsername">Username</mat-label>
-        <input matInput formControlName="username" appearance="outlined" />
-        @if (logInForm.controls['username'].hasError('required')) {
-          <mat-error i18n="@@logInUsernameErrorRequired">Username is required</mat-error>
+      <div class="log-in__form__fields">
+        <mat-form-field class="log-in__form__input">
+          <mat-label i18n="@@logInUsername">Username</mat-label>
+          <input matInput formControlName="username" appearance="outlined" />
+          @if (logInForm.controls.username.hasError('required')) {
+            <mat-error i18n="@@logInUsernameErrorRequired">Username is required</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field class="log-in__form__input">
+          <mat-label i18n="@@logInPassword">Password</mat-label>
+          <input type="password" matInput formControlName="password" />
+          @if (logInForm.controls.password.hasError('required')) {
+            <mat-error i18n="@@logInPasswordErrorRequired">Password is required</mat-error>
+          }
+        </mat-form-field>
+        @if (error() === 401) {
+          <mat-error i18n="@@logInError401">The username or password you entered is incorrect, please try again.</mat-error>
         }
-      </mat-form-field>
-      <mat-form-field class="log-in__form__input">
-        <mat-label i18n="@@logInPassword">Password</mat-label>
-        <input type="password" matInput formControlName="password" />
-        @if (logInForm.controls['password'].hasError('required')) {
-          <mat-error i18n="@@logInPasswordErrorRequired">Password is required</mat-error>
-        }
-      </mat-form-field>
-      @if (error() === 401) {
-        <mat-error i18n="@@logInError401">The username or password you entered is incorrect, please try again.</mat-error>
-      }
-    </mat-card-content>
-    <mat-card-footer>
-      <mat-card-actions>
+      </div>
+
+      <div class="log-in__form__buttons">
         <button
           [disabled]="logInForm.invalid"
           type="submit"
@@ -49,7 +50,8 @@
           class="log-in__form__submit secondary-button">
           Log in
         </button>
-      </mat-card-actions>
-    </mat-card-footer>
+        <a mat-stroked-button i18n="@@resetPasswordAction" routerLink="reset-password"> Forgot password? </a>
+      </div>
+    </mat-card-content>
   </mat-card>
 </form>
