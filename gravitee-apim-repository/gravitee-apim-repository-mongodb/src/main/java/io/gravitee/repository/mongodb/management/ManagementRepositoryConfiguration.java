@@ -24,6 +24,7 @@ import jakarta.annotation.PostConstruct;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -49,20 +50,13 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
     @Qualifier("managementMongo")
     private MongoFactory mongoFactory;
 
-    public ManagementRepositoryConfiguration(Environment environment) {
-        super(environment);
+    public ManagementRepositoryConfiguration(Environment environment, ApplicationContext applicationContext) {
+        super(environment, applicationContext);
     }
 
-    @Autowired
-    private MappingMongoConverter mappingMongoConverter;
-
-    private static MongoCustomConversions mongoCustomConversions() {
-        return new MongoCustomConversions(List.of(new BsonUndefinedToNullReadingConverter()));
-    }
-
-    @PostConstruct
-    public void addCustomConverters() {
-        mappingMongoConverter.setCustomConversions(mongoCustomConversions());
+    @Bean
+    public BsonUndefinedToNullReadingConverter bsonUndefinedToNullReadingConverter() {
+        return new BsonUndefinedToNullReadingConverter();
     }
 
     @Bean(name = "managementMongo")

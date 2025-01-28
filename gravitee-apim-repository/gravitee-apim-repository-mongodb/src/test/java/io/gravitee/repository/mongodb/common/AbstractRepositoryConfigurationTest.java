@@ -19,6 +19,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.springframework.context.ApplicationContext;
 import org.springframework.mock.env.MockEnvironment;
 
 public class AbstractRepositoryConfigurationTest {
@@ -27,10 +29,13 @@ public class AbstractRepositoryConfigurationTest {
 
     private MockEnvironment environment;
 
+    @Mock
+    private ApplicationContext applicationContext;
+
     @Before
     public void setUp() throws Exception {
         environment = new MockEnvironment();
-        abstractRepositoryConfiguration = new AbstractRepositoryConfiguration(environment) {};
+        abstractRepositoryConfiguration = new AbstractRepositoryConfiguration(environment, applicationContext) {};
     }
 
     @Test

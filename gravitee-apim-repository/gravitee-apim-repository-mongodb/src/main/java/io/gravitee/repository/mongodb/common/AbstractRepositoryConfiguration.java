@@ -23,20 +23,20 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import org.mapstruct.factory.Mappers;
-import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.data.annotation.Persistent;
+import org.springframework.data.convert.PropertyValueConverterFactory;
 import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration;
+import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.lang.NonNull;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -44,21 +44,21 @@ import org.springframework.util.StringUtils;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractRepositoryConfiguration extends AbstractMongoClientConfiguration implements ApplicationContextAware {
+public abstract class AbstractRepositoryConfiguration extends AbstractMongoClientConfiguration implements InitializingBean {
 
     protected final Environment environment;
 
     protected ApplicationContext applicationContext;
 
-    protected AbstractRepositoryConfiguration(Environment environment) {
+    protected AbstractRepositoryConfiguration(Environment environment, ApplicationContext applicationContext) {
         this.environment = environment;
+        this.applicationContext = applicationContext;
     }
 
     @Override
-    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
+    public void afterPropertiesSet() {
         final ConfigurableListableBeanFactory beanFactory = getConfigurableApplicationContext(applicationContext).getBeanFactory();
         beanFactory.registerSingleton("graviteeTransactionManager", new NoTransactionManager());
-        this.applicationContext = applicationContext;
     }
 
     private ConfigurableApplicationContext getConfigurableApplicationContext(ApplicationContext applicationContext) {
@@ -100,5 +100,10 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoClien
             }
         }
         return initialEntitySet;
+    }
+
+    @Override
+    protected void configureConverters(MongoCustomConversions.MongoConverterConfigurationAdapter adapter) {
+        adapter.registerPropertyValueConverterFactory(PropertyValueConverterFactory.beanFactoryAware(applicationContext));
     }
 }
