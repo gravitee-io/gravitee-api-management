@@ -60,3 +60,8 @@ $typography: map.get(gio.$mat-theme, typography);
     gap: 8px;
   }
 }
+::ng-deep table td {
+  word-break: break-all; /* Break text at any character, including between letters */
+  overflow-wrap: break-word; /* Ensure text will break in the middle of words if needed */
+  white-space: normal;
+}
