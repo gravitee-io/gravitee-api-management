@@ -54,17 +54,7 @@ describe('HomeOverviewComponent', () => {
     });
 
     it('should load request stats when changing date range', async () => {
-      expectApiLifecycleStateRequest();
-      expectApiStateRequest();
-      expectResponseStatusRequest();
-      expectRequestStatsRequest();
-      expectTopApiRequest();
-      expectCountApiRequest();
-      expectCountApplicationRequest();
-      expectSearchApiEventsRequest();
-      expectConsoleSettingsGetRequest();
-      expectTopApisGetRequest();
-      expectGetRequestStatsForV4();
+      expectRequests();
 
       const timeRangeHarness = await componentHarness.getDashboardFiltersBarHarness();
       const input = await timeRangeHarness.matSelectLocator();
@@ -94,6 +84,9 @@ describe('HomeOverviewComponent', () => {
       expectConsoleSettingsGetRequest();
       expectTopApisGetRequest();
       expectGetRequestStatsForV4();
+
+      expectResponseStatusGetRequest();
+      expectResponseTimesLogsGetRequest();
     });
 
     it('should select custom date range', async () => {
@@ -126,8 +119,8 @@ describe('HomeOverviewComponent', () => {
       const req = expectApiLifecycleStateRequest();
       expect(req.request.url).toContain(`from=${fromDateInMilliSeconds}&to=${toDateInMilliseconds}`);
 
-      expectApiStateRequest();
       expectResponseStatusRequest();
+      expectApiStateRequest();
       expectRequestStatsRequest();
       expectTopApiRequest();
       expectCountApiRequest();
@@ -136,37 +129,18 @@ describe('HomeOverviewComponent', () => {
       expectConsoleSettingsGetRequest();
       expectTopApisGetRequest();
       expectGetRequestStatsForV4();
+      expectResponseStatusGetRequest();
+      expectResponseTimesLogsGetRequest();
     });
 
     it('should show request stats', async () => {
-      expectApiLifecycleStateRequest();
-      expectApiStateRequest();
-      expectResponseStatusRequest();
-      expectRequestStatsRequest();
-      expectTopApiRequest();
-      expectCountApiRequest();
-      expectCountApplicationRequest();
-      expectSearchApiEventsRequest();
-      expectConsoleSettingsGetRequest();
-      expectTopApisGetRequest();
-      expectGetRequestStatsForV4();
-
+      expectRequests();
       const stats = await componentHarness.getGioRequestStatsHarness();
       expect(await stats.getAverage()).toEqual('8.43 ms');
     });
 
     it('should show v4 APIs request stats', async () => {
-      expectApiLifecycleStateRequest();
-      expectApiStateRequest();
-      expectResponseStatusRequest();
-      expectRequestStatsRequest();
-      expectTopApiRequest();
-      expectCountApiRequest();
-      expectCountApplicationRequest();
-      expectSearchApiEventsRequest();
-      expectConsoleSettingsGetRequest();
-      expectTopApisGetRequest();
-      expectGetRequestStatsForV4();
+      expectRequests();
 
       const stats = await componentHarness.getDashboardV4ApiRequestStatsHarness();
       expect(await stats.getRequestsPerSecond()).toEqual('< 0.1 ');
@@ -175,6 +149,14 @@ describe('HomeOverviewComponent', () => {
       expect(await stats.getMaxResponseTime()).toEqual('20,123.13 ms ');
       expect(await stats.getAverageResponseTime()).toEqual('234.76 ms ');
     });
+
+    // TODO in APIM-7863: uncomment test.
+    // it('should show requests that do not match a context path', async () => {
+    //   expectRequests();
+    //   const v2ApiCallsWithNoContextPathHarness = await componentHarness.getV2ApiCallsWithNoContextPathHarness();
+    //   const tableRowsNumber = await v2ApiCallsWithNoContextPathHarness.rowsNumber();
+    //   expect(tableRowsNumber).toEqual(1);
+    // });
   });
 
   function expectRequests() {
@@ -189,7 +171,10 @@ describe('HomeOverviewComponent', () => {
     expectConsoleSettingsGetRequest();
     expectTopApisGetRequest();
     expectGetRequestStatsForV4();
+    expectResponseStatusGetRequest();
+    expectResponseTimesLogsGetRequest();
   }
+
   function expectRequestStatsRequest(): TestRequest {
     const req = httpTestingController.expectOne((req) => {
       return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=stats&field=response-time`);
@@ -278,6 +263,47 @@ describe('HomeOverviewComponent', () => {
       content: [],
     });
     return req;
+  }
+
+  // TODO in APIM-7863.
+  // function expectLogsGetRequest() {
+  //   const url = `${CONSTANTS_TESTING.env.baseURL}/platform/logs?`;
+  //   const req = httpTestingController.expectOne((req) => {
+  //     return req.method === 'GET' && req.url.startsWith(url);
+  //   });
+  //   req.flush(fakePlatformLogsResponse());
+  //   expect(req.request.method).toEqual('GET');
+  // }
+
+  function expectResponseStatusGetRequest() {
+    const url = `${CONSTANTS_TESTING.env.baseURL}/analytics?type=date_histo&aggs=field:status`;
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(url);
+    });
+    req.flush({
+      timestamp: {
+        from: 100,
+        to: 100000,
+        interval: 10,
+      },
+      values: [],
+    });
+    expect(req.request.method).toEqual('GET');
+  }
+  function expectResponseTimesLogsGetRequest() {
+    const url = `${CONSTANTS_TESTING.env.baseURL}/analytics?type=date_histo&aggs=avg:response-time%3Bavg:api-response-time`;
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(url);
+    });
+    req.flush({
+      timestamp: {
+        from: 100,
+        to: 100000,
+        interval: 10,
+      },
+      values: [],
+    });
+    expect(req.request.method).toEqual('GET');
   }
 
   // v4

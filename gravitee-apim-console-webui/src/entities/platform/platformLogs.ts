@@ -13,23 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
 
-import { timeFrameRangesParams, TimeRangeParams } from '../shared/utils/timeFrameRanges';
+export interface PlatformLogsQueryParams {
+  from: number;
+  to: number;
+  query?: string;
+  page: number;
+  size: number;
+  field: string;
+  order: boolean;
+}
 
-@Injectable({
-  providedIn: 'root',
-})
-export class HomeService {
-  private initialTimeRange = timeFrameRangesParams('1m');
-  private timeRangeParams$ = new BehaviorSubject<TimeRangeParams>(this.initialTimeRange);
+export interface PlatformLog {
+  id: string;
+  timestamp: number;
+  transactionId: string;
+  path: string;
+  method: string;
+  status: number;
+  responseTime: number;
+  api: string;
+  plan: string;
+  application: string;
+  endpoint: boolean;
+}
 
-  public timeRangeParams() {
-    return this.timeRangeParams$.asObservable();
-  }
-
-  public setTimeRangeParams(value: TimeRangeParams): void {
-    this.timeRangeParams$.next(value);
-  }
+export interface PlatformLogsResponse {
+  logs: PlatformLog[];
+  total: number;
 }

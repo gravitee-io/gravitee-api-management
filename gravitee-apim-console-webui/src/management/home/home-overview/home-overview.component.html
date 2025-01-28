@@ -16,11 +16,11 @@
 
 -->
 <div class="home-overview">
-  <div class="home-overview__time-selector">
-    <!--    <gio-quick-time-range></gio-quick-time-range>-->
+  <div class="time-selector">
     <app-dashboard-filters-bar></app-dashboard-filters-bar>
   </div>
-  <div class="home-overview__row-cards">
+
+  <div class="row-cards">
     <mat-card class="card flex">
       <div class="card__header">Summary</div>
       <mat-card-content class="card__content">
@@ -54,52 +54,69 @@
     </mat-card>
   </div>
 
-  <h2 class="home-overview__row-title">V2 APIs</h2>
-  <div class="home-overview__row-cards">
-    <mat-card class="card">
-      <div class="card__header">API Response Status</div>
-      <mat-card-content class="card__content">
-        <ng-container *ngIf="apiResponseStatus; else loader">
-          <gio-api-response-status [data]="apiResponseStatus"></gio-api-response-status>
+  <div class="row">
+    <h2 class="row-title">V2 APIs</h2>
+    <div class="row-cards">
+      <mat-card class="card">
+        <div class="card__header">API Response Status</div>
+        <mat-card-content class="card__content">
+          <ng-container *ngIf="apiResponseStatus; else loader">
+            <gio-api-response-status [data]="apiResponseStatus"></gio-api-response-status>
+          </ng-container>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="card">
+        <div class="card__header">
+          Top APIs
+          <mat-icon class="card__header__tooltip" svgIcon="gio:info" matTooltip="Ordered by API calls"></mat-icon>
+        </div>
+        <ng-container *ngIf="topApis; else loader">
+          <gio-top-apis-table [data]="topApis"></gio-top-apis-table>
         </ng-container>
-      </mat-card-content>
-    </mat-card>
-    <mat-card class="card">
-      <div class="card__header">
-        Top APIs
-        <mat-icon class="card__header__tooltip" svgIcon="gio:info" matTooltip="Ordered by API calls"></mat-icon>
-      </div>
-      <ng-container *ngIf="topApis; else loader">
-        <gio-top-apis-table [data]="topApis"></gio-top-apis-table>
-      </ng-container>
-    </mat-card>
-    <mat-card class="card">
-      <div class="card__header">API Request Stats</div>
-      <mat-card-content class="card__content">
-        <ng-container *ngIf="requestStats; else loader">
-          <gio-request-stats [data]="requestStats"></gio-request-stats>
-        </ng-container>
-      </mat-card-content>
-    </mat-card>
+      </mat-card>
+      <mat-card class="card">
+        <div class="card__header">API Request Stats</div>
+        <mat-card-content class="card__content">
+          <ng-container *ngIf="requestStats; else loader">
+            <gio-request-stats [data]="requestStats"></gio-request-stats>
+          </ng-container>
+        </mat-card-content>
+      </mat-card>
+    </div>
   </div>
 
-  <!--   V4 data overview row -->
-  <h2 class="home-overview__row-title">V4 APIs</h2>
-  <div class="home-overview__row-cards">
-    <api-analytics-response-status-ranges
-      title="API Response Status"
-      [responseStatusRanges]="v4ApiAnalyticsResponseStatusRanges"
-    ></api-analytics-response-status-ranges>
+  <!--  TODO in APIM-7863: Uncomment when backend for this component is ready-->
+  <!--  <div class="row" *gioPermission="{ anyOf: ['environment-platform-r'] }">-->
+  <!--    <h2 class="row-title">API calls that didn't match any context path</h2>-->
+  <!--    <v2-api-calls-with-no-context-path></v2-api-calls-with-no-context-path>-->
+  <!--  </div>-->
 
-    <app-top-apis-widget [data]="topApisV4" [period]="this.timeRangeParams"></app-top-apis-widget>
-    <dashboard-v4-api-request-stats [data]="requestStatsV4"></dashboard-v4-api-request-stats>
+  <div class="row">
+    <v2-response-times></v2-response-times>
   </div>
-</div>
-<div class="home-api-events" *gioPermission="{ anyOf: ['environment-platform-r'] }">
-  <h2>API Events</h2>
-  <ng-container *ngIf="timeRangeParams; else loader">
-    <gio-api-events-table [timeRangeParams]="timeRangeParams"></gio-api-events-table>
-  </ng-container>
+
+  <div class="row">
+    <v2-response-status></v2-response-status>
+  </div>
+
+  <div class="row">
+    <h2 class="row-title">V4 APIs</h2>
+    <div class="row-cards">
+      <api-analytics-response-status-ranges
+        title="API Response Status"
+        [responseStatusRanges]="v4ApiAnalyticsResponseStatusRanges"
+      ></api-analytics-response-status-ranges>
+      <app-top-apis-widget [data]="topApisV4" [period]="this.timeRangeParams"></app-top-apis-widget>
+      <dashboard-v4-api-request-stats [data]="requestStatsV4"></dashboard-v4-api-request-stats>
+    </div>
+  </div>
+
+  <div class="row" *gioPermission="{ anyOf: ['environment-platform-r'] }">
+    <h2 class="row-title">API Events</h2>
+    <ng-container *ngIf="timeRangeParams; else loader">
+      <gio-api-events-table [timeRangeParams]="timeRangeParams"></gio-api-events-table>
+    </ng-container>
+  </div>
 </div>
 
 <ng-template #loader>
