@@ -50,6 +50,8 @@ export class GvPageComponent implements OnChanges, OnDestroy {
 
   @Input() pages: Page[];
 
+  @Input() apiId?: any;
+
   constructor(
     private componentFactoryResolver: ComponentFactoryResolver,
     private portalService: PortalService,
@@ -107,11 +109,15 @@ export class GvPageComponent implements OnChanges, OnDestroy {
   }
 
   private _loadPageWithContent(page: Page): Promise<Page> {
-    const apiId = this.route.snapshot.params.apiId;
+    const apiId = this.getApiId();
     if (apiId) {
       return this.apiService.getPageByApiIdAndPageId({ apiId, pageId: page.id, include: ['content'] }).toPromise();
     } else {
       return this.portalService.getPageByPageId({ pageId: page.id, include: ['content'] }).toPromise();
     }
+  }
+
+  private getApiId() {
+    return this.route.snapshot.params.apiId ?? this.apiId;
   }
 }
