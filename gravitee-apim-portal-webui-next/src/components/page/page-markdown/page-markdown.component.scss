@@ -25,6 +25,7 @@ pre {
   word-wrap: break-word;
 }
 
+<<<<<<< HEAD
 table {
   overflow: hidden;
   width: auto;
@@ -98,4 +99,10 @@ table {
   &--caution {
     color: var(--gio-marked-alert-icon-caution-color, inherit);
   }
+=======
+table td {
+  overflow-wrap: break-word !important; /* Ensure text will break in the middle of words if needed */
+  word-break: break-all !important; /* Break text at any character, including between letters */
+  white-space: normal !important;
+>>>>>>> d5e4f032b5 (fix: add word break styles to container for text wrapping)
 }

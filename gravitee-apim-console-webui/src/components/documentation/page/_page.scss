@@ -383,6 +383,9 @@
 
 .toastui-editor-contents table td {
   border: 1px solid #eaeaea;
+  word-break: break-all; /* Break text at any character, including between letters */
+  overflow-wrap: break-word; /* Ensure text will break in the middle of words if needed */
+  white-space: normal;
 }
 
 .toastui-editor-contents table th {
