@@ -28,6 +28,9 @@ import {
   AnalyticsV4TopApisResponse,
 } from '../entities/analytics/analyticsResponse';
 import { AnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
+import { GioChartLineData, GioChartLineOptions } from '../shared/components/gio-chart-line/gio-chart-line.component';
+import { TimeRangeParams } from '../shared/utils/timeFrameRanges';
+import { AnalyticsBucket, AnalyticsAverageResponseTimes, AnalyticsResponseStatus } from '../entities/analytics/analytics';
 
 @Injectable({
   providedIn: 'root',
@@ -37,6 +40,45 @@ export class AnalyticsService {
     private readonly http: HttpClient,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
+
+  private mapChartName(key: string): string {
+    const options = {
+      'avg_response-time': 'Global latency (ms)',
+      'avg_api-response-time': 'API latency (ms)',
+    };
+    return options[key] || key;
+  }
+
+  public createBuckets(data: AnalyticsAverageResponseTimes | AnalyticsResponseStatus): AnalyticsBucket[] {
+    return data.values.map((value) => value.buckets).flat();
+  }
+
+  public createChartInput(data: AnalyticsAverageResponseTimes | AnalyticsResponseStatus): GioChartLineData[] {
+    const buckets: AnalyticsBucket[] = this.createBuckets(data);
+    return buckets.map(
+      ({ name, data }: AnalyticsBucket): GioChartLineData => ({
+        name: this.mapChartName(name),
+        values: data,
+      }),
+    );
+  }
+
+  public createChartOptions(data: AnalyticsAverageResponseTimes | AnalyticsResponseStatus): GioChartLineOptions {
+    return {
+      pointStart: data.timestamp?.from,
+      pointInterval: data.timestamp?.interval,
+    };
+  }
+
+  getAverageResponseTimes({ from, to, interval }: TimeRangeParams): Observable<AnalyticsAverageResponseTimes> {
+    const url = `${this.constants.env.baseURL}/analytics?type=date_histo&aggs=avg:response-time%3Bavg:api-response-time&interval=${interval}&from=${from}&to=${to}`;
+    return this.http.get<AnalyticsAverageResponseTimes>(url);
+  }
+
+  getResponseStatus({ from, to, interval }: TimeRangeParams): Observable<AnalyticsResponseStatus> {
+    const url = `${this.constants.env.baseURL}/analytics?type=date_histo&aggs=field:status&interval=${interval}&from=${from}&to=${to}`;
+    return this.http.get<AnalyticsResponseStatus>(url);
+  }
 
   getStats(params: AnalyticsRequestParam): Observable<AnalyticsStatsResponse> {
     const url =

@@ -13,23 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
 
-import { timeFrameRangesParams, TimeRangeParams } from '../shared/utils/timeFrameRanges';
+import { ComponentHarness } from '@angular/cdk/testing';
+import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class HomeService {
-  private initialTimeRange = timeFrameRangesParams('1m');
-  private timeRangeParams$ = new BehaviorSubject<TimeRangeParams>(this.initialTimeRange);
+export class V2ApiCallsWithNoContextPathHarness extends ComponentHarness {
+  static readonly hostSelector = 'v2-api-calls-with-no-context-path';
 
-  public timeRangeParams() {
-    return this.timeRangeParams$.asObservable();
-  }
+  private tableLocator = this.locatorForOptional(MatTableHarness);
 
-  public setTimeRangeParams(value: TimeRangeParams): void {
-    this.timeRangeParams$.next(value);
-  }
+  public rowsNumber = async (): Promise<number> => {
+    return this.tableLocator()
+      .then((table: MatTableHarness) => table.getRows())
+      .then((rows: MatRowHarness[]) => rows.length);
+  };
 }

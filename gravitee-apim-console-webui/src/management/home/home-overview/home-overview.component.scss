@@ -8,25 +8,24 @@ $typography: map.get(gio.$mat-theme, typography);
   padding: 24px 0 16px 0;
   display: flex;
   flex-flow: column;
+  gap: 24px;
+}
+
+.time-selector {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.row-title {
+  margin-bottom: 24px;
+}
+
+.row-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-flow: column;
   gap: 14px;
-
-  &__time-selector {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  &__row-title {
-    margin-top: 16px;
-    margin-bottom: 4px;
-  }
-
-  &__row-cards {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-auto-flow: column;
-    gap: 14px;
-  }
 }
 
 .card {
@@ -85,10 +84,6 @@ $typography: map.get(gio.$mat-theme, typography);
       }
     }
   }
-}
-
-.home-api-events {
-  padding: 16px 0 16px 0;
 }
 
 .loader {

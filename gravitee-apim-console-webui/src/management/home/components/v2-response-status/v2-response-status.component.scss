@@ -1,0 +1,12 @@
+.card {
+  &__loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 16px;
+  }
+
+  &__chart {
+    padding: 16px;
+  }
+}

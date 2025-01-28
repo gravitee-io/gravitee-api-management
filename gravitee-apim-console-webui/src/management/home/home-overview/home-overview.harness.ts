@@ -18,6 +18,7 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { DashboardFiltersBarHarness } from '../components/dashboard-filters-bar/dashboard-filters-bar.harness';
 import { GioRequestStatsHarness } from '../components/gio-request-stats/gio-request-stats.harness';
 import { DashboardV4ApiRequestStatsHarness } from '../components/dashboard-v4-api-request-stats/dashboard-v4-api-request-stats.harness';
+import { V2ApiCallsWithNoContextPathHarness } from '../components/v2-api-calls-with-no-contex-path/v2-api-calls-with-no-context-path.harness';
 
 export class HomeOverviewHarness extends ComponentHarness {
   static readonly hostSelector: string = 'home-overview';
@@ -25,4 +26,5 @@ export class HomeOverviewHarness extends ComponentHarness {
   getDashboardFiltersBarHarness = this.locatorForOptional(DashboardFiltersBarHarness);
   getGioRequestStatsHarness = this.locatorForOptional(GioRequestStatsHarness);
   getDashboardV4ApiRequestStatsHarness = this.locatorForOptional(DashboardV4ApiRequestStatsHarness);
+  getV2ApiCallsWithNoContextPathHarness = this.locatorForOptional(V2ApiCallsWithNoContextPathHarness);
 }

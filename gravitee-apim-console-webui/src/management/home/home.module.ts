@@ -40,6 +40,9 @@ import { GioApiLifecycleStateModule } from './components/gio-api-lifecycle-state
 import { GioApiEventsTableModule } from './components/gio-api-events-table/gio-api-events-table.module';
 import { DashboardV4ApiRequestStats } from './components/dashboard-v4-api-request-stats/dashboard-v4-api-request-stats';
 import { DashboardFiltersBarComponent } from './components/dashboard-filters-bar/dashboard-filters-bar.component';
+import { V2ApiCallsWithNoContextPathComponent } from './components/v2-api-calls-with-no-contex-path/v2-api-calls-with-no-context-path.component';
+import { V2ResponseTimesComponent } from './components/v2-api-response-times/v2-response-times.component';
+import { V2ResponseStatusComponent } from './components/v2-response-status/v2-response-status.component';
 
 import { GioCircularPercentageModule } from '../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
@@ -115,6 +118,9 @@ const homeRoutes: Route[] = [
     DashboardV4ApiRequestStats,
 
     DashboardFiltersBarComponent,
+    V2ApiCallsWithNoContextPathComponent,
+    V2ResponseTimesComponent,
+    V2ResponseStatusComponent,
   ],
   declarations: [HomeLayoutComponent, HomeOverviewComponent, HomeApiHealthCheckComponent],
 })
