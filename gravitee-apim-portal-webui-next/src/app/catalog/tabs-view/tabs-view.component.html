@@ -15,6 +15,10 @@
     limitations under the License.
 
 -->
+@if (showBanner) {
+  <app-catalog-banner />
+}
+
 @if (categories(); as categoryList) {
   <div class="catalog__filters">
     @if (categoryList.length) {

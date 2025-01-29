@@ -24,11 +24,12 @@ import { of } from 'rxjs/internal/observable/of';
 import { Category } from '../../../entities/categories/categories';
 import { ConfigService } from '../../../services/config.service';
 import { ApisListComponent } from '../components/apis-list/apis-list.component';
+import { CatalogBannerComponent } from '../components/catalog-banner/catalog-banner.component';
 
 @Component({
   selector: 'app-tabs-view',
   standalone: true,
-  imports: [AsyncPipe, MatTabsModule, MatCardModule, ApisListComponent],
+  imports: [AsyncPipe, MatTabsModule, MatCardModule, ApisListComponent, CatalogBannerComponent],
   templateUrl: './tabs-view.component.html',
   styleUrl: './tabs-view.component.scss',
 })
