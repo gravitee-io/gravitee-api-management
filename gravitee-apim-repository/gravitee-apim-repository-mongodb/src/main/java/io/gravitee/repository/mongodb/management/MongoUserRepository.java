@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -46,18 +46,32 @@ public class MongoUserRepository implements UserRepository {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Pattern escaper = Pattern.compile("([^a-zA-Z0-9])");
 
-    @Autowired
-    private UserMongoRepository internalUserRepo;
+    private final UserMongoRepository internalUserRepo;
+    private final GraviteeMapper mapper;
 
-    @Autowired
-    private GraviteeMapper mapper;
+    @Value("${management.mongodb.encryption.enabled:false}")
+    private boolean isEncryptionEnabled;
+
+    public MongoUserRepository(UserMongoRepository internalUserRepo, GraviteeMapper mapper) {
+        this.internalUserRepo = internalUserRepo;
+        this.mapper = mapper;
+    }
 
     @Override
     public Optional<User> findBySource(String source, String sourceId, String organizationId) {
         logger.debug("Find user by name source[{}] user[{}]", source, sourceId);
 
-        String escapedSourceId = escaper.matcher(sourceId).replaceAll("\\\\$1");
-        UserMongo user = internalUserRepo.findBySourceAndSourceId(source, escapedSourceId, organizationId);
+        if (sourceId == null) {
+            return Optional.empty();
+        }
+
+        UserMongo user;
+        if (isEncryptionEnabled) {
+            user = internalUserRepo.findBySourceAndSourceId(source, sourceId.toLowerCase(), organizationId);
+        } else {
+            String escapedSourceId = escaper.matcher(sourceId).replaceAll("\\\\$1");
+            user = internalUserRepo.findBySourceAndSourceIdIgnoreCase(source, escapedSourceId, organizationId);
+        }
         User res = mapper.map(user);
 
         return Optional.ofNullable(res);
@@ -67,7 +81,16 @@ public class MongoUserRepository implements UserRepository {
     public Optional<User> findByEmail(String email, String organizationId) {
         logger.debug("Find user by email [{}]", email);
 
-        UserMongo user = internalUserRepo.findByEmail(email, organizationId);
+        if (email == null) {
+            return Optional.empty();
+        }
+
+        UserMongo user;
+        if (isEncryptionEnabled) {
+            user = internalUserRepo.findByEmail(email.toLowerCase(), organizationId);
+        } else {
+            user = internalUserRepo.findByEmailIgnoreCase(email, organizationId);
+        }
         User res = mapper.map(user);
 
         return Optional.ofNullable(res);
@@ -123,6 +146,16 @@ public class MongoUserRepository implements UserRepository {
         logger.debug("Create user [{}]", user.getId());
 
         UserMongo userMongo = mapper.map(user);
+
+        if (isEncryptionEnabled) {
+            if (userMongo.getSourceId() != null) {
+                userMongo.setSourceId(userMongo.getSourceId().toLowerCase());
+            }
+            if (userMongo.getEmail() != null) {
+                userMongo.setEmail(userMongo.getEmail().toLowerCase());
+            }
+        }
+
         UserMongo createdUserMongo = internalUserRepo.insert(userMongo);
 
         User res = mapper.map(createdUserMongo);

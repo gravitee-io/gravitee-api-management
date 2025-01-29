@@ -186,6 +186,38 @@
                         <exclude>**/distributedsync/*.java</exclude>
                     </excludes>
                 </configuration>
+                <executions>
+                    <execution>
+                        <!-- default-test is the default execution. But it is already covered by `without-encryption` execution -->
+                        <id>default-test</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>without-encryption</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <management.mongodb.encryption.enabled>false</management.mongodb.encryption.enabled>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>with-encryption</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <management.mongodb.encryption.enabled>true</management.mongodb.encryption.enabled>
+                            </systemPropertyVariables>
+                            <includes>
+                                <include>io.gravitee.repository.management.UserRepositoryTest</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
