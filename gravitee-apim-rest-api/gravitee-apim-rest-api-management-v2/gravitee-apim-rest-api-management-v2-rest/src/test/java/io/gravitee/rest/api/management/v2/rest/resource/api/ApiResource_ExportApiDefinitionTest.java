@@ -18,22 +18,26 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.doThrow;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import io.gravitee.apim.core.api.model.NewApiMetadata;
+import io.gravitee.apim.core.api.model.import_definition.ApiDescriptor;
+import io.gravitee.apim.core.api.model.import_definition.ApiMember;
+import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
+import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
+import io.gravitee.apim.core.api.model.import_definition.PageExport;
+import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
+import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
+import io.gravitee.apim.core.documentation.model.AccessControl;
+import io.gravitee.apim.core.documentation.model.PageMedia;
+import io.gravitee.apim.core.documentation.model.PageSource;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Properties;
-import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.flow.Operator;
-import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -69,40 +73,25 @@ import io.gravitee.rest.api.management.v2.rest.model.PageType;
 import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
 import io.gravitee.rest.api.management.v2.rest.model.PlanValidation;
 import io.gravitee.rest.api.management.v2.rest.model.Role;
-import io.gravitee.rest.api.model.AccessControlEntity;
-import io.gravitee.rest.api.model.ApiMetadataEntity;
-import io.gravitee.rest.api.model.MediaEntity;
-import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PageMediaEntity;
-import io.gravitee.rest.api.model.PageSourceEntity;
-import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
-import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanType;
-import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import jakarta.ws.rs.core.Response;
-import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
+import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -110,8 +99,6 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
-
-    private static final Set<String> EXCLUDE_ADDITIONAL_DATA = Set.of();
 
     @Override
     protected String contextPath() {
@@ -130,126 +117,98 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         )
             .thenReturn(false);
         Response response = rootTarget().request().get();
-        assertEquals(FORBIDDEN_403, response.getStatus());
+        assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
     }
 
     @Test
     public void should_not_export_v2_apis() {
-        doThrow(new ApiDefinitionVersionNotSupportedException("2.0.0"))
-            .when(apiImportExportService)
-            .exportApi(GraviteeContext.getExecutionContext(), API, USER_NAME, EXCLUDE_ADDITIONAL_DATA);
+        when(exportApiUseCase.execute(eq(API), any(), any())).thenThrow(new ApiDefinitionVersionNotSupportedException("2.0.0"));
         Response response = rootTarget().request().get();
-        assertEquals(BAD_REQUEST_400, response.getStatus());
+        assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
     }
 
     @Test
-    public void should_export_ApiEntityV4() throws JsonProcessingException {
-        when(apiImportExportService.exportApi(GraviteeContext.getExecutionContext(), API, USER_NAME, EXCLUDE_ADDITIONAL_DATA))
-            .thenReturn(this.fakeExportApiEntity(fakeApiEntityV4()));
+    public void should_export_ApiEntityV4() {
+        when(exportApiUseCase.execute(eq(API), any(), any()))
+            .thenReturn(new ExportApiUseCase.Output(fakeExportApiEntity(fakeApiEntityV4())));
 
         Response response = rootTarget().request().get();
-        assertEquals(OK_200, response.getStatus());
+        assertThat(response.getStatus()).isEqualTo(OK_200);
 
         final ExportApiV4 export = response.readEntity(ExportApiV4.class);
-        assertNotNull(export.getMembers());
-        assertNotNull(export.getMetadata());
-        assertNotNull(export.getPlans());
-        assertNotNull(export.getPages());
-        assertNotNull(export.getApi());
+        assertThat(export.getMembers()).isNotNull();
+        assertThat(export.getMetadata()).isNotNull();
+        assertThat(export.getPlans()).isNotNull();
+        assertThat(export.getPages()).isNotNull();
+        assertThat(export.getApi()).isNotNull();
 
-        final ApiV4 api = export.getApi();
-        testReturnedApi(api);
+        testReturnedApi(export.getApi());
 
-        final Set<Member> members = export.getMembers();
-        testReturnedMembers(members);
+        testReturnedMembers(export.getMembers());
 
-        final Set<Metadata> metadata = export.getMetadata();
-        testReturnedMetadata(metadata);
+        testReturnedMetadata(export.getMetadata());
 
-        final Set<PlanV4> plans = export.getPlans();
-        testReturnedPlans(plans);
+        testReturnedPlans(export.getPlans());
 
-        final Set<Page> pages = export.getPages();
-        final List<Media> mediaList = export.getApiMedia();
-        testReturnedPages(pages);
-        testReturnedMedia(mediaList);
+        testReturnedPages(export.getPages());
+        assertThat(export.getApiMedia()).hasSize(1).have(testReturnedMedia());
     }
 
     @Test
-    public void should_export_NativeApiEntityV4() throws JsonProcessingException {
-        when(apiImportExportService.exportApi(GraviteeContext.getExecutionContext(), API, USER_NAME, EXCLUDE_ADDITIONAL_DATA))
-            .thenReturn(this.fakeExportApiEntity(fakeNativeApiEntityV4()));
+    public void should_export_NativeApiEntityV4() {
+        when(exportApiUseCase.execute(eq(API), any(), any()))
+            .thenReturn(new ExportApiUseCase.Output(fakeExportApiEntity(fakeNativeApiEntityV4())));
 
         Response response = rootTarget().request().get();
-        assertEquals(OK_200, response.getStatus());
+        assertThat(response.getStatus()).isEqualTo(OK_200);
 
-        final ExportApiV4 export = response.readEntity(ExportApiV4.class);
-        assertNotNull(export.getMembers());
-        assertNotNull(export.getMetadata());
-        assertNotNull(export.getPlans());
-        assertNotNull(export.getPages());
-        assertNotNull(export.getApi());
+        var export = response.readEntity(ExportApiV4.class);
+        assertThat(export.getMembers()).isNotNull();
+        assertThat(export.getMetadata()).isNotNull();
+        assertThat(export.getPlans()).isNotNull();
+        assertThat(export.getPages()).isNotNull();
+        assertThat(export.getApi()).isNotNull();
 
-        final ApiV4 api = export.getApi();
-        testReturnedNativeApi(api);
+        testReturnedNativeApi(export.getApi());
 
-        final Set<Member> members = export.getMembers();
-        testReturnedMembers(members);
+        testReturnedMembers(export.getMembers());
 
-        final Set<Metadata> metadata = export.getMetadata();
-        testReturnedMetadata(metadata);
+        testReturnedMetadata(export.getMetadata());
 
-        final Set<PlanV4> plans = export.getPlans();
-        testReturnedPlans(plans);
+        testReturnedPlans(export.getPlans());
 
-        final Set<Page> pages = export.getPages();
-        final List<Media> mediaList = export.getApiMedia();
-        testReturnedPages(pages);
-        testReturnedMedia(mediaList);
+        testReturnedPages(export.getPages());
+        assertThat(export.getApiMedia()).hasSize(1).have(testReturnedMedia());
     }
 
-    // Fakers
-    private io.gravitee.rest.api.model.api.ApiEntity fakeApiEntityV2() {
-        var apiEntity = new io.gravitee.rest.api.model.api.ApiEntity();
-        apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
-        apiEntity.setId(API);
-        apiEntity.setName(API);
-
-        var proxy = new Proxy();
-        proxy.setVirtualHosts(List.of(new VirtualHost("host.io", "/test")));
-        apiEntity.setProxy(proxy);
-        var properties = new Properties();
-        properties.setProperties(List.of(new io.gravitee.definition.model.Property("key", "value")));
-        apiEntity.setProperties(properties);
-        apiEntity.setServices(new Services());
-        apiEntity.setResources(List.of(new io.gravitee.definition.model.plugins.resources.Resource()));
-        apiEntity.setResponseTemplates(Map.of("key", new HashMap<>()));
-        apiEntity.setUpdatedAt(new Date());
-
-        return apiEntity;
+    private GraviteeDefinition fakeExportApiEntity(ApiDescriptor apiEntity) {
+        return switch (apiEntity) {
+            case ApiDescriptor.ApiDescriptorV4 v4 -> new GraviteeDefinition.V4(
+                v4,
+                fakeApiMembers(),
+                fakeApiMetadata(),
+                fakeApiPages(),
+                fakeApiPlans(),
+                fakeApiMedia(),
+                null,
+                null
+            );
+            case ApiDescriptor.ApiDescriptorNative v4Native -> new GraviteeDefinition.Native(
+                v4Native,
+                fakeApiMembers(),
+                fakeApiMetadata(),
+                fakeApiPages(),
+                fakeApiPlans(),
+                fakeApiMedia(),
+                null,
+                null
+            );
+            case null, default -> throw new RuntimeException("Unsupported api descriptor");
+        };
     }
 
-    private ExportApiEntity fakeExportApiEntity(GenericApiEntity apiEntity) {
-        var exportApiEntity = new ExportApiEntity();
-        exportApiEntity.setApiEntity(apiEntity);
-        exportApiEntity.setApiMedia(fakeApiMedia());
-        exportApiEntity.setMembers(fakeApiMembers());
-        exportApiEntity.setMetadata(fakeApiMetadata());
-        exportApiEntity.setPages(fakeApiPages());
-        exportApiEntity.setPlans(fakeApiPlans());
-
-        return exportApiEntity;
-    }
-
-    private ApiEntity fakeApiEntityV4() {
-        var apiEntity = new ApiEntity();
-        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        apiEntity.setId(API);
-        apiEntity.setName(API);
-        apiEntity.setApiVersion("v1.0");
-        HttpListener httpListener = new HttpListener();
-        httpListener.setPaths(List.of(new Path("my.fake.host", "/test")));
-        httpListener.setPathMappings(Set.of("/test"));
+    private ApiDescriptor.ApiDescriptorV4 fakeApiEntityV4() {
+        var httpListener = HttpListener.builder().paths(List.of(new Path("my.fake.host", "/test"))).pathMappings(Set.of("/test")).build();
 
         SubscriptionListener subscriptionListener = new SubscriptionListener();
         Entrypoint entrypoint = new Entrypoint();
@@ -264,36 +223,28 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         tcpListener.setType(ListenerType.TCP);
         tcpListener.setEntrypoints(List.of(entrypoint));
 
-        apiEntity.setListeners(List.of(httpListener, subscriptionListener, tcpListener));
-        apiEntity.setProperties(List.of(new Property()));
-        apiEntity.setServices(new ApiServices());
-        apiEntity.setResources(List.of(new Resource()));
-        apiEntity.setResponseTemplates(Map.of("key", new HashMap<>()));
-        apiEntity.setUpdatedAt(new Date());
-        apiEntity.setAnalytics(new Analytics());
-
-        EndpointGroup endpointGroup = new EndpointGroup();
-        endpointGroup.setType("http-get");
-        Endpoint endpoint = new Endpoint();
-        endpoint.setType("http-get");
-        endpoint.setConfiguration(
-            "{\n" +
-            "                        \"bootstrapServers\": \"kafka:9092\",\n" +
-            "                        \"topics\": [\n" +
-            "                            \"demo\"\n" +
-            "                        ],\n" +
-            "                        \"producer\": {\n" +
-            "                            \"enabled\": false\n" +
-            "                        },\n" +
-            "                        \"consumer\": {\n" +
-            "                            \"encodeMessageId\": true,\n" +
-            "                            \"enabled\": true,\n" +
-            "                            \"autoOffsetReset\": \"earliest\"\n" +
-            "                        }\n" +
-            "                    }"
-        );
-        endpointGroup.setEndpoints(List.of(endpoint));
-        apiEntity.setEndpointGroups(List.of(endpointGroup));
+        var endpoint = Endpoint
+            .builder()
+            .type("http-get")
+            .configuration(
+                """
+                        {
+                                                "bootstrapServers": "kafka:9092",
+                                                "topics": [
+                                                    "demo"
+                                                ],
+                                                "producer": {
+                                                    "enabled": false
+                                                },
+                                                "consumer": {
+                                                    "encodeMessageId": true,
+                                                    "enabled": true,
+                                                    "autoOffsetReset": "earliest"
+                                                }
+                                            }"""
+            )
+            .build();
+        var endpointGroup = EndpointGroup.builder().type("http-get").endpoints(List.of(endpoint)).build();
 
         Flow flow = new Flow();
         flow.setName("flowName");
@@ -321,131 +272,84 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         conditionSelector.setCondition("my-condition");
 
         flow.setSelectors(List.of(httpSelector, channelSelector, conditionSelector));
-        apiEntity.setFlows(List.of(flow));
 
-        return apiEntity;
+        return ApiDescriptor.ApiDescriptorV4
+            .builder()
+            .id(API)
+            .name(API)
+            .apiVersion("v1.0")
+            .listeners(List.of(httpListener, subscriptionListener, tcpListener))
+            .properties(List.of(new Property()))
+            .services(new ApiServices())
+            .resources(List.of(new Resource()))
+            .responseTemplates(Map.of("key", new HashMap<>()))
+            .updatedAt(Instant.now())
+            .analytics(new Analytics())
+            .endpointGroups(List.of(endpointGroup))
+            .flows(List.of(flow))
+            .build();
     }
 
-    private NativeApiEntity fakeNativeApiEntityV4() {
-        var apiEntity = new NativeApiEntity();
-        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        apiEntity.setId(API);
-        apiEntity.setName(API);
-        apiEntity.setApiVersion("v1.0");
-        KafkaListener kafkaListener = new KafkaListener();
-        kafkaListener.setHost("my.fake.host");
+    private ApiDescriptor.ApiDescriptorNative fakeNativeApiEntityV4() {
+        var endpoint = NativeEndpoint.builder().type("kafka").configuration("{\"bootstrapServers\": \"kafka:9092\"}").build();
+        var endpointGroup = NativeEndpointGroup.builder().type("kafka").endpoints(List.of(endpoint)).build();
 
-        SubscriptionListener subscriptionListener = new SubscriptionListener();
-        Entrypoint entrypoint = new Entrypoint();
-        entrypoint.setType("Entrypoint type");
-        entrypoint.setQos(Qos.AT_LEAST_ONCE);
-        entrypoint.setDlq(new Dlq("my-endpoint"));
-        entrypoint.setConfiguration("{\n \"nice\" : \"configuration\"\n}");
-        subscriptionListener.setEntrypoints(List.of(entrypoint));
-        subscriptionListener.setType(ListenerType.SUBSCRIPTION);
+        var kafkaListener = KafkaListener.builder().host("my.fake.host").build();
+        var step = Step.builder().enabled(true).policy("my-policy").condition("my-condition").build();
 
-        TcpListener tcpListener = new TcpListener();
-        tcpListener.setType(ListenerType.TCP);
-        tcpListener.setEntrypoints(List.of(entrypoint));
+        var flow = NativeFlow.builder().name("flowName").enabled(true).interact(List.of(step)).tags(Set.of("tag1", "tag2")).build();
 
-        apiEntity.setListeners(List.of(kafkaListener));
-        apiEntity.setProperties(List.of(new Property()));
-        apiEntity.setResources(List.of(new Resource()));
-        apiEntity.setUpdatedAt(new Date());
-
-        NativeEndpointGroup endpointGroup = new NativeEndpointGroup();
-        endpointGroup.setType("kafka");
-        NativeEndpoint endpoint = new NativeEndpoint();
-        endpoint.setType("kafka");
-        endpoint.setConfiguration("{\"bootstrapServers\": \"kafka:9092\"}");
-        endpointGroup.setEndpoints(List.of(endpoint));
-        apiEntity.setEndpointGroups(List.of(endpointGroup));
-
-        NativeFlow flow = new NativeFlow();
-        flow.setName("flowName");
-        flow.setEnabled(true);
-
-        Step step = new Step();
-        step.setEnabled(true);
-        step.setPolicy("my-policy");
-        step.setCondition("my-condition");
-        flow.setInteract(List.of(step));
-        flow.setTags(Set.of("tag1", "tag2"));
-
-        HttpSelector httpSelector = new HttpSelector();
-        httpSelector.setPath("/test");
-        httpSelector.setMethods(Set.of(HttpMethod.GET, HttpMethod.POST));
-        httpSelector.setPathOperator(Operator.STARTS_WITH);
-
-        apiEntity.setFlows(List.of(flow));
-
-        return apiEntity;
+        return ApiDescriptor.ApiDescriptorNative
+            .builder()
+            .id(API)
+            .name(API)
+            .apiVersion("v1.0")
+            .listeners(List.of(kafkaListener))
+            .properties(List.of(new Property()))
+            .resources(List.of(new Resource()))
+            .updatedAt(Instant.now())
+            .endpointGroups(List.of(endpointGroup))
+            .flows(List.of(flow))
+            .build();
     }
 
-    private Set<MemberEntity> fakeApiMembers() {
-        var role = new RoleEntity();
-        role.setName("OWNER");
-        var userMember = new MemberEntity();
+    private Set<ApiMember> fakeApiMembers() {
+        var userMember = new ApiMember();
         userMember.setId("memberId");
         userMember.setDisplayName("John Doe");
-        userMember.setRoles(List.of(role));
+        userMember.setRoles(List.of(ApiMemberRole.builder().name("OWNER").build()));
         userMember.setType(MembershipMemberType.USER);
 
-        var poRole = new RoleEntity();
-        poRole.setName("PRIMARY_OWNER");
-        var poUserMember = new MemberEntity();
+        var poUserMember = new ApiMember();
         poUserMember.setId("poMemberId");
         poUserMember.setDisplayName("Thomas Pesquet");
-        poUserMember.setRoles(List.of(poRole));
+        poUserMember.setRoles(List.of(ApiMemberRole.builder().name("PRIMARY_OWNER").build()));
         poUserMember.setType(MembershipMemberType.USER);
 
         return Set.of(userMember, poUserMember);
     }
 
-    private Set<ApiMetadataEntity> fakeApiMetadata() {
-        ApiMetadataEntity firstMetadata = new ApiMetadataEntity();
+    private Set<NewApiMetadata> fakeApiMetadata() {
+        var firstMetadata = new NewApiMetadata();
         firstMetadata.setApiId(API);
         firstMetadata.setKey("my-metadata-1");
         firstMetadata.setName("My first metadata");
-        firstMetadata.setFormat(MetadataFormat.NUMERIC);
+        firstMetadata.setFormat(io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.NUMERIC);
         firstMetadata.setValue("1");
         firstMetadata.setDefaultValue("5");
 
-        ApiMetadataEntity secondMetadata = new ApiMetadataEntity();
+        var secondMetadata = new NewApiMetadata();
         secondMetadata.setApiId(API);
         secondMetadata.setKey("my-metadata-2");
         secondMetadata.setName("My second metadata");
-        secondMetadata.setFormat(MetadataFormat.STRING);
+        secondMetadata.setFormat(io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.STRING);
         secondMetadata.setValue("Very important data !!");
         secondMetadata.setDefaultValue("Important data");
 
         return Set.of(firstMetadata, secondMetadata);
     }
 
-    private Set<PlanEntity> fakeApiPlans() {
-        PlanEntity planEntity = new PlanEntity();
-        planEntity.setApiId(API);
-        planEntity.setCharacteristics(List.of("characteristic1", "characteristic2"));
-        planEntity.setCommentMessage("commentMessage");
-        planEntity.setCommentRequired(true);
-        planEntity.setCrossId("crossId");
-        planEntity.setCreatedAt(new Date(5025000));
-        planEntity.setClosedAt(null);
-        planEntity.setDescription("description");
-        planEntity.setExcludedGroups(List.of("excludedGroup"));
-        planEntity.setGeneralConditions("generalConditions");
-        planEntity.setId("planId");
-        planEntity.setName("planName");
-        planEntity.setNeedRedeployAt(null);
-        planEntity.setOrder(1);
-        planEntity.setPublishedAt(new Date(5026000));
-        planEntity.setStatus(PlanStatus.PUBLISHED);
-        planEntity.setSelectionRule(null);
-        planEntity.setTags(Set.of("tag1", "tag2"));
-        planEntity.setType(PlanType.API);
-        planEntity.setUpdatedAt(new Date(5027000));
-        planEntity.setValidation(PlanValidationType.AUTO);
-
+    private Set<PlanDescriptor.PlanDescriptorV4> fakeApiPlans() {
         Step step = new Step();
         step.setName("stepName");
         step.setDescription("stepDescription");
@@ -470,26 +374,41 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         planFlow.setSelectors(List.of(httpSelector));
         planFlow.setTags(null);
 
-        planEntity.setFlows(List.of(planFlow));
-
-        PlanSecurity planSecurity = new PlanSecurity();
-        planSecurity.setType("key-less");
-        planSecurity.setConfiguration("{}");
-        planEntity.setSecurity(planSecurity);
-
-        return Set.of(planEntity);
+        return Set.of(
+            PlanDescriptor.PlanDescriptorV4
+                .builder()
+                .apiId(API)
+                .characteristics(List.of("characteristic1", "characteristic2"))
+                .commentMessage("commentMessage")
+                .commentRequired(true)
+                .crossId("crossId")
+                .createdAt(Instant.ofEpochMilli(5025000))
+                .closedAt(null)
+                .description("description")
+                .excludedGroups(List.of("excludedGroup"))
+                .generalConditions("generalConditions")
+                .id("planId")
+                .name("planName")
+                //.needRedeployAt(null)
+                .order(1)
+                .publishedAt(Instant.ofEpochMilli(5026000))
+                .status(PlanStatus.PUBLISHED)
+                .selectionRule(null)
+                .tags(Set.of("tag1", "tag2"))
+                .type(Plan.PlanType.API)
+                .updatedAt(Instant.ofEpochMilli(5027000))
+                .validation(Plan.PlanValidationType.AUTO)
+                .security(PlanSecurity.builder().type("key-less").configuration("{}").build())
+                .flows(List.of(planFlow))
+                .build()
+        );
     }
 
-    private List<PageEntity> fakeApiPages() {
-        PageEntity pageEntity = new PageEntity();
-        AccessControlEntity accessControlEntity = new AccessControlEntity();
-        accessControlEntity.setReferenceId("role-id");
-        accessControlEntity.setReferenceType("ROLE");
+    private List<PageExport> fakeApiPages() {
+        PageExport pageEntity = new PageExport();
+        var accessControlEntity = new AccessControl("role-id", "ROLE");
         pageEntity.setAccessControls(Set.of(accessControlEntity));
-        PageMediaEntity pageMediaEntity = new PageMediaEntity();
-        pageMediaEntity.setMediaHash("media-hash");
-        pageMediaEntity.setMediaName("media-name");
-        pageMediaEntity.setAttachedAt(new Date(0));
+        PageMedia pageMediaEntity = new PageMedia("media-hash", "media-name", new Date(0));
         pageEntity.setAttachedMedia(List.of(pageMediaEntity));
         pageEntity.setConfiguration(Map.of("page-config-key", "page-config-value"));
         pageEntity.setContent("#content");
@@ -502,7 +421,7 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         pageEntity.setHomepage(false);
         pageEntity.setId("page-id");
         pageEntity.setLastContributor("last-contributor-id");
-        pageEntity.setLastModificationDate(new Date(0));
+        pageEntity.setUpdatedAt(Instant.EPOCH);
         pageEntity.setMessages(List.of("message1", "message2"));
         pageEntity.setMetadata(Map.of("page-metadata-key", "page-metadata-value"));
         pageEntity.setName("page-name");
@@ -511,207 +430,170 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         pageEntity.setParentPath("parent-path");
         pageEntity.setPublished(true);
         pageEntity.setReferenceId("reference-id");
-        pageEntity.setReferenceType("reference-type");
-        PageSourceEntity pageSourceEntity = new PageSourceEntity();
-        pageSourceEntity.setType("GITHUB");
-        pageSourceEntity.setConfiguration(JsonNodeFactory.instance.objectNode());
+        pageEntity.setReferenceType(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API);
+        PageSource pageSourceEntity = new PageSource("GITHUB", "{}", Map.of());
         pageEntity.setSource(pageSourceEntity);
-        pageEntity.setType("MARKDOWN");
-        pageEntity.setTranslations(Collections.emptyList());
-        pageEntity.setVisibility(Visibility.PUBLIC);
+        pageEntity.setType(io.gravitee.apim.core.documentation.model.Page.Type.MARKDOWN);
+        pageEntity.setTranslations(List.of());
+        pageEntity.setVisibility(io.gravitee.apim.core.documentation.model.Page.Visibility.PUBLIC);
 
         return List.of(pageEntity);
     }
 
-    private List<MediaEntity> fakeApiMedia() {
-        MediaEntity mediaEntity = new MediaEntity();
+    private List<io.gravitee.apim.core.media.model.Media> fakeApiMedia() {
+        var mediaEntity = new io.gravitee.apim.core.media.model.Media();
         mediaEntity.setId("media-id");
         mediaEntity.setHash("media-hash");
-        mediaEntity.setSize(1_000);
+        mediaEntity.setSize(1_000L);
         mediaEntity.setFileName("media-file-name");
         mediaEntity.setType("media-type");
         mediaEntity.setSubType("media-sub-type");
-        mediaEntity.setData("media-data".getBytes(StandardCharsets.UTF_8));
-        mediaEntity.setUploadDate(new Date(0));
+        mediaEntity.setData("media-data".getBytes(UTF_8));
+        mediaEntity.setCreatedAt(new Date(0));
 
         return List.of(mediaEntity);
     }
 
     // Tests
-    private void testReturnedApi(ApiV4 responseApi) throws JsonProcessingException {
-        assertNotNull(responseApi);
-        assertEquals(API, responseApi.getName());
-        assertEquals(API, responseApi.getId());
-        assertNull(responseApi.getLinks());
-        assertNotNull(responseApi.getProperties());
-        assertEquals(1, responseApi.getProperties().size());
-        assertNotNull(responseApi.getServices());
-        assertNotNull(responseApi.getResources());
-        assertEquals(1, responseApi.getResources().size());
-        assertNotNull(responseApi.getResponseTemplates());
-        assertEquals(1, responseApi.getResponseTemplates().size());
+    private void testReturnedApi(ApiV4 responseApi) {
+        assertThat(responseApi).isNotNull();
+        assertThat(responseApi.getName()).isEqualTo(API);
+        assertThat(responseApi.getId()).isEqualTo(API);
+        assertThat(responseApi.getLinks()).isNull();
+        assertThat(responseApi.getProperties()).hasSize(1);
+        assertThat(responseApi.getServices()).isNotNull();
+        assertThat(responseApi.getResources()).hasSize(1);
+        assertThat(responseApi.getResponseTemplates()).hasSize(1);
 
-        assertNotNull(responseApi.getListeners());
-        assertEquals(3, responseApi.getListeners().size());
+        assertThat(responseApi.getListeners()).hasSize(3);
 
-        io.gravitee.rest.api.management.v2.rest.model.HttpListener httpListener = responseApi.getListeners().get(0).getHttpListener();
-        assertNotNull(httpListener);
-        assertNotNull(httpListener.getPathMappings());
-        assertNotNull(httpListener.getPaths());
-        assertNotNull(httpListener.getPaths().get(0).getHost());
+        var httpListener = responseApi.getListeners().getFirst().getHttpListener();
+        assertThat(httpListener).isNotNull();
+        assertThat(httpListener.getPathMappings()).isNotNull();
+        assertThat(httpListener.getPaths()).isNotNull();
+        assertThat(httpListener.getPaths().getFirst().getHost()).isNotNull();
 
-        io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener subscriptionListener = responseApi
-            .getListeners()
-            .get(1)
-            .getSubscriptionListener();
-        assertNotNull(subscriptionListener);
-        assertNotNull(subscriptionListener.getEntrypoints());
-        var foundEntrypoint = subscriptionListener.getEntrypoints().get(0);
-        assertNotNull(foundEntrypoint);
+        var subscriptionListener = responseApi.getListeners().get(1).getSubscriptionListener();
+        assertThat(subscriptionListener).isNotNull();
+        assertThat(subscriptionListener.getEntrypoints()).isNotNull();
+        var foundEntrypoint = subscriptionListener.getEntrypoints().getFirst();
+        assertThat(foundEntrypoint).isNotNull();
         LinkedHashMap subscriptionConfig = (LinkedHashMap) foundEntrypoint.getConfiguration();
-        assertEquals("configuration", subscriptionConfig.get("nice"));
-        assertEquals("Entrypoint type", foundEntrypoint.getType());
-        assertEquals("SUBSCRIPTION", subscriptionListener.getType().toString());
+        assertThat(subscriptionConfig.get("nice")).isEqualTo("configuration");
+        assertThat(foundEntrypoint.getType()).isEqualTo("Entrypoint type");
+        assertThat(subscriptionListener.getType().toString()).isEqualTo("SUBSCRIPTION");
 
-        io.gravitee.rest.api.management.v2.rest.model.TcpListener tcpListener = responseApi.getListeners().get(2).getTcpListener();
-        assertNotNull(tcpListener);
-        assertNotNull(tcpListener.getEntrypoints());
-        var tcpFoundEntrypoint = tcpListener.getEntrypoints().get(0);
-        assertNotNull(tcpFoundEntrypoint);
+        var tcpListener = responseApi.getListeners().get(2).getTcpListener();
+        assertThat(tcpListener).isNotNull();
+        assertThat(tcpListener.getEntrypoints()).isNotNull();
+        var tcpFoundEntrypoint = tcpListener.getEntrypoints().getFirst();
+        assertThat(tcpFoundEntrypoint).isNotNull();
         LinkedHashMap tcpConfig = (LinkedHashMap) tcpFoundEntrypoint.getConfiguration();
-        assertEquals("configuration", tcpConfig.get("nice"));
-        assertEquals("Entrypoint type", tcpFoundEntrypoint.getType());
-        assertEquals("TCP", tcpListener.getType().toString());
+        assertThat(tcpConfig.get("nice")).isEqualTo("configuration");
+        assertThat(tcpFoundEntrypoint.getType()).isEqualTo("Entrypoint type");
+        assertThat(tcpListener.getType().toString()).isEqualTo("TCP");
 
-        assertNotNull(responseApi.getEndpointGroups());
-        assertEquals(1, responseApi.getEndpointGroups().size());
-        assertNotNull(responseApi.getEndpointGroups().get(0));
-        assertNotNull(responseApi.getEndpointGroups().get(0).getEndpoints());
-        assertEquals(1, responseApi.getEndpointGroups().get(0).getEndpoints().size());
+        assertThat(responseApi.getEndpointGroups()).hasSize(1);
+        assertThat(responseApi.getEndpointGroups().getFirst()).isNotNull();
+        assertThat(responseApi.getEndpointGroups().getFirst().getEndpoints()).hasSize(1);
 
-        var endpoint = responseApi.getEndpointGroups().get(0).getEndpoints().get(0);
-        assertNotNull(endpoint);
-        assertEquals("http-get", endpoint.getType());
+        var endpoint = responseApi.getEndpointGroups().getFirst().getEndpoints().getFirst();
+        assertThat(endpoint).isNotNull();
+        assertThat(endpoint.getType()).isEqualTo("http-get");
 
         LinkedHashMap endpointConfig = (LinkedHashMap) endpoint.getConfiguration();
-        assertEquals("kafka:9092", endpointConfig.get("bootstrapServers"));
-        assertEquals(List.of("demo"), endpointConfig.get("topics"));
+        assertThat(endpointConfig.get("bootstrapServers")).isEqualTo("kafka:9092");
+        assertThat(endpointConfig.get("topics")).isEqualTo(List.of("demo"));
 
-        assertNotNull(responseApi.getFlows());
-        assertEquals(1, responseApi.getFlows().size());
+        assertThat(responseApi.getFlows()).hasSize(1);
 
-        var flow = responseApi.getFlows().get(0);
-        assertNotNull(flow);
-        assertEquals("flowName", flow.getName());
-        assertEquals(Boolean.TRUE, flow.getEnabled());
-        assertNotNull(flow.getTags());
-        assertEquals(2, flow.getTags().size());
-        assertEquals(Set.of("tag1", "tag2"), flow.getTags());
-        assertNotNull(flow.getRequest());
-        assertEquals(1, flow.getRequest().size());
+        var flow = responseApi.getFlows().getFirst();
+        assertThat(flow).isNotNull();
+        assertThat(flow.getName()).isEqualTo("flowName");
+        assertThat(flow.getEnabled()).isTrue();
+        assertThat(flow.getTags()).containsOnly("tag1", "tag2");
+        assertThat(flow.getRequest()).hasSize(1);
 
-        var step = flow.getRequest().get(0);
-        assertNotNull(step);
-        assertEquals(Boolean.TRUE, step.getEnabled());
-        assertEquals("my-policy", step.getPolicy());
-        assertEquals("my-condition", step.getCondition());
+        var step = flow.getRequest().getFirst();
+        assertThat(step).isNotNull();
+        assertThat(step.getEnabled()).isTrue();
+        assertThat(step.getPolicy()).isEqualTo("my-policy");
+        assertThat(step.getCondition()).isEqualTo("my-condition");
 
-        assertNotNull(flow.getSelectors());
-        assertEquals(3, flow.getSelectors().size());
+        assertThat(flow.getSelectors()).hasSize(3);
 
-        var httpSelector = flow.getSelectors().get(0).getHttpSelector();
-        assertNotNull(httpSelector);
-        assertEquals("/test", httpSelector.getPath());
-        assertEquals(io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH, httpSelector.getPathOperator());
-        assertEquals(2, httpSelector.getMethods().size());
-        assertEquals(
-            Set.of(
+        var httpSelector = flow.getSelectors().getFirst().getHttpSelector();
+        assertThat(httpSelector).isNotNull();
+        assertThat(httpSelector.getPath()).isEqualTo("/test");
+        assertThat(httpSelector.getPathOperator()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH);
+        assertThat(httpSelector.getMethods())
+            .containsOnly(
                 io.gravitee.rest.api.management.v2.rest.model.HttpMethod.GET,
                 io.gravitee.rest.api.management.v2.rest.model.HttpMethod.POST
-            ),
-            httpSelector.getMethods()
-        );
+            );
 
         var channelSelector = flow.getSelectors().get(1).getChannelSelector();
-        assertEquals("my-channel", channelSelector.getChannel());
-        assertEquals(io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH, channelSelector.getChannelOperator());
-        assertEquals(1, channelSelector.getOperations().size());
-        assertEquals(
-            Set.of(io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.OperationsEnum.SUBSCRIBE),
-            channelSelector.getOperations()
-        );
-        assertEquals(1, channelSelector.getEntrypoints().size());
-        assertEquals(Set.of("my-entrypoint"), channelSelector.getEntrypoints());
+        assertThat(channelSelector.getChannel()).isEqualTo("my-channel");
+        assertThat(channelSelector.getChannelOperator()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH);
+        assertThat(channelSelector.getOperations())
+            .containsOnly(io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.OperationsEnum.SUBSCRIBE);
+        assertThat(channelSelector.getEntrypoints()).containsOnly("my-entrypoint");
 
         var conditionSelector = flow.getSelectors().get(2).getConditionSelector();
-        assertEquals("my-condition", conditionSelector.getCondition());
+        assertThat(conditionSelector.getCondition()).isEqualTo("my-condition");
     }
 
-    private void testReturnedNativeApi(ApiV4 responseApi) throws JsonProcessingException {
-        assertNotNull(responseApi);
-        assertEquals(API, responseApi.getName());
-        assertEquals(API, responseApi.getId());
-        assertNull(responseApi.getLinks());
-        assertNotNull(responseApi.getProperties());
-        assertEquals(1, responseApi.getProperties().size());
-        assertNotNull(responseApi.getResources());
-        assertEquals(1, responseApi.getResources().size());
+    private void testReturnedNativeApi(ApiV4 responseApi) {
+        assertThat(responseApi).isNotNull();
+        assertThat(responseApi.getName()).isEqualTo(API);
+        assertThat(responseApi.getId()).isEqualTo(API);
+        assertThat(responseApi.getLinks()).isNull();
+        assertThat(responseApi.getProperties()).hasSize(1);
+        assertThat(responseApi.getResources()).hasSize(1);
 
-        assertNotNull(responseApi.getListeners());
-        assertEquals(1, responseApi.getListeners().size());
+        assertThat(responseApi.getListeners()).hasSize(1);
 
-        io.gravitee.rest.api.management.v2.rest.model.KafkaListener kafkaListener = responseApi.getListeners().get(0).getKafkaListener();
-        assertNotNull(kafkaListener);
-        assertNotNull(kafkaListener.getHost());
-        assertEquals("my.fake.host", kafkaListener.getHost());
+        var kafkaListener = responseApi.getListeners().getFirst().getKafkaListener();
+        assertThat(kafkaListener).isNotNull();
+        assertThat(kafkaListener.getHost()).isEqualTo("my.fake.host");
 
-        assertNotNull(responseApi.getEndpointGroups());
-        assertEquals(1, responseApi.getEndpointGroups().size());
-        assertNotNull(responseApi.getEndpointGroups().get(0));
-        assertNotNull(responseApi.getEndpointGroups().get(0).getEndpoints());
-        assertEquals(1, responseApi.getEndpointGroups().get(0).getEndpoints().size());
+        assertThat(responseApi.getEndpointGroups()).hasSize(1);
+        assertThat(responseApi.getEndpointGroups().getFirst()).isNotNull();
+        assertThat(responseApi.getEndpointGroups().getFirst().getEndpoints()).hasSize(1);
 
-        var endpoint = responseApi.getEndpointGroups().get(0).getEndpoints().get(0);
-        assertNotNull(endpoint);
-        assertEquals("kafka", endpoint.getType());
+        var endpoint = responseApi.getEndpointGroups().getFirst().getEndpoints().getFirst();
+        assertThat(endpoint).isNotNull();
+        assertThat(endpoint.getType()).isEqualTo("kafka");
 
-        LinkedHashMap endpointConfig = (LinkedHashMap) endpoint.getConfiguration();
-        assertEquals("kafka:9092", endpointConfig.get("bootstrapServers"));
+        var endpointConfig = (LinkedHashMap) endpoint.getConfiguration();
+        assertThat(endpointConfig).containsOnly(Map.entry("bootstrapServers", "kafka:9092"));
 
-        assertNotNull(responseApi.getFlows());
-        assertEquals(1, responseApi.getFlows().size());
+        assertThat(responseApi.getFlows()).hasSize(1);
 
-        var flow = responseApi.getFlows().get(0);
-        assertNotNull(flow);
-        assertEquals("flowName", flow.getName());
-        assertEquals(Boolean.TRUE, flow.getEnabled());
-        assertNotNull(flow.getTags());
-        assertEquals(2, flow.getTags().size());
-        assertEquals(Set.of("tag1", "tag2"), flow.getTags());
-        assertNotNull(flow.getInteract());
-        assertEquals(1, flow.getInteract().size());
+        var flow = responseApi.getFlows().getFirst();
+        assertThat(flow).isNotNull();
+        assertThat(flow.getName()).isEqualTo("flowName");
+        assertThat(flow.getEnabled()).isTrue();
+        assertThat(flow.getTags()).containsOnly("tag1", "tag2");
+        assertThat(flow.getInteract()).hasSize(1);
 
-        var step = flow.getInteract().get(0);
-        assertNotNull(step);
-        assertEquals(Boolean.TRUE, step.getEnabled());
-        assertEquals("my-policy", step.getPolicy());
-        assertEquals("my-condition", step.getCondition());
+        var step = flow.getInteract().getFirst();
+        assertThat(step).isNotNull();
+        assertThat(step.getEnabled()).isTrue();
+        assertThat(step.getPolicy()).isEqualTo("my-policy");
+        assertThat(step.getCondition()).isEqualTo("my-condition");
 
-        assertNull(flow.getSelectors());
+        assertThat(flow.getSelectors()).isNull();
     }
 
     private void testReturnedMembers(Set<Member> members) {
-        assertEquals(2, members.size());
-
         var userMember = new Member().displayName("John Doe").id("memberId").roles(List.of(new Role().name("OWNER")));
         var poUserMember = new Member().displayName("Thomas Pesquet").id("poMemberId").roles(List.of(new Role().name("PRIMARY_OWNER")));
 
-        assertEquals(Set.of(userMember, poUserMember), members);
+        assertThat(members).containsOnly(userMember, poUserMember);
     }
 
     private void testReturnedMetadata(Set<Metadata> metadata) {
-        assertEquals(2, metadata.size());
-
         var firstMetadata = new Metadata()
             .key("my-metadata-1")
             .name("My first metadata")
@@ -726,156 +608,143 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
             .value("Very important data !!")
             .defaultValue("Important data");
 
-        assertEquals(Set.of(firstMetadata, secondMetadata), metadata);
+        assertThat(metadata).containsOnly(firstMetadata, secondMetadata);
     }
 
     private void testReturnedPlans(Set<PlanV4> plans) {
-        assertEquals(1, plans.size());
+        assertThat(plans).hasSize(1);
 
         var plan = plans.iterator().next();
-        assertEquals(API, plan.getApiId());
-        assertEquals(List.of("characteristic1", "characteristic2"), plan.getCharacteristics());
-        assertEquals("commentMessage", plan.getCommentMessage());
-        assertEquals(true, plan.getCommentRequired());
-        assertEquals("crossId", plan.getCrossId());
-        assertEquals(OffsetDateTime.of(1970, 1, 1, 1, 23, 45, 0, ZoneOffset.UTC), plan.getCreatedAt());
-        assertNull(plan.getClosedAt());
-        assertEquals("description", plan.getDescription());
-        assertEquals(List.of("excludedGroup"), plan.getExcludedGroups());
-        assertEquals("generalConditions", plan.getGeneralConditions());
-        assertEquals("planId", plan.getId());
-        assertEquals("planName", plan.getName());
-        assertEquals(1, plan.getOrder().intValue());
-        assertEquals(OffsetDateTime.of(1970, 1, 1, 1, 23, 46, 0, ZoneOffset.UTC), plan.getPublishedAt());
-        assertEquals(io.gravitee.rest.api.management.v2.rest.model.PlanStatus.PUBLISHED, plan.getStatus());
-        assertNull(plan.getSelectionRule());
-        assertEquals(List.of("tag1", "tag2"), plan.getTags().stream().sorted().collect(Collectors.toList()));
-        assertEquals(io.gravitee.rest.api.management.v2.rest.model.PlanType.API, plan.getType());
-        assertEquals(OffsetDateTime.of(1970, 1, 1, 1, 23, 47, 0, ZoneOffset.UTC), plan.getUpdatedAt());
-        assertEquals(PlanValidation.AUTO, plan.getValidation());
+        assertThat(plan.getApiId()).isEqualTo(API);
+        assertThat(plan.getCharacteristics()).containsOnly("characteristic1", "characteristic2");
+        assertThat(plan.getCommentMessage()).isEqualTo("commentMessage");
+        assertThat(plan.getCommentRequired()).isTrue();
+        assertThat(plan.getCrossId()).isEqualTo("crossId");
+        assertThat(plan.getCreatedAt()).isEqualTo(OffsetDateTime.of(1970, 1, 1, 1, 23, 45, 0, ZoneOffset.UTC));
+        assertThat(plan.getClosedAt()).isNull();
+        assertThat(plan.getDescription()).isEqualTo("description");
+        assertThat(plan.getExcludedGroups()).containsOnly("excludedGroup");
+        assertThat(plan.getGeneralConditions()).isEqualTo("generalConditions");
+        assertThat(plan.getId()).isEqualTo("planId");
+        assertThat(plan.getName()).isEqualTo("planName");
+        assertThat(plan.getOrder()).isEqualTo(1);
+        assertThat(plan.getPublishedAt()).isEqualTo(OffsetDateTime.of(1970, 1, 1, 1, 23, 46, 0, ZoneOffset.UTC));
+        assertThat(plan.getStatus()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PlanStatus.PUBLISHED);
+        assertThat(plan.getSelectionRule()).isNull();
+        assertThat(plan.getTags()).containsOnly("tag1", "tag2");
+        assertThat(plan.getType()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PlanType.API);
+        assertThat(plan.getUpdatedAt()).isEqualTo(OffsetDateTime.of(1970, 1, 1, 1, 23, 47, 0, ZoneOffset.UTC));
+        assertThat(plan.getValidation()).isEqualTo(PlanValidation.AUTO);
 
-        assertNotNull(plan.getFlows());
-        assertEquals(1, plan.getFlows().size());
+        assertThat(plan.getFlows()).hasSize(1);
 
-        var flowV4 = plan.getFlows().get(0);
-        assertNotNull(flowV4);
-        assertEquals(true, flowV4.getEnabled());
-        assertEquals("planFlowName", flowV4.getName());
-        assertNull(flowV4.getPublish());
+        var flowV4 = plan.getFlows().getFirst();
+        assertThat(flowV4).isNotNull();
+        assertThat(flowV4.getEnabled()).isTrue();
+        assertThat(flowV4.getName()).isEqualTo("planFlowName");
+        assertThat(flowV4.getPublish()).isNull();
 
-        assertNotNull(flowV4.getRequest());
-        assertEquals(1, flowV4.getRequest().size());
+        assertThat(flowV4.getRequest()).hasSize(1);
 
-        var step = flowV4.getRequest().get(0);
-        assertEquals(true, step.getEnabled());
-        assertEquals(new LinkedHashMap<>(Map.of("nice", "configuration")), step.getConfiguration());
-        assertEquals("stepDescription", step.getDescription());
-        assertEquals("stepName", step.getName());
-        assertEquals("stepCondition", step.getCondition());
-        assertEquals("stepPolicy", step.getPolicy());
-        assertEquals("stepMessageCondition", step.getMessageCondition());
+        var step = flowV4.getRequest().getFirst();
+        assertThat(step.getEnabled()).isTrue();
+        assertThat(step.getConfiguration()).isEqualTo(Map.of("nice", "configuration"));
+        assertThat(step.getDescription()).isEqualTo("stepDescription");
+        assertThat(step.getName()).isEqualTo("stepName");
+        assertThat(step.getCondition()).isEqualTo("stepCondition");
+        assertThat(step.getPolicy()).isEqualTo("stepPolicy");
+        assertThat(step.getMessageCondition()).isEqualTo("stepMessageCondition");
 
-        assertNull(flowV4.getResponse());
-        assertNull(flowV4.getSubscribe());
-        assertNull(flowV4.getTags());
+        assertThat(flowV4.getResponse()).isNull();
+        assertThat(flowV4.getSubscribe()).isNull();
+        assertThat(flowV4.getTags()).isNull();
 
-        assertNotNull(flowV4.getSelectors());
-        assertEquals(1, flowV4.getSelectors().size());
+        assertThat(flowV4.getSelectors()).hasSize(1);
 
-        var httpSelector = flowV4.getSelectors().get(0).getHttpSelector();
-        assertNotNull(httpSelector);
-        assertEquals("/test", httpSelector.getPath());
-        assertEquals(io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH, httpSelector.getPathOperator());
-        assertEquals(2, httpSelector.getMethods().size());
-        assertEquals(
-            Set.of(
+        var httpSelector = flowV4.getSelectors().getFirst().getHttpSelector();
+        assertThat(httpSelector).isNotNull();
+        assertThat(httpSelector.getPath()).isEqualTo("/test");
+        assertThat(httpSelector.getPathOperator()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH);
+        assertThat(httpSelector.getMethods())
+            .containsOnly(
                 io.gravitee.rest.api.management.v2.rest.model.HttpMethod.GET,
                 io.gravitee.rest.api.management.v2.rest.model.HttpMethod.POST
-            ),
-            httpSelector.getMethods()
-        );
+            );
 
-        assertNotNull(plan.getSecurity());
+        assertThat(plan.getSecurity()).isNotNull();
         var planSecurity = plan.getSecurity();
-        assertEquals(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.KEY_LESS, planSecurity.getType());
-        assertEquals(new LinkedHashMap<>(), planSecurity.getConfiguration());
+        assertThat(planSecurity.getType()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.KEY_LESS);
+        assertThat(planSecurity.getConfiguration()).isEqualTo(new LinkedHashMap<>());
     }
 
     private void testReturnedPages(Set<Page> pages) {
-        assertEquals(1, pages.size());
+        assertThat(pages).hasSize(1);
 
         var page = pages.iterator().next();
-        assertNotNull(page.getAccessControls());
-        assertEquals(1, page.getAccessControls().size());
+        assertThat(page.getAccessControls()).hasSize(1);
 
-        var accessControl = page.getAccessControls().get(0);
-        assertNotNull(accessControl);
-        assertEquals("role-id", accessControl.getReferenceId());
-        assertEquals("ROLE", accessControl.getReferenceType());
+        var accessControl = page.getAccessControls().getFirst();
+        assertThat(accessControl).isNotNull();
+        assertThat(accessControl.getReferenceId()).isEqualTo("role-id");
+        assertThat(accessControl.getReferenceType()).isEqualTo("ROLE");
 
-        assertNotNull(page.getAttachedMedia());
-        assertEquals(1, page.getAttachedMedia().size());
+        assertThat(page.getAttachedMedia()).hasSize(1);
 
-        var pageMedia = page.getAttachedMedia().get(0);
-        assertNotNull(pageMedia);
-        assertEquals("media-hash", pageMedia.getHash());
-        assertEquals("media-name", pageMedia.getName());
-        assertEquals(OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC), pageMedia.getAttachedAt());
+        var pageMedia = page.getAttachedMedia().getFirst();
+        assertThat(pageMedia).isNotNull();
+        assertThat(pageMedia.getHash()).isEqualTo("media-hash");
+        assertThat(pageMedia.getName()).isEqualTo("media-name");
+        assertThat(pageMedia.getAttachedAt()).isEqualTo(OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC));
 
-        assertEquals(Map.of("page-config-key", "page-config-value"), page.getConfiguration());
-        assertEquals("#content", page.getContent());
+        assertThat(page.getConfiguration()).hasSize(1).containsEntry("page-config-key", "page-config-value");
+        assertThat(page.getContent()).isEqualTo("#content");
 
-        assertNotNull(page.getContentRevision());
+        assertThat(page.getContentRevision()).isNotNull();
         var contentRevision = page.getContentRevision();
-        assertEquals("page-revision-id", contentRevision.getId());
-        assertEquals(1, contentRevision.getRevision().intValue());
+        assertThat(contentRevision.getId()).isEqualTo("page-revision-id");
+        assertThat(contentRevision.getRevision()).isEqualTo(1);
 
-        assertEquals("text/markdown", page.getContentType());
-        assertEquals("crossId", page.getCrossId());
+        assertThat(page.getContentType()).isEqualTo("text/markdown");
+        assertThat(page.getCrossId()).isEqualTo("crossId");
 
-        assertEquals(false, page.getExcludedAccessControls());
-        assertNotNull(page.getAccessControls());
-        assertEquals(1, page.getAccessControls().size());
-        assertEquals("role-id", page.getAccessControls().get(0).getReferenceId());
-        assertEquals("ROLE", page.getAccessControls().get(0).getReferenceType());
+        assertThat(page.getExcludedAccessControls()).isFalse();
 
-        assertEquals(false, page.getHomepage());
-        assertEquals("page-id", page.getId());
-        assertEquals("last-contributor-id", page.getLastContributor());
-        assertEquals(OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC), page.getUpdatedAt());
-        assertEquals(Map.of("page-metadata-key", "page-metadata-value"), page.getMetadata());
-        assertEquals("page-name", page.getName());
-        assertEquals(1, page.getOrder().intValue());
-        assertEquals("parent-id", page.getParentId());
-        assertEquals("parent-path", page.getParentPath());
-        assertEquals(true, page.getPublished());
+        assertThat(page.getHomepage()).isFalse();
+        assertThat(page.getId()).isEqualTo("page-id");
+        assertThat(page.getLastContributor()).isEqualTo("last-contributor-id");
+        assertThat(page.getUpdatedAt()).isEqualTo(OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC));
+        assertThat(page.getMetadata()).hasSize(1).containsEntry("page-metadata-key", "page-metadata-value");
+        assertThat(page.getName()).isEqualTo("page-name");
+        assertThat(page.getOrder()).isEqualTo(1);
+        assertThat(page.getParentId()).isEqualTo("parent-id");
+        assertThat(page.getParentPath()).isEqualTo("parent-path");
+        assertThat(page.getPublished()).isTrue();
 
-        assertNotNull(page.getSource());
+        assertThat(page.getSource()).isNotNull();
         var source = page.getSource();
-        assertEquals("GITHUB", source.getType());
-        assertEquals(new LinkedHashMap<>(), source.getConfiguration());
+        assertThat(source.getType()).isEqualTo("GITHUB");
+        assertThat(source.getConfiguration()).isEqualTo(new LinkedHashMap<>());
 
-        assertEquals(PageType.MARKDOWN, page.getType());
+        assertThat(page.getType()).isEqualTo(PageType.MARKDOWN);
 
-        assertNotNull(page.getTranslations());
-        assertEquals(0, page.getTranslations().size());
-
-        assertEquals(io.gravitee.rest.api.management.v2.rest.model.Visibility.PUBLIC, page.getVisibility());
+        assertThat(page.getTranslations()).isEmpty();
+        assertThat(page.getVisibility()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.Visibility.PUBLIC);
     }
 
-    private void testReturnedMedia(List<Media> mediaList) {
-        assertEquals(1, mediaList.size());
-
-        var media = mediaList.get(0);
-        assertNotNull(media);
-
-        assertEquals("media-id", media.getId());
-        assertEquals("media-hash", media.getHash());
-        assertEquals(1_000, media.getSize().longValue());
-        assertEquals("media-file-name", media.getFileName());
-        assertEquals("media-type", media.getType());
-        assertEquals("media-sub-type", media.getSubType());
-        assertArrayEquals("media-data".getBytes(StandardCharsets.UTF_8), media.getData());
-        assertEquals(OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC), media.getCreatedAt());
+    private Condition<Media> testReturnedMedia() {
+        var created = OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+        return new Condition<>(
+            media ->
+                media != null &&
+                "media-id".equals(media.getId()) &&
+                "media-hash".equals(media.getHash()) &&
+                Objects.equals(1_000L, media.getSize()) &&
+                "media-file-name".equals(media.getFileName()) &&
+                "media-type".equals(media.getType()) &&
+                "media-sub-type".equals(media.getSubType()) &&
+                Arrays.equals("media-data".getBytes(UTF_8), media.getData()) &&
+                created.equals(media.getCreatedAt()),
+            "media-id"
+        );
     }
 }
