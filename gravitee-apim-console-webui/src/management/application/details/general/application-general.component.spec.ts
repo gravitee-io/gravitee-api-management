@@ -93,10 +93,10 @@ describe('ApplicationGeneralInfoComponent', () => {
       expect(req.request.method).toEqual('PUT');
       expect(req.request.body).toEqual({
         api_key_mode: 'UNSPECIFIED',
-        background: null,
+        background: undefined,
         description: 'My default application',
         name: 'new test name',
-        picture: null,
+        picture: undefined,
         groups: ['f1194262-9157-4986-9942-629157f98682'],
         settings: {
           oauth: {
@@ -136,10 +136,10 @@ describe('ApplicationGeneralInfoComponent', () => {
       expect(req.request.method).toEqual('PUT');
       expect(req.request.body).toEqual({
         api_key_mode: 'UNSPECIFIED',
-        background: null,
+        background: undefined,
         description: 'My default application',
         name: 'Default application',
-        picture: null,
+        picture: undefined,
         groups: ['f1194262-9157-4986-9942-629157f98682'],
         settings: {
           app: {
@@ -173,10 +173,10 @@ describe('ApplicationGeneralInfoComponent', () => {
       expect(req.request.method).toEqual('PUT');
       expect(req.request.body).toEqual({
         api_key_mode: 'UNSPECIFIED',
-        background: null,
+        background: undefined,
         description: 'My default application',
         name: 'Default application',
-        picture: null,
+        picture: undefined,
         groups: ['f1194262-9157-4986-9942-629157f98682'],
         settings: {
           oauth: {
