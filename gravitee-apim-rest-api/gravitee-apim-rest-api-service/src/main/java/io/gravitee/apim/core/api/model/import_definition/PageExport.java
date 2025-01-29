@@ -19,8 +19,9 @@ import io.gravitee.apim.core.documentation.model.AccessControl;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.PageMedia;
 import io.gravitee.apim.core.documentation.model.PageSource;
+import io.gravitee.rest.api.model.PageEntity;
 import java.time.Instant;
-import java.util.Date;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -70,4 +71,13 @@ public class PageExport {
     private Map<String, String> metadata;
     private Boolean useAutoFetch; // use Boolean to avoid default value of primitive type
     private List<PageMedia> attachedMedia;
+
+    private String contentType;
+    private String parentPath;
+
+    private Collection<String> excludedGroups;
+    private Collection<String> messages;
+    private PageEntity.PageRevisionId contentRevisionId;
+
+    private Collection<PageExport> translations;
 }
