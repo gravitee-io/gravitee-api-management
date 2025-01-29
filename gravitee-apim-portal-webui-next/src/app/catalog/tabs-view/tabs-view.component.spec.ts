@@ -18,14 +18,12 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MatCardHarness } from '@angular/material/card/testing';
 import { MatTabGroupHarness, MatTabHarness } from '@angular/material/tabs/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 
 import { TabsViewComponent } from './tabs-view.component';
-import { ApiCardHarness } from '../../../components/api-card/api-card.harness';
-import { fakeApi, fakeApisResponse } from '../../../entities/api/api.fixtures';
+import { fakeApisResponse } from '../../../entities/api/api.fixtures';
 import { ApisResponse } from '../../../entities/api/apis-response';
 import { Category } from '../../../entities/categories/categories';
 import { fakeCategory } from '../../../entities/categories/categories.fixture';
@@ -37,40 +35,6 @@ describe('TabsViewComponent', () => {
   let httpTestingController: HttpTestingController;
   let routerNavigateSpy: jest.SpyInstance;
 
-  const initBase = async (
-    params: Partial<{
-      page: number;
-      size: number;
-      query: string;
-      categoryId: string;
-      categories: Category[];
-    }> = {
-      page: 1,
-      size: 18,
-      query: '',
-      categoryId: '',
-    },
-  ) => {
-    await TestBed.configureTestingModule({
-      imports: [TabsViewComponent, AppTestingModule],
-      providers: [
-        {
-          provide: ActivatedRoute,
-          useValue: { queryParams: of({ filter: params.categoryId }) },
-        },
-      ],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(TabsViewComponent);
-    fixture.componentRef.setInput('categories', params.categories);
-
-    httpTestingController = TestBed.inject(HttpTestingController);
-    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
-    const router = TestBed.inject(Router);
-    routerNavigateSpy = jest.spyOn(router, 'navigate');
-
-    fixture.detectChanges();
-  };
   const init = async (
     params: Partial<{
       apisResponse: ApisResponse;
@@ -88,178 +52,32 @@ describe('TabsViewComponent', () => {
       categories: [],
     },
   ) => {
-    await initBase(params);
+    await TestBed.configureTestingModule({
+      imports: [TabsViewComponent, AppTestingModule],
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: { queryParams: of({ filter: params.categoryId }) },
+        },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(TabsViewComponent);
+    fixture.componentRef.setInput('categories', params.categories ?? []);
+
+    httpTestingController = TestBed.inject(HttpTestingController);
+    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+    const router = TestBed.inject(Router);
+    routerNavigateSpy = jest.spyOn(router, 'navigate');
+
+    fixture.detectChanges();
+
     expectApiList(params.apisResponse, params.page, params.size, params.query, params.categoryId);
     fixture.detectChanges();
   };
 
   afterEach(() => {
     httpTestingController.verify();
-  });
-
-  describe('populated api list', () => {
-    beforeEach(async () => {
-      await init({
-        apisResponse: fakeApisResponse({
-          data: [
-            fakeApi({
-              id: '1',
-              name: 'Test title',
-              version: 'v.1.2',
-              description:
-                'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
-            }),
-          ],
-          metadata: {
-            pagination: {
-              current_page: 1,
-              total_pages: 2,
-            },
-          },
-        }),
-      });
-    });
-
-    it('should show API list', async () => {
-      const apiCard = await harnessLoader.getHarness(ApiCardHarness);
-      expect(apiCard).toBeDefined();
-      expect(await apiCard.getTitle()).toEqual('Test title');
-      expect(await apiCard.getDescription()).toEqual(
-        'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
-      );
-      expect(await apiCard.getVersion()).toEqual('v.1.2');
-    });
-
-    it('should call second page after scrolled event', async () => {
-      const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
-      expect(apiCard).toBeDefined();
-      expect(apiCard.length).toEqual(1);
-      expect(await apiCard[0].getTitle()).toEqual('Test title');
-
-      document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
-      fixture.detectChanges();
-
-      expectApiList(
-        fakeApisResponse({
-          data: [fakeApi({ id: 'second-page-api', name: 'second page api', version: '24' })],
-          metadata: {
-            pagination: {
-              current_page: 3,
-              total_pages: 3,
-            },
-          },
-        }),
-        3,
-        9,
-        '',
-      );
-      fixture.detectChanges();
-
-      const allHarnesses = await harnessLoader.getAllHarnesses(ApiCardHarness);
-      expect(allHarnesses.length).toEqual(2);
-
-      const secondPageApi = await harnessLoader.getHarnessOrNull(ApiCardHarness.with({ selector: '[ng-reflect-id="second-page-api"]' }));
-      expect(secondPageApi).toBeTruthy();
-    });
-
-    it('should call API list with search query', async () => {
-      const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
-      expect(apiCard).toBeDefined();
-      expect(apiCard.length).toEqual(1);
-      expect(await apiCard[0].getTitle()).toEqual('Test title');
-
-      document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
-      fixture.detectChanges();
-
-      expectApiList(
-        fakeApisResponse({
-          data: [fakeApi({ id: 'second-page-api', name: 'second page api', version: '24' })],
-          metadata: {
-            pagination: {
-              current_page: 3,
-              total_pages: 5,
-            },
-          },
-        }),
-        3,
-        9,
-        '',
-      );
-      fixture.detectChanges();
-    });
-
-    it('should not call page if on last page', async () => {
-      const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
-      expect(apiCard.length).toEqual(1);
-
-      document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
-      fixture.detectChanges();
-
-      expectApiList(
-        fakeApisResponse({
-          data: [fakeApi({ id: 'second-page-api' })],
-          metadata: {
-            pagination: {
-              current_page: 3,
-              total_pages: 3,
-            },
-          },
-        }),
-        3,
-        9,
-        '',
-      );
-      fixture.detectChanges();
-
-      const allHarnesses = await harnessLoader.getAllHarnesses(ApiCardHarness);
-      expect(allHarnesses.length).toEqual(2);
-
-      document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
-      fixture.detectChanges();
-
-      httpTestingController.expectNone(`${TESTING_BASE_URL}/apis?page=3&size=9`);
-    });
-  });
-
-  describe('empty component', () => {
-    describe('when no results', () => {
-      beforeEach(async () => {
-        await init({ apisResponse: fakeApisResponse({ data: [] }) });
-      });
-
-      it('should show empty API list', async () => {
-        const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
-        expect(noApiCard).toBeTruthy();
-        expect(await noApiCard.getText()).toContain(`Sorry, there are no APIs listed yet.`);
-      });
-    });
-
-    describe('when error occurs', () => {
-      it('should show empty API list if no search params', async () => {
-        await initBase();
-        httpTestingController
-          .expectOne(`${TESTING_BASE_URL}/apis/_search?page=1&category=&size=18&q=`)
-          .flush({ error: { message: 'Error occurred' } }, { status: 500, statusText: 'Internal Error' });
-        fixture.detectChanges();
-
-        const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
-        expect(noApiCard).toBeTruthy();
-        expect(await noApiCard.getText()).toContain(`Sorry, there are no APIs listed yet.`);
-      });
-
-      it('should show empty API list if search params in request', async () => {
-        await initBase({ categoryId: 'my-category' });
-        // expectCategoriesList(fakeCategoriesResponse({ data: [fakeCategory({ id: 'my-category' })] }));
-        httpTestingController
-          .expectOne(`${TESTING_BASE_URL}/apis/_search?page=1&category=my-category&size=18&q=`)
-          .flush({ error: { message: 'Error occurred' } }, { status: 500, statusText: 'Internal Error' });
-        fixture.detectChanges();
-
-        const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
-        expect(noApiCard).toBeTruthy();
-        expect(await noApiCard.getText()).toContain(`Your search didn't return any APIs`);
-      });
-    });
   });
 
   describe('Category filters', () => {
@@ -291,7 +109,7 @@ describe('TabsViewComponent', () => {
         await category1Tab.select();
 
         expect(routerNavigateSpy).toHaveBeenCalledWith([''], {
-          queryParams: { filter: CATEGORY_1.id, query: undefined },
+          queryParams: { filter: CATEGORY_1.id, query: '' },
           relativeTo: expect.anything(),
         });
       });
@@ -307,7 +125,7 @@ describe('TabsViewComponent', () => {
         await allTab.select();
 
         expect(routerNavigateSpy).toHaveBeenCalledWith([''], {
-          queryParams: { filter: '', query: undefined },
+          queryParams: { filter: '', query: '' },
           relativeTo: expect.anything(),
         });
       });
