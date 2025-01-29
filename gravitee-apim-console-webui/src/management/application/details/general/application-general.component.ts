@@ -135,6 +135,10 @@ export class ApplicationGeneralComponent implements OnInit {
   onSubmit() {
     const imagesValue = this.applicationForm.getRawValue().images;
 
+    const pictureUrl = imagesValue?.picture?.[0]?.dataUrl || (imagesValue?.picture?.length === 0 ? null : this.initialApplication.picture);
+    const backgroundUrl =
+      imagesValue?.background?.[0]?.dataUrl || (imagesValue?.background?.length === 0 ? null : this.initialApplication.background);
+
     const applicationToUpdate = {
       ...this.initialApplication,
       ...this.applicationForm.getRawValue().details,
@@ -152,8 +156,8 @@ export class ApplicationGeneralComponent implements OnInit {
                 application_type: this.applicationType.id,
               },
             },
-      ...(imagesValue?.picture?.length ? { picture: imagesValue.picture[0].dataUrl } : { picture: null }),
-      ...(imagesValue?.background?.length ? { background: imagesValue.background[0].dataUrl } : { background: null }),
+      picture: pictureUrl,
+      background: backgroundUrl,
     };
 
     this.applicationService
