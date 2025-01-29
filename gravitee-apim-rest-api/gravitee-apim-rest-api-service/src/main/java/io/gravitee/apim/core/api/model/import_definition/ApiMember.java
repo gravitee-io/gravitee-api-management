@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.model.import_definition;
 
+import io.gravitee.rest.api.model.MembershipMemberType;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,4 +31,5 @@ public class ApiMember {
     private String id;
     private String displayName;
     private List<ApiMemberRole> roles;
+    private MembershipMemberType type;
 }

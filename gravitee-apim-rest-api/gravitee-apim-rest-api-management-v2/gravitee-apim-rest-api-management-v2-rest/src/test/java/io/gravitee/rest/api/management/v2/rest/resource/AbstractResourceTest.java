@@ -34,11 +34,10 @@ import inmemory.PrimaryOwnerDomainServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
-import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.group.model.Group;
-import io.gravitee.apim.core.specgen.service_provider.SpecGenProvider;
 import io.gravitee.apim.core.specgen.use_case.SpecGenRequestUseCase;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -62,7 +61,6 @@ import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
-import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
@@ -111,7 +109,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected io.gravitee.rest.api.service.v4.ApiImagesService apiImagesService;
 
     @Autowired
-    protected ApiImportExportService apiImportExportService;
+    protected ExportApiUseCase exportApiUseCase;
 
     @Autowired
     protected PermissionService permissionService;
@@ -217,9 +215,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected SpecGenRequestUseCase specGenRequestUseCase;
-
-    @Autowired
-    protected ApiExportDomainService apiExportDomainService;
 
     @Autowired
     protected GroupCrudServiceInMemory groupCrudServiceInMemory;

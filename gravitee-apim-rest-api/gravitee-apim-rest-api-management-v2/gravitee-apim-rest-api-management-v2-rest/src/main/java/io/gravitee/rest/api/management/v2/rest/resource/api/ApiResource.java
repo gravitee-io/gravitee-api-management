@@ -15,12 +15,12 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
-import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
+import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
@@ -87,7 +87,6 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
@@ -109,7 +108,6 @@ import io.gravitee.rest.api.service.exceptions.InvalidLicenseException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiImagesService;
-import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
@@ -171,7 +169,7 @@ public class ApiResource extends AbstractResource {
     private ApiImagesService apiImagesService;
 
     @Inject
-    private ApiImportExportService apiImportExportService;
+    private ExportApiUseCase exportApiUseCase;
 
     @Inject
     private SubscriptionService subscriptionService;
@@ -476,24 +474,23 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
     public Response exportApiDefinition(
-        @Context HttpHeaders headers,
         @PathParam("apiId") String apiId,
         @QueryParam("excludeAdditionalData") Set<String> excludeAdditionalData
     ) {
-        if (excludeAdditionalData == null) {
-            excludeAdditionalData = Set.of();
-        }
-
-        ExportApiEntity exportApiEntity = apiImportExportService.exportApi(
-            GraviteeContext.getExecutionContext(),
-            apiId,
-            getAuthenticatedUser(),
-            excludeAdditionalData
-        );
+        var ctx = GraviteeContext.getExecutionContext();
+        var userDetails = getAuthenticatedUserDetails();
+        AuditActor auditActor = AuditActor
+            .builder()
+            .userId(userDetails.getUsername())
+            .userSource(userDetails.getSource())
+            .userSourceId(userDetails.getSourceId())
+            .build();
+        AuditInfo auditInfo = new AuditInfo(ctx.getOrganizationId(), ctx.getEnvironmentId(), auditActor);
+        var export = exportApiUseCase.execute(apiId, auditInfo, excludeAdditionalData);
 
         return Response
-            .ok(ImportExportApiMapper.INSTANCE.map(exportApiEntity))
-            .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(exportApiEntity.getApiEntity())))
+            .ok(ImportExportApiMapper.INSTANCE.map(export.definition()))
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=%s".formatted(export.filename()))
             .build();
     }
 
@@ -988,16 +985,6 @@ public class ApiResource extends AbstractResource {
                 throw new BadRequestException("API cannot be started without being reviewed");
             }
         }
-    }
-
-    private String getExportFilename(GenericApiEntity apiEntity) {
-        return format("%s-%s.%s", apiEntity.getName(), apiEntity.getApiVersion(), "json")
-            .trim()
-            .toLowerCase()
-            .replaceAll(" +", " ")
-            .replaceAll(" ", "-")
-            .replaceAll("[^\\w\\s\\.]", "-")
-            .replaceAll("-+", "-");
     }
 
     private Response imageResponse(final Request request, InlinePictureEntity image) {
