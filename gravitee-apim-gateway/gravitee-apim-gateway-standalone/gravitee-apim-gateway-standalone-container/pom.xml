@@ -419,6 +419,11 @@
                 </configuration>
                 <executions>
                     <execution>
+                        <!-- default-test is the default execution. But it is already covered by `emulate-v4-engine-test` execution -->
+                        <id>default-test</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
                         <id>v3-engine-test</id>
                         <goals>
                             <goal>test</goal>
