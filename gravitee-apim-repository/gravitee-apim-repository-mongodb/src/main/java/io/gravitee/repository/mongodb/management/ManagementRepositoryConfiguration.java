@@ -19,21 +19,19 @@ import com.mongodb.client.MongoClient;
 import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import io.gravitee.repository.mongodb.common.MongoFactory;
+import io.gravitee.repository.mongodb.encryption.EncryptionConfiguration;
 import io.gravitee.repository.mongodb.management.converters.BsonUndefinedToNullReadingConverter;
-import jakarta.annotation.PostConstruct;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
-import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 /**
@@ -41,6 +39,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
  * @author GraviteeSource Team
  */
 @Configuration
+@Import(EncryptionConfiguration.class)
 @ComponentScan
 @EnableMongoRepositories
 @Profile("!test")
