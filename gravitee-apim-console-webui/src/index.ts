@@ -65,7 +65,7 @@ function fetchData(): Promise<{ constants: Constants; build: any }> {
         enforcedOrganizationId ? `${baseURL}/v2/ui/bootstrap?organizationId=${enforcedOrganizationId}` : `${baseURL}/v2/ui/bootstrap`,
         requestConfig,
       )
-        .then((r) => r.json())
+        .then((r) => getSuccessJsonDataOrThrowError(r))
         .then((bootstrapResponse: { baseURL: string; organizationId: string }) => ({
           bootstrapResponse,
           build: buildResponse,
@@ -78,9 +78,9 @@ function fetchData(): Promise<{ constants: Constants; build: any }> {
       constants.production = production ?? true;
 
       return Promise.all([
-        fetch(`${constants.org.baseURL}/console`, requestConfig).then((r) => r.json()),
+        fetch(`${constants.org.baseURL}/console`, requestConfig).then((r) => getSuccessJsonDataOrThrowError(r)),
         fetch(`${constants.org.v2BaseURL}/ui/customization`, requestConfig).then((r) => (r.status === 200 ? r.json() : null)),
-        fetch(`${constants.org.baseURL}/social-identities`, requestConfig).then((r) => r.json()),
+        fetch(`${constants.org.baseURL}/social-identities`, requestConfig).then((r) => getSuccessJsonDataOrThrowError(r)),
       ]).then(([consoleResponse, uiCustomizationResponse, identityProvidersResponse]) => {
         constants.org.settings = consoleResponse;
         constants.org.identityProviders = identityProvidersResponse;
@@ -97,7 +97,10 @@ function fetchData(): Promise<{ constants: Constants; build: any }> {
       });
     })
     .catch((error) => {
-      document.getElementById('gravitee-error').innerText = 'Management API unreachable or error occurs, please check logs';
+      document.getElementById('gravitee-error').style.display = 'block';
+      document.getElementById('gravitee-error-banner-message').innerText =
+        error.message ?? 'Management API unreachable or error occurs, please check logs';
+      document.getElementById('loader').style.display = 'none';
       throw error;
     });
 }
@@ -199,4 +202,18 @@ function bootstrapApplication(constants: Constants) {
       // eslint-disable-next-line
       console.error(err);
     });
+}
+
+function getSuccessJsonDataOrThrowError(response: Response): Promise<any> {
+  if (!response.ok) {
+    return response
+      .json()
+      .catch(() => {
+        throw new Error('Management API unreachable or error occurs, please check logs');
+      })
+      .then((json) => {
+        throw new Error(json.error?.message ?? json.message ?? 'Management API unreachable or error occurs');
+      });
+  }
+  return response.json();
 }
