@@ -66,6 +66,7 @@ export class ApiRequestInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    const URLS_TO_IGNORE = [`/portal/ui/bootstrap`];
     const headers = {
       'X-Requested-With': 'XMLHttpRequest',
     };
@@ -83,6 +84,10 @@ export class ApiRequestInterceptor implements HttpInterceptor {
       setHeaders: headers,
       withCredentials: true,
     });
+
+    if (URLS_TO_IGNORE.some(url => request.url.endsWith(url))) {
+      return next.handle(request);
+    }
 
     return next.handle(request).pipe(
       tap(
@@ -125,6 +130,9 @@ export class ApiRequestInterceptor implements HttpInterceptor {
               if (error.status === '503') {
                 // configuration has been updated, we have to reload the configuration
                 this.configService.load();
+                if (error.code === 'errors.maintenance.mode') {
+                  interceptorFuture.push(() => this.router.navigate(['/maintenance-mode']));
+                }
               }
             }
           }
