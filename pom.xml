@@ -134,7 +134,7 @@
         <reactor-core.version>3.6.7</reactor-core.version>
         <slf4j2-mock.version>2.3.0</slf4j2-mock.version>
         <snakeyaml.version>2.2</snakeyaml.version>
-        <spring-data-mongodb.version>4.3.1</spring-data-mongodb.version>
+        <spring-data-mongodb.version>4.3.8</spring-data-mongodb.version>
         <resilience4j-rxjava3.version>2.2.0</resilience4j-rxjava3.version>
         <!-- !! Transitive dependency !! need to remove when swagger parser will include a version higher than 1.7.12 -->
         <rhino.version>1.7.15</rhino.version>
