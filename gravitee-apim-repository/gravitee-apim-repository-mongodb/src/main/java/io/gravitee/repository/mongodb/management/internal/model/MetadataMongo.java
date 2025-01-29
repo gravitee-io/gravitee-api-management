@@ -15,13 +15,15 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import java.util.Objects;
+import static org.springframework.data.mongodb.core.EncryptionAlgorithms.AEAD_AES_256_CBC_HMAC_SHA_512_Deterministic;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.ExplicitEncrypted;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -41,5 +43,6 @@ public class MetadataMongo extends Auditable {
 
     private String format;
 
+    @ExplicitEncrypted(algorithm = AEAD_AES_256_CBC_HMAC_SHA_512_Deterministic)
     private String value;
 }
