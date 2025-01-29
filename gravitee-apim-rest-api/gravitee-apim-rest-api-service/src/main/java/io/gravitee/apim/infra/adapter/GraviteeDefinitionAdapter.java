@@ -27,10 +27,7 @@ import io.gravitee.apim.core.media.model.Media;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.plan.model.Plan;
-import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
-import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
-import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import jakarta.annotation.Nullable;
@@ -54,8 +51,6 @@ public interface GraviteeDefinitionAdapter {
 
     List<PageExport> mapPage(Collection<Page> source);
 
-    List<Media> mapMedia(Collection<MediaEntity> src);
-
     @Mapping(target = "security", expression = "java(mapPlanSecurity(source.getPlanDefinitionHttpV4().getSecurity()))")
     @Mapping(target = "mode", source = "planDefinitionHttpV4.mode")
     @Mapping(target = "status", source = "planDefinitionHttpV4.status")
@@ -76,6 +71,7 @@ public interface GraviteeDefinitionAdapter {
     io.gravitee.rest.api.model.PrimaryOwnerEntity map(PrimaryOwnerEntity src);
 
     @Mapping(target = "id", source = "apiEntity.id")
+    @Mapping(target = "apiVersion", source = "apiEntity.version")
     @Mapping(target = "type", source = "apiEntity.type")
     @Mapping(target = "state", source = "apiEntity.lifecycleState")
     @Mapping(target = "lifecycleState", source = "apiEntity.apiLifecycleState")
@@ -100,6 +96,7 @@ public interface GraviteeDefinitionAdapter {
     );
 
     @Mapping(target = "id", source = "apiEntity.id")
+    @Mapping(target = "apiVersion", source = "apiEntity.version")
     @Mapping(target = "state", source = "apiEntity.lifecycleState")
     @Mapping(target = "lifecycleState", source = "apiEntity.apiLifecycleState")
     @Mapping(target = "listeners", source = "apiEntity.apiDefinitionNativeV4.listeners")

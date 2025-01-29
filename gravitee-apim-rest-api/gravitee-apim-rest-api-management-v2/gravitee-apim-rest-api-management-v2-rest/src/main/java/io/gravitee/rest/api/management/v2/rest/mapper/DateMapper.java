@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
@@ -28,17 +29,19 @@ public interface DateMapper {
     DateMapper INSTANCE = Mappers.getMapper(DateMapper.class);
 
     default OffsetDateTime map(Date value) {
-        if (Objects.isNull(value)) {
-            return null;
-        }
-        return value.toInstant().atOffset(ZoneOffset.UTC);
+        return Objects.isNull(value) ? null : value.toInstant().atOffset(ZoneOffset.UTC);
     }
 
     default Date map(OffsetDateTime offsetDateTime) {
-        if (Objects.isNull(offsetDateTime)) {
-            return null;
-        }
-        return Date.from(offsetDateTime.toInstant());
+        return Objects.isNull(offsetDateTime) ? null : Date.from(offsetDateTime.toInstant());
+    }
+
+    default OffsetDateTime map(Instant value) {
+        return Objects.isNull(value) ? null : value.atOffset(ZoneOffset.UTC);
+    }
+
+    default Instant mapToInstant(OffsetDateTime value) {
+        return Objects.isNull(value) ? null : value.toInstant();
     }
 
     @Named("mapTimestamp")

@@ -32,4 +32,5 @@ public class NewApiMetadata {
     Metadata.MetadataFormat format = Metadata.MetadataFormat.STRING;
 
     String value;
+    String defaultValue;
 }

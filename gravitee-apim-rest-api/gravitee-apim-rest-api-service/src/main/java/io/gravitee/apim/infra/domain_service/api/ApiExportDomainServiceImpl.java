@@ -38,6 +38,7 @@ import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.media.model.Media;
+import io.gravitee.apim.core.media.query_service.MediaQueryService;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
@@ -51,7 +52,6 @@ import io.gravitee.apim.infra.adapter.MemberAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -69,7 +69,7 @@ import org.springframework.stereotype.Service;
 public class ApiExportDomainServiceImpl implements ApiExportDomainService {
 
     private final PermissionService permissionService;
-    private final MediaService mediaService;
+    private final MediaQueryService mediaService;
 
     private final WorkflowCrudService workflowCrudService;
     private final MembershipCrudService membershipCrudService;
@@ -159,7 +159,7 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
 
     private List<Media> exportApiMedia(String apiId) {
         return permissionService.hasPermission(GraviteeContext.getExecutionContext(), API_DOCUMENTATION, apiId, READ)
-            ? GraviteeDefinitionAdapter.INSTANCE.mapMedia(mediaService.findAllByApiId(apiId))
+            ? mediaService.findAllByApiId(apiId)
             : null;
     }
 

@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
 import io.gravitee.apim.core.plan.model.PlanUpdates;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.apim.core.utils.CollectionUtils;
@@ -94,6 +95,16 @@ public interface PlanMapper {
     @Mapping(target = "flows", expression = "java(computeFlows(source))")
     @Mapping(target = "definitionVersion", constant = "V4")
     PlanV4 map(PlanWithFlows source);
+
+    default <T extends PlanDescriptor> PlanV4 map(T source) {
+        return switch (source) {
+            case PlanDescriptor.PlanDescriptorV4 v4 -> map(v4);
+        };
+    }
+
+    @Mapping(target = "security.type", source = "security.type", qualifiedByName = "mapToPlanSecurityType")
+    @Mapping(target = "security.configuration", source = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    PlanV4 map(PlanDescriptor.PlanDescriptorV4 source);
 
     @Mapping(target = "status", source = "federatedPlanDefinition.status")
     @Mapping(target = "mode", source = "federatedPlanDefinition.mode")

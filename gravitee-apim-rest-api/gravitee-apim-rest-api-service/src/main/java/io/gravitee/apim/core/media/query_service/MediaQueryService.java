@@ -13,28 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.media.model;
+package io.gravitee.apim.core.media.query_service;
 
-import java.util.Date;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import io.gravitee.apim.core.media.model.Media;
+import java.util.List;
 
-@Data
-@Builder(toBuilder = true)
-@NoArgsConstructor
-@AllArgsConstructor
-public class Media {
-
-    private String id;
-    private String hash;
-    private String type;
-    private String subType;
-    private String fileName;
-    private Date createdAt;
-    private Long size;
-    private byte[] data;
-
-    private String apiId;
+public interface MediaQueryService {
+    List<Media> findAllByApiId(String apiId);
 }

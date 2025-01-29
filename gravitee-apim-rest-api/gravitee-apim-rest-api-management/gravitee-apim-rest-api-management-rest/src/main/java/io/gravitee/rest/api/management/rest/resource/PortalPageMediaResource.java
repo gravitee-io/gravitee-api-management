@@ -122,7 +122,7 @@ public class PortalPageMediaResource extends AbstractResource {
                     .filter(media -> media.getMediaHash().equals(mediaId))
                     .findFirst()
                     .ifPresent(createdMedia -> {
-                        mediaEntity.setUploadDate(createdMedia.getAttachedAt());
+                        mediaEntity.setCreateAt(createdMedia.getAttachedAt());
                         mediaEntity.setHash(createdMedia.getMediaHash());
                     })
             );
