@@ -15,13 +15,25 @@
  */
 package io.gravitee.repository.mongodb;
 
+import com.mongodb.ClientEncryptionSettings;
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import com.mongodb.client.model.vault.DataKeyOptions;
+import com.mongodb.client.vault.ClientEncryption;
+import com.mongodb.client.vault.ClientEncryptions;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
+import io.gravitee.repository.mongodb.common.MongoFactory;
+import io.gravitee.repository.mongodb.encryption.EncryptionEnabledCondition;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.config.MongoUpgraderConfiguration;
 import jakarta.inject.Inject;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import org.bson.BsonDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +41,9 @@ import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.io.ClassPathResource;
@@ -50,6 +64,7 @@ import org.testcontainers.utility.DockerImageName;
     basePackages = { "io.gravitee.repository.mongodb" },
     excludeFilters = { @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = MongoUpgraderConfiguration.class) }
 )
+@Import(EncryptionEnabledCondition.class)
 @EnableMongoRepositories
 public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfiguration {
 
@@ -119,5 +134,34 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
             .findFirst()
             .map(env -> env.split("=")[1])
             .orElse("");
+    }
+
+    @Bean
+    @Conditional(EncryptionEnabledCondition.class)
+    public ClientEncryption clientEncryption(MongoFactory mongoFactory) {
+        // Key Management System (KMS) providers.
+        Map<String, Object> localKmsProvider = new HashMap<>();
+        localKmsProvider.put("key", environment.getProperty("management.mongodb.encryption.kms[0].local.key"));
+        Map<String, Map<String, Object>> kmsProviders = new HashMap<>();
+        kmsProviders.put("local", localKmsProvider);
+
+        ClientEncryptionSettings.Builder builder = ClientEncryptionSettings
+            .builder()
+            // The collection in MongoDB where the Data Encryption Keys (DEKs) will be stored.
+            .keyVaultNamespace("test.test_prefix___dataKeys")
+            .keyVaultMongoClientSettings(
+                MongoClientSettings.builder().applyConnectionString(new ConnectionString(mongoDBContainer.getReplicaSetUrl())).build()
+            )
+            .kmsProviders(kmsProviders);
+
+        ClientEncryption clientEncryption = ClientEncryptions.create(builder.build());
+
+        // Initialize the Data Encryption Key if not already existing.
+        BsonDocument keyByAltName = clientEncryption.getKeyByAltName("cloud-repository");
+        if (keyByAltName == null) {
+            clientEncryption.createDataKey("local", new DataKeyOptions().keyAltNames(List.of("cloud-repository")));
+        }
+
+        return clientEncryption;
     }
 }
