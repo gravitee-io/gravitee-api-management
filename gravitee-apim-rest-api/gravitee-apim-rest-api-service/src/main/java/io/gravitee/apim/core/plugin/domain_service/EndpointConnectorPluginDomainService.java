@@ -16,5 +16,10 @@
 package io.gravitee.apim.core.plugin.domain_service;
 
 public interface EndpointConnectorPluginDomainService {
-    String getSharedConfigurationSchema(String connectorId);
+    /**
+     * Return the default shared configuration for the given connector based on the plugin schema.
+     * @param connectorId The connector ID
+     * @return The default shared configuration
+     */
+    String getDefaultSharedConfiguration(String connectorId);
 }
