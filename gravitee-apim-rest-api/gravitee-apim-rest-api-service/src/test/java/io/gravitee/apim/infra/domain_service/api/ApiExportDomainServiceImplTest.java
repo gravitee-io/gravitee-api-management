@@ -27,6 +27,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
+import io.gravitee.apim.core.media.query_service.MediaQueryService;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.metadata.crud_service.MetadataCrudService;
@@ -37,7 +38,6 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.EnumSet;
@@ -56,9 +56,6 @@ class ApiExportDomainServiceImplTest {
 
     @Mock
     PermissionService permissionService;
-
-    @Mock
-    MediaService mediaService;
 
     @Mock
     WorkflowCrudService workflowCrudService;
@@ -80,6 +77,9 @@ class ApiExportDomainServiceImplTest {
 
     @Mock
     PlanCrudService planCrudService;
+
+    @Mock
+    MediaQueryService mediaService;
 
     @InjectMocks
     ApiExportDomainServiceImpl sut;

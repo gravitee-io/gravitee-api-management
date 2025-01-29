@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -72,7 +71,7 @@ public sealed interface PlanDescriptor {
         String commentMessage,
         String generalConditions,
 
-        List<AbstractFlow> flows
+        List<? extends AbstractFlow> flows
     )
         implements PlanDescriptor {
         @JsonProperty("tags")

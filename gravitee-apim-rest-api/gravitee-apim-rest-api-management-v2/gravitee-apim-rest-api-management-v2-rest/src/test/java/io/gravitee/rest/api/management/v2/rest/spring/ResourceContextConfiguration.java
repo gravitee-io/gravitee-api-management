@@ -46,6 +46,7 @@ import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
+import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
@@ -133,7 +134,6 @@ import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.impl.configuration.application.ApplicationTypeServiceImpl;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
-import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
@@ -197,8 +197,8 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ApiImportExportService apiImportExportService() {
-        return mock(ApiImportExportService.class);
+    public ExportApiUseCase exportApiUseCase() {
+        return mock(ExportApiUseCase.class);
     }
 
     @Bean

@@ -524,7 +524,7 @@ public class MediaServiceTest extends TestCase {
         mediaEntity.setType(MEDIA_TYPE);
         mediaEntity.setSize(MEDIA_SIZE);
         mediaEntity.setHash(MEDIA_HASH);
-        mediaEntity.setUploadDate(MEDIA_DATE);
+        mediaEntity.setCreateAt(MEDIA_DATE);
         if (includeContent) {
             mediaEntity.setData(readBytes());
         }

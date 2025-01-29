@@ -17,11 +17,8 @@ package io.gravitee.definition.model.v4.flow.selector;
 
 import static io.gravitee.definition.model.v4.flow.selector.Selector.*;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import jakarta.validation.constraints.NotNull;
-import java.io.Serializable;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 

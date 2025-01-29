@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -170,7 +169,7 @@ public class ApiImportExportServiceImplTest {
     }
 
     @Test
-    public void should_export_only_api_when_only_definition_permission() throws JsonProcessingException {
+    public void should_export_only_api_when_only_definition_permission() {
         mockPermissions(false, false, false, false);
         doReturn(this.fakeApiEntityV4()).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
 
@@ -189,7 +188,7 @@ public class ApiImportExportServiceImplTest {
     }
 
     @Test
-    public void should_export_members_and_api_when_member_and_definition_permission() throws JsonProcessingException {
+    public void should_export_members_and_api_when_member_and_definition_permission() {
         mockPermissions(true, false, false, false);
         doReturn(this.fakeApiEntityV4()).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
         doReturn(this.fakeApiMembers())
@@ -212,7 +211,7 @@ public class ApiImportExportServiceImplTest {
     }
 
     @Test
-    public void should_export_metadata_and_api_when_metadata_and_definition_permission() throws JsonProcessingException {
+    public void should_export_metadata_and_api_when_metadata_and_definition_permission() {
         mockPermissions(false, true, false, false);
         doReturn(this.fakeApiEntityV4()).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
         doReturn(new ArrayList<>(this.fakeApiMetadata()))
@@ -236,7 +235,7 @@ public class ApiImportExportServiceImplTest {
     }
 
     @Test
-    public void should_export_plans_and_api_when_plan_and_definition_permission() throws JsonProcessingException {
+    public void should_export_plans_and_api_when_plan_and_definition_permission() {
         mockPermissions(false, false, true, false);
 
         doReturn(this.fakeApiEntityV4()).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
@@ -259,7 +258,7 @@ public class ApiImportExportServiceImplTest {
     }
 
     @Test
-    public void should_export_pages_and_api_when_documentation_and_definition_permission() throws JsonProcessingException {
+    public void should_export_pages_and_api_when_documentation_and_definition_permission() {
         mockPermissions(false, false, false, true);
 
         doReturn(this.fakeApiEntityV4()).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
@@ -283,7 +282,7 @@ public class ApiImportExportServiceImplTest {
     }
 
     @Test
-    public void should_export_api_and_exclude_all_additional_data() throws JsonProcessingException {
+    public void should_export_api_and_exclude_all_additional_data() {
         doReturn(this.fakeApiEntityV4()).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
 
         var EXCLUDE_ALL_ADDITIONAL_DATA = Set.of("members", "metadata", "plans", "pages", "groups");
@@ -297,7 +296,7 @@ public class ApiImportExportServiceImplTest {
     }
 
     @Test
-    public void should_export_native_api_and_exclude_all_additional_data() throws JsonProcessingException {
+    public void should_export_native_api_and_exclude_all_additional_data() {
         doReturn(this.fakeNativeApiEntityV4()).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
 
         var EXCLUDE_ALL_ADDITIONAL_DATA = Set.of("members", "metadata", "plans", "pages", "groups");
@@ -311,7 +310,7 @@ public class ApiImportExportServiceImplTest {
     }
 
     @Test
-    public void should_export_native_api_with_members_metadata_nativePlans_pages() throws JsonProcessingException {
+    public void should_export_native_api_with_members_metadata_nativePlans_pages() {
         mockPermissions(true, true, true, true);
         doReturn(this.fakeNativeApiEntityV4()).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
         doReturn(this.fakeApiMembers())
@@ -552,20 +551,21 @@ public class ApiImportExportServiceImplTest {
         Endpoint endpoint = new Endpoint();
         endpoint.setType("http-get");
         endpoint.setConfiguration(
-            "{\n" +
-            "                        \"bootstrapServers\": \"kafka:9092\",\n" +
-            "                        \"topics\": [\n" +
-            "                            \"demo\"\n" +
-            "                        ],\n" +
-            "                        \"producer\": {\n" +
-            "                            \"enabled\": false\n" +
-            "                        },\n" +
-            "                        \"consumer\": {\n" +
-            "                            \"encodeMessageId\": true,\n" +
-            "                            \"enabled\": true,\n" +
-            "                            \"autoOffsetReset\": \"earliest\"\n" +
-            "                        }\n" +
-            "                    }"
+            """
+                        {
+                                                "bootstrapServers": "kafka:9092",
+                                                "topics": [
+                                                    "demo"
+                                                ],
+                                                "producer": {
+                                                    "enabled": false
+                                                },
+                                                "consumer": {
+                                                    "encodeMessageId": true,
+                                                    "enabled": true,
+                                                    "autoOffsetReset": "earliest"
+                                                }
+                                            }"""
         );
         endpointGroup.setEndpoints(List.of(endpoint));
         apiEntity.setEndpointGroups(List.of(endpointGroup));
@@ -862,7 +862,7 @@ public class ApiImportExportServiceImplTest {
         mediaEntity.setType("media-type");
         mediaEntity.setSubType("media-sub-type");
         mediaEntity.setData("media-data".getBytes(StandardCharsets.UTF_8));
-        mediaEntity.setUploadDate(new Date(0));
+        mediaEntity.setCreateAt(new Date(0));
 
         return List.of(mediaEntity);
     }

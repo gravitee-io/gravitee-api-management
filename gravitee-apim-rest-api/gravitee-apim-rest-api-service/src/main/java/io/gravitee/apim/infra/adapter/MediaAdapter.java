@@ -17,8 +17,10 @@ package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.media.model.Media;
 import io.gravitee.rest.api.model.MediaEntity;
+import java.util.Collection;
 import java.util.List;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -30,4 +32,9 @@ public interface MediaAdapter {
 
     MediaEntity toEntity(Media media);
     List<MediaEntity> toEntities(List<Media> mediaList);
+
+    List<Media> mapMedia(Collection<io.gravitee.repository.media.model.Media> src);
+
+    @Mapping(target = "apiId", source = "api")
+    Media mediaToMedia(io.gravitee.repository.media.model.Media media);
 }

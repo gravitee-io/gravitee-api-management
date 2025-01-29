@@ -3153,6 +3153,17 @@ components:
         ExportApiV4:
             type: object
             properties:
+                export:
+                  type: object
+                  properties:
+                    date:
+                      type: string
+                      format: date-time
+                      description: The datetime of export.
+                      example: 2023-05-25T12:40:46.184Z
+                    apimVersion:
+                      type: string
+                      description: API management version of export.
                 api:
                     $ref: "#/components/schemas/ApiV4"
                 members:
