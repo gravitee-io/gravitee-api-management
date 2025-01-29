@@ -28,6 +28,7 @@ export const TESTING_ACTIVATED_ROUTE = {
   data: { breadcrumb: { alias: 'apiName' } },
   snapshot: { data: { breadcrumb: { alias: 'apiName' } } },
   params: of({ apiId: 'apiId' }),
+  queryParams: of({}),
 };
 @Injectable()
 export class ConfigServiceStub {
