@@ -171,7 +171,7 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
         if (spec.hasNonNull(PROXY_FIELD)) {
             var proxy = getSpec().get(PROXY_FIELD);
             if (proxy.hasNonNull(ENDPOINT_GROUPS_FIELD)) {
-                proxy.get(ENDPOINT_GROUPS_FIELD).forEach(this::removeUnsupportedEndpointGroupFields);
+                proxy.get(ENDPOINT_GROUPS_FIELD).forEach(this::prepareEndpointGroup);
             }
         }
     }
@@ -189,5 +189,30 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
             pagesMap.set(key.asText(), ((ObjectNode) page).remove(UNSUPPORTED_PAGE_FIELDS));
         }
         return pagesMap;
+    }
+
+    private void prepareEndpointGroup(JsonNode group) {
+        removeUnsupportedEndpointGroupFields(group);
+        replaceEndpointHeaders((ObjectNode) group);
+        if (group.hasNonNull(ENDPOINTS_FIELD)) {
+            var endpoints = (ArrayNode) group.get(ENDPOINTS_FIELD);
+            endpoints.forEach(endpoint -> replaceEndpointHeaders((ObjectNode) endpoint));
+        }
+    }
+
+    private void replaceEndpointHeaders(ObjectNode endpoint) {
+        if (endpoint.has("headers")) {
+            endpoint.replace("headers", mapHeaders((ArrayNode) endpoint.get("headers")));
+        }
+    }
+
+    private ObjectNode mapHeaders(ArrayNode headers) {
+        var headerMap = JsonNodeFactory.instance.objectNode();
+        headers.forEach(header -> {
+            var name = header.get("name").asText();
+            var value = header.get("value").asText();
+            headerMap.put(name, value);
+        });
+        return headerMap;
     }
 }
