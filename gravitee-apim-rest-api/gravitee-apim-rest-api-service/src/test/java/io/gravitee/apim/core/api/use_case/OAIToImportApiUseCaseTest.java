@@ -34,11 +34,11 @@ import inmemory.TagQueryServiceInMemory;
 import io.gravitee.apim.core.api.exception.InvalidImportWithOASValidationPolicyException;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.tag.model.Tag;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.domain_service.api.OAIDomainServiceImpl;
-import io.gravitee.apim.infra.domain_service.plugin.EndpointConnectorPluginLegacyWrapper;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
@@ -69,7 +69,7 @@ class OAIToImportApiUseCaseTest {
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
     private final PolicyOperationVisitorManagerImpl policyOperationVisitorManager = new PolicyOperationVisitorManagerImpl();
     private final OAIDomainServiceImpl oaiDomainService = new OAIDomainServiceImpl(policyOperationVisitorManager);
-    private final EndpointConnectorPluginLegacyWrapper endpointConnectorPluginService = mock(EndpointConnectorPluginLegacyWrapper.class);
+    private final EndpointConnectorPluginDomainService endpointConnectorPluginService = mock(EndpointConnectorPluginDomainService.class);
     private OAIToImportApiUseCase useCase;
     ImportDefinitionCreateDomainServiceTestInitializer importDefinitionCreateDomainServiceTestInitializer;
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
@@ -87,7 +87,7 @@ class OAIToImportApiUseCaseTest {
             )
         );
 
-        when(endpointConnectorPluginService.getSharedConfigurationSchema(anyString())).thenReturn(SHARED_CONFIGURATION);
+        when(endpointConnectorPluginService.getDefaultSharedConfiguration(anyString())).thenReturn(SHARED_CONFIGURATION);
 
         importDefinitionCreateDomainServiceTestInitializer.parametersQueryService.initWith(
             List.of(
@@ -164,7 +164,7 @@ class OAIToImportApiUseCaseTest {
 
     @Test
     @SneakyThrows
-    void should_add_shared_configuration_in_endpoint_group() {
+    void should_add_default_shared_configuration_in_endpoint_group() {
         // Given
         var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
         var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
