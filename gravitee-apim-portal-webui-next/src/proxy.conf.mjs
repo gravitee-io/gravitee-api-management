@@ -34,6 +34,7 @@ export default [
         });
         proxyRes.on('end', function() {
           body = body.toString();
+          res.writeHead(proxyRes.statusCode);
           res.end(body.replace(`${target}/`, ""));
         });
       })

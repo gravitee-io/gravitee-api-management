@@ -17,8 +17,9 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { APP_INITIALIZER, ApplicationConfig } from '@angular/core';
 import { MAT_RIPPLE_GLOBAL_OPTIONS } from '@angular/material/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { provideRouter, withComponentInputBinding, withRouterConfig } from '@angular/router';
-import { combineLatest, Observable, switchMap } from 'rxjs';
+import { provideRouter, Router, withComponentInputBinding, withRouterConfig } from '@angular/router';
+import { catchError, combineLatest, Observable, switchMap } from 'rxjs';
+import { of } from 'rxjs/internal/observable/of';
 
 import { routes } from './app.routes';
 import { csrfInterceptor } from '../interceptors/csrf.interceptor';
@@ -33,20 +34,23 @@ function initApp(
   themeService: ThemeService,
   currentUserService: CurrentUserService,
   portalMenuLinksService: PortalMenuLinksService,
+  router: Router,
 ): () => Observable<unknown> {
   return () =>
-    configService
-      .initBaseURL()
-      .pipe(
-        switchMap(_ =>
-          combineLatest([
-            themeService.loadTheme(),
-            currentUserService.loadUser(),
-            configService.loadConfiguration(),
-            portalMenuLinksService.loadCustomLinks(),
-          ]),
-        ),
-      );
+    configService.initBaseURL().pipe(
+      switchMap(_ =>
+        combineLatest([
+          themeService.loadTheme(),
+          currentUserService.loadUser(),
+          configService.loadConfiguration(),
+          portalMenuLinksService.loadCustomLinks(),
+        ]),
+      ),
+      catchError(error => {
+        router.navigate(['/503'], { state: error });
+        return of({});
+      }),
+    );
 }
 
 export const appConfig: ApplicationConfig = {
@@ -57,7 +61,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: APP_INITIALIZER,
       useFactory: initApp,
-      deps: [ConfigService, ThemeService, CurrentUserService, PortalMenuLinksService],
+      deps: [ConfigService, ThemeService, CurrentUserService, PortalMenuLinksService, Router],
       multi: true,
     },
     // Ripple does not work with hsl mixing
