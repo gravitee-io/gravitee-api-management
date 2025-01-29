@@ -214,6 +214,7 @@
                             </systemPropertyVariables>
                             <includes>
                                 <include>io.gravitee.repository.management.UserRepositoryTest</include>
+                                <include>io.gravitee.repository.management.MetadataRepositoryTest</include>
                             </includes>
                         </configuration>
                     </execution>
