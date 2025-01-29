@@ -30,84 +30,126 @@ import { ApplicationTabLogsComponent } from './applications/application/applicat
 import { ApplicationTabSettingsComponent } from './applications/application/application-tab-settings/application-tab-settings.component';
 import { ApplicationComponent } from './applications/application/application.component';
 import { ApplicationsComponent } from './applications/applications.component';
-import { CatalogComponent } from './catalog/catalog.component';
+import { CategoriesViewComponent } from './catalog/categories-view/categories-view.component';
+import { CategoryApisComponent } from './catalog/categories-view/category-apis/category-apis.component';
+import { TabsViewComponent } from './catalog/tabs-view/tabs-view.component';
 import { GuidesComponent } from './guides/guides.component';
 import { LogInComponent } from './log-in/log-in.component';
 import { LogOutComponent } from './log-out/log-out.component';
 import { NotFoundComponent } from './not-found/not-found.component';
 import { anonymousGuard } from '../guards/anonymous.guard';
 import { authGuard } from '../guards/auth.guard';
+import { catalogCategoriesViewGuard } from '../guards/catalog-categories-view.guard';
+import { catalogTabsViewGuard } from '../guards/catalog-tabs-view.guard';
 import { redirectGuard } from '../guards/redirect.guard';
 import { apiResolver } from '../resolvers/api.resolver';
 import { applicationPermissionResolver, applicationResolver, applicationTypeResolver } from '../resolvers/application.resolver';
+import { categoriesResolver } from '../resolvers/categories.resolver';
 import { pagesResolver } from '../resolvers/pages.resolver';
+
+const apiRoutes: Routes = [
+  {
+    path: 'api/:apiId',
+    component: ApiComponent,
+    resolve: { api: apiResolver },
+    data: { breadcrumb: { alias: 'apiName' } },
+    children: [
+      {
+        path: '',
+        redirectTo: 'details',
+        pathMatch: 'full',
+      },
+      {
+        path: '',
+        component: ApiDetailsComponent,
+        resolve: { pages: pagesResolver },
+        children: [
+          {
+            path: 'details',
+            component: ApiTabDetailsComponent,
+            data: { breadcrumb: { skip: true } },
+          },
+          {
+            path: 'documentation',
+            component: ApiTabDocumentationComponent,
+            data: { breadcrumb: { label: 'Documentation', disable: true } },
+            children: [
+              {
+                path: ':pageId',
+                component: ApiDocumentationComponent,
+                data: { breadcrumb: { alias: 'pageName' } },
+              },
+            ],
+          },
+          {
+            path: 'subscriptions',
+            component: ApiTabSubscriptionsComponent,
+            data: { breadcrumb: { skip: true } },
+            canActivate: [authGuard],
+            children: [
+              {
+                path: '',
+                component: SubscriptionsTableComponent,
+              },
+              {
+                path: ':subscriptionId',
+                component: SubscriptionsDetailsComponent,
+                data: { breadcrumb: { skip: true } },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        path: 'subscribe',
+        component: SubscribeToApiComponent,
+        data: { breadcrumb: 'Subscribe' },
+      },
+    ],
+  },
+];
 
 export const routes: Routes = [
   { path: '', redirectTo: 'catalog', pathMatch: 'full' },
   {
     path: 'catalog',
     canActivateChild: [redirectGuard],
+    data: { breadcrumb: 'Catalog' },
     children: [
-      { path: '', component: CatalogComponent, data: { breadcrumb: 'Catalog' } },
       {
-        path: 'api/:apiId',
-        component: ApiComponent,
-        resolve: { api: apiResolver },
-        data: { breadcrumb: { alias: 'apiName' } },
+        path: '',
+        component: TabsViewComponent,
+        canActivate: [catalogTabsViewGuard],
+        resolve: {
+          categories: categoriesResolver,
+        },
+      },
+      {
+        path: 'categories',
+        canActivateChild: [catalogCategoriesViewGuard],
+        resolve: {
+          categories: categoriesResolver,
+        },
         children: [
           {
             path: '',
-            redirectTo: 'details',
-            pathMatch: 'full',
+            data: { breadcrumb: { skip: true } },
+            component: CategoriesViewComponent,
           },
           {
-            path: '',
-            component: ApiDetailsComponent,
-            resolve: { pages: pagesResolver },
+            path: ':categoryId',
+            data: { breadcrumb: { alias: 'categoryName' } },
             children: [
               {
-                path: 'details',
-                component: ApiTabDetailsComponent,
-                data: { breadcrumb: { skip: true } },
+                path: '',
+                component: CategoryApisComponent,
               },
-              {
-                path: 'documentation',
-                component: ApiTabDocumentationComponent,
-                data: { breadcrumb: { label: 'Documentation', disable: true } },
-                children: [
-                  {
-                    path: ':pageId',
-                    component: ApiDocumentationComponent,
-                    data: { breadcrumb: { alias: 'pageName' } },
-                  },
-                ],
-              },
-              {
-                path: 'subscriptions',
-                component: ApiTabSubscriptionsComponent,
-                data: { breadcrumb: { skip: true } },
-                canActivate: [authGuard],
-                children: [
-                  {
-                    path: '',
-                    component: SubscriptionsTableComponent,
-                  },
-                  {
-                    path: ':subscriptionId',
-                    component: SubscriptionsDetailsComponent,
-                    data: { breadcrumb: { skip: true } },
-                  },
-                ],
-              },
+              ...apiRoutes,
             ],
-          },
-          {
-            path: 'subscribe',
-            component: SubscribeToApiComponent,
-            data: { breadcrumb: 'Subscribe' },
           },
         ],
       },
+      ...apiRoutes,
     ],
   },
   {
