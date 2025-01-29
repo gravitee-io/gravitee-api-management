@@ -47,6 +47,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.plugin.PoliciesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.ResourcesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.ui.ManagementUIResource;
 import io.gravitee.rest.api.rest.filter.GraviteeContextResponseFilter;
+import io.gravitee.rest.api.rest.filter.MaintenanceFilter;
 import io.gravitee.rest.api.rest.filter.PermissionsFilter;
 import io.gravitee.rest.api.rest.filter.SecurityContextFilter;
 import io.gravitee.rest.api.rest.filter.UriBuilderRequestFilter;
@@ -111,6 +112,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(ByteArrayOutputStreamWriter.class);
         register(YamlWriter.class);
         register(JacksonFeature.class);
+        register(MaintenanceFilter.class);
 
         register(OpenAPIResource.class);
 
