@@ -17,6 +17,12 @@ package io.gravitee.rest.api.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+<<<<<<< HEAD
+=======
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+>>>>>>> e09d4452a9 (fix: map endpoint headers to map on v2 crd export)
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.definition.model.kubernetes.v1alpha1.ApiDefinitionResource;

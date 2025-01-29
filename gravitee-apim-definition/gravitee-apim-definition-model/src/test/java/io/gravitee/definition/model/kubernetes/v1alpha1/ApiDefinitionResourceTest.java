@@ -74,6 +74,62 @@ class ApiDefinitionResourceTest {
     }
 
     @Test
+<<<<<<< HEAD
+=======
+    public void shouldMapPages() throws Exception {
+        ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition("api-definition.json"));
+
+        ObjectNode pages = (ObjectNode) resource.getSpec().get("pages");
+        assertTrue(pages.has("Aside"));
+
+        var page = pages.get("Aside");
+        assertEquals("Aside", page.get("name").asText());
+        assertFalse(page.has("lastContributor"));
+        assertFalse(page.has("lastModificationDate"));
+        assertFalse(page.has("parentPath"));
+        assertFalse(page.has("attached_media"));
+        assertFalse(page.has("contentType"));
+    }
+
+    @Test
+    void shouldMapHeadersToMap() throws Exception {
+        var resource = new ApiDefinitionResource("api-definition", readDefinition("api-definition.json"));
+        var proxy = (ObjectNode) resource.getSpec().get("proxy");
+        assertTrue(proxy.has("groups"));
+        var groups = (ArrayNode) proxy.get("groups");
+        assertEquals(1, groups.size());
+        var group = groups.get(0);
+        assertTrue(group.has("headers"));
+        var headers = group.get("headers");
+        assertEquals("true", headers.get("x-test").asText());
+    }
+
+    @Test
+    public void shouldMapPageWithoutName() throws Exception {
+        ApiDefinitionResource resource = new ApiDefinitionResource(
+            "api-definition",
+            readDefinition("api-definition-with-page-without-name.json")
+        );
+
+        ObjectNode pages = (ObjectNode) resource.getSpec().get("pages");
+        assertTrue(pages.has("Aside"));
+
+        var page = pages.get("1a0cb360-0b9a-42b7-8cb3-600b9a62b75a");
+        assertNotNull(page);
+    }
+
+    @Test
+    public void shouldIncludeGroups() throws Exception {
+        ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition("api-definition.json"));
+
+        assertTrue(resource.getSpec().has("groups"));
+
+        JsonNode group = resource.getSpec().get("groups").iterator().next();
+        assertEquals("developers", group.asText());
+    }
+
+    @Test
+>>>>>>> e09d4452a9 (fix: map endpoint headers to map on v2 crd export)
     void shouldSetContextRef() throws Exception {
         String contextRefName = "apim-dev-ctx";
         String contextRefNamespace = "default";
