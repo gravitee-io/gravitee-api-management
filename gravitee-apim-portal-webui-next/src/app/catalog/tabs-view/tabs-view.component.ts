@@ -14,48 +14,27 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, computed, input, InputSignal, signal } from '@angular/core';
-import { toObservable } from '@angular/core/rxjs-interop';
+import { Component, computed, input, InputSignal, OnInit, signal } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, Router } from '@angular/router';
-import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
-import { catchError, combineLatestWith, EMPTY, map, Observable, scan, switchMap, tap } from 'rxjs';
+import { map, Observable, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { ApiCardComponent } from '../../../components/api-card/api-card.component';
-import { LoaderComponent } from '../../../components/loader/loader.component';
-import { SearchBarComponent } from '../../../components/search-bar/search-bar.component';
-import { ApisResponse } from '../../../entities/api/apis-response';
 import { Category } from '../../../entities/categories/categories';
-import { ApiService } from '../../../services/api.service';
-
-export interface ApiVM {
-  id: string;
-  title: string;
-  version: string;
-  content: string;
-  picture?: string;
-}
-
-export interface ApiPaginatorVM {
-  data: ApiVM[];
-  page: number;
-  hasNextPage: boolean;
-}
+import { ConfigService } from '../../../services/config.service';
+import { ApisListComponent } from '../components/apis-list/apis-list.component';
 
 @Component({
   selector: 'app-tabs-view',
   standalone: true,
-  imports: [AsyncPipe, MatTabsModule, SearchBarComponent, ApiCardComponent, MatCardModule, LoaderComponent, InfiniteScrollDirective],
+  imports: [AsyncPipe, MatTabsModule, MatCardModule, ApisListComponent],
   templateUrl: './tabs-view.component.html',
   styleUrl: './tabs-view.component.scss',
 })
-export class TabsViewComponent {
-  categories: InputSignal<Category[]> = input<Category[]>([]);
-
-  apiPaginator$: Observable<ApiPaginatorVM> = of();
-  loadingPage: boolean = true;
+export class TabsViewComponent implements OnInit {
+  categories: InputSignal<Category[]> = input.required<Category[]>();
+  showBanner: boolean;
 
   query: string = '';
   filter = signal('');
@@ -65,26 +44,30 @@ export class TabsViewComponent {
     return foundCategory ? this.categories().indexOf(foundCategory) + 1 : 0;
   });
 
-  private page = signal(1);
-  private page$ = toObservable(this.page);
+  filterAndQuery$: Observable<{ filter: string; query: string }> = of();
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private apiService: ApiService,
+    private readonly configService: ConfigService,
   ) {
-    this.apiPaginator$ = this.loadApis$();
+    this.showBanner = this.configService.configuration?.portalNext?.banner?.enabled ?? false;
   }
 
-  loadMoreApis(paginator: ApiPaginatorVM) {
-    if (!paginator.hasNextPage) {
-      return;
-    }
-
-    this.page.set(paginator.page + 1);
+  ngOnInit() {
+    this.filterAndQuery$ = this.route.queryParams.pipe(
+      map(queryParams => ({
+        query: queryParams['query'] ?? '',
+        filter: queryParams['filter'] ?? '',
+      })),
+      tap(({ query, filter }) => {
+        this.filter.set(filter);
+        this.query = query;
+      }),
+    );
   }
 
-  public onFilterSelection($event: MatTabChangeEvent) {
+  onFilterSelection($event: MatTabChangeEvent) {
     const categoryId = this.categories().find(cat => cat.name === $event.tab.textLabel)?.id ?? '';
 
     this.router.navigate([''], {
@@ -96,7 +79,7 @@ export class TabsViewComponent {
     });
   }
 
-  public onSearchResults(searchInput: string) {
+  onSearchResults(searchInput: string) {
     this.router.navigate([''], {
       relativeTo: this.route,
       queryParams: {
@@ -104,69 +87,5 @@ export class TabsViewComponent {
         query: searchInput,
       },
     });
-  }
-
-  private loadApis$(): Observable<ApiPaginatorVM> {
-    return this.route.queryParams.pipe(
-      tap(_ => {
-        this.page.set(1);
-      }),
-      combineLatestWith(this.page$),
-      tap(_ => (this.loadingPage = true)),
-      switchMap(([queryParams, currentPage]) => {
-        const category = queryParams['filter'];
-        const query = queryParams['query'];
-
-        this.filter.set(category ?? '');
-        this.query = query;
-
-        if (currentPage === 1) {
-          return of({ page: currentPage, size: 18, category, query });
-        } else if (currentPage === 2) {
-          this.page.set(3);
-          return EMPTY;
-        } else {
-          return of({ page: currentPage, size: 9, category, query });
-        }
-      }),
-      switchMap(({ page, size, category, query }) => this.searchApis$(page, size, category, query)),
-      map(resp => {
-        const data = resp.data
-          ? resp.data.map(api => ({
-              id: api.id,
-              content: api.description,
-              version: api.version,
-              title: api.name,
-              picture: api._links?.picture,
-            }))
-          : [];
-
-        const page = resp.metadata?.pagination?.current_page ?? 1;
-        const hasNextPage = resp.metadata?.pagination?.total_pages ? page < resp.metadata.pagination.total_pages : false;
-        return {
-          data,
-          page,
-          hasNextPage,
-        };
-      }),
-      scan(this.updatePaginator, { data: [], page: 1, hasNextPage: true }),
-      tap(_ => (this.loadingPage = false)),
-    );
-  }
-
-  private searchApis$(page: number, size: number, category: string, query?: string): Observable<ApisResponse> {
-    return this.apiService.search(page, category, query ?? '', size).pipe(catchError(_ => of({ data: [], metadata: undefined })));
-  }
-
-  private updatePaginator(accumulator: ApiPaginatorVM, value: ApiPaginatorVM): ApiPaginatorVM {
-    if (value.page === 1) {
-      return value;
-    }
-
-    accumulator.data.push(...value.data);
-    accumulator.page = value.page;
-    accumulator.hasNextPage = value.hasNextPage;
-
-    return accumulator;
   }
 }
