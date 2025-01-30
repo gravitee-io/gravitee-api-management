@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.util.KeyStoreUtils;
 import io.gravitee.definition.model.Origin;
@@ -84,6 +85,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -91,6 +93,7 @@ import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationAlertService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GenericNotificationConfigService;
 import io.gravitee.rest.api.service.GroupService;
@@ -130,6 +133,7 @@ import io.gravitee.rest.api.service.impl.configuration.application.registration.
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.security.cert.Certificate;
@@ -222,6 +226,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Autowired
     private PlanSearchService planSearchService;
+
+    @Autowired
+    private ConfigService configService;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -694,10 +701,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             LOGGER.debug("Update application {}", applicationId);
 
             validateApplicationClientId(executionContext, applicationId, updateApplicationEntity);
+            Set<String> groups = updateApplicationEntity.getGroups();
+            validateUserGroups(executionContext, groups);
 
-            if (updateApplicationEntity.getGroups() != null && !updateApplicationEntity.getGroups().isEmpty()) {
+            if (groups != null && !groups.isEmpty()) {
                 //throw a NotFoundException if the group doesn't exist
-                groupService.findByIds(updateApplicationEntity.getGroups());
+                groupService.findByIds(groups);
             }
 
             Application applicationToUpdate = applicationRepository
@@ -863,6 +872,18 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 String.format("An error occurs while trying to update application %s", applicationId),
                 ex
             );
+        }
+    }
+
+    private void validateUserGroups(ExecutionContext executionContext, Set<String> groups) {
+        ConsoleConfigEntity consoleConfig = configService.getConsoleConfig(executionContext);
+
+        if (consoleConfig.getUserGroup().getRequired().isEnabled()) {
+            if (CollectionUtils.isEmpty(groups)) {
+                throw new BadRequestException(
+                    "Updating an application with no groups when setting to add at least one group to the application enabled is not allowed."
+                );
+            }
         }
     }
 
