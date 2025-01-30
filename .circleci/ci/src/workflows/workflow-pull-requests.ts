@@ -47,6 +47,7 @@ import {
   ConsoleWebuiBuildJob,
   PortalWebuiBuildJob,
   WebuiLintTestJob,
+  TriggerSaasDockerImagesJob,
 } from '../jobs';
 import { orbs } from '../orbs';
 
@@ -376,6 +377,21 @@ export class PullRequestsWorkflow {
       ]);
       dynamicConfig.addJob(checkWorkflowJob);
       jobs.push(new workflow.WorkflowJob(checkWorkflowJob, { name: 'Validate workflow status', requires }));
+    }
+
+    if (environment.branch === 'saas-release') {
+      // TODO : Remove, just for testing purpose
+      const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
+
+      jobs.push(
+        // Trigger SaaS Docker images creation
+        new workflow.WorkflowJob(runTriggerSaasDockerImagesJob, {
+          context: [...config.jobContext, 'keeper-orb-publishing'],
+          name: 'Trigger SaaS Docker images creation',
+          requires: [],
+        }),
+      );
     }
 
     return jobs;
