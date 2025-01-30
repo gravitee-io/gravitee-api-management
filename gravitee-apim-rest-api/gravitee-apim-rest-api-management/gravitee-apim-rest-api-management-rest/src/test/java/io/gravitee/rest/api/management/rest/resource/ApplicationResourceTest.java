@@ -24,9 +24,14 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
+import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
+import io.gravitee.rest.api.model.settings.Enabled;
+import io.gravitee.rest.api.model.settings.UserGroup;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import org.assertj.core.api.SoftAssertions;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 public class ApplicationResourceTest extends AbstractResourceTest {
@@ -84,10 +89,19 @@ public class ApplicationResourceTest extends AbstractResourceTest {
             .picture("data:image/png;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
             .background("data:image/png;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
             .build();
-
+        ConsoleConfigEntity config = getConsoleConfigEntity(false);
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
         when(applicationService.update(any(), eq("123"), eq(entity))).thenReturn(ApplicationEntity.builder().id("123").build());
 
         final Response response = envTarget().request().put(Entity.json(entity));
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+    }
+
+    private static @NotNull ConsoleConfigEntity getConsoleConfigEntity(boolean userGroupRequired) {
+        ConsoleConfigEntity config = new ConsoleConfigEntity();
+        UserGroup userGroup = new UserGroup();
+        userGroup.setRequired(new Enabled(userGroupRequired));
+        config.setUserGroup(userGroup);
+        return config;
     }
 }

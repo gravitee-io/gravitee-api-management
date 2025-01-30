@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, DestroyRef, Input } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -28,11 +28,14 @@ import {
   Header,
 } from '@gravitee/ui-particles-angular';
 import { MatRadioModule } from '@angular/material/radio';
-import { filter, map, share, startWith, tap } from 'rxjs/operators';
+import { filter, map, share, startWith, switchMap, tap } from 'rxjs/operators';
 import { MatSelectModule } from '@angular/material/select';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ApplicationType } from '../../../../entities/application-type/ApplicationType';
+import { GroupService } from '../../../../services-ngx/group.service';
+import { Group } from '../../../../entities/group/group';
 
 export type ApplicationForm = {
   name: FormControl<string>;
@@ -48,6 +51,7 @@ export type ApplicationForm = {
   oauthRedirectUris: FormControl<string[]>;
 
   additionalClientMetadata: FormControl<Header[]>;
+  groups: FormControl<string[]>;
 };
 
 export type ApplicationCreationFormApplicationType = ApplicationType & {
@@ -77,8 +81,6 @@ export type ApplicationCreationFormApplicationType = ApplicationType & {
   templateUrl: './application-creation-form.component.html',
 })
 export class ApplicationCreationFormComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
-
   @Input({ required: true })
   public applicationTypes: ApplicationCreationFormApplicationType[];
 
@@ -92,8 +94,16 @@ export class ApplicationCreationFormComponent implements OnInit {
       allowedGrantTypesVM: { value: string; label: string; disabled: boolean }[];
     }
   >;
+  groupsList: Observable<Group[]> = of([]);
+
+  private refreshGroups = new BehaviorSubject<Group[]>([]);
+  private destroyRef: DestroyRef = inject(DestroyRef);
+
+  constructor(private readonly groupService: GroupService) {}
 
   ngOnInit() {
+    this.initializeGroups();
+
     this.applicationType$ = this.applicationFormGroup.get('type').valueChanges.pipe(
       startWith(this.applicationFormGroup.get('type').value),
       filter((typeSelected) => !!typeSelected),
@@ -131,6 +141,14 @@ export class ApplicationCreationFormComponent implements OnInit {
         }
       }),
       share(),
+    );
+  }
+
+  private initializeGroups() {
+    this.groupsList = this.refreshGroups.pipe(
+      switchMap((_) => this.groupService.list()),
+      map((_) => _.sort((a, b) => a.name.localeCompare(b.name))),
+      takeUntilDestroyed(this.destroyRef),
     );
   }
 }
