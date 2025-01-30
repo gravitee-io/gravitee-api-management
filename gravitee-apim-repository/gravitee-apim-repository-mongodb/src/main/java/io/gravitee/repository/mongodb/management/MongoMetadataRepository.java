@@ -97,6 +97,7 @@ public class MongoMetadataRepository implements MetadataRepository {
             metadataMongo.setName(metadata.getName());
             metadataMongo.setValue(metadata.getValue());
             metadataMongo.setFormat(metadata.getFormat().name());
+            metadataMongo.setUpdatedAt(metadata.getUpdatedAt());
 
             return map(internalMetadataRepository.save(metadataMongo));
         } catch (Exception e) {
