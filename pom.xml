@@ -43,7 +43,7 @@
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin2
              in gravitee-apim-gateway-tests-sdk and gravitee-apim-integration-tests
              along with the grpc libs to create test clients and servers -->
-        <vertx.version>4.5.11</vertx.version>
+        <vertx.version>4.5.12</vertx.version>
         <protobuf-java.version>4.28.2</protobuf-java.version>
         <grpc-java.version>1.65.0</grpc-java.version>
         <!-- Gravitee dependencies version -->
