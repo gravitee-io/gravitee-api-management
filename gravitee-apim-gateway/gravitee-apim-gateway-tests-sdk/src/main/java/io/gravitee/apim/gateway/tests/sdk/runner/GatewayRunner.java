@@ -51,6 +51,8 @@ import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
+import io.gravitee.gateway.dictionary.DictionaryManager;
+import io.gravitee.gateway.dictionary.model.Dictionary;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
@@ -99,10 +101,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -196,9 +200,8 @@ public class GatewayRunner {
      *  And then, starts the gateway
      * @param gatewayPort is the port used to reach the apis deployed on the gateway
      * @param technicalApiPort is the port used to reach the technical api.
-     * @throws Exception
      */
-    public void configureAndStart(int gatewayPort, int technicalApiPort) throws IOException, InterruptedException, SecretProviderException {
+    public void configureAndStart(int gatewayPort, int technicalApiPort) throws IOException, InterruptedException {
         try {
             // gather extra config from the test class
             GatewayConfiguration gatewayConfiguration = gatewayConfigurationBuilder.build();
@@ -244,6 +247,8 @@ public class GatewayRunner {
 
             registerServices(gatewayContainer);
 
+            deployDictionaries(gatewayContainer);
+
             // start Gateway
             vertxContainer = startServer(gatewayContainer);
             isRunning = true;
@@ -267,7 +272,7 @@ public class GatewayRunner {
             if (home == null) {
                 throw new IllegalStateException("Configuration folder for gateway does not exists");
             }
-            graviteeHome = URLDecoder.decode(home.getPath(), StandardCharsets.UTF_8.name());
+            graviteeHome = URLDecoder.decode(home.getPath(), StandardCharsets.UTF_8);
         }
 
         System.setProperty("gravitee.home", graviteeHome);
@@ -304,9 +309,7 @@ public class GatewayRunner {
 
     /**
      * Allow users of the SDK to use it without creating a dedicated /resources/gravitee-default folder containing the configuration.
-     *
      * The Gateway is loading configuration for "graviteeProperties" with a FileSystemResource. If the resource is inside a jar, it throws an error.
-     *
      * This method create a temporary folder to copy sdk default configuration in.
      * This temporary folder will be removed when gateway stops or an exception occurs.
      *
@@ -535,21 +538,30 @@ public class GatewayRunner {
      * @throws Exception
      */
     private void deploySharedPolicyGroupFromTest(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
-        if (deployedSharedPolicyGroupsForTestClass.containsKey(reactableSharedPolicyGroup.getId())) {
+        if (
+            deployedSharedPolicyGroupsForTestClass.containsKey(
+                new SharedPolicyGroupKey(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId())
+            )
+        ) {
             throw new PreconditionViolationException(
                 String.format(SPG_ALREADY_DEPLOYED_MESSAGE + " at class level", reactableSharedPolicyGroup.getId())
             );
         }
-        if (deployedSharedPolicyGroupsForTest.containsKey(reactableSharedPolicyGroup.getId())) {
+        if (
+            deployedSharedPolicyGroupsForTest.containsKey(
+                new SharedPolicyGroupKey(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId())
+            )
+        ) {
             undeploySharedPolicyGroup(reactableSharedPolicyGroup);
-            deployedSharedPolicyGroupsForTest.remove(reactableSharedPolicyGroup.getId());
+            deployedSharedPolicyGroupsForTest.remove(
+                new SharedPolicyGroupKey(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId())
+            );
         }
         deploySharedPolicyGroup(reactableSharedPolicyGroup, deployedSharedPolicyGroupsForTest);
     }
 
     /**
      * Undeploys a Shared Policy Group from a test. Throws if the shared policy group is deployed at class level
-     * @param sharedPolicyGroup
      */
     private void undeploySharedPolicyGroupFromTest(String sharedPolicyGroup, String environmentId) {
         if (deployedSharedPolicyGroupsForTestClass.containsKey(new SharedPolicyGroupKey(sharedPolicyGroup, environmentId))) {
@@ -594,6 +606,13 @@ public class GatewayRunner {
             reactableApi = apiDeploymentPreparers.get(api.getClass()).toReactable(api, environmentId);
         }
         return reactableApi;
+    }
+
+    private void deployDictionaries(GatewayTestContainer gatewayContainer) {
+        List<Dictionary> dictionaries = new ArrayList<>();
+        testInstance.configureDictionaries(dictionaries);
+        DictionaryManager dictionaryManager = gatewayContainer.applicationContext().getBean(DictionaryManager.class);
+        dictionaries.forEach(dictionaryManager::deploy);
     }
 
     public boolean isRunning() {
@@ -905,8 +924,8 @@ public class GatewayRunner {
 
             definition =
                 definition
-                    .replaceAll("http://localhost:8080", "http://localhost:" + testInstance.getWiremockPort())
-                    .replaceAll("https://localhost:8080", "https://localhost:" + testInstance.getWiremockHttpsPort());
+                    .replace("http://localhost:8080", "http://localhost:" + testInstance.getWiremockPort())
+                    .replace("https://localhost:8080", "https://localhost:" + testInstance.getWiremockHttpsPort());
 
             return graviteeMapper.readValue(definition, toClass);
         } catch (URISyntaxException e) {
