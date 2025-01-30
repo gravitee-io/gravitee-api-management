@@ -21,6 +21,8 @@ import { Observable, of } from 'rxjs';
 import { Constants } from '../entities/Constants';
 import { Group } from '../entities/group/group';
 import { GroupMembership } from '../entities/group/groupMember';
+import { Member } from '../entities/members/members';
+import { Invitation } from '../entities/invitation/invitation';
 
 @Injectable({
   providedIn: 'root',
@@ -53,5 +55,35 @@ export class GroupService {
 
   deleteMember(groupId: string, memberId: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.env.baseURL}/configuration/groups/${groupId}/members/${memberId}`);
+  }
+
+  delete(id: string) {
+    if (id) {
+      return this.http.delete<void>(`${this.constants.env.baseURL}/configuration/groups/${id}`);
+    }
+  }
+
+  get(id: string) {
+    return this.http.get<Group>(`${this.constants.env.baseURL}/configuration/groups/${id}`);
+  }
+
+  addToExistingComponents(id: string, type: string) {
+    return this.http.post<Group>(`${this.constants.env.baseURL}/configuration/groups/${id}/memberships?type=${type}`, {});
+  }
+
+  saveOrUpdate(mode: string, group: Group) {
+    if (mode === 'edit') {
+      return this.http.put<Group>(`${this.constants.env.baseURL}/configuration/groups/${group.id}`, group);
+    } else {
+      return this.http.post<Group>(`${this.constants.env.baseURL}/configuration/groups`, group);
+    }
+  }
+
+  getMembers(id: string): Observable<Member[]> {
+    return this.http.get<Member[]>(`${this.constants.env.baseURL}/configuration/groups/${id}/members`, {});
+  }
+
+  inviteMember(id: string, invitation: Invitation) {
+    return this.http.post<any>(`${this.constants.env.baseURL}/configuration/groups/${id}/invitations/`, invitation);
   }
 }

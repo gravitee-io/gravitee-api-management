@@ -1,0 +1,267 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+@if (dataSource | async; as group) {
+  <div class="title">
+    <gio-go-back-button routerLink=".."></gio-go-back-button>
+    <h1>{{ mode === 'new' ? 'Create group' : group.name }}</h1>
+  </div>
+
+  <mat-card class="group__form__card">
+    <mat-card-header>
+      <h2>General</h2>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="groupForm">
+        <mat-form-field class="group__form__card__form-field" *gioPermission="{ anyOf: ['environment-group-u'] }">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" />
+        </mat-form-field>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="group__form__card">
+    <mat-card-header>
+      <h2>Roles & Members</h2>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="groupForm">
+        <mat-form-field
+          aria-hidden="false"
+          aria-label="Select default API role"
+          class="group__form__card__form-field"
+          *ngIf="mode === 'edit'"
+        >
+          <mat-label>Default API role</mat-label>
+          <mat-select
+            formControlName="defaultAPIRole"
+            class="group__form__card__form-select"
+            *gioPermission="{ anyOf: ['environment-group-u'] }"
+          >
+            <mat-option *ngFor="let role of defaultAPIRoles" [value]="role.name">{{ role.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field
+          aria-hidden="false"
+          aria-label="Select default application role"
+          class="group__form__card__form-field"
+          *ngIf="mode === 'edit'"
+        >
+          <mat-label>Default application role</mat-label>
+          <mat-select
+            formControlName="defaultApplicationRole"
+            class="group__form__card__form-select"
+            *gioPermission="{ anyOf: ['environment-group-u'] }"
+          >
+            <mat-option *ngFor="let role of defaultApplicationRoles" [value]="role.name">{{ role.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="group__form__card__form-field" *gioPermission="{ anyOf: ['environment-group-u'] }">
+          <mat-label>Maximum number of members</mat-label>
+          <input matInput type="number" formControlName="maxNumberOfMembers" />
+        </mat-form-field>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="group__form__card">
+    <mat-card-header>
+      <h2>Settings</h2>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="groupForm">
+        <mat-checkbox
+          class="group__form__card__checkbox"
+          aria-hidden="false"
+          aria-label="Enable user invitations via search"
+          formControlName="shouldAllowInvitationViaSearch"
+          *gioPermission="{ anyOf: ['environment-group-u'] }"
+          >Allow invitation via user search
+        </mat-checkbox>
+
+        <mat-checkbox
+          class="group__form__card__checkbox"
+          aria-hidden="false"
+          aria-label="Enable user invitations via email"
+          formControlName="shouldAllowInvitationViaEmail"
+          *gioPermission="{ anyOf: ['environment-group-u'] }"
+          >Allow invitation via email
+        </mat-checkbox>
+
+        <mat-checkbox
+          class="group__form__card__checkbox"
+          aria-hidden="false"
+          aria-label="Enable group admin to change default API role"
+          formControlName="canAdminChangeAPIRole"
+          *gioPermission="{ anyOf: ['environment-group-u'] }"
+          >Allow group admin to change default API role
+        </mat-checkbox>
+
+        <mat-checkbox
+          class="group__form__card__checkbox"
+          aria-hidden="false"
+          aria-label="Enable group admin to change default application role"
+          formControlName="canAdminChangeApplicationRole"
+          *gioPermission="{ anyOf: ['environment-group-u'] }"
+          >Allow group admin to change default application role
+        </mat-checkbox>
+
+        <mat-checkbox
+          class="group__form__card__checkbox"
+          aria-hidden="false"
+          aria-label="Enable to add group to the new APIs"
+          formControlName="shouldAddToNewAPIs"
+          *gioPermission="{ anyOf: ['environment-group-u'] }"
+          >Add group to new APIs
+        </mat-checkbox>
+
+        <mat-checkbox
+          class="group__form__card__checkbox"
+          aria-hidden="false"
+          aria-label="Enable to add group to the new applications"
+          formControlName="shouldAddToNewApplications"
+          *gioPermission="{ anyOf: ['environment-group-u'] }"
+          >Add group to new applications
+        </mat-checkbox>
+
+        <mat-checkbox
+          class="group__form__card__checkbox"
+          aria-hidden="false"
+          aria-label="Enable to notify when new members added to the group"
+          formControlName="shouldNotifyWhenMemberAdded"
+          *gioPermission="{ anyOf: ['environment-group-u'] }"
+          >Notify when new members added to the group
+        </mat-checkbox>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="group__form__card" *ngIf="mode === 'edit'">
+    <mat-card-header>
+      <h2>Actions</h2>
+    </mat-card-header>
+    <mat-card-content class="group__form__card__actions">
+      <button *ngIf="canEditMembers()" mat-fab extended color="primary" [matMenuTriggerFor]="editMembersMenu">
+        <mat-icon>group</mat-icon>
+        Add/modify members
+      </button>
+      <mat-menu #editMembersMenu="matMenu">
+        <button mat-menu-item (click)="openEditMembersDialog()" [disabled]="!(isSuperAdmin() || group.system_invitation)">
+          <mat-icon color="primary" fontIcon="people" aria-hidden="false" aria-label="Click to invite user via search"></mat-icon>
+          Search
+        </button>
+        <button mat-menu-item (click)="openInviteMemberDialog()" [disabled]="!(isSuperAdmin() || group.email_invitation)">
+          <mat-icon color="primary" fontIcon="email" aria-hidden="false" aria-label="Click to invite user via email"></mat-icon>
+          Invite
+        </button>
+      </mat-menu>
+      <button mat-fab extended (click)="addToExistingAPIs(group)">
+        <mat-icon>add</mat-icon>
+        Add group to existing APIs
+      </button>
+      <button mat-fab extended (click)="addToExistingApplications(group)">
+        <mat-icon>add</mat-icon>
+        Add group to existing applications
+      </button>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="group__form__card" *ngIf="mode === 'edit'">
+    <mat-card-header>
+      <h2>Dependents</h2>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-tab-group>
+        <mat-tab label="Members">
+          @if (membersDataSource | async; as members) {
+            <table mat-table [dataSource]="members" id="membersDataTable" aria-label="Members Data Table">
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+                <td mat-cell *matCellDef="let row">
+                  <div>{{ row.displayName }}</div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="isGroupAdmin">
+                <th mat-header-cell *matHeaderCellDef id="isGroupAdmin">Group Admin</th>
+                <td mat-cell *matCellDef="let row">
+                  <mat-icon
+                    [svgIcon]="row.isGroupAdmin ? 'gio:check' : 'gio:cancel'"
+                    aria-hidden="false"
+                    aria-label="Indicates if the member is a group admin"
+                  ></mat-icon>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="defaultApiRole">
+                <th mat-header-cell *matHeaderCellDef id="defaultApiRole">API Role</th>
+                <td mat-cell *matCellDef="let row">
+                  <div>{{ row.roles['API'] }}</div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="defaultApplicationRole">
+                <th mat-header-cell *matHeaderCellDef id="defaultApplicationRole">Application Role</th>
+                <td mat-cell *matCellDef="let row">
+                  <div>{{ row.roles['APPLICATION'] }}</div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="defaultIntegrationRole">
+                <th mat-header-cell *matHeaderCellDef id="defaultIntegrationRole">Integration Role</th>
+                <td mat-cell *matCellDef="let row">
+                  <div>{{ row.roles['INTEGRATION'] }}</div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef id="actions">Actions</th>
+                <td mat-cell *matCellDef="let row">
+                  <button mat-button (click)="editMember(row)" matTooltip="Edit" aria-hidden="false" aria-label="Click to edit group">
+                    <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+                  </button>
+                  <button mat-button (click)="removeMember(row)" matTooltip="Delete" aria-hidden="false" aria-label="Click to delete group">
+                    <mat-icon svgIcon="gio:trash"></mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="memberColumnDefs" data-testid="api_list_table_header"></tr>
+              <tr mat-row *matRowDef="let row; columns: memberColumnDefs" data-testid="api_list_table_row"></tr>
+              <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+                <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="memberColumnDefs.length">
+                  {{ 'No members available to display' }}
+                </td>
+              </tr>
+            </table>
+          }
+        </mat-tab>
+        <mat-tab label="APIs"></mat-tab>
+        <mat-tab label="Applications"></mat-tab>
+      </mat-tab-group>
+    </mat-card-content>
+  </mat-card>
+
+  <gio-save-bar
+    [creationMode]="mode === 'new'"
+    [form]="groupForm"
+    [formInitialValues]="initialGroupForm"
+    (submitted)="saveOrUpdate()"
+  ></gio-save-bar>
+}

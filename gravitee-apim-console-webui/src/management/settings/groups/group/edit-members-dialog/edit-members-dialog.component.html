@@ -1,0 +1,46 @@
+<h2 mat-dialog-title>Add member to {{ group.name }}</h2>
+<mat-dialog-content>
+  <form [formGroup]="addMemberForm" class="add-member__form">
+    <mat-error *ngIf="isDefaultAPIRolePrimaryOwner()">Only one user can be set as an API primary owner</mat-error>
+
+    <mat-form-field aria-hidden="false" aria-label="Select default API role">
+      <mat-label>Default API role</mat-label>
+      <mat-select [disabled]="!canChangeDefaultAPIRole()" formControlName="defaultAPIRole">
+        <mat-option *ngFor="let role of defaultAPIRoles" [value]="role.name" [disabled]="isAPIRoleDisabled(role)"
+          >{{ role.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field aria-hidden="false" aria-label="Select default application role">
+      <mat-label>Default application role</mat-label>
+      <mat-select [disabled]="!canChangeDefaultApplicationRole()" formControlName="defaultApplicationRole">
+        <mat-option *ngFor="let role of defaultApplicationRoles" [value]="role.name" [disabled]="role.system">{{ role.name }} </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field aria-hidden="false" aria-label="Select default integration role">
+      <mat-label>Default integration role</mat-label>
+      <mat-select [disabled]="!canChangeDefaultIntegrationRole()" formControlName="defaultIntegrationRole">
+        <mat-option *ngFor="let role of defaultIntegrationRoles" [value]="role.name" [disabled]="role.system">{{ role.name }} </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-error *ngIf="!isAtLeastOneRoleSelected()">Please select at least one default role for the new member </mat-error>
+
+    <button mat-fab extended (click)="selectMembers()">
+      <mat-icon>search</mat-icon>
+      Search members
+    </button>
+
+    <button mat-fab extended color="primary" [disabled]="isFormInvalid()" (click)="addMembers()">
+      <mat-icon>person_add</mat-icon>
+      Add Members
+    </button>
+
+    <button mat-fab extended mat-dialog-close>
+      <mat-icon>cancel</mat-icon>
+      Cancel
+    </button>
+  </form>
+</mat-dialog-content>

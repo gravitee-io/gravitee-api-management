@@ -262,12 +262,10 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             found = (type != null);
             if (found) {
                 String clientId = environment.getProperty("security.providers[" + idx + "].clientId");
-                if ("google".equals(type)) {
-                    authenticationConfig.getGoogle().setClientId(clientId);
-                } else if ("github".equals(type)) {
-                    authenticationConfig.getGithub().setClientId(clientId);
-                } else if ("oauth2".equals(type)) {
-                    authenticationConfig.getOauth2().setClientId(clientId);
+                switch (type) {
+                    case "google" -> authenticationConfig.getGoogle().setClientId(clientId);
+                    case "github" -> authenticationConfig.getGithub().setClientId(clientId);
+                    case "oauth2" -> authenticationConfig.getOauth2().setClientId(clientId);
                 }
             }
             idx++;
@@ -491,6 +489,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             consoleConfigEntity.getFederation(),
             consoleConfigEntity.getScoring(),
             consoleConfigEntity.getCloudHosted(),
+            consoleConfigEntity.getUserGroups(),
         };
     }
 }
