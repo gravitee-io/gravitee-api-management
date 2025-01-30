@@ -34,7 +34,6 @@ import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
-import io.gravitee.rest.api.model.ProcessSubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.TransferSubscriptionEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
@@ -55,6 +54,10 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -210,6 +213,28 @@ public class ApiSubscriptionsResource extends AbstractResource {
                 format("attachment;filename=subscriptions-%s-%s.csv", apiId, System.currentTimeMillis())
             )
             .build();
+    }
+
+    @POST
+    @Path("/{subscriptionId}/_resumeFailure")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(
+        summary = "Resume the failed subscription",
+        description = "User must have the APPLICATION_SUBSCRIPTION[UPDATE] permission to use this service"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Subscription successfully resumed",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Subscription.class))
+    )
+    @ApiResponse(responseCode = "400", description = "Status changes not authorized")
+    @ApiResponse(responseCode = "404", description = "API subscription does not exist")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
+    public Response resumeFailedSubscription(@PathParam("subscriptionId") String subscriptionId) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        SubscriptionEntity updatedSubscriptionEntity = subscriptionService.resumeFailed(executionContext, subscriptionId);
+        return Response.ok(subscriptionMapper.map(updatedSubscriptionEntity)).build();
     }
 
     @POST
