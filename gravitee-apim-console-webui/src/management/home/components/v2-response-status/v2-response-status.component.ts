@@ -18,6 +18,7 @@ import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { switchMap } from 'rxjs/operators';
+import { EMPTY } from 'rxjs';
 
 import { GioChartLineData, GioChartLineOptions } from '../../../../shared/components/gio-chart-line/gio-chart-line.component';
 import { HomeService } from '../../../../services-ngx/home.service';
@@ -67,6 +68,7 @@ export class V2ResponseStatusComponent implements OnInit {
         },
         error: ({ error }) => {
           this.snackBarService.error(error.message);
+          return EMPTY;
         },
       });
   }

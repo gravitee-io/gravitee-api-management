@@ -29,14 +29,9 @@ import { OWL_DATE_TIME_FORMATS, OwlDateTimeModule } from '@danielmoncada/angular
 import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 import moment, { Moment } from 'moment/moment';
 
-import {
-  customTimeFrames,
-  DATE_TIME_FORMATS,
-  timeFrameRangesParams,
-  timeFrames,
-  TimeRangeParams,
-} from '../../../../shared/utils/timeFrameRanges';
+import { customTimeFrames, DATE_TIME_FORMATS, timeFrameRangesParams, timeFrames } from '../../../../shared/utils/timeFrameRanges';
 import { HomeService } from '../../../../services-ngx/home.service';
+import { calculateCustomInterval } from '../../../../shared/utils/intervalFromTimeRanges';
 
 @Component({
   selector: 'app-dashboard-filters-bar',
@@ -109,12 +104,15 @@ export class DashboardFiltersBarComponent implements OnInit {
   }
 
   public applyCustomDateRange() {
-    const customTimeRangeParams: TimeRangeParams = {
-      id: this.form.get('period').value,
-      from: this.form.get('from').value.valueOf(),
-      to: this.form.get('to').value.valueOf(),
-      interval: 1000,
-    };
-    this.homeService.setTimeRangeParams(customTimeRangeParams);
+    const from = this.form.get('from').value.valueOf();
+    const to = this.form.get('to').value.valueOf();
+    const interval = calculateCustomInterval(from, to);
+
+    this.homeService.setTimeRangeParams({
+      id: 'custom',
+      from,
+      to,
+      interval,
+    });
   }
 }
