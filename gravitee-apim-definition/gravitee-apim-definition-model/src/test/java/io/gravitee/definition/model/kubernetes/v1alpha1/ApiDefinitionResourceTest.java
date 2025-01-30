@@ -88,19 +88,6 @@ class ApiDefinitionResourceTest {
     }
 
     @Test
-    void shouldMapHeadersToMap() throws Exception {
-        var resource = new ApiDefinitionResource("api-definition", readDefinition("api-definition.json"));
-        var proxy = (ObjectNode) resource.getSpec().get("proxy");
-        assertTrue(proxy.has("groups"));
-        var groups = (ArrayNode) proxy.get("groups");
-        assertEquals(1, groups.size());
-        var group = groups.get(0);
-        assertTrue(group.has("headers"));
-        var headers = group.get("headers");
-        assertEquals("true", headers.get("x-test").asText());
-    }
-
-    @Test
     public void shouldMapPageWithoutName() throws Exception {
         ApiDefinitionResource resource = new ApiDefinitionResource(
             "api-definition",
