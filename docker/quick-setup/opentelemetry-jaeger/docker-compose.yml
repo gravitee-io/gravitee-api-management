@@ -111,8 +111,8 @@ services:
       - ./.plugins:/opt/graviteeio-gateway/plugins-ext
       - ./.license:/opt/graviteeio-gateway/license
     environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?replicaSet=rs0&serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?replicaSet=rs0&serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+      - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_services_opentelemetry_enabled=true
       - gravitee_services_opentelemetry_exporter_endpoint=http://jaeger:4317
       - gravitee_services_opentelemetry_exporter_protocol=grpc
@@ -142,7 +142,7 @@ services:
       - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
       - ./.license:/opt/graviteeio-management-api/license
     environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?replicaSet=rs0&serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
     networks:
       - storage
