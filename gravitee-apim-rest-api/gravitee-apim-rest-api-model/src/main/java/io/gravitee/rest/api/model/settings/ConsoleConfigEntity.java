@@ -38,6 +38,7 @@ public class ConsoleConfigEntity {
     private TrialInstance trialInstance;
     private Federation federation;
     private CloudHosted cloudHosted;
+    private UserGroup userGroup;
 
     public ConsoleConfigEntity() {
         super();
@@ -56,5 +57,6 @@ public class ConsoleConfigEntity {
         trialInstance = new TrialInstance();
         federation = new Federation();
         cloudHosted = new CloudHosted();
+        userGroup = new UserGroup();
     }
 }

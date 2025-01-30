@@ -28,8 +28,10 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
 import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
 import io.gravitee.rest.api.model.settings.Email;
+import io.gravitee.rest.api.model.settings.Enabled;
 import io.gravitee.rest.api.model.settings.Logging;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
+import io.gravitee.rest.api.model.settings.UserGroup;
 import io.gravitee.rest.api.model.settings.logging.MessageSampling;
 import io.gravitee.rest.api.service.NewsletterService;
 import io.gravitee.rest.api.service.ParameterService;
@@ -208,6 +210,7 @@ public class ConfigServiceTest {
         params.put(Key.CONSOLE_SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
         params.put(Key.ALERT_ENABLED.key(), singletonList("true"));
         params.put(EMAIL_ENABLED.key(), singletonList("true"));
+        params.put(USER_GROUP_REQUIRED_ENABLED.key(), singletonList("true"));
 
         when(
             mockParameterService.findAll(
@@ -234,6 +237,7 @@ public class ConfigServiceTest {
         assertThat(consoleSettings.getAnalyticsPendo().getApiKey()).as("analytics pendo apiKey").isEmpty();
         assertThat(consoleSettings.getLicenseExpirationNotification().getEnabled()).as("license expiration notification enabled").isTrue();
         assertThat(consoleSettings.getEmail().getEnabled()).as("email enabled").isTrue();
+        assertThat(consoleSettings.getUserGroup().getRequired().isEnabled()).as("user group required enabled").isTrue();
     }
 
     @Test
@@ -244,6 +248,7 @@ public class ConfigServiceTest {
         params.put(Key.ALERT_ENABLED.key(), singletonList("true"));
         params.put(EMAIL_ENABLED.key(), singletonList("true"));
         params.put(TRIAL_INSTANCE.key(), singletonList("true"));
+        params.put(USER_GROUP_REQUIRED_ENABLED.key(), singletonList("true"));
 
         when(
             mockParameterService.findAll(
@@ -265,6 +270,7 @@ public class ConfigServiceTest {
         assertThat(consoleSettings.getReCaptcha().getSiteKey()).as("recaptcha siteKey").isEqualTo("my-site-key");
         assertThat(consoleSettings.getAlert().getEnabled()).as("alerting enabled").isTrue();
         assertThat(consoleSettings.getReCaptcha().getEnabled()).as("recaptcha enabled").isTrue();
+        assertThat(consoleSettings.getUserGroup().getRequired().isEnabled()).as("user group required enabled").isTrue();
         assertThat(consoleSettings.getCors().getExposedHeaders()).as("cors exposed headers").hasSize(2);
         assertThat(consoleSettings.getAnalyticsPendo().getEnabled()).as("analytics pendo enabled").isFalse();
         assertThat(consoleSettings.getAnalyticsPendo().getApiKey()).as("analytics pendo apiKey").isEmpty();
@@ -278,6 +284,7 @@ public class ConfigServiceTest {
         params.put(COMPANY_NAME.key(), singletonList("ACME"));
         params.put(Key.CONSOLE_SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
         params.put(Key.ALERT_ENABLED.key(), singletonList("true"));
+        params.put(USER_GROUP_REQUIRED_ENABLED.key(), singletonList("true"));
 
         when(
             mockParameterService.findAll(
@@ -297,6 +304,7 @@ public class ConfigServiceTest {
         assertThat(consoleConfig).isNotNull();
         assertThat(consoleConfig.getScheduler().getNotificationsInSeconds()).as("scheduler notifications").isEqualTo(Integer.valueOf(11));
         assertThat(consoleConfig.getReCaptcha().getSiteKey()).as("recaptcha siteKey").isEqualTo("my-site-key");
+        assertThat(consoleConfig.getUserGroup().getRequired().isEnabled()).as("user group required enabled").isTrue();
         assertThat(consoleConfig.getAlert().getEnabled()).as("alerting enabled").isTrue();
         assertThat(consoleConfig.getReCaptcha().getEnabled()).as("recaptcha enabled").isTrue();
         assertThat(consoleConfig.getLicenseExpirationNotification().getEnabled()).as("license expiration notification enabled").isTrue();
@@ -371,6 +379,9 @@ public class ConfigServiceTest {
         messageSampling.setTemporal(temporal);
         logging.setMessageSampling(messageSampling);
         consoleSettingsEntity.setLogging(logging);
+        UserGroup userGroup = new UserGroup();
+        userGroup.setRequired(new Enabled(true));
+        consoleSettingsEntity.setUserGroup(userGroup);
         when(
             mockParameterService.save(
                 GraviteeContext.getExecutionContext(),
@@ -550,6 +561,14 @@ public class ConfigServiceTest {
             .save(
                 GraviteeContext.getExecutionContext(),
                 LOGGING_AUDIT_TRAIL_ENABLED,
+                "true",
+                "DEFAULT",
+                ParameterReferenceType.ORGANIZATION
+            );
+        verify(mockParameterService, times(1))
+            .save(
+                GraviteeContext.getExecutionContext(),
+                USER_GROUP_REQUIRED_ENABLED,
                 "true",
                 "DEFAULT",
                 ParameterReferenceType.ORGANIZATION
