@@ -23,8 +23,6 @@ import { SettingsRoutingModule } from './settings-routing.module';
 import { SettingsAnalyticsComponent } from './analytics/settings-analytics.component';
 import { SettingsNavigationComponent } from './settings-navigation/settings-navigation.component';
 import { SettingsAnalyticsDashboardComponent } from './analytics/dashboard/settings-analytics-dashboard.component';
-import { GroupsComponent } from './groups/groups.component';
-import { GroupComponent } from './groups/group/group.component';
 import { EnvironmentMetadataModule } from './metadata/environment-metadata.module';
 import { ClientRegistrationProvidersModule } from './client-registration-providers/client-registration-providers.module';
 import { PortalThemeComponent } from './portal-theme/portalTheme.component';
@@ -41,6 +39,7 @@ import { CategoriesModule } from './categories/categories.module';
 import { CustomUserFieldsModule } from './custom-user-fields/custom-user-fields.module';
 
 import { DocumentationModule } from '../../components/documentation/documentation.module';
+import { GroupsModule } from './groups/groups.module';
 
 @NgModule({
   imports: [
@@ -63,13 +62,12 @@ import { DocumentationModule } from '../../components/documentation/documentatio
     ApiPortalHeaderModule,
     CustomUserFieldsModule,
     CategoriesModule,
+    GroupsModule,
   ],
   declarations: [
     SettingsNavigationComponent,
     SettingsAnalyticsComponent,
     SettingsAnalyticsDashboardComponent,
-    GroupsComponent,
-    GroupComponent,
     PortalThemeComponent,
     DictionariesComponent,
     DictionaryComponent,

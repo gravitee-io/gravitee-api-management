@@ -1,0 +1,37 @@
+<h2 mat-dialog-title>Invite member to {{ group.name }}</h2>
+<mat-dialog-content>
+  <form [formGroup]="inviteMemberForm" class="invite-member__form" (ngSubmit)="sendInvitation()">
+    <mat-form-field aria-hidden="false" aria-label="Select default API role">
+      <mat-label>Default API role</mat-label>
+      <mat-select [disabled]="!canChangeDefaultAPIRole()" formControlName="defaultAPIRole">
+        <mat-option *ngFor="let role of defaultAPIRoles" [value]="role.name" [disabled]="isAPIRoleDisabled(role)"
+          >{{ role.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field aria-hidden="false" aria-label="Select default API role">
+      <mat-label>Default application role</mat-label>
+      <mat-select [disabled]="!canChangeDefaultApplicationRole()" formControlName="defaultApplicationRole">
+        <mat-option *ngFor="let role of defaultApplicationRoles" [value]="role.name" [disabled]="role.system">{{ role.name }} </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Email</mat-label>
+      <input matInput formControlName="email" type="email" required />
+    </mat-form-field>
+
+    <mat-error *ngIf="!isEmailValid()">Please enter a valid email address</mat-error>
+
+    <button mat-fab extended color="primary" type="submit" [disabled]="!isEmailValid()">
+      <mat-icon>send</mat-icon>
+      Send invitation
+    </button>
+
+    <button mat-fab extended mat-dialog-close>
+      <mat-icon>cancel</mat-icon>
+      Cancel
+    </button>
+  </form>
+</mat-dialog-content>

@@ -34,6 +34,7 @@ export interface ConsoleSettings {
   federation?: ConsoleSettingsFederation;
   scoring?: ConsoleSettingsScoring;
   cloudHosted?: ConsoleSettingsCloudHosted;
+  userGroups?: ConsoleSettingsUserGroups;
 }
 
 export interface ConsoleSettingsEmail {
@@ -191,4 +192,8 @@ export interface ConsoleSettingsScoring {
 
 export interface ConsoleSettingsCloudHosted {
   enabled?: boolean;
+}
+
+interface ConsoleSettingsUserGroups {
+  required?: boolean;
 }

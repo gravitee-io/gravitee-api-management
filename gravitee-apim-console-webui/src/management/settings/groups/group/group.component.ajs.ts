@@ -47,7 +47,7 @@ const GroupComponentAjs: ng.IComponentOptions = {
   bindings: {
     activatedRoute: '<',
   },
-  template: require('html-loader!./group.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./group.component.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: [
     'GroupService',
     'RoleService',
