@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.exception.InvalidImageException;
@@ -23,17 +24,18 @@ import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.PictureEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.UrlPictureEntity;
-import io.gravitee.rest.api.model.application.ApplicationSettings;
-import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
@@ -48,9 +50,21 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
-import jakarta.ws.rs.core.*;
+import jakarta.ws.rs.core.CacheControl;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.util.List;
@@ -74,6 +88,9 @@ public class ApplicationResource extends AbstractResource {
 
     @Inject
     private ApplicationTypeService applicationTypeService;
+
+    @Inject
+    private ConfigService configService;
 
     @PathParam("application")
     @Parameter(name = "application", required = true)
@@ -137,7 +154,18 @@ public class ApplicationResource extends AbstractResource {
             throw new BadRequestException("Invalid image format : " + e.getMessage());
         }
 
-        return applicationService.update(GraviteeContext.getExecutionContext(), application, updatedApplication);
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        ConsoleConfigEntity consoleConfig = configService.getConsoleConfig(executionContext);
+
+        if (consoleConfig.getUserGroup().getRequired().isEnabled()) {
+            if (CollectionUtils.isEmpty(updatedApplication.getGroups())) {
+                throw new BadRequestException(
+                    "Updating an application with no groups when setting to add at least one group to the application enabled is not allowed."
+                );
+            }
+        }
+
+        return applicationService.update(executionContext, application, updatedApplication);
     }
 
     @GET

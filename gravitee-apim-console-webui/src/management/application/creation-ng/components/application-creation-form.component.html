@@ -50,6 +50,16 @@
       <mat-label>Domain</mat-label>
     </mat-form-field>
 
+    <mat-form-field>
+      <mat-label>Select Groups</mat-label>
+      <mat-hint>Select user groups to add to the application</mat-hint>
+      <mat-select formControlName="groups" multiple>
+        @for (group of groupsList | async; track group) {
+          <mat-option [value]="group.id">{{ group.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
     <h3 class="form__securityTitle">Security</h3>
     @if (applicationTypes.length === 0) {
       <gio-banner-warning>No application type available, please check Client Registration configuration.</gio-banner-warning>
