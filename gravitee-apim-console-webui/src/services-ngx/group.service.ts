@@ -54,4 +54,26 @@ export class GroupService {
   deleteMember(groupId: string, memberId: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.env.baseURL}/configuration/groups/${groupId}/members/${memberId}`);
   }
+
+  delete(id: string) {
+    if (id) {
+      return this.http.delete<void>(`${this.constants.env.baseURL}/configuration/groups/${id}`);
+    }
+  }
+
+  get(id: string) {
+    return this.http.get<Group>(`${this.constants.env.baseURL}/configuration/groups/${id}`);
+  }
+
+  addToExistingComponents(id: string, type: string) {
+    return this.http.post<Group>(`${this.constants.env.baseURL}/configuration/groups/${id}/memberships?type=${type}`, {});
+  }
+
+  saveOrUpdate(mode: string, group: Group) {
+    if (mode === 'edit') {
+      return this.http.put<Group>(`${this.constants.env.baseURL}/configuration/groups/${group.id}`, group);
+    } else {
+      return this.http.post<Group>(`${this.constants.env.baseURL}/configuration/groups`, group);
+    }
+  }
 }

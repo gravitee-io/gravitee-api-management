@@ -49,6 +49,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
     private Federation federation;
     private Scoring scoring;
     private CloudHosted cloudHosted;
+    private ConsoleUserGroups userGroups;
 
     public ConsoleSettingsEntity() {
         super();
@@ -69,6 +70,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
         federation = new Federation();
         scoring = new Scoring();
         cloudHosted = new CloudHosted();
+        userGroups = new ConsoleUserGroups();
     }
 
     //Classes
@@ -90,5 +92,13 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
 
         @ParameterKey(Key.CONSOLE_HTTP_CORS_MAX_AGE)
         private Integer maxAge;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @Data
+    public static class ConsoleUserGroups {
+
+        @ParameterKey(Key.CONSOLE_APPLICATION_USER_GROUPS_REQUIRED)
+        private Boolean required;
     }
 }

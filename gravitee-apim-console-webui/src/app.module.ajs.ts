@@ -156,9 +156,6 @@ import { ApiAuditComponentAjs } from './management/api/audit/general/audit.compo
 import AuditComponent from './components/audit/audit.component';
 // Configuration
 import PortalSettingsService from './services/portalSettings.service';
-// Groups
-import GroupsComponentAjs from './management/settings/groups/groups.component.ajs';
-import GroupComponentAjs from './management/settings/groups/group/group.component.ajs';
 import GroupService from './services/group.service';
 // Dictionaries
 import DictionaryService from './services/dictionary.service';
@@ -449,8 +446,6 @@ graviteeManagementModule.component('analyticsDashboardComponentAjs', AnalyticsDa
 graviteeManagementModule.component('gvAlertDashboard', AlertsDashboardComponent);
 graviteeManagementModule.component('alertsActivityComponentAjs', AlertsActivityComponentAjs);
 graviteeManagementModule.component('apiAlertsDashboardComponentAjs', ApiAlertsDashboardComponentAjs);
-graviteeManagementModule.component('settingsGroupsAjs', GroupsComponentAjs);
-graviteeManagementModule.component('settingsGroupEditAjs', GroupComponentAjs);
 graviteeManagementModule.controller('DialogAddGroupMemberController', DialogAddGroupMemberController);
 graviteeManagementModule.controller('DialogTransferOwnershipController', DialogTransferOwnershipController);
 graviteeManagementModule.controller('FileChooserDialogController', FileChooserDialogController);
