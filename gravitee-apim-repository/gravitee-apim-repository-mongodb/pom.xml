@@ -214,7 +214,9 @@
                             </systemPropertyVariables>
                             <includes>
                                 <include>io.gravitee.repository.management.UserRepositoryTest</include>
+                                <include>io.gravitee.repository.management.LicenseRepositoryTest</include>
                                 <include>io.gravitee.repository.management.MetadataRepositoryTest</include>
+                                <include>io.gravitee.repository.management.TokenRepositoryTest</include>
                             </includes>
                         </configuration>
                     </execution>
