@@ -25,5 +25,32 @@
     "metadata": {
       "type": "Web"
     }
+  },
+  {
+    "id": "app7",
+    "name": "app7",
+    "environmentId": "env7",
+    "description": "app7",
+    "status": "ACTIVE",
+    "type": "SIMPLE",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "metadata": {
+      "type": "Web"
+    }
+  },
+  {
+    "id": "app8",
+    "name": "app8",
+    "environmentId": "env8",
+    "description": "app8",
+    "status": "ACTIVE",
+    "type": "SIMPLE",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "metadata": {
+      "client_id": "my-client-id",
+      "type": "Web"
+    }
   }
 ]
