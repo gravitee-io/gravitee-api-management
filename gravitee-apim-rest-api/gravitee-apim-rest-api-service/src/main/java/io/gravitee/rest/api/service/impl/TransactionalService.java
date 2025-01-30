@@ -16,12 +16,6 @@
 package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
-import io.gravitee.rest.api.service.exceptions.TransactionRetryableService;
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Recover;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -29,13 +23,4 @@ import org.springframework.transaction.annotation.Transactional;
  * @author GraviteeSource Team
  */
 @Transactional(value = "graviteeTransactionManager", noRollbackFor = AbstractManagementException.class)
-@Retryable(
-    retryFor = DataAccessException.class,
-    exceptionExpression = TransactionRetryableService.EXPRESSION,
-    maxAttemptsExpression = "${management.transaction.retry.maxAttempts:5}",
-    backoff = @Backoff(
-        delayExpression = "${management.transaction.retry.delayMs:100}",
-        maxDelayExpression = "${management.transaction.retry.maxDelayMs:500}"
-    )
-)
 public class TransactionalService {}

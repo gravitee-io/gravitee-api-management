@@ -84,8 +84,8 @@ services:
       - ./.logs/apim-gateway-internal:/opt/graviteeio-gateway/logs
       - ./.license:/opt/graviteeio-gateway/license
     environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?replicaSet=rs0&serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?replicaSet=rs0&serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+      - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
       - tags=internal
     networks:
@@ -107,8 +107,8 @@ services:
       - ./.logs/apim-gateway-external:/opt/graviteeio-gateway/logs
       - ./.license:/opt/graviteeio-gateway/license
     environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?replicaSet=rs0&serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?replicaSet=rs0&serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+      - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
       - tags=external
     networks:
@@ -133,7 +133,7 @@ services:
       - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
       - ./.license:/opt/graviteeio-management-api/license
     environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?replicaSet=rs0&serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
     networks:
       - storage
