@@ -101,8 +101,11 @@ table {
   }
 =======
 table td {
-  overflow-wrap: break-word !important; /* Ensure text will break in the middle of words if needed */
-  word-break: break-all !important; /* Break text at any character, including between letters */
+  overflow-wrap: break-word !important;
   white-space: normal !important;
+<<<<<<< HEAD
 >>>>>>> 0a30879581 (fix: add word break styles to container for text wrapping)
+=======
+  word-break: break-all !important;
+>>>>>>> e069c03b5c (squash! fix: add word break styles to container for text wrapping)
 }
