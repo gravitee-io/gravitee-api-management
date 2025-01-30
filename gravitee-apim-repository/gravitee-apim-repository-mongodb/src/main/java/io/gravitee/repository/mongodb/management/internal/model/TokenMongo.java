@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import static org.springframework.data.mongodb.core.EncryptionAlgorithms.AEAD_AES_256_CBC_HMAC_SHA_512_Deterministic;
+
 import java.util.Date;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -22,6 +24,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.ExplicitEncrypted;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -38,7 +41,9 @@ public class TokenMongo {
     @EqualsAndHashCode.Include
     private String id;
 
+    @ExplicitEncrypted(algorithm = AEAD_AES_256_CBC_HMAC_SHA_512_Deterministic)
     private String token;
+
     private String referenceType;
     private String referenceId;
     private String name;
