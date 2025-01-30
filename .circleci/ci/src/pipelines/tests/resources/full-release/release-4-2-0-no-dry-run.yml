@@ -657,6 +657,31 @@ jobs:
           command: mvn clean deploy --activate-profiles gravitee-release --batch-mode -Dmaven.test.skip=true -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
       - cmd-save-maven-job-cache:
           jobName: job-nexus-staging
+  job-trigger-saas-docker-images:
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - run:
+          name: Trigger SaaS Docker images pipeline
+          command: |-
+            PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "branch-version":"4.2.x", "release-version":"4.2.0", "dry-run":false}}' | jq -r '.id')
+            echo "Pipeline triggered with ID: $PIPELINE_ID"
+            waitForPipelineCompletion() {
+                while true; do
+                    STATUS=$(curl --request GET --url "https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow" --header "Circle-Token: ${CIRCLE_TOKEN}" | jq -r '.items[].status')
+                    echo "Current status: $STATUS"
+                    if [[ "$STATUS" == "success" ]]; then
+                        echo "Pipeline completed successfully."
+                        break
+                    elif [[ "$STATUS" == "failed" ]]; then
+                        echo "Pipeline failed."
+                        exit 1
+                    fi
+                    sleep 30
+                done
+            }  
+            waitForPipelineCompletion
 workflows:
   full_release:
     jobs:
@@ -733,14 +758,21 @@ workflows:
           name: Nexus staging
           requires:
             - Package bundle
+      - job-trigger-saas-docker-images:
+          context:
+            - cicd-orchestrator
+            - keeper-orb-publishing
+          name: Trigger SaaS Docker images creation
+          requires:
+            - Nexus staging
+            - Build and push RPM packages for APIM 4.2.0
+            - Build and push docker images for APIM 4.2.0
       - job-release-helm:
           context:
             - cicd-orchestrator
           name: Release Helm Chart
           requires:
-            - Nexus staging
-            - Build and push RPM packages for APIM 4.2.0
-            - Build and push docker images for APIM 4.2.0
+            - Trigger SaaS Docker images creation
       - job-release-notes-apim:
           context:
             - cicd-orchestrator
