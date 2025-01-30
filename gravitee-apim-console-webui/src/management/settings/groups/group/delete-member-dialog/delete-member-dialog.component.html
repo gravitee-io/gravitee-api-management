@@ -1,0 +1,48 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h2 mat-dialog-title>Delete Member</h2>
+<mat-dialog-content>
+  <form [formGroup]="deleteMemberForm" class="delete-member__form">
+    <mat-form-field appearance="outline" *ngIf="member.roles['API'] === 'PRIMARY_OWNER'">
+      <mat-label>Search Members</mat-label>
+      <input aria-label="Search members" matInput formControlName="searchTerm" [matAutocomplete]="auto" />
+      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectPrimaryOwner($event)">
+        <mat-option *ngFor="let member of filteredMembers | async" [value]="member">
+          {{ member.displayName }}
+        </mat-option>
+      </mat-autocomplete>
+
+      <mat-hint *ngIf="!selectedPrimaryOwner">{{ 'Please search members to transfer ownership' }}</mat-hint>
+    </mat-form-field>
+
+    <mat-list role="list" *ngIf="selectedPrimaryOwner">
+      <mat-list-item>
+        {{ selectedPrimaryOwner.displayName }}
+        <button mat-button (click)="deselectPrimaryOwner()"><mat-icon svgIcon="gio:trash"></mat-icon></button>
+      </mat-list-item>
+    </mat-list>
+
+    <mat-hint *ngIf="this.ownershipTransferMessage">{{ this.ownershipTransferMessage }}</mat-hint>
+    <span> Are you sure, you want to delete {{ member.displayName }}? </span>
+  </form>
+
+  <mat-dialog-actions style="justify-content: flex-end">
+    <button mat-raised-button color="warn" [disabled]="disableSubmit()" (click)="deleteMember()">Delete</button>
+    <button mat-raised-button mat-dialog-close>Cancel</button>
+  </mat-dialog-actions>
+</mat-dialog-content>
