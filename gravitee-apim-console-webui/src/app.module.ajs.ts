@@ -112,7 +112,6 @@ import PlatformLogsComponentAjs from './management/analytics/logs/platform-logs.
 import PlatformLogComponentAjs from './management/analytics/logs/platform-log.component.ajs';
 
 import CategoryService from './services/category.service';
-import DialogAddGroupMemberController from './management/settings/groups/group/addMemberDialog.controller';
 import SubscriptionService from './services/subscription.service';
 import EmptyStateDirective from './components/emptystate/emptystate.directive';
 import TagService from './services/tag.service';
@@ -147,9 +146,6 @@ import { ApiAuditComponentAjs } from './management/api/audit/general/audit.compo
 import AuditComponent from './components/audit/audit.component';
 // Configuration
 import PortalSettingsService from './services/portalSettings.service';
-// Groups
-import GroupsComponentAjs from './management/settings/groups/groups.component.ajs';
-import GroupComponentAjs from './management/settings/groups/group/group.component.ajs';
 import GroupService from './services/group.service';
 // Dictionaries
 import DictionaryService from './services/dictionary.service';
@@ -227,7 +223,6 @@ import { ApiAlertsDashboardComponentAjs } from './management/api/analytics/alert
 
 import { markedHighlight } from 'marked-highlight';
 import { downgradeInjectable } from '@angular/upgrade/static';
-import DialogTransferOwnershipController from './management/settings/groups/group/transferOwnershipDialog.controller';
 import ApiKeysComponent from './management/application/components/api-key/api-keys.component';
 import ApiKeysController from './management/application/components/api-key/api-keys.controller';
 import { IfMatchEtagInterceptor } from './shared/interceptors/if-match-etag.interceptor';
@@ -436,10 +431,6 @@ graviteeManagementModule.component('analyticsDashboardComponentAjs', AnalyticsDa
 graviteeManagementModule.component('gvAlertDashboard', AlertsDashboardComponent);
 graviteeManagementModule.component('alertsActivityComponentAjs', AlertsActivityComponentAjs);
 graviteeManagementModule.component('apiAlertsDashboardComponentAjs', ApiAlertsDashboardComponentAjs);
-graviteeManagementModule.component('settingsGroupsAjs', GroupsComponentAjs);
-graviteeManagementModule.component('settingsGroupEditAjs', GroupComponentAjs);
-graviteeManagementModule.controller('DialogAddGroupMemberController', DialogAddGroupMemberController);
-graviteeManagementModule.controller('DialogTransferOwnershipController', DialogTransferOwnershipController);
 graviteeManagementModule.controller('FileChooserDialogController', FileChooserDialogController);
 graviteeManagementModule.controller('DialogConfirmController', DialogConfirmController);
 graviteeManagementModule.controller('DialogConfirmAndValidateController', DialogConfirmAndValidateController);

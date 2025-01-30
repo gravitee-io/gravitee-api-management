@@ -75,13 +75,13 @@ public class UpdateApplicationEntity {
     private ApplicationSettings settings;
 
     @Setter
-    @Schema(description = "Application groups. Used to add teams to your application.", example = "['MY_GROUP1', 'MY_GROUP2']")
+    @Schema(description = "Application groups. Used to add teams to your application.", example = "['Test Group 1', 'Test Group 2']")
     @ToString.Include
     private Set<String> groups;
 
     /**
      * @deprecated Only for backward compatibility at the API level.
-     *             Will be remove in a future version.
+     * Will be remove in a future version.
      */
     @Setter
     @Deprecated
@@ -90,7 +90,7 @@ public class UpdateApplicationEntity {
 
     /**
      * @deprecated Only for backward compatibility at the API level.
-     *             Will be remove in a future version.
+     * Will be remove in a future version.
      */
     @Setter
     @Deprecated
