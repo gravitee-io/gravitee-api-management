@@ -146,13 +146,7 @@
           "maxConcurrentConnections": 100,
           "useCompression": true,
           "followRedirects": false
-        },
-        "headers": [
-          {
-            "name": "x-test",
-            "value": "true"
-          }
-        ]
+        }
       }
     ]
   },
