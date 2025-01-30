@@ -33,6 +33,7 @@ export interface ConsoleSettings {
   trialInstance?: ConsoleSettingsTrialInstance;
   federation?: ConsoleSettingsFederation;
   cloudHosted?: ConsoleSettingsCloudHosted;
+  userGroups?: ConsoleSettingsUserGroups;
 }
 
 export interface ConsoleSettingsEmail {
@@ -186,4 +187,8 @@ export interface ConsoleSettingsFederation {
 
 export interface ConsoleSettingsCloudHosted {
   enabled?: boolean;
+}
+
+interface ConsoleSettingsUserGroups {
+  required?: boolean;
 }

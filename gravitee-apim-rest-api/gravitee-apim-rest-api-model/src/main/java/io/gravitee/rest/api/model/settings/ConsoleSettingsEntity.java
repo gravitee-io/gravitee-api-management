@@ -35,7 +35,6 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
     private ConsoleCors cors;
     private ConsoleReCaptcha reCaptcha;
     private ConsoleScheduler scheduler;
-
     private ConsoleAnalyticsPendo analyticsPendo;
 
     @Valid
@@ -50,6 +49,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
     private TrialInstance trialInstance;
     private Federation federation;
     private CloudHosted cloudHosted;
+    private ConsoleUserGroups userGroups;
 
     public ConsoleSettingsEntity() {
         super();
@@ -69,6 +69,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
         trialInstance = new TrialInstance();
         federation = new Federation();
         cloudHosted = new CloudHosted();
+        userGroups = new ConsoleUserGroups();
     }
 
     //Classes
@@ -90,5 +91,13 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
 
         @ParameterKey(Key.CONSOLE_HTTP_CORS_MAX_AGE)
         private Integer maxAge;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @Data
+    public static class ConsoleUserGroups {
+
+        @ParameterKey(Key.CONSOLE_APPLICATION_USER_GROUPS_REQUIRED)
+        private Boolean required;
     }
 }
