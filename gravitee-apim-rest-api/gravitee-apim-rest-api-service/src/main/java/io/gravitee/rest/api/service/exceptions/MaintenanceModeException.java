@@ -32,7 +32,7 @@ public class MaintenanceModeException extends AbstractManagementException {
 
     @Override
     public String getTechnicalCode() {
-        return "maintenance.node";
+        return "maintenance.mode";
     }
 
     @Override

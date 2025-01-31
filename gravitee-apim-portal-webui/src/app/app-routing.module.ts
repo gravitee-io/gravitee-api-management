@@ -54,6 +54,7 @@ import { authGuard } from './services/auth-guard.service';
 import { permissionsResolver } from './resolvers/permissions-resolver.service';
 import { featureGuard } from './services/feature-guard.service';
 import { permissionGuard } from './services/permission-guard.service';
+import { MaintenanceModeComponent } from './pages/maintenance-mode/maintenance-mode.component';
 
 export const routes: Routes = [
   { path: '', component: HomepageComponent, data: { title: 'route.homepage', menu: false, animation: { type: 'fade' } } },
@@ -336,6 +337,7 @@ export const routes: Routes = [
     },
   },
   { path: 'cookies', component: CookiesComponent, data: { title: 'route.cookies' } },
+  { path: 'maintenance-mode', component: MaintenanceModeComponent, data: { title: 'Maintenance' } },
   { path: '**', component: NotFoundComponent, data: { title: 'route.notFound' } },
 ];
 

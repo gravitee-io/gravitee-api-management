@@ -70,6 +70,10 @@ export class ConfigurationService {
               },
               () => resolve(false),
             );
+          })
+          .catch(() => {
+            // Do not block the application if the bootstrap fails
+            resolve(false);
           });
       });
     });

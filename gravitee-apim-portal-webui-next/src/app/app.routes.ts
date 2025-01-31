@@ -35,6 +35,7 @@ import { GuidesComponent } from './guides/guides.component';
 import { LogInComponent } from './log-in/log-in.component';
 import { LogOutComponent } from './log-out/log-out.component';
 import { NotFoundComponent } from './not-found/not-found.component';
+import { ServiceUnavailableComponent } from './service-unavailable/service-unavailable.component';
 import { anonymousGuard } from '../guards/anonymous.guard';
 import { authGuard } from '../guards/auth.guard';
 import { redirectGuard } from '../guards/redirect.guard';
@@ -159,6 +160,7 @@ export const routes: Routes = [
   { path: 'log-in', component: LogInComponent, canActivate: [redirectGuard, anonymousGuard] },
   { path: 'log-out', component: LogOutComponent, canActivate: [redirectGuard, authGuard] },
   { path: '404', component: NotFoundComponent },
+  { path: '503', component: ServiceUnavailableComponent },
   {
     path: '**',
     component: NotFoundComponent,

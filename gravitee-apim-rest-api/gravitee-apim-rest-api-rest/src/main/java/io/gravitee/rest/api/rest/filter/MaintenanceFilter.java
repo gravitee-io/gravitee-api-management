@@ -63,11 +63,7 @@ public class MaintenanceFilter implements ContainerRequestFilter {
             return;
         }
 
-        if (
-            maintenanceModeEnabled &&
-            !requestContext.getUriInfo().getPath().equals("portal") &&
-            !requestContext.getUriInfo().getPath().equals("portal/")
-        ) {
+        if (maintenanceModeEnabled) {
             throw new MaintenanceModeException();
         }
     }

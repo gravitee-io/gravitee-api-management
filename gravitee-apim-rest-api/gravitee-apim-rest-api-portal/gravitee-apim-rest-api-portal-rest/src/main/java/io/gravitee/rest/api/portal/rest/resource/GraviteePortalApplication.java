@@ -30,6 +30,7 @@ import io.gravitee.rest.api.portal.rest.provider.UnrecognizedPropertyExceptionMa
 import io.gravitee.rest.api.portal.rest.resource.auth.ConsoleAuthenticationResource;
 import io.gravitee.rest.api.portal.rest.resource.bootstrap.PortalUIBootstrapResource;
 import io.gravitee.rest.api.rest.filter.GraviteeContextResponseFilter;
+import io.gravitee.rest.api.rest.filter.MaintenanceFilter;
 import io.gravitee.rest.api.rest.filter.PermissionsFilter;
 import io.gravitee.rest.api.rest.filter.SecurityContextFilter;
 import io.gravitee.rest.api.rest.filter.UriBuilderRequestFilter;
@@ -76,6 +77,7 @@ public class GraviteePortalApplication extends ResourceConfig {
         register(UriBuilderRequestFilter.class);
         register(ByteArrayOutputStreamWriter.class);
         register(JacksonFeature.class);
+        register(MaintenanceFilter.class);
 
         register(PayloadInputBodyReader.class);
 
