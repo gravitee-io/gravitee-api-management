@@ -149,6 +149,16 @@ spec:
               containerPort: {{ .Values.api.services.bridge.service.internalPort }}
             {{- end }}
           env:
+            {{- if .Values.apim.kubernetes }}
+            {{- with .Values.apim.kubernetes.projection }}
+            {{- if .enabled }}
+            - name: KUBERNETES_SERVICE_ACCOUNT_TOKEN_PROJECTION_ENABLED
+              value: 'true'
+            - name: KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH
+              value: '/var/run/secrets/tokens/vault-token'
+            {{- end }}
+            {{- end }}
+            {{- end }}
             {{- if $plugins }}
             - name: GRAVITEE_PLUGINS_PATH_0
               value: '${gravitee.home}/plugins'
@@ -222,6 +232,14 @@ spec:
 
           resources: {{ toYaml .Values.api.resources | nindent 12 }}
           volumeMounts:
+          {{- if .Values.apim.kubernetes }}
+          {{- with .Values.apim.kubernetes.projection }}
+          {{- if .enabled }}
+            - name: vault-token
+              mountPath: /var/run/secrets/tokens
+          {{- end }}
+          {{- end }}
+          {{- end }}
             - name: config
               mountPath: /opt/graviteeio-management-api/config/gravitee.yml
               subPath: gravitee.yml
@@ -275,6 +293,19 @@ spec:
         - name: {{ .Values.api.image.pullSecrets }}
       {{- end }}
       volumes:
+        {{- if .Values.apim.kubernetes }}
+        {{- with .Values.apim.kubernetes.projection }}
+        {{- if .enabled }}
+        - name: vault-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  path: vault-token
+                  expirationSeconds: {{ .expirationSeconds }}
+                  audience: {{ .audience }}
+        {{- end }}
+        {{- end }}
+        {{- end }}
         {{- if not (include "api.externalConfig" .) }}
         - name: config
           configMap:

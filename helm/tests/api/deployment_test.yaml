@@ -272,3 +272,32 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].securityContext.runAsNonRoot
           value: true
+
+  - it: kubernetes service account projection enabled tests
+    template: api/api-deployment.yaml
+    set:
+      apim:
+        kubernetes:
+          projection:
+            enabled: true
+            expirationSeconds: 600
+            audience: all
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: KUBERNETES_SERVICE_ACCOUNT_TOKEN_PROJECTION_ENABLED
+      - equal:
+          path: spec.template.spec.containers[0].env[0].value
+          value: 'true'
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: '/var/run/secrets/tokens/vault-token'
+      - equal:
+          path: spec.template.spec.volumes[0].name
+          value: vault-token
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].name
+          value: vault-token

@@ -3,6 +3,11 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+
+### 4.7.0
+
+- add kubernetes access account token projection support
+
 ### 4.6.0
 
 - Add support of heartbeat delay for the gateway

@@ -30,3 +30,8 @@ annotations:
       links:
         - name: Github Issue
           url: https://github.com/gravitee-io/issues/issues/10204
+    - kind: added
+      description: 'Add support of the kubernetes service account token projection'
+      links:
+        - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/10225
