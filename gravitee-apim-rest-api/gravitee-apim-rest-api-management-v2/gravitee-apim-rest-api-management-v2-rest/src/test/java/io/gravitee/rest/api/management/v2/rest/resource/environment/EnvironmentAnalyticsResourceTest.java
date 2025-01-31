@@ -23,6 +23,8 @@ import static org.mockito.Mockito.when;
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiQueryServiceInMemory;
+import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
+import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsOverPeriodResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsRequestResponseTimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusRangesResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopHitsApisResponse;
@@ -36,6 +38,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -248,6 +251,43 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
             Response response = statusRangeTarget.queryParam("from", lessThanZeroFromValue).queryParam("to", TO).request().get();
 
             assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
+        }
+    }
+
+    @Nested
+    class ResponseTimeOverTimeAnalytics {
+
+        @BeforeEach
+        void setup() {
+            statusRangeTarget = rootTarget().path("response-time-over-time");
+        }
+
+        @Test
+        void should_return_200_with_valid_request_response_time_analytics() {
+            //Given
+            var topHitApi1Id = "my-api";
+            var api1 = ApiFixtures.aProxyApiV4().toBuilder().id("api-1").build();
+            var api2 = ApiFixtures.aProxyApiV4().toBuilder().id("api-2").build();
+
+            apiQueryService.initWith(List.of(api1, api2));
+            analyticsQueryService.averageAggregate = new LinkedHashMap<>();
+            analyticsQueryService.averageAggregate.put("1970-01-01T00:00:00", 1.2D);
+            analyticsQueryService.averageAggregate.put("1970-01-01T00:30:00", 1.6D);
+
+            //When
+
+            Response response = statusRangeTarget.queryParam("from", FROM).queryParam("to", TO).request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(EnvironmentAnalyticsOverPeriodResponse.class)
+                .isEqualTo(
+                    EnvironmentAnalyticsOverPeriodResponse
+                        .builder()
+                        .timeRange(AnalyticTimeRange.builder().from(FROM).to(TO).interval(1000L).build())
+                        .data(List.of(1L, 2L))
+                        .build()
+                );
         }
     }
 }

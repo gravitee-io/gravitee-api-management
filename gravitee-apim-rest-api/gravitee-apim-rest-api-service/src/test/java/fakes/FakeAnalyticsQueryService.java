@@ -29,6 +29,7 @@ import io.reactivex.rxjava3.core.Maybe;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -98,7 +99,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     @Override
     public Maybe<Map<String, Double>> searchAvgResponseTimeOverTime(
         ExecutionContext executionContext,
-        String apiId,
+        List<String> apiIds,
         Instant startTime,
         Instant endTime,
         Duration interval
