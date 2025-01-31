@@ -30,7 +30,13 @@ import {
 import { AnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
 import { GioChartLineData, GioChartLineOptions } from '../shared/components/gio-chart-line/gio-chart-line.component';
 import { TimeRangeParams } from '../shared/utils/timeFrameRanges';
-import { AnalyticsBucket, AnalyticsAverageResponseTimes, AnalyticsResponseStatus } from '../entities/analytics/analytics';
+import {
+  AnalyticsBucket,
+  AnalyticsAverageResponseTimes,
+  AnalyticsResponseStatus,
+  AnalyticsV4ResponseTimes,
+  AnalyticsV4ResponseStatus,
+} from '../entities/analytics/analytics';
 
 @Injectable({
   providedIn: 'root',
@@ -122,5 +128,15 @@ export class AnalyticsService {
   getV4RequestResponseStats(from: number, to: number): Observable<AnalyticsV4StatsResponse> {
     const url = `${this.constants.env.v2BaseURL}/analytics/request-response-time?from=${from}&to=${to}`;
     return this.http.get<AnalyticsV4StatsResponse>(url);
+  }
+
+  getV4ResponseTimes({ from, to }: TimeRangeParams): Observable<AnalyticsV4ResponseTimes> {
+    const url = `${this.constants.env.v2BaseURL}/analytics/response-time-over-time?from=${from}&to=${to}`;
+    return this.http.get<AnalyticsV4ResponseTimes>(url);
+  }
+
+  getV4ResponseStatus({ from, to }: TimeRangeParams): Observable<AnalyticsV4ResponseStatus> {
+    const url = `${this.constants.env.v2BaseURL}/analytics/response-status-overtime?from=${from}&to=${to}`;
+    return this.http.get<AnalyticsV4ResponseStatus>(url);
   }
 }

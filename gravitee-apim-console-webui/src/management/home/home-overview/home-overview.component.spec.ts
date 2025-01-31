@@ -26,6 +26,7 @@ import { HomeOverviewHarness } from './home-overview.harness';
 import { HomeModule } from '../home.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { fakeV4AnalyticsResponseStatus, fakeV4AnalyticsResponseTime } from '../../../entities/analytics/analytics.fixture';
 
 describe('HomeOverviewComponent', () => {
   let fixture: ComponentFixture<HomeOverviewComponent>;
@@ -87,6 +88,9 @@ describe('HomeOverviewComponent', () => {
 
       expectResponseStatusGetRequest();
       expectResponseTimesLogsGetRequest();
+
+      expectV4ResponseTimesGetRequest();
+      expectV4ResponseStatusGetRequest();
     });
 
     it('should select custom date range', async () => {
@@ -131,6 +135,8 @@ describe('HomeOverviewComponent', () => {
       expectGetRequestStatsForV4();
       expectResponseStatusGetRequest();
       expectResponseTimesLogsGetRequest();
+      expectV4ResponseTimesGetRequest();
+      expectV4ResponseStatusGetRequest();
     });
 
     it('should show request stats', async () => {
@@ -173,6 +179,8 @@ describe('HomeOverviewComponent', () => {
     expectGetRequestStatsForV4();
     expectResponseStatusGetRequest();
     expectResponseTimesLogsGetRequest();
+    expectV4ResponseTimesGetRequest();
+    expectV4ResponseStatusGetRequest();
   }
 
   function expectRequestStatsRequest(): TestRequest {
@@ -307,6 +315,24 @@ describe('HomeOverviewComponent', () => {
   }
 
   // v4
+  function expectV4ResponseTimesGetRequest() {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/analytics/response-time-over-time`;
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(url);
+    });
+    req.flush(fakeV4AnalyticsResponseTime());
+    expect(req.request.method).toEqual('GET');
+  }
+
+  function expectV4ResponseStatusGetRequest() {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/analytics/response-status-overtime`;
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(url);
+    });
+    req.flush(fakeV4AnalyticsResponseStatus());
+    expect(req.request.method).toEqual('GET');
+  }
+
   function expectConsoleSettingsGetRequest() {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/analytics/response-status-ranges`;
     const req = httpTestingController.expectOne((req) => {

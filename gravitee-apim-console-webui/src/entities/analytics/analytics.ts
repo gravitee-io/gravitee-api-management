@@ -31,9 +31,15 @@ export interface AnalyticsResponseStatusValue {
   field: string;
   name: string;
 }
+
 export interface AnalyticsResponseStatus {
   timestamp: AnalyticsTimestamp;
   values: AnalyticsResponseStatusValue[];
+}
+
+export interface AnalyticsV4ResponseStatus {
+  timeRange: AnalyticsTimestamp;
+  data: Record<string, number[]>;
 }
 
 // AverageResponseTimes:
@@ -46,4 +52,9 @@ export interface AnalyticsAverageResponseTimesValue {
 export interface AnalyticsAverageResponseTimes {
   timestamp: AnalyticsTimestamp;
   values: AnalyticsAverageResponseTimesValue[];
+}
+
+export interface AnalyticsV4ResponseTimes {
+  timeRange: AnalyticsTimestamp;
+  data: number[];
 }

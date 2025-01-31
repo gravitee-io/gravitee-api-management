@@ -15,23 +15,17 @@
     limitations under the License.
 
 -->
-
-<mat-card class="card">
+<mat-card>
   <mat-card-header>
-    <mat-card-title class="mat-h5">Global Response Time Trend</mat-card-title>
-    <mat-card-subtitle
-      >Understand how quickly their APIs are responding to requests and identify trends in performance. A rising response time may indicate
-      potential issues, such as increased load or degraded performance, allowing for proactive troubleshooting.
-    </mat-card-subtitle>
+    <mat-card-title class="mat-h5">Response time</mat-card-title>
+    <mat-card-subtitle>Average response time for the gateway and the API</mat-card-subtitle>
   </mat-card-header>
 
-  <mat-card-content>
-    @if (isLoading) {
-      <div class="card__loader">
-        <gio-loader />
-      </div>
-    } @else {
-      <gio-chart-line [data]="input" [options]="options" />
-    }
-  </mat-card-content>
+  @if (isLoading) {
+    <div class="loader">
+      <gio-loader />
+    </div>
+  } @else {
+    <gio-chart-line [data]="chartInput" [options]="chartOptions" />
+  }
 </mat-card>
