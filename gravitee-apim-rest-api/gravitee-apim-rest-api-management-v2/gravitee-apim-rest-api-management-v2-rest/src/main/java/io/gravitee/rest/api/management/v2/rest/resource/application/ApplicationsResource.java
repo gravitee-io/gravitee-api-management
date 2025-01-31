@@ -34,6 +34,8 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,6 +46,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Path("/applications")
 public class ApplicationsResource extends AbstractResource {
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Inject
     private ImportApplicationCRDUseCase importApplicationCRDUseCase;
@@ -79,5 +84,10 @@ public class ApplicationsResource extends AbstractResource {
         return dryRun
             ? Response.ok(validateCRDUseCase.execute(input).status()).build()
             : Response.ok(importApplicationCRDUseCase.execute(input).status()).build();
+    }
+
+    @Path("{applicationId}")
+    public ApplicationResource getApplicationResource() {
+        return resourceContext.getResource(ApplicationResource.class);
     }
 }
