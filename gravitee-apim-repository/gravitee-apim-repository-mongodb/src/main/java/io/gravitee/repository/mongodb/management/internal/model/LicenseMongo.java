@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import static org.springframework.data.mongodb.core.EncryptionAlgorithms.AEAD_AES_256_CBC_HMAC_SHA_512_Deterministic;
+
 import java.util.Date;
 import java.util.Objects;
 import lombok.EqualsAndHashCode;
@@ -23,6 +25,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.ExplicitEncrypted;
 
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}licenses")
 @Getter
@@ -35,7 +38,9 @@ public class LicenseMongo {
     @EqualsAndHashCode.Include
     private LicensePkMongo id;
 
+    @ExplicitEncrypted(algorithm = AEAD_AES_256_CBC_HMAC_SHA_512_Deterministic)
     private String license;
+
     private Date createdAt;
     private Date updatedAt;
 }

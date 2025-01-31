@@ -216,6 +216,18 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         }
     }
 
+    public MongoClientSettings buildMongoClientSettings(boolean isReactive) {
+        // Trying to get the MongoClientURI if uri property is defined
+        String uri = readPropertyValue(propertyPrefix + "uri");
+
+        if (uri != null && !uri.isEmpty()) {
+            // The builder can be configured with default options, which may be overridden by options specified in the URI string.
+            return buildClientSettingsFromURI(uri, isReactive);
+        } else {
+            return buildClientSettingsFromProperties(isReactive);
+        }
+    }
+
     protected MongoClientSettings buildClientSettingsFromProperties(boolean isReactive) {
         // Base Builder
         MongoClientSettings.Builder builder = MongoClientSettings.builder();
@@ -342,29 +354,14 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         // According to https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/beans/factory/FactoryBean.html#isSingleton--
         // It is the responsibility of the bean factory to ensure singleton instance.
         if (mongoClient == null) {
-            // Trying to get the MongoClientURI if uri property is defined
-            String uri = readPropertyValue(propertyPrefix + "uri");
-
-            if (uri != null && !uri.isEmpty()) {
-                // The builder can be configured with default options, which may be overridden by options specified in the URI string.
-                mongoClient = MongoClients.create(buildClientSettingsFromURI(uri, false));
-            } else {
-                mongoClient = MongoClients.create(buildClientSettingsFromProperties(false));
-            }
+            mongoClient = MongoClients.create(buildMongoClientSettings(false));
         }
 
         return mongoClient;
     }
 
     public com.mongodb.reactivestreams.client.MongoClient getReactiveClient() {
-        // Trying to get the MongoClientURI if uri property is defined
-        String uri = readPropertyValue(propertyPrefix + "uri");
-
-        if (uri != null && !uri.isEmpty()) {
-            return com.mongodb.reactivestreams.client.MongoClients.create(buildClientSettingsFromURI(uri, true));
-        } else {
-            return com.mongodb.reactivestreams.client.MongoClients.create(buildClientSettingsFromProperties(true));
-        }
+        return com.mongodb.reactivestreams.client.MongoClients.create(buildMongoClientSettings(true));
     }
 
     private int getServersCount() {

@@ -62,7 +62,7 @@ public interface UserRepository extends CrudRepository<User, String> {
     /**
      * search {@link User}s
      *
-     * @return Users found
+     * @return Users found ordered by id ascending
      */
     Page<User> search(UserCriteria criteria, Pageable pageable) throws TechnicalException;
 

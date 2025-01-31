@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -42,8 +43,11 @@ public class MongoMetadataRepository implements MetadataRepository {
 
     private final Logger LOGGER = LoggerFactory.getLogger(MongoMetadataRepository.class);
 
-    @Autowired
-    private MetadataMongoRepository internalMetadataRepository;
+    private final MetadataMongoRepository internalMetadataRepository;
+
+    public MongoMetadataRepository(MetadataMongoRepository internalMetadataRepository) {
+        this.internalMetadataRepository = internalMetadataRepository;
+    }
 
     @Override
     public Optional<Metadata> findById(final String key, final String referenceId, final MetadataReferenceType referenceType)
@@ -93,6 +97,7 @@ public class MongoMetadataRepository implements MetadataRepository {
             metadataMongo.setName(metadata.getName());
             metadataMongo.setValue(metadata.getValue());
             metadataMongo.setFormat(metadata.getFormat().name());
+            metadataMongo.setUpdatedAt(metadata.getUpdatedAt());
 
             return map(internalMetadataRepository.save(metadataMongo));
         } catch (Exception e) {
