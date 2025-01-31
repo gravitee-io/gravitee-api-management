@@ -75,6 +75,12 @@ apim:
   # Only Gateway will be deployed to the cluster in DB less mode
   dbLess: false
 
+  kubernetes:
+    projection:
+      enabled: false
+      expirationSeconds: 2592000
+      audience: vault
+
 chaos:
   enabled: false
 
