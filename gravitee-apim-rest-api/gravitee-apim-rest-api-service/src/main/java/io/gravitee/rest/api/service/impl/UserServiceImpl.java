@@ -78,6 +78,7 @@ import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.audit.AuditEntity;
 import io.gravitee.rest.api.model.audit.AuditQuery;
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
@@ -134,6 +135,7 @@ import io.gravitee.rest.api.service.exceptions.UserNotInternallyManagedException
 import io.gravitee.rest.api.service.exceptions.UserRegistrationUnavailableException;
 import io.gravitee.rest.api.service.exceptions.UserStateConflictException;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
+import io.gravitee.rest.api.service.impl.search.lucene.transformer.UserDocumentTransformer;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.notification.PortalHook;
 import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
@@ -148,6 +150,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1264,22 +1267,30 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     public Page<UserEntity> search(ExecutionContext executionContext, String query, Pageable pageable) {
         LOGGER.debug("search users");
 
+        Query<UserEntity> userQuery;
         if (query == null || query.isEmpty()) {
-            return search(
-                executionContext,
-                new UserCriteria.Builder().statuses(UserStatus.ACTIVE, UserStatus.PENDING, UserStatus.REJECTED).build(),
-                pageable
-            );
+            userQuery =
+                QueryBuilder
+                    .create(UserEntity.class)
+                    .setQuery("*")
+                    .setPage(pageable)
+                    .setSort(new SortableImpl(UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME, true))
+                    .build();
+        } else {
+            // UserDocumentTransformation remove domain from email address for security reasons
+            // remove it during search phase to provide results
+            String sanitizedQuery = query.indexOf('@') > 0 ? query.substring(0, query.indexOf('@')) : query;
+            userQuery = QueryBuilder.create(UserEntity.class).setQuery(sanitizedQuery).setPage(pageable).build();
         }
-        // UserDocumentTransformation remove domain from email address for security reasons
-        // remove it during search phase to provide results
-        String sanitizedQuery = query.indexOf('@') > 0 ? query.substring(0, query.indexOf('@')) : query;
-        Query<UserEntity> userQuery = QueryBuilder.create(UserEntity.class).setQuery(sanitizedQuery).setPage(pageable).build();
-
         SearchResult results = searchEngineService.search(executionContext, userQuery);
 
         if (results.hasResults()) {
-            List<UserEntity> users = new ArrayList<>((findByIds(executionContext, results.getDocuments())));
+            List<String> orderedIds = new ArrayList<>(results.getDocuments());
+
+            List<UserEntity> users = new ArrayList<>((findByIds(executionContext, orderedIds)));
+
+            // Sort users based on their position in orderedIds
+            users.sort(Comparator.comparingInt(user -> orderedIds.indexOf(user.getId())));
 
             populateUserFlags(executionContext.getOrganizationId(), users);
 

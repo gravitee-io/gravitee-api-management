@@ -15,14 +15,27 @@
  */
 package io.gravitee.rest.api.service.impl.search.lucene.searcher;
 
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.UserDocumentTransformer.FIELD_CUSTOM;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.UserDocumentTransformer.FIELD_CUSTOM_SPLIT;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.UserDocumentTransformer.FIELD_DISPLAYNAME;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.UserDocumentTransformer.FIELD_EMAIL;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME_SORTED;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.UserDocumentTransformer.FIELD_REFERENCE;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.search.query.Query;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.index.Term;
@@ -32,7 +45,10 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.classic.QueryParserBase;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.WildcardQuery;
 import org.springframework.stereotype.Component;
 
@@ -48,7 +64,15 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
     @Override
     public SearchResult search(ExecutionContext executionContext, Query query) throws TechnicalException {
         QueryParser parser = new MultiFieldQueryParser(
-            new String[] { "displayname", "displayname_reverted", "email", "reference", "custom", "custom_split" },
+            new String[] {
+                FIELD_DISPLAYNAME,
+                FIELD_LASTNAME_FIRSTNAME,
+                FIELD_LASTNAME_FIRSTNAME_SORTED,
+                FIELD_EMAIL,
+                FIELD_REFERENCE,
+                FIELD_CUSTOM,
+                FIELD_CUSTOM_SPLIT,
+            },
             analyzer
         );
         parser.setFuzzyMinSim(0.6f);
@@ -66,12 +90,13 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
                 String[] tokens = normalizedQuery.split(" ");
                 for (String token : tokens) {
                     userFieldsQuery
-                        .add(new WildcardQuery(new Term("displayname", '*' + token + '*')), BooleanClause.Occur.SHOULD)
-                        .add(new WildcardQuery(new Term("displayname_reverted", '*' + token + '*')), BooleanClause.Occur.SHOULD)
-                        .add(new WildcardQuery(new Term("email", '*' + token + '*')), BooleanClause.Occur.SHOULD)
-                        .add(new WildcardQuery(new Term("reference", '*' + token + '*')), BooleanClause.Occur.SHOULD)
-                        .add(new WildcardQuery(new Term("custom", '*' + token + '*')), BooleanClause.Occur.SHOULD)
-                        .add(new WildcardQuery(new Term("custom_split", token)), BooleanClause.Occur.SHOULD);
+                        .add(new WildcardQuery(new Term(FIELD_DISPLAYNAME, '*' + token + '*')), BooleanClause.Occur.SHOULD)
+                        .add(new WildcardQuery(new Term(FIELD_LASTNAME_FIRSTNAME, '*' + token + '*')), BooleanClause.Occur.SHOULD)
+                        .add(new WildcardQuery(new Term(FIELD_LASTNAME_FIRSTNAME_SORTED, '*' + token + '*')), BooleanClause.Occur.SHOULD)
+                        .add(new WildcardQuery(new Term(FIELD_EMAIL, '*' + token + '*')), BooleanClause.Occur.SHOULD)
+                        .add(new WildcardQuery(new Term(FIELD_REFERENCE, '*' + token + '*')), BooleanClause.Occur.SHOULD)
+                        .add(new WildcardQuery(new Term(FIELD_CUSTOM, '*' + token + '*')), BooleanClause.Occur.SHOULD)
+                        .add(new WildcardQuery(new Term(FIELD_CUSTOM_SPLIT, token)), BooleanClause.Occur.SHOULD);
                 }
             }
 
@@ -88,10 +113,55 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
 
             userQuery.add(orgCriteria.build(), BooleanClause.Occur.FILTER);
 
-            return search(userQuery.build(), null, query.getPage());
+            return search(userQuery.build(), query.getSort(), query.getPage());
         } catch (ParseException pe) {
             logger.error("Invalid query to search for user documents", pe);
             throw new TechnicalException("Invalid query to search for user documents", pe);
+        }
+    }
+
+    @Override
+    protected SearchResult search(org.apache.lucene.search.Query query, Sortable sort, Pageable pageable, String fieldReference)
+        throws TechnicalException {
+        logger.debug("Searching for: {}", query.toString());
+
+        try {
+            IndexSearcher searcher = getIndexSearcher();
+            TopDocs topDocs;
+            LinkedHashSet<ScoreDoc> collectedDocs;
+            final Set<String> results = new LinkedHashSet<>();
+
+            if (pageable != null) {
+                if (sort != null) {
+                    topDocs = searcher.search(query, pageable.getPageNumber() * pageable.getPageSize(), convert(sort));
+                } else {
+                    topDocs = searcher.search(query, Integer.MAX_VALUE);
+                }
+
+                collectedDocs =
+                    Arrays
+                        .stream(topDocs.scoreDocs)
+                        .skip((long) (pageable.getPageNumber() - 1) * pageable.getPageSize())
+                        .limit(pageable.getPageSize())
+                        .collect(LinkedHashSet::new, Set::add, Set::addAll);
+            } else if (sort != null) {
+                topDocs = searcher.search(query, Integer.MAX_VALUE, convert(sort));
+                collectedDocs = Arrays.stream(topDocs.scoreDocs).collect(LinkedHashSet::new, Set::add, Set::addAll);
+            } else {
+                topDocs = searcher.search(query, Integer.MAX_VALUE);
+                collectedDocs = Arrays.stream(topDocs.scoreDocs).collect(LinkedHashSet::new, Set::add, Set::addAll);
+            }
+
+            logger.debug("Found {} total matching documents", topDocs.totalHits);
+            for (ScoreDoc doc : collectedDocs) {
+                String reference = searcher.doc(doc.doc).get(fieldReference);
+                results.add(reference);
+            }
+
+            return new SearchResult(results, topDocs.totalHits.value);
+        } catch (IOException ioe) {
+            logger.error("An error occurs while getting documents from search result", ioe);
+            throw new TechnicalException("An error occurs while getting documents from search result", ioe);
         }
     }
 

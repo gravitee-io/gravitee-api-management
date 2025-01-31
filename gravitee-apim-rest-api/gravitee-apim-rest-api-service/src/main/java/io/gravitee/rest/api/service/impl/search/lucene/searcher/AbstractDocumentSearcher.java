@@ -113,7 +113,7 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
         return null;
     }
 
-    private IndexSearcher getIndexSearcher() throws IOException {
+    protected IndexSearcher getIndexSearcher() throws IOException {
         return new IndexSearcher(DirectoryReader.open(indexWriter));
     }
 
