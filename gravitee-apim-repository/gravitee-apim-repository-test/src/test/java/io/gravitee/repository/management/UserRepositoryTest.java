@@ -148,17 +148,17 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(users);
         assertEquals("Invalid user numbers in search", 11, users.size());
-        assertEquals("user0", users.get(0).getId());
-        assertEquals("user1", users.get(1).getId());
-        assertEquals("user3", users.get(2).getId());
-        assertEquals("user5", users.get(3).getId());
+        assertEquals("id2update", users.get(0).getId());
+        assertEquals("idSpecialChar", users.get(1).getId());
+        assertEquals("user0", users.get(2).getId());
+        assertEquals("user1", users.get(3).getId());
         assertEquals("user2", users.get(4).getId());
-        assertEquals("user4", users.get(5).getId());
-        assertEquals("id2update", users.get(6).getId());
-        assertEquals("idSpecialChar", users.get(7).getId());
-        assertEquals("user2delete", users.get(8).getId());
-        assertEquals("user3delete", users.get(9).getId());
-        assertEquals("user4delete", users.get(10).getId());
+        assertEquals("user2delete", users.get(5).getId());
+        assertEquals("user3", users.get(6).getId());
+        assertEquals("user3delete", users.get(7).getId());
+        assertEquals("user4", users.get(8).getId());
+        assertEquals("user4delete", users.get(9).getId());
+        assertEquals("user5", users.get(10).getId());
     }
 
     @Test

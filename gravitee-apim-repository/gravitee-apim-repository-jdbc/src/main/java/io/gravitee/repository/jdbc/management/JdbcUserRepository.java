@@ -143,10 +143,17 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
     public Page<User> search(UserCriteria criteria, Pageable pageable) throws TechnicalException {
         LOGGER.debug("JdbcUserRepository<{}>.search()", getOrm().getTableName());
 
+        /*
+            Encryption has been introduced in mongo repository plugin.
+            As a consequence, the search method for users has to rely on encrypted field to be consistent.
+            To order users by `name` (or another encrypted field), Lucene search engine has to be used
+            (See io.gravitee.rest.api.service.impl.UserServiceImpl.search(ExecutionContext, String, Pageable))
+        */
+
         try {
             List result;
             if (criteria == null) {
-                result = jdbcTemplate.query(getOrm().getSelectAllSql() + "order by lastname, firstname", getRowMapper());
+                result = jdbcTemplate.query(getOrm().getSelectAllSql() + "order by id", getRowMapper());
             } else {
                 final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql());
 
@@ -165,7 +172,7 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
                     query.append(" and organization_id = ? ");
                 }
 
-                query.append(" order by lastname, firstname ");
+                query.append(" order by id ");
 
                 result =
                     jdbcTemplate.query(
