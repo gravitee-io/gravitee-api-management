@@ -111,6 +111,14 @@
     </div>
   </div>
 
+  <div class="row">
+    <v4-response-status></v4-response-status>
+  </div>
+
+  <div class="row">
+    <v4-response-times></v4-response-times>
+  </div>
+
   <div class="row" *gioPermission="{ anyOf: ['environment-platform-r'] }">
     <h2 class="row-title">API Events</h2>
     <ng-container *ngIf="timeRangeParams; else loader">

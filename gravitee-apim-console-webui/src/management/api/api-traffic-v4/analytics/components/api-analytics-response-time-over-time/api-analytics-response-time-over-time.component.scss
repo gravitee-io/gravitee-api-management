@@ -23,8 +23,4 @@ $typography: map.get(gio.$mat-theme, typography);
     align-items: center;
     height: 100%;
   }
-
-  &__chart {
-    padding: 16px;
-  }
 }

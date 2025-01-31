@@ -15,19 +15,18 @@
     limitations under the License.
 
 -->
-<mat-card class="card">
+
+<mat-card>
   <mat-card-header>
-    <mat-card-title class="mat-h5">Response time</mat-card-title>
-    <mat-card-subtitle class="">Average response time for the gateway and the API</mat-card-subtitle>
+    <mat-card-title class="mat-h5">Response status</mat-card-title>
+    <mat-card-subtitle>Hits repartition by HTTP Status</mat-card-subtitle>
   </mat-card-header>
 
   @if (isLoading) {
-    <div class="card__loader">
-      <gio-loader />
+    <div class="loader">
+      <gio-loader></gio-loader>
     </div>
   } @else {
-    <div class="card__chart">
-      <gio-chart-line [data]="chartInput" [options]="chartOptions" />
-    </div>
+    <gio-chart-line [data]="chartInput" [options]="chartOptions"></gio-chart-line>
   }
 </mat-card>
