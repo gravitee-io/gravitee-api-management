@@ -26,8 +26,6 @@
       <gio-loader />
     </div>
   } @else {
-    <div class="card__chart">
-      <gio-chart-line [data]="input" [options]="options" />
-    </div>
+    <gio-chart-line [data]="input" [options]="options" />
   }
 </mat-card>

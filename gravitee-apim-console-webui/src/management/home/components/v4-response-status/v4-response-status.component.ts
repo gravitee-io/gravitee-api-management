@@ -1,0 +1,72 @@
+import { Component, DestroyRef, OnInit } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { GioLoaderModule } from "@gravitee/ui-particles-angular";
+import { MatCard, MatCardHeader, MatCardSubtitle, MatCardTitle } from "@angular/material/card";
+import { switchMap } from "rxjs/operators";
+import { EMPTY } from "rxjs";
+
+import {
+  GioChartLineData,
+  GioChartLineOptions
+} from "../../../../shared/components/gio-chart-line/gio-chart-line.component";
+import { AnalyticsService } from "../../../../services-ngx/analytics.service";
+import { HomeService } from "../../../../services-ngx/home.service";
+import { SnackBarService } from "../../../../services-ngx/snack-bar.service";
+import { GioChartLineModule } from "../../../../shared/components/gio-chart-line/gio-chart-line.module";
+import { TimeRangeParams } from "../../../../shared/utils/timeFrameRanges";
+
+
+@Component({
+  selector: 'v4-response-status',
+  standalone: true,
+  imports: [
+    GioChartLineModule,
+    GioLoaderModule,
+    MatCard,
+    MatCardHeader,
+    MatCardSubtitle,
+    MatCardTitle
+  ],
+  templateUrl: './v4-response-status.component.html',
+  styleUrl: './v4-response-status.component.scss'
+})
+export class V4ResponseStatusComponent implements OnInit {
+  public isLoading = true;
+  public chartInput: GioChartLineData[];
+  public chartOptions: GioChartLineOptions;
+
+  constructor(
+    private readonly analyticsService: AnalyticsService,
+    private readonly homeService: HomeService,
+    private readonly destroyRef: DestroyRef,
+    private readonly snackBarService: SnackBarService,
+  ) {}
+
+
+  ngOnInit() {
+    this.homeService
+      .timeRangeParams()
+      .pipe(
+        switchMap(({ from, to, interval }: TimeRangeParams) => {
+          this.isLoading = true;
+          return this.analyticsService.getV4ResponseStatus({
+            interval,
+            from,
+            to,
+          });
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (responseStatus): void => {
+          this.chartInput = this.analyticsService.createChartInput(responseStatus);
+          this.chartOptions = this.analyticsService.createChartOptions(responseStatus);
+          this.isLoading = false;
+        },
+        error: ({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        },
+      });
+  }
+}

@@ -123,4 +123,16 @@ export class AnalyticsService {
     const url = `${this.constants.env.v2BaseURL}/analytics/request-response-time?from=${from}&to=${to}`;
     return this.http.get<AnalyticsV4StatsResponse>(url);
   }
+
+  getV4AverageResponseTimes({ from, to, interval }: TimeRangeParams): Observable<AnalyticsAverageResponseTimes> {
+    // TODO IN APIM-8352: fix url and return types when backend ready
+    const url = `${this.constants.env.baseURL}/analytics?type=date_histo&aggs=avg:response-time%3Bavg:api-response-time&interval=${interval}&from=${from}&to=${to}`;
+    return this.http.get<AnalyticsAverageResponseTimes>(url);
+  }
+
+  getV4ResponseStatus({ from, to, interval }: TimeRangeParams): Observable<AnalyticsResponseStatus> {
+    // TODO IN APIM-8352: fix url and return types when backend ready
+    const url = `${this.constants.env.baseURL}/analytics?type=date_histo&aggs=field:status&interval=${interval}&from=${from}&to=${to}`;
+    return this.http.get<AnalyticsResponseStatus>(url);
+  }
 }
