@@ -1,0 +1,79 @@
+/*
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+:host {
+  display: flex;
+  flex-flow: column;
+}
+
+.app-card {
+  display: flex;
+  height: 100%;
+  flex-flow: column;
+  align-items: stretch;
+  justify-content: space-between;
+
+  .title {
+    display: -webkit-box;
+    overflow: hidden;
+    max-width: 200px;
+    max-height: 50px;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    text-overflow: ellipsis;
+    white-space: normal;
+    word-break: normal;
+  }
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+
+    &__content {
+      display: flex;
+      flex-flow: column;
+      gap: 4px;
+    }
+  }
+
+  &__header-picture {
+    border-radius: 50%;
+  }
+
+  &__content {
+    display: flex;
+    flex: 1 1 100%;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  &__description {
+    display: -webkit-box;
+    overflow: hidden;
+    max-height: 98px;
+    -webkit-box-orient: vertical;
+    color: var(--mdc-outlined-text-field-label-text-color);
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+  }
+
+  &__actions {
+    margin: 8px;
+  }
+}

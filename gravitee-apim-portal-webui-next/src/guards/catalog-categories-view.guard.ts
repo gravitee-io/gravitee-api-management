@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class ConfigurationPortalNext {
-  siteTitle?: string;
-  access?: {
-    enabled?: boolean;
-  };
-  banner?: {
-    enabled?: boolean;
-    title?: string;
-    subtitle?: string;
-    primaryButton?: BannerButton;
-    secondaryButton?: BannerButton;
-  };
-  catalog?: {
-    viewMode?: 'TABS' | 'CATEGORIES';
-  };
-}
+import { inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
 
-export interface BannerButton {
-  enabled?: boolean;
-  label?: string;
-  target?: string;
-  type?: string;
-  visibility?: string;
-}
+import { ConfigService } from '../services/config.service';
+
+export const catalogCategoriesViewGuard: CanActivateFn = (_r, _s) => {
+  const viewMode = inject(ConfigService).configuration?.portalNext?.catalog?.viewMode;
+  const router = inject(Router);
+
+  if (viewMode !== 'CATEGORIES') {
+    router.navigate(['']);
+    return false;
+  }
+
+  return true;
+};

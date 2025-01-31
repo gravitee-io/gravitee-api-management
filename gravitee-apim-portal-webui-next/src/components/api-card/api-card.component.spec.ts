@@ -17,12 +17,11 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 
 import { ApiCardComponent } from './api-card.component';
-import { ApiVM } from '../../app/catalog/catalog.component';
 
 describe('CardComponent', () => {
   let component: ApiCardComponent;
   let fixture: ComponentFixture<ApiCardComponent>;
-  const api: ApiVM = {
+  const api = {
     title: 'Test title',
     version: 'v.1',
     content:
