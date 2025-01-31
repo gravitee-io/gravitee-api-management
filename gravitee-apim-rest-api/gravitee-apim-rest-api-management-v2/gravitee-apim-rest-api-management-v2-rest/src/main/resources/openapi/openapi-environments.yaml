@@ -107,6 +107,22 @@ paths:
             $ref: "#/components/responses/EnvironmentAnalyticsRequestResponseTimeResponse"
           default:
             $ref: "#/components/responses/Error"
+    /analytics/response-time-over-time:
+      parameters:
+        - $ref: "#/components/parameters/from"
+        - $ref: "#/components/parameters/to"
+      get:
+        tags:
+          - Environment Analytics
+        summary: Get Environment Analytics average response time over time
+        description: |-
+          Get Environment Analytics average response time over time
+          
+          User must have the API_ANALYTICS[READ] permission.
+        operationId: getEnvironmentResponseTimeOverTime
+        responses:
+          "200":
+            $ref: "#/components/responses/EnvironmentAnalyticsOverPeriodResponse"
 
     # Shared policy group
     /shared-policy-groups:
@@ -440,8 +456,27 @@ components:
               format: int64
               description: The API Hit count
               example: 675234
+        AnalyticTimeRange:
+          type: object
+          description: A Time range
+          properties:
+            from:
+              type: integer
+              format: int64
+              description: The timestamp starting the time range
+              example: 1621339200000
+            to:
+              type: integer
+              format: int64
+              description: The timestamp ending the time range
+              example: 1621425600000
+            interval:
+              type: integer
+              format: int64
+              description: The interval in milliseconds splitting the data
+              example: 120000
 
-        # Shared policy group
+      # Shared policy group
         CreateSharedPolicyGroup:
             type: object
             description: Create payload for a shared policy group
@@ -1085,7 +1120,24 @@ components:
                     format: double
                     description: Response average time in ms
                     example: 89.2
-
+        EnvironmentAnalyticsOverPeriodResponse:
+          description: Analytics for number over period
+          content:
+            application/json:
+              schema:
+                title: "EnvironmentAnalyticsOverPeriodResponse"
+                description: Environment Analytics integer data point on a period.
+                properties:
+                  timeRange:
+                    $ref: "#/components/schemas/AnalyticTimeRange"
+                  data:
+                    type: array
+                    description: Response time average (in milliseconds) over time
+                    items:
+                      type: integer
+                      format: int64
+                      minimum: 0
+                      exclusiveMinimum: true
 
       # Scoring
         EnvironmentApisScoringResponse:

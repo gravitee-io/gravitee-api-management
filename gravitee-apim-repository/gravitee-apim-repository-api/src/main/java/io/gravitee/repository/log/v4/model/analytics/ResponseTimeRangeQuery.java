@@ -17,5 +17,6 @@ package io.gravitee.repository.log.v4.model.analytics;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 
-public record ResponseTimeRangeQuery(String apiId, Instant from, Instant to, Duration interval) {}
+public record ResponseTimeRangeQuery(List<String> apiIds, Instant from, Instant to, Duration interval) {}

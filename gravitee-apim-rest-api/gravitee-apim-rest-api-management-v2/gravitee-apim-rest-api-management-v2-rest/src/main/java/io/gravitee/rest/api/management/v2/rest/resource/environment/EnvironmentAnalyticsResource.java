@@ -18,12 +18,19 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentRequestResponseTimeUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentResponseStatusRangesUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentResponseTimeOverTimeUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentTopHitsApisCountUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.EnvironmentAnalyticsMapper;
+import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
+import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsOverPeriodResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsRequestResponseTimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusRangesResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopHitsApisResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.param.TimeRangeParam;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -31,8 +38,10 @@ import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
-import java.util.List;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 
 public class EnvironmentAnalyticsResource {
@@ -45,6 +54,9 @@ public class EnvironmentAnalyticsResource {
 
     @Inject
     SearchEnvironmentRequestResponseTimeUseCase searchEnvironmentRequestResponseTimeUseCase;
+
+    @Inject
+    SearchEnvironmentResponseTimeOvertTimeUseCase searchEnvironmentResponseTimeOvertTimeUseCase;
 
     @Path("/response-status-ranges")
     @GET
@@ -88,5 +100,29 @@ public class EnvironmentAnalyticsResource {
             .requestResponseTime()
             .map(EnvironmentAnalyticsMapper.INSTANCE::map)
             .orElse(EnvironmentAnalyticsRequestResponseTimeResponse.builder().build());
+    }
+
+    @Path("/response-time-over-time")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    public EnvironmentAnalyticsOverPeriodResponse getResponseTimeOverTime(@QueryParam("from") Long from, @QueryParam("to") Long to) {
+        Instant end = to != null ? Instant.ofEpochMilli(to) : Instant.now();
+        Instant start = from != null ? Instant.ofEpochMilli(from) : end.minus(Duration.ofDays(1));
+        var request = new SearchEnvironmentResponseTimeOverTimeUseCase.Input(GraviteeContext.getCurrentEnvironment(), start, end);
+
+        return searchEnvironmentResponseTimeOverTimeUseCase
+            .execute(GraviteeContext.getExecutionContext(), request)
+            .map(out ->
+                new EnvironmentAnalyticsOverPeriodResponse()
+                    .timeRange(
+                        new AnalyticTimeRange()
+                            .from(out.from().toEpochMilli())
+                            .to(out.to().toEpochMilli())
+                            .interval(out.interval().toMillis())
+                    )
+                    .data(out.data())
+            )
+            .blockingGet();
     }
 }
