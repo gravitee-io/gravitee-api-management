@@ -99,8 +99,9 @@ table {
     color: var(--gio-marked-alert-icon-caution-color, inherit);
   }
 }
+
 table td {
-  overflow-wrap: break-word !important; /* Ensure text will break in the middle of words if needed */
-  word-break: break-all !important; /* Break text at any character, including between letters */
+  overflow-wrap: break-word !important;
   white-space: normal !important;
+  word-break: break-all !important;
 }
