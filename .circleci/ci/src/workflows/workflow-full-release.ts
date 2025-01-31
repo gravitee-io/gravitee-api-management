@@ -25,6 +25,7 @@ import {
   SetupJob,
   SlackAnnouncementJob,
   WebuiPublishArtifactoryJob,
+  TriggerSaasDockerImagesJob,
 } from '../jobs';
 import { CircleCIEnvironment } from '../pipelines';
 import { config } from '../config';
@@ -73,6 +74,9 @@ export class FullReleaseWorkflow {
 
     const nexusStagingJob = NexusStagingJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(nexusStagingJob);
+
+    const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
 
     return new Workflow(FullReleaseWorkflow.workflowName, [
       // PREPARE
@@ -160,6 +164,13 @@ export class FullReleaseWorkflow {
           `Build and push RPM packages for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
           `Build and push docker images for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
         ],
+      }),
+
+      // Trigger SaaS Docker images creation
+      new workflow.WorkflowJob(runTriggerSaasDockerImagesJob, {
+        context: [...config.jobContext, 'keeper-orb-publishing'],
+        name: 'Trigger SaaS Docker images creation',
+        requires: ['Release Helm Chart'],
       }),
 
       // Create Release note pull request

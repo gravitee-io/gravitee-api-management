@@ -655,6 +655,14 @@ jobs:
           command: mvn clean deploy --activate-profiles gravitee-release --batch-mode -Dmaven.test.skip=true -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
       - cmd-save-maven-job-cache:
           jobName: job-nexus-staging
+  job-trigger-saas-docker-images:
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - run:
+          name: Trigger SaaS Docker images pipeline
+          command: "curl --request POST   --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline   --header \"Circle-Token: ${CIRCLE_TOKEN}\"   --header 'content-type: application/json'   --data '{\"parameters\":{\"project\":\"apim\", \"branch-version\":\"4.2.x\", \"release-version\":\"4.2.x\", \"dry-run\":false}}'"
 workflows:
   full_release:
     jobs:
@@ -739,6 +747,13 @@ workflows:
             - Nexus staging
             - Build and push RPM packages for APIM 4.2.0-alpha.1
             - Build and push docker images for APIM 4.2.0-alpha.1
+      - job-trigger-saas-docker-images:
+          context:
+            - cicd-orchestrator
+            - keeper-orb-publishing
+          name: Trigger SaaS Docker images creation
+          requires:
+            - Release Helm Chart
       - job-release-notes-apim:
           context:
             - cicd-orchestrator
