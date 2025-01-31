@@ -56,7 +56,13 @@ public class UserMongoRepositoryImpl implements UserMongoRepositoryCustom {
                 query.addCriteria(where("organizationId").is(criteria.getOrganizationId()));
             }
         }
-        query.with(Sort.by(Sort.Direction.ASC, "lastname", "firstname"));
+
+        /*
+            Sort has to be made on un-encrypted field to be consistent.
+            To order users by `name` (or another encrypted field), Lucene search engine has to be used
+            (See io.gravitee.rest.api.service.impl.UserServiceImpl.search(ExecutionContext, String, Pageable))
+        */
+        query.with(Sort.by(Sort.Direction.ASC, "_id"));
 
         long total = mongoTemplate.count(query, UserMongo.class);
 
