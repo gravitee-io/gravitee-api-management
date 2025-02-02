@@ -32,4 +32,18 @@
       top: 96px;
     }
   }
+<<<<<<< HEAD
+=======
+
+  &__page-content {
+    width: 100%;
+    max-width: calc(100% - 276px - 36px);
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+
+    &__container {
+      min-width: 0;
+    }
+  }
+>>>>>>> a3133b56b2 (fix: text overflow in documentation containers)
 }
