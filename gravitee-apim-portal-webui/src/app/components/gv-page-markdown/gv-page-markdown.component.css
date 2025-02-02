@@ -100,3 +100,9 @@ app-gv-markdown-toc {
   color: var(--gv-theme-font-color-light, #ffffff);
   padding-top: 6px;
 }
+
+:host ::ng-deep table td {
+  word-break: break-all;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
