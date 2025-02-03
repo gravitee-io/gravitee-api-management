@@ -167,6 +167,9 @@
       "secondaryButton": {
         "enabled": false
       }
+    },
+    "catalog": {
+      "viewMode": "TABS"
     }
   },
   "reCaptcha": {
