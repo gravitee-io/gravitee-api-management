@@ -4795,6 +4795,8 @@ components:
 
                 access:
                     $ref: "#/components/schemas/Enabled"
+                catalog:
+                    $ref: "#/components/schemas/ConfigurationPortalNextCatalog"
         ConfigurationPortalNextBanner:
             type: object
             description: Configuration of the banner for Portal Next
@@ -4834,6 +4836,14 @@ components:
               enum:
                 - PUBLIC
                 - PRIVATE
+        ConfigurationPortalNextCatalog:
+          type: object
+          description: Configuration of the catalog for Portal Next
+          properties:
+            viewMode:
+              description: View mode used by the Catalog. If the value is invalid, the TABS view will be shown by default.
+              type: string
+              example: TABS
         ConfigurationPortalApis:
             properties:
                 tilesMode:

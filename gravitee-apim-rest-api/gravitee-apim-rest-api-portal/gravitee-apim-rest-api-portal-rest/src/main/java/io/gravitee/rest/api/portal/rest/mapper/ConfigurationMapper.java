@@ -52,6 +52,7 @@ public class ConfigurationMapper {
         configuration.setSiteTitle(portalNext.getSiteTitle());
         configuration.setAccess(convert(portalNext.getAccess()));
         configuration.setBanner(convert(portalNext.getBanner()));
+        configuration.setCatalog(convert(portalNext.getCatalog()));
         return configuration;
     }
 
@@ -105,6 +106,14 @@ public class ConfigurationMapper {
         } catch (IllegalArgumentException e) {
             return null;
         }
+    }
+
+    private ConfigurationPortalNextCatalog convert(PortalNext.Catalog catalog) {
+        ConfigurationPortalNextCatalog configuration = new ConfigurationPortalNextCatalog();
+        if (!Objects.isNull(catalog)) {
+            configuration.setViewMode(catalog.getViewMode());
+        }
+        return configuration;
     }
 
     private ConfigurationAnalytics convert(Analytics analytics) {

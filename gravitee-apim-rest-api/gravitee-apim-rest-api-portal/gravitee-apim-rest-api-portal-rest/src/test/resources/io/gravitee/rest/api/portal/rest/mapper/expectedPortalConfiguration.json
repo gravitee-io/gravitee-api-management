@@ -63,6 +63,9 @@
       "secondaryButton": {
         "enabled": false
       }
+    },
+    "catalog": {
+      "viewMode": "TABS"
     }
   },
   "authentication" : {
