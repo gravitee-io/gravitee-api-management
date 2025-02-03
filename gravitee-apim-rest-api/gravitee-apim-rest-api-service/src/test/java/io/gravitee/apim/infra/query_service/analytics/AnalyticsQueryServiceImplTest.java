@@ -211,7 +211,12 @@ class AnalyticsQueryServiceImplTest {
 
             var result = cut.searchResponseStatusOvertime(
                 GraviteeContext.getExecutionContext(),
-                new AnalyticsQueryService.ResponseStatusOverTimeQuery(API_ID, TIME_RANGE.from(), TIME_RANGE.to(), TIME_RANGE.interval())
+                new AnalyticsQueryService.ResponseStatusOverTimeQuery(
+                    List.of(API_ID),
+                    TIME_RANGE.from(),
+                    TIME_RANGE.to(),
+                    TIME_RANGE.interval()
+                )
             );
 
             verify(analyticsRepository).searchResponseStatusOvertime(queryContextCaptor.capture(), queryCaptor.capture());
@@ -219,7 +224,7 @@ class AnalyticsQueryServiceImplTest {
                 softly.assertThat(result.getData()).isSameAs(expectedMap);
                 softly.assertThat(result.getTimeRange()).isEqualTo(TIME_RANGE);
                 softly.assertThat(queryContextCaptor.getValue()).isEqualTo(new QueryContext(ORGANIZATION_ID, ENVIRONMENT_ID));
-                softly.assertThat(queryCaptor.getValue().apiId()).isEqualTo(API_ID);
+                softly.assertThat(queryCaptor.getValue().apiIds()).isEqualTo(List.of(API_ID));
                 softly.assertThat(queryCaptor.getValue().from()).isEqualTo(TIME_RANGE.from());
                 softly.assertThat(queryCaptor.getValue().to()).isEqualTo(TIME_RANGE.to());
                 softly.assertThat(queryCaptor.getValue().interval()).isEqualTo(TIME_RANGE.interval());

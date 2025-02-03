@@ -26,6 +26,7 @@ import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ResponseTimeRangeQueryAdapter {
@@ -74,7 +75,7 @@ public class ResponseTimeRangeQueryAdapter {
     }
 
     private ObjectNode query(ResponseTimeRangeQuery query) {
-        JsonNode termFilter = json().set("term", json().put("api-id", query.apiId()));
+        JsonNode termFilter = json().set("terms", json().set("api-id", toArray(query.apiIds())));
 
         // we just ensure to fetch full bucket interval (a bit too)
         var from = query.from().minus(query.interval());
@@ -116,5 +117,11 @@ public class ResponseTimeRangeQueryAdapter {
 
     private ArrayNode array() {
         return MAPPER.createArrayNode();
+    }
+
+    private ArrayNode toArray(List<String> list) {
+        var arrayNode = array();
+        list.forEach(arrayNode::add);
+        return arrayNode;
     }
 }

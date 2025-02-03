@@ -23,6 +23,7 @@ import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -42,7 +43,7 @@ class SearchResponseStatusOverTimeAdapterTest {
         @Test
         void adapt_query_for_ElasticSearch() {
             // Given
-            ResponseStatusOverTimeQuery query = new ResponseStatusOverTimeQuery(API_ID, FROM, TO, INTERVAL);
+            ResponseStatusOverTimeQuery query = new ResponseStatusOverTimeQuery(List.of(API_ID), FROM, TO, INTERVAL);
             ElasticsearchInfo esInfo = anElasticsearchInfo();
 
             // When
@@ -67,7 +68,7 @@ class SearchResponseStatusOverTimeAdapterTest {
                                    "query": {
                                      "bool": {
                                        "filter": [
-                                         { "term": { "api-id": "my-api-id" } },
+                                         { "terms": { "api-id": ["my-api-id"] } },
                                          {
                                            "range": {
                                              "@timestamp": {
@@ -89,7 +90,7 @@ class SearchResponseStatusOverTimeAdapterTest {
         @Test
         void adapt_query_for_OpenSearch() {
             // Given
-            ResponseStatusOverTimeQuery query = new ResponseStatusOverTimeQuery(API_ID, FROM, TO, INTERVAL);
+            ResponseStatusOverTimeQuery query = new ResponseStatusOverTimeQuery(List.of(API_ID), FROM, TO, INTERVAL);
             ElasticsearchInfo esInfo = anOpenSearchInfo();
 
             // When
@@ -114,7 +115,7 @@ class SearchResponseStatusOverTimeAdapterTest {
                                    "query": {
                                      "bool": {
                                        "filter": [
-                                         { "term": { "api-id": "my-api-id" } },
+                                         { "terms": { "api-id": ["my-api-id"] } },
                                          {
                                            "range": {
                                              "@timestamp": {

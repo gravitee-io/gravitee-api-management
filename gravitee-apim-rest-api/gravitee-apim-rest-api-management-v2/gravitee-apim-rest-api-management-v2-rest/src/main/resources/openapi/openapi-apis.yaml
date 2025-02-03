@@ -2708,66 +2708,6 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    # Environment Analytics
-    /environments/{envId}/analytics/response-status-ranges:
-        parameters:
-            - $ref: "#/components/parameters/envIdParam"
-        get:
-            parameters:
-                - $ref: "#/components/parameters/from"
-                - $ref: "#/components/parameters/to"
-            tags:
-                - Environment Analytics
-            summary: Get response status counts for all v4 APIs from specified environment
-            description: |-
-                Get v4 API analytics response status counts. Response statuses are grouped by endpoint and status code hundreds.
-
-            operationId: getDashboardResponseStatusCodes
-            responses:
-                "200":
-                    $ref: "#/components/responses/EnvironmentAnalyticsResponseStatusRangesResponse"
-                default:
-                    $ref: "#/components/responses/Error"
-    /environments/{envId}/analytics/top-hits:
-        parameters:
-            - $ref: "#/components/parameters/envIdParam"
-        get:
-            parameters:
-                - $ref: "#/components/parameters/from"
-                - $ref: "#/components/parameters/to"
-            tags:
-                - Environment Analytics
-            summary: Get all v4 APIs with hits count per API sorted by mostly requested
-            description: |-
-                Get v4 API analytics top hits counts. All APIs are sorted starting from the most requested ones.
-
-            operationId: getDashboardTopHits
-            responses:
-                "200":
-                    $ref: "#/components/responses/EnvironmentAnalyticsTopHitsApisResponse"
-                default:
-                    $ref: "#/components/responses/Error"
-    /environments/{envId}/analytics/request-response-time:
-        parameters:
-            - $ref: "#/components/parameters/envIdParam"
-        get:
-            parameters:
-                - $ref: "#/components/parameters/from"
-                - $ref: "#/components/parameters/to"
-            tags:
-                - Environment Analytics
-            summary: V4 APIs request and response times analytics
-            description: |-
-                Get analytics for v4 APIs regarding number of requests, requests per second and response max, min and average times for 
-                specified time range. Analytics contains data only for HTTP GET, HTTP POST and HTTP PROXY entrypoints.
-
-            operationId: getDashboardRequestResponseTime
-            responses:
-                "200":
-                    $ref: "#/components/responses/EnvironmentAnalyticsRequestResponseTimeResponse"
-                default:
-                    $ref: "#/components/responses/Error"
-
 components:
     schemas:
         Analytics:
@@ -6262,24 +6202,6 @@ components:
                     description: Override the entrypoint or not
                     default: false
 
-        # Analytics - Environment
-        TopHitApi:
-            type: object
-            properties:
-                id:
-                    type: string
-                    description: The API ID
-                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-                name:
-                    type: string
-                    description: The API Name
-                    example: Sample API Name
-                count:
-                    type: integer
-                    format: int64
-                    description: The API Hit count
-                    example: 675234
-
         # Analytics - Logs
         ApiLog:
             type: object
@@ -8225,77 +8147,6 @@ components:
                                     items:
                                         type: integer
                                         format: int64
-        EnvironmentAnalyticsResponseStatusRangesResponse:
-            description: Analytics for status codes by entrypoint at environment level
-            content:
-                application/json:
-                    schema:
-                        title: "EnvironmentAnalyticsResponseStatusRangesResponse"
-                        description: Environment level API Analytics for status codes by entrypoint.
-                        properties:
-                            ranges:
-                                type: object
-                                description: Global status ranges
-                                additionalProperties:
-                                    description: A map of response status range and counts
-                                    type: number
-                                example:
-                                    100.0-200.0:
-                                        value: 5
-                                    200.0-300.0:
-                                        value: 357
-                                    300.0-400.0:
-                                        value: 0
-                                    400.0-500.0:
-                                        value: 0
-                                    500.0-600.0:
-                                        value: 0
-        EnvironmentAnalyticsTopHitsApisResponse:
-            description: Analytics for top hits APIs at environment level
-            content:
-                application/json:
-                    schema:
-                        title: "EnvironmentAnalyticsTopHitsApisResponse"
-                        description: Analytics for top hits APIs at environment level
-                        properties:
-                            data:
-                                type: array
-                                description: List of top hit results
-                                items:
-                                    $ref: "#/components/schemas/TopHitApi"
-        EnvironmentAnalyticsRequestResponseTimeResponse:
-            description: Analytics for request response times at environment level
-            content:
-                application/json:
-                    schema:
-                        title: "EnvironmentAnalyticsRequestResponseTimeResponse"
-                        description: Analytics for top hits APIs at environment level
-                        properties:
-                            requestsPerSecond:
-                                type: number
-                                format: double
-                                description: Number of requests per second
-                                example: 0.7
-                            requestsTotal:
-                                type: number
-                                format: int64
-                                description: Total number of requests
-                                example: 3567
-                            responseMinTime:
-                                type: number
-                                format: double
-                                description: Response minimum time in ms
-                                example: 32.23
-                            responseMaxTime:
-                                type: number
-                                format: double
-                                description: Response maximum time in ms
-                                example: 7240.11
-                            responseAvgTime:
-                                type: number
-                                format: double
-                                description: Response average time in ms
-                                example: 89.2
 
         # Analytics - Logs
         ApiLogsResponse:

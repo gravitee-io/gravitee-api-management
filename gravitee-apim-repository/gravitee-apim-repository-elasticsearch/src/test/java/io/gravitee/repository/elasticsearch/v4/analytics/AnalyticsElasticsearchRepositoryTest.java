@@ -226,7 +226,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             AverageAggregate result = cut
                 .searchResponseTimeOverTime(
                     new QueryContext("org#1", "env#1"),
-                    new ResponseTimeRangeQuery("f1608475-dd77-4603-a084-75dd775603e9", from, to, interval)
+                    new ResponseTimeRangeQuery(List.of("f1608475-dd77-4603-a084-75dd775603e9"), from, to, interval)
                 )
                 .blockingGet();
 
@@ -263,7 +263,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             var result = cut.searchResponseStatusOvertime(
                 new QueryContext("org#1", "env#1"),
-                ResponseStatusOverTimeQuery.builder().apiId(API_ID).from(from).to(to).interval(interval).build()
+                ResponseStatusOverTimeQuery.builder().apiIds(List.of(API_ID)).from(from).to(to).interval(interval).build()
             );
 
             var nbBuckets = Duration.between(from, to).dividedBy(interval) + 1;

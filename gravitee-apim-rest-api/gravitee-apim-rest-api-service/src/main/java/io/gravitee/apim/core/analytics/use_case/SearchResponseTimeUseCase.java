@@ -45,7 +45,9 @@ public class SearchResponseTimeUseCase {
         Duration interval = DurationUtils.buildIntervalFromTimePeriod(from, to);
 
         return validateApiRequirements(input)
-            .flatMapMaybe(api -> analyticsQueryService.searchAvgResponseTimeOverTime(executionContext, api.getId(), from, to, interval))
+            .flatMapMaybe(api ->
+                analyticsQueryService.searchAvgResponseTimeOverTime(executionContext, List.of(api.getId()), from, to, interval)
+            )
             .map(statsData -> new Output(from, to, interval, statsData.values().stream().map(Math::round).toList()))
             .defaultIfEmpty(new Output(from, to, interval, List.of()));
     }

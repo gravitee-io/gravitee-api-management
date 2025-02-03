@@ -54,7 +54,95 @@ tags:
       description: Everything about shared policy groups
 
 paths:
-    # Shared policy group
+    # Environment Analytics
+    /analytics/response-status-ranges:
+      get:
+        parameters:
+          - $ref: "#/components/parameters/from"
+          - $ref: "#/components/parameters/to"
+        tags:
+          - Environment Analytics
+        summary: Get response status counts for all v4 APIs from specified environment
+        description: |-
+          Get v4 API analytics response status counts. Response statuses are grouped by endpoint and status code hundreds.
+
+        operationId: getDashboardResponseStatusCodes
+        responses:
+          "200":
+            $ref: "#/components/responses/EnvironmentAnalyticsResponseStatusRangesResponse"
+          default:
+            $ref: "#/components/responses/Error"
+    /analytics/top-hits:
+      get:
+        parameters:
+          - $ref: "#/components/parameters/from"
+          - $ref: "#/components/parameters/to"
+        tags:
+          - Environment Analytics
+        summary: Get all v4 APIs with hits count per API sorted by mostly requested
+        description: |-
+          Get v4 API analytics top hits counts. All APIs are sorted starting from the most requested ones.
+
+        operationId: getDashboardTopHits
+        responses:
+          "200":
+            $ref: "#/components/responses/EnvironmentAnalyticsTopHitsApisResponse"
+          default:
+            $ref: "#/components/responses/Error"
+    /analytics/request-response-time:
+      get:
+        parameters:
+          - $ref: "#/components/parameters/from"
+          - $ref: "#/components/parameters/to"
+        tags:
+          - Environment Analytics
+        summary: V4 APIs request and response times analytics
+        description: |-
+          Get analytics for v4 APIs regarding number of requests, requests per second and response max, min and average times for 
+          specified time range. Analytics contains data only for HTTP GET, HTTP POST and HTTP PROXY entrypoints.
+
+        operationId: getDashboardRequestResponseTime
+        responses:
+          "200":
+            $ref: "#/components/responses/EnvironmentAnalyticsRequestResponseTimeResponse"
+          default:
+            $ref: "#/components/responses/Error"
+    /analytics/response-time-over-time:
+      parameters:
+        - $ref: "#/components/parameters/from"
+        - $ref: "#/components/parameters/to"
+      get:
+        tags:
+          - Environment Analytics
+        summary: Get Environment Analytics average response time over time
+        description: |-
+          Get Environment Analytics average response time over time
+          
+          User must have the API_ANALYTICS[READ] permission.
+        operationId: getEnvironmentResponseTimeOverTime
+        responses:
+          "200":
+            $ref: "#/components/responses/EnvironmentAnalyticsOverPeriodResponse"
+    /analytics/response-status-overtime:
+      parameters:
+        - $ref: "#/components/parameters/from"
+        - $ref: "#/components/parameters/to"
+      get:
+        tags:
+          - API Analytics
+        summary: Get Environment Analytics response status counts over time
+        description: |-
+          Get Environment analytics response status counts over time.
+          
+          User must have the API_ANALYTICS[READ] permission.
+        operationId: getEnvironmentResponseStatusOvertime
+        responses:
+          "200":
+            $ref: "#/components/responses/EnvironmentAnalyticsResponseStatusOvertimeResponse"
+          default:
+            $ref: "#/components/responses/Error"
+
+  # Shared policy group
     /shared-policy-groups:
         post:
             tags:
@@ -369,7 +457,44 @@ paths:
 
 components:
     schemas:
-        # Shared policy group
+        # Analytics
+        TopHitApi:
+          type: object
+          properties:
+            id:
+              type: string
+              description: The API ID
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+            name:
+              type: string
+              description: The API Name
+              example: Sample API Name
+            count:
+              type: integer
+              format: int64
+              description: The API Hit count
+              example: 675234
+        AnalyticTimeRange:
+          type: object
+          description: A Time range
+          properties:
+            from:
+              type: integer
+              format: int64
+              description: The timestamp starting the time range
+              example: 1621339200000
+            to:
+              type: integer
+              format: int64
+              description: The timestamp ending the time range
+              example: 1621425600000
+            interval:
+              type: integer
+              format: int64
+              description: The interval in milliseconds splitting the data
+              example: 120000
+
+      # Shared policy group
         CreateSharedPolicyGroup:
             type: object
             description: Create payload for a shared policy group
@@ -804,6 +929,24 @@ components:
             schema:
                 type: integer
                 default: 10
+        from:
+          name: from
+          in: query
+          required: false
+          description: |
+            The timestamp in ms from which the logs will be returned.
+          schema:
+            type: integer
+            format: int64
+        to:
+          name: to
+          in: query
+          required: false
+          description: |
+            The timestamp in ms to which the logs will be returned.
+          schema:
+            type: integer
+            format: int64
 
         sharedPolicyGroupId:
             name: sharedPolicyGroupId
@@ -876,6 +1019,7 @@ components:
           required: true
           schema:
             $ref: "#/components/schemas/ScoringFunctionName"
+
     responses:
         SchemaFormResponse:
             description: Schema form of a plugin
@@ -922,7 +1066,117 @@ components:
                     schema:
                         $ref: "#/components/schemas/Error"
 
-        # Scoring
+        # Analytics
+        EnvironmentAnalyticsResponseStatusRangesResponse:
+          description: Analytics for status codes by entrypoint at environment level
+          content:
+            application/json:
+              schema:
+                title: "EnvironmentAnalyticsResponseStatusRangesResponse"
+                description: Environment level API Analytics for status codes by entrypoint.
+                properties:
+                  ranges:
+                    type: object
+                    description: Global status ranges
+                    additionalProperties:
+                      description: A map of response status range and counts
+                      type: number
+                    example:
+                      100.0-200.0:
+                        value: 5
+                      200.0-300.0:
+                        value: 357
+                      300.0-400.0:
+                        value: 0
+                      400.0-500.0:
+                        value: 0
+                      500.0-600.0:
+                        value: 0
+        EnvironmentAnalyticsTopHitsApisResponse:
+          description: Analytics for top hits APIs at environment level
+          content:
+            application/json:
+              schema:
+                title: "EnvironmentAnalyticsTopHitsApisResponse"
+                description: Analytics for top hits APIs at environment level
+                properties:
+                  data:
+                    type: array
+                    description: List of top hit results
+                    items:
+                      $ref: "#/components/schemas/TopHitApi"
+        EnvironmentAnalyticsRequestResponseTimeResponse:
+          description: Analytics for request response times at environment level
+          content:
+            application/json:
+              schema:
+                title: "EnvironmentAnalyticsRequestResponseTimeResponse"
+                description: Analytics for top hits APIs at environment level
+                properties:
+                  requestsPerSecond:
+                    type: number
+                    format: double
+                    description: Number of requests per second
+                    example: 0.7
+                  requestsTotal:
+                    type: number
+                    format: int64
+                    description: Total number of requests
+                    example: 3567
+                  responseMinTime:
+                    type: number
+                    format: double
+                    description: Response minimum time in ms
+                    example: 32.23
+                  responseMaxTime:
+                    type: number
+                    format: double
+                    description: Response maximum time in ms
+                    example: 7240.11
+                  responseAvgTime:
+                    type: number
+                    format: double
+                    description: Response average time in ms
+                    example: 89.2
+        EnvironmentAnalyticsOverPeriodResponse:
+          description: Analytics for number over period
+          content:
+            application/json:
+              schema:
+                title: "EnvironmentAnalyticsOverPeriodResponse"
+                description: Environment Analytics integer data point on a period.
+                properties:
+                  timeRange:
+                    $ref: "#/components/schemas/AnalyticTimeRange"
+                  data:
+                    type: array
+                    description: Response time average (in milliseconds) over time
+                    items:
+                      type: integer
+                      format: int64
+                      minimum: 0
+                      exclusiveMinimum: true
+        EnvironmentAnalyticsResponseStatusOvertimeResponse:
+          description: Analytics for status codes over time
+          content:
+            application/json:
+              schema:
+                title: "EnvironmentAnalyticsResponseStatusOvertimeResponse"
+                description: Environment Analytics for status codes over time.
+                properties:
+                  timeRange:
+                    $ref: "#/components/schemas/AnalyticTimeRange"
+                  data:
+                    type: object
+                    description: Status count overt time
+                    additionalProperties:
+                      description: A map of response status and counts
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+
+      # Scoring
         EnvironmentApisScoringResponse:
             description: Page of Apis Scoring
             content:

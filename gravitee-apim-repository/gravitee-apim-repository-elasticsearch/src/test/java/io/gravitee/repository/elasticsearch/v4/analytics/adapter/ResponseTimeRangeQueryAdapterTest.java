@@ -31,9 +31,11 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import lombok.SneakyThrows;
 import org.junit.Test;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.node.ArrayNode;
 
 public class ResponseTimeRangeQueryAdapterTest {
 
@@ -47,7 +49,7 @@ public class ResponseTimeRangeQueryAdapterTest {
         var end = Instant.now();
         var start = end.minus(Duration.ofDays(1));
         Duration interval = Duration.ofMinutes(30);
-        ResponseTimeRangeQuery query = new ResponseTimeRangeQuery("MyAPI", start, end, interval);
+        ResponseTimeRangeQuery query = new ResponseTimeRangeQuery(List.of("MyAPI"), start, end, interval);
         ElasticsearchInfo info = new ElasticsearchInfo();
         info.setVersion(mock(Version.class));
         when(info.getVersion().canUseDateHistogramFixedInterval()).thenReturn(true);
@@ -58,7 +60,10 @@ public class ResponseTimeRangeQueryAdapterTest {
         // Then
         JsonNode jsonQuery = MAPPER.readTree(result);
         // query part
-        assertThat(jsonQuery.at("/query/bool/filter/0/term/api-id").asText()).isEqualTo("MyAPI");
+        assertThat(jsonQuery.at("/query/bool/filter/0/terms/api-id").elements())
+            .toIterable()
+            .extracting(JsonNode::asText)
+            .contains("MyAPI");
         assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/from").asLong()))
             .isBeforeOrEqualTo(start)
             .isCloseTo(start, within(interval.toMillis(), ChronoUnit.MILLIS));
@@ -83,7 +88,7 @@ public class ResponseTimeRangeQueryAdapterTest {
         var end = Instant.now();
         var start = end.minus(Duration.ofDays(1));
         Duration interval = Duration.ofMinutes(30);
-        ResponseTimeRangeQuery query = new ResponseTimeRangeQuery("MyAPI", start, end, interval);
+        ResponseTimeRangeQuery query = new ResponseTimeRangeQuery(List.of("MyAPI"), start, end, interval);
         ElasticsearchInfo info = new ElasticsearchInfo();
         info.setVersion(mock(Version.class));
         when(info.getVersion().canUseDateHistogramFixedInterval()).thenReturn(false);
@@ -94,7 +99,11 @@ public class ResponseTimeRangeQueryAdapterTest {
         // Then
         JsonNode jsonQuery = MAPPER.readTree(result);
         // query part
-        assertThat(jsonQuery.at("/query/bool/filter/0/term/api-id").asText()).isEqualTo("MyAPI");
+
+        assertThat(jsonQuery.at("/query/bool/filter/0/terms/api-id").elements())
+            .toIterable()
+            .extracting(JsonNode::asText)
+            .contains("MyAPI");
         assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/from").asLong()))
             .isBeforeOrEqualTo(start)
             .isCloseTo(start, within(interval.toMillis(), ChronoUnit.MILLIS));

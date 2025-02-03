@@ -25,9 +25,10 @@ import static org.mockito.Mockito.verify;
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiQueryServiceInMemory;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
-import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusOverTimeUseCase.Input;
+import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentResponseStatusOverTimeUseCase.Input;
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.exception.TcpProxyNotSupportedException;
@@ -47,14 +48,14 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-class SearchResponseStatusOverTimeUseCaseTest {
+class SearchEnvironmentResponseStatusOverTimeUseCaseTest {
 
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
     private static final String ENV_ID = "environment-id";
 
     private final FakeAnalyticsQueryService analyticsQueryService = Mockito.spy(new FakeAnalyticsQueryService());
-    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
-    private SearchResponseStatusOverTimeUseCase useCase;
+    private final ApiQueryServiceInMemory apiQueryServiceInMemory = new ApiQueryServiceInMemory();
+    private SearchEnvironmentResponseStatusOverTimeUseCase useCase;
 
     @BeforeAll
     static void beforeAll() {
@@ -68,26 +69,26 @@ class SearchResponseStatusOverTimeUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new SearchResponseStatusOverTimeUseCase(analyticsQueryService, apiCrudService);
+        useCase = new SearchEnvironmentResponseStatusOverTimeUseCase(analyticsQueryService, apiQueryServiceInMemory);
     }
 
     @AfterEach
     void tearDown() {
-        apiCrudService.reset();
+        apiQueryServiceInMemory.reset();
         analyticsQueryService.reset();
     }
 
     @Test
     void should_return_latest_24_hours_data() {
         // Given
-        apiCrudService.initWith(List.of(ApiFixtures.aMessageApiV4()));
+        apiQueryServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().setId(MY_API)));
         var expectedData = new ResponseStatusOvertime();
         analyticsQueryService.responseStatusOvertime = expectedData;
 
         // When
         var output = useCase.execute(
             GraviteeContext.getExecutionContext(),
-            new Input(MY_API, ENV_ID, TimeProvider.instantNow().minus(Duration.ofDays(1)), TimeProvider.instantNow())
+            new Input(ENV_ID, TimeProvider.instantNow().minus(Duration.ofDays(1)), TimeProvider.instantNow())
         );
 
         // Then
@@ -104,72 +105,5 @@ class SearchResponseStatusOverTimeUseCaseTest {
                     softly.assertThat(query.interval()).isEqualTo(Duration.ofMinutes(10));
                 });
             });
-    }
-
-    @Test
-    void should_throw_if_no_api_found() {
-        // Given
-
-        // When
-        var throwable = catchThrowable(() ->
-            useCase.execute(
-                GraviteeContext.getExecutionContext(),
-                new Input(MY_API, ENV_ID, Instant.now().minus(Duration.ofDays(1)), Instant.now())
-            )
-        );
-
-        // Then
-        assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
-    }
-
-    @Test
-    void should_throw_if_no_api_does_not_belong_to_current_environment() {
-        // Given
-        apiCrudService.initWith(List.of(ApiFixtures.aMessageApiV4()));
-
-        // When
-        var throwable = catchThrowable(() ->
-            useCase.execute(
-                GraviteeContext.getExecutionContext(),
-                new Input(MY_API, "another", Instant.now().minus(Duration.ofDays(1)), Instant.now())
-            )
-        );
-
-        // Then
-        assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
-    }
-
-    @Test
-    void should_throw_if_api_definition_not_v4() {
-        // Given
-        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2()));
-
-        // When
-        var throwable = catchThrowable(() ->
-            useCase.execute(
-                GraviteeContext.getExecutionContext(),
-                new Input(MY_API, ENV_ID, Instant.now().minus(Duration.ofDays(1)), Instant.now())
-            )
-        );
-
-        // Then
-        assertThat(throwable).isInstanceOf(ApiInvalidDefinitionVersionException.class);
-    }
-
-    @Test
-    void should_throw_if_api_is_tcp() {
-        // Given
-        apiCrudService.initWith(List.of(ApiFixtures.aTcpApiV4()));
-
-        // When
-        var throwable = catchThrowable(() ->
-            useCase.execute(
-                GraviteeContext.getExecutionContext(),
-                new Input(MY_API, ENV_ID, Instant.now().minus(Duration.ofDays(1)), Instant.now())
-            )
-        );
-
-        // Then
-        assertThat(throwable).isInstanceOf(TcpProxyNotSupportedException.class);
     }
 }
