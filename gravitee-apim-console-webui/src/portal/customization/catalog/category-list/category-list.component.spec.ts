@@ -20,7 +20,7 @@ import { MatIconHarness, MatIconTestingModule } from '@angular/material/icon/tes
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { CategoryListComponent } from './category-list.component';
@@ -33,6 +33,7 @@ import { GioTestingPermissionProvider } from '../../../../shared/components/gio-
 import { EnvironmentSettingsService } from '../../../../services-ngx/environment-settings.service';
 import { CategoriesModule } from '../../../../management/settings/categories/categories.module';
 import { UpdateCategory } from '../../../../entities/category/UpdateCategory';
+import { PortalSettings } from '../../../../entities/portal/portalSettings';
 
 describe('CategoryListComponent', () => {
   let fixture: ComponentFixture<CategoryListComponent>;
@@ -40,7 +41,7 @@ describe('CategoryListComponent', () => {
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
   let componentHarness: CategoryListHarness;
-  const DEFAULT_PORTAL_SETTINGS = {
+  const DEFAULT_ENV_SETTINGS = {
     portal: {
       url: 'url',
       entrypoint: 'entrypoint',
@@ -77,12 +78,33 @@ describe('CategoryListComponent', () => {
     },
   };
 
-  const init = async (snapshot: Partial<EnvSettings> = DEFAULT_PORTAL_SETTINGS) => {
+  const DEFAULT_PORTAL_SETTINGS: PortalSettings = {
+    portalNext: {
+      access: {
+        enabled: true,
+      },
+      banner: {},
+      catalog: {
+        viewMode: 'TABS',
+      },
+    },
+  };
+
+  const init = async (
+    snapshot: Partial<EnvSettings> = DEFAULT_ENV_SETTINGS,
+    portalSettings: Partial<PortalSettings> = DEFAULT_PORTAL_SETTINGS,
+  ) => {
     await TestBed.configureTestingModule({
       providers: [
         {
           provide: GioTestingPermissionProvider,
-          useValue: ['environment-category-u', 'environment-category-d', 'environment-category-c'],
+          useValue: [
+            'environment-category-u',
+            'environment-category-d',
+            'environment-category-c',
+            'environment-settings-r',
+            'environment-settings-u',
+          ],
         },
         { provide: EnvironmentSettingsService, useValue: { getSnapshot: () => snapshot } },
       ],
@@ -109,6 +131,8 @@ describe('CategoryListComponent', () => {
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, CategoryListHarness);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     fixture.detectChanges();
+
+    expectGetPortalSettings({ ...DEFAULT_PORTAL_SETTINGS, ...portalSettings });
   };
 
   afterEach(() => {
@@ -199,6 +223,54 @@ describe('CategoryListComponent', () => {
     });
   });
 
+  describe('Settings', () => {
+    it('should load current settings', async () => {
+      const settings = {
+        ...DEFAULT_PORTAL_SETTINGS,
+        portalNext: { ...DEFAULT_PORTAL_SETTINGS.portalNext, catalog: { viewMode: 'CATEGORIES' } },
+      };
+
+      await init({}, settings);
+      expectGetCategoriesList();
+
+      const viewModeSelect = await componentHarness.getCategoryViewMode(harnessLoader);
+      expect(await viewModeSelect.getValueText()).toEqual('Tiles');
+    });
+    it('should select Tabs catalog view mode', async () => {
+      await init({}, {});
+      expectGetCategoriesList();
+
+      const viewModeSelect = await componentHarness.getCategoryViewMode(harnessLoader);
+      expect(await viewModeSelect.getValueText()).toEqual('Tabs (Default)');
+
+      await viewModeSelect.clickOptions({ text: 'Tiles' });
+
+      const saveBar = await harnessLoader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toEqual(true);
+
+      await saveBar.clickSubmit();
+      expectGetPortalSettings(DEFAULT_PORTAL_SETTINGS);
+
+      const newSettings = {
+        ...DEFAULT_PORTAL_SETTINGS,
+        portalNext: { ...DEFAULT_PORTAL_SETTINGS.portalNext, catalog: { viewMode: 'CATEGORIES' } },
+      };
+
+      expectSavePortalSettings(newSettings);
+    });
+    it('should reset settings', async () => {
+      await init({}, {});
+      expectGetCategoriesList();
+
+      const viewModeSelect = await componentHarness.getCategoryViewMode(harnessLoader);
+      await viewModeSelect.clickOptions({ text: 'Tiles' });
+
+      const saveBar = await harnessLoader.getHarness(GioSaveBarHarness);
+      await saveBar.clickReset();
+      expect(await viewModeSelect.getValueText()).toEqual('Tabs (Default)');
+    });
+  });
+
   function expectGetCategoriesList(list: Category[] = []) {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/categories?include=total-apis`).flush(list);
   }
@@ -215,5 +287,17 @@ describe('CategoryListComponent', () => {
         method: 'DELETE',
       })
       .flush({});
+  }
+
+  function expectGetPortalSettings(portalSettings: PortalSettings) {
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`).flush(portalSettings);
+  }
+
+  function expectSavePortalSettings(portalSettings: PortalSettings) {
+    const request = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`);
+
+    expect(request.request.body).toEqual(portalSettings);
+
+    request.flush(portalSettings);
   }
 });

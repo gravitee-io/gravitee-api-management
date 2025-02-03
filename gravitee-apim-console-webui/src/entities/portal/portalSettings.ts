@@ -240,6 +240,9 @@ export interface PortalSettingsPortalNext {
     primaryButton?: BannerButton;
     secondaryButton?: BannerButton;
   };
+  catalog?: {
+    viewMode?: string;
+  };
 }
 
 export interface BannerButton {

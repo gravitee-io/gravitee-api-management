@@ -15,126 +15,148 @@
     limitations under the License.
 
 -->
-<mat-card class="menu-catalog">
-  <mat-card-content class="categories__content">
-    <div class="categories__header">
-      <div class="categories__header__information">
-        <div class="categories__header__information__title">
-          <h3>Categories</h3>
-          <both-portals-badge data-testid="both-portals-badge" />
+<form [formGroup]="form" class="categories">
+  <mat-card *gioPermission="{ anyOf: ['environment-settings-r', 'environment-settings-u'] }">
+    <mat-card-content>
+      <h3>Settings</h3>
+      <mat-form-field class="categories__settings__form-field" id="category-view-mode">
+        <mat-select formControlName="catalogViewMode">
+          @for (viewMode of viewModes; track $index) {
+            <mat-option [value]="viewMode.value">{{ viewMode.label }}</mat-option>
+          }
+        </mat-select>
+        <mat-label>Category View Mode</mat-label>
+        <mat-hint>Choose how categories are displayed in the Developer Portal</mat-hint>
+      </mat-form-field>
+    </mat-card-content>
+  </mat-card>
+  <mat-card class="menu-catalog">
+    <mat-card-content class="categories__content">
+      <div class="categories__header">
+        <div class="categories__header__information">
+          <div class="categories__header__information__title">
+            <h3>Categories</h3>
+            <both-portals-badge data-testid="both-portals-badge" />
+          </div>
+          <div class="mat-body-2">Organize your API into categories</div>
         </div>
-        <div class="mat-body-2">Organize your API into categories</div>
+        <button
+          class="add-button"
+          [routerLink]="['category', 'new']"
+          mat-raised-button
+          color="primary"
+          *gioPermission="{ anyOf: ['environment-category-c'] }"
+        >
+          <mat-icon>add</mat-icon>
+          Add Category
+        </button>
       </div>
-      <button
-        class="add-button"
-        [routerLink]="['category', 'new']"
-        mat-raised-button
-        color="primary"
-        *gioPermission="{ anyOf: ['environment-category-c'] }"
+
+      <table
+        mat-table
+        class="gio-table-light"
+        [dataSource]="categoriesDS$ | async"
+        cdkDropList
+        (cdkDropListDropped)="drop($event)"
+        cdkDropListData="dataSource"
       >
-        <mat-icon>add</mat-icon>
-        Add Category
-      </button>
-    </div>
+        <!-- Position Column -->
+        <ng-container matColumnDef="order" sticky>
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let element">
+            <mat-icon class="drag-cursor">drag_indicator</mat-icon>
+          </td>
+        </ng-container>
 
-    <table
-      mat-table
-      class="gio-table-light"
-      [dataSource]="categoriesDS$ | async"
-      cdkDropList
-      (cdkDropListDropped)="drop($event)"
-      cdkDropListData="dataSource"
-    >
-      <!-- Position Column -->
-      <ng-container matColumnDef="order" sticky>
-        <th mat-header-cell *matHeaderCellDef></th>
-        <td mat-cell *matCellDef="let element">
-          <mat-icon class="drag-cursor">drag_indicator</mat-icon>
-        </td>
-      </ng-container>
+        <!-- Display Name Column -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+          <td mat-cell *matCellDef="let element" title="{{ element.name }}">
+            <div>
+              {{ element.name }}
+              @if (element.hidden) {
+                <span class="gio-badge-neutral" matTooltip="Hidden"><mat-icon svgIcon="gio:eye-off" /></span>
+              }
+            </div>
+          </td>
+        </ng-container>
 
-      <!-- Display Name Column -->
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef id="name">Name</th>
-        <td mat-cell *matCellDef="let element" title="{{ element.name }}">
-          <div>
-            {{ element.name }}
-            @if (element.hidden) {
-              <span class="gio-badge-neutral" matTooltip="Hidden"><mat-icon svgIcon="gio:eye-off" /></span>
-            }
-          </div>
-        </td>
-      </ng-container>
+        <!-- Display Description Column -->
+        <ng-container matColumnDef="description">
+          <th mat-header-cell *matHeaderCellDef id="description">Description</th>
+          <td mat-cell *matCellDef="let element">{{ element.description }}</td>
+        </ng-container>
 
-      <!-- Display Description Column -->
-      <ng-container matColumnDef="description">
-        <th mat-header-cell *matHeaderCellDef id="description">Description</th>
-        <td mat-cell *matCellDef="let element">{{ element.description }}</td>
-      </ng-container>
+        <!-- Display API Count Column -->
+        <ng-container matColumnDef="count">
+          <th mat-header-cell *matHeaderCellDef id="api-count">API Count</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.totalApis }}
+          </td>
+        </ng-container>
 
-      <!-- Display API Count Column -->
-      <ng-container matColumnDef="count">
-        <th mat-header-cell *matHeaderCellDef id="api-count">API Count</th>
-        <td mat-cell *matCellDef="let element">
-          {{ element.totalApis }}
-        </td>
-      </ng-container>
-
-      <!-- Display Actions Column -->
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef id="actions"></th>
-        <td mat-cell *matCellDef="let element">
-          <div class="categories__list__actions">
-            @if (element.hidden) {
+        <!-- Display Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef id="actions"></th>
+          <td mat-cell *matCellDef="let element">
+            <div class="categories__list__actions">
+              @if (element.hidden) {
+                <button
+                  mat-button
+                  (click)="showCategory(element)"
+                  matTooltip="Show Category"
+                  *gioPermission="{ anyOf: ['environment-category-u'] }"
+                >
+                  <mat-icon svgIcon="gio:cloud-published"></mat-icon>
+                </button>
+              } @else {
+                <button
+                  mat-button
+                  (click)="hideCategory(element)"
+                  matTooltip="Hide Category"
+                  *gioPermission="{ anyOf: ['environment-category-u'] }"
+                >
+                  <mat-icon svgIcon="gio:cloud-unpublished"></mat-icon>
+                </button>
+              }
               <button
                 mat-button
-                (click)="showCategory(element)"
-                matTooltip="Show Category"
+                aria-label="Button to edit category"
+                [routerLink]="['category', element.id]"
+                matTooltip="Edit"
                 *gioPermission="{ anyOf: ['environment-category-u'] }"
               >
-                <mat-icon svgIcon="gio:cloud-published"></mat-icon>
+                <mat-icon data-testid="api_list_edit_button">edit</mat-icon>
               </button>
-            } @else {
               <button
                 mat-button
-                (click)="hideCategory(element)"
-                matTooltip="Hide Category"
-                *gioPermission="{ anyOf: ['environment-category-u'] }"
+                *gioPermission="{ anyOf: ['environment-category-d'] }"
+                (click)="deleteCategory(element)"
+                matTooltip="Delete"
               >
-                <mat-icon svgIcon="gio:cloud-unpublished"></mat-icon>
+                <mat-icon svgIcon="gio:trash"></mat-icon>
               </button>
-            }
-            <button
-              mat-button
-              aria-label="Button to edit category"
-              [routerLink]="['category', element.id]"
-              matTooltip="Edit"
-              *gioPermission="{ anyOf: ['environment-category-u'] }"
-            >
-              <mat-icon data-testid="api_list_edit_button">edit</mat-icon>
-            </button>
-            <button mat-button *gioPermission="{ anyOf: ['environment-category-d'] }" (click)="deleteCategory(element)" matTooltip="Delete">
-              <mat-icon svgIcon="gio:trash"></mat-icon>
-            </button>
-          </div>
-        </td>
-      </ng-container>
+            </div>
+          </td>
+        </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr
-        mat-row
-        *matRowDef="let row; columns: displayedColumns"
-        data-testid="link_table_row"
-        cdkDrag
-        [cdkDragData]="row"
-        cdkDragLockAxis="y"
-      ></tr>
-      <!-- Row shown when there is no data -->
-      <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
-        <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
-          There are no categories for this environment.
-        </td>
-      </tr>
-    </table>
-  </mat-card-content>
-</mat-card>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+          data-testid="link_table_row"
+          cdkDrag
+          [cdkDragData]="row"
+          cdkDragLockAxis="y"
+        ></tr>
+        <!-- Row shown when there is no data -->
+        <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+          <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
+            There are no categories for this environment.
+          </td>
+        </tr>
+      </table>
+    </mat-card-content>
+  </mat-card>
+  <gio-save-bar [form]="form" [formInitialValues]="initialValues" (resetClicked)="reset()" (submitted)="submit()"></gio-save-bar>
+</form>

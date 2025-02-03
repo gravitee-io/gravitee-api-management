@@ -15,6 +15,10 @@
  */
 
 .categories {
+  display: flex;
+  flex-flow: column;
+  gap: 24px;
+
   &__header {
     display: flex;
     flex-direction: row;
@@ -35,6 +39,12 @@
           margin: 0;
         }
       }
+    }
+  }
+
+  &__settings {
+    &__form-field {
+      width: 50%;
     }
   }
 

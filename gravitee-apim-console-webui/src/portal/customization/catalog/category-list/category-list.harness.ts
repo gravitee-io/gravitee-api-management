@@ -17,6 +17,7 @@
 import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { ComponentHarness, HarnessLoader, TestElement } from '@angular/cdk/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 
 export class CategoryListHarness extends ComponentHarness {
   static hostSelector = 'category-list';
@@ -57,5 +58,9 @@ export class CategoryListHarness extends ComponentHarness {
       .then((rows) => rows[rowIndex].getCells({ columnName: 'actions' }))
       .then((cells) => cells[0])
       .then((actionCell) => actionCell.getHarnessOrNull(MatButtonHarness.with({ selector: `[mattooltip="${tooltipText}"]` })));
+  }
+
+  async getCategoryViewMode(harnessLoader: HarnessLoader): Promise<MatSelectHarness> {
+    return harnessLoader.getHarness(MatSelectHarness.with({ ancestor: '#category-view-mode' }));
   }
 }

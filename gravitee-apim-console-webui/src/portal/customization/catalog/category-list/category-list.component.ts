@@ -28,7 +28,7 @@ import {
   MatTable,
 } from '@angular/material/table';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { catchError, filter, map, switchMap, take, tap } from 'rxjs/operators';
 import {
@@ -44,17 +44,23 @@ import { AsyncPipe } from '@angular/common';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
-import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { MatTooltip } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
+import { MatSelectModule } from '@angular/material/select';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { CategoryService } from '../../../../services-ngx/category.service';
 import { Category } from '../../../../entities/category/Category';
-import { PortalHeaderComponent } from '../../../components/header/portal-header.component';
 import { BothPortalsBadgeComponent } from '../../../components/portal-badge/both-portals-badge/both-portals-badge.component';
+import { PortalSettingsService } from '../../../../services-ngx/portal-settings.service';
+import { PortalSettings } from '../../../../entities/portal/portalSettings';
+
+interface CatalogViewModeVM {
+  value: string;
+  label: string;
+}
 
 @Component({
   selector: 'category-list',
@@ -78,17 +84,16 @@ import { BothPortalsBadgeComponent } from '../../../components/portal-badge/both
     MatIcon,
     MatRow,
     MatRowDef,
-    MatSlideToggle,
     MatTable,
     MatTooltip,
     ReactiveFormsModule,
     RouterLink,
     MatHeaderCellDef,
-    PortalHeaderComponent,
     MatNoDataRow,
     CdkDropList,
     CdkDrag,
     BothPortalsBadgeComponent,
+    MatSelectModule,
   ],
   templateUrl: './category-list.component.html',
   styleUrl: './category-list.component.scss',
@@ -97,6 +102,23 @@ export class CategoryListComponent implements OnInit {
   categoriesDS$: Observable<Category[]> = of([]);
   private categoryList = new BehaviorSubject(1);
   displayedColumns: string[] = ['order', 'name', 'description', 'count', 'actions'];
+  portalCatalogViewMode: FormControl<string> = new FormControl();
+
+  form: FormGroup<{ catalogViewMode: FormControl<string> }> = new FormGroup({
+    catalogViewMode: this.portalCatalogViewMode,
+  });
+  initialValues: { catalogViewMode?: string };
+
+  viewModes: CatalogViewModeVM[] = [
+    {
+      value: 'TABS',
+      label: 'Tabs (Default)',
+    },
+    {
+      value: 'CATEGORIES',
+      label: 'Tiles',
+    },
+  ];
 
   private destroyRef = inject(DestroyRef);
 
@@ -105,12 +127,17 @@ export class CategoryListComponent implements OnInit {
     private readonly snackBarService: SnackBarService,
     private matDialog: MatDialog,
     private readonly permissionService: GioPermissionService,
+    private readonly portalSettingsService: PortalSettingsService,
   ) {}
 
   ngOnInit(): void {
     // If read-only, remove actions column
     if (!this.permissionService.hasAnyMatching(['environment-category-u', 'environment-category-d'])) {
       this.displayedColumns.pop();
+    }
+    // If cannot update settings, disable form
+    if (!this.permissionService.hasAnyMatching(['environment-settings-u'])) {
+      this.form.disable();
     }
 
     this.categoriesDS$ = this.categoryList.pipe(
@@ -123,6 +150,14 @@ export class CategoryListComponent implements OnInit {
         }
       }),
     );
+    this.portalSettingsService
+      .get()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (settings) => {
+          this.initializeForm(settings);
+        },
+      });
   }
 
   deleteCategory(category: Category) {
@@ -198,5 +233,40 @@ export class CategoryListComponent implements OnInit {
           error: ({ error }) => this.snackBarService.error(error.message),
         });
     }
+  }
+
+  reset() {
+    this.form.reset(this.initialValues);
+  }
+
+  submit() {
+    this.portalSettingsService
+      .get()
+      .pipe(
+        switchMap((settings) =>
+          this.portalSettingsService.save({
+            ...settings,
+            portalNext: {
+              ...settings.portalNext,
+              catalog: {
+                viewMode: this.form.getRawValue().catalogViewMode,
+              },
+            },
+          }),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (settings) => {
+          this.initializeForm(settings);
+        },
+      });
+  }
+
+  private initializeForm(settings: PortalSettings): void {
+    this.portalCatalogViewMode.setValue(settings.portalNext.catalog?.viewMode ?? 'TABS');
+    this.initialValues = this.form.getRawValue();
+    this.form.markAsPristine();
+    this.form.markAsUntouched();
   }
 }
