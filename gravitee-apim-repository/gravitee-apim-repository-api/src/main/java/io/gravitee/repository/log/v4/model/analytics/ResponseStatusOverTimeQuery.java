@@ -17,7 +17,8 @@ package io.gravitee.repository.log.v4.model.analytics;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import lombok.Builder;
 
 @Builder(toBuilder = true)
-public record ResponseStatusOverTimeQuery(String apiId, Instant from, Instant to, Duration interval) {}
+public record ResponseStatusOverTimeQuery(List<String> apiIds, Instant from, Instant to, Duration interval) {}

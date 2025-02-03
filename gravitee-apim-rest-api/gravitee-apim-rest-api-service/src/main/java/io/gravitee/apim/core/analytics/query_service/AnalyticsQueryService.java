@@ -64,5 +64,5 @@ public interface AnalyticsQueryService {
 
     RequestResponseTime searchRequestResponseTime(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
 
-    record ResponseStatusOverTimeQuery(String apiId, Instant from, Instant to, Duration interval) {}
+    record ResponseStatusOverTimeQuery(List<String> apiIds, Instant from, Instant to, Duration interval) {}
 }
