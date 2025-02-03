@@ -28,6 +28,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -39,6 +40,7 @@ import lombok.ToString;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "ConnectorPluginEntityV4")
+@SuperBuilder
 public class ConnectorPluginEntity extends PlatformPluginEntity {
 
     private ApiType supportedApiType;
