@@ -163,7 +163,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         var result = analyticsRepository.searchResponseStatusOvertime(
             executionContext.getQueryContext(),
             new io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery(
-                query.apiId(),
+                query.apiIds(),
                 query.from(),
                 query.to(),
                 query.interval()

@@ -15,7 +15,9 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsRequestResponseTimeResponse;
+import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusRangesResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopHitsApisResponse;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
@@ -24,7 +26,7 @@ import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(uses = { ApiAnalyticsMapper.class })
 public interface EnvironmentAnalyticsMapper {
     EnvironmentAnalyticsMapper INSTANCE = Mappers.getMapper(EnvironmentAnalyticsMapper.class);
 
@@ -33,4 +35,6 @@ public interface EnvironmentAnalyticsMapper {
     EnvironmentAnalyticsTopHitsApisResponse map(TopHitsApis topHitsApis);
 
     EnvironmentAnalyticsRequestResponseTimeResponse map(RequestResponseTime requestResponseTime);
+
+    EnvironmentAnalyticsResponseStatusOvertimeResponse map(ResponseStatusOvertime source);
 }

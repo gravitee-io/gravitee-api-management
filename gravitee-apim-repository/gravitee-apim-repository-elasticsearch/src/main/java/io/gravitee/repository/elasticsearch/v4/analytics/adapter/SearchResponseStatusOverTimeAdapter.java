@@ -80,7 +80,7 @@ public class SearchResponseStatusOverTimeAdapter {
     }
 
     private ObjectNode query(ResponseStatusOverTimeQuery query) {
-        JsonNode termFilter = json().set("term", json().put("api-id", query.apiId()));
+        JsonNode termFilter = json().set("terms", json().set("api-id", toArray(query.apiIds())));
 
         // we just ensure to fetch full bucket interval (a bit too)
         Instant from = query.from().minus(query.interval());
@@ -121,5 +121,11 @@ public class SearchResponseStatusOverTimeAdapter {
 
     private ArrayNode array() {
         return MAPPER.createArrayNode();
+    }
+
+    private ArrayNode toArray(List<String> list) {
+        var arrayNode = array();
+        list.forEach(arrayNode::add);
+        return arrayNode;
     }
 }

@@ -123,8 +123,26 @@ paths:
         responses:
           "200":
             $ref: "#/components/responses/EnvironmentAnalyticsOverPeriodResponse"
+    /analytics/response-status-overtime:
+      parameters:
+        - $ref: "#/components/parameters/from"
+        - $ref: "#/components/parameters/to"
+      get:
+        tags:
+          - API Analytics
+        summary: Get Environment Analytics response status counts over time
+        description: |-
+          Get Environment analytics response status counts over time.
+          
+          User must have the API_ANALYTICS[READ] permission.
+        operationId: getEnvironmentResponseStatusOvertime
+        responses:
+          "200":
+            $ref: "#/components/responses/EnvironmentAnalyticsResponseStatusOvertimeResponse"
+          default:
+            $ref: "#/components/responses/Error"
 
-    # Shared policy group
+  # Shared policy group
     /shared-policy-groups:
         post:
             tags:
@@ -916,7 +934,7 @@ components:
           in: query
           required: false
           description: |
-            The timestamp from which the logs will be returned.
+            The timestamp in ms from which the logs will be returned.
           schema:
             type: integer
             format: int64
@@ -925,7 +943,7 @@ components:
           in: query
           required: false
           description: |
-            The timestamp to which the logs will be returned.
+            The timestamp in ms to which the logs will be returned.
           schema:
             type: integer
             format: int64
@@ -1138,6 +1156,25 @@ components:
                       format: int64
                       minimum: 0
                       exclusiveMinimum: true
+        EnvironmentAnalyticsResponseStatusOvertimeResponse:
+          description: Analytics for status codes over time
+          content:
+            application/json:
+              schema:
+                title: "EnvironmentAnalyticsResponseStatusOvertimeResponse"
+                description: Environment Analytics for status codes over time.
+                properties:
+                  timeRange:
+                    $ref: "#/components/schemas/AnalyticTimeRange"
+                  data:
+                    type: object
+                    description: Status count overt time
+                    additionalProperties:
+                      description: A map of response status and counts
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
 
       # Scoring
         EnvironmentApisScoringResponse:

@@ -18,14 +18,17 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.assertj.core.api.InstanceOfAssertFactories.INSTANT;
 import static org.mockito.Mockito.when;
 
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiQueryServiceInMemory;
+import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsOverPeriodResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsRequestResponseTimeResponse;
+import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusRangesResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopHitsApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.TopHitApi;
@@ -38,6 +41,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +65,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
     @Inject
     FakeAnalyticsQueryService analyticsQueryService;
 
-    WebTarget statusRangeTarget;
+    WebTarget target;
 
     @Override
     protected String contextPath() {
@@ -88,7 +93,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setup() {
-            statusRangeTarget = rootTarget().path("response-status-ranges");
+            target = rootTarget().path("response-status-ranges");
         }
 
         @Test
@@ -106,7 +111,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
             //When
 
-            Response response = statusRangeTarget.queryParam("from", FROM).queryParam("to", TO).request().get();
+            Response response = target.queryParam("from", FROM).queryParam("to", TO).request().get();
 
             //Then
 
@@ -127,7 +132,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setup() {
-            statusRangeTarget = rootTarget().path("top-hits");
+            target = rootTarget().path("top-hits");
         }
 
         @Test
@@ -152,7 +157,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
             //When
 
-            Response response = statusRangeTarget.queryParam("from", FROM).queryParam("to", TO).request().get();
+            Response response = target.queryParam("from", FROM).queryParam("to", TO).request().get();
 
             assertThat(response)
                 .hasStatus(OK_200)
@@ -177,7 +182,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
             //When
 
-            Response response = statusRangeTarget.queryParam("from", FROM).queryParam("to", TO).request().get();
+            Response response = target.queryParam("from", FROM).queryParam("to", TO).request().get();
 
             assertThat(response)
                 .hasStatus(OK_200)
@@ -191,7 +196,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setup() {
-            statusRangeTarget = rootTarget().path("request-response-time");
+            target = rootTarget().path("request-response-time");
         }
 
         @Test
@@ -213,7 +218,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
             //When
 
-            Response response = statusRangeTarget.queryParam("from", FROM).queryParam("to", TO).request().get();
+            Response response = target.queryParam("from", FROM).queryParam("to", TO).request().get();
 
             assertThat(response)
                 .hasStatus(OK_200)
@@ -237,8 +242,8 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         @ParameterizedTest
         @ValueSource(strings = { "top-hits", "response-status-ranges", "request-response-time" })
         public void should_return_400_if_time_ranges_parameters_are_not_present(String path) {
-            statusRangeTarget = rootTarget().path(path);
-            Response response = statusRangeTarget.queryParam("from", FROM).request().get();
+            target = rootTarget().path(path);
+            Response response = target.queryParam("from", FROM).request().get();
 
             assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
         }
@@ -246,9 +251,9 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         @ParameterizedTest
         @ValueSource(strings = { "top-hits", "response-status-ranges", "request-response-time" })
         public void should_return_400_if_time_range_parameter_is_less_than_zero(String path) {
-            statusRangeTarget = rootTarget().path(path);
+            target = rootTarget().path(path);
             var lessThanZeroFromValue = -12L;
-            Response response = statusRangeTarget.queryParam("from", lessThanZeroFromValue).queryParam("to", TO).request().get();
+            Response response = target.queryParam("from", lessThanZeroFromValue).queryParam("to", TO).request().get();
 
             assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
         }
@@ -259,7 +264,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setup() {
-            statusRangeTarget = rootTarget().path("response-time-over-time");
+            target = rootTarget().path("response-time-over-time");
         }
 
         @Test
@@ -276,7 +281,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
             //When
 
-            Response response = statusRangeTarget.queryParam("from", FROM).queryParam("to", TO).request().get();
+            Response response = target.queryParam("from", FROM).queryParam("to", TO).request().get();
 
             assertThat(response)
                 .hasStatus(OK_200)
@@ -286,6 +291,47 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                         .builder()
                         .timeRange(AnalyticTimeRange.builder().from(FROM).to(TO).interval(1000L).build())
                         .data(List.of(1L, 2L))
+                        .build()
+                );
+        }
+    }
+
+    @Nested
+    class ResponseStatusOverTimeAnalytics {
+
+        @BeforeEach
+        void setup() {
+            target = rootTarget().path("response-status-overtime");
+        }
+
+        @Test
+        void should_return_200_with_valid_request_response_time_analytics() {
+            //Given
+            var api1 = ApiFixtures.aProxyApiV4().toBuilder().id("api-1").build();
+            var api2 = ApiFixtures.aProxyApiV4().toBuilder().id("api-2").build();
+
+            apiQueryService.initWith(List.of(api1, api2));
+            analyticsQueryService.responseStatusOvertime =
+                ResponseStatusOvertime
+                    .builder()
+                    .timeRange(
+                        new ResponseStatusOvertime.TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO), Duration.ofSeconds(1))
+                    )
+                    .data(Map.of("200", List.of(0L, 0L, 0L, 1L, 4L, 0L, 0L)))
+                    .build();
+
+            //When
+
+            Response response = target.queryParam("from", FROM).queryParam("to", TO).request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(EnvironmentAnalyticsResponseStatusOvertimeResponse.class)
+                .isEqualTo(
+                    EnvironmentAnalyticsResponseStatusOvertimeResponse
+                        .builder()
+                        .timeRange(AnalyticTimeRange.builder().from(FROM).to(TO).interval(1000L).build())
+                        .data(Map.of("200", List.of(0L, 0L, 0L, 1L, 4L, 0L, 0L)))
                         .build()
                 );
         }

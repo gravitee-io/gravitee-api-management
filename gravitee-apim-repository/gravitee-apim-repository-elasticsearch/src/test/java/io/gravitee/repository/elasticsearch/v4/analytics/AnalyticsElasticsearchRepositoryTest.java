@@ -263,7 +263,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             var result = cut.searchResponseStatusOvertime(
                 new QueryContext("org#1", "env#1"),
-                ResponseStatusOverTimeQuery.builder().apiId(API_ID).from(from).to(to).interval(interval).build()
+                ResponseStatusOverTimeQuery.builder().apiIds(List.of(API_ID)).from(from).to(to).interval(interval).build()
             );
 
             var nbBuckets = Duration.between(from, to).dividedBy(interval) + 1;
