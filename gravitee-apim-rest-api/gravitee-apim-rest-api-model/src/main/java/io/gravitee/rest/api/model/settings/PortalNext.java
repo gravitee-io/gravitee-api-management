@@ -39,8 +39,11 @@ public class PortalNext {
 
     private Banner banner;
 
+    private Catalog catalog;
+
     public PortalNext() {
         this.banner = new Banner();
+        this.catalog = new Catalog();
     }
 
     @Data
@@ -109,5 +112,13 @@ public class PortalNext {
             @ParameterKey(Key.PORTAL_NEXT_BANNER_SECONDARY_BUTTON_VISIBILITY)
             private String visibility;
         }
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Catalog {
+
+        @ParameterKey(Key.PORTAL_NEXT_CATALOG_VIEW_MODE)
+        private String viewMode;
     }
 }
