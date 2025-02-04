@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
 import io.gravitee.apim.core.plan.model.PlanUpdates;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.apim.core.utils.CollectionUtils;
@@ -96,6 +97,16 @@ public interface PlanMapper {
     @Mapping(target = "definitionVersion", constant = "V4")
     PlanV4 map(PlanWithFlows source);
 
+    default <T extends PlanDescriptor> PlanV4 map(T source) {
+        return switch (source) {
+            case PlanDescriptor.PlanDescriptorV4 v4 -> map(v4);
+        };
+    }
+
+    @Mapping(target = "security.type", source = "security.type", qualifiedByName = "mapToPlanSecurityType")
+    @Mapping(target = "security.configuration", source = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    PlanV4 map(PlanDescriptor.PlanDescriptorV4 source);
+
     @Mapping(target = "status", source = "federatedPlanDefinition.status")
     @Mapping(target = "mode", source = "federatedPlanDefinition.mode")
     @Mapping(target = "definitionVersion", constant = "FEDERATED")
@@ -119,16 +130,13 @@ public interface PlanMapper {
     }
 
     default Plan mapGenericPlan(GenericPlanEntity entity) {
-        if (entity instanceof PlanEntity) {
-            if (entity.getDefinitionVersion() == DefinitionVersion.V4) {
-                return new Plan(this.map((PlanEntity) entity));
-            }
-            return new Plan(this.mapFederated((PlanEntity) entity));
-        } else if (entity instanceof NativePlanEntity nativePlanEntity) {
-            return new Plan(this.map(nativePlanEntity));
-        } else {
-            return new Plan(this.map((io.gravitee.rest.api.model.PlanEntity) entity));
-        }
+        return switch (entity) {
+            case PlanEntity v4 -> entity.getDefinitionVersion() == DefinitionVersion.V4
+                ? new Plan(this.map(v4))
+                : new Plan(this.mapFederated(v4));
+            case NativePlanEntity nativePlanEntity -> new Plan(this.map(nativePlanEntity));
+            default -> new Plan(this.map((io.gravitee.rest.api.model.PlanEntity) entity));
+        };
     }
 
     default io.gravitee.apim.core.plan.model.Plan map(CreatePlanV4 source, Api api) {

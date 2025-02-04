@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.model.crd.PageCRD;
+import io.gravitee.apim.core.api.model.import_definition.PageExport;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.use_case.ApiUpdateDocumentationPageUseCase;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -101,7 +102,7 @@ public interface PageMapper {
     @Mapping(target = "createdAt", source = "createAt")
     Media mapMedia(MediaEntity mediaEntity);
 
-    @Mapping(target = "uploadDate", source = "createdAt")
+    @Mapping(target = "createAt", source = "createdAt")
     MediaEntity mapMedia(Media media);
 
     @Mapping(target = "type", source = "type")
@@ -180,4 +181,16 @@ public interface PageMapper {
         }
         return null;
     }
+
+    @Mapping(target = "hash", source = "mediaHash")
+    @Mapping(target = "name", source = "mediaName")
+    PageMedia map(io.gravitee.apim.core.documentation.model.PageMedia pageEntity);
+
+    @Mapping(target = "source.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(target = "contentRevision", source = "contentRevisionId")
+    @Mapping(target = "translations", source = "translations")
+    io.gravitee.rest.api.management.v2.rest.model.Page mapPage(PageExport src);
+
+    @Mapping(target = "createAt", source = "createdAt")
+    MediaEntity mapMedia(io.gravitee.apim.core.media.model.Media media);
 }

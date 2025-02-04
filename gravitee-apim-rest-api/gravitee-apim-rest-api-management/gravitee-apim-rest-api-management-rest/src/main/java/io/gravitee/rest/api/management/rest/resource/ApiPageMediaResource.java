@@ -123,7 +123,7 @@ public class ApiPageMediaResource extends AbstractResource {
             .attachMedia(page, mediaId, fileName == null ? originalFileName : fileName)
             .flatMap(pageEntity -> pageEntity.getAttachedMedia().stream().filter(media -> media.getMediaHash().equals(mediaId)).findFirst())
             .ifPresent(createdMedia -> {
-                mediaEntity.setUploadDate(createdMedia.getAttachedAt());
+                mediaEntity.setCreateAt(createdMedia.getAttachedAt());
                 mediaEntity.setHash(createdMedia.getMediaHash());
             });
 

@@ -120,9 +120,9 @@ public sealed interface GraviteeDefinition {
         }
     }
 
-    record Export(Instant date, String exportVersion, String apimVersion) {
+    record Export(Instant date, String apimVersion) {
         public Export() {
-            this(TimeProvider.instantNow(), "1", Version.RUNTIME_VERSION.MAJOR_VERSION);
+            this(TimeProvider.instantNow(), Version.RUNTIME_VERSION.MAJOR_VERSION);
         }
     }
 }
