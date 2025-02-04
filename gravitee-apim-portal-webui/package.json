@@ -38,7 +38,7 @@
     "@emoji-mart/data": "1.2.1",
     "@fontsource/ibm-plex-sans": "4.5.13",
     "@fontsource/montserrat": "5.1.1",
-    "@gravitee/ui-components": "4.2.6",
+    "@gravitee/ui-components": "4.3.0",
     "@highcharts/map-collection": "2.0.0",
     "@ngx-translate/core": "14.0.0",
     "@ngx-translate/http-loader": "7.0.0",
