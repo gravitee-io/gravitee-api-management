@@ -298,6 +298,15 @@
 							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-installation-deprecated.yaml</inputSpec>
 						</configuration>
 					</execution>
+                    <execution>
+                        <id>model-applications</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/openapi/openapi-applications.yaml</inputSpec>
+                        </configuration>
+                    </execution>
 				</executions>
 			</plugin>
         </plugins>
