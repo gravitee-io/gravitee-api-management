@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -21,6 +21,7 @@ import { map } from 'rxjs/operators';
 import { Constants } from '../entities/Constants';
 import { PolicyDocumentation, PolicyListItem, PolicySchema } from '../entities/policy';
 import { PolicyPlugin } from '../entities/management-api-v2';
+import { ApiProtocolType } from '../entities/management-api-v2/plugin/apiProtocolType';
 
 @Injectable({
   providedIn: 'root',
@@ -35,14 +36,23 @@ export class PolicyV2Service {
     return this.http.get<PolicyListItem[]>(`${this.constants.org.v2BaseURL}/plugins/policies`);
   }
 
-  getSchema(policyId: string): Observable<PolicySchema> {
-    return this.http.get<PolicySchema>(`${this.constants.org.v2BaseURL}/plugins/policies/${policyId}/schema`);
+  getSchema(policyId: string, apiProtocolType?: ApiProtocolType): Observable<PolicySchema> {
+    let params = new HttpParams();
+    if (apiProtocolType) {
+      params = params.append('apiProtocolType', apiProtocolType);
+    }
+    return this.http.get<PolicySchema>(`${this.constants.org.v2BaseURL}/plugins/policies/${policyId}/schema`, { params });
   }
 
-  getDocumentation(policyId: string): Observable<PolicyDocumentation> {
+  getDocumentation(policyId: string, apiProtocolType?: ApiProtocolType): Observable<PolicyDocumentation> {
+    let params = new HttpParams();
+    if (apiProtocolType) {
+      params = params.append('apiProtocolType', apiProtocolType);
+    }
     return this.http
       .get(`${this.constants.org.v2BaseURL}/plugins/policies/${policyId}/documentation`, {
         responseType: 'text',
+        params,
       })
       .pipe(map((buffer) => buffer.toString()));
   }
