@@ -27,8 +27,6 @@ import io.gravitee.apim.core.media.model.Media;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.plan.model.Plan;
-import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
-import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.WorkflowState;
@@ -108,6 +106,18 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "resources", source = "apiEntity.apiDefinitionNativeV4.resources")
     @Mapping(target = "endpointGroups", source = "apiEntity.apiDefinitionNativeV4.endpointGroups")
     ApiDescriptor.ApiDescriptorNative mapNative(
+        Api apiEntity,
+        PrimaryOwnerEntity primaryOwner,
+        WorkflowState workflowState,
+        Set<String> groups,
+        Collection<NewApiMetadata> metadata
+    );
+
+    @Mapping(target = "id", source = "apiEntity.id")
+    @Mapping(target = "type", source = "apiEntity.type")
+    @Mapping(target = "providerId", source = "apiEntity.federatedApiDefinition.providerId")
+    @Mapping(target = "lifecycleState", source = "apiEntity.apiLifecycleState")
+    ApiDescriptor.ApiDescriptorFederated mapFederated(
         Api apiEntity,
         PrimaryOwnerEntity primaryOwner,
         WorkflowState workflowState,

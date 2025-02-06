@@ -94,7 +94,7 @@ public sealed interface GraviteeDefinition {
     }
 
     @Builder(toBuilder = true)
-    record GraviteeDefinitionFederated(
+    record Federated(
         Export export,
         ApiDescriptor.ApiDescriptorFederated api,
         Set<ApiMember> members,
@@ -106,7 +106,7 @@ public sealed interface GraviteeDefinition {
         String apiBackground
     )
         implements GraviteeDefinition {
-        public GraviteeDefinitionFederated(
+        public Federated(
             ApiDescriptor.ApiDescriptorFederated api,
             Set<ApiMember> members,
             Set<NewApiMetadata> metadata,
@@ -120,9 +120,9 @@ public sealed interface GraviteeDefinition {
         }
     }
 
-    record Export(Instant date, String exportVersion, String apimVersion) {
+    record Export(Instant date, String apimVersion) {
         public Export() {
-            this(TimeProvider.instantNow(), "1", Version.RUNTIME_VERSION.MAJOR_VERSION);
+            this(TimeProvider.instantNow(), Version.RUNTIME_VERSION.MAJOR_VERSION);
         }
     }
 }

@@ -26,9 +26,7 @@ import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.PageMediaEntity;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.MediaService;
-import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiMediaNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -204,7 +202,7 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
                     if (foundMedia.isPresent()) {
                         MediaEntity me = convert(foundMedia.get());
                         me.setFileName(pme.getMediaName());
-                        me.setUploadDate(pme.getAttachedAt());
+                        me.setCreateAt(pme.getAttachedAt());
                         result.add(me);
                     }
                 }
@@ -306,7 +304,7 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
         mediaEntity.setSubType(media.getSubType());
         mediaEntity.setFileName(media.getFileName());
         mediaEntity.setSize(media.getSize());
-        mediaEntity.setUploadDate(media.getCreatedAt());
+        mediaEntity.setCreateAt(media.getCreatedAt());
         mediaEntity.setHash(media.getHash());
         return mediaEntity;
     }
