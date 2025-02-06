@@ -49,5 +49,6 @@ public record ScoreRequest(
         GRAVITEE_PROXY,
         GRAVITEE_MESSAGE,
         GRAVITEE_FEDERATED,
+        GRAVITEE_NATIVE,
     }
 }
