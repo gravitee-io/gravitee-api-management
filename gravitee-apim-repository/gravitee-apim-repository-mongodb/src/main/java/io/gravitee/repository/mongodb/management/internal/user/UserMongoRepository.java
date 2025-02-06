@@ -34,9 +34,15 @@ public interface UserMongoRepository extends MongoRepository<UserMongo, String>,
     Set<UserMongo> findByIds(Collection<String> ids);
 
     @Query(value = "{ 'source': ?0, 'sourceId': {$regex: '^?1$', $options: 'i'}, 'organizationId': ?2 }")
-    UserMongo findBySourceAndSourceId(String source, String sourceId, String organizationId);
+    UserMongo findBySourceAndSourceIdIgnoreCase(String source, String sourceId, String organizationId);
 
     @Query(value = "{ 'email': {$regex: '^?0$', $options: 'i'}, 'organizationId': ?1 }")
+    UserMongo findByEmailIgnoreCase(String email, String organizationId);
+
+    @Query(value = "{ 'source': ?0, 'sourceId': ?1, 'organizationId': ?2 }")
+    UserMongo findBySourceAndSourceId(String source, String sourceId, String organizationId);
+
+    @Query(value = "{ 'email':?0, 'organizationId': ?1 }")
     UserMongo findByEmail(String email, String organizationId);
 
     @Query(value = "{ 'organizationId': ?0 }", fields = "{ _id : 1 }", delete = true)

@@ -21,6 +21,7 @@ import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.management.model.Metadata;
 import io.gravitee.repository.management.model.MetadataFormat;
 import io.gravitee.repository.management.model.MetadataReferenceType;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import org.junit.Assert;
@@ -90,10 +91,13 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
         Assert.assertTrue("Metadata to update not found", optional.isPresent());
         Assert.assertEquals("Invalid saved metadata name.", "Boolean", optional.get().getName());
 
+        Date updatedDate = new Date();
+
         final Metadata metadata = optional.get();
         metadata.setName("New metadata");
         metadata.setFormat(MetadataFormat.URL);
         metadata.setValue("New value");
+        metadata.setUpdatedAt(updatedDate);
 
         int nbMetadataListBeforeUpdate = metadataRepository.findByReferenceType(MetadataReferenceType.ENVIRONMENT).size();
         metadataRepository.update(metadata);
@@ -108,6 +112,7 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
         Assert.assertEquals("Invalid saved metadata name.", "New metadata", metadataUpdated.getName());
         Assert.assertEquals("Invalid metadata value.", "New value", metadataUpdated.getValue());
         Assert.assertEquals("Invalid metadata format.", MetadataFormat.URL, metadataUpdated.getFormat());
+        Assert.assertEquals("Invalid metadata update date.", updatedDate, metadataUpdated.getUpdatedAt());
     }
 
     @Test

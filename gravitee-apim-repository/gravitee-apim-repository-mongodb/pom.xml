@@ -34,11 +34,12 @@
         <!--
             According to https://docs.spring.io/spring-data/mongodb/docs/current/reference/html/#compatibility.matrix
             and https://www.mongodb.com/docs/drivers/java/sync/current/compatibility/
-            spring data 3.4.x is compatible with mongo driver 4.6.x and up to mongo server 5.0.x
+            spring data 4.3.x is compatible with mongo driver 4.11.x & 5.x and up to mongo server 4.4.x to 7.x
             But "You can use newer server versions unless your application uses functionality that is affected by changes in the MongoDB server"
             Meaning that we can use mongo server 6.0.x if we use basic functionalities.
         -->
-        <mongo.version>5.1.2</mongo.version>
+        <mongo.version>5.1.4</mongo.version>
+        <mongodb-crypt.version>1.8.0</mongodb-crypt.version>
         <jna.version>5.14.0</jna.version>
     </properties>
 
@@ -95,6 +96,22 @@
         </dependency>
 
         <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-crypt</artifactId>
+            <version>${mongodb-crypt.version}</version>
+            <!-- /!\ Force provided scope. mongodb-crypt.jar and jna.jar should be provided via /plugin/ext/repository-mongodb -->
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>${jna.version}</version>
+            <!-- /!\ Force provided scope. mongodb-crypt.jar and jna.jar should be provided via /plugin/ext/repository-mongodb -->
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
             <scope>provided</scope>
@@ -145,14 +162,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Needed for mac M1 users -->
-        <dependency>
-            <groupId>net.java.dev.jna</groupId>
-            <artifactId>jna</artifactId>
-            <version>${jna.version}</version>
-            <scope>test</scope>
-        </dependency>
-
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
@@ -177,6 +186,41 @@
                         <exclude>**/distributedsync/*.java</exclude>
                     </excludes>
                 </configuration>
+                <executions>
+                    <execution>
+                        <!-- default-test is the default execution. But it is already covered by `without-encryption` execution -->
+                        <id>default-test</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>without-encryption</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <management.mongodb.encryption.enabled>false</management.mongodb.encryption.enabled>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>with-encryption</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <management.mongodb.encryption.enabled>true</management.mongodb.encryption.enabled>
+                            </systemPropertyVariables>
+                            <includes>
+                                <include>io.gravitee.repository.management.UserRepositoryTest</include>
+                                <include>io.gravitee.repository.management.LicenseRepositoryTest</include>
+                                <include>io.gravitee.repository.management.MetadataRepositoryTest</include>
+                                <include>io.gravitee.repository.management.TokenRepositoryTest</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>

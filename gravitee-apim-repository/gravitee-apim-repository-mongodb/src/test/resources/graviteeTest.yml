@@ -11,3 +11,8 @@ management:
     serverSelectionTimeout: 10000
     readPreference: secondary
     readPreferenceTags: dc:india, sc:prod
+    encryption:
+      kms:
+        - type: local
+          local:
+            key: s1LSgcxwixnMWuPMWuNQpZZVHbaaT9pbyAuqrExk38gmcgg9DomK7IoYsvWpG+aZcOB7MfGTdRVILjNWL4mbEQ00f0Kz+W6f9Hu+npzOpMsbkH3SC/FlJEaeWrwavNQZ

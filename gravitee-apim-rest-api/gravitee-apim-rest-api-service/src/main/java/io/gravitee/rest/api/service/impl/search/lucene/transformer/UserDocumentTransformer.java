@@ -32,9 +32,11 @@ import org.apache.lucene.analysis.miscellaneous.ASCIIFoldingFilterFactory;
 import org.apache.lucene.analysis.util.CharTokenizer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.util.AttributeFactory;
+import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,16 +49,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserDocumentTransformer implements DocumentTransformer<UserEntity> {
 
-    private static final String FIELD_ID = "id";
-    private static final String FIELD_TYPE = "type";
-    private static final String FIELD_TYPE_VALUE = "user";
-    private static final String FIELD_DISPLAYNAME = "displayname";
-    private static final String FIELD_DISPLAYNAME_REVERTED = "displayname_reverted";
-    private static final String FIELD_EMAIL = "email";
-    private static final String FIELD_SOURCE = "source";
-    private static final String FIELD_REFERENCE = "reference";
-    private static final String FIELD_CUSTOM = "custom";
-    private static final String FIELD_CUSTOM_SPLIT = "custom_split";
+    public static final String FIELD_ID = "id";
+    public static final String FIELD_TYPE = "type";
+    public static final String FIELD_TYPE_VALUE = "user";
+    public static final String FIELD_DISPLAYNAME = "displayname";
+    public static final String FIELD_LASTNAME_FIRSTNAME = "lastname_firstname";
+    public static final String FIELD_LASTNAME_FIRSTNAME_SORTED = "lastname_firstname_sorted";
+    public static final String FIELD_EMAIL = "email";
+    public static final String FIELD_SOURCE = "source";
+    public static final String FIELD_REFERENCE = "reference";
+    public static final String FIELD_CUSTOM = "custom";
+    public static final String FIELD_CUSTOM_SPLIT = "custom_split";
 
     private final Logger logger = LoggerFactory.getLogger(UserDocumentTransformer.class);
 
@@ -110,10 +113,16 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
             doc.add(displayName);
 
             if (!StringUtils.isEmpty(user.getLastname()) && !StringUtils.isEmpty(user.getFirstname())) {
-                String reverted = toLowerCaseAndStripAccents(String.format("%s %s", user.getLastname(), user.getFirstname()));
-                TextField displayNameReverted = new TextField(FIELD_DISPLAYNAME_REVERTED, reverted, Field.Store.NO);
-                displayNameReverted.setTokenStream(userFieldAnalyzer().tokenStream(FIELD_DISPLAYNAME_REVERTED, reverted));
-                doc.add(displayNameReverted);
+                String lastnameFirstname = toLowerCaseAndStripAccents(String.format("%s %s", user.getLastname(), user.getFirstname()));
+                TextField lastnameFirstnameTextField = new TextField(FIELD_LASTNAME_FIRSTNAME, lastnameFirstname, Field.Store.NO);
+                lastnameFirstnameTextField.setTokenStream(userFieldAnalyzer().tokenStream(FIELD_LASTNAME_FIRSTNAME, lastnameFirstname));
+                doc.add(lastnameFirstnameTextField);
+
+                SortedDocValuesField lastnameFirstnameSortedField = new SortedDocValuesField(
+                    FIELD_LASTNAME_FIRSTNAME_SORTED,
+                    new BytesRef(lastnameFirstname)
+                );
+                doc.add(lastnameFirstnameSortedField);
             }
         }
 
