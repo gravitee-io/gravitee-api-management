@@ -102,14 +102,12 @@ public class ScoringProviderImpl implements ScoringProvider {
     }
 
     private Format format(ScoreRequest.Format format) {
-        if (format == null) {
-            return null;
-        }
-
         return switch (format) {
+            case null -> null;
             case GRAVITEE_PROXY -> Format.GRAVITEE_PROXY;
             case GRAVITEE_MESSAGE -> Format.GRAVITEE_MESSAGE;
             case GRAVITEE_FEDERATED -> Format.GRAVITEE_FEDERATED;
+            case GRAVITEE_NATIVE -> Format.GRAVITEE_NATIVE;
         };
     }
 
