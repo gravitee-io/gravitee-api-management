@@ -43,7 +43,6 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
-import jakarta.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -132,7 +131,6 @@ public class ScoreApiRequestUseCase {
         );
     }
 
-    @Nullable
     private static ScoreRequest.Format getFormat(GraviteeDefinition definition) {
         if (definition.api() instanceof ApiDescriptor.ApiDescriptorFederated) {
             return ScoreRequest.Format.GRAVITEE_FEDERATED;
@@ -140,7 +138,7 @@ public class ScoreApiRequestUseCase {
         return switch (definition.api().type()) {
             case PROXY -> ScoreRequest.Format.GRAVITEE_PROXY;
             case MESSAGE -> ScoreRequest.Format.GRAVITEE_MESSAGE;
-            default -> null;
+            case NATIVE -> ScoreRequest.Format.GRAVITEE_NATIVE;
         };
     }
 
@@ -156,6 +154,7 @@ public class ScoreApiRequestUseCase {
             case GRAVITEE_FEDERATION -> ScoreRequest.Format.GRAVITEE_FEDERATED;
             case GRAVITEE_MESSAGE -> ScoreRequest.Format.GRAVITEE_MESSAGE;
             case GRAVITEE_PROXY -> ScoreRequest.Format.GRAVITEE_PROXY;
+            case GRAVITEE_NATIVE -> ScoreRequest.Format.GRAVITEE_NATIVE;
             case OPENAPI, ASYNCAPI -> null;
         };
     }

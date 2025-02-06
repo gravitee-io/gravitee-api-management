@@ -731,14 +731,7 @@ components:
                     minLength: 1
                     description: The ruleset payload
                 format:
-                    type: string
-                    description: The format of the ruleset
-                    enum:
-                        - GRAVITEE_FEDERATION
-                        - GRAVITEE_MESSAGE
-                        - GRAVITEE_PROXY
-                        - OPENAPI
-                        - ASYNCAPI
+                    $ref: "#/components/schemas/ScoringAssetFormat"
             required:
               - name
               - payload
@@ -771,14 +764,7 @@ components:
                     type: string
                     description: The ruleset payload
                 format:
-                    type: string
-                    description: Information about gravitee definition ruleset format. For native oas/async API ruleset this property is null.
-                    enum:
-                        - GRAVITEE_FEDERATION
-                        - GRAVITEE_MESSAGE
-                        - GRAVITEE_PROXY
-                        - OPENAPI
-                        - ASYNCAPI
+                    $ref: "#/components/schemas/ScoringAssetFormat"
                 createdAt:
                     type: string
                     format: date-time
@@ -798,6 +784,16 @@ components:
             type: string
             enum:
                 - ENVIRONMENT
+        ScoringAssetFormat:
+          type: string
+          description: The format of scoring asset
+          enum:
+            - GRAVITEE_FEDERATION
+            - GRAVITEE_MESSAGE
+            - GRAVITEE_PROXY
+            - GRAVITEE_KAFKA
+            - OPENAPI
+            - ASYNCAPI
         ImportScoringFunction:
           type: object
           description: The scoring scoring function to import

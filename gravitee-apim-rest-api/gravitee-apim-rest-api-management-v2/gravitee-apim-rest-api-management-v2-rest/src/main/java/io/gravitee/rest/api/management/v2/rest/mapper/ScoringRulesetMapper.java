@@ -15,10 +15,11 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.rest.api.management.v2.rest.model.ImportScoringRuleset;
-import io.gravitee.rest.api.management.v2.rest.model.ScoringRuleset;
+import io.gravitee.apim.core.scoring.model.ScoringRuleset;
+import io.gravitee.rest.api.management.v2.rest.model.ScoringAssetFormat;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateScoringRuleset;
 import org.mapstruct.Mapper;
+import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,9 +29,13 @@ public interface ScoringRulesetMapper {
     Logger logger = LoggerFactory.getLogger(ScoringRulesetMapper.class);
     ScoringRulesetMapper INSTANCE = Mappers.getMapper(ScoringRulesetMapper.class);
 
-    ScoringRuleset map(io.gravitee.apim.core.scoring.model.ScoringRuleset source);
+    io.gravitee.rest.api.management.v2.rest.model.ScoringRuleset map(ScoringRuleset source);
 
-    io.gravitee.apim.core.scoring.model.ScoringRuleset map(UpdateScoringRuleset updateScoringRuleset);
+    ScoringRuleset map(UpdateScoringRuleset updateScoringRuleset);
 
-    io.gravitee.apim.core.scoring.model.ScoringRuleset.Format map(ImportScoringRuleset.FormatEnum formatEnum);
+    @ValueMapping(target = "GRAVITEE_NATIVE", source = "GRAVITEE_KAFKA")
+    ScoringRuleset.Format map(ScoringAssetFormat formatEnum);
+
+    @ValueMapping(target = "GRAVITEE_KAFKA", source = "GRAVITEE_NATIVE")
+    ScoringAssetFormat map(ScoringRuleset.Format formatEnum);
 }
