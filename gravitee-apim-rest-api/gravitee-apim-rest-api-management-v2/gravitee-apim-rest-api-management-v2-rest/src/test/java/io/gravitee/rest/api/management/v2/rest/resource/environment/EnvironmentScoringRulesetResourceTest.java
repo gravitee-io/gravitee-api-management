@@ -23,6 +23,7 @@ import inmemory.InMemoryAlternative;
 import inmemory.ScoringRulesetCrudServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.management.v2.rest.model.ScoringAssetFormat;
 import io.gravitee.rest.api.management.v2.rest.model.ScoringRuleset;
 import io.gravitee.rest.api.management.v2.rest.model.ScoringRulesetReferenceType;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateScoringRuleset;
@@ -119,7 +120,7 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
                         .id("ruleset-id")
                         .name("ruleset-name")
                         .description("ruleset-description")
-                        .format(ScoringRuleset.FormatEnum.GRAVITEE_PROXY)
+                        .format(ScoringAssetFormat.GRAVITEE_PROXY)
                         .referenceId(ENVIRONMENT)
                         .referenceType(ScoringRulesetReferenceType.ENVIRONMENT)
                         .payload("payload-ruleset-id")
@@ -165,7 +166,7 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
                         .id("ruleset-id")
                         .name("updated-name")
                         .description("updated-description")
-                        .format(ScoringRuleset.FormatEnum.GRAVITEE_PROXY)
+                        .format(ScoringAssetFormat.GRAVITEE_PROXY)
                         .payload("ruleset-payload")
                         .referenceId("my-env")
                         .referenceType(ScoringRulesetReferenceType.ENVIRONMENT)
