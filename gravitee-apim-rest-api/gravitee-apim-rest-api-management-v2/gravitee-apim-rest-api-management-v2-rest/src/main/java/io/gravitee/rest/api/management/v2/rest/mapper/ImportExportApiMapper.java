@@ -60,7 +60,8 @@ public interface ImportExportApiMapper {
             case null -> null;
             case GraviteeDefinition.V4 v4 -> map(v4);
             case GraviteeDefinition.Native natV4 -> map(natV4);
-            case GraviteeDefinition.GraviteeDefinitionFederated fed -> throw new IllegalStateException("Unexpected API: " + src);
+            // we don't allow to export federated APIs
+            case GraviteeDefinition.Federated fed -> throw new IllegalStateException("Unexpected API: " + src);
         };
     }
 
@@ -73,6 +74,7 @@ public interface ImportExportApiMapper {
             case null -> null;
             case ApiDescriptor.ApiDescriptorV4 v4 -> map(v4);
             case ApiDescriptor.ApiDescriptorNative natV4 -> map(natV4);
+            // we don't allow to export federated APIs
             case ApiDescriptor.ApiDescriptorFederated fed -> throw new IllegalStateException("Unexpected API: " + src);
         };
     }

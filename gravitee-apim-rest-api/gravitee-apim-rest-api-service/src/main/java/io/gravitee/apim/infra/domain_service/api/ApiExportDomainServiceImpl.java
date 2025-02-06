@@ -99,14 +99,16 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
             .findFirst()
             .orElse(null);
 
+        var plans = !excluded.contains(Excludable.PLANS) ? exportApiPlansV4(apiId) : null;
         if (api1.getDefinitionVersion() == DefinitionVersion.V4 && api1.getApiDefinitionHttpV4() != null) {
             var api = exportV4(api1, apiPrimaryOwner, metadata, workflowState, excluded);
-            var plans = !excluded.contains(Excludable.PLANS) ? exportApiPlansV4(apiId) : null;
             return new GraviteeDefinition.V4(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
         } else if (api1.getDefinitionVersion() == DefinitionVersion.V4 && api1.getApiDefinitionNativeV4() != null) {
             var api = exportNative(api1, apiPrimaryOwner, metadata, workflowState, excluded);
-            var plans = !excluded.contains(Excludable.PLANS) ? exportApiPlansNative(apiId) : null;
             return new GraviteeDefinition.Native(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
+        } else if (api1.getDefinitionVersion() == DefinitionVersion.FEDERATED && api1.getFederatedApiDefinition() != null) {
+            var api = exportFederated(api1, apiPrimaryOwner, metadata, workflowState, excluded);
+            return new GraviteeDefinition.Federated(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
         } else {
             throw new ApiDefinitionVersionNotSupportedException(
                 api1.getDefinitionVersion() != null ? api1.getDefinitionVersion().getLabel() : null
@@ -134,6 +136,17 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
     ) {
         var groups = excluded.contains(GROUPS) ? null : nativeApi.getGroups();
         return GraviteeDefinitionAdapter.INSTANCE.mapNative(nativeApi, primaryOwner, workflowState, groups, metadata);
+    }
+
+    private ApiDescriptor.ApiDescriptorFederated exportFederated(
+        Api apiEntity,
+        PrimaryOwnerEntity primaryOwner,
+        @Nullable Set<NewApiMetadata> metadata,
+        @Nullable WorkflowState workflowState,
+        Collection<Excludable> excluded
+    ) {
+        var groups = excluded.contains(GROUPS) ? null : apiEntity.getGroups();
+        return GraviteeDefinitionAdapter.INSTANCE.mapFederated(apiEntity, primaryOwner, workflowState, groups, metadata);
     }
 
     private Set<ApiMember> exportApiMembers(String apiId) {
@@ -164,12 +177,6 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
     }
 
     private Collection<PlanDescriptor.PlanDescriptorV4> exportApiPlansV4(String apiId) {
-        return permissionService.hasPermission(GraviteeContext.getExecutionContext(), API_PLAN, apiId, READ)
-            ? GraviteeDefinitionAdapter.INSTANCE.mapPlanV4(planCrudService.findByApiId(apiId))
-            : null;
-    }
-
-    private Collection<PlanDescriptor.PlanDescriptorV4> exportApiPlansNative(String apiId) {
         return permissionService.hasPermission(GraviteeContext.getExecutionContext(), API_PLAN, apiId, READ)
             ? GraviteeDefinitionAdapter.INSTANCE.mapPlanV4(planCrudService.findByApiId(apiId))
             : null;

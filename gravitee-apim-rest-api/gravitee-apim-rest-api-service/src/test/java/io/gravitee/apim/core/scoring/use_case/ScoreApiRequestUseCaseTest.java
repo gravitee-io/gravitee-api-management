@@ -121,7 +121,7 @@ class ScoreApiRequestUseCaseTest {
                 scoringFunctionQueryService
             );
 
-        GraviteeDefinition build = GraviteeDefinition.GraviteeDefinitionFederated
+        GraviteeDefinition build = GraviteeDefinition.Federated
             .builder()
             .api(ApiDescriptor.ApiDescriptorFederated.builder().id(MY_API).name(MY_API_NAME).build())
             .build();

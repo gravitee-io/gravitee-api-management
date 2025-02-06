@@ -57,7 +57,6 @@ public sealed interface ApiDescriptor {
     boolean disableMembershipNotifications();
     Map<String, Object> metadata();
     Set<String> groups();
-    Lifecycle.State state();
     Visibility visibility();
     List<String> labels();
     ApiLifecycleState lifecycleState();
@@ -171,7 +170,6 @@ public sealed interface ApiDescriptor {
         boolean disableMembershipNotifications,
         Map<String, Object> metadata,
         Set<String> groups,
-        Lifecycle.State state,
         Visibility visibility,
         List<String> labels,
         ApiLifecycleState lifecycleState,
@@ -181,7 +179,8 @@ public sealed interface ApiDescriptor {
         OriginContext originContext,
         WorkflowState workflowState,
         String picture,
-        String background
+        String background,
+        String providerId
     )
         implements ApiDescriptor {
         @JsonProperty("definitionVersion")
