@@ -113,6 +113,18 @@ public interface GraviteeDefinitionAdapter {
         Collection<NewApiMetadata> metadata
     );
 
+    @Mapping(target = "id", source = "apiEntity.id")
+    @Mapping(target = "type", source = "apiEntity.type")
+    @Mapping(target = "providerId", source = "apiEntity.federatedApiDefinition.providerId")
+    @Mapping(target = "lifecycleState", source = "apiEntity.apiLifecycleState")
+    ApiDescriptor.ApiDescriptorFederated mapFederated(
+        Api apiEntity,
+        PrimaryOwnerEntity primaryOwner,
+        WorkflowState workflowState,
+        Set<String> groups,
+        Collection<NewApiMetadata> metadata
+    );
+
     Set<NewApiMetadata> mapMetadata(Collection<Metadata> source);
 
     default Map<String, Object> map(Collection<NewApiMetadata> sources) {

@@ -94,7 +94,7 @@ public sealed interface GraviteeDefinition {
     }
 
     @Builder(toBuilder = true)
-    record GraviteeDefinitionFederated(
+    record Federated(
         Export export,
         ApiDescriptor.ApiDescriptorFederated api,
         Set<ApiMember> members,
@@ -106,7 +106,7 @@ public sealed interface GraviteeDefinition {
         String apiBackground
     )
         implements GraviteeDefinition {
-        public GraviteeDefinitionFederated(
+        public Federated(
             ApiDescriptor.ApiDescriptorFederated api,
             Set<ApiMember> members,
             Set<NewApiMetadata> metadata,

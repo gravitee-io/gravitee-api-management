@@ -103,8 +103,8 @@ class ExportApiUseCaseTest {
         return GraviteeDefinition.Native.builder().api(api).build();
     }
 
-    private static GraviteeDefinition.GraviteeDefinitionFederated buildFederatedDefinition(String id, String apiName, String apiVersion) {
+    private static GraviteeDefinition.Federated buildFederatedDefinition(String id, String apiName, String apiVersion) {
         var api = ApiDescriptor.ApiDescriptorFederated.builder().id(id).name(apiName).apiVersion(apiVersion).build();
-        return GraviteeDefinition.GraviteeDefinitionFederated.builder().api(api).build();
+        return GraviteeDefinition.Federated.builder().api(api).build();
     }
 }
