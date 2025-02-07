@@ -20,14 +20,17 @@
   <h1 class="title">Rulesets & Functions</h1>
 
   <div class="back-link">
-    <a mat-button routerLink=".."><mat-icon svgIcon="gio:arrow-left"></mat-icon>Go back</a>
+    <a mat-button routerLink="..">
+      <mat-icon svgIcon="gio:arrow-left"></mat-icon>
+      Go back</a
+    >
   </div>
   <mat-card>
     <mat-card-header>
       <mat-card-title class="mat-h3 card-title">Import a Ruleset</mat-card-title>
       <mat-card-subtitle class="mat-body subtitle"
-        >Rulesets let you define rules that governs how your APIs behaves and interacts.</mat-card-subtitle
-      >
+        >Rulesets let you define rules that governs how your APIs behaves and interacts.
+      </mat-card-subtitle>
     </mat-card-header>
 
     <div class="separator-hr"></div>
@@ -63,19 +66,23 @@
 
           @if (definitionFormatValue.value === 'GraviteeAPI') {
             <div class="form-section">
-              <h3 class="form-section__title">Gravitee API Format</h3>
-              <gio-form-selection-inline data-testid="gravitee-api-format-selection" formControlName="graviteeApiFormat">
-                <gio-form-selection-inline-card [value]="RulesetFormat.GRAVITEE_PROXY">
-                  <gio-form-selection-inline-card-content icon="gio:laptop">
-                    <gio-card-content-title>Gravitee Proxy API</gio-card-content-title>
-                  </gio-form-selection-inline-card-content>
-                </gio-form-selection-inline-card>
-                <gio-form-selection-inline-card [value]="RulesetFormat.GRAVITEE_MESSAGE">
-                  <gio-form-selection-inline-card-content icon="gio:message-text">
-                    <gio-card-content-title>Gravitee Message API</gio-card-content-title>
-                  </gio-form-selection-inline-card-content>
-                </gio-form-selection-inline-card>
-              </gio-form-selection-inline>
+              <mat-card class="selection-mat-card">
+                <mat-card-header>
+                  <h3 class="form-section__title">Gravitee API Formats</h3>
+                </mat-card-header>
+                <mat-card-content>
+                  <gio-form-selection-inline data-testid="gravitee-api-format-selection" formControlName="graviteeApiFormat" class="list">
+                    @for (item of graviteeAPIFormats; track item.value) {
+                      <gio-form-selection-inline-card [value]="item.value" [disabled]="item.isDisabled" class="inline-card">
+                        <gio-form-selection-inline-card-content>
+                          <gio-card-content-title>{{ item.title }}</gio-card-content-title>
+                          <gio-card-content-subtitle>{{ item.subtitle }} </gio-card-content-subtitle>
+                        </gio-form-selection-inline-card-content>
+                      </gio-form-selection-inline-card>
+                    }
+                  </gio-form-selection-inline>
+                </mat-card-content>
+              </mat-card>
             </div>
           }
 
@@ -84,9 +91,9 @@
             <mat-form-field appearance="outline" class="form-field">
               <input id="name" type="text" matInput formControlName="name" required="true" data-testid="name-input" />
               <mat-label>Set Your Custom Name</mat-label>
-              <mat-hint align="start" class="hint">Use this custom name to organize and identify specific ruleset more easily</mat-hint>
-              <mat-error *ngIf="form.get('name').hasError('required')">Ruleset name is required. </mat-error>
-              <mat-error *ngIf="form.get('name').hasError('maxlength')">Ruleset name can not exceed 50 characters.</mat-error>
+              <mat-hint align="start" class="hint">Use this custom name to organize and identify specific ruleset more easily </mat-hint>
+              <mat-error *ngIf="form.get('name').hasError('required')">Ruleset name is required.</mat-error>
+              <mat-error *ngIf="form.get('name').hasError('maxlength')">Ruleset name can not exceed 50 characters. </mat-error>
               <mat-error *ngIf="form.get('name').hasError('minlength')">Ruleset name has to be at least 1 characters long. </mat-error>
             </mat-form-field>
             <mat-form-field appearance="outline" class="form-field">
@@ -131,7 +138,7 @@
               Import
             </button>
 
-            <a mat-button mat-raised-button routerLink=".." aria-label="Cancel">Cancel</a>
+            <a mat-button mat-raised-button routerLink=".." aria-label="Cancel" data-testid="cancel-button">Cancel</a>
           </div>
         </form>
       </mat-card-content>
