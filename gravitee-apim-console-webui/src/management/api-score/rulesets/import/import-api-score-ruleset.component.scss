@@ -68,15 +68,29 @@ textarea {
   gap: 32px;
 }
 
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .inline-card {
+    ::ng-deep {
+      .card__content {
+        background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
+      }
+    }
+  }
+}
+
 .form-section {
   &__title {
     font-size: 16px;
   }
+}
 
-  &__subtitle {
-    margin-bottom: 16px;
-    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-  }
+.selection-mat-card {
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+  background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
 }
 
 .form-actions {

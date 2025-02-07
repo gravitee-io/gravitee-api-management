@@ -51,4 +51,5 @@ export class ImportApiScoreRulesetHarness extends ComponentHarness {
   }
 
   locatorForSubmitImportButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid=import-button]' }));
+  locatorForCancelImportButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid=cancel-button]' }));
 }
