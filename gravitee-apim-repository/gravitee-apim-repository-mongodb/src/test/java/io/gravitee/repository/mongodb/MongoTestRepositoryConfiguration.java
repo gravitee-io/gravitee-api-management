@@ -145,10 +145,11 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
         Map<String, Map<String, Object>> kmsProviders = new HashMap<>();
         kmsProviders.put("local", localKmsProvider);
 
+        String collectionName = environment.getProperty("management.mongodb.encryption.keyVault.collectionName");
         ClientEncryptionSettings.Builder builder = ClientEncryptionSettings
             .builder()
             // The collection in MongoDB where the Data Encryption Keys (DEKs) will be stored.
-            .keyVaultNamespace("test.test_prefix___dataKeys")
+            .keyVaultNamespace("test.test_prefix_" + collectionName)
             .keyVaultMongoClientSettings(
                 MongoClientSettings.builder().applyConnectionString(new ConnectionString(mongoDBContainer.getReplicaSetUrl())).build()
             )
@@ -157,9 +158,11 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
         ClientEncryption clientEncryption = ClientEncryptions.create(builder.build());
 
         // Initialize the Data Encryption Key if not already existing.
-        BsonDocument keyByAltName = clientEncryption.getKeyByAltName("cloud-repository");
+        String keyAlternativeName = environment.getProperty("management.mongodb.encryption.keyVault.keyAlternativeName");
+
+        BsonDocument keyByAltName = clientEncryption.getKeyByAltName(keyAlternativeName);
         if (keyByAltName == null) {
-            clientEncryption.createDataKey("local", new DataKeyOptions().keyAltNames(List.of("cloud-repository")));
+            clientEncryption.createDataKey("local", new DataKeyOptions().keyAltNames(List.of(keyAlternativeName)));
         }
 
         return clientEncryption;
