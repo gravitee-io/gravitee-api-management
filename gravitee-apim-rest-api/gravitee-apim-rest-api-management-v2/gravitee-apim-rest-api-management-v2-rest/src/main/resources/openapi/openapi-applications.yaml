@@ -1,0 +1,132 @@
+openapi: 3.0.3
+info:
+    title: Gravitee.io APIM - Management API - Applications
+    description: |-
+        This is the OpenAPI specification for our new version of APIM Management API.
+    contact:
+        email: team-apim@graviteesource.com
+    license:
+        name: Apache 2.0
+        url: http://www.apache.org/licenses/LICENSE-2.0.html
+    version: 2.0.0
+
+security:
+    - BasicAuth: []
+    - CookieAuth: []
+
+servers:
+    - url: "{protocol}://{managementAPIHost}/management/v2"
+      description: APIM Management API v2 - Default base URL
+      variables:
+          protocol:
+              description: The protocol you want to use to communicate with the mAPI
+              default: https
+              enum:
+                  - https
+                  - http
+          managementAPIHost:
+              description: The domain of the server hosting your Management API
+              default: localhost:8083
+    - url: "{protocol}://{managementAPIHost}/management/v2/organizations/{orgId}"
+      description: APIM Management API v2 - Base URL to target specific organizations
+      variables:
+          protocol:
+              description: The protocol you want to use to communicate with the mAPI
+              default: https
+              enum:
+                  - https
+                  - http
+          managementAPIHost:
+              description: The domain of the server hosting your Management API
+              default: localhost:8083
+          orgId:
+              description: The unique ID of your organization
+              default: DEFAULT
+
+paths:
+    /environments/{envId}/applications/{applicationId}/dictionary:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/applicationIdParam"
+        get:
+            summary: Get the application's dictionary
+            operationId: getApplicationDictionary
+            responses:
+                "200":
+                    description: The application's dictionary
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApplicationDictionary"
+        post:
+            summary: Update the application's dictionary
+            operationId: updateApplicationDictionary
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ApplicationDictionary"
+            responses:
+                "201":
+                    description: The application's dictionary has been updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApplicationDictionary"
+
+components:
+    schemas:
+      Dictionary:
+        type: object
+        required: [description, type, properties]
+        properties:
+          name:
+            type: string
+          description:
+            type: string
+          type:
+            type: string
+            enum:
+              - MANUAL
+              - DYNAMIC
+          properties:
+            type: object
+            additionalProperties:
+              type: string
+      ApplicationDictionary:
+        description: Application dictionary
+        type: object
+        required: [enabled, dictionary]
+        properties:
+          enabled:
+            type: boolean
+          dictionary:
+            $ref: "#/components/schemas/Dictionary"
+    parameters:
+        #############
+        # PathParam #
+        #############
+        envIdParam:
+            name: envId
+            in: path
+            required: true
+            description: Id or Hrid (Human readable Id) of an environment.
+            schema:
+                type: string
+                default: DEFAULT
+        applicationIdParam:
+            name: applicationId
+            in: path
+            required: true
+            description: Id of an application.
+            schema:
+                type: string
+    securitySchemes:
+        BasicAuth:
+            type: http
+            scheme: basic
+        CookieAuth:
+            type: apiKey
+            in: cookie
+            name: Auth-Graviteeio-APIM
