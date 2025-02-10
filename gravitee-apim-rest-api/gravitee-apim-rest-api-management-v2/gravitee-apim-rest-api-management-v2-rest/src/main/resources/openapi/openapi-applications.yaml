@@ -81,6 +81,8 @@ components:
         type: object
         required: [description, type, properties]
         properties:
+          name:
+            type: string
           description:
             type: string
           type:

@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.application_dictionary.model.Dictionary;
+import io.gravitee.apim.core.application_dictionary.model.ManualDictionary;
 import io.gravitee.apim.core.application_dictionary.use_case.UpdateApplicationDictionaryUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.ApplicationDictionary;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -29,14 +31,24 @@ public interface ApplicationDictionaryMapper {
     @Mapping(target = "applicationId", source = "applicationId")
     @Mapping(target = "enabled", source = "applicationDictionary.enabled")
     @Mapping(target = "executionContext", expression = "java(GraviteeContext.getExecutionContext())")
-    @Mapping(target = "type", source = "applicationDictionary.dictionary.type")
-    @Mapping(target = "properties", source = "applicationDictionary.dictionary.properties")
-    @Mapping(target = "description", source = "applicationDictionary.dictionary.description")
+    @Mapping(target = "dictionary", expression = "java(toCoreDictionary(applicationId, applicationDictionary))")
     UpdateApplicationDictionaryUseCase.Input toInput(String applicationId, ApplicationDictionary applicationDictionary);
 
     @Mapping(target = "enabled", source = "output.enabled")
-    @Mapping(target = "dictionary.properties", source = "output.dictionary.properties")
-    @Mapping(target = "dictionary.type", source = "output.dictionary.type")
-    @Mapping(target = "dictionary.description", source = "output.dictionary.description")
+    @Mapping(target = "dictionary", source = "output.dictionary")
     ApplicationDictionary toApplicationDictionary(UpdateApplicationDictionaryUseCase.Output output);
+
+    @Mapping(target = "id", source = "applicationId")
+    @Mapping(target = "name", source = "applicationDictionary.dictionary.name")
+    @Mapping(target = "description", source = "applicationDictionary.dictionary.description")
+    @Mapping(target = "properties", source = "applicationDictionary.dictionary.properties")
+    ManualDictionary toManualDictionary(String applicationId, ApplicationDictionary applicationDictionary);
+
+    default Dictionary toCoreDictionary(String applicationId, ApplicationDictionary applicationDictionary) {
+        if (applicationDictionary.getDictionary().getType() == io.gravitee.rest.api.management.v2.rest.model.Dictionary.TypeEnum.MANUAL) {
+            return toManualDictionary(applicationId, applicationDictionary);
+        }
+
+        throw new IllegalArgumentException("Dynamic dictionary is not supported");
+    }
 }

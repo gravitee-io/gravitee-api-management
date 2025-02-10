@@ -16,7 +16,7 @@
 package inmemory;
 
 import io.gravitee.apim.core.application_dictionary.crud_service.ApplicationDictionaryCrudService;
-import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.apim.core.application_dictionary.model.Dictionary;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Map;

@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.application_dictionary.crud_service;
+package io.gravitee.apim.core.application_dictionary.model;
 
-import io.gravitee.apim.core.application_dictionary.model.Dictionary;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Optional;
+import java.util.Map;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-public interface ApplicationDictionaryCrudService {
-    Optional<Dictionary> findById(String dictionaryId);
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class ManualDictionary extends Dictionary {
 
-    void delete(ExecutionContext executionContext, Dictionary dictionary);
-
-    Dictionary create(ExecutionContext executionContext, Dictionary dictionary);
-
-    Dictionary update(ExecutionContext executionContext, Dictionary dictionary);
+    private Map<String, String> properties;
 }

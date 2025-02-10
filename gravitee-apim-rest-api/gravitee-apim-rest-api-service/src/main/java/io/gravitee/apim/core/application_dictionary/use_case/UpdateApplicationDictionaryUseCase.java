@@ -18,10 +18,9 @@ package io.gravitee.apim.core.application_dictionary.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.application_dictionary.crud_service.ApplicationDictionaryCrudService;
-import io.gravitee.repository.management.model.Dictionary;
-import io.gravitee.repository.management.model.DictionaryType;
+import io.gravitee.apim.core.application_dictionary.model.Dictionary;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -49,32 +48,33 @@ public class UpdateApplicationDictionaryUseCase {
 
         if (dictionary.isEmpty()) {
             log.debug("Create dictionary for application {}", input.applicationId());
-            if (input.type() == DictionaryType.DYNAMIC) {
-                log.error("Dynamic dictionary is not supported");
-                throw new IllegalArgumentException("Dynamic dictionary is not supported");
-            }
-            return create(input.executionContext(), input.applicationId(), input.properties(), input.description());
+            return create(input.executionContext(), input.applicationId(), input.dictionary);
         }
 
-        return update(input.executionContext(), dictionary.get(), input.properties(), input.description());
+        return update(input.executionContext(), dictionary.get(), input.dictionary);
     }
 
-    private Output update(ExecutionContext executionContext, Dictionary dictionary, Map<String, String> properties, String description) {
-        dictionary.setProperties(properties);
-        dictionary.setDescription(description);
-        Dictionary updated = applicationDictionaryCrudService.update(executionContext, dictionary);
+    private Output update(ExecutionContext executionContext, Dictionary existing, Dictionary updated) {
+        if (!updated.getId().equals(existing.getId())) {
+            throw new IllegalArgumentException("Dictionary id cannot be changed");
+        }
+
+        if (!Objects.equals(updated.getName(), existing.getName())) {
+            throw new IllegalArgumentException("Dictionary name cannot be changed");
+        }
+
+        updated = applicationDictionaryCrudService.update(executionContext, updated);
         return new Output(true, updated);
     }
 
-    private Output create(ExecutionContext executionContext, String applicationId, Map<String, String> properties, String description) {
+    private Output create(ExecutionContext executionContext, String applicationId, Dictionary dictionary) {
         var application = applicationCrudService.findById(applicationId, executionContext.getEnvironmentId());
-        var toCreate = new Dictionary();
-        toCreate.setId(application.getId());
-        toCreate.setName(application.getName());
-        toCreate.setType(DictionaryType.MANUAL);
-        toCreate.setProperties(properties);
-        toCreate.setDescription(description);
-        Dictionary created = applicationDictionaryCrudService.create(executionContext, toCreate);
+
+        if (application == null) {
+            throw new IllegalArgumentException("Application not found");
+        }
+
+        Dictionary created = applicationDictionaryCrudService.create(executionContext, dictionary);
         return new Output(true, created);
     }
 
@@ -83,14 +83,7 @@ public class UpdateApplicationDictionaryUseCase {
         return new Output(false, null);
     }
 
-    public record Input(
-        String applicationId,
-        boolean enabled,
-        ExecutionContext executionContext,
-        DictionaryType type,
-        Map<String, String> properties,
-        String description
-    ) {}
+    public record Input(boolean enabled, ExecutionContext executionContext, Dictionary dictionary, String applicationId) {}
 
     public record Output(boolean enabled, Dictionary dictionary) {}
 }

@@ -13,18 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.application_dictionary.crud_service;
+package io.gravitee.apim.core.application_dictionary.model;
 
-import io.gravitee.apim.core.application_dictionary.model.Dictionary;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Optional;
+import java.util.Date;
+import lombok.Data;
 
-public interface ApplicationDictionaryCrudService {
-    Optional<Dictionary> findById(String dictionaryId);
+@Data
+public abstract class Dictionary {
 
-    void delete(ExecutionContext executionContext, Dictionary dictionary);
+    private String id;
+    private String environmentId;
+    private String name;
+    private String description;
+    private Date createdAt;
+    private Date updatedAt;
+    private Date deployedAt;
+    private LifecycleState state = LifecycleState.STOPPED;
 
-    Dictionary create(ExecutionContext executionContext, Dictionary dictionary);
-
-    Dictionary update(ExecutionContext executionContext, Dictionary dictionary);
+    public enum LifecycleState {
+        STOPPED,
+        STARTED,
+    }
 }

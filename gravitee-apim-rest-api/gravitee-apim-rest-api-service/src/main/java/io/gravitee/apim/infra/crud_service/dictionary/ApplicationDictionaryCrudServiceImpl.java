@@ -19,6 +19,7 @@ import static io.gravitee.repository.management.model.Audit.AuditProperties.DICT
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_UPDATED;
 
 import io.gravitee.apim.core.application_dictionary.crud_service.ApplicationDictionaryCrudService;
+import io.gravitee.apim.infra.adapter.DictionaryAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Dictionary;
@@ -57,20 +58,21 @@ public class ApplicationDictionaryCrudServiceImpl implements ApplicationDictiona
     }
 
     @Override
-    public Optional<Dictionary> findById(String applicationId) {
+    public Optional<io.gravitee.apim.core.application_dictionary.model.Dictionary> findById(String applicationId) {
         try {
-            return dictionaryRepository.findById(applicationId);
+            Optional<Dictionary> entity = dictionaryRepository.findById(applicationId);
+            return entity.map(DictionaryAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to find a dictionary for application " + applicationId, e);
         }
     }
 
     @Override
-    public void delete(ExecutionContext executionContext, Dictionary dictionary) {
-        var workingDictionary = dictionary;
-        if (dictionary.getType() == DictionaryType.DYNAMIC) {
+    public void delete(ExecutionContext executionContext, io.gravitee.apim.core.application_dictionary.model.Dictionary dictionary) {
+        var workingDictionary = DictionaryAdapter.INSTANCE.toRepository(dictionary);
+        if (workingDictionary.getType() == DictionaryType.DYNAMIC) {
             log.debug("Stop dictionary for application {}", dictionary.getId());
-            workingDictionary = stop(executionContext, dictionary);
+            workingDictionary = stop(executionContext, workingDictionary);
         }
 
         log.debug("Delete dictionary for application {}", workingDictionary.getId());
@@ -99,15 +101,17 @@ public class ApplicationDictionaryCrudServiceImpl implements ApplicationDictiona
     }
 
     @Override
-    public Dictionary create(ExecutionContext executionContext, Dictionary dictionary) {
+    public io.gravitee.apim.core.application_dictionary.model.Dictionary create(
+        ExecutionContext executionContext,
+        io.gravitee.apim.core.application_dictionary.model.Dictionary dictionary
+    ) {
         dictionary.setEnvironmentId(executionContext.getEnvironmentId());
 
         dictionary.setCreatedAt(new Date());
-        dictionary.setState(LifecycleState.STOPPED);
         dictionary.setUpdatedAt(dictionary.getCreatedAt());
 
         try {
-            Dictionary createdDictionary = dictionaryRepository.create(dictionary);
+            Dictionary createdDictionary = dictionaryRepository.create(DictionaryAdapter.INSTANCE.toRepository(dictionary));
             auditService.createAuditLog(
                 executionContext,
                 Collections.singletonMap(DICTIONARY, dictionary.getName()),
@@ -117,20 +121,23 @@ public class ApplicationDictionaryCrudServiceImpl implements ApplicationDictiona
                 createdDictionary
             );
 
-            return createdDictionary;
+            return DictionaryAdapter.INSTANCE.toEntity(createdDictionary);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to create dictionary " + dictionary.getId(), e);
         }
     }
 
     @Override
-    public Dictionary update(ExecutionContext executionContext, Dictionary dictionary) {
+    public io.gravitee.apim.core.application_dictionary.model.Dictionary update(
+        ExecutionContext executionContext,
+        io.gravitee.apim.core.application_dictionary.model.Dictionary dictionary
+    ) {
         dictionary.setEnvironmentId(executionContext.getEnvironmentId());
 
         dictionary.setUpdatedAt(new Date());
         Dictionary updatedDictionary;
         try {
-            updatedDictionary = dictionaryRepository.update(dictionary);
+            updatedDictionary = dictionaryRepository.update(DictionaryAdapter.INSTANCE.toRepository(dictionary));
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to update dictionary " + dictionary.getId(), e);
         }
@@ -144,7 +151,7 @@ public class ApplicationDictionaryCrudServiceImpl implements ApplicationDictiona
             updatedDictionary
         );
 
-        return updatedDictionary;
+        return DictionaryAdapter.INSTANCE.toEntity(updatedDictionary);
     }
 
     private Dictionary stop(ExecutionContext executionContext, Dictionary dictionary) {

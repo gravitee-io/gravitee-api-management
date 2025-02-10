@@ -52,6 +52,7 @@ import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
 import io.gravitee.apim.core.application.use_case.ValidateApplicationCRDUseCase;
+import io.gravitee.apim.core.application_dictionary.crud_service.ApplicationDictionaryCrudService;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
@@ -697,5 +698,10 @@ public class ResourceContextConfiguration {
     @Bean
     public SharedPolicyGroupCrudService sharedPolicyGroupCrudService() {
         return new SharedPolicyGroupCrudServiceInMemory();
+    }
+
+    @Bean
+    public ApplicationDictionaryCrudService applicationDictionaryCrudService() {
+        return mock(ApplicationDictionaryCrudService.class);
     }
 }

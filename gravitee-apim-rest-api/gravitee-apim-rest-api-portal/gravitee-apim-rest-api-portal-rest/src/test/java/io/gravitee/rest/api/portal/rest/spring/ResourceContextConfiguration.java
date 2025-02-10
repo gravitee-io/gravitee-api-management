@@ -43,6 +43,7 @@ import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
+import io.gravitee.apim.core.application_dictionary.crud_service.ApplicationDictionaryCrudService;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
@@ -112,7 +113,6 @@ import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ThemeMapper;
 import io.gravitee.rest.api.portal.rest.mapper.TicketMapper;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
-import io.gravitee.rest.api.portal.rest.resource.ApiMetricsResourceTest;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
@@ -835,5 +835,10 @@ public class ResourceContextConfiguration {
         CRDMembersDomainService crdMembersDomainService
     ) {
         return new ImportGroupCRDUseCase(validateGroupCRDDomainService, groupQueryService, groupCrudService, crdMembersDomainService);
+    }
+
+    @Bean
+    public ApplicationDictionaryCrudService applicationDictionaryCrudService() {
+        return mock(ApplicationDictionaryCrudService.class);
     }
 }
