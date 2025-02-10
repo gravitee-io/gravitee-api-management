@@ -98,13 +98,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class PlanServiceImpl extends AbstractService implements PlanService {
 
-    private static final List<PlanSecurityEntity> DEFAULT_SECURITY_LIST = Collections.unmodifiableList(
-        Arrays.asList(
-            new PlanSecurityEntity("oauth2", "OAuth2", "oauth2"),
-            new PlanSecurityEntity("jwt", "JWT", "'jwt'"),
-            new PlanSecurityEntity("api_key", "API Key", "api-key"),
-            new PlanSecurityEntity("key_less", "Keyless (public)", "")
-        )
+    private static final List<PlanSecurityEntity> DEFAULT_SECURITY_LIST = List.of(
+        new PlanSecurityEntity("oauth2", "OAuth2", "oauth2"),
+        new PlanSecurityEntity("jwt", "JWT", "'jwt'"),
+        new PlanSecurityEntity("api_key", "API Key", "api-key"),
+        new PlanSecurityEntity("key_less", "Keyless (public)", "")
     );
     private final Logger logger = LoggerFactory.getLogger(PlanServiceImpl.class);
 
@@ -371,7 +369,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
                 subscriptionService
                     .findByPlan(executionContext, planId)
-                    .stream()
                     .forEach(subscription -> {
                         try {
                             closeSubscriptionDomainService.closeSubscription(subscription.getId(), auditInfo);
@@ -477,14 +474,12 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             // Update plan status
             plan.setStatus(Plan.Status.PUBLISHED);
             // Update plan order
-            List<Plan> orderedPublishedPlans = plans
+            var orderedPublishedPlans = plans
                 .stream()
                 .filter(plan1 -> Plan.Status.PUBLISHED.equals(plan1.getStatus()))
                 .sorted(Comparator.comparingInt(Plan::getOrder))
-                .collect(Collectors.toList());
-            plan.setOrder(
-                orderedPublishedPlans.isEmpty() ? 1 : (orderedPublishedPlans.get(orderedPublishedPlans.size() - 1).getOrder() + 1)
-            );
+                .toList();
+            plan.setOrder(orderedPublishedPlans.isEmpty() ? 1 : (orderedPublishedPlans.getLast().getOrder() + 1));
 
             plan.setPublishedAt(new Date());
             plan.setUpdatedAt(plan.getPublishedAt());
