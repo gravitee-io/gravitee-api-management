@@ -20,8 +20,8 @@ import io.gravitee.rest.api.model.NewPlanEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlansConfigurationEntity;
 import io.gravitee.rest.api.model.UpdatePlanEntity;
-import io.gravitee.rest.api.model.plan.PlanQuery;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +32,7 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface PlanService {
+    @Nullable
     PlanEntity findById(ExecutionContext executionContext, String plan);
 
     Set<PlanEntity> findByApi(ExecutionContext executionContext, String api);

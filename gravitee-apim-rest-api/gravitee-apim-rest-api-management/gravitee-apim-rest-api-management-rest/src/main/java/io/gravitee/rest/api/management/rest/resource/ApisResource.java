@@ -20,7 +20,6 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
@@ -569,7 +568,7 @@ public class ApisResource extends AbstractResource {
         );
 
         return new PagedResult<>(
-            apis.getContent().stream().map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled)).collect(toList()),
+            apis.getContent().stream().map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled)).toList(),
             apis.getPageNumber(),
             (int) apis.getPageElements(),
             (int) apis.getTotalElements()
@@ -667,8 +666,8 @@ public class ApisResource extends AbstractResource {
         }
 
         // Issue https://github.com/gravitee-io/issues/issues/3356
-        if (api.getProxy().getVirtualHosts() != null && !api.getProxy().getVirtualHosts().isEmpty()) {
-            apiItem.setContextPath(api.getProxy().getVirtualHosts().get(0).getPath());
+        if (api.getProxy() != null && CollectionUtils.isEmpty(api.getProxy().getVirtualHosts())) {
+            apiItem.setContextPath(api.getProxy().getVirtualHosts().getFirst().getPath());
         }
 
         if (api.getDefinitionContext() != null && !api.getDefinitionContext().getOrigin().isEmpty()) {
