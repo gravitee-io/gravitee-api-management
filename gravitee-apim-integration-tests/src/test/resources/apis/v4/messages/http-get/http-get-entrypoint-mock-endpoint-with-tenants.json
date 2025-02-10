@@ -1,0 +1,66 @@
+{
+  "id": "http-get-entrypoint-mock-endpoint-with-tenants",
+  "name": "http-get-entrypoint-mock-endpoint-with-tenants",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "API v4 using HTTP-GET entrypoint",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-get",
+          "configuration": {
+            "messagesLimitCount":  12,
+            "messagesLimitDurationMs": 500
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "tenant-1",
+      "type": "mock",
+      "loadBalancer": {
+        "type": "round-robin"
+      },
+      "endpoints": [
+        {
+          "name": "tenant-1",
+          "type": "mock",
+          "weight": 1,
+          "tenants": ["tenant-1"],
+          "inheritConfiguration": false,
+          "configuration": {
+            "messageInterval": 1,
+            "messageContent": "message from endpoint tenant-1",
+            "messageCount": 1000
+          }
+        },
+        {
+          "name": "tenant-2",
+          "type": "mock",
+          "weight": 1,
+          "tenants": ["tenant-2"],
+          "inheritConfiguration": false,
+          "configuration": {
+            "messageInterval": 1,
+            "messageContent": "message from endpoint tenant-1",
+            "messageCount": 1000
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [],
+  "analytics": {
+     "enabled" : true
+  }
+}
