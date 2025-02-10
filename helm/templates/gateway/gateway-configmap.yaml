@@ -209,8 +209,14 @@ data:
       {{- if hasKey .Values.gateway.kafka "requestTimeout" }}
       requestTimeout: {{ .Values.gateway.kafka.requestTimeout }}
       {{- end}}
+      {{- if hasKey .Values.gateway.kafka "secured" }}
+      secured: {{ .Values.gateway.kafka.secured }}
+      {{- end}}
       {{- if .Values.gateway.kafka.ssl }}
       ssl:
+        {{- if hasKey .Values.gateway.kafka.ssl "sni" }}
+        sni: {{ .Values.gateway.kafka.ssl.sni }}
+        {{- end}}
         {{- if hasKey .Values.gateway.kafka.ssl "clientAuth" }}
         clientAuth: {{ .Values.gateway.kafka.ssl.clientAuth }}
         {{- end}}
@@ -218,7 +224,7 @@ data:
         tlsProtocols: {{ .Values.gateway.kafka.ssl.tlsProtocols }}
         {{- end}}
         {{- if hasKey .Values.gateway.kafka.ssl "tlsCiphers" }}
-        tlsProtocols: {{ .Values.gateway.kafka.ssl.tlsCiphers }}
+        tlsCiphers: {{ .Values.gateway.kafka.ssl.tlsCiphers }}
         {{- end}}
         {{- if .Values.gateway.kafka.ssl.keystore }}
         keystore:
@@ -228,14 +234,21 @@ data:
           {{- if .Values.gateway.kafka.ssl.keystore.path }}
           path: {{ .Values.gateway.kafka.ssl.keystore.path }}
           {{- end }}
+          {{- if .Values.gateway.kafka.ssl.keystore.certificates }}
+          certificates:
+            {{- range .Values.gateway.kafka.ssl.keystore.certificates }}
+            - cert: {{ .cert }}
+              key: {{ .key }}
+            {{- end }}
+          {{- end}}
           {{- if .Values.gateway.kafka.ssl.keystore.password }}
           password: {{ .Values.gateway.kafka.ssl.keystore.password | quote }}
           {{- end }}
-          {{- if .Values.gateway.kafka.ssl.keystore.kubernetes }}
-          kubernetes: {{ .Values.gateway.kafka.ssl.keystore.kubernetes }}
-          {{- end }}
           {{- if hasKey .Values.gateway.kafka.ssl.keystore "watch" }}
           watch: {{ .Values.gateway.kafka.ssl.keystore.watch }}
+          {{- end }}
+          {{- if hasKey .Values.gateway.kafka.ssl.keystore "defaultAlias" }}
+          defaultAlias: {{ .Values.gateway.kafka.ssl.keystore.defaultAlias }}
           {{- end }}
           {{- if hasKey .Values.gateway.kafka.ssl.keystore "secret" }}
           secret: {{ .Values.gateway.kafka.ssl.keystore.secret }}
@@ -246,8 +259,15 @@ data:
           {{- if .Values.gateway.kafka.ssl.truststore.type }}
           type: {{ .Values.gateway.kafka.ssl.truststore.type }}
           {{- end }}
+          {{- if .Values.gateway.kafka.ssl.truststore.path }}
           path: {{ .Values.gateway.kafka.ssl.truststore.path }}
+          {{- end }}
+          {{- if .Values.gateway.kafka.ssl.truststore.password }}
           password: {{ .Values.gateway.kafka.ssl.truststore.password | quote }}
+          {{- end }}
+          {{- if hasKey .Values.gateway.kafka.ssl.truststore "watch" }}
+          watch: {{ .Values.gateway.kafka.ssl.truststore.watch }}
+          {{- end }}
         {{- end }}
         {{- if hasKey .Values.gateway.kafka.ssl "openssl" }}
         openssl: {{ .Values.gateway.kafka.ssl.openssl }}

@@ -1,4 +1,4 @@
-suite: Test Management API configmap with tracining enabled
+suite: Test Management API configmap with tracing enabled
 templates:
   - "gateway/gateway-configmap.yaml"
 tests:
@@ -23,7 +23,7 @@ tests:
           routingMode: host
           routingHostMode:
             brokerPrefix: fox-
-            domainSeparator: |
+            domainSeparator: "|"
             defaultDomain: gravitee.io
             defaultPort: 42
           apiKey:
@@ -61,14 +61,25 @@ tests:
         kafka:
           enabled: true
           ssl:
+            clientAuth: none
+            tlsProtocols: TLSv1.2, TLSv1.3
+            tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
             keystore:
               type: jks
               path: /keystore
+              certificates:
+                - cert: /opt/apim/security/mycompany.org.pem
+                  key: /opt/apim/security/mycompany.org.key
               password: password-key
+              watch: "false"
+              defaultAlias: myAlias
+              secret: secret://kubernetes/my-tls-secret
             truststore:
               type: pem
               path: /truststore
               password: password-trust
+              watch: "false"
+            openssl: true
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
@@ -76,11 +87,23 @@ tests:
             kafka:
               enabled: true
               ssl:
+                clientAuth: none
+                tlsProtocols: TLSv1.2, TLSv1.3
+                tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
                 keystore:
                   type: jks
                   path: /keystore
+                  certificates:
+                    - cert: /opt/apim/security/mycompany.org.pem
+                      key: /opt/apim/security/mycompany.org.key
                   password: "password-key"
+                  watch: false
+                  defaultAlias: myAlias
+                  secret: secret://kubernetes/my-tls-secret
                 truststore:
                   type: pem
                   path: /truststore
                   password: "password-trust"
+                  watch: false
+                openssl: true
+

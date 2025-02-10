@@ -100,8 +100,9 @@ secrets:
 #          key: ${gravitee.home}/security/mycompany.com.key
 #      password: secret
 #      watch: true # Watch for any updates on the keystore and reload it. Default is true.
-#      The following is for type 'pem', report to 'secrets' section for other secret-provider plugins.
-#      This method is now the preferred way for kubernetes: /namespace/secrets/my-tls-secret
+#      defaultAlias: # Optional. Useful to target a particular key-pair when the keystore contains more than one.
+#      # The following is for type 'pem', report to 'secrets' section for other secret-provider plugins.
+#      # This method is now the preferred way for kubernetes: /namespace/secrets/my-tls-secret
 #      secret: secret://kubernetes/my-tls-secret
 #    truststore:
 #      type: jks # Supports jks, pem, pkcs12, pem-folder (for the latter watch supports added/updated/removed files)
@@ -148,6 +149,10 @@ secrets:
 #          key: ${gravitee.home}/security/mycompany.com.key
 #      password: secret
 #      watch: true # Watch for any updates on the keystore and reload it. Default is true.
+#      defaultAlias: # Optional. Useful to target a particular key-pair when the keystore contains more than one.
+#      # The following is for type 'pem', report to 'secrets' section for other secret-provider plugins.
+#      # This method is now the preferred way for kubernetes: /namespace/secrets/my-tls-secret
+#      secret: secret://kubernetes/my-tls-secret
 #    truststore:
 #      type: jks # Supports jks, pem, pkcs12, pem-folder (for the latter watch supports added/updated/removed files)
 #      path: ${gravitee.home}/security/truststore.jks
@@ -183,10 +188,10 @@ secrets:
 #  tcpKeepAlive: true
 #  instances: 0
 #  requestTimeout: 35_000 # default is 35_000 ms
-#  # TCP REQUIRES TLS to be set up properly
+#  # Forced to `true` when routingMode is `host`
 #  secured: true
 #  ssl:
-#    # TCP REQUIRES SNI to be setup to match APIs
+#    # Forced to `true` when routingMode is `host`
 #    sni: true
 #    clientAuth: none # Supports none, request, required
 #    tlsProtocols: TLSv1.2, TLSv1.3
@@ -201,15 +206,17 @@ secrets:
 #          key: ${gravitee.home}/security/mycompany.com.key
 #      password: secret
 #      watch: true # Watch for any updates on the keystore and reload it. Default is true.
+#      defaultAlias: # Optional. Useful to target a particular key-pair when the keystore contains more than one.
+#      # The following is for type 'pem', report to 'secrets' section for other secret-provider plugins.
+#      # This method is now the preferred way for kubernetes: /namespace/secrets/my-tls-secret
+#      secret: secret://kubernetes/my-tls-secret
 #    truststore:
 #      type: jks # Supports jks, pem, pkcs12, pem-folder (for the latter watch supports added/updated/removed files)
 #      path: ${gravitee.home}/security/truststore.jks
 #      password: secret
 #      watch: true # Watch for any updates on the keystore/pem and reload it. Default is true.
 #    openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
-#  haproxy: # Support for https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt
-#    proxyProtocol: false
-#    proxyProtocolTimeout: 10000
+
 
 # Plugins repository
 #plugins:
