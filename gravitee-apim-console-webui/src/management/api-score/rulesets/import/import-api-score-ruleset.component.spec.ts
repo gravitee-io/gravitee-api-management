@@ -112,6 +112,7 @@ describe('NewRulesetComponent', () => {
   [
     { input: { selectedFormat: 'GRAVITEE_MESSAGE' }, expected: RulesetFormat.GRAVITEE_MESSAGE },
     { input: { selectedFormat: 'GRAVITEE_PROXY' }, expected: RulesetFormat.GRAVITEE_PROXY },
+    { input: { selectedFormat: 'KAFKA_NATIVE' }, expected: RulesetFormat.KAFKA_NATIVE },
   ].forEach((testParams) => {
     it('should send request with values selected in form for GraviteeAPI format: ' + testParams.input.selectedFormat, async () => {
       const definitionFormat = await componentHarness.locatorForDefinitionFormatRadioGroup();
@@ -146,6 +147,32 @@ describe('NewRulesetComponent', () => {
 
       expectCreateRulesetRequest(data);
     });
+  });
+
+  it('should not send request if cancel import', async () => {
+    const definitionFormat = await componentHarness.locatorForDefinitionFormatRadioGroup();
+    await definitionFormat.select('GraviteeAPI');
+    expect(await definitionFormat.getSelectedValue()).toEqual('GraviteeAPI');
+
+    const graviteeApiDefinitionFormat = await componentHarness.locatorForGraviteeApiDefinitionFormatRadioGroup();
+    await graviteeApiDefinitionFormat.select(RulesetFormat.GRAVITEE_MESSAGE);
+    expect(await graviteeApiDefinitionFormat.getSelectedValue()).toEqual(RulesetFormat.GRAVITEE_MESSAGE);
+
+    await componentHarness.setName('Test ruleset name');
+    await componentHarness.setDescription('Test description');
+
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.form.value.name).toEqual('Test ruleset name');
+    expect(fixture.componentInstance.form.value.description).toEqual('Test description');
+    expect(fixture.componentInstance.form.value.graviteeApiFormat).toEqual(RulesetFormat.GRAVITEE_MESSAGE);
+
+    await componentHarness.pickFiles([new File([JSON.stringify('test')], 'gravitee-api-definition.json', { type: 'application/json' })]);
+    const importButton = await componentHarness.locatorForSubmitImportButton();
+    const cancelButton = await componentHarness.locatorForCancelImportButton();
+    expect(await importButton.isDisabled()).toEqual(false);
+
+    await cancelButton.click();
   });
 
   function expectCreateRulesetRequest(data: CreateRulesetRequestData) {

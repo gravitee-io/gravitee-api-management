@@ -31,10 +31,12 @@ export class RulesetFormatPipe implements PipeTransform {
         return 'Gravitee Message API';
       case RulesetFormat.GRAVITEE_PROXY:
         return 'Gravitee Proxy API';
+      case RulesetFormat.KAFKA_NATIVE:
+        return 'Kafka Native API';
       case RulesetFormat.OPENAPI:
         return 'OpenAPI';
       case RulesetFormat.ASYNCAPI:
-        return 'AsyncApi';
+        return 'AsyncAPI';
       default:
         return '';
     }

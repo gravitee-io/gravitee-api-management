@@ -32,6 +32,33 @@ export class ImportApiScoreRulesetComponent implements OnInit {
   protected importType: string;
   protected readonly RulesetFormat = RulesetFormat;
 
+  graviteeAPIFormats = [
+    {
+      title: 'Gravitee Proxy API',
+      subtitle: 'For gateway or proxy services handling API calls.',
+      value: RulesetFormat.GRAVITEE_PROXY,
+      isDisabled: false,
+    },
+    {
+      title: 'Gravitee Message API',
+      subtitle: 'For message-based services like queues or pub/sub.',
+      value: RulesetFormat.GRAVITEE_MESSAGE,
+      isDisabled: false,
+    },
+    {
+      title: 'Native Kafka',
+      subtitle: 'For Apache Kafka-based messaging and event processing.',
+      value: RulesetFormat.KAFKA_NATIVE,
+      isDisabled: false,
+    },
+    {
+      title: 'Gravitee Federated API',
+      subtitle: 'For APIs aggregating data from multiple sources.',
+      value: RulesetFormat.GRAVITEE_FEDERATION,
+      isDisabled: false,
+    },
+  ];
+
   public isLoading = false;
 
   public form: FormGroup = this.formBuilder.group({
@@ -87,23 +114,18 @@ export class ImportApiScoreRulesetComponent implements OnInit {
   public importRuleset() {
     this.isLoading = true;
 
-    let payload: CreateRulesetRequestData = {
-      format: this.form.value.definitionFormat,
+    const payload: CreateRulesetRequestData = {
+      format: this.graviteeApiFormat?.value || this.form.value.definitionFormat,
       name: this.form.value.name,
       description: this.form.value.description,
       payload: this.form.value.fileContent,
     };
-
-    if (this.graviteeApiFormat?.value) {
-      payload = { ...payload, format: this.graviteeApiFormat.value };
-    }
 
     this.rulesetV2Service
       .createRuleset(payload)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.isLoading = false;
           this.snackBarService.success('Ruleset imported.');
           this.router.navigate(['..'], { relativeTo: this.activatedRoute });
         },
