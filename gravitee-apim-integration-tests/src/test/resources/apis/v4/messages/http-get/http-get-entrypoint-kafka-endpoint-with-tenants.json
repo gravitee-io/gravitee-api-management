@@ -1,0 +1,77 @@
+{
+  "id": "http-get-entrypoint-kafka-endpoint-with-tenants",
+  "name": "http-get-entrypoint-kafka-endpoint-with-tenants",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "api v4 using HTTP-GET entrypoint",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-get",
+          "configuration": {
+            "messagesLimitCount": 2,
+            "messagesLimitDurationMs": 10000,
+            "headersInPayload": true,
+            "metadataInPayload": true
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "kafka",
+      "loadBalancer": {
+        "type": "round-robin"
+      },
+      "endpoints": [
+        {
+          "name": "test-topic-1",
+          "type": "kafka",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "bootstrapServers": "bootstrap-server"
+          },
+          "sharedConfigurationOverride": {
+            "consumer": {
+              "enabled": true,
+              "topics": ["test-topic-1"],
+              "autoOffsetReset": "earliest"
+            }
+          }
+        },
+        {
+          "name": "test-topic-2",
+          "type": "kafka",
+          "weight": 1,
+          "tenants": ["tenant-2"],
+          "inheritConfiguration": false,
+          "configuration": {
+            "bootstrapServers": "bootstrap-server"
+          },
+          "sharedConfigurationOverride": {
+            "consumer": {
+              "enabled": true,
+              "topics": ["test-topic-2"],
+              "autoOffsetReset": "earliest"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [],
+  "analytics": {
+    "enabled": false
+  }
+}
