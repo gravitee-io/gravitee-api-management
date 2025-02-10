@@ -27,8 +27,6 @@ import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
-import io.gravitee.rest.api.model.CategoryEntity;
-import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.PropertiesEntity;
 import io.gravitee.rest.api.model.WorkflowState;
@@ -40,20 +38,13 @@ import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
-import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -66,12 +57,12 @@ public class ApiConverter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiConverter.class);
 
-    private ObjectMapper objectMapper;
-    private PlanService planService;
-    private FlowService flowService;
-    private CategoryMapper categoryMapper;
-    private ParameterService parameterService;
-    private WorkflowService workflowService;
+    private final ObjectMapper objectMapper;
+    private final PlanService planService;
+    private final FlowService flowService;
+    private final CategoryMapper categoryMapper;
+    private final ParameterService parameterService;
+    private final WorkflowService workflowService;
 
     public ApiConverter(
         final ObjectMapper objectMapper,
@@ -181,7 +172,7 @@ public class ApiConverter {
             );
         }
 
-        Set<PlanEntity> plans = planService.findByApi(executionContext, api.getId());
+        var plans = planService.findByApi(executionContext, api.getId());
         apiEntity.setPlans(plans);
 
         if (readDatabaseFlows) {
