@@ -233,7 +233,7 @@ public class ApisResource extends AbstractResource {
         final boolean isRatingServiceEnabled = ratingService.isEnabled(executionContext);
 
         if (apisParam.isTop()) {
-            final List<String> visibleApis = apis.getContent().stream().map(ApiEntity::getId).collect(toList());
+            final List<String> visibleApis = apis.getContent().stream().map(ApiEntity::getId).toList();
             return new ApiListItemPagedResult(
                 topApiService
                     .findAll(executionContext)
@@ -666,8 +666,8 @@ public class ApisResource extends AbstractResource {
         }
 
         // Issue https://github.com/gravitee-io/issues/issues/3356
-        if (api.getProxy().getVirtualHosts() != null && !api.getProxy().getVirtualHosts().isEmpty()) {
-            apiItem.setContextPath(api.getProxy().getVirtualHosts().get(0).getPath());
+        if (api.getProxy() != null && !CollectionUtils.isEmpty(api.getProxy().getVirtualHosts())) {
+            apiItem.setContextPath(api.getProxy().getVirtualHosts().getFirst().getPath());
         }
 
         if (api.getDefinitionContext() != null && !api.getDefinitionContext().getOrigin().isEmpty()) {

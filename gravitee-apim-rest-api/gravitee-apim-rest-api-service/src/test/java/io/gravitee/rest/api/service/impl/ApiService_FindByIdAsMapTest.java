@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,8 +48,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
@@ -72,26 +71,22 @@ public class ApiService_FindByIdAsMapTest {
     @Mock
     private ObjectMapper objectMapper;
 
-    @Mock
-    private ParameterService parameterService;
+    private final ParameterService parameterService = mock(ParameterService.class);
 
     @Mock
     private ApiMetadataService apiMetadataService;
 
-    @Mock
-    private PlanService planService;
+    private final PlanService planService = mock(PlanService.class);
 
-    @Mock
-    private FlowService flowService;
+    private final FlowService flowService = mock(FlowService.class);
 
     @Mock
     private PrimaryOwnerService primaryOwnerService;
 
-    @Spy
-    private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
+    private final CategoryMapper categoryMapper = spy(new CategoryMapper(mock(CategoryService.class)));
 
     @InjectMocks
-    private ApiConverter apiConverter = Mockito.spy(
+    private ApiConverter apiConverter = spy(
         new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class))
     );
 

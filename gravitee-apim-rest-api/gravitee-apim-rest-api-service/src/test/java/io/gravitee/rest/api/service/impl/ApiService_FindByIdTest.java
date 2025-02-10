@@ -25,12 +25,9 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
-import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.MembershipEntity;
-import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -45,7 +42,6 @@ import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.*;
-import java.util.stream.Stream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -85,25 +81,16 @@ public class ApiService_FindByIdTest {
     private UserService userService;
 
     @Mock
-    private ParameterService parameterService;
-
-    @Mock
     private ApiEntrypointService apiEntrypointService;
 
     @Mock
     private CategoryService categoryService;
 
-    @Mock
-    private PlanService planService;
-
-    @Mock
-    private FlowService flowService;
-
-    @Mock
-    private WorkflowService workflowService;
-
-    @Spy
-    private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
+    private final ParameterService parameterService = mock(ParameterService.class);
+    private final PlanService planService = mock(PlanService.class);
+    private final FlowService flowService = mock(FlowService.class);
+    private final WorkflowService workflowService = mock(WorkflowService.class);
+    private final CategoryMapper categoryMapper = spy(new CategoryMapper(mock(CategoryService.class)));
 
     @InjectMocks
     private ApiConverter apiConverter = Mockito.spy(

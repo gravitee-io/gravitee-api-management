@@ -122,6 +122,8 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -140,6 +142,8 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@NoArgsConstructor
+@AllArgsConstructor
 public class ApiServiceImpl extends AbstractService implements ApiService {
 
     public static final String API_DEFINITION_CONTEXT_FIELD = "definition_context";

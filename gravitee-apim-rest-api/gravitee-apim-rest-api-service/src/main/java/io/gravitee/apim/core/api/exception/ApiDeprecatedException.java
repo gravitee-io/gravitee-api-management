@@ -20,7 +20,7 @@ import java.util.Map;
 
 public class ApiDeprecatedException extends ValidationDomainException {
 
-    public ApiDeprecatedException(String apiId) {
-        super("The API is deprecated and cannot be modified.", Map.of("apiId", apiId));
+    public ApiDeprecatedException(String apiId, String name) {
+        super("The API is deprecated and cannot be modified.", Map.of("apiId", apiId, "apiName", name));
     }
 }
