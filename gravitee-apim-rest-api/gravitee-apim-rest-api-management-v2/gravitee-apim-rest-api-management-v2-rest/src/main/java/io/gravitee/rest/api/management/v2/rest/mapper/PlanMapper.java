@@ -70,12 +70,11 @@ public interface PlanMapper {
     PlanV4 map(NativePlanEntity planEntity);
 
     default PlanV4 mapToPlanV4(GenericPlanEntity planEntity) {
-        if (planEntity instanceof NativePlanEntity nativePlanEntity) {
-            return map(nativePlanEntity);
-        } else if (planEntity instanceof PlanEntity httpPlanEntity) {
-            return map(httpPlanEntity);
-        }
-        return null;
+        return switch (planEntity) {
+            case NativePlanEntity nativePlanEntity -> map(nativePlanEntity);
+            case PlanEntity httpPlanEntity -> map(httpPlanEntity);
+            default -> null;
+        };
     }
 
     @Mapping(target = "security.type", qualifiedByName = "mapToPlanSecurityType")
@@ -206,11 +205,16 @@ public interface PlanMapper {
 
     @Named("toV2PlanSecurityType")
     default io.gravitee.rest.api.model.PlanSecurityType toV2PlanSecurityType(PlanSecurityType securityType) {
-        // PlanSecurityType is a common enum containing MTLS plan. Such security type is not supported by V2, so it is ignored during mapping
-        if (Objects.isNull(securityType) || PlanSecurityType.MTLS.equals(securityType)) {
-            return null;
-        }
-        return io.gravitee.rest.api.model.PlanSecurityType.valueOf(securityType.name());
+        return switch (securityType) {
+            case null -> null;
+            // PlanSecurityType is a common enum containing MTLS plan.
+            // Such security type is not supported by V2, so it is ignored during mapping
+            case MTLS -> null;
+            case JWT -> io.gravitee.rest.api.model.PlanSecurityType.JWT;
+            case OAUTH2 -> io.gravitee.rest.api.model.PlanSecurityType.OAUTH2;
+            case API_KEY -> io.gravitee.rest.api.model.PlanSecurityType.API_KEY;
+            case KEY_LESS -> io.gravitee.rest.api.model.PlanSecurityType.KEY_LESS;
+        };
     }
 
     @Mapping(source = "planSecurity.type", target = "security.type", qualifiedByName = "mapToPlanSecurityType")
