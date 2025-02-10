@@ -16,16 +16,12 @@
 package io.gravitee.rest.api.services.dynamicproperties;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.event.impl.SimpleEvent;
-import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -39,7 +35,6 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
-import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.WorkflowService;
@@ -48,7 +43,6 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.event.ApiEvent;
 import io.vertx.core.Vertx;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -61,7 +55,6 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -87,8 +80,7 @@ public class DynamicPropertiesServiceTest {
     @Mock
     private Vertx vertx;
 
-    @Mock
-    private CategoryMapper categoryMapper;
+    private final CategoryMapper categoryMapper = mock(CategoryMapper.class);
 
     @Mock
     private ObjectMapper objectMapper = Mockito.spy(new GraviteeMapper());
@@ -108,7 +100,7 @@ public class DynamicPropertiesServiceTest {
     @InjectMocks
     private DynamicPropertiesService cut;
 
-    private GraviteeMapper graviteeMapper = new GraviteeMapper();
+    private final GraviteeMapper graviteeMapper = new GraviteeMapper();
 
     @SneakyThrows
     @BeforeEach

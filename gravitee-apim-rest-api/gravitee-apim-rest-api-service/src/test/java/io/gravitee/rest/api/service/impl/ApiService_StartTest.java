@@ -95,17 +95,14 @@ public class ApiService_StartTest {
     @Mock
     private NotifierService notifierService;
 
-    @Mock
-    private ParameterService parameterService;
+    private final ParameterService parameterService = mock(ParameterService.class);
 
     @Mock
     private CategoryService categoryService;
 
-    @Mock
-    private PlanService planService;
+    private final PlanService planService = mock(PlanService.class);
 
-    @Mock
-    private FlowService flowService;
+    private final FlowService flowService = mock(FlowService.class);
 
     @Mock
     private PrimaryOwnerService primaryOwnerService;
@@ -116,15 +113,14 @@ public class ApiService_StartTest {
     @Mock
     private NotificationTemplateService notificationTemplateService;
 
-    @Spy
-    private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
+    private final CategoryMapper categoryMapper = spy(new CategoryMapper(mock(CategoryService.class)));
 
     @InjectMocks
     private ApiConverter apiConverter = Mockito.spy(
         new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class))
     );
 
-    private ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+    private final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
     @Before
     public void setUp() {

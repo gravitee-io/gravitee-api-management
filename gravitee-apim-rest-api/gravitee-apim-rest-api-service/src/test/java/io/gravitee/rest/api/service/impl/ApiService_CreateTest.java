@@ -136,8 +136,7 @@ public class ApiService_CreateTest {
     @Mock
     private SearchEngineService searchEngineService;
 
-    @Mock
-    private ParameterService parameterService;
+    private final ParameterService parameterService = mock(ParameterService.class);
 
     @Mock
     private GenericNotificationConfigService genericNotificationConfigService;
@@ -163,14 +162,11 @@ public class ApiService_CreateTest {
     @Mock
     private ConnectorService connectorService;
 
-    @Mock
-    private PlanService planService;
+    private final PlanService planService = mock(PlanService.class);
 
-    @Mock
-    private FlowService flowService;
+    private final FlowService flowService = mock(FlowService.class);
 
-    @Spy
-    private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
+    private final CategoryMapper categoryMapper = spy(new CategoryMapper(mock(CategoryService.class)));
 
     @Mock
     private ApiCategoryService apiCategoryService;

@@ -25,6 +25,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -122,8 +123,7 @@ public class ApiService_FindByUserTest {
     @Mock
     private Api api;
 
-    @Mock
-    private ParameterService parameterService;
+    private final ParameterService parameterService = mock(ParameterService.class);
 
     @Mock
     private ApplicationService applicationService;
@@ -131,17 +131,13 @@ public class ApiService_FindByUserTest {
     @Mock
     private CategoryService categoryService;
 
-    @Mock
-    private PlanService planService;
+    private final PlanService planService = mock(PlanService.class);
 
-    @Mock
-    private FlowService flowService;
+    private final FlowService flowService = mock(FlowService.class);
 
-    @Mock
-    private WorkflowService workflowService;
+    private final WorkflowService workflowService = mock(WorkflowService.class);
 
-    @Spy
-    private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
+    private final CategoryMapper categoryMapper = spy(new CategoryMapper(mock(CategoryService.class)));
 
     @InjectMocks
     private ApiConverter apiConverter = Mockito.spy(

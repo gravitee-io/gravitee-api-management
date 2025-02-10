@@ -30,6 +30,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.exception.ApiDeprecatedException;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -43,7 +44,6 @@ import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.PlanConverter;
-import io.gravitee.rest.api.service.exceptions.ApiDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
@@ -65,6 +65,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class PlanService_CreateTest {
 
     private static final String API_ID = "my-api";
+    private static final String API_NAME = "name-api";
 
     @Spy
     @InjectMocks
@@ -126,6 +127,8 @@ public class PlanService_CreateTest {
 
     @Test(expected = ApiDeprecatedException.class)
     public void should_throw_apiDeprecatedException_cause_api_found_is_deprecated() throws Exception {
+        when(api.getId()).thenReturn(API_ID);
+        when(api.getName()).thenReturn(API_NAME);
         when(api.getApiLifecycleState()).thenReturn(DEPRECATED);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 

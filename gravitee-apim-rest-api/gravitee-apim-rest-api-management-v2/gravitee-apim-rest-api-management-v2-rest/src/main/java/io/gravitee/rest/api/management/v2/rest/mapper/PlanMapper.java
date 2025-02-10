@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.plan.model.PlanUpdates;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
@@ -42,12 +44,10 @@ import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -70,12 +70,11 @@ public interface PlanMapper {
     PlanV4 map(NativePlanEntity planEntity);
 
     default PlanV4 mapToPlanV4(GenericPlanEntity planEntity) {
-        if (planEntity instanceof NativePlanEntity nativePlanEntity) {
-            return map(nativePlanEntity);
-        } else if (planEntity instanceof PlanEntity httpPlanEntity) {
-            return map(httpPlanEntity);
-        }
-        return null;
+        return switch (planEntity) {
+            case NativePlanEntity nativePlanEntity -> map(nativePlanEntity);
+            case PlanEntity httpPlanEntity -> map(httpPlanEntity);
+            default -> null;
+        };
     }
 
     @Mapping(target = "security.type", qualifiedByName = "mapToPlanSecurityType")
@@ -109,26 +108,17 @@ public interface PlanMapper {
     PlanV2 map(io.gravitee.rest.api.model.PlanEntity planEntity);
 
     default List<Plan> convert(List<GenericPlanEntity> entities) {
-        if (Objects.isNull(entities)) {
-            return null;
-        }
-        if (entities.isEmpty()) {
-            return new ArrayList<>();
-        }
-        return entities.stream().map(this::mapGenericPlan).collect(Collectors.toList());
+        return entities != null ? stream(entities).map(this::mapGenericPlan).toList() : null;
     }
 
     default Plan mapGenericPlan(GenericPlanEntity entity) {
-        if (entity instanceof PlanEntity) {
-            if (entity.getDefinitionVersion() == DefinitionVersion.V4) {
-                return new Plan(this.map((PlanEntity) entity));
-            }
-            return new Plan(this.mapFederated((PlanEntity) entity));
-        } else if (entity instanceof NativePlanEntity nativePlanEntity) {
-            return new Plan(this.map(nativePlanEntity));
-        } else {
-            return new Plan(this.map((io.gravitee.rest.api.model.PlanEntity) entity));
-        }
+        return switch (entity) {
+            case PlanEntity planEntity -> entity.getDefinitionVersion() == DefinitionVersion.V4
+                ? new Plan(map(planEntity))
+                : new Plan(mapFederated(planEntity));
+            case NativePlanEntity nativePlanEntity -> new Plan(map(nativePlanEntity));
+            default -> new Plan(map((io.gravitee.rest.api.model.PlanEntity) entity));
+        };
     }
 
     default io.gravitee.apim.core.plan.model.Plan map(CreatePlanV4 source, Api api) {
@@ -206,11 +196,16 @@ public interface PlanMapper {
 
     @Named("toV2PlanSecurityType")
     default io.gravitee.rest.api.model.PlanSecurityType toV2PlanSecurityType(PlanSecurityType securityType) {
-        // PlanSecurityType is a common enum containing MTLS plan. Such security type is not supported by V2, so it is ignored during mapping
-        if (Objects.isNull(securityType) || PlanSecurityType.MTLS.equals(securityType)) {
-            return null;
-        }
-        return io.gravitee.rest.api.model.PlanSecurityType.valueOf(securityType.name());
+        return switch (securityType) {
+            case null -> null;
+            // PlanSecurityType is a common enum containing MTLS plan.
+            // Such security type is not supported by V2, so it is ignored during mapping
+            case MTLS -> null;
+            case JWT -> io.gravitee.rest.api.model.PlanSecurityType.JWT;
+            case OAUTH2 -> io.gravitee.rest.api.model.PlanSecurityType.OAUTH2;
+            case API_KEY -> io.gravitee.rest.api.model.PlanSecurityType.API_KEY;
+            case KEY_LESS -> io.gravitee.rest.api.model.PlanSecurityType.KEY_LESS;
+        };
     }
 
     @Mapping(source = "planSecurity.type", target = "security.type", qualifiedByName = "mapToPlanSecurityType")
@@ -240,10 +235,9 @@ public interface PlanMapper {
         if (source.getDefinitionVersion() != DefinitionVersion.V4) {
             return null;
         }
-        if (source.getApiType() == ApiType.NATIVE) {
-            return FlowMapper.INSTANCE.mapFromNativeV4((List<NativeFlow>) source.getFlows());
-        }
-        return FlowMapper.INSTANCE.mapFromHttpV4((List<Flow>) source.getFlows());
+        return source.getApiType() == ApiType.NATIVE
+            ? FlowMapper.INSTANCE.mapFromNativeV4((List<NativeFlow>) source.getFlows())
+            : FlowMapper.INSTANCE.mapFromHttpV4((List<Flow>) source.getFlows());
     }
 
     @Mapping(target = "securityConfiguration", source = "security.configuration", qualifiedByName = "serializeConfiguration")
@@ -254,10 +248,8 @@ public interface PlanMapper {
             return List.of();
         }
 
-        if (ApiType.NATIVE.name().equalsIgnoreCase(apiType)) {
-            return FlowMapper.INSTANCE.mapToNativeV4(plan.getFlows());
-        } else {
-            return FlowMapper.INSTANCE.mapToHttpV4(plan.getFlows());
-        }
+        return ApiType.NATIVE.name().equalsIgnoreCase(apiType)
+            ? FlowMapper.INSTANCE.mapToNativeV4(plan.getFlows())
+            : FlowMapper.INSTANCE.mapToHttpV4(plan.getFlows());
     }
 }

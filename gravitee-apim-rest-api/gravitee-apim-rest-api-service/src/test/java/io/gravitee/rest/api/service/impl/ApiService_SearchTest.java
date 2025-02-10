@@ -20,9 +20,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,10 +36,7 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -60,25 +57,20 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
-import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -123,8 +115,7 @@ public class ApiService_SearchTest {
     @Mock
     private UserService userService;
 
-    @Mock
-    private ParameterService parameterService;
+    private final ParameterService parameterService = mock(ParameterService.class);
 
     @Mock
     private ApplicationService applicationService;
@@ -132,11 +123,9 @@ public class ApiService_SearchTest {
     @Mock
     private CategoryService categoryService;
 
-    @Spy
-    private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
+    private final CategoryMapper categoryMapper = spy(new CategoryMapper(mock(CategoryService.class)));
 
-    @InjectMocks
-    private ApiConverter apiConverter = Mockito.spy(
+    private ApiConverter apiConverter = spy(
         new ApiConverter(
             objectMapper,
             mock(PlanService.class),
