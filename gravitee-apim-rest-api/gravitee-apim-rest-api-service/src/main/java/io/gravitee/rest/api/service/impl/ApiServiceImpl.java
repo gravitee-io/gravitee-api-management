@@ -2052,7 +2052,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Collection<String> apiIds = apiSearchService.searchIds(executionContext, query, filters, sortable, true);
 
             if (apiIds.isEmpty()) {
-                return new Page<>(emptyList(), 0, 0, 0);
+                return new Page<>(List.of(), 0, 0, 0);
             }
 
             return loadPage(executionContext, apiIds, pageable);
