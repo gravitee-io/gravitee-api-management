@@ -123,7 +123,7 @@ class ScoreApiRequestUseCaseTest {
 
         GraviteeDefinition build = GraviteeDefinition.Federated
             .builder()
-            .api(ApiDescriptor.ApiDescriptorFederated.builder().id(MY_API).name(MY_API_NAME).build())
+            .api(ApiDescriptor.Federated.builder().id(MY_API).name(MY_API_NAME).build())
             .build();
         when(apiExportDomainService.export(eq("my-api"), eq(AUDIT_INFO), anyCollection())).thenReturn(build);
         REQUEST_API_CONDITION = is(MY_API, MY_API_NAME);

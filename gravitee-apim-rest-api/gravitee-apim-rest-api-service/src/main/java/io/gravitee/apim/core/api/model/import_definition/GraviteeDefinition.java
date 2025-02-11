@@ -51,25 +51,12 @@ public sealed interface GraviteeDefinition {
         String apiPicture,
         String apiBackground
     )
-        implements GraviteeDefinition {
-        public V4(
-            ApiDescriptor.ApiDescriptorV4 api,
-            Set<ApiMember> members,
-            Set<NewApiMetadata> metadata,
-            List<PageExport> pages,
-            Collection<PlanDescriptor.PlanDescriptorV4> plans,
-            List<Media> apiMedia,
-            String apiPicture,
-            String apiBackground
-        ) {
-            this(new Export(), api, members, metadata, pages, plans, apiMedia, apiPicture, apiBackground);
-        }
-    }
+        implements GraviteeDefinition {}
 
     @Builder(toBuilder = true)
     record Native(
         Export export,
-        ApiDescriptor.ApiDescriptorNative api,
+        ApiDescriptor.Native api,
         Set<ApiMember> members,
         Set<NewApiMetadata> metadata,
         List<PageExport> pages,
@@ -78,25 +65,12 @@ public sealed interface GraviteeDefinition {
         String apiPicture,
         String apiBackground
     )
-        implements GraviteeDefinition {
-        public Native(
-            ApiDescriptor.ApiDescriptorNative api,
-            Set<ApiMember> members,
-            Set<NewApiMetadata> metadata,
-            List<PageExport> pages,
-            Collection<PlanDescriptor.PlanDescriptorV4> plans,
-            List<Media> apiMedia,
-            String apiPicture,
-            String apiBackground
-        ) {
-            this(new Export(), api, members, metadata, pages, plans, apiMedia, apiPicture, apiBackground);
-        }
-    }
+        implements GraviteeDefinition {}
 
     @Builder(toBuilder = true)
     record Federated(
         Export export,
-        ApiDescriptor.ApiDescriptorFederated api,
+        ApiDescriptor.Federated api,
         Set<ApiMember> members,
         Set<NewApiMetadata> metadata,
         List<PageExport> pages,
@@ -105,24 +79,44 @@ public sealed interface GraviteeDefinition {
         String apiPicture,
         String apiBackground
     )
-        implements GraviteeDefinition {
-        public Federated(
-            ApiDescriptor.ApiDescriptorFederated api,
-            Set<ApiMember> members,
-            Set<NewApiMetadata> metadata,
-            List<PageExport> pages,
-            Collection<PlanDescriptor.PlanDescriptorV4> plans,
-            List<Media> apiMedia,
-            String apiPicture,
-            String apiBackground
-        ) {
-            this(new Export(), api, members, metadata, pages, plans, apiMedia, apiPicture, apiBackground);
-        }
-    }
+        implements GraviteeDefinition {}
+
+    @Builder(toBuilder = true)
+    record V2(
+        Export export,
+        ApiDescriptor.ApiDescriptorV2 api,
+        Set<ApiMember> members,
+        Set<NewApiMetadata> metadata,
+        List<PageExport> pages,
+        Collection<PlanDescriptor.PlanDescriptorV4> plans,
+        List<Media> apiMedia,
+        String apiPicture,
+        String apiBackground
+    )
+        implements GraviteeDefinition {}
 
     record Export(Instant date, String apimVersion) {
         public Export() {
             this(TimeProvider.instantNow(), Version.RUNTIME_VERSION.MAJOR_VERSION);
         }
+    }
+
+    static GraviteeDefinition from(
+        ApiDescriptor api,
+        Set<ApiMember> members,
+        Set<NewApiMetadata> metadata,
+        List<PageExport> pages,
+        Collection<PlanDescriptor.PlanDescriptorV4> plans,
+        List<Media> media,
+        String picture,
+        String bckgrnd
+    ) {
+        var export = new Export();
+        return switch (api) {
+            case ApiDescriptor.ApiDescriptorV2 v2 -> new V2(export, v2, members, metadata, pages, plans, media, picture, bckgrnd);
+            case ApiDescriptor.ApiDescriptorV4 v4 -> new V4(export, v4, members, metadata, pages, plans, media, picture, bckgrnd);
+            case ApiDescriptor.Federated fed -> new Federated(export, fed, members, metadata, pages, plans, media, picture, bckgrnd);
+            case ApiDescriptor.Native nativeApi -> new Native(export, nativeApi, members, metadata, pages, plans, media, picture, bckgrnd);
+        };
     }
 }
