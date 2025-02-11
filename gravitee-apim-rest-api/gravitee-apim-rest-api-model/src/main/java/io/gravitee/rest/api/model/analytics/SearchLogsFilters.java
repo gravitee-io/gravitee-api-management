@@ -27,5 +27,6 @@ public record SearchLogsFilters(
     Set<String> planIds,
     Set<HttpMethod> methods,
     Set<Integer> statuses,
-    Set<String> entrypointIds
+    Set<String> entrypointIds,
+    Set<String> apiIds
 ) {}

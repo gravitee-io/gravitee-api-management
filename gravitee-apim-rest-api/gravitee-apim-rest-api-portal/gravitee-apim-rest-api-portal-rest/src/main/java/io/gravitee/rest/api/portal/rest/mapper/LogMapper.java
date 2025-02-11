@@ -15,12 +15,16 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import io.gravitee.apim.core.log.model.ConnectionLog;
 import io.gravitee.rest.api.model.log.ApplicationRequest;
 import io.gravitee.rest.api.model.log.ApplicationRequestItem;
 import io.gravitee.rest.api.portal.rest.model.HttpMethod;
 import io.gravitee.rest.api.portal.rest.model.Log;
 import io.gravitee.rest.api.portal.rest.model.Request;
 import io.gravitee.rest.api.portal.rest.model.Response;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
+import java.util.Date;
 import java.util.HashMap;
 import org.springframework.stereotype.Component;
 
@@ -84,6 +88,26 @@ public class LogMapper {
         logItem.setTransactionId(applicationRequestItem.getTransactionId());
         logItem.setUser(applicationRequestItem.getUser());
 
+        return logItem;
+    }
+
+    public Log convert(ConnectionLog connectionLog) {
+        final Log logItem = new Log();
+        logItem.setApi(connectionLog.getApiId());
+        logItem.setId(connectionLog.getRequestId());
+        logItem.setMethod(HttpMethod.fromValue(connectionLog.getMethod().name()));
+        logItem.setPath(connectionLog.getPath());
+        logItem.setPlan(connectionLog.getPlanId());
+        logItem.setResponseTime(connectionLog.getGatewayResponseTime());
+        logItem.setStatus(connectionLog.getStatus());
+        logItem.setTransactionId(connectionLog.getTransactionId());
+
+        try {
+            logItem.setTimestamp(Instant.parse(connectionLog.getTimestamp()).toEpochMilli());
+        } catch (DateTimeParseException | NullPointerException _ignored) {
+            logItem.setTimestamp(null);
+        }
+        
         return logItem;
     }
 }

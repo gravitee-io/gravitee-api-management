@@ -38,4 +38,7 @@ public class BaseConnectionLog {
     private int status;
     private boolean requestEnded;
     private String entrypointId;
+    private String gateway;
+    private String uri;
+    private long gatewayResponseTime;
 }

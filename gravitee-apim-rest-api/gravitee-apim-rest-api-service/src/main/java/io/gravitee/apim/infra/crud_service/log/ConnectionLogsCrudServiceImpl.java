@@ -34,6 +34,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -83,6 +84,38 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
         } catch (AnalyticsException e) {
             log.error("An error occurs while trying to search connection logs of api [apiId={}]", apiId, e);
             throw new TechnicalManagementException("Error while searching connection logs of api " + apiId, e);
+        }
+    }
+
+    @Override
+    public SearchLogsResponse<BaseConnectionLog> searchApplicationConnectionLogs(ExecutionContext executionContext, SearchLogsFilters logsFilters, Pageable pageable) {
+        try {
+            // TODO: Should there be an error raised if no applications are specified? Or make this generic?
+            var response = logRepository.searchConnectionLogs(
+                    new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                    ConnectionLogQuery
+                            .builder()
+                            .filter(
+                                    ConnectionLogQuery.Filter
+                                            .builder()
+                                            .from(logsFilters.from())
+                                            .to(logsFilters.to())
+                                            .applicationIds(logsFilters.applicationIds())
+                                            .planIds(logsFilters.planIds())
+                                            .methods(logsFilters.methods())
+                                            .statuses(logsFilters.statuses())
+                                            .entrypointIds(logsFilters.entrypointIds())
+                                            .build()
+                            )
+                            .page(pageable.getPageNumber())
+                            .size(pageable.getPageSize())
+                            .build(),
+                    List.of(DefinitionVersion.V2, DefinitionVersion.V4)
+            );
+            return mapToConnectionResponse(response);
+        } catch (AnalyticsException e) {
+            log.error("An error occurs while trying to search connection logs of application [applicationId={}]", logsFilters.applicationIds(), e);
+            throw new TechnicalManagementException("Error while searching connection logs of application " + logsFilters.applicationIds(), e);
         }
     }
 
