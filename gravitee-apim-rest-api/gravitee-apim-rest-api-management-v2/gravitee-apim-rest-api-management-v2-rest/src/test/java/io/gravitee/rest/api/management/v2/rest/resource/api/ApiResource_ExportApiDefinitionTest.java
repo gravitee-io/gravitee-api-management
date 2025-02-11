@@ -180,7 +180,7 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
     private GraviteeDefinition fakeExportApiEntity(ApiDescriptor apiEntity) {
         return switch (apiEntity) {
-            case ApiDescriptor.ApiDescriptorV4 v4 -> new GraviteeDefinition.V4(
+            case ApiDescriptor.ApiDescriptorV4 v4 -> GraviteeDefinition.from(
                 v4,
                 fakeApiMembers(),
                 fakeApiMetadata(),
@@ -190,7 +190,7 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
                 null,
                 null
             );
-            case ApiDescriptor.ApiDescriptorNative v4Native -> new GraviteeDefinition.Native(
+            case ApiDescriptor.Native v4Native -> GraviteeDefinition.from(
                 v4Native,
                 fakeApiMembers(),
                 fakeApiMetadata(),
@@ -287,7 +287,7 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
             .build();
     }
 
-    private ApiDescriptor.ApiDescriptorNative fakeNativeApiEntityV4() {
+    private ApiDescriptor.Native fakeNativeApiEntityV4() {
         var endpoint = NativeEndpoint.builder().type("kafka").configuration("{\"bootstrapServers\": \"kafka:9092\"}").build();
         var endpointGroup = NativeEndpointGroup.builder().type("kafka").endpoints(List.of(endpoint)).build();
 
@@ -296,7 +296,7 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
         var flow = NativeFlow.builder().name("flowName").enabled(true).interact(List.of(step)).tags(Set.of("tag1", "tag2")).build();
 
-        return ApiDescriptor.ApiDescriptorNative
+        return ApiDescriptor.Native
             .builder()
             .id(API)
             .name(API)

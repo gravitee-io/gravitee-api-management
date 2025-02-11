@@ -23,9 +23,13 @@ import io.gravitee.definition.model.services.Services;
 import java.io.Serializable;
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 /**
@@ -33,6 +37,11 @@ import lombok.experimental.SuperBuilder;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ToString(of = { "id", "name", "version" })
+@EqualsAndHashCode(of = "id")
+@Getter
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
 public class Api implements Serializable {
@@ -88,122 +97,8 @@ public class Api implements Serializable {
     @JsonProperty("execution_mode")
     private ExecutionMode executionMode;
 
-    public Api() {}
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Proxy getProxy() {
-        return proxy;
-    }
-
-    public void setProxy(Proxy proxy) {
-        this.proxy = proxy;
-    }
-
-    public Map<String, List<Rule>> getPaths() {
-        return paths;
-    }
-
-    public void setPaths(Map<String, List<Rule>> paths) {
-        this.paths = paths;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public Properties getProperties() {
-        return properties;
-    }
-
-    public void setProperties(Properties properties) {
-        this.properties = properties;
-    }
-
-    public Services getServices() {
-        return services;
-    }
-
-    public void setServices(Services services) {
-        this.services = services;
-    }
-
     public <T extends Service> T getService(Class<T> serviceClass) {
         return this.services.get(serviceClass);
-    }
-
-    public Set<String> getTags() {
-        return tags;
-    }
-
-    public void setTags(Set<String> tags) {
-        this.tags = tags;
-    }
-
-    public List<Resource> getResources() {
-        return resources;
-    }
-
-    public void setResources(List<Resource> resources) {
-        this.resources = resources;
-    }
-
-    public Map<String, Pattern> getPathMappings() {
-        return pathMappings;
-    }
-
-    public void setPathMappings(Map<String, Pattern> pathMappings) {
-        this.pathMappings = pathMappings;
-    }
-
-    public Map<String, Map<String, ResponseTemplate>> getResponseTemplates() {
-        return responseTemplates;
-    }
-
-    public void setResponseTemplates(Map<String, Map<String, ResponseTemplate>> responseTemplates) {
-        this.responseTemplates = responseTemplates;
-    }
-
-    public FlowMode getFlowMode() {
-        return flowMode;
-    }
-
-    public void setFlowMode(FlowMode flowMode) {
-        this.flowMode = flowMode;
-    }
-
-    public List<Flow> getFlows() {
-        return flows;
-    }
-
-    public void setFlows(List<Flow> flows) {
-        this.flows = flows;
-    }
-
-    public DefinitionVersion getDefinitionVersion() {
-        return definitionVersion;
-    }
-
-    public void setDefinitionVersion(DefinitionVersion definitionVersion) {
-        this.definitionVersion = definitionVersion;
     }
 
     public Plan getPlan(String plan) {
@@ -224,31 +119,13 @@ public class Api implements Serializable {
         }
     }
 
-    public ExecutionMode getExecutionMode() {
-        return executionMode;
-    }
-
-    public void setExecutionMode(final ExecutionMode executionMode) {
-        this.executionMode = executionMode;
-    }
-
-    public DefinitionContext getDefinitionContext() {
-        return definitionContext;
-    }
-
-    public void setDefinitionContext(DefinitionContext definitionContext) {
-        this.definitionContext = definitionContext;
-    }
-
     @JsonIgnore
     public List<Plugin> getPlugins() {
         return Stream
             .of(
                 Optional
                     .ofNullable(this.getResources())
-                    .map(r ->
-                        r.stream().filter(Resource::isEnabled).map(Resource::getPlugins).flatMap(List::stream).collect(Collectors.toList())
-                    )
+                    .map(r -> r.stream().filter(Resource::isEnabled).map(Resource::getPlugins).flatMap(List::stream).toList())
                     .orElse(List.of()),
                 Optional
                     .ofNullable(this.getFlows())
@@ -262,23 +139,6 @@ public class Api implements Serializable {
                 Optional.ofNullable(this.proxy).map(Proxy::getPlugins).orElse(List.of())
             )
             .flatMap(List::stream)
-            .collect(Collectors.toList());
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Api api = (Api) o;
-        return Objects.equals(id, api.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    public String toString() {
-        return "Api{" + "id='" + id + '\'' + ", name='" + name + '\'' + ", version='" + version + '\'' + '}';
+            .toList();
     }
 }

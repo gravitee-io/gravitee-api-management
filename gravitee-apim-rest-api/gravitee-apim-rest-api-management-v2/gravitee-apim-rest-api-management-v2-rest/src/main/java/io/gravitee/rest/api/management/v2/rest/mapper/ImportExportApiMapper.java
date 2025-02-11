@@ -62,6 +62,8 @@ public interface ImportExportApiMapper {
             case GraviteeDefinition.Native natV4 -> map(natV4);
             // we don't allow to export federated APIs
             case GraviteeDefinition.Federated fed -> throw new IllegalStateException("Unexpected API: " + src);
+            // we don't allow to export v2 APIs
+            case GraviteeDefinition.V2 v2 -> throw new IllegalStateException("Unexpected API: " + src);
         };
     }
 
@@ -73,16 +75,18 @@ public interface ImportExportApiMapper {
         return switch (src) {
             case null -> null;
             case ApiDescriptor.ApiDescriptorV4 v4 -> map(v4);
-            case ApiDescriptor.ApiDescriptorNative natV4 -> map(natV4);
+            case ApiDescriptor.Native natV4 -> map(natV4);
             // we don't allow to export federated APIs
-            case ApiDescriptor.ApiDescriptorFederated fed -> throw new IllegalStateException("Unexpected API: " + src);
+            case ApiDescriptor.Federated fed -> throw new IllegalStateException("Unexpected API: " + src);
+            // we don't allow to export v2 APIs
+            case ApiDescriptor.ApiDescriptorV2 v2 -> throw new IllegalStateException("Unexpected API: " + src);
         };
     }
 
     ApiV4 map(ApiDescriptor.ApiDescriptorV4 src);
 
     @Mapping(target = "type", constant = "NATIVE")
-    ApiV4 map(ApiDescriptor.ApiDescriptorNative src);
+    ApiV4 map(ApiDescriptor.Native src);
 
     default io.gravitee.rest.api.management.v2.rest.model.Listener map(Listener src) {
         return switch (src) {
