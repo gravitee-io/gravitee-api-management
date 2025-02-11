@@ -62,78 +62,6 @@ commands:
           branch_pattern: master,[0-9]+\.[0-9]+\.x
           event: fail
           template: basic_fail_1
-  cmd-create-docker-context:
-    steps:
-      - run:
-          name: Create docker context for buildx
-          command: |-
-            docker context create tls-env
-            docker buildx create tls-env --use
-  cmd-docker-azure-login:
-    steps:
-      - keeper/env-export:
-          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
-          var-name: AZURE_DOCKER_REGISTRY_USERNAME
-      - keeper/env-export:
-          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
-          var-name: AZURE_DOCKER_REGISTRY_PASSWORD
-      - run:
-          name: Login to Azure Container Registry
-          command: echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
-    description: Login to Azure Container Registry
-  cmd-docker-azure-logout:
-    steps:
-      - run:
-          name: Logout from Azure Container Registry
-          command: docker logout graviteeio.azurecr.io
-    description: Logout from Azure Container Registry
-  cmd-build-ui-image:
-    parameters:
-      docker-image-name:
-        type: string
-        default: ""
-        description: the name of the image
-      apim-ui-project:
-        type: string
-        default: ""
-        description: the name of the UI project to build
-    steps:
-      - cmd-create-docker-context
-      - cmd-docker-azure-login
-      - run:
-          name: Build UI docker image
-          command: |-
-            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
-            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.2.x-latest \
-            .
-          working_directory: << parameters.apim-ui-project >>
-      - keeper/env-export:
-          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
-          var-name: AQUA_KEY
-      - keeper/env-export:
-          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/Secret
-          var-name: AQUA_SECRET
-      - keeper/env-export:
-          secret-url: keeper://LYg-wdlM5UDzSqFFH6Kyig/field/login
-          var-name: AQUA_USERNAME
-      - keeper/env-export:
-          secret-url: keeper://LYg-wdlM5UDzSqFFH6Kyig/field/password
-          var-name: AQUA_PASSWORD
-      - keeper/env-export:
-          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/ScannerToken
-          var-name: SCANNER_TOKEN
-      - keeper/env-export:
-          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-          var-name: GITHUB_TOKEN
-      - aquasec/install_billy
-      - aquasec/pull_aqua_scanner_image
-      - aquasec/register_artifact:
-          artifact_to_register: graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.2.x-latest
-          debug: true
-      - aquasec/scan_docker_image:
-          docker_image_to_scan: graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.2.x-latest
-          scanner_url: https://82fb8f75da.cloud.aquasec.com
-      - cmd-docker-azure-logout
   cmd-restore-maven-job-cache:
     parameters:
       jobName:
@@ -239,9 +167,6 @@ jobs:
           environment:
             NODE_OPTIONS: --max_old_space_size=4086
           working_directory: gravitee-apim-console-webui
-      - cmd-build-ui-image:
-          docker-image-name: apim-management-ui
-          apim-ui-project: gravitee-apim-console-webui
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
@@ -280,9 +205,6 @@ jobs:
           environment:
             NODE_OPTIONS: --max_old_space_size=4086
           working_directory: gravitee-apim-portal-webui-next
-      - cmd-build-ui-image:
-          docker-image-name: apim-portal-ui
-          apim-ui-project: gravitee-apim-portal-webui
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
@@ -460,5 +382,4 @@ workflows:
 orbs:
   keeper: gravitee-io/keeper@0.6.3
   slack: circleci/slack@4.12.5
-  aquasec: gravitee-io/aquasec@1.0.4
   artifactory-orb: jfrog/artifactory-orb@1.0.1
