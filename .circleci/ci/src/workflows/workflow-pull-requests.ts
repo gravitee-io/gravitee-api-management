@@ -53,18 +53,22 @@ import { orbs } from '../orbs';
 export class PullRequestsWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment): Workflow {
     let jobs: workflow.WorkflowJob[] = [];
+    const shouldBuildDockerImages: boolean = isSupportBranchOrMaster(environment.branch) || isE2EBranch(environment.branch);
     // Needed to publish helm chart in internal repository
     environment.isDryRun = true;
     if (isSupportBranchOrMaster(environment.branch)) {
       jobs.push(
-        ...this.getCommonJobs(dynamicConfig, environment, false, false),
+        ...this.getCommonJobs(dynamicConfig, environment, false, false, shouldBuildDockerImages),
         ...this.getE2EJobs(dynamicConfig, environment),
         ...this.getMasterAndSupportJobs(dynamicConfig, environment),
       );
     } else if (isE2EBranch(environment.branch)) {
-      jobs.push(...this.getCommonJobs(dynamicConfig, environment, false, true), ...this.getE2EJobs(dynamicConfig, environment));
+      jobs.push(
+        ...this.getCommonJobs(dynamicConfig, environment, false, true, shouldBuildDockerImages),
+        ...this.getE2EJobs(dynamicConfig, environment),
+      );
     } else {
-      jobs = this.getCommonJobs(dynamicConfig, environment, true, true);
+      jobs = this.getCommonJobs(dynamicConfig, environment, true, true, shouldBuildDockerImages);
     }
     return new Workflow('pull_requests', jobs);
   }
@@ -74,6 +78,7 @@ export class PullRequestsWorkflow {
     environment: CircleCIEnvironment,
     filterJobs: boolean,
     addValidationJob: boolean,
+    shouldBuildDockerImages: boolean,
   ): workflow.WorkflowJob[] {
     dynamicConfig.importOrb(orbs.keeper).importOrb(orbs.aquasec);
 
@@ -277,7 +282,7 @@ export class PullRequestsWorkflow {
       const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig);
       dynamicConfig.addJob(webuiLintTestJob);
 
-      const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment);
+      const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, shouldBuildDockerImages);
       dynamicConfig.addJob(consoleWebuiBuildJob);
 
       const storybookConsoleJob = StorybookConsoleJob.create(dynamicConfig);
@@ -325,7 +330,7 @@ export class PullRequestsWorkflow {
       const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig);
       dynamicConfig.addJob(webuiLintTestJob);
 
-      const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment);
+      const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, shouldBuildDockerImages);
       dynamicConfig.addJob(portalWebuiBuildJob);
 
       const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
