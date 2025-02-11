@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { afterAll, beforeAll, describe, test, expect } from '@jest/globals';
+import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 
-import { forManagementAsAdminUser, forPortalAsAdminUser } from '@gravitee/utils/configuration';
+import { ANONYMOUS, forManagementAsAdminUser, forPortal, forPortalAsAdminUser } from '@gravitee/utils/configuration';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { UpdateApiEntity, UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
@@ -26,6 +26,7 @@ import { FilterApiQuery } from '@gravitee/portal-webclient-sdk/src/lib/models/Fi
 import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
 import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
 import { CategoryEntity } from '@gravitee/management-webclient-sdk/src/lib/models/CategoryEntity';
+import { Visibility } from '../../../../lib/management-v2-webclient-sdk/src/lib';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -33,6 +34,7 @@ const envId = 'DEFAULT';
 const apisManagementApiAsAdmin = new APIsApi(forManagementAsAdminUser());
 const apiPortalApiAsAdmin = new ApiApi(forPortalAsAdminUser());
 const configurationApiAsAdmin = new ConfigurationApi(forManagementAsAdminUser());
+const portalApiAsAnonymous = new ApiApi(forPortal({ auth: ANONYMOUS }));
 
 async function createAndPublish(apiManagementClient: APIsApi, attributes?: Partial<UpdateApiEntity>): Promise<ApiEntity> {
   let createdApi = await apiManagementClient.createApi({
@@ -54,6 +56,7 @@ describe('Portal - View and search APIs', () => {
   let apiWith2Labels: ApiEntity;
   let apiFeatured: ApiEntity;
   let apiWithCategory: ApiEntity;
+  let privateApiWithCategory: ApiEntity;
   let createdCategory: CategoryEntity;
 
   beforeAll(async () => {
@@ -65,11 +68,25 @@ describe('Portal - View and search APIs', () => {
         newCategoryEntity: { name: 'cat1' },
       }),
     );
-    apiWithCategory = await createAndPublish(apisManagementApiAsAdmin, { categories: ['cat1'], description: 'API with one category' });
-    apiWith1Label = await createAndPublish(apisManagementApiAsAdmin, { labels: ['testlabel1'], description: 'API with one label' });
+    apiWithCategory = await createAndPublish(apisManagementApiAsAdmin, {
+      categories: ['cat1'],
+      description: 'API with one category',
+      visibility: Visibility.PUBLIC,
+    });
+    privateApiWithCategory = await createAndPublish(apisManagementApiAsAdmin, {
+      categories: ['cat1'],
+      description: 'Private API with one category',
+      visibility: Visibility.PRIVATE,
+    });
+    apiWith1Label = await createAndPublish(apisManagementApiAsAdmin, {
+      labels: ['testlabel1'],
+      description: 'API with one label',
+      visibility: Visibility.PUBLIC,
+    });
     apiWith2Labels = await createAndPublish(apisManagementApiAsAdmin, {
       labels: ['testlabel1', 'testlabel2'],
       description: 'API with two labels',
+      visibility: Visibility.PUBLIC,
     });
     apiFeatured = await createAndPublish(apisManagementApiAsAdmin, { description: 'Featured API' });
     await succeed(configurationApiAsAdmin.createTopApiRaw({ orgId, envId, newTopApiEntity: { api: apiFeatured.id } }));
@@ -116,8 +133,15 @@ describe('Portal - View and search APIs', () => {
     describe('Filter API list regarding category', function () {
       test('should list all APIs with certain category', async () => {
         let getApisResponse = await succeed(apiPortalApiAsAdmin.getApisRaw({ category: 'cat1' }));
+        expect(getApisResponse.data).toHaveLength(2);
+        expect(getApisResponse.data.some((filteredApi) => filteredApi.id === apiWithCategory.id)).toBeTruthy();
+        expect(getApisResponse.data.some((filteredApi) => filteredApi.id === privateApiWithCategory.id)).toBeTruthy();
+      });
+
+      test('should list only public APIs with certain category for anonymous user', async () => {
+        let getApisResponse = await succeed(portalApiAsAnonymous.getApisRaw({ category: 'cat1' }));
         expect(getApisResponse.data).toHaveLength(1);
-        expect(getApisResponse.data[0].id).toBe(apiWithCategory.id);
+        expect(getApisResponse.data.some((filteredApi) => filteredApi.id === apiWithCategory.id)).toBeTruthy();
       });
     });
 
