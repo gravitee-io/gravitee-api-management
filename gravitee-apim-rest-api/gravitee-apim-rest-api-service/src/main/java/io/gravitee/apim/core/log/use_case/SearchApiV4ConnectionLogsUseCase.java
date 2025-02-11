@@ -36,14 +36,14 @@ import java.util.List;
 import java.util.Optional;
 
 @UseCase
-public class SearchConnectionLogsUseCase {
+public class SearchApiV4ConnectionLogsUseCase {
 
     static final String UNKNOWN = "Unknown";
     private final ConnectionLogsCrudService connectionLogsCrudService;
     private final PlanCrudService planCrudService;
     private final ApplicationCrudService applicationCrudService;
 
-    public SearchConnectionLogsUseCase(
+    public SearchApiV4ConnectionLogsUseCase(
         ConnectionLogsCrudService connectionLogsCrudService,
         PlanCrudService planCrudService,
         ApplicationCrudService applicationCrudService

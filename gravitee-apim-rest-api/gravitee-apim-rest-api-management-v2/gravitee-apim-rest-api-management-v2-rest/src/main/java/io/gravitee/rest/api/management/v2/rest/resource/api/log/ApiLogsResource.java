@@ -17,8 +17,8 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.log;
 
 import static io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo.computePaginationInfo;
 
+import io.gravitee.apim.core.log.use_case.SearchApiV4ConnectionLogsUseCase;
 import io.gravitee.apim.core.log.use_case.SearchConnectionLogUseCase;
-import io.gravitee.apim.core.log.use_case.SearchConnectionLogsUseCase;
 import io.gravitee.apim.core.log.use_case.SearchMessageLogsUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiLogsMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMessageLogsMapper;
@@ -50,7 +50,7 @@ public class ApiLogsResource extends AbstractResource {
     private String apiId;
 
     @Inject
-    private SearchConnectionLogsUseCase searchConnectionLogsUsecase;
+    private SearchApiV4ConnectionLogsUseCase searchConnectionLogsUsecase;
 
     @Inject
     private SearchMessageLogsUseCase searchMessageLogsUsecase;
@@ -62,7 +62,7 @@ public class ApiLogsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_LOG, acls = { RolePermissionAction.READ }) })
     public ApiLogsResponse getApiLogs(@BeanParam @Valid PaginationParam paginationParam, @BeanParam @Valid SearchLogsParam logsParam) {
-        var request = new SearchConnectionLogsUseCase.Input(
+        var request = new SearchApiV4ConnectionLogsUseCase.Input(
             apiId,
             ApiLogsMapper.INSTANCE.toSearchLogsFilters(logsParam),
             new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())

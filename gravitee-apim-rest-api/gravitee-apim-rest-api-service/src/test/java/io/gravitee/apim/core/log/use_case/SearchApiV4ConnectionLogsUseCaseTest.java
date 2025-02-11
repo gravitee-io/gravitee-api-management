@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.log.use_case;
 
-import static io.gravitee.apim.core.log.use_case.SearchConnectionLogsUseCase.UNKNOWN;
+import static io.gravitee.apim.core.log.use_case.SearchApiV4ConnectionLogsUseCase.UNKNOWN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
@@ -25,7 +25,7 @@ import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ConnectionLogsCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PlanCrudServiceInMemory;
-import io.gravitee.apim.core.log.use_case.SearchConnectionLogsUseCase.Input;
+import io.gravitee.apim.core.log.use_case.SearchApiV4ConnectionLogsUseCase.Input;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
@@ -44,7 +44,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class SearchConnectionLogsUseCaseTest {
+class SearchApiV4ConnectionLogsUseCaseTest {
 
     private static final String API_ID = "f1608475-dd77-4603-a084-75dd775603e9";
     private static final Plan PLAN_1 = PlanFixtures.aPlanHttpV4().toBuilder().id("plan1").name("1st plan").build();
@@ -70,11 +70,11 @@ class SearchConnectionLogsUseCaseTest {
     PlanCrudServiceInMemory planStorageService = new PlanCrudServiceInMemory();
     ApplicationCrudServiceInMemory applicationStorageService = new ApplicationCrudServiceInMemory();
 
-    SearchConnectionLogsUseCase usecase;
+    SearchApiV4ConnectionLogsUseCase usecase;
 
     @BeforeEach
     void setUp() {
-        usecase = new SearchConnectionLogsUseCase(logStorageService, planStorageService, applicationStorageService);
+        usecase = new SearchApiV4ConnectionLogsUseCase(logStorageService, planStorageService, applicationStorageService);
 
         planStorageService.initWith(List.of(PLAN_1, PLAN_2));
         applicationStorageService.initWith(List.of(APPLICATION_1, APPLICATION_2));
