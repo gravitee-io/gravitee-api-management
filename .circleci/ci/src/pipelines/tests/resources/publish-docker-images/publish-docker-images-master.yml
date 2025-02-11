@@ -133,6 +133,7 @@ commands:
           command: |-
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
             -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest \
+            -t graviteeio.azurecr.io/dev-<< parameters.docker-image-name >>:master-latest \
             .
           working_directory: << parameters.apim-ui-project >>
       - keeper/env-export:
@@ -156,10 +157,10 @@ commands:
       - aquasec/install_billy
       - aquasec/pull_aqua_scanner_image
       - aquasec/register_artifact:
-          artifact_to_register: graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest
+          artifact_to_register: graviteeio.azurecr.io/dev-<< parameters.docker-image-name >>:master-latest
           debug: true
       - aquasec/scan_docker_image:
-          docker_image_to_scan: graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest
+          docker_image_to_scan: graviteeio.azurecr.io/dev-<< parameters.docker-image-name >>:master-latest
           scanner_url: https://82fb8f75da.cloud.aquasec.com
       - cmd-docker-azure-logout
 jobs:
@@ -229,10 +230,12 @@ jobs:
           command: |-
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f gravitee-apim-rest-api/docker/Dockerfile \
             -t graviteeio.azurecr.io/apim-management-api:master-latest \
+            -t graviteeio.azurecr.io/dev-apim-management-api:master-latest \
             rest-api-docker-context
 
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f gravitee-apim-gateway/docker/Dockerfile \
             -t graviteeio.azurecr.io/apim-gateway:master-latest \
+            -t graviteeio.azurecr.io/dev-apim-gateway:master-latest \
             gateway-docker-context
       - keeper/env-export:
           secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
@@ -255,16 +258,16 @@ jobs:
       - aquasec/install_billy
       - aquasec/pull_aqua_scanner_image
       - aquasec/register_artifact:
-          artifact_to_register: graviteeio.azurecr.io/apim-management-api:master-latest
+          artifact_to_register: graviteeio.azurecr.io/dev-apim-management-api:master-latest
           debug: true
       - aquasec/register_artifact:
-          artifact_to_register: graviteeio.azurecr.io/apim-gateway:master-latest
+          artifact_to_register: graviteeio.azurecr.io/dev-apim-gateway:master-latest
           debug: true
       - aquasec/scan_docker_image:
-          docker_image_to_scan: graviteeio.azurecr.io/apim-management-api:master-latest
+          docker_image_to_scan: graviteeio.azurecr.io/dev-apim-management-api:master-latest
           scanner_url: https://82fb8f75da.cloud.aquasec.com
       - aquasec/scan_docker_image:
-          docker_image_to_scan: graviteeio.azurecr.io/apim-gateway:master-latest
+          docker_image_to_scan: graviteeio.azurecr.io/dev-apim-gateway:master-latest
           scanner_url: https://82fb8f75da.cloud.aquasec.com
       - cmd-docker-azure-logout
   job-console-webui-build:

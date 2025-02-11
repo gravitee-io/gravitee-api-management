@@ -45,10 +45,12 @@ export class BuildBackendImagesJob {
         name: 'Build rest api and gateway docker images',
         command: `docker buildx build --push --platform=linux/arm64,linux/amd64 -f gravitee-apim-rest-api/docker/Dockerfile \\
 -t graviteeio.azurecr.io/apim-management-api:${tag} \\
+-t graviteeio.azurecr.io/dev-apim-management-api:${tag} \\
 rest-api-docker-context
 
 docker buildx build --push --platform=linux/arm64,linux/amd64 -f gravitee-apim-gateway/docker/Dockerfile \\
 -t graviteeio.azurecr.io/apim-gateway:${tag} \\
+-t graviteeio.azurecr.io/dev-apim-gateway:${tag} \\
 gateway-docker-context`,
       }),
     ];
@@ -84,19 +86,19 @@ gateway-docker-context`,
         new reusable.ReusedCommand(orbs.aquasec.commands['install_billy']),
         new reusable.ReusedCommand(orbs.aquasec.commands['pull_aqua_scanner_image']),
         new reusable.ReusedCommand(orbs.aquasec.commands['register_artifact'], {
-          artifact_to_register: `graviteeio.azurecr.io/apim-management-api:${tag}`,
+          artifact_to_register: `graviteeio.azurecr.io/dev-apim-management-api:${tag}`,
           debug: true,
         }),
         new reusable.ReusedCommand(orbs.aquasec.commands['register_artifact'], {
-          artifact_to_register: `graviteeio.azurecr.io/apim-gateway:${tag}`,
+          artifact_to_register: `graviteeio.azurecr.io/dev-apim-gateway:${tag}`,
           debug: true,
         }),
         new reusable.ReusedCommand(orbs.aquasec.commands['scan_docker_image'], {
-          docker_image_to_scan: `graviteeio.azurecr.io/apim-management-api:${tag}`,
+          docker_image_to_scan: `graviteeio.azurecr.io/dev-apim-management-api:${tag}`,
           scanner_url: config.aqua.scannerUrl,
         }),
         new reusable.ReusedCommand(orbs.aquasec.commands['scan_docker_image'], {
-          docker_image_to_scan: `graviteeio.azurecr.io/apim-gateway:${tag}`,
+          docker_image_to_scan: `graviteeio.azurecr.io/dev-apim-gateway:${tag}`,
           scanner_url: config.aqua.scannerUrl,
         }),
       );
