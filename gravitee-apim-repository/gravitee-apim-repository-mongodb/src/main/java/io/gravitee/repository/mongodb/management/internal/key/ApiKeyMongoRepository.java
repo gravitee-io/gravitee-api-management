@@ -38,4 +38,12 @@ public interface ApiKeyMongoRepository extends MongoRepository<ApiKeyMongo, Stri
     List<ApiKeyMongo> findByApplication(String applicationId);
 
     List<ApiKeyMongo> findByKey(String key);
+<<<<<<< HEAD
+=======
+
+    @Query(value = "{ environmentId: ?0 }", fields = "{ _id : 1 }", delete = true)
+    List<ApiKeyMongo> deleteByEnvironmentId(String environmentId);
+
+    List<ApiKeyMongo> findByKeyAndEnvironmentId(String apiKey, String environmentId);
+>>>>>>> 90b54960fe (fix(console): searching for custom key by and environment_id)
 }

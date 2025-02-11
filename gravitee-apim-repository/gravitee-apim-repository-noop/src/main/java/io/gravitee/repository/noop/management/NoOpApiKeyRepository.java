@@ -41,6 +41,11 @@ public class NoOpApiKeyRepository implements ApiKeyRepository {
     }
 
     @Override
+    public List<ApiKey> findByKeyAndEnvironmentId(String key, String environmentId) throws TechnicalException {
+        return List.of();
+    }
+
+    @Override
     public Optional<ApiKey> findByKeyAndApi(String key, String api) throws TechnicalException {
         return Optional.empty();
     }

@@ -339,6 +339,35 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     }
 
     @Override
+    public List<ApiKey> findByKeyAndEnvironmentId(String key, String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcApiKeyRepository.findByKeyAndEnvironmentId(*****, {})", environmentId);
+        try {
+            String query =
+                getOrm().getSelectAllSql() +
+                " k" +
+                " left join " +
+                keySubscriptions +
+                " ks on ks.key_id = k.id " +
+                "where k." +
+                escapeReservedWord("key") +
+                " = ?" +
+                " and k." +
+                escapeReservedWord("environment_id") +
+                " = ?" +
+                " order by k.updated_at desc ";
+
+            CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+
+            jdbcTemplate.query(query, rowMapper, key, environmentId);
+
+            return rowMapper.getRows();
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find API Keys by key and environment:", ex);
+            throw new TechnicalException("Failed to find API Keys by key and environment", ex);
+        }
+    }
+
+    @Override
     public Optional<ApiKey> findByKeyAndApi(String key, String api) throws TechnicalException {
         LOGGER.debug("JdbcApiKeyRepository.findByKeyAndApi(****, {})", api);
         try {
