@@ -39,12 +39,24 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -105,9 +117,7 @@ public class ApisResource extends AbstractResource<Api, String> {
     @RequirePortalAuth
     public Response getApis(@BeanParam PaginationParam paginationParam, @BeanParam ApisParam apisParam) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        Collection<String> filteredApis = new ArrayList<>(
-            findApisForCurrentUser(executionContext, apisParam, createQueryFromParam(apisParam))
-        );
+        Collection<String> filteredApis = new ArrayList<>(findApis(executionContext, apisParam, createQueryFromParam(apisParam)));
 
         if (!filteredApis.isEmpty() && apisParam.getPromoted() != null) {
             //By default, the promoted API is the first of the list;
@@ -230,21 +240,25 @@ public class ApisResource extends AbstractResource<Api, String> {
         return filter != null ? FilteringService.FilterType.valueOf(filter.name()) : null;
     }
 
-    private Collection<String> findApisForCurrentUser(final ExecutionContext executionContext, ApisParam apisParam, ApiQuery apiQuery) {
-        if (!apisParam.isCategoryMode()) {
-            return filteringService.filterApis(
-                executionContext,
-                getAuthenticatedUserOrNull(),
-                convert(apisParam.getFilter()),
-                convert(apisParam.getExcludedFilter()),
-                apiQuery
-            );
+    private Collection<String> findApis(final ExecutionContext executionContext, ApisParam apisParam, ApiQuery apiQuery) {
+        if (isUserAuthenticatedAndCategoryModeOn(apisParam)) {
+            return getCategoryApisUseCase
+                .execute(new GetCategoryApisUseCase.Input(executionContext, apisParam.getCategory(), getAuthenticatedUser(), false, true))
+                .results()
+                .stream()
+                .map(result -> result.api().getId())
+                .toList();
         }
-        return getCategoryApisUseCase
-            .execute(new GetCategoryApisUseCase.Input(executionContext, apisParam.getCategory(), getAuthenticatedUser(), false, true))
-            .results()
-            .stream()
-            .map(result -> result.api().getId())
-            .toList();
+        return filteringService.filterApis(
+            executionContext,
+            getAuthenticatedUserOrNull(),
+            convert(apisParam.getFilter()),
+            convert(apisParam.getExcludedFilter()),
+            apiQuery
+        );
+    }
+
+    private boolean isUserAuthenticatedAndCategoryModeOn(ApisParam apisParam) {
+        return apisParam.isCategoryMode() && isAuthenticated();
     }
 }
