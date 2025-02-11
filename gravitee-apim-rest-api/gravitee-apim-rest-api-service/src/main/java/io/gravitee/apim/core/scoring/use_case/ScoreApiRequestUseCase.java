@@ -132,7 +132,7 @@ public class ScoreApiRequestUseCase {
     }
 
     private static ScoreRequest.Format getFormat(GraviteeDefinition definition) {
-        if (definition.api() instanceof ApiDescriptor.ApiDescriptorFederated) {
+        if (definition.api() instanceof ApiDescriptor.Federated) {
             return ScoreRequest.Format.GRAVITEE_FEDERATED;
         }
         return switch (definition.api().type()) {

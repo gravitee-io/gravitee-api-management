@@ -23,7 +23,6 @@ import io.gravitee.apim.core.api.model.import_definition.ApiDescriptor;
 import io.gravitee.apim.core.api.model.import_definition.PageExport;
 import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.media.model.Media;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.plan.model.Plan;
@@ -37,6 +36,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -104,7 +104,7 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "properties", source = "apiEntity.apiDefinitionNativeV4.properties")
     @Mapping(target = "resources", source = "apiEntity.apiDefinitionNativeV4.resources")
     @Mapping(target = "endpointGroups", source = "apiEntity.apiDefinitionNativeV4.endpointGroups")
-    ApiDescriptor.ApiDescriptorNative mapNative(
+    ApiDescriptor.Native mapNative(
         Api apiEntity,
         PrimaryOwnerEntity primaryOwner,
         WorkflowState workflowState,
@@ -114,9 +114,33 @@ public interface GraviteeDefinitionAdapter {
 
     @Mapping(target = "id", source = "apiEntity.id")
     @Mapping(target = "type", source = "apiEntity.type")
-    @Mapping(target = "providerId", source = "apiEntity.federatedApiDefinition.providerId")
+    @Mapping(target = "state", source = "apiEntity.lifecycleState")
     @Mapping(target = "lifecycleState", source = "apiEntity.apiLifecycleState")
-    ApiDescriptor.ApiDescriptorFederated mapFederated(
+    @Mapping(target = "providerId", source = "apiEntity.federatedApiDefinition.providerId")
+    ApiDescriptor.Federated mapFederated(
+        Api apiEntity,
+        PrimaryOwnerEntity primaryOwner,
+        WorkflowState workflowState,
+        Set<String> groups,
+        Collection<NewApiMetadata> metadata
+    );
+
+    @Mapping(target = "id", source = "apiEntity.id")
+    @Mapping(target = "type", source = "apiEntity.type")
+    @Mapping(target = "state", source = "apiEntity.lifecycleState")
+    @Mapping(target = "lifecycleState", source = "apiEntity.apiLifecycleState")
+    @Mapping(target = "proxy", source = "apiEntity.apiDefinition.proxy")
+    @Mapping(target = "services", source = "apiEntity.apiDefinition.services")
+    @Mapping(target = "resources", source = "apiEntity.apiDefinition.resources")
+    @Mapping(target = "paths", source = "apiEntity.apiDefinition.paths")
+    @Mapping(target = "flows", source = "apiEntity.apiDefinition.flows")
+    @Mapping(target = "properties", source = "apiEntity.apiDefinition.properties")
+    @Mapping(target = "tags", source = "apiEntity.apiDefinition.tags")
+    @Mapping(target = "pathMappings", source = "apiEntity.apiDefinition.pathMappings")
+    @Mapping(target = "responseTemplates", source = "apiEntity.apiDefinition.responseTemplates")
+    @Mapping(target = "plans", source = "apiEntity.apiDefinition.plans")
+    @Mapping(target = "executionMode", source = "apiEntity.apiDefinition.executionMode")
+    ApiDescriptor.ApiDescriptorV2 mapV2(
         Api apiEntity,
         PrimaryOwnerEntity primaryOwner,
         WorkflowState workflowState,
@@ -132,6 +156,10 @@ public interface GraviteeDefinitionAdapter {
 
     default Instant map(ZonedDateTime src) {
         return src == null ? null : src.toInstant();
+    }
+
+    default Map<String, io.gravitee.definition.model.Plan> map(List<io.gravitee.definition.model.Plan> value) {
+        return stream(value).collect(Collectors.toMap(io.gravitee.definition.model.Plan::getId, Function.identity()));
     }
 
     /**

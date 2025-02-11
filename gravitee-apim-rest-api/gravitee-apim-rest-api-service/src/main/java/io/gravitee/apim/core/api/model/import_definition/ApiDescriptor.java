@@ -17,8 +17,16 @@ package io.gravitee.apim.core.api.model.import_definition;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.definition.model.FlowMode;
+import io.gravitee.definition.model.Plan;
+import io.gravitee.definition.model.Properties;
+import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -41,6 +49,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import lombok.Builder;
 
 public sealed interface ApiDescriptor {
@@ -113,7 +122,7 @@ public sealed interface ApiDescriptor {
     }
 
     @Builder
-    record ApiDescriptorNative(
+    record Native(
         String id,
         String crossId,
         String name,
@@ -157,12 +166,13 @@ public sealed interface ApiDescriptor {
     }
 
     @Builder
-    record ApiDescriptorFederated(
+    record Federated(
         String id,
         String crossId,
         String name,
         String apiVersion,
         ApiType type,
+        Lifecycle.State state,
         String description,
         Instant deployedAt,
         Instant createdAt,
@@ -187,6 +197,53 @@ public sealed interface ApiDescriptor {
         @Override
         public DefinitionVersion definitionVersion() {
             return DefinitionVersion.FEDERATED;
+        }
+    }
+
+    @Builder
+    record ApiDescriptorV2(
+        String id,
+        String crossId,
+        String name,
+        String apiVersion,
+        ApiType type,
+        String description,
+        Instant deployedAt,
+        Instant createdAt,
+        Instant updatedAt,
+        FlowMode flowMode,
+        DefinitionContext definitionContext,
+        Proxy proxy,
+        Services services,
+        List<io.gravitee.definition.model.plugins.resources.Resource> resources,
+        Map<String, List<Rule>> paths,
+        List<io.gravitee.definition.model.flow.Flow> flows,
+        Properties properties,
+        Set<String> tags,
+        Map<String, Pattern> pathMappings,
+        Map<String, Map<String, ResponseTemplate>> responseTemplates,
+        Map<String, Plan> plans,
+        ExecutionMode executionMode,
+
+        Lifecycle.State state,
+        boolean disableMembershipNotifications,
+        Map<String, Object> metadata,
+        Set<String> groups,
+        Visibility visibility,
+        List<String> labels,
+        ApiLifecycleState lifecycleState,
+        PrimaryOwnerEntity primaryOwner,
+        Set<String> categories,
+        OriginContext originContext,
+        WorkflowState workflowState,
+        String picture,
+        String background
+    )
+        implements ApiDescriptor {
+        @JsonProperty("definitionVersion")
+        @Override
+        public DefinitionVersion definitionVersion() {
+            return DefinitionVersion.V2;
         }
     }
 }
