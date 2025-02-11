@@ -22,6 +22,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -89,12 +90,21 @@ class SearchConnectionLogQueryAdapterTest {
                                  "query": {
                                      "bool": {
                                          "must": [
-                                             {
-                                                 "term": {
-                                                     "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
-                                                 }
+                                         {
+                                             "bool": {
+                                                "should": [
+                                                    {
+                                                         "term": {
+                                                             "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                         }
+                                                    }, {
+                                                         "term": {
+                                                             "api": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                         }
+                                                    }
+                                                ]
                                              }
-                                         ]
+                                         }]
                                      }
                                  },
                                  "sort": {
@@ -120,8 +130,18 @@ class SearchConnectionLogQueryAdapterTest {
                                      "bool": {
                                          "must": [
                                              {
-                                                 "term": {
-                                                     "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                 "bool": {
+                                                    "should": [
+                                                        {
+                                                             "term": {
+                                                                 "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                             }
+                                                        }, {
+                                                             "term": {
+                                                                 "api": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                             }
+                                                        }
+                                                    ]
                                                  }
                                              },
                                              {
@@ -235,13 +255,32 @@ class SearchConnectionLogQueryAdapterTest {
                                      "bool": {
                                          "must": [
                                              {
-                                                 "term": {
-                                                     "api-id": "1"
+                                                 "bool": {
+                                                    "should": [
+                                                        {
+                                                             "term": {
+                                                                 "api-id": "1"
+                                                             }
+                                                        }, {
+                                                             "term": {
+                                                                 "api": "1"
+                                                             }
+                                                        }
+                                                    ]
                                                  }
-                                             },
-                                             {
-                                                 "terms": {
-                                                     "application-id": ["2", "3"]
+                                             },{
+                                                 "bool": {
+                                                    "should": [
+                                                        {
+                                                             "terms": {
+                                                                 "application-id": ["2", "3"]
+                                                             }
+                                                        }, {
+                                                             "terms": {
+                                                                 "application": ["2", "3"]
+                                                             }
+                                                        }
+                                                    ]
                                                  }
                                              }
                                          ]
@@ -268,16 +307,35 @@ class SearchConnectionLogQueryAdapterTest {
                                  "query": {
                                      "bool": {
                                          "must": [
-                                             {
-                                                 "term": {
-                                                     "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
+                                         {
+                                                 "bool": {
+                                                    "should": [
+                                                        {
+                                                             "term": {
+                                                                 "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                             }
+                                                        }, {
+                                                             "term": {
+                                                                 "api": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                             }
+                                                        }
+                                                    ]
                                                  }
-                                             },
-                                             {
-                                                 "terms": {
-                                                     "plan-id": ["plan-1", "plan-2"]
+                                             },{
+                                                 "bool": {
+                                                    "should": [
+                                                        {
+                                                             "terms": {
+                                                                 "plan-id": ["plan-1", "plan-2"]
+                                                             }
+                                                        }, {
+                                                             "terms": {
+                                                                 "plan": ["plan-1", "plan-2"]
+                                                             }
+                                                        }
+                                                    ]
                                                  }
-                                            }
+                                             }
                                          ]
                                      }
                                  },
@@ -303,21 +361,49 @@ class SearchConnectionLogQueryAdapterTest {
                                  "query": {
                                      "bool": {
                                          "must": [
-                                             {
-                                                 "term": {
-                                                     "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
+                                            {
+                                                 "bool": {
+                                                    "should": [
+                                                        {
+                                                             "term": {
+                                                                 "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                             }
+                                                        }, {
+                                                             "term": {
+                                                                 "api": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                             }
+                                                        }
+                                                    ]
                                                  }
-                                             },
-                                             {
-                                                 "terms": {
-                                                     "application-id": ["app-1", "app-2", "app-3"]
+                                             },{
+                                                 "bool": {
+                                                    "should": [
+                                                        {
+                                                             "terms": {
+                                                                 "plan-id": ["plan-1", "plan-2"]
+                                                             }
+                                                        }, {
+                                                             "terms": {
+                                                                 "plan": ["plan-1", "plan-2"]
+                                                             }
+                                                        }
+                                                    ]
                                                  }
-                                            },
-                                             {
-                                                 "terms": {
-                                                     "plan-id": ["plan-1", "plan-2"]
+                                             },{
+                                                 "bool": {
+                                                    "should": [
+                                                        {
+                                                             "terms": {
+                                                                 "application-id": ["app-1", "app-2", "app-3"]
+                                                             }
+                                                        }, {
+                                                             "terms": {
+                                                                 "application": ["app-1", "app-2", "app-3"]
+                                                             }
+                                                        }
+                                                    ]
                                                  }
-                                            }
+                                             }
                                          ]
                                      }
                                  },
@@ -338,16 +424,35 @@ class SearchConnectionLogQueryAdapterTest {
                                          "query": {
                                              "bool": {
                                                  "must": [
-                                                     {
-                                                         "term": {
-                                                             "api-id": "1"
-                                                         }
-                                                     },
-                                                     {
-                                                         "terms": {
-                                                             "http-method": [3, 1]
-                                                         }
+                                                 {
+                                                     "bool": {
+                                                        "should": [
+                                                            {
+                                                                 "term": {
+                                                                     "api-id": "1"
+                                                                 }
+                                                            }, {
+                                                                 "term": {
+                                                                     "api": "1"
+                                                                 }
+                                                            }
+                                                        ]
                                                      }
+                                                 },{
+                                                     "bool": {
+                                                        "should": [
+                                                            {
+                                                                 "terms": {
+                                                                     "http-method": [3, 1]
+                                                                 }
+                                                            }, {
+                                                                 "terms": {
+                                                                     "method": [3, 1]
+                                                                 }
+                                                            }
+                                                        ]
+                                                     }
+                                                 }
                                                  ]
                                              }
                                          },
@@ -369,10 +474,20 @@ class SearchConnectionLogQueryAdapterTest {
                                              "bool": {
                                                  "must": [
                                                      {
-                                                         "term": {
-                                                             "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
-                                                         }
-                                                     },
+                                                     "bool": {
+                                                        "should": [
+                                                            {
+                                                                 "term": {
+                                                                     "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                                 }
+                                                            }, {
+                                                                 "term": {
+                                                                     "api": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                                 }
+                                                            }
+                                                        ]
+                                                     }
+                                                 },
                                                      {
                                                          "terms": {
                                                              "status": [200, 202]

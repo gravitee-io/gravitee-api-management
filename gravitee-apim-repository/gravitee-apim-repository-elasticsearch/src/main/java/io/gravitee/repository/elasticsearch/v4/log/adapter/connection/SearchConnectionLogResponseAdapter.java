@@ -22,6 +22,7 @@ import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asTextOrN
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
 import java.util.List;
@@ -38,24 +39,43 @@ public class SearchConnectionLogResponseAdapter {
 
         return new LogResponse<>(
             (int) hits.getTotal().getValue(),
-            hits.getHits().stream().map(h -> buildFromSource(h.getSource())).toList()
+            hits.getHits().stream().map(h -> buildFromSource(h.getIndex(), h.getId(), h.getSource())).toList()
         );
     }
 
-    private static ConnectionLog buildFromSource(JsonNode json) {
-        return ConnectionLog
+    private static ConnectionLog buildFromSource(String index, String id, JsonNode json) {
+        var connectionLog = ConnectionLog
             .builder()
-            .requestId(json.get("request-id").asText())
             .timestamp(asTextOrNull(json.get("@timestamp")))
+            .status(asIntOr(json.get("status"), 0))
+            .gateway(asTextOrNull(json.get("gateway")))
+            .uri(asTextOrNull(json.get("uri")));
+
+        if (index.contains(Type.REQUEST.getType())) {
+            return connectionLog
+                .requestId(id)
+                .applicationId(asTextOrNull(json.get("application")))
+                .apiId(asTextOrNull(json.get("api")))
+                .planId(asTextOrNull(json.get("plan")))
+                .clientIdentifier(asTextOrNull(json.get("subscription")))
+                .transactionId(asTextOrNull(json.get("transaction")))
+                .method(HttpMethod.get(asIntOr(json.get("method"), 0)))
+                .requestEnded(true)
+                .entrypointId(null)
+                .gatewayResponseTime(json.get("response-time").asLong(0L))
+                .build();
+        }
+        return connectionLog
+            .requestId(json.get("request-id").asText())
             .applicationId(asTextOrNull(json.get("application-id")))
             .apiId(asTextOrNull(json.get("api-id")))
             .planId(asTextOrNull(json.get("plan-id")))
             .clientIdentifier(asTextOrNull(json.get("client-identifier")))
             .transactionId(asTextOrNull(json.get("transaction-id")))
             .method(HttpMethod.get(asIntOr(json.get("http-method"), 0)))
-            .status(asIntOr(json.get("status"), 0))
             .requestEnded(asBooleanOrFalse(json.get("request-ended")))
             .entrypointId(asTextOrNull(json.get("entrypoint-id")))
+            .gatewayResponseTime(json.get("gateway-response-time-ms").asLong(0L))
             .build();
     }
 }
