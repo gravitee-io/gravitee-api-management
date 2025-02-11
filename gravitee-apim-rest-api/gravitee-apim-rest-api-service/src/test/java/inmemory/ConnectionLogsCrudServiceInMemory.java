@@ -16,6 +16,7 @@
 package inmemory;
 
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
@@ -37,7 +38,8 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
         ExecutionContext executionContext,
         String apiId,
         SearchLogsFilters logsFilters,
-        Pageable pageable
+        Pageable pageable,
+        List<DefinitionVersion> definitionVersions
     ) {
         Predicate<BaseConnectionLog> predicate = connectionLog -> connectionLog.getApiId().equals(apiId);
         if (null != logsFilters.from()) {

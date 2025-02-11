@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.noop.log.v4;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.LogRepository;
@@ -25,12 +26,17 @@ import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetailQuery;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
 import io.gravitee.repository.log.v4.model.message.AggregatedMessageLog;
 import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
+import java.util.List;
 import java.util.Optional;
 
 public class NoOpLogRepository implements LogRepository {
 
     @Override
-    public LogResponse<ConnectionLog> searchConnectionLogs(QueryContext queryContext, ConnectionLogQuery query) {
+    public LogResponse<ConnectionLog> searchConnectionLogs(
+        QueryContext queryContext,
+        ConnectionLogQuery query,
+        List<DefinitionVersion> definitionVersions
+    ) {
         return null;
     }
 

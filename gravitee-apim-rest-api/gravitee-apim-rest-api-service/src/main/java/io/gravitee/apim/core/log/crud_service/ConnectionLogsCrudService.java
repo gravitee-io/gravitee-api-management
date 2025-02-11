@@ -15,12 +15,14 @@
  */
 package io.gravitee.apim.core.log.crud_service;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.List;
 import java.util.Optional;
 
 public interface ConnectionLogsCrudService {
@@ -28,7 +30,8 @@ public interface ConnectionLogsCrudService {
         ExecutionContext executionContext,
         String apiId,
         SearchLogsFilters logsFilters,
-        Pageable pageable
+        Pageable pageable,
+        List<DefinitionVersion> definitionVersions
     );
     Optional<ConnectionLogDetail> searchApiConnectionLog(ExecutionContext executionContext, String apiId, String requestId);
 }
