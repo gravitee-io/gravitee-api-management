@@ -19,6 +19,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -56,7 +57,13 @@ public class SearchApiV4ConnectionLogsUseCase {
     public Output execute(ExecutionContext executionContext, Input input) {
         var pageable = input.pageable.orElse(new PageableImpl(1, 20));
 
-        var response = connectionLogsCrudService.searchApiConnectionLogs(executionContext, input.apiId(), input.logsFilters(), pageable);
+        var response = connectionLogsCrudService.searchApiConnectionLogs(
+            executionContext,
+            input.apiId(),
+            input.logsFilters(),
+            pageable,
+            List.of(DefinitionVersion.V4)
+        );
         return mapToResponse(executionContext, response);
     }
 

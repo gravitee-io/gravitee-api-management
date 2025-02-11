@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.log;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.elasticsearch.model.TotalHits;
 import io.gravitee.elasticsearch.utils.Type;
@@ -37,6 +38,8 @@ import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
 import io.gravitee.repository.log.v4.model.message.AggregatedMessageLog;
 import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
 import io.reactivex.rxjava3.core.Single;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class LogElasticsearchRepository extends AbstractElasticsearchRepository implements LogRepository {
@@ -48,11 +51,14 @@ public class LogElasticsearchRepository extends AbstractElasticsearchRepository 
     }
 
     @Override
-    public LogResponse<ConnectionLog> searchConnectionLogs(QueryContext queryContext, ConnectionLogQuery query) {
-        var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+    public LogResponse<ConnectionLog> searchConnectionLogs(
+        QueryContext queryContext,
+        ConnectionLogQuery query,
+        List<DefinitionVersion> definitionVersions
+    ) {
+        var indexes = getQueryIndexesFromDefinitionVersions(queryContext, definitionVersions);
 
-        return this.client.search(index, null, SearchConnectionLogQueryAdapter.adapt(query))
+        return this.client.search(indexes, null, SearchConnectionLogQueryAdapter.adapt(query))
             .map(SearchConnectionLogResponseAdapter::adapt)
             .blockingGet();
     }
@@ -131,5 +137,28 @@ public class LogElasticsearchRepository extends AbstractElasticsearchRepository 
                 }
             )
             .blockingGet();
+    }
+
+    private String getQueryIndexesFromDefinitionVersions(QueryContext queryContext, List<DefinitionVersion> definitionVersions) {
+        var isDefinitionVersionsNullOrEmpty = definitionVersions == null || definitionVersions.isEmpty();
+
+        var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
+        var indexV2Request = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
+        var indexV4Metrics = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+
+        var indexes = new ArrayList<String>();
+
+        if (isDefinitionVersionsNullOrEmpty || definitionVersions.contains(DefinitionVersion.V4)) {
+            indexes.add(indexV4Metrics);
+        }
+        if (
+            isDefinitionVersionsNullOrEmpty ||
+            definitionVersions.contains(DefinitionVersion.V2) ||
+            definitionVersions.contains(DefinitionVersion.V1)
+        ) {
+            indexes.add(indexV2Request);
+        }
+
+        return String.join(",", indexes);
     }
 }

@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.crud_service.log;
 
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.infra.adapter.ConnectionLogAdapter;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.LogRepository;
@@ -31,6 +32,7 @@ import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -51,7 +53,8 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
         ExecutionContext executionContext,
         String apiId,
         SearchLogsFilters logsFilters,
-        Pageable pageable
+        Pageable pageable,
+        List<DefinitionVersion> definitionVersions
     ) {
         try {
             var response = logRepository.searchConnectionLogs(
@@ -73,7 +76,8 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
                     )
                     .page(pageable.getPageNumber())
                     .size(pageable.getPageSize())
-                    .build()
+                    .build(),
+                definitionVersions
             );
             return mapToConnectionResponse(response);
         } catch (AnalyticsException e) {
