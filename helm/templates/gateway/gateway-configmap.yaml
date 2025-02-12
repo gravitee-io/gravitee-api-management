@@ -183,6 +183,12 @@ data:
         {{- if hasKey .Values.gateway.kafka.routingHostMode "defaultPort" }}
         defaultPort: {{ .Values.gateway.kafka.routingHostMode.defaultPort }}
         {{- end}}
+        {{- if hasKey .Values.gateway.kafka.routingHostMode "bootstrapDomainPattern" }}
+        bootstrapDomainPattern: {{ .Values.gateway.kafka.routingHostMode.bootstrapDomainPattern }}
+        {{- end}}
+        {{- if hasKey .Values.gateway.kafka.routingHostMode "brokerDomainPattern" }}
+        brokerDomainPattern: {{ .Values.gateway.kafka.routingHostMode.brokerDomainPattern }}
+        {{- end}}
       {{- end}}
       {{- if hasKey .Values.gateway.kafka "apiKey" }}
       api-key:
