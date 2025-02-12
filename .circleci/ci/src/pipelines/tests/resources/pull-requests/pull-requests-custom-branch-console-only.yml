@@ -62,52 +62,6 @@ commands:
           branch_pattern: master,[0-9]+\.[0-9]+\.x
           event: fail
           template: basic_fail_1
-  cmd-create-docker-context:
-    steps:
-      - run:
-          name: Create docker context for buildx
-          command: |-
-            docker context create tls-env
-            docker buildx create tls-env --use
-  cmd-docker-azure-login:
-    steps:
-      - keeper/env-export:
-          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
-          var-name: AZURE_DOCKER_REGISTRY_USERNAME
-      - keeper/env-export:
-          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
-          var-name: AZURE_DOCKER_REGISTRY_PASSWORD
-      - run:
-          name: Login to Azure Container Registry
-          command: echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
-    description: Login to Azure Container Registry
-  cmd-docker-azure-logout:
-    steps:
-      - run:
-          name: Logout from Azure Container Registry
-          command: docker logout graviteeio.azurecr.io
-    description: Logout from Azure Container Registry
-  cmd-build-ui-image:
-    parameters:
-      docker-image-name:
-        type: string
-        default: ""
-        description: the name of the image
-      apim-ui-project:
-        type: string
-        default: ""
-        description: the name of the UI project to build
-    steps:
-      - cmd-create-docker-context
-      - cmd-docker-azure-login
-      - run:
-          name: Build UI docker image
-          command: |-
-            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
-            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-my-custom-branch-latest \
-            .
-          working_directory: << parameters.apim-ui-project >>
-      - cmd-docker-azure-logout
   cmd-restore-maven-job-cache:
     parameters:
       jobName:
@@ -201,9 +155,6 @@ jobs:
           environment:
             NODE_OPTIONS: --max_old_space_size=4086
           working_directory: gravitee-apim-console-webui
-      - cmd-build-ui-image:
-          docker-image-name: apim-management-ui
-          apim-ui-project: gravitee-apim-console-webui
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
