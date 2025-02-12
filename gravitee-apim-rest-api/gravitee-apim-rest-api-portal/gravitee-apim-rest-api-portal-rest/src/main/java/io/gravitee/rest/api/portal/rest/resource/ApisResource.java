@@ -55,6 +55,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+<<<<<<< HEAD
+=======
+import java.util.Map;
+>>>>>>> e9e04a9e9a (fix: Access public APIs listed in a category when user is logged out)
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -248,6 +252,7 @@ public class ApisResource extends AbstractResource<Api, String> {
                 .map(result -> result.api().getId())
                 .toList();
         }
+<<<<<<< HEAD
         return filteringService.filterApis(
             executionContext,
             getAuthenticatedUserOrNull(),
@@ -259,5 +264,13 @@ public class ApisResource extends AbstractResource<Api, String> {
 
     private boolean isUserAuthenticatedAndCategoryModeOn(ApisParam apisParam) {
         return apisParam.isCategoryMode() && isAuthenticated();
+=======
+        return getCategoryApisUseCase
+            .execute(new GetCategoryApisUseCase.Input(executionContext, apisParam.getCategory(), getAuthenticatedUserOrNull(), false, true))
+            .results()
+            .stream()
+            .map(result -> result.api().getId())
+            .toList();
+>>>>>>> e9e04a9e9a (fix: Access public APIs listed in a category when user is logged out)
     }
 }
