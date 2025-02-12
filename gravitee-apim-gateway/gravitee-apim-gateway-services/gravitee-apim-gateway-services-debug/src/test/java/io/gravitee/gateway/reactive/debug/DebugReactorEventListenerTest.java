@@ -480,12 +480,17 @@ class DebugReactorEventListenerTest {
         final HttpClient mockHttpClient = mock(HttpClient.class);
         when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
+<<<<<<< HEAD
         // Mock successful HttpClientResponse
         final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
+=======
+>>>>>>> e9e04a9e9a (fix: Access public APIs listed in a category when user is logged out)
         // Mock successful HttpClientRequest
         final HttpClientRequest httpClientRequest = mock(HttpClientRequest.class);
         when(mockHttpClient.rxRequest(any())).thenReturn(Single.just(httpClientRequest));
         when(httpClientRequest.setChunked(true)).thenReturn(httpClientRequest);
+        // Mock successful HttpClientResponse
+        final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
         when(httpClientRequest.rxSend(any(String.class))).thenReturn(Single.just(httpClientResponse));
 
         debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
