@@ -22,29 +22,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
-import com.graviteesource.secretprovider.hcvault.HCVaultSecretProvider;
-import com.graviteesource.secretprovider.hcvault.HCVaultSecretProviderFactory;
-import com.graviteesource.secretprovider.hcvault.config.manager.VaultConfig;
-import io.github.jopenlibs.vault.Vault;
 import io.github.jopenlibs.vault.VaultException;
 import io.github.jopenlibs.vault.api.Auth;
-import io.github.jopenlibs.vault.response.LogicalResponse;
-import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
-import io.gravitee.apim.gateway.tests.sdk.secrets.SecretProviderBuilder;
 import io.gravitee.apim.integration.tests.secrets.SecuredVaultContainer;
 import io.gravitee.node.container.spring.env.GraviteeYamlPropertySource;
-import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
-import io.gravitee.secrets.api.plugin.SecretManagerConfiguration;
-import io.gravitee.secrets.api.plugin.SecretProviderFactory;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientOptions;
@@ -55,15 +45,12 @@ import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLHandshakeException;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -77,120 +64,11 @@ import org.springframework.core.env.Environment;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class SecuredVaultSecretProviderIntegrationTest {
-
-    static SecuredVaultContainer vaultContainer;
-    static Vault rootVault;
-    private static SSLUtils.SSLPairs clientCertAndKey;
-
-    @AfterAll
-    static void cleanup() {
-        vaultContainer.close();
-    }
-
-    @BeforeAll
-    static void createVaultContainer() throws IOException, InterruptedException, VaultException {
-        vaultContainer = new SecuredVaultContainer();
-        vaultContainer.start();
-        vaultContainer.initAndUnsealVault();
-        vaultContainer.loginAndLoadTestPolicy();
-        vaultContainer.setEngineVersions();
-        vaultContainer.setupUserPassAuth();
-        vaultContainer.setupAppRoleAuth();
-        clientCertAndKey = SSLUtils.createPairs();
-        vaultContainer.setupCertAuth(clientCertAndKey.cert());
-        rootVault = vaultContainer.getRootVault();
-    }
-
-    static void addPlugin(
-        Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
-    ) {
-        secretProviderPlugins.add(
-            SecretProviderBuilder.build(HCVaultSecretProvider.PLUGIN_ID, HCVaultSecretProviderFactory.class, VaultConfig.class)
-        );
-    }
-
-    abstract static class AbstractVaultTest extends AbstractGatewayTest {
-
-        final Set<String> createSecrets = new HashSet<>();
-
-        @Override
-        public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
-            try {
-                if (useSystemProperties()) {
-                    configurationBuilder.setSystemProperty("secrets.vault.enabled", true);
-                    vaultInstanceConfig(vaultContainer).forEach(configurationBuilder::setSystemProperty);
-                    authConfig(vaultContainer).forEach(configurationBuilder::setSystemProperty);
-                } else {
-                    configurationBuilder.setYamlProperty("secrets.vault.enabled", true);
-                    vaultInstanceConfig(vaultContainer).forEach(configurationBuilder::setYamlProperty);
-                    authConfig(vaultContainer).forEach(configurationBuilder::setYamlProperty);
-                }
-                setupAdditionalProperties(configurationBuilder);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        boolean useSystemProperties() {
-            return false;
-        }
-
-        Map<String, Object> vaultInstanceConfig(SecuredVaultContainer vaultContainer) {
-            return Map.of(
-                "secrets.vault.host",
-                vaultContainer.getHost(),
-                "secrets.vault.port",
-                vaultContainer.getPort(),
-                "secrets.vault.ssl.enabled",
-                true,
-                "secrets.vault.ssl.format",
-                "pemfile",
-                "secrets.vault.ssl.file",
-                SecuredVaultContainer.CERT_PEMFILE
-            );
-        }
-
-        protected Map<String, Object> authConfig(SecuredVaultContainer vaultContainer) throws Exception {
-            return Map.of(
-                "secrets.vault.auth.method",
-                "userpass",
-                "secrets.vault.auth.config.username",
-                SecuredVaultContainer.USER_ID,
-                "secrets.vault.auth.config.password",
-                SecuredVaultContainer.PASSWORD
-            );
-        }
-
-        abstract void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder);
-
-        @Override
-        public void configureSecretProviders(
-            Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
-        ) throws Exception {
-            addPlugin(secretProviderPlugins);
-            createSecrets();
-        }
-
-        abstract void createSecrets() throws IOException, InterruptedException, VaultException;
-
-        final void writeSecret(String path, Map<String, Object> data) throws VaultException {
-            LogicalResponse write = rootVault.logical().write(path, data);
-            assertThat(write.getRestResponse().getStatus()).isLessThan(300);
-            createSecrets.add(path);
-        }
-
-        @AfterEach
-        final void cleanSecrets() throws VaultException {
-            for (String path : createSecrets) {
-                rootVault.logical().delete(path);
-            }
-        }
-    }
+class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecretProviderTest {
 
     @Nested
     @GatewayTest
-    class DefaultNamespace extends AbstractVaultTest {
+    class DefaultNamespace extends AbstractGatewayVaultTest {
 
         String password1 = UUID.randomUUID().toString();
         String password2 = UUID.randomUUID().toString();
@@ -220,8 +98,9 @@ class SecuredVaultSecretProviderIntegrationTest {
     @GatewayTest
     class DefaultNamespaceAppRoleAuth extends DefaultNamespace {
 
+        @SneakyThrows
         @Override
-        protected Map<String, Object> authConfig(SecuredVaultContainer vaultContainer) throws IOException, InterruptedException {
+        protected Map<String, Object> authConfig(SecuredVaultContainer vaultContainer) {
             var appRoleIDs = vaultContainer.newAppRoleSecretId();
             return Map.of(
                 "secrets.vault.auth.method",
@@ -238,8 +117,9 @@ class SecuredVaultSecretProviderIntegrationTest {
     @GatewayTest
     class DefaultNamespaceNonRootTokenAuth extends DefaultNamespace {
 
+        @SneakyThrows
         @Override
-        protected Map<String, Object> authConfig(SecuredVaultContainer vaultContainer) throws VaultException {
+        protected Map<String, Object> authConfig(SecuredVaultContainer vaultContainer) {
             String token = rootVault.auth().createToken(new Auth.TokenRequest().polices(List.of(TEST_POLICY_NAME))).getAuthClientToken();
             return Map.of("secrets.vault.auth.method", "token", "secrets.vault.auth.config.token", token);
         }
@@ -266,7 +146,7 @@ class SecuredVaultSecretProviderIntegrationTest {
 
     @Nested
     @GatewayTest
-    class TLSWithDefaultKeyMap extends AbstractVaultTest {
+    class TLSWithDefaultKeyMap extends AbstractGatewayVaultTest {
 
         private SSLUtils.SSLPairs sslPairs;
 
@@ -310,7 +190,7 @@ class SecuredVaultSecretProviderIntegrationTest {
 
     @Nested
     @GatewayTest
-    class WatchProperty extends AbstractVaultTest {
+    class WatchProperty extends AbstractGatewayVaultTest {
 
         @Override
         public void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
@@ -338,7 +218,7 @@ class SecuredVaultSecretProviderIntegrationTest {
 
     @Nested
     @GatewayTest
-    class WatchCert extends AbstractVaultTest {
+    class WatchCert extends AbstractGatewayVaultTest {
 
         private SSLUtils.SSLPairs sslPairs;
 
@@ -430,7 +310,7 @@ class SecuredVaultSecretProviderIntegrationTest {
 
     @Nested
     @GatewayTest
-    class Errors extends AbstractVaultTest {
+    class Errors extends AbstractGatewayVaultTest {
 
         @Override
         void createSecrets() {

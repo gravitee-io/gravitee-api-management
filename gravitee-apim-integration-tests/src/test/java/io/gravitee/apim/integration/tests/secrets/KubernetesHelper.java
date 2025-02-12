@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -26,6 +27,7 @@ import java.util.UUID;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.ContainerState;
 import org.testcontainers.images.builder.Transferable;
+import org.testcontainers.utility.MountableFile;
 
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
@@ -70,5 +72,31 @@ public class KubernetesHelper {
         assertThat(execResult.getExitCode()).isZero();
         assertThat(execResult.getStdout()).contains("secret \"%s\" deleted".formatted(name));
         createSecret(k8sContainer, namespace, name, data, isTLS);
+    }
+
+    public static String createToken(ContainerState k8sContainer, String sa) throws IOException, InterruptedException {
+        String[] args = { "kubectl", "create", "token", sa };
+        Container.ExecResult execResult = k8sContainer.execInContainer(args);
+        assertThat(execResult.getExitCode()).isZero();
+        return execResult.getStdout();
+    }
+
+    public static void apply(ContainerState k8sContainer, String file) throws IOException, InterruptedException {
+        String destination = UUID.randomUUID().toString();
+        String containerPath = "/kindcontainer/" + destination + ".yaml";
+        k8sContainer.copyFileToContainer(MountableFile.forHostPath(file), containerPath);
+        String[] args = { "kubectl", "apply", "-f", containerPath };
+        Container.ExecResult execResult = k8sContainer.execInContainer(args);
+        System.out.println(execResult.getStdout());
+        assertThat(execResult.getExitCode()).isZero();
+    }
+
+    public static String getServiceAccountToken(ContainerState k8sContainer, String secret) throws IOException, InterruptedException {
+        String[] args = { "kubectl", "get", "secret", secret, "-o", "go-template='{{ .data.token }}'" };
+        Container.ExecResult execResult = k8sContainer.execInContainer(args);
+        assertThat(execResult.getExitCode()).isZero();
+        String stdout = execResult.getStdout();
+        System.out.println("'" + stdout + "'");
+        return new String(Base64.getMimeDecoder().decode(stdout));
     }
 }

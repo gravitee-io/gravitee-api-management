@@ -24,9 +24,11 @@ import io.github.jopenlibs.vault.VaultConfig;
 import io.github.jopenlibs.vault.VaultException;
 import io.github.jopenlibs.vault.json.Json;
 import io.github.jopenlibs.vault.json.JsonObject;
+import io.gravitee.kubernetes.client.config.KubernetesConfig;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.nio.file.Path;
 import lombok.extern.slf4j.Slf4j;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.Container;
@@ -54,16 +56,17 @@ public class SecuredVaultContainer extends GenericContainer<SecuredVaultContaine
     public static final String SSL_DIRECTORY = CURRENT_WORKING_DIRECTORY + File.separator + "ssl";
     public static final String CERT_PEMFILE = SSL_DIRECTORY + File.separator + "root-cert.pem";
 
-    public static final String CLIENT_CERT_PEMFILE = SSL_DIRECTORY + File.separator + "client-cert.pem";
     public static final String TESTROLE = "testrole";
     public static final String HASHICORP_VAULT_IMAGE = "hashicorp/vault:1.13.3";
 
-    public static final String CONTAINER_STARTUP_SCRIPT = "/vault/config/startup.sh";
-    public static final String CONTAINER_CONFIG_FILE = "/vault/config/config.json";
-    public static final String CONTAINER_OPENSSL_CONFIG_FILE = "/vault/config/libressl.conf";
-    public static final String CONTAINER_SSL_DIRECTORY = "/vault/config/ssl";
+    public static final String CONTAINER_CONFIG_DIRECTORY = "/vault/config";
+    public static final String CONTAINER_STARTUP_SCRIPT = CONTAINER_CONFIG_DIRECTORY + "/startup.sh";
+    public static final String CONTAINER_CONFIG_FILE = CONTAINER_CONFIG_DIRECTORY + "/config.json";
+    public static final String CONTAINER_OPENSSL_CONFIG_FILE = CONTAINER_CONFIG_DIRECTORY + "/libressl.conf";
+    public static final String CONTAINER_SSL_DIRECTORY = CONTAINER_CONFIG_DIRECTORY + "/ssl";
     public static final String CONTAINER_CERT_PEMFILE = CONTAINER_SSL_DIRECTORY + "/vault-cert.pem";
     public static final String CONTAINER_CLIENT_CERT_PEMFILE = CONTAINER_SSL_DIRECTORY + "/client-cert.pem";
+    public static final String CONTAINER_KUBE_CA_PEMFILE = CONTAINER_SSL_DIRECTORY + "/kube-ca.pem";
     public static final String TEST_POLICY_FILE = "/home/vault/testPolicy.hcl";
 
     private String rootToken;
@@ -166,6 +169,33 @@ public class SecuredVaultContainer extends GenericContainer<SecuredVaultContaine
             "display_name=web",
             "policies=" + TEST_POLICY_NAME,
             "certificate=@" + CONTAINER_CLIENT_CERT_PEMFILE,
+            "ttl=3600"
+        );
+    }
+
+    public void setupKubernetesRoleAuth(Path kubeConfigFile, String workloadSA, String reviewerToken, String dockerHost)
+        throws IOException, InterruptedException {
+        runCommand("vault", "auth", "enable", "-ca-cert=" + CONTAINER_CERT_PEMFILE, "kubernetes");
+        KubernetesConfig kubernetesConfig = KubernetesConfig.newInstance(kubeConfigFile.toString());
+        copyFileToContainer(Transferable.of(kubernetesConfig.getCaCertData()), CONTAINER_KUBE_CA_PEMFILE);
+        runCommand(
+            "vault",
+            "write",
+            "-ca-cert=" + CONTAINER_CERT_PEMFILE,
+            "auth/kubernetes/config",
+            "disable_local_ca_jwt=true",
+            "token_reviewer_jwt=" + reviewerToken,
+            "kubernetes_host=" + "https://" + dockerHost + ":" + kubernetesConfig.getApiServerPort(),
+            "kubernetes_ca_cert=@" + CONTAINER_KUBE_CA_PEMFILE
+        );
+        runCommand(
+            "vault",
+            "write",
+            "-ca-cert=" + CONTAINER_CERT_PEMFILE,
+            "auth/kubernetes/role/" + TESTROLE,
+            "bound_service_account_names=" + workloadSA,
+            "bound_service_account_namespaces=default",
+            "policies=" + TEST_POLICY_NAME,
             "ttl=3600"
         );
     }

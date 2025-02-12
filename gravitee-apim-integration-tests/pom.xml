@@ -154,6 +154,11 @@
             <artifactId>vault</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>k3s</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Gravitee plugins -->
         <!-- Clusters -->
