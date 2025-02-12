@@ -29,3 +29,8 @@ annotations:
       links:
         - name: Github Issue
           url: https://github.com/gravitee-io/issues/issues/10330
+    - kind: added
+      description: 'Allow to customize Kafka Gateway bootstrap and brokers domain patterns'
+      links:
+        - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/10337

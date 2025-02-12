@@ -981,6 +981,21 @@ gateway:
 #      defaultDomain: mycompany.org # Should set according to the public wildcard DNS/Certificate. Default is empty
 #      defaultPort: 9092 # Default public port for Kafka APIs. Default is 9092
 #
+#      # By default, the kafka gateway expects the bootstrap and broker domains to be formed as below.
+#      # It can be overridden to fit your DNS configuration.
+#      # {apiHost} is a placeholder that will be replaced at runtime, when the API is deployed, by the API Host Prefix.
+#      # {brokerId} is a placeholder that stand for the broker id
+#      # Example with:
+#      #   bootstrapDomainPattern: bootstrap-{apiHost}.mycompany.org
+#      #   brokerDomainPattern: {apiHost}-broker{brokerId}.mycompany.org
+#      #
+#      #   Then these domains will be accepted:
+#      #      bootstrap-myapi.mycompany.org
+#      #      myapi-broker17.mycompany.org
+#      #
+#      bootstrapDomainPattern: {apiHost}.mycompany.org
+#      brokerDomainPattern: broker-{brokerId}-{apiHost}.mycompany.org
+#
 #    # API-Key plan security configuration
 #    apiKey:
 #      securityMechanisms: PLAIN, SCRAM-SHA-256, SCRAM-SHA-512
