@@ -130,6 +130,11 @@ public class GetCategoryApisUseCase {
             }
             var apiIdsInUserScope =
                 this.apiAuthorizationDomainService.findIdsByUser(executionContext, userId, apiQueryCriteria.build(), null, false);
+
+            if (apiIdsInUserScope == null || apiIdsInUserScope.isEmpty()) {
+                return Stream.empty();
+            }
+
             apiSearchCriteria.ids(new ArrayList<>(apiIdsInUserScope));
         }
 
