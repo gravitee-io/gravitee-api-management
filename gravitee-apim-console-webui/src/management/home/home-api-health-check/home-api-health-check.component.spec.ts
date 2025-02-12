@@ -124,9 +124,7 @@ describe('HomeApiHealthCheckComponent', () => {
         availability: 'API Availability',
       },
     ]);
-    expect(rowCells).toEqual([
-      ['', '🪐 Planets (1.0)', '', '50%Created with Highcharts 9.2.213:21:3013:21:4013:21:5013:22:0013:22:1013:22:20', ''],
-    ]);
+    expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '50%', '']]);
 
     // Expect HealthCheck TimeFrame select changes
     const healthCheckTimeFrameSelect = await loader.getHarness(GioQuickTimeRangeHarness);
@@ -137,9 +135,7 @@ describe('HomeApiHealthCheckComponent', () => {
     await expectApisListRequest([], 'has_health_check:true', undefined, 1, 100);
 
     const { rowCells: rowCells_2 } = await computeApisTableCells();
-    expect(rowCells_2).toEqual([
-      ['', '🪐 Planets (1.0)', '', '20%Created with Highcharts 9.2.213:21:3013:21:4013:21:5013:22:0013:22:1013:22:20', ''],
-    ]);
+    expect(rowCells_2).toEqual([['', '🪐 Planets (1.0)', '', '20%', '']]);
   });
 
   describe('onRefreshClick', () => {
