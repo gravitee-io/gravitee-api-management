@@ -60,3 +60,13 @@ $typography: map.get(gio.$mat-theme, typography);
     gap: 8px;
   }
 }
+
+:host ::ng-deep table td {
+  word-break: break-all;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+:host ::ng-deep p {
+  word-wrap: break-word;
+}
