@@ -99,6 +99,7 @@ describe('Portal - View and search APIs', () => {
     await apisManagementApiAsAdmin.deleteApi({ orgId, envId, api: apiFeatured.id });
     await apisManagementApiAsAdmin.deleteApi({ orgId, envId, api: apiWithCategory.id });
     await configurationApiAsAdmin.deleteTopApiRaw({ orgId, envId, topAPI: apiFeatured.id });
+    await configurationApiAsAdmin.deleteTopApiRaw({ orgId, envId, topAPI: privateApiWithCategory.id });
     await configurationApiAsAdmin.deleteCategory({ orgId, envId, categoryId: createdCategory.id });
   });
 
@@ -106,11 +107,12 @@ describe('Portal - View and search APIs', () => {
     describe('Filter API list regarding FilterApiQuery', () => {
       test('should list all published APIs', async () => {
         const getApisResponse = await succeed(apiPortalApiAsAdmin.getApisRaw({ filter: FilterApiQuery.ALL }));
-        expect(getApisResponse.data).toHaveLength(4);
+        expect(getApisResponse.data).toHaveLength(5);
         expect(getApisResponse.data.some((filteredApi) => filteredApi.id === apiWith1Label.id)).toBeTruthy();
         expect(getApisResponse.data.some((filteredApi) => filteredApi.id === apiWith2Labels.id)).toBeTruthy();
         expect(getApisResponse.data.some((filteredApi) => filteredApi.id === apiFeatured.id)).toBeTruthy();
         expect(getApisResponse.data.some((filteredApi) => filteredApi.id === apiWithCategory.id)).toBeTruthy();
+        expect(getApisResponse.data.some((filteredApi) => filteredApi.id === privateApiWithCategory.id)).toBeTruthy();
       });
 
       test('should only list featured APIs', async () => {
@@ -123,10 +125,11 @@ describe('Portal - View and search APIs', () => {
     describe('Exclude APIs from list', function () {
       test('should exclude APIs with certain query param', async () => {
         const getApisResponse = await succeed(apiPortalApiAsAdmin.getApisRaw({ filter2: FilterApiQuery.FEATURED }));
-        expect(getApisResponse.data).toHaveLength(3);
+        expect(getApisResponse.data).toHaveLength(4);
         expect(getApisResponse.data.some((filteredApi) => filteredApi.id === apiWith1Label.id)).toBeTruthy();
         expect(getApisResponse.data.some((filteredApi) => filteredApi.id === apiWith2Labels.id)).toBeTruthy();
         expect(getApisResponse.data.some((filteredApi) => filteredApi.id === apiWithCategory.id)).toBeTruthy();
+        expect(getApisResponse.data.some((filteredApi) => filteredApi.id === privateApiWithCategory.id)).toBeTruthy();
       });
     });
 
@@ -173,7 +176,7 @@ describe('Portal - View and search APIs', () => {
 
       test('should show certain page when limiting API to certain value', async () => {
         const getApisResponse = await succeed(apiPortalApiAsAdmin.getApisRaw({ size: 3, page: 2 }));
-        expect(getApisResponse.data).toHaveLength(1);
+        expect(getApisResponse.data).toHaveLength(2);
       });
     });
   });
