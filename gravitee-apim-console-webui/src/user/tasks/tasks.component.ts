@@ -105,15 +105,28 @@ export class TasksComponent implements OnInit, OnDestroy {
       case 'SUBSCRIPTION_APPROVAL': {
         const { api: apiId, id } = task.data as any;
         const taskEnvironmentId = this.tasks.metadata[apiId]?.environmentId;
-        this.router.navigate([taskEnvironmentId || currentEnvironmentId, 'apis', apiId, 'subscriptions', id]);
+        const environment = taskEnvironmentId || currentEnvironmentId;
+
+        if (taskEnvironmentId === currentEnvironmentId || (!taskEnvironmentId && currentEnvironmentId === 'DEFAULT')) {
+          this.router.navigate(['..', 'apis', apiId, 'subscriptions', id], { relativeTo: this.activatedRoute });
+          break;
+        }
+
+        this.router.navigate([environment, 'apis', apiId, 'subscriptions', id]);
         break;
       }
       case 'IN_REVIEW':
       case 'REQUEST_FOR_CHANGES': {
         const { referenceId } = task.data as Workflow;
         const taskEnvironmentId = this.tasks.metadata[referenceId]?.environmentId;
+        const environment = taskEnvironmentId || currentEnvironmentId;
 
-        this.router.navigate([taskEnvironmentId || currentEnvironmentId, 'apis', referenceId]);
+        if (taskEnvironmentId === currentEnvironmentId || (!taskEnvironmentId && currentEnvironmentId === 'DEFAULT')) {
+          this.router.navigate(['..', 'apis', referenceId], { relativeTo: this.activatedRoute });
+          break;
+        }
+
+        this.router.navigate([environment, 'apis', referenceId]);
         break;
       }
       case 'USER_REGISTRATION_APPROVAL': {
