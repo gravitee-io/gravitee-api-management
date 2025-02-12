@@ -4,7 +4,14 @@
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
 
+<<<<<<< HEAD
 ### 4.7.0
+=======
+- Kafka Gateway: fix configuration
+- Kafka Gateway: add fields to configure bootstrap and broker domain patterns
+
+### 4.6.2
+>>>>>>> e311ec5597 (feat(helm): custom bootstrap&broker domain pattern)
 
 - add kubernetes access account token projection support
 - fix Kafka Gateway configuration
