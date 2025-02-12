@@ -46,36 +46,36 @@ public class SearchConnectionLogResponseAdapter {
     private static ConnectionLog buildFromSource(String index, String id, JsonNode json) {
         var connectionLog = ConnectionLog
             .builder()
-            .timestamp(asTextOrNull(json.get("@timestamp")))
-            .status(asIntOr(json.get("status"), 0))
-            .gateway(asTextOrNull(json.get("gateway")))
-            .uri(asTextOrNull(json.get("uri")));
+            .timestamp(asTextOrNull(json.get(ConnectionLogField.TIMESTAMP)))
+            .status(asIntOr(json.get(ConnectionLogField.STATUS), 0))
+            .gateway(asTextOrNull(json.get(ConnectionLogField.GATEWAY)))
+            .uri(asTextOrNull(json.get(ConnectionLogField.URI)));
 
         if (index.contains(Type.REQUEST.getType())) {
             return connectionLog
                 .requestId(id)
-                .applicationId(asTextOrNull(json.get("application")))
-                .apiId(asTextOrNull(json.get("api")))
-                .planId(asTextOrNull(json.get("plan")))
-                .clientIdentifier(asTextOrNull(json.get("subscription")))
-                .transactionId(asTextOrNull(json.get("transaction")))
-                .method(HttpMethod.get(asIntOr(json.get("method"), 0)))
+                .applicationId(asTextOrNull(json.get(ConnectionLogField.APPLICATION_ID.v2Request())))
+                .apiId(asTextOrNull(json.get(ConnectionLogField.API_ID.v2Request())))
+                .planId(asTextOrNull(json.get(ConnectionLogField.PLAN_ID.v2Request())))
+                .clientIdentifier(asTextOrNull(json.get(ConnectionLogField.CLIENT_IDENTIFIER.v2Request())))
+                .transactionId(asTextOrNull(json.get(ConnectionLogField.TRANSACTION_ID.v2Request())))
+                .method(HttpMethod.get(asIntOr(json.get(ConnectionLogField.HTTP_METHOD.v2Request()), 0)))
                 .requestEnded(true)
                 .entrypointId(null)
-                .gatewayResponseTime(json.get("response-time").asLong(0L))
+                .gatewayResponseTime(json.get(ConnectionLogField.GATEWAY_RESPONSE_TIME.v2Request()).asLong(0L))
                 .build();
         }
         return connectionLog
-            .requestId(json.get("request-id").asText())
-            .applicationId(asTextOrNull(json.get("application-id")))
-            .apiId(asTextOrNull(json.get("api-id")))
-            .planId(asTextOrNull(json.get("plan-id")))
-            .clientIdentifier(asTextOrNull(json.get("client-identifier")))
-            .transactionId(asTextOrNull(json.get("transaction-id")))
-            .method(HttpMethod.get(asIntOr(json.get("http-method"), 0)))
-            .requestEnded(asBooleanOrFalse(json.get("request-ended")))
-            .entrypointId(asTextOrNull(json.get("entrypoint-id")))
-            .gatewayResponseTime(json.get("gateway-response-time-ms").asLong(0L))
+            .requestId(json.get(ConnectionLogField.REQUEST_ID.v4Metrics()).asText())
+            .applicationId(asTextOrNull(json.get(ConnectionLogField.APPLICATION_ID.v4Metrics())))
+            .apiId(asTextOrNull(json.get(ConnectionLogField.API_ID.v4Metrics())))
+            .planId(asTextOrNull(json.get(ConnectionLogField.PLAN_ID.v4Metrics())))
+            .clientIdentifier(asTextOrNull(json.get(ConnectionLogField.CLIENT_IDENTIFIER.v4Metrics())))
+            .transactionId(asTextOrNull(json.get(ConnectionLogField.TRANSACTION_ID.v4Metrics())))
+            .method(HttpMethod.get(asIntOr(json.get(ConnectionLogField.HTTP_METHOD.v4Metrics()), 0)))
+            .requestEnded(asBooleanOrFalse(json.get(ConnectionLogField.REQUEST_ENDED.v4Metrics())))
+            .entrypointId(asTextOrNull(json.get(ConnectionLogField.ENTRYPOINT_ID.v4Metrics())))
+            .gatewayResponseTime(json.get(ConnectionLogField.GATEWAY_RESPONSE_TIME.v4Metrics()).asLong(0L))
             .build();
     }
 }
