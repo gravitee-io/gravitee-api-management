@@ -17,22 +17,25 @@ package io.gravitee.apim.infra.query_service.media;
 
 import io.gravitee.apim.core.media.model.Media;
 import io.gravitee.apim.core.media.query_service.MediaQueryService;
-import io.gravitee.apim.infra.adapter.GraviteeDefinitionAdapter;
 import io.gravitee.apim.infra.adapter.MediaAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.impl.AbstractService;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
-public class MediaQueryServiceImpl implements MediaQueryService {
+public class MediaQueryServiceImpl extends AbstractService implements MediaQueryService {
 
     private final MediaRepository mediaRepository;
+
+    public MediaQueryServiceImpl(@Lazy MediaRepository mediaRepository) {
+        this.mediaRepository = mediaRepository;
+    }
 
     @Override
     public List<Media> findAllByApiId(String apiId) {
