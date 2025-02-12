@@ -16,11 +16,21 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.junit.Assert.assertEquals;
+<<<<<<< HEAD
 import static org.junit.Assert.assertNotNull;
+=======
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+>>>>>>> e9e04a9e9a (fix: Access public APIs listed in a category when user is logged out)
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
+import inmemory.ApiAuthorizationDomainServiceInMemory;
+import inmemory.ApiCategoryOrderQueryServiceInMemory;
+import inmemory.ApiQueryServiceInMemory;
+import inmemory.CategoryQueryServiceInMemory;
+import io.gravitee.apim.core.category.model.ApiCategoryOrder;
+import io.gravitee.apim.core.category.model.Category;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -35,11 +45,24 @@ import java.util.Set;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  */
 public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
+
+    @Autowired
+    private CategoryQueryServiceInMemory categoryQueryServiceInMemory;
+
+    @Autowired
+    private ApiCategoryOrderQueryServiceInMemory apiCategoryOrderQueryServiceInMemory;
+
+    @Autowired
+    private ApiAuthorizationDomainServiceInMemory apiAuthorizationDomainService;
+
+    @Autowired
+    private ApiQueryServiceInMemory apiQueryServiceInMemory;
 
     @Override
     protected String contextPath() {
@@ -54,7 +77,11 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
     @Before
     public void init() {
         resetAllMocks();
+        categoryQueryServiceInMemory.reset();
+        apiCategoryOrderQueryServiceInMemory.reset();
+        apiAuthorizationDomainService.reset();
 
+<<<<<<< HEAD
         ApiEntity publishedApi = new ApiEntity();
         publishedApi.setLifecycleState(ApiLifecycleState.PUBLISHED);
         publishedApi.setName("A");
@@ -82,18 +109,44 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
         publishedApi1.setId("D");
         publishedApi1.setVisibility(Visibility.PRIVATE);
         publishedApi1.setCategories(Set.of("Category1", "Category2"));
+=======
+        ApiEntity publishedApi = createApiEntity("A", "A", Visibility.PUBLIC, ApiLifecycleState.PUBLISHED);
+        ApiEntity unpublishedApi = createApiEntity("B", "B", Visibility.PUBLIC, ApiLifecycleState.UNPUBLISHED);
+        ApiEntity anotherPublishedApi = createApiEntity("C", "C", Visibility.PUBLIC, ApiLifecycleState.PUBLISHED);
+        ApiEntity privateApi = createApiEntity("D", "D", Visibility.PRIVATE, ApiLifecycleState.PUBLISHED);
+>>>>>>> e9e04a9e9a (fix: Access public APIs listed in a category when user is logged out)
 
         doReturn(Arrays.asList("A", "C")).when(filteringService).filterApis(any(), any(), any(), any(), any());
         doReturn(List.of(publishedApi, anotherPublishedApi))
             .when(apiSearchService)
             .search(eq(GraviteeContext.getExecutionContext()), any());
 
+        categoryQueryServiceInMemory.initWith(List.of(Category.builder().id("Category1").build()));
+
+        apiCategoryOrderQueryServiceInMemory.initWith(
+            List.of(
+                ApiCategoryOrder.builder().apiId("1").categoryId("myCat").build(),
+                ApiCategoryOrder.builder().apiId("A").categoryId("Category1").build(),
+                ApiCategoryOrder.builder().apiId("B").categoryId("Category1").build(),
+                ApiCategoryOrder.builder().apiId("C").categoryId("Category1").build(),
+                ApiCategoryOrder.builder().apiId("D").categoryId("Category1").build()
+            )
+        );
+
+        apiAuthorizationDomainService.initWith(List.of(createApi("A"), createApi("C")));
+
+        apiQueryServiceInMemory.initWith(List.of(createApi("A"), createApi("C")));
+
         doReturn(false).when(ratingService).isEnabled(GraviteeContext.getExecutionContext());
 
         doReturn(new Api().name("A").id("A")).when(apiMapper).convert(GraviteeContext.getExecutionContext(), publishedApi);
         doReturn(new Api().name("B").id("B")).when(apiMapper).convert(GraviteeContext.getExecutionContext(), unpublishedApi);
         doReturn(new Api().name("C").id("C")).when(apiMapper).convert(GraviteeContext.getExecutionContext(), anotherPublishedApi);
+<<<<<<< HEAD
         doReturn(new Api().name("D").id("D")).when(apiMapper).convert(GraviteeContext.getExecutionContext(), publishedApi1);
+=======
+        doReturn(new Api().name("D").id("D")).when(apiMapper).convert(GraviteeContext.getExecutionContext(), privateApi);
+>>>>>>> e9e04a9e9a (fix: Access public APIs listed in a category when user is logged out)
     }
 
     @Test
@@ -102,6 +155,10 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+<<<<<<< HEAD
+=======
+
+>>>>>>> e9e04a9e9a (fix: Access public APIs listed in a category when user is logged out)
         assertNotNull(apiResponse.getData());
         assertEquals(2, apiResponse.getData().size());
         assertEquals("A", apiResponse.getData().get(0).getName());
@@ -114,9 +171,36 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+<<<<<<< HEAD
+=======
+
+>>>>>>> e9e04a9e9a (fix: Access public APIs listed in a category when user is logged out)
         assertNotNull(apiResponse.getData());
         assertEquals(2, apiResponse.getData().size());
         assertEquals("A", apiResponse.getData().get(0).getName());
         assertEquals("C", apiResponse.getData().get(1).getName());
+<<<<<<< HEAD
+=======
+    }
+
+    private static ApiEntity createApiEntity(String id, String name, Visibility visibility, ApiLifecycleState apiLifecycleState) {
+        ApiEntity anotherPublishedApi = new ApiEntity();
+        anotherPublishedApi.setLifecycleState(apiLifecycleState);
+        anotherPublishedApi.setVisibility(visibility);
+        anotherPublishedApi.setName(name);
+        anotherPublishedApi.setId(id);
+        return anotherPublishedApi;
+    }
+
+    private static io.gravitee.apim.core.api.model.Api createApi(String A) {
+        return io.gravitee.apim.core.api.model.Api
+            .builder()
+            .id(A)
+            .name(A)
+            .apiLifecycleState(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED)
+            .categories(Set.of("Category1"))
+            .visibility(io.gravitee.apim.core.api.model.Api.Visibility.PUBLIC)
+            .build();
+>>>>>>> e9e04a9e9a (fix: Access public APIs listed in a category when user is logged out)
     }
 }
