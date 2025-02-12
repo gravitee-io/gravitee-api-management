@@ -142,7 +142,10 @@ class GetCategoryApisUseCaseTest {
 
         var result = useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, CAT_ID, USER_ID, true));
 
-        Assertions.assertThat(result).extracting("results").isEqualTo(List.of(resultForApi("api-1", 0), resultForApi("api-2", 0)));
+        Assertions
+            .assertThat(result)
+            .extracting("results")
+            .isEqualTo(List.of(resultForApi("api-1", 0, Api.Visibility.PRIVATE), resultForApi("api-2", 0, Api.Visibility.PRIVATE)));
     }
 
     @Test
@@ -209,7 +212,14 @@ class GetCategoryApisUseCaseTest {
         Assertions
             .assertThat(result)
             .extracting("results")
-            .isEqualTo(List.of(resultForApi("api-1", 0), resultForApi("api-4", 1), resultForApi("api-3", 2), resultForApi("api-5", 3)));
+            .isEqualTo(
+                List.of(
+                    resultForApi("api-1", 0, Api.Visibility.PRIVATE),
+                    resultForApi("api-4", 1, Api.Visibility.PRIVATE),
+                    resultForApi("api-3", 2, Api.Visibility.PRIVATE),
+                    resultForApi("api-5", 3, Api.Visibility.PRIVATE)
+                )
+            );
     }
 
     @Test
@@ -243,7 +253,10 @@ class GetCategoryApisUseCaseTest {
 
         var result = useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, CAT_ID, USER_ID, false, true));
 
-        Assertions.assertThat(result).extracting("results").isEqualTo(List.of(resultForApi("api-1", 0, Api.ApiLifecycleState.PUBLISHED)));
+        Assertions
+            .assertThat(result)
+            .extracting("results")
+            .isEqualTo(List.of(resultForApi("api-1", 0, Api.ApiLifecycleState.PUBLISHED, Api.Visibility.PRIVATE)));
     }
 
     @Test
@@ -275,20 +288,60 @@ class GetCategoryApisUseCaseTest {
             .extracting("results")
             .isEqualTo(
                 List.of(
-                    resultForApi("api-1", 0, Api.ApiLifecycleState.PUBLISHED),
-                    resultForApi("api-3", 2, Api.ApiLifecycleState.PUBLISHED)
+                    resultForApi("api-1", 0, Api.ApiLifecycleState.PUBLISHED, Api.Visibility.PRIVATE),
+                    resultForApi("api-3", 2, Api.ApiLifecycleState.PUBLISHED, Api.Visibility.PRIVATE)
                 )
             );
     }
 
-    private static GetCategoryApisUseCase.@NotNull Result resultForApi(String apiId, int order, Api.ApiLifecycleState apiLifecycleState) {
+    @Test
+    void should_return_public_and_published_apis_when_user_id_is_null() {
+        categoryQueryService.initWith(List.of(Category.builder().id(CAT_ID).build()));
+        apiCategoryOrderQueryService.initWith(
+            List.of(
+                ApiCategoryOrder.builder().apiId("api-1").categoryId(CAT_ID).order(0).build(),
+                ApiCategoryOrder.builder().apiId("api-2").categoryId("another-category").order(0).build(),
+                ApiCategoryOrder.builder().apiId("api-3").categoryId(CAT_ID).order(2).build(),
+                ApiCategoryOrder.builder().apiId("api-4").categoryId(CAT_ID).order(1).build(),
+                ApiCategoryOrder.builder().apiId("api-5").categoryId(CAT_ID).order(3).build()
+            )
+        );
+
+        apiQueryServiceInMemory.initWith(
+            List.of(
+                Api.builder().id("api-1").categories(Set.of(CAT_ID)).visibility(Api.Visibility.PUBLIC).build(),
+                Api.builder().id("api-3").categories(Set.of(CAT_ID)).visibility(Api.Visibility.PUBLIC).build(),
+                Api.builder().id("api-4").categories(Set.of(CAT_ID)).visibility(Api.Visibility.PUBLIC).build()
+            )
+        );
+
+        var result = useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, CAT_ID, null, true));
+
+        Assertions
+            .assertThat(result)
+            .extracting("results")
+            .isEqualTo(
+                List.of(
+                    resultForApi("api-1", 0, Api.Visibility.PUBLIC),
+                    resultForApi("api-4", 1, Api.Visibility.PUBLIC),
+                    resultForApi("api-3", 2, Api.Visibility.PUBLIC)
+                )
+            );
+    }
+
+    private static GetCategoryApisUseCase.@NotNull Result resultForApi(
+        String apiId,
+        int order,
+        Api.ApiLifecycleState apiLifecycleState,
+        Api.Visibility visibility
+    ) {
         return new GetCategoryApisUseCase.Result(
             ApiCategoryOrder.builder().apiId(apiId).categoryId(CAT_ID).order(order).build(),
-            Api.builder().id(apiId).categories(Set.of(CAT_ID)).apiLifecycleState(apiLifecycleState).build()
+            Api.builder().id(apiId).categories(Set.of(CAT_ID)).apiLifecycleState(apiLifecycleState).visibility(visibility).build()
         );
     }
 
-    private static GetCategoryApisUseCase.@NotNull Result resultForApi(String apiId, int order) {
-        return resultForApi(apiId, order, Api.ApiLifecycleState.CREATED);
+    private static GetCategoryApisUseCase.@NotNull Result resultForApi(String apiId, int order, Api.Visibility visibility) {
+        return resultForApi(apiId, order, Api.ApiLifecycleState.CREATED, visibility);
     }
 }
