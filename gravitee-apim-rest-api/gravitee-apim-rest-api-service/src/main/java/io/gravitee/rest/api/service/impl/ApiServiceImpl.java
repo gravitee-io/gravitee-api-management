@@ -20,10 +20,10 @@ import static io.gravitee.repository.management.model.Workflow.AuditEvent.*;
 import static io.gravitee.rest.api.model.PageType.SWAGGER;
 import static io.gravitee.rest.api.model.WorkflowState.DRAFT;
 import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
 import static java.util.Collections.*;
 import static java.util.Comparator.comparing;
 import static java.util.Optional.of;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.*;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -339,7 +339,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         // check the existence of groups
         if (groups != null && !groups.isEmpty()) {
             try {
-                groupService.findByIds(new HashSet(groups));
+                groupService.findByIds(new HashSet<>(groups));
             } catch (GroupsNotFoundException gnfe) {
                 throw new InvalidDataException("These groups [" + gnfe.getParameters().get("groups") + "] do not exist");
             }
@@ -858,17 +858,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
-    private Set merge(List originSet, Collection setToAdd) {
+    private <T> Set<T> merge(List<T> originSet, Collection<T> setToAdd) {
         if (originSet == null) {
             return merge(Collections.emptySet(), setToAdd);
         }
         return merge(new HashSet<>(originSet), setToAdd);
     }
 
-    private Set merge(Set originSet, Collection setToAdd) {
+    private <T> Set<T> merge(Set<T> originSet, Collection<T> setToAdd) {
         if (setToAdd != null && !setToAdd.isEmpty()) {
             if (originSet == null) {
-                originSet = new HashSet();
+                originSet = new HashSet<>();
             }
             originSet.addAll(setToAdd);
         }
@@ -1396,12 +1396,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         checkFlowsPolicyConfiguration(flows);
 
         if (plans != null) {
-            plans
-                .stream()
-                .forEach(plan -> {
-                    checkPathsPolicyConfiguration(plan.getPaths());
-                    checkFlowsPolicyConfiguration(plan.getFlows());
-                });
+            plans.forEach(plan -> {
+                checkPathsPolicyConfiguration(plan.getPaths());
+                checkFlowsPolicyConfiguration(plan.getFlows());
+            });
         }
     }
 
@@ -1655,7 +1653,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             if (!events.isEmpty()) {
                 // According to page size, we know that we have only one element in the list
-                Event lastEvent = events.get(0);
+                Event lastEvent = events.getFirst();
                 boolean sync = false;
                 if (io.gravitee.repository.management.model.EventType.PUBLISH_API.equals(lastEvent.getType())) {
                     Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
@@ -1781,7 +1779,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             properties
         );
 
-        final ApiEntity deployed = convert(executionContext, singletonList(api)).iterator().next();
+        final ApiEntity deployed = convert(executionContext, List.of(api)).getFirst();
 
         if (getAuthenticatedUser() != null && !getAuthenticatedUser().isSystem()) {
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, deployed);
@@ -1985,15 +1983,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Search paginated APIs by {}", query);
 
-            Optional<Collection<String>> optionalTargetIds = this.searchInDefinition(executionContext, query);
+            var optionalTargetIds = searchInDefinition(executionContext, query).filter(not(Collection::isEmpty));
 
-            if (optionalTargetIds.isPresent()) {
-                Collection<String> targetIds = optionalTargetIds.get();
-                if (targetIds.isEmpty()) {
-                    return new Page(Collections.emptyList(), 0, 0, 0);
-                }
-                query.setIds(targetIds);
+            if (optionalTargetIds.isEmpty()) {
+                return new Page<>(List.of(), 0, 0, 0);
             }
+            query.setIds(optionalTargetIds.get());
 
             return convert(
                 executionContext,
@@ -2013,7 +2008,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private Page<ApiEntity> convert(ExecutionContext executionContext, Page<Api> page) throws TechnicalException {
         return new Page<>(
-            this.convert(executionContext, page.getContent()),
+            convert(executionContext, page.getContent()),
             page.getPageNumber(),
             (int) page.getPageElements(),
             page.getTotalElements()
@@ -2027,7 +2022,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             .stream()
             .filter(ApiEntity.class::isInstance)
             .map(c -> (ApiEntity) c)
-            .collect(toList());
+            .toList();
     }
 
     @Override
@@ -2053,7 +2048,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Search paged APIs by {}", query);
 
-            Collection<String> apiIds = apiSearchService.searchIds(executionContext, query, filters, sortable, true);
+            var apiIds = apiSearchService.searchIds(executionContext, query, filters, sortable, false);
 
             if (apiIds.isEmpty()) {
                 return new Page<>(List.of(), 0, 0, 0);
@@ -2087,13 +2082,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (apiQuery == null) {
             return Optional.empty();
         }
-        Query<ApiEntity> searchEngineQuery = convert(apiQuery).build();
-        if (isBlank(searchEngineQuery.getQuery())) {
-            return Optional.empty();
-        }
-
-        SearchResult matchApis = searchEngineService.search(executionContext, addDefaultExcludedFilters(searchEngineQuery));
-        return Optional.of(matchApis.getDocuments());
+        SearchResult matchApis = searchEngineService.search(executionContext, convert(apiQuery).build());
+        return Optional.ofNullable(matchApis).map(SearchResult::getDocuments);
     }
 
     private SearchResult searchInDefinition(ExecutionContext executionContext, String query, Map<String, Object> filters) {
@@ -2106,9 +2096,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         Map<String, Object> filters,
         Sortable sortable
     ) {
-        Query<ApiEntity> searchEngineQuery = addDefaultExcludedFilters(
-            QueryBuilder.create(ApiEntity.class).setQuery(query).setSort(sortable).setFilters(filters).build()
-        );
+        Query<ApiEntity> searchEngineQuery = QueryBuilder
+            .create(ApiEntity.class)
+            .setQuery(query)
+            .setSort(sortable)
+            .setFilters(filters)
+            .build();
         return searchEngineService.search(executionContext, searchEngineQuery);
     }
 
@@ -2474,7 +2467,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             auditService.createApiAuditLog(
                 executionContext,
                 apiUpdated.getId(),
-                Collections.emptyMap(),
+                Map.of(),
                 auditEvent,
                 new Date(),
                 loggingToUpdate,
@@ -2491,7 +2484,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private List<ApiEntity> convert(ExecutionContext executionContext, final List<Api> apis) {
         if (apis == null || apis.isEmpty()) {
-            return Collections.emptyList();
+            return List.of();
         }
         final List<String> apiIds = apis.stream().map(Api::getId).collect(toList());
         Map<String, PrimaryOwnerEntity> primaryOwners = primaryOwnerService.getPrimaryOwners(executionContext, apiIds);
@@ -2502,9 +2495,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             LOGGER.error("{} apis has no identified primary owners in this list {}.", apiWithoutPo.size(), apisAsString);
             streamApis = streamApis.filter(api -> !apiIds.contains(api.getId()));
         }
-        return streamApis
-            .map(publicApi -> this.convert(executionContext, publicApi, primaryOwners.get(publicApi.getId())))
-            .collect(toList());
+        return streamApis.map(publicApi -> convert(executionContext, publicApi, primaryOwners.get(publicApi.getId()))).toList();
     }
 
     private ApiEntity convert(ExecutionContext executionContext, Api api) {
@@ -2588,7 +2579,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         List<String> subsetApiIds = apiIds.stream().skip(startIndex).limit(pageable.getPageSize()).collect(toList());
         Comparator<String> orderingComparator = Comparator.comparingInt(subsetApiIds::indexOf);
         List<ApiEntity> subsetApis = subsetApiIds.isEmpty()
-            ? emptyList()
+            ? List.of()
             : convert(
                 executionContext,
                 apiRepository
@@ -2601,7 +2592,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     )
                     .getContent()
             );
-        subsetApis.sort((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()));
+        subsetApis = subsetApis.stream().sorted((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId())).toList();
         return new Page<>(subsetApis, pageable.getPageNumber(), pageable.getPageSize(), apiIds.size());
     }
 
@@ -2658,15 +2649,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @NotNull
     private static List<DefinitionVersion> getAllowedDefinitionVersion() {
         List<DefinitionVersion> allowedDefinitionVersion = new ArrayList<>();
-        allowedDefinitionVersion.add(null);
+        allowedDefinitionVersion.add(DefinitionVersion.V4);
         allowedDefinitionVersion.add(DefinitionVersion.V1);
         allowedDefinitionVersion.add(DefinitionVersion.V2);
         return allowedDefinitionVersion;
-    }
-
-    private Query<ApiEntity> addDefaultExcludedFilters(Query<ApiEntity> searchEngineQuery) {
-        // By default in this service, we do not care for V4 APIs.
-        searchEngineQuery.getExcludedFilters().put(FIELD_DEFINITION_VERSION, singletonList(DefinitionVersion.V4.getLabel()));
-        return searchEngineQuery;
     }
 }

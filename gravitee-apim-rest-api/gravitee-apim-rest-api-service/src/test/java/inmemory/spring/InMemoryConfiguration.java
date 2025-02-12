@@ -53,6 +53,7 @@ import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
 import inmemory.IntegrationQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
+import inmemory.MediaQueryServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MessageLogCrudServiceInMemory;
@@ -96,6 +97,7 @@ import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.ValidateResourceDomainServiceInMemory;
 import inmemory.WorkflowQueryServiceInMemory;
+import io.gravitee.apim.core.media.query_service.MediaQueryService;
 import io.gravitee.apim.core.specgen.crud_service.ApiSpecGenCrudService;
 import io.gravitee.apim.core.specgen.query_service.ApiSpecGenQueryService;
 import io.gravitee.apim.core.specgen.service_provider.OasProvider;
@@ -525,5 +527,10 @@ public class InMemoryConfiguration {
     @Bean
     public WorkflowQueryService workflowQueryService() {
         return new WorkflowQueryServiceInMemory();
+    }
+
+    @Bean
+    public MediaQueryService mediaQueryService() {
+        return new MediaQueryServiceInMemory();
     }
 }
