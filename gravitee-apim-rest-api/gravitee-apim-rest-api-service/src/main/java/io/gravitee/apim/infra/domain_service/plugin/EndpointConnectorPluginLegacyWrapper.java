@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.domain_service.plugin;
 
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
+import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,7 @@ public class EndpointConnectorPluginLegacyWrapper implements EndpointConnectorPl
     private final EndpointConnectorPluginService endpointConnectorPluginService;
 
     @Override
-    public String getSharedConfigurationSchema(String connectorId) {
-        return endpointConnectorPluginService.getSharedConfigurationSchema(connectorId);
+    public String getDefaultSharedConfiguration(String connectorId) {
+        return endpointConnectorPluginService.validateSharedConfiguration(ConnectorPluginEntity.builder().id(connectorId).build(), "{}");
     }
 }

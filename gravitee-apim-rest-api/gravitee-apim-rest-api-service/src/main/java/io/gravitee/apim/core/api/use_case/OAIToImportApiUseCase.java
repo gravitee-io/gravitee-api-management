@@ -117,7 +117,7 @@ public class OAIToImportApiUseCase {
     }
 
     private ImportDefinition addEndpointGroupSharedConfiguration(ImportDefinition importDefinition) {
-        var sharedConfiguration = endpointConnectorPluginService.getSharedConfigurationSchema("http-proxy");
+        var sharedConfiguration = endpointConnectorPluginService.getDefaultSharedConfiguration("http-proxy");
         var endpointGroups = importDefinition.getApiExport().getEndpointGroups();
         if (endpointGroups == null || endpointGroups.isEmpty()) {
             return importDefinition;
