@@ -480,8 +480,12 @@ class DebugReactorEventListenerTest {
         final HttpClient mockHttpClient = mock(HttpClient.class);
         when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
-        // Mock successful HttpClientResponse
+        // Mock successful Buffer body in HttpClientResponse
         final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
+        when(httpClientResponse.statusCode()).thenReturn(200);
+        final Buffer bodyBuffer = Buffer.buffer("response body");
+        when(httpClientResponse.rxBody()).thenReturn(Single.just(bodyBuffer));
+
         // Mock successful HttpClientRequest
         final HttpClientRequest httpClientRequest = mock(HttpClientRequest.class);
         when(mockHttpClient.rxRequest(any())).thenReturn(Single.just(httpClientRequest));
