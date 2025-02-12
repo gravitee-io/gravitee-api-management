@@ -53,7 +53,7 @@ public class SearchConnectionLogQueryAdapter {
 
         var mustFilterList = new ArrayList<JsonObject>();
 
-        addApiIdFilter(filter, mustFilterList);
+        addApisFilter(filter, mustFilterList);
 
         addFromAndToFilters(filter, mustFilterList);
 
@@ -74,13 +74,9 @@ public class SearchConnectionLogQueryAdapter {
         return null;
     }
 
-    private static void addApiIdFilter(ConnectionLogQuery.Filter filter, List<JsonObject> mustFilterList) {
-        if (filter.getApiId() != null) {
-            var apiShouldTerms = new ArrayList<JsonObject>();
-            apiShouldTerms.add(JsonObject.of("term", JsonObject.of("api-id", filter.getApiId())));
-            apiShouldTerms.add(JsonObject.of("term", JsonObject.of("api", filter.getApiId())));
-
-            mustFilterList.add(buildShould(apiShouldTerms));
+    private static void addApisFilter(ConnectionLogQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getApiIds())) {
+            mustFilterList.add(buildV2AndV4Terms("api", "api-id", filter.getApiIds()));
         }
     }
 

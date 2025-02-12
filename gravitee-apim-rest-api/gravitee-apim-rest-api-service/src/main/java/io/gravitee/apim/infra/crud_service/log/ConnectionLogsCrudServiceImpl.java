@@ -34,6 +34,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -64,7 +65,7 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
                     .filter(
                         ConnectionLogQuery.Filter
                             .builder()
-                            .apiId(apiId)
+                            .apiIds(Set.of(apiId))
                             .from(logsFilters.from())
                             .to(logsFilters.to())
                             .applicationIds(logsFilters.applicationIds())

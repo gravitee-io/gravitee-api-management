@@ -36,7 +36,6 @@ public class ConnectionLogQuery {
     @Builder
     public static class Filter {
 
-        private String apiId;
         private Long from;
         private Long to;
         private Set<String> applicationIds;
@@ -44,5 +43,6 @@ public class ConnectionLogQuery {
         private Set<HttpMethod> methods;
         private Set<Integer> statuses;
         private Set<String> entrypointIds;
+        private Set<String> apiIds;
     }
 }
