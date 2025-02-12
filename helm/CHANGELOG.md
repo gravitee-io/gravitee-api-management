@@ -7,7 +7,8 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 ### 4.7.0
 
 - add kubernetes access account token projection support
-- fix Kafka Gateway configuration
+- Kafka Gateway: fix configuration
+- Kafka Gateway: add fields to configure bootstrap and broker domain patterns
 
 ### 4.6.0
 
