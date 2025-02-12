@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.scoring.model.ScoringRuleset;
+import jakarta.annotation.Nullable;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -25,4 +26,44 @@ public interface ScoringRulesetAdapter {
 
     ScoringRuleset toEntity(io.gravitee.repository.management.model.ScoringRuleset source);
     io.gravitee.repository.management.model.ScoringRuleset toRepository(ScoringRuleset source);
+
+    /**
+     * This method is explicit to show at compile time the link between
+     * <ul>
+     *     <li>{@link io.gravitee.apim.core.scoring.model.ScoringRuleset.Format}</li>
+     *     <li>{@link io.gravitee.repository.management.model.ScoringRuleset.Format}</li>
+     * </ul>
+     */
+    @Nullable
+    default ScoringRuleset.Format map(io.gravitee.repository.management.model.ScoringRuleset.Format source) {
+        return switch (source) {
+            case GRAVITEE_NATIVE -> ScoringRuleset.Format.GRAVITEE_NATIVE;
+            case OPENAPI -> ScoringRuleset.Format.OPENAPI;
+            case ASYNCAPI -> ScoringRuleset.Format.ASYNCAPI;
+            case GRAVITEE_PROXY -> ScoringRuleset.Format.GRAVITEE_PROXY;
+            case GRAVITEE_MESSAGE -> ScoringRuleset.Format.GRAVITEE_MESSAGE;
+            case GRAVITEE_FEDERATION -> ScoringRuleset.Format.GRAVITEE_FEDERATION;
+            case null -> null;
+        };
+    }
+
+    /**
+     * This method is explicit to show at compile time the link between
+     * <ul>
+     *     <li>{@link io.gravitee.apim.core.scoring.model.ScoringRuleset.Format}</li>
+     *     <li>{@link io.gravitee.repository.management.model.ScoringRuleset.Format}</li>
+     * </ul>
+     */
+    @Nullable
+    default io.gravitee.repository.management.model.ScoringRuleset.Format map(ScoringRuleset.Format source) {
+        return switch (source) {
+            case OPENAPI -> io.gravitee.repository.management.model.ScoringRuleset.Format.OPENAPI;
+            case ASYNCAPI -> io.gravitee.repository.management.model.ScoringRuleset.Format.ASYNCAPI;
+            case GRAVITEE_PROXY -> io.gravitee.repository.management.model.ScoringRuleset.Format.GRAVITEE_PROXY;
+            case GRAVITEE_MESSAGE -> io.gravitee.repository.management.model.ScoringRuleset.Format.GRAVITEE_MESSAGE;
+            case GRAVITEE_FEDERATION -> io.gravitee.repository.management.model.ScoringRuleset.Format.GRAVITEE_FEDERATION;
+            case GRAVITEE_NATIVE -> io.gravitee.repository.management.model.ScoringRuleset.Format.GRAVITEE_NATIVE;
+            case null -> null;
+        };
+    }
 }
