@@ -39,12 +39,24 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -241,7 +253,7 @@ public class ApisResource extends AbstractResource<Api, String> {
             );
         }
         return getCategoryApisUseCase
-            .execute(new GetCategoryApisUseCase.Input(executionContext, apisParam.getCategory(), getAuthenticatedUser(), false, true))
+            .execute(new GetCategoryApisUseCase.Input(executionContext, apisParam.getCategory(), getAuthenticatedUserOrNull(), false, true))
             .results()
             .stream()
             .map(result -> result.api().getId())
