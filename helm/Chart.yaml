@@ -39,3 +39,5 @@ annotations:
       links:
         - name: Github Issue
           url: https://github.com/gravitee-io/issues/issues/10337
+    - kind: fixed
+      description: 'fix typo and indentation about mapping of user.anonymize-on-delete.enabled (APIM-8628)'

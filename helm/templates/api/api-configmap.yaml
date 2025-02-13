@@ -469,8 +469,8 @@ data:
         #enabled: true
         token:
         #expire-after: 86400
-        anonymize-on-delete:
-          enabled: {{ .Values.api.user.anynomizeOnDelete }}
+      anonymize-on-delete:
+        enabled: {{ .Values.api.user.anonymizeOnDelete }}
 
     {{- if .Values.api.documentation }}
     documentation:
