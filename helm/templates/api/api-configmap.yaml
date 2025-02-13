@@ -468,9 +468,9 @@ data:
         # Allows to register new users from portal (default false)
         #enabled: true
         token:
-        #expire-after: 86400
-        anonymize-on-delete:
-          enabled: {{ .Values.api.user.anynomizeOnDelete }}
+          #expire-after: 86400
+      anonymize-on-delete:
+        enabled: {{ .Values.api.user.anonymizeOnDelete }}
 
     {{- if .Values.api.documentation }}
     documentation:
