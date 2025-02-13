@@ -25,3 +25,4 @@ annotations:
   ###########
   artifacthub.io/changes: |
     - 'fix typo and indentation about mapping of user.anonymize-on-delete.enabled (APIM-8628)'
+    - 'remove nginx `configuration-snippet` by default (APIM-8630)'
