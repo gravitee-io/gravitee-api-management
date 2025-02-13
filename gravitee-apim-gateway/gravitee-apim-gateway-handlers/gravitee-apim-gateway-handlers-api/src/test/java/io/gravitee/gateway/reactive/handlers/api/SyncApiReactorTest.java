@@ -390,6 +390,7 @@ class SyncApiReactorTest {
 
     @Test
     void shouldStopUntil() throws Exception {
+        RxJavaPlugins.setIoSchedulerHandler(scheduler -> testScheduler);
         ReflectionTestUtils.setField(cut, "pendingRequests", new AtomicInteger(1));
         Observable<Long> stopUntil = cut.stopUntil(10000L);
         TestObserver<Long> testObserver = stopUntil.test();
@@ -407,6 +408,7 @@ class SyncApiReactorTest {
         verify(resourceLifecycleManager).stop();
         verify(policyManager).stop();
         verify(groupLifecycleManager).stop();
+        RxJavaPlugins.reset();
     }
 
     @Test
