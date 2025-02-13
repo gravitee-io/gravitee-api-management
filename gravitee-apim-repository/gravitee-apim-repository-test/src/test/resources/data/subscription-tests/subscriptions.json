@@ -3,6 +3,7 @@
     "id":"sub1",
     "plan": "plan1",
     "application": "app1",
+    "applicationName": "app1 name",
     "api": "api1",
     "environmentId" : "DEFAULT",
     "request": "request",
