@@ -53,8 +53,11 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
 
     protected Analyzer analyzer = new CustomWhitespaceAnalyzer();
 
-    @Autowired
     protected IndexWriter indexWriter;
+
+    protected AbstractDocumentSearcher(IndexWriter indexWriter) {
+        this.indexWriter = indexWriter;
+    }
 
     protected SearchResult search(Query query) throws TechnicalException {
         return search(query, null, null, FIELD_ID);
