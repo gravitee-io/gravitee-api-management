@@ -34,6 +34,7 @@ import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.node.api.configuration.Configuration;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -121,6 +122,7 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
     protected Completable stopUntil() {
         return interval(STOP_UNTIL_INTERVAL_PERIOD_MS, TimeUnit.MILLISECONDS)
             .timestamp()
+            .observeOn(Schedulers.io())
             .takeWhile(t -> pendingRequests.get() > 0 && (t.value() + 1) * STOP_UNTIL_INTERVAL_PERIOD_MS < pendingRequestsTimeout)
             .ignoreElements()
             .onErrorComplete()

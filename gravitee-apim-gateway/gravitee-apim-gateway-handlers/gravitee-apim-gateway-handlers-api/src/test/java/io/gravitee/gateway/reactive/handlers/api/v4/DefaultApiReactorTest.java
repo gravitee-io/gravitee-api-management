@@ -921,6 +921,7 @@ class DefaultApiReactorTest {
 
     @Test
     void shouldWaitForPendingRequestBeforeStopping() throws Exception {
+        RxJavaPlugins.setIoSchedulerHandler(scheduler -> testScheduler);
         when(node.lifecycleState()).thenReturn(Lifecycle.State.STARTED);
         final AtomicLong pendingRequests = new AtomicLong(1);
         ReflectionTestUtils.setField(cut, "pendingRequests", pendingRequests);
@@ -950,10 +951,12 @@ class DefaultApiReactorTest {
         verify(resourceLifecycleManager).stop();
         verify(policyManager).stop();
         verify(apiService).stop();
+        RxJavaPlugins.reset();
     }
 
     @Test
     void shouldWaitForPendingRequestAndForceStopAfter10sWhenRequestDoesNotFinish() throws Exception {
+        RxJavaPlugins.setIoSchedulerHandler(scheduler -> testScheduler);
         when(node.lifecycleState()).thenReturn(Lifecycle.State.STARTED);
         final AtomicLong pendingRequests = new AtomicLong(1);
         ReflectionTestUtils.setField(cut, "pendingRequests", pendingRequests);
@@ -984,6 +987,7 @@ class DefaultApiReactorTest {
         verify(apiService).stop();
 
         assertEquals(STOPPED, cut.lifecycleState());
+        RxJavaPlugins.reset();
     }
 
     @Test
