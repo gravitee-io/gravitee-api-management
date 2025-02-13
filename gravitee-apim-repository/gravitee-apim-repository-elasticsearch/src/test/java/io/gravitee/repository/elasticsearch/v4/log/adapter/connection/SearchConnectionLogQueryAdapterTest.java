@@ -532,6 +532,66 @@ class SearchConnectionLogQueryAdapterTest {
                                          }
                                       }
             """
+            ),
+            Arguments.of(
+                ConnectionLogQuery.Filter
+                    .builder()
+                    .requestIds(Set.of("req-1", "req-2"))
+                    .transactionIds(Set.of("t-1"))
+                    .uri("my-path")
+                    .build(),
+                """
+                                     {
+                                         "from": 0,
+                                         "size": 20,
+                                         "query": {
+                                             "bool": {
+                                                 "must": [
+                                                     {
+                                                         "bool": {
+                                                            "should": [
+                                                                {
+                                                                     "terms": {
+                                                                         "_id": [ "req-1", "req-2" ]
+                                                                     }
+                                                                }, {
+                                                                     "terms": {
+                                                                         "request-id": [ "req-1", "req-2" ]
+                                                                     }
+                                                                }
+                                                            ]
+                                                         }
+                                                     },
+                                                     {
+                                                         "bool": {
+                                                            "should": [
+                                                                {
+                                                                     "terms": {
+                                                                         "transaction": [ "t-1" ]
+                                                                     }
+                                                                }, {
+                                                                     "terms": {
+                                                                         "transaction-id": [ "t-1" ]
+                                                                     }
+                                                                }
+                                                            ]
+                                                         }
+                                                     },
+                                                     {
+                                                         "term": {
+                                                             "uri": "my-path"
+                                                         }
+                                                     }
+                                                 ]
+                                             }
+                                         },
+                                         "sort": {
+                                             "@timestamp": {
+                                                 "order": "desc"
+                                             }
+                                         }
+                                      }
+            """
             )
         );
     }

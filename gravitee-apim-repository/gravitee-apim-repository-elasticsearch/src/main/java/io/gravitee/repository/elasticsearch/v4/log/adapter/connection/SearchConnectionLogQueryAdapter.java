@@ -65,6 +65,12 @@ public class SearchConnectionLogQueryAdapter {
 
         addEntrypointIdsFilter(filter, mustFilterList);
 
+        addRequestIdsFilter(filter, mustFilterList);
+
+        addTransactionIdsFilter(filter, mustFilterList);
+
+        addUriFilter(filter, mustFilterList);
+
         if (!mustFilterList.isEmpty()) {
             return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(mustFilterList.toArray())));
         }
@@ -75,6 +81,24 @@ public class SearchConnectionLogQueryAdapter {
     private static void addApisFilter(ConnectionLogQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getApiIds())) {
             mustFilterList.add(buildV2AndV4Terms(ConnectionLogField.API_ID, filter.getApiIds()));
+        }
+    }
+
+    private static void addRequestIdsFilter(ConnectionLogQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getRequestIds())) {
+            mustFilterList.add(buildV2AndV4Terms(ConnectionLogField.REQUEST_ID, filter.getRequestIds()));
+        }
+    }
+
+    private static void addTransactionIdsFilter(ConnectionLogQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getTransactionIds())) {
+            mustFilterList.add(buildV2AndV4Terms(ConnectionLogField.TRANSACTION_ID, filter.getTransactionIds()));
+        }
+    }
+
+    private static void addUriFilter(ConnectionLogQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (filter.getUri() != null) {
+            mustFilterList.add(JsonObject.of("term", JsonObject.of(ConnectionLogField.URI, filter.getUri())));
         }
     }
 

@@ -44,5 +44,8 @@ public class ConnectionLogQuery {
         private Set<Integer> statuses;
         private Set<String> entrypointIds;
         private Set<String> apiIds;
+        private Set<String> requestIds;
+        private Set<String> transactionIds;
+        private String uri;
     }
 }
