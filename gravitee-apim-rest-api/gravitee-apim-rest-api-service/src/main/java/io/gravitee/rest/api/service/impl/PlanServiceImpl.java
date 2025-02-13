@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static io.gravitee.definition.model.DefinitionVersion.V2;
 import static io.gravitee.repository.management.model.ApiLifecycleState.DEPRECATED;
 import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CLOSED;
@@ -27,9 +26,7 @@ import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_UPDAT
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.apim.core.api.exception.ApiDeprecatedException;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.plan.exception.UnauthorizedPlanSecurityTypeException;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Flow;
@@ -50,17 +47,16 @@ import io.gravitee.rest.api.model.PlansConfigurationEntity;
 import io.gravitee.rest.api.model.UpdatePlanEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
-import io.gravitee.rest.api.service.adapter.PlanAdapter;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.PlanConverter;
+import io.gravitee.rest.api.service.exceptions.ApiDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.KeylessPlanAlreadyPublishedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
@@ -73,9 +69,11 @@ import io.gravitee.rest.api.service.exceptions.PlanNotYetPublishedException;
 import io.gravitee.rest.api.service.exceptions.PlanWithSubscriptionsException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosableException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.UnauthorizedPlanSecurityTypeException;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -84,8 +82,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -151,12 +149,12 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
     @Override
     public PlanEntity findById(final ExecutionContext executionContext, final String plan) {
-        return PlanAdapter.INSTANCE.map(planSearchService.findById(executionContext, plan));
+        return (PlanEntity) planSearchService.findById(executionContext, plan);
     }
 
     @Override
     public Set<PlanEntity> findByApi(final ExecutionContext executionContext, final String api) {
-        return stream(planSearchService.findByApi(executionContext, api)).flatMap(this::map).collect(Collectors.toSet());
+        return planSearchService.findByApi(executionContext, api).stream().map(PlanEntity.class::cast).collect(Collectors.toSet());
     }
 
     @Override
@@ -164,16 +162,17 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
         try {
             logger.debug("Create a new plan {} for API {}", newPlan.getName(), newPlan.getApi());
 
+            assertPlanSecurityIsAllowed(executionContext, newPlan.getSecurity());
+
             Api api = apiRepository.findById(newPlan.getApi()).orElseThrow(() -> new ApiNotFoundException(newPlan.getApi()));
-            assertPlanSecurityIsAllowed(executionContext, newPlan.getSecurity(), api.getDefinitionVersion());
 
             if (api.getApiLifecycleState() == DEPRECATED) {
-                throw new ApiDeprecatedException(api.getId(), api.getName());
+                throw new ApiDeprecatedException(api.getName());
             }
 
             validateTags(newPlan.getTags(), api);
 
-            String id = newPlan.getId() != null ? newPlan.getId() : UuidString.generateRandom();
+            String id = newPlan.getId() != null && UUID.fromString(newPlan.getId()) != null ? newPlan.getId() : UuidString.generateRandom();
 
             newPlan.setId(id);
             Plan plan = planConverter.toPlan(newPlan, getApiDefinitionVersion(api));
@@ -228,14 +227,9 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             logger.debug("Update plan {}", updatePlan.getName());
 
             Plan oldPlan = planRepository.findById(updatePlan.getId()).orElseThrow(() -> new PlanNotFoundException(updatePlan.getId()));
+            assertPlanSecurityIsAllowed(executionContext, PlanSecurityType.valueOf(oldPlan.getSecurity().name()));
+
             Api api = apiRepository.findById(oldPlan.getApi()).orElseThrow(() -> new ApiNotFoundException(oldPlan.getApi()));
-
-            assertPlanSecurityIsAllowed(
-                executionContext,
-                PlanSecurityType.valueOf(oldPlan.getSecurity().name()),
-                api.getDefinitionVersion()
-            );
-
             if (getApiDefinitionVersion(api) == V2 && updatePlan.getFlows() == null) {
                 throw new PlanFlowRequiredException(updatePlan.getId());
             }
@@ -621,27 +615,26 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
         return planConverter.toPlanEntity(plan, flows);
     }
 
-    private void assertPlanSecurityIsAllowed(
-        final ExecutionContext executionContext,
-        PlanSecurityType securityType,
-        DefinitionVersion definitionVersion
-    ) {
-        Key securityKey =
-            switch (securityType) {
-                case API_KEY -> Key.PLAN_SECURITY_APIKEY_ENABLED;
-                case OAUTH2 -> Key.PLAN_SECURITY_OAUTH2_ENABLED;
-                case JWT -> Key.PLAN_SECURITY_JWT_ENABLED;
-                case KEY_LESS -> Key.PLAN_SECURITY_KEYLESS_ENABLED;
-                case MTLS -> {
-                    // V2 don’t support MTLS
-                    if (definitionVersion == V2) {
-                        throw new UnauthorizedPlanSecurityTypeException(securityType.name());
-                    }
-                    yield Key.PLAN_SECURITY_MTLS_ENABLED;
-                }
-            };
+    private void assertPlanSecurityIsAllowed(final ExecutionContext executionContext, PlanSecurityType securityType) {
+        Key securityKey;
+        switch (securityType) {
+            case API_KEY:
+                securityKey = Key.PLAN_SECURITY_APIKEY_ENABLED;
+                break;
+            case OAUTH2:
+                securityKey = Key.PLAN_SECURITY_OAUTH2_ENABLED;
+                break;
+            case JWT:
+                securityKey = Key.PLAN_SECURITY_JWT_ENABLED;
+                break;
+            case KEY_LESS:
+                securityKey = Key.PLAN_SECURITY_KEYLESS_ENABLED;
+                break;
+            default:
+                return;
+        }
         if (!parameterService.findAsBoolean(executionContext, securityKey, ParameterReferenceType.ENVIRONMENT)) {
-            throw new UnauthorizedPlanSecurityTypeException(securityType.name());
+            throw new UnauthorizedPlanSecurityTypeException(securityType);
         }
     }
 
@@ -665,10 +658,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     }
 
     private void validateTags(Set<String> tags, Api api) {
-        tagsValidationService.validatePlanTagsAgainstApiTags(tags, api);
-    }
-
-    private Stream<PlanEntity> map(GenericPlanEntity entity) {
-        return Stream.ofNullable(PlanAdapter.INSTANCE.map(entity));
+        this.tagsValidationService.validatePlanTagsAgainstApiTags(tags, api);
     }
 }

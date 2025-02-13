@@ -113,7 +113,6 @@ import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApiMetadataService;
@@ -170,11 +169,6 @@ public class ResourceContextConfiguration {
     @Bean
     public ApplicationRepository applicationRepository() {
         return mock(ApplicationRepository.class);
-    }
-
-    @Bean
-    public MediaRepository mediaRepository() {
-        return mock(MediaRepository.class);
     }
 
     @Bean

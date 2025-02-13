@@ -115,12 +115,11 @@ public class ApiService_StartTest {
 
     private final CategoryMapper categoryMapper = spy(new CategoryMapper(mock(CategoryService.class)));
 
-    @InjectMocks
     private ApiConverter apiConverter = Mockito.spy(
         new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class))
     );
 
-    private final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+    private ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
     @Before
     public void setUp() {

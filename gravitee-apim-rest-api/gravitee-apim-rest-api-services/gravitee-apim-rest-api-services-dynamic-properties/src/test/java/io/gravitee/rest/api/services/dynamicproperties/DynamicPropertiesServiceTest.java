@@ -17,7 +17,12 @@ package io.gravitee.rest.api.services.dynamicproperties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
@@ -100,7 +105,7 @@ public class DynamicPropertiesServiceTest {
     @InjectMocks
     private DynamicPropertiesService cut;
 
-    private final GraviteeMapper graviteeMapper = new GraviteeMapper();
+    private GraviteeMapper graviteeMapper = new GraviteeMapper();
 
     @SneakyThrows
     @BeforeEach

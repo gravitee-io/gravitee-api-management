@@ -48,6 +48,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
@@ -85,8 +86,7 @@ public class ApiService_FindByIdAsMapTest {
 
     private final CategoryMapper categoryMapper = spy(new CategoryMapper(mock(CategoryService.class)));
 
-    @InjectMocks
-    private ApiConverter apiConverter = spy(
+    private ApiConverter apiConverter = Mockito.spy(
         new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class))
     );
 

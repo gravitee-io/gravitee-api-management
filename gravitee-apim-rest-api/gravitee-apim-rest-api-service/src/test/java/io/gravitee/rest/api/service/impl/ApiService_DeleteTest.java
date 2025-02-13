@@ -122,12 +122,11 @@ public class ApiService_DeleteTest {
     @Mock
     private ApiMetadataService apiMetadataService;
 
-    private final CategoryMapper categoryMapper = spy(new CategoryMapper(mock(CategoryService.class)));
+    private CategoryMapper categoryMapper = spy(new CategoryMapper(mock(CategoryService.class)));
 
     @Mock
     private ApiCategoryService apiCategoryService;
 
-    @InjectMocks
     private ApiConverter apiConverter = Mockito.spy(
         new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class))
     );
