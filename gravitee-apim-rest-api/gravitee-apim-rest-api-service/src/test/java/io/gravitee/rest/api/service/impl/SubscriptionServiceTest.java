@@ -98,8 +98,6 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
@@ -110,6 +108,7 @@ import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableWithSharedApiK
 import io.gravitee.rest.api.service.exceptions.PlanNotYetPublishedException;
 import io.gravitee.rest.api.service.exceptions.PlanRestrictedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionConsumerStatusNotUpdatableException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionFailureCustomerStatusRequiredException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionFailureException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotPausableException;
@@ -2104,6 +2103,64 @@ public class SubscriptionServiceTest {
                 any(),
                 any()
             );
+    }
+
+    @Test
+    public void shouldResumeFailureByConsumer() throws Exception {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setConsumerStatus(Subscription.ConsumerStatus.FAILURE);
+        subscription.setApi(API_ID);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
+        when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+        when(apiModel.getListeners()).thenReturn(List.of(new SubscriptionListener()));
+        when(subscriptionRepository.update(subscription)).thenReturn(subscription);
+        final ApiKeyEntity apiKey = buildTestApiKey(subscription.getId(), false, false);
+        when(apiKeyService.findBySubscription(any(), any())).thenReturn(List.of(apiKey));
+
+        subscriptionService.resumeFailed(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+
+        assertThat(subscription.getConsumerPausedAt()).isNull();
+        assertThat(subscription.getConsumerStatus()).isEqualTo(Subscription.ConsumerStatus.STARTED);
+        verify(apiKeyService).update(GraviteeContext.getExecutionContext(), apiKey);
+        verify(auditService)
+            .createApiAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(API_ID),
+                anyMap(),
+                eq(Subscription.AuditEvent.SUBSCRIPTION_RESUMED_BY_CONSUMER),
+                any(),
+                any(),
+                any()
+            );
+        verify(auditService)
+            .createApplicationAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(APPLICATION_ID),
+                anyMap(),
+                eq(Subscription.AuditEvent.SUBSCRIPTION_RESUMED_BY_CONSUMER),
+                any(),
+                any(),
+                any()
+            );
+    }
+
+    @Test(expected = SubscriptionFailureCustomerStatusRequiredException.class)
+    public void shouldNotResumeFailureByConsumerBecauseApiDefinitionNotV4() throws Exception {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+
+        subscriptionService.resumeFailed(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+    }
+
+    @Test(expected = SubscriptionNotFoundException.class)
+    public void shouldNotResumeFailureByConsumerBecauseDoesNoExist() throws Exception {
+        // Stub
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
+
+        subscriptionService.resumeFailed(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
     }
 
     @Test

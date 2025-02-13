@@ -120,8 +120,16 @@ export class ApiSubscriptionEditHarness extends ComponentHarness {
     return this.btnIsVisible('Resume');
   }
 
+  public async resumeFailureBtnIsVisible(): Promise<boolean> {
+    return this.btnIsVisible('Resume from failure');
+  }
+
   public async openResumeDialog(): Promise<void> {
     return this.getBtnByText('Resume').then((btn) => btn.click());
+  }
+
+  public async openResumeFailureDialog(): Promise<void> {
+    return this.getBtnByText('Resume from failure').then((btn) => btn.click());
   }
 
   public async changeEndDateBtnIsVisible(): Promise<boolean> {
