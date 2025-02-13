@@ -50,6 +50,7 @@ import io.gravitee.apim.core.plan.model.PlanUpdates;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.apim.infra.domain_service.plan.PlanSynchronizationLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -80,6 +81,8 @@ class UpdatePlanUseCaseTest {
     public static final String STAGING_PLAN_API_ID = "staging-plan-api-id";
     public static final String NATIVE_PLAN_ID = "native-plan-id";
     public static final String NATIVE_API_ID = "native-api-id";
+    public static final String NEW_TEST_PLAN_ID = "newtest-plan-id";
+    public static final String NEW_TEST_PLAN_API_ID = "newtest-plan-api-id";
     private final ObjectMapper objectMapper = new ObjectMapper();
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
@@ -127,7 +130,10 @@ class UpdatePlanUseCaseTest {
         var stagingPlan = PlanFixtures.aPlanHttpV4().toBuilder().id(STAGING_PLAN_ID).apiId(STAGING_PLAN_API_ID).order(1).build();
         stagingPlan.getPlanDefinitionV4().setStatus(PlanStatus.STAGING);
         var nativePlan = PlanFixtures.aPlanNativeV4().toBuilder().id(NATIVE_PLAN_ID).apiId(NATIVE_API_ID).order(3).build();
-        List<Plan> allPlans = List.of(plan, anotherPlan, deprecatedPlan, stagingPlan, nativePlan);
+        var newTestPlan = PlanFixtures.aPlanHttpV4().toBuilder().id(NEW_TEST_PLAN_ID).apiId(NEW_TEST_PLAN_API_ID).order(2).build();
+        newTestPlan.getPlanDefinitionV4().setSecurity(null);
+        newTestPlan.setPlanMode(PlanMode.PUSH);
+        List<Plan> allPlans = List.of(plan, anotherPlan, deprecatedPlan, stagingPlan, nativePlan, newTestPlan);
         planCrudService.initWith(allPlans);
         planQueryService.initWith(allPlans);
         apiCrudService.initWith(
@@ -135,7 +141,8 @@ class UpdatePlanUseCaseTest {
                 ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build(),
                 ApiFixtures.aProxyApiV4().toBuilder().id(DEPRECATED_PLAN_API_ID).build(),
                 ApiFixtures.aProxyApiV4().toBuilder().id(STAGING_PLAN_API_ID).build(),
-                ApiFixtures.aNativeApi().toBuilder().id(NATIVE_API_ID).build()
+                ApiFixtures.aNativeApi().toBuilder().id(NATIVE_API_ID).build(),
+                ApiFixtures.aProxyApiV4().toBuilder().id(NEW_TEST_PLAN_API_ID).build()
             )
         );
 
@@ -187,6 +194,54 @@ class UpdatePlanUseCaseTest {
                 updatePlan.getDescription(),
                 updatePlan.getOrder(),
                 updatePlan.getSecurityConfiguration(),
+                updatePlan.getCharacteristics(),
+                updatePlan.getExcludedGroups(),
+                updatePlan.isCommentRequired(),
+                updatePlan.getCommentMessage(),
+                updatePlan.getGeneralConditions(),
+                updatePlan.getTags(),
+                updatePlan.getSelectionRule()
+            );
+    }
+
+    @Test
+    void should_update_plan_when_security_is_null() {
+        // Given
+        PlanUpdates updatePlan = planMinimal().toBuilder().id(NEW_TEST_PLAN_ID).order(1).build();
+        var input = new UpdatePlanUseCase.Input(
+            updatePlan,
+            _api -> Collections.singletonList(FlowFixtures.aProxyFlowV4()),
+            NEW_TEST_PLAN_API_ID,
+            new AuditInfo("user-id", "user-name", AuditActor.builder().build())
+        );
+
+        // When
+        var output = updatePlanUseCase.execute(input);
+
+        // Then
+        assertThat(output)
+            .isNotNull()
+            .extracting(UpdatePlanUseCase.Output::updated)
+            .extracting(
+                PlanWithFlows::getId,
+                PlanWithFlows::getCrossId,
+                PlanWithFlows::getName,
+                PlanWithFlows::getDescription,
+                PlanWithFlows::getOrder,
+                PlanWithFlows::getCharacteristics,
+                PlanWithFlows::getExcludedGroups,
+                PlanWithFlows::isCommentRequired,
+                PlanWithFlows::getCommentMessage,
+                PlanWithFlows::getGeneralConditions,
+                PlanWithFlows::getPlanTags,
+                PlanWithFlows::getSelectionRule
+            )
+            .containsExactly(
+                NEW_TEST_PLAN_ID,
+                "my-plan-crossId",
+                updatePlan.getName(),
+                updatePlan.getDescription(),
+                updatePlan.getOrder(),
                 updatePlan.getCharacteristics(),
                 updatePlan.getExcludedGroups(),
                 updatePlan.isCommentRequired(),
