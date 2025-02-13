@@ -29,7 +29,6 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
-import jakarta.annotation.Nullable;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Collection;
@@ -54,19 +53,28 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "security", expression = "java(mapPlanSecurity(source.getPlanDefinitionHttpV4().getSecurity()))")
     @Mapping(target = "mode", source = "planDefinitionHttpV4.mode")
     @Mapping(target = "status", source = "planDefinitionHttpV4.status")
-    PlanDescriptor.PlanDescriptorV4 mapPlanV4(Plan source);
+    PlanDescriptor.V4 mapPlanV4(Plan source);
 
     @Mapping(target = "security", expression = "java(mapPlanSecurity(source.getPlanDefinitionNativeV4().getSecurity()))")
     @Mapping(target = "mode", source = "planDefinitionNativeV4.mode")
     @Mapping(target = "status", source = "planDefinitionNativeV4.status")
-    PlanDescriptor.PlanDescriptorV4 mapPlanNative(Plan source);
+    PlanDescriptor.V4 mapPlanNative(Plan source);
 
-    @Nullable
-    default Collection<PlanDescriptor.PlanDescriptorV4> mapPlanV4(Collection<Plan> src) {
-        return src == null
-            ? null
-            : src.stream().map(plan -> plan.getPlanDefinitionV4() != null ? mapPlanV4(plan) : mapPlanNative(plan)).toList();
-    }
+    @Mapping(target = "security", expression = "java(mapPlanSecurity(source.getFederatedPlanDefinition().getSecurity()))")
+    @Mapping(target = "mode", source = "federatedPlanDefinition.mode")
+    @Mapping(target = "status", source = "federatedPlanDefinition.status")
+    @Mapping(target = "providerId", source = "federatedPlanDefinition.providerId")
+    PlanDescriptor.Federated mapPlanFederated(Plan source);
+
+    @Mapping(
+        target = "security",
+        expression = "java(mapPlanSecurityV2(source.getPlanDefinitionV2().getSecurity(), source.getPlanDefinitionV2().getSecurityDefinition()))"
+    )
+    @Mapping(target = "status", source = "planDefinitionV2.status")
+    @Mapping(target = "securityDefinition", source = "planDefinitionV2.securityDefinition")
+    @Mapping(target = "paths", source = "planDefinitionV2.paths")
+    @Mapping(target = "flows", source = "planDefinitionV2.flows")
+    PlanDescriptor.V2 mapPlanV2(Plan source);
 
     io.gravitee.rest.api.model.PrimaryOwnerEntity map(PrimaryOwnerEntity src);
 
@@ -126,7 +134,7 @@ public interface GraviteeDefinitionAdapter {
     );
 
     @Mapping(target = "id", source = "apiEntity.id")
-    @Mapping(target = "type", source = "apiEntity.type")
+    @Mapping(target = "apiVersion", source = "apiEntity.version")
     @Mapping(target = "state", source = "apiEntity.lifecycleState")
     @Mapping(target = "lifecycleState", source = "apiEntity.apiLifecycleState")
     @Mapping(target = "proxy", source = "apiEntity.apiDefinition.proxy")
@@ -179,5 +187,12 @@ public interface GraviteeDefinitionAdapter {
             .type(PlanSecurityType.valueOfLabel(source.getType()).name())
             .configuration(source.getConfiguration())
             .build();
+    }
+
+    default PlanSecurity mapPlanSecurityV2(String security, String definition) {
+        if (security == null) {
+            return null;
+        }
+        return PlanSecurity.builder().type(security).configuration(definition).build();
     }
 }

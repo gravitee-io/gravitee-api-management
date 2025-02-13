@@ -33,9 +33,7 @@ public interface ScoringRulesetMapper {
 
     ScoringRuleset map(UpdateScoringRuleset updateScoringRuleset);
 
-    @ValueMapping(target = "GRAVITEE_NATIVE", source = "GRAVITEE_KAFKA")
     ScoringRuleset.Format map(ScoringAssetFormat formatEnum);
 
-    @ValueMapping(target = "GRAVITEE_KAFKA", source = "GRAVITEE_NATIVE")
     ScoringAssetFormat map(ScoringRuleset.Format formatEnum);
 }

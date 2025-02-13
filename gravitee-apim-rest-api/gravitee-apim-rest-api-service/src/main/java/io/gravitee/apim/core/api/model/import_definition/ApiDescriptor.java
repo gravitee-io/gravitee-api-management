@@ -206,7 +206,6 @@ public sealed interface ApiDescriptor {
         String crossId,
         String name,
         String apiVersion,
-        ApiType type,
         String description,
         Instant deployedAt,
         Instant createdAt,
@@ -244,6 +243,12 @@ public sealed interface ApiDescriptor {
         @Override
         public DefinitionVersion definitionVersion() {
             return DefinitionVersion.V2;
+        }
+
+        @JsonProperty("type")
+        @Override
+        public ApiType type() {
+            return ApiType.PROXY;
         }
     }
 }

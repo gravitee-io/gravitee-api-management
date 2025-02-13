@@ -48,7 +48,7 @@ export class ImportApiScoreRulesetComponent implements OnInit {
     {
       title: 'Native Kafka',
       subtitle: 'For Apache Kafka-based messaging and event processing.',
-      value: RulesetFormat.GRAVITEE_KAFKA,
+      value: RulesetFormat.GRAVITEE_NATIVE,
       isDisabled: false,
     },
     {

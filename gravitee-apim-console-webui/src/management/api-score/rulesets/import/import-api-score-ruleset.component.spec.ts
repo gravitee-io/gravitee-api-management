@@ -112,7 +112,7 @@ describe('NewRulesetComponent', () => {
   [
     { input: { selectedFormat: 'GRAVITEE_MESSAGE' }, expected: RulesetFormat.GRAVITEE_MESSAGE },
     { input: { selectedFormat: 'GRAVITEE_PROXY' }, expected: RulesetFormat.GRAVITEE_PROXY },
-    { input: { selectedFormat: 'GRAVITEE_KAFKA' }, expected: RulesetFormat.GRAVITEE_KAFKA },
+    { input: { selectedFormat: 'GRAVITEE_NATIVE' }, expected: RulesetFormat.GRAVITEE_NATIVE },
   ].forEach((testParams) => {
     it('should send request with values selected in form for GraviteeAPI format: ' + testParams.input.selectedFormat, async () => {
       const definitionFormat = await componentHarness.locatorForDefinitionFormatRadioGroup();

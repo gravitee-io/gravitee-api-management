@@ -46,7 +46,7 @@ public sealed interface GraviteeDefinition {
         Set<ApiMember> members,
         Set<NewApiMetadata> metadata,
         List<PageExport> pages,
-        Collection<PlanDescriptor.PlanDescriptorV4> plans,
+        Collection<PlanDescriptor.V4> plans,
         List<Media> apiMedia,
         String apiPicture,
         String apiBackground
@@ -60,7 +60,7 @@ public sealed interface GraviteeDefinition {
         Set<ApiMember> members,
         Set<NewApiMetadata> metadata,
         List<PageExport> pages,
-        Collection<PlanDescriptor.PlanDescriptorV4> plans,
+        Collection<PlanDescriptor.V4> plans,
         List<Media> apiMedia,
         String apiPicture,
         String apiBackground
@@ -74,7 +74,7 @@ public sealed interface GraviteeDefinition {
         Set<ApiMember> members,
         Set<NewApiMetadata> metadata,
         List<PageExport> pages,
-        Collection<PlanDescriptor.PlanDescriptorV4> plans,
+        Collection<PlanDescriptor.Federated> plans,
         List<Media> apiMedia,
         String apiPicture,
         String apiBackground
@@ -88,7 +88,7 @@ public sealed interface GraviteeDefinition {
         Set<ApiMember> members,
         Set<NewApiMetadata> metadata,
         List<PageExport> pages,
-        Collection<PlanDescriptor.PlanDescriptorV4> plans,
+        Collection<PlanDescriptor.V2> plans,
         List<Media> apiMedia,
         String apiPicture,
         String apiBackground
@@ -102,21 +102,58 @@ public sealed interface GraviteeDefinition {
     }
 
     static GraviteeDefinition from(
-        ApiDescriptor api,
+        ApiDescriptor.ApiDescriptorV2 api,
         Set<ApiMember> members,
         Set<NewApiMetadata> metadata,
         List<PageExport> pages,
-        Collection<PlanDescriptor.PlanDescriptorV4> plans,
+        Collection<PlanDescriptor.V2> plans,
         List<Media> media,
         String picture,
         String bckgrnd
     ) {
         var export = new Export();
-        return switch (api) {
-            case ApiDescriptor.ApiDescriptorV2 v2 -> new V2(export, v2, members, metadata, pages, plans, media, picture, bckgrnd);
-            case ApiDescriptor.ApiDescriptorV4 v4 -> new V4(export, v4, members, metadata, pages, plans, media, picture, bckgrnd);
-            case ApiDescriptor.Federated fed -> new Federated(export, fed, members, metadata, pages, plans, media, picture, bckgrnd);
-            case ApiDescriptor.Native nativeApi -> new Native(export, nativeApi, members, metadata, pages, plans, media, picture, bckgrnd);
-        };
+        return new V2(export, api, members, metadata, pages, plans, media, picture, bckgrnd);
+    }
+
+    static GraviteeDefinition from(
+        ApiDescriptor.ApiDescriptorV4 api,
+        Set<ApiMember> members,
+        Set<NewApiMetadata> metadata,
+        List<PageExport> pages,
+        Collection<PlanDescriptor.V4> plans,
+        List<Media> media,
+        String picture,
+        String bckgrnd
+    ) {
+        var export = new Export();
+        return new V4(export, api, members, metadata, pages, plans, media, picture, bckgrnd);
+    }
+
+    static GraviteeDefinition from(
+        ApiDescriptor.Native api,
+        Set<ApiMember> members,
+        Set<NewApiMetadata> metadata,
+        List<PageExport> pages,
+        Collection<PlanDescriptor.V4> plans,
+        List<Media> media,
+        String picture,
+        String bckgrnd
+    ) {
+        var export = new Export();
+        return new Native(export, api, members, metadata, pages, plans, media, picture, bckgrnd);
+    }
+
+    static GraviteeDefinition from(
+        ApiDescriptor.Federated api,
+        Set<ApiMember> members,
+        Set<NewApiMetadata> metadata,
+        List<PageExport> pages,
+        Collection<PlanDescriptor.Federated> plans,
+        List<Media> media,
+        String picture,
+        String bckgrnd
+    ) {
+        var export = new Export();
+        return new Federated(export, api, members, metadata, pages, plans, media, picture, bckgrnd);
     }
 }

@@ -19,12 +19,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.Builder;
 
@@ -40,7 +43,7 @@ public sealed interface PlanDescriptor {
     }
 
     @Builder
-    record PlanDescriptorV4(
+    record V4(
         String id,
         String crossId,
         String name,
@@ -72,6 +75,83 @@ public sealed interface PlanDescriptor {
         String generalConditions,
 
         List<? extends AbstractFlow> flows
+    )
+        implements PlanDescriptor {
+        @JsonProperty("tags")
+        public Set<String> tags() {
+            return tags != null ? tags : Set.of();
+        }
+    }
+
+    @Builder
+    record Federated(
+        String id,
+        String crossId,
+        String name,
+        DefinitionVersion definitionVersion,
+        String description,
+
+        Instant createdAt,
+        Instant updatedAt,
+        Instant publishedAt,
+        Instant closedAt,
+
+        Plan.PlanValidationType validation,
+        Plan.PlanType type,
+        PlanMode mode,
+        PlanSecurity security,
+
+        String selectionRule,
+        PlanStatus status,
+        String apiId,
+        String environmentId,
+
+        int order,
+        List<String> characteristics,
+        List<String> excludedGroups,
+        boolean commentRequired,
+        String commentMessage,
+        String generalConditions,
+
+        String providerId
+    )
+        implements PlanDescriptor {}
+
+    @Builder
+    record V2(
+        String id,
+        String crossId,
+        String name,
+        DefinitionVersion definitionVersion,
+        String description,
+
+        Instant createdAt,
+        Instant updatedAt,
+        Instant publishedAt,
+        Instant closedAt,
+
+        Plan.PlanValidationType validation,
+        Plan.PlanType type,
+        PlanMode mode,
+        PlanSecurity security,
+
+        Set<String> tags,
+
+        String selectionRule,
+        PlanStatus status,
+        String apiId,
+        String environmentId,
+
+        int order,
+        List<String> characteristics,
+        List<String> excludedGroups,
+        boolean commentRequired,
+        String commentMessage,
+        String generalConditions,
+
+        String securityDefinition,
+        Map<String, List<Rule>> paths,
+        List<Flow> flows
     )
         implements PlanDescriptor {
         @JsonProperty("tags")

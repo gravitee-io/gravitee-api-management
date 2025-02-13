@@ -346,7 +346,7 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         return Set.of(firstMetadata, secondMetadata);
     }
 
-    private Set<PlanDescriptor.PlanDescriptorV4> fakeApiPlans() {
+    private Set<PlanDescriptor.V4> fakeApiPlans() {
         Step step = new Step();
         step.setName("stepName");
         step.setDescription("stepDescription");
@@ -372,7 +372,7 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         planFlow.setTags(null);
 
         return Set.of(
-            PlanDescriptor.PlanDescriptorV4
+            PlanDescriptor.V4
                 .builder()
                 .apiId(API)
                 .characteristics(List.of("characteristic1", "characteristic2"))
