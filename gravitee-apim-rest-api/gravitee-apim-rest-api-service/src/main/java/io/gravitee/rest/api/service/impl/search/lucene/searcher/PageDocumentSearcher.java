@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import java.util.Optional;
+import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -39,6 +40,10 @@ import org.springframework.stereotype.Component;
 public class PageDocumentSearcher extends AbstractDocumentSearcher {
 
     protected static final String FIELD_TYPE_VALUE = "page";
+
+    public PageDocumentSearcher(IndexWriter indexWriter) {
+        super(indexWriter);
+    }
 
     @Override
     public SearchResult searchReference(ExecutionContext executionContext, io.gravitee.rest.api.service.search.query.Query query)
