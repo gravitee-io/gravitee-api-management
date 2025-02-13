@@ -668,7 +668,7 @@ api:
   user:
     login:
       defaultApplication: true
-    anynomizeOnDelete: false
+    anonymizeOnDelete: false
   supportEnabled: true
   ratingEnabled: true
   newsletterEnabled: true
