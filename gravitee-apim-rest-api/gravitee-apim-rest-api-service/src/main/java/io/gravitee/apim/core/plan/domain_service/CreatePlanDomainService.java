@@ -39,10 +39,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import lombok.RequiredArgsConstructor;
 
 @DomainService
-@RequiredArgsConstructor
 public class CreatePlanDomainService {
 
     private final PlanValidatorDomainService planValidatorDomainService;
@@ -50,6 +48,20 @@ public class CreatePlanDomainService {
     private final PlanCrudService planCrudService;
     private final FlowCrudService flowCrudService;
     private final AuditDomainService auditService;
+
+    public CreatePlanDomainService(
+        PlanValidatorDomainService planValidatorDomainService,
+        FlowValidationDomainService flowValidationDomainService,
+        PlanCrudService planCrudService,
+        FlowCrudService flowCrudService,
+        AuditDomainService auditDomainService
+    ) {
+        this.planValidatorDomainService = planValidatorDomainService;
+        this.flowValidationDomainService = flowValidationDomainService;
+        this.planCrudService = planCrudService;
+        this.flowCrudService = flowCrudService;
+        this.auditService = auditDomainService;
+    }
 
     public PlanWithFlows create(Plan plan, List<? extends AbstractFlow> flows, Api api, AuditInfo auditInfo) {
         return switch (api.getDefinitionVersion()) {
@@ -61,7 +73,7 @@ public class CreatePlanDomainService {
 
     private PlanWithFlows createV4ApiPlan(Plan plan, List<? extends AbstractFlow> flows, Api api, AuditInfo auditInfo) {
         if (api.isDeprecated()) {
-            throw new ApiDeprecatedException(plan.getApiId(), api.getName());
+            throw new ApiDeprecatedException(plan.getApiId());
         }
 
         var listeners = api.getApiListeners();

@@ -296,7 +296,7 @@ public class ApiSearchService_SearchTest {
 
         assertThat(apis).isNotNull();
         assertThat(apis.getContent().size()).isEqualTo(2);
-        assertThat(apis.getContent().getFirst().getId()).isEqualTo("id-3");
+        assertThat(apis.getContent().get(0).getId()).isEqualTo("id-3");
         assertThat(apis.getTotalElements()).isEqualTo(6);
         assertThat(apis.getPageNumber()).isEqualTo(2);
         assertThat(apis.getPageElements()).isEqualTo(2);

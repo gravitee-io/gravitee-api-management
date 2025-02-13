@@ -15,202 +15,169 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.PlanFixtures;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.plan.model.Plan;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.federation.FederatedPlan;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.rest.api.management.v2.rest.model.PlanFederated;
-import io.gravitee.rest.api.management.v2.rest.model.PlanV2;
-import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
-import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import java.util.HashSet;
-import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.mapstruct.factory.Mappers;
 
 public class PlanMapperTest {
 
-    private final PlanMapper planMapper = PlanMapper.INSTANCE;
+    private final PlanMapper planMapper = Mappers.getMapper(PlanMapper.class);
     private static final ObjectMapper jsonMapper = new ObjectMapper();
 
-    @Nested
-    class PlanEntity2PlanV4 {
+    @Test
+    void should_map_PlanEntity_to_PlanV4() {
+        final var planEntity = PlanFixtures.aPlanEntityV4();
+        final var plan = planMapper.map(planEntity);
 
-        @Test
-        void should_map_PlanEntity_to_PlanV4() {
-            final var planEntity = PlanFixtures.aPlanEntityV4();
-            final var plan = planMapper.map(planEntity);
+        assertEquals(planEntity.getId(), plan.getId());
+        assertEquals(planEntity.getApiId(), plan.getApiId());
+        assertEquals(planEntity.getName(), plan.getName());
+        assertEquals(planEntity.getDescription(), plan.getDescription());
+        assertEquals(planEntity.getOrder(), (int) plan.getOrder());
+        assertEquals(planEntity.getCharacteristics(), plan.getCharacteristics());
+        assertEquals(planEntity.getCreatedAt().getTime(), plan.getCreatedAt().toInstant().toEpochMilli());
+        assertEquals(planEntity.getUpdatedAt().getTime(), plan.getUpdatedAt().toInstant().toEpochMilli());
+        assertEquals(planEntity.getCommentMessage(), plan.getCommentMessage());
+        assertEquals(planEntity.getCrossId(), plan.getCrossId());
+        assertEquals(planEntity.getGeneralConditions(), plan.getGeneralConditions());
+        assertEquals(planEntity.getTags(), new HashSet<>(plan.getTags()));
+        assertEquals(planEntity.getStatus().name(), plan.getStatus().name());
+        assertEquals(planEntity.getType().name(), plan.getType().name());
+        assertEquals(planEntity.getExcludedGroups(), plan.getExcludedGroups());
+        assertEquals(planEntity.getValidation().name(), plan.getValidation().name());
+        assertEquals(planEntity.getSelectionRule(), plan.getSelectionRule());
 
-            assertEquals(planEntity.getId(), plan.getId());
-            assertEquals(planEntity.getApiId(), plan.getApiId());
-            assertEquals(planEntity.getName(), plan.getName());
-            assertEquals(planEntity.getDescription(), plan.getDescription());
-            assertEquals(planEntity.getOrder(), (int) plan.getOrder());
-            assertEquals(planEntity.getCharacteristics(), plan.getCharacteristics());
-            assertEquals(planEntity.getCreatedAt().getTime(), plan.getCreatedAt().toInstant().toEpochMilli());
-            assertEquals(planEntity.getUpdatedAt().getTime(), plan.getUpdatedAt().toInstant().toEpochMilli());
-            assertEquals(planEntity.getCommentMessage(), plan.getCommentMessage());
-            assertEquals(planEntity.getCrossId(), plan.getCrossId());
-            assertEquals(planEntity.getGeneralConditions(), plan.getGeneralConditions());
-            assertEquals(planEntity.getTags(), new HashSet<>(plan.getTags()));
-            assertEquals(planEntity.getStatus().name(), plan.getStatus().name());
-            assertEquals(planEntity.getType().name(), plan.getType().name());
-            assertEquals(planEntity.getExcludedGroups(), plan.getExcludedGroups());
-            assertEquals(planEntity.getValidation().name(), plan.getValidation().name());
-            assertEquals(planEntity.getSelectionRule(), plan.getSelectionRule());
-
-            assertSecurityV4Equals(planEntity.getSecurity(), plan.getSecurity());
-            assertEquals(planEntity.getFlows().size(), plan.getFlows().size()); // Flow mapping is tested in FlowMapperTest
-        }
+        assertSecurityV4Equals(planEntity.getSecurity(), plan.getSecurity());
+        assertEquals(planEntity.getFlows().size(), plan.getFlows().size()); // Flow mapping is tested in FlowMapperTest
     }
 
-    @Nested
-    class NativePlanEntity2PlanV4 {
+    @Test
+    void should_map_NativePlanEntity_to_PlanV4() {
+        final var planEntity = PlanFixtures.aNativePlanEntityV4();
+        final var plan = planMapper.map(planEntity);
 
-        @Test
-        void should_map_NativePlanEntity_to_PlanV4() {
-            final var planEntity = PlanFixtures.aNativePlanEntityV4();
-            final var plan = planMapper.map(planEntity);
+        assertEquals(planEntity.getId(), plan.getId());
+        assertEquals(planEntity.getApiId(), plan.getApiId());
+        assertEquals(planEntity.getName(), plan.getName());
+        assertEquals(planEntity.getDescription(), plan.getDescription());
+        assertEquals(planEntity.getOrder(), (int) plan.getOrder());
+        assertEquals(planEntity.getCharacteristics(), plan.getCharacteristics());
+        assertEquals(planEntity.getCreatedAt().getTime(), plan.getCreatedAt().toInstant().toEpochMilli());
+        assertEquals(planEntity.getUpdatedAt().getTime(), plan.getUpdatedAt().toInstant().toEpochMilli());
+        assertEquals(planEntity.getCommentMessage(), plan.getCommentMessage());
+        assertEquals(planEntity.getCrossId(), plan.getCrossId());
+        assertEquals(planEntity.getGeneralConditions(), plan.getGeneralConditions());
+        assertEquals(planEntity.getTags(), new HashSet<>(plan.getTags()));
+        assertEquals(planEntity.getStatus().name(), plan.getStatus().name());
+        assertEquals(planEntity.getType().name(), plan.getType().name());
+        assertEquals(planEntity.getExcludedGroups(), plan.getExcludedGroups());
+        assertEquals(planEntity.getValidation().name(), plan.getValidation().name());
+        assertEquals(planEntity.getSelectionRule(), plan.getSelectionRule());
 
-            assertEquals(planEntity.getId(), plan.getId());
-            assertEquals(planEntity.getApiId(), plan.getApiId());
-            assertEquals(planEntity.getName(), plan.getName());
-            assertEquals(planEntity.getDescription(), plan.getDescription());
-            assertEquals(planEntity.getOrder(), (int) plan.getOrder());
-            assertEquals(planEntity.getCharacteristics(), plan.getCharacteristics());
-            assertEquals(planEntity.getCreatedAt().getTime(), plan.getCreatedAt().toInstant().toEpochMilli());
-            assertEquals(planEntity.getUpdatedAt().getTime(), plan.getUpdatedAt().toInstant().toEpochMilli());
-            assertEquals(planEntity.getCommentMessage(), plan.getCommentMessage());
-            assertEquals(planEntity.getCrossId(), plan.getCrossId());
-            assertEquals(planEntity.getGeneralConditions(), plan.getGeneralConditions());
-            assertEquals(planEntity.getTags(), new HashSet<>(plan.getTags()));
-            assertEquals(planEntity.getStatus().name(), plan.getStatus().name());
-            assertEquals(planEntity.getType().name(), plan.getType().name());
-            assertEquals(planEntity.getExcludedGroups(), plan.getExcludedGroups());
-            assertEquals(planEntity.getValidation().name(), plan.getValidation().name());
-            assertEquals(planEntity.getSelectionRule(), plan.getSelectionRule());
-
-            assertSecurityV4Equals(planEntity.getSecurity(), plan.getSecurity());
-            assertEquals(planEntity.getFlows().size(), plan.getFlows().size()); // Flow mapping is tested in FlowMapperTest
-        }
+        assertSecurityV4Equals(planEntity.getSecurity(), plan.getSecurity());
+        assertEquals(planEntity.getFlows().size(), plan.getFlows().size()); // Flow mapping is tested in FlowMapperTest
     }
 
-    @Nested
-    class PlanEntity2PlanV2 {
+    @Test
+    void should_map_PlanEntity_to_PlanV2() {
+        final var planEntity = PlanFixtures.aPlanEntityV2();
+        final var plan = planMapper.map(planEntity);
 
-        @Test
-        void should_map_PlanEntity_to_PlanV2() {
-            final var planEntity = PlanFixtures.aPlanEntityV2();
-            final var plan = planMapper.map(planEntity);
+        assertEquals(planEntity.getId(), plan.getId());
+        assertEquals(planEntity.getApiId(), plan.getApiId());
+        assertEquals(planEntity.getName(), plan.getName());
+        assertEquals(planEntity.getDescription(), plan.getDescription());
+        assertEquals(planEntity.getOrder(), (int) plan.getOrder());
+        assertEquals(planEntity.getCharacteristics(), plan.getCharacteristics());
+        assertEquals(planEntity.getCreatedAt().getTime(), plan.getCreatedAt().toInstant().toEpochMilli());
+        assertEquals(planEntity.getUpdatedAt().getTime(), plan.getUpdatedAt().toInstant().toEpochMilli());
+        assertEquals(planEntity.getCommentMessage(), plan.getCommentMessage());
+        assertEquals(planEntity.getCrossId(), plan.getCrossId());
+        assertEquals(planEntity.getGeneralConditions(), plan.getGeneralConditions());
+        assertEquals(planEntity.getTags(), new HashSet<>(plan.getTags()));
+        assertEquals(planEntity.getStatus().name(), plan.getStatus().name());
+        assertEquals(planEntity.getType().name(), plan.getType().name());
+        assertEquals(planEntity.getExcludedGroups(), plan.getExcludedGroups());
+        assertEquals(planEntity.getValidation().name(), plan.getValidation().name());
+        assertEquals(planEntity.getSelectionRule(), plan.getSelectionRule());
+        assertEquals(planEntity.getPlanSecurity().getType(), plan.getSecurity().getType().name());
+        assertDefinitionEquals(planEntity.getSecurityDefinition(), plan.getSecurity().getConfiguration());
 
-            assertEquals(planEntity.getId(), plan.getId());
-            assertEquals(planEntity.getApiId(), plan.getApiId());
-            assertEquals(planEntity.getName(), plan.getName());
-            assertEquals(planEntity.getDescription(), plan.getDescription());
-            assertEquals(planEntity.getOrder(), (int) plan.getOrder());
-            assertEquals(planEntity.getCharacteristics(), plan.getCharacteristics());
-            assertEquals(planEntity.getCreatedAt().getTime(), plan.getCreatedAt().toInstant().toEpochMilli());
-            assertEquals(planEntity.getUpdatedAt().getTime(), plan.getUpdatedAt().toInstant().toEpochMilli());
-            assertEquals(planEntity.getCommentMessage(), plan.getCommentMessage());
-            assertEquals(planEntity.getCrossId(), plan.getCrossId());
-            assertEquals(planEntity.getGeneralConditions(), plan.getGeneralConditions());
-            assertEquals(planEntity.getTags(), new HashSet<>(plan.getTags()));
-            assertEquals(planEntity.getStatus().name(), plan.getStatus().name());
-            assertEquals(planEntity.getType().name(), plan.getType().name());
-            assertEquals(planEntity.getExcludedGroups(), plan.getExcludedGroups());
-            assertEquals(planEntity.getValidation().name(), plan.getValidation().name());
-            assertEquals(planEntity.getSelectionRule(), plan.getSelectionRule());
-            assertEquals(planEntity.getPlanSecurity().getType(), plan.getSecurity().getType().name());
-            assertDefinitionEquals(planEntity.getSecurityDefinition(), plan.getSecurity().getConfiguration());
-
-            assertEquals(planEntity.getFlows().size(), plan.getFlows().size()); // Flow mapping is tested in FlowMapperTest
-        }
+        assertEquals(planEntity.getFlows().size(), plan.getFlows().size()); // Flow mapping is tested in FlowMapperTest
     }
 
-    @Nested
-    class PlanEntity2Plan52 {
+    @Test
+    void should_map_CreatePlanV4_to_core_Plan() {
+        final var createPlanV4 = PlanFixtures.aCreatePlanHttpV4();
+        final var plan = planMapper.map(createPlanV4, Api.builder().type(ApiType.PROXY).build());
 
-        @Test
-        void should_map_CreatePlanV4_to_core_Plan() {
-            final var createPlanV4 = PlanFixtures.aCreatePlanHttpV4();
-            final var plan = planMapper.map(createPlanV4, Api.builder().type(ApiType.PROXY).build());
+        Assertions.assertNull(plan.getId());
+        assertEquals(createPlanV4.getName(), plan.getName());
+        assertEquals(createPlanV4.getDescription(), plan.getDescription());
+        assertEquals(createPlanV4.getOrder(), plan.getOrder());
+        assertEquals(createPlanV4.getCharacteristics(), plan.getCharacteristics());
+        assertEquals(createPlanV4.getCommentMessage(), plan.getCommentMessage());
+        assertEquals(createPlanV4.getCrossId(), plan.getCrossId());
+        assertEquals(createPlanV4.getGeneralConditions(), plan.getGeneralConditions());
+        assertEquals(new HashSet<>(createPlanV4.getTags()), plan.getPlanDefinitionV4().getTags());
+        assertEquals(createPlanV4.getExcludedGroups(), plan.getExcludedGroups());
+        assertEquals(createPlanV4.getValidation().name(), plan.getValidation().name());
+        assertEquals(createPlanV4.getSelectionRule(), plan.getPlanDefinitionV4().getSelectionRule());
 
-            Assertions.assertNull(plan.getId());
-            assertEquals(createPlanV4.getName(), plan.getName());
-            assertEquals(createPlanV4.getDescription(), plan.getDescription());
-            assertEquals(createPlanV4.getOrder(), plan.getOrder());
-            assertEquals(createPlanV4.getCharacteristics(), plan.getCharacteristics());
-            assertEquals(createPlanV4.getCommentMessage(), plan.getCommentMessage());
-            assertEquals(createPlanV4.getCrossId(), plan.getCrossId());
-            assertEquals(createPlanV4.getGeneralConditions(), plan.getGeneralConditions());
-            assertEquals(new HashSet<>(createPlanV4.getTags()), plan.getPlanDefinitionV4().getTags());
-            assertEquals(createPlanV4.getExcludedGroups(), plan.getExcludedGroups());
-            assertEquals(createPlanV4.getValidation().name(), plan.getValidation().name());
-            assertEquals(createPlanV4.getSelectionRule(), plan.getPlanDefinitionV4().getSelectionRule());
-
-            assertSecurityV4Equals(plan.getPlanSecurity(), createPlanV4.getSecurity());
-        }
-
-        @Test
-        void should_map_CreatePlanV4_to_core_Plan_with_default_values() {
-            final var createPlanV4 = PlanFixtures.aCreatePlanHttpV4().toBuilder().validation(null).mode(null).flows(null).build();
-            final var plan = planMapper.map(createPlanV4, Api.builder().type(ApiType.PROXY).build());
-
-            Assertions.assertNull(plan.getId());
-            assertNotNull(plan.getValidation());
-            assertEquals(PlanValidationType.MANUAL.name(), plan.getValidation().name());
-
-            assertNotNull(plan.getPlanMode());
-            assertEquals(PlanMode.STANDARD.name(), plan.getPlanMode().name());
-        }
+        assertSecurityV4Equals(plan.getPlanSecurity(), createPlanV4.getSecurity());
     }
 
-    @Nested
-    class UpdatePlanV42UpdatePlanEntity {
+    @Test
+    void should_map_CreatePlanV4_to_core_Plan_with_default_values() {
+        final var createPlanV4 = PlanFixtures.aCreatePlanHttpV4().toBuilder().validation(null).mode(null).flows(null).build();
+        final var plan = planMapper.map(createPlanV4, Api.builder().type(ApiType.PROXY).build());
 
-        @Test
-        void should_map_UpdatePlanV4_to_UpdatePlanEntity() {
-            final var updatePlanV4 = PlanFixtures.anUpdatePlanV4();
-            final var updatePlanEntity = planMapper.map(updatePlanV4);
+        Assertions.assertNull(plan.getId());
+        assertNotNull(plan.getValidation());
+        assertEquals(PlanValidationType.MANUAL.name(), plan.getValidation().name());
 
-            Assertions.assertNull(updatePlanEntity.getId());
-            assertEquals(updatePlanV4.getName(), updatePlanEntity.getName());
-            assertEquals(updatePlanV4.getDescription(), updatePlanEntity.getDescription());
-            assertEquals(updatePlanV4.getOrder(), updatePlanEntity.getOrder());
-            assertEquals(updatePlanV4.getCharacteristics(), updatePlanEntity.getCharacteristics());
-            assertEquals(updatePlanV4.getCommentMessage(), updatePlanEntity.getCommentMessage());
-            assertEquals(updatePlanV4.getCrossId(), updatePlanEntity.getCrossId());
-            assertEquals(updatePlanV4.getGeneralConditions(), updatePlanEntity.getGeneralConditions());
-            assertEquals(new HashSet<>(updatePlanV4.getTags()), updatePlanEntity.getTags());
-            assertEquals(updatePlanV4.getExcludedGroups(), updatePlanEntity.getExcludedGroups());
-            assertEquals(updatePlanV4.getValidation().name(), updatePlanEntity.getValidation().name());
-            assertEquals(updatePlanV4.getSelectionRule(), updatePlanEntity.getSelectionRule());
+        assertNotNull(plan.getPlanMode());
+        assertEquals(PlanMode.STANDARD.name(), plan.getPlanMode().name());
+    }
 
-            assertEquals(updatePlanEntity.getFlows().size(), updatePlanV4.getFlows().size()); // Flow mapping is tested in FlowMapperTest
-        }
+    @Test
+    void should_map_UpdatePlanV4_to_UpdatePlanEntity() {
+        final var updatePlanV4 = PlanFixtures.anUpdatePlanV4();
+        final var updatePlanEntity = planMapper.map(updatePlanV4);
+
+        Assertions.assertNull(updatePlanEntity.getId());
+        assertEquals(updatePlanV4.getName(), updatePlanEntity.getName());
+        assertEquals(updatePlanV4.getDescription(), updatePlanEntity.getDescription());
+        assertEquals(updatePlanV4.getOrder(), updatePlanEntity.getOrder());
+        assertEquals(updatePlanV4.getCharacteristics(), updatePlanEntity.getCharacteristics());
+        assertEquals(updatePlanV4.getCommentMessage(), updatePlanEntity.getCommentMessage());
+        assertEquals(updatePlanV4.getCrossId(), updatePlanEntity.getCrossId());
+        assertEquals(updatePlanV4.getGeneralConditions(), updatePlanEntity.getGeneralConditions());
+        assertEquals(new HashSet<>(updatePlanV4.getTags()), updatePlanEntity.getTags());
+        assertEquals(updatePlanV4.getExcludedGroups(), updatePlanEntity.getExcludedGroups());
+        assertEquals(updatePlanV4.getValidation().name(), updatePlanEntity.getValidation().name());
+        assertEquals(updatePlanV4.getSelectionRule(), updatePlanEntity.getSelectionRule());
+
+        assertEquals(updatePlanEntity.getFlows().size(), updatePlanV4.getFlows().size()); // Flow mapping is tested in FlowMapperTest
     }
 
     @Test
@@ -418,67 +385,6 @@ public class PlanMapperTest {
         assertEquals(planWithFlows.getGeneralConditions(), plan.getGeneralConditions());
 
         assertEquals(planWithFlows.getFlows().size(), plan.getFlows().size());
-    }
-
-    @Nested
-    class ToV2PlanSecurityType {
-
-        @ParameterizedTest
-        @EnumSource(
-            value = io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.class,
-            mode = EnumSource.Mode.EXCLUDE,
-            names = "MTLS"
-        )
-        void acceptedValues(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType planSecurityType) {
-            var v2PlanSecurityType = planMapper.toV2PlanSecurityType(planSecurityType);
-            assertThat(v2PlanSecurityType.name()).isEqualTo(planSecurityType.name());
-        }
-
-        @ParameterizedTest
-        @MethodSource
-        void refusedValues(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType planSecurityType) {
-            var v2PlanSecurityType = planMapper.toV2PlanSecurityType(planSecurityType);
-            assertThat(v2PlanSecurityType).isNull();
-        }
-
-        static Stream<Arguments> refusedValues() {
-            return Stream.of(arguments(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.MTLS), arguments((Object) null));
-        }
-    }
-
-    @Nested
-    class MapGenericPlan {
-
-        @Test
-        void v4() {
-            PlanEntity input = PlanEntity.builder().definitionVersion(DefinitionVersion.V4).build();
-            var plan = planMapper.mapGenericPlan(input);
-            assertThat(plan.getActualInstance()).isInstanceOf(PlanV4.class);
-        }
-
-        @Test
-        void federated() {
-            PlanEntity input = PlanEntity.builder().definitionVersion(DefinitionVersion.FEDERATED).build();
-            var plan = planMapper.mapGenericPlan(input);
-            assertThat(plan.getActualInstance()).isInstanceOf(PlanFederated.class);
-        }
-
-        @Test
-        void nativePlan() {
-            NativePlanEntity input = NativePlanEntity.builder().definitionVersion(DefinitionVersion.V4).build();
-            var plan = planMapper.mapGenericPlan(input);
-            assertThat(plan.getActualInstance()).isInstanceOf(PlanV4.class);
-        }
-
-        @Test
-        void v2() {
-            io.gravitee.rest.api.model.PlanEntity input = io.gravitee.rest.api.model.PlanEntity
-                .builder()
-                .definitionVersion(DefinitionVersion.V4)
-                .build();
-            var plan = planMapper.mapGenericPlan(input);
-            assertThat(plan.getActualInstance()).isInstanceOf(PlanV2.class);
-        }
     }
 
     private void assertSecurityV4Equals(

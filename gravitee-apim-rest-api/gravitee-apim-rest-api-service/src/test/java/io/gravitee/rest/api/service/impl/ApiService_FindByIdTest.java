@@ -80,19 +80,22 @@ public class ApiService_FindByIdTest {
     @Mock
     private UserService userService;
 
+    private final ParameterService parameterService = mock(ParameterService.class);
+
     @Mock
     private ApiEntrypointService apiEntrypointService;
 
     @Mock
     private CategoryService categoryService;
 
-    private final ParameterService parameterService = mock(ParameterService.class);
     private final PlanService planService = mock(PlanService.class);
+
     private final FlowService flowService = mock(FlowService.class);
+
     private final WorkflowService workflowService = mock(WorkflowService.class);
+
     private final CategoryMapper categoryMapper = spy(new CategoryMapper(mock(CategoryService.class)));
 
-    @InjectMocks
     private ApiConverter apiConverter = Mockito.spy(
         new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, workflowService)
     );

@@ -163,7 +163,6 @@ public class ApiService_CreateTest {
     private ConnectorService connectorService;
 
     private final PlanService planService = mock(PlanService.class);
-
     private final FlowService flowService = mock(FlowService.class);
 
     private final CategoryMapper categoryMapper = spy(new CategoryMapper(mock(CategoryService.class)));
@@ -171,7 +170,6 @@ public class ApiService_CreateTest {
     @Mock
     private ApiCategoryService apiCategoryService;
 
-    @InjectMocks
     private ApiConverter apiConverter = Mockito.spy(
         new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class))
     );

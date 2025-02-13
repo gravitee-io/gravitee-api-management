@@ -129,7 +129,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.internal.util.collections.Sets;
@@ -146,67 +145,65 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class ApiService_UpdateTest {
 
     public static final String API_DEFINITION =
-        """
-                    {
-                      "id" : "id-api",
-                      "name" : "myAPI",
-                      "description" : "Gravitee.io",
-                      "paths" : { },
-                      "path_mappings":[],
-                      "proxy": {
-                        "virtual_hosts": [{
-                          "path": "/test"
-                        }],
-                        "strip_context_path": false,
-                        "preserve_host":false,
-                        "logging": {
-                          "mode":"CLIENT_PROXY",
-                          "condition":"condition"
-                        },
-                        "groups": [
-                          {
-                            "name": "default-group",
-                            "endpoints": [
-                              {
-                                "name": "default",
-                                "target": "http://test",
-                                "weight": 1,
-                                "backup": false,
-                                "type": "HTTP",
-                                "http": {
-                                  "connectTimeout": 5000,
-                                  "idleTimeout": 60000,
-                                  "keepAliveTimeout": 30000,
-                                  "keepAlive": true,
-                                  "readTimeout": 10000,
-                                  "pipelining": false,
-                                  "maxConcurrentConnections": 100,
-                                  "useCompression": true,
-                                  "followRedirects": false,
-                                  "encodeURI":false
-                                }
-                              }
-                            ],
-                            "load_balancing": {
-                              "type": "ROUND_ROBIN"
-                            },
-                            "http": {
-                              "connectTimeout": 5000,
-                              "idleTimeout": 60000,
-                              "keepAliveTimeout": 30000,
-                              "keepAlive": true,
-                              "readTimeout": 10000,
-                              "pipelining": false,
-                              "maxConcurrentConnections": 100,
-                              "useCompression": true,
-                              "followRedirects": false,
-                              "encodeURI":false
-                            }
-                          }
-                        ]
-                      }
-                    }
-                    """;
+        "{\n" +
+        "  \"id\" : \"id-api\",\n" +
+        "  \"name\" : \"myAPI\",\n" +
+        "  \"description\" : \"Gravitee.io\",\n" +
+        "  \"paths\" : { },\n" +
+        "  \"path_mappings\":[],\n" +
+        "  \"proxy\": {\n" +
+        "    \"virtual_hosts\": [{\n" +
+        "      \"path\": \"/test\"\n" +
+        "    }],\n" +
+        "    \"strip_context_path\": false,\n" +
+        "    \"preserve_host\":false,\n" +
+        "    \"logging\": {\n" +
+        "      \"mode\":\"CLIENT_PROXY\",\n" +
+        "      \"condition\":\"condition\"\n" +
+        "    },\n" +
+        "    \"groups\": [\n" +
+        "      {\n" +
+        "        \"name\": \"default-group\",\n" +
+        "        \"endpoints\": [\n" +
+        "          {\n" +
+        "            \"name\": \"default\",\n" +
+        "            \"target\": \"http://test\",\n" +
+        "            \"weight\": 1,\n" +
+        "            \"backup\": false,\n" +
+        "            \"type\": \"HTTP\",\n" +
+        "            \"http\": {\n" +
+        "              \"connectTimeout\": 5000,\n" +
+        "              \"idleTimeout\": 60000,\n" +
+        "              \"keepAliveTimeout\": 30000,\n" +
+        "              \"keepAlive\": true,\n" +
+        "              \"readTimeout\": 10000,\n" +
+        "              \"pipelining\": false,\n" +
+        "              \"maxConcurrentConnections\": 100,\n" +
+        "              \"useCompression\": true,\n" +
+        "              \"followRedirects\": false,\n" +
+        "              \"encodeURI\":false\n" +
+        "            }\n" +
+        "          }\n" +
+        "        ],\n" +
+        "        \"load_balancing\": {\n" +
+        "          \"type\": \"ROUND_ROBIN\"\n" +
+        "        },\n" +
+        "        \"http\": {\n" +
+        "          \"connectTimeout\": 5000,\n" +
+        "          \"idleTimeout\": 60000,\n" +
+        "          \"keepAliveTimeout\": 30000,\n" +
+        "          \"keepAlive\": true,\n" +
+        "          \"readTimeout\": 10000,\n" +
+        "          \"pipelining\": false,\n" +
+        "          \"maxConcurrentConnections\": 100,\n" +
+        "          \"useCompression\": true,\n" +
+        "          \"followRedirects\": false,\n" +
+        "          \"encodeURI\":false\n" +
+        "        }\n" +
+        "      }\n" +
+        "    ]\n" +
+        "  }\n" +
+        "}\n";
     private static final String API_ID = "id-api";
     private static final String DEFAULT_ENVIRONMENT_ID = "DEFAULT";
     private static final String API_NAME = "myAPI";
@@ -291,10 +288,10 @@ public class ApiService_UpdateTest {
     @Mock
     private PrimaryOwnerService primaryOwnerService;
 
-    private final CategoryMapper categoryMapper = spy(new CategoryMapper(mock(CategoryService.class)));
+    private CategoryMapper categoryMapper = spy(new CategoryMapper(mock(CategoryService.class)));
 
     @InjectMocks
-    private ApiConverter apiConverter = Mockito.spy(
+    private ApiConverter apiConverter = spy(
         new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, workflowService)
     );
 
