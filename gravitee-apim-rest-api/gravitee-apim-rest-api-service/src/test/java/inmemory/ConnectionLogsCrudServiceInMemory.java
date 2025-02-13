@@ -41,34 +41,31 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
         Pageable pageable,
         List<DefinitionVersion> definitionVersions
     ) {
-        Predicate<BaseConnectionLog> predicate = connectionLog -> connectionLog.getApiId().equals(apiId);
-        if (null != logsFilters.from()) {
-            predicate = predicate.and(connectionLog -> Instant.parse(connectionLog.getTimestamp()).toEpochMilli() >= logsFilters.from());
-        }
+        var predicate = getBaseConnectionLogPredicate(logsFilters.toBuilder().apiIds(Set.of(apiId)).build());
 
-        if (null != logsFilters.to()) {
-            predicate = predicate.and(connectionLog -> Instant.parse(connectionLog.getTimestamp()).toEpochMilli() <= logsFilters.to());
-        }
+        var pageNumber = pageable.getPageNumber();
+        var pageSize = pageable.getPageSize();
 
-        if (!CollectionUtils.isEmpty(logsFilters.applicationIds())) {
-            predicate = predicate.and(connectionLog -> logsFilters.applicationIds().contains(connectionLog.getApplicationId()));
-        }
+        var matches = connectionLogs
+            .storage()
+            .stream()
+            .filter(predicate)
+            .sorted(Comparator.comparing(BaseConnectionLog::getTimestamp).reversed())
+            .toList();
 
-        if (!CollectionUtils.isEmpty(logsFilters.planIds())) {
-            predicate = predicate.and(connectionLog -> logsFilters.planIds().contains(connectionLog.getPlanId()));
-        }
+        var page = matches.size() <= pageSize ? matches : matches.subList((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
-        if (!CollectionUtils.isEmpty(logsFilters.methods())) {
-            predicate = predicate.and(connectionLog -> logsFilters.methods().contains(connectionLog.getMethod()));
-        }
+        return new SearchLogsResponse<>(matches.size(), page);
+    }
 
-        if (!CollectionUtils.isEmpty(logsFilters.statuses())) {
-            predicate = predicate.and(connectionLog -> logsFilters.statuses().contains(connectionLog.getStatus()));
-        }
-
-        if (!CollectionUtils.isEmpty(logsFilters.entrypointIds())) {
-            predicate = predicate.and(connectionLog -> logsFilters.entrypointIds().contains(connectionLog.getEntrypointId()));
-        }
+    @Override
+    public SearchLogsResponse<BaseConnectionLog> searchApplicationConnectionLogs(
+        ExecutionContext executionContext,
+        String applicationId,
+        SearchLogsFilters logsFilters,
+        Pageable pageable
+    ) {
+        var predicate = getBaseConnectionLogPredicate(logsFilters.toBuilder().applicationIds(Set.of(applicationId)).build());
 
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
@@ -127,6 +124,43 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
         merge.addAll(connectionLogs.storage());
         merge.addAll(connectionLogDetails.storage());
         return merge;
+    }
+
+    private static Predicate<BaseConnectionLog> getBaseConnectionLogPredicate(SearchLogsFilters logsFilters) {
+        Predicate<BaseConnectionLog> predicate = _ignored -> true;
+
+        if (logsFilters.apiIds() != null && !logsFilters.apiIds().isEmpty()) {
+            predicate = predicate.and(connectionLog -> logsFilters.apiIds().contains(connectionLog.getApiId()));
+        }
+
+        if (null != logsFilters.from()) {
+            predicate = predicate.and(connectionLog -> Instant.parse(connectionLog.getTimestamp()).toEpochMilli() >= logsFilters.from());
+        }
+
+        if (null != logsFilters.to()) {
+            predicate = predicate.and(connectionLog -> Instant.parse(connectionLog.getTimestamp()).toEpochMilli() <= logsFilters.to());
+        }
+
+        if (!CollectionUtils.isEmpty(logsFilters.applicationIds())) {
+            predicate = predicate.and(connectionLog -> logsFilters.applicationIds().contains(connectionLog.getApplicationId()));
+        }
+
+        if (!CollectionUtils.isEmpty(logsFilters.planIds())) {
+            predicate = predicate.and(connectionLog -> logsFilters.planIds().contains(connectionLog.getPlanId()));
+        }
+
+        if (!CollectionUtils.isEmpty(logsFilters.methods())) {
+            predicate = predicate.and(connectionLog -> logsFilters.methods().contains(connectionLog.getMethod()));
+        }
+
+        if (!CollectionUtils.isEmpty(logsFilters.statuses())) {
+            predicate = predicate.and(connectionLog -> logsFilters.statuses().contains(connectionLog.getStatus()));
+        }
+
+        if (!CollectionUtils.isEmpty(logsFilters.entrypointIds())) {
+            predicate = predicate.and(connectionLog -> logsFilters.entrypointIds().contains(connectionLog.getEntrypointId()));
+        }
+        return predicate;
     }
 
     static class InMemoryConnectionLogs implements InMemoryAlternative<BaseConnectionLog> {

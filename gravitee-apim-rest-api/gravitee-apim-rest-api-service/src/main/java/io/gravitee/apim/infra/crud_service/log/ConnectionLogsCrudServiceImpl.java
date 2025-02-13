@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -58,32 +59,37 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
         List<DefinitionVersion> definitionVersions
     ) {
         try {
-            var response = logRepository.searchConnectionLogs(
-                new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-                ConnectionLogQuery
-                    .builder()
-                    .filter(
-                        ConnectionLogQuery.Filter
-                            .builder()
-                            .apiIds(Set.of(apiId))
-                            .from(logsFilters.from())
-                            .to(logsFilters.to())
-                            .applicationIds(logsFilters.applicationIds())
-                            .planIds(logsFilters.planIds())
-                            .methods(logsFilters.methods())
-                            .statuses(logsFilters.statuses())
-                            .entrypointIds(logsFilters.entrypointIds())
-                            .build()
-                    )
-                    .page(pageable.getPageNumber())
-                    .size(pageable.getPageSize())
-                    .build(),
+            var response = getConnectionLogsResponse(
+                executionContext,
+                mapToConnectionLogQueryFilterBuilder(logsFilters).apiIds(Set.of(apiId)).build(),
+                pageable,
                 definitionVersions
             );
             return mapToConnectionResponse(response);
         } catch (AnalyticsException e) {
             log.error("An error occurs while trying to search connection logs of api [apiId={}]", apiId, e);
             throw new TechnicalManagementException("Error while searching connection logs of api " + apiId, e);
+        }
+    }
+
+    @Override
+    public SearchLogsResponse<BaseConnectionLog> searchApplicationConnectionLogs(
+        ExecutionContext executionContext,
+        String applicationId,
+        SearchLogsFilters logsFilters,
+        Pageable pageable
+    ) {
+        try {
+            var response = getConnectionLogsResponse(
+                executionContext,
+                mapToConnectionLogQueryFilterBuilder(logsFilters).applicationIds(Set.of(applicationId)).build(),
+                pageable,
+                List.of(DefinitionVersion.V2, DefinitionVersion.V4)
+            );
+            return mapToConnectionResponse(response);
+        } catch (AnalyticsException e) {
+            log.error("An error occurred while trying to search application connection logs [applicationId={}]", applicationId, e);
+            throw new TechnicalManagementException("Error while searching application connection logs " + applicationId, e);
         }
     }
 
@@ -115,5 +121,39 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
         io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail connectionLogDetail
     ) {
         return ConnectionLogAdapter.INSTANCE.toEntity(connectionLogDetail);
+    }
+
+    private static ConnectionLogQuery.Filter.FilterBuilder mapToConnectionLogQueryFilterBuilder(SearchLogsFilters searchLogsFilters) {
+        return ConnectionLogQuery.Filter
+            .builder()
+            .from(searchLogsFilters.from())
+            .to(searchLogsFilters.to())
+            .applicationIds(searchLogsFilters.applicationIds())
+            .apiIds(searchLogsFilters.apiIds())
+            .planIds(searchLogsFilters.planIds())
+            .methods(searchLogsFilters.methods())
+            .statuses(searchLogsFilters.statuses())
+            .entrypointIds(searchLogsFilters.entrypointIds())
+            .requestIds(searchLogsFilters.requestIds())
+            .transactionIds(searchLogsFilters.transactionIds())
+            .uri(searchLogsFilters.uri());
+    }
+
+    private @NotNull LogResponse<ConnectionLog> getConnectionLogsResponse(
+        ExecutionContext executionContext,
+        ConnectionLogQuery.Filter connectionLogQueryFilter,
+        Pageable pageable,
+        List<DefinitionVersion> definitionVersions
+    ) throws AnalyticsException {
+        return logRepository.searchConnectionLogs(
+            new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+            ConnectionLogQuery
+                .builder()
+                .filter(connectionLogQueryFilter)
+                .page(pageable.getPageNumber())
+                .size(pageable.getPageSize())
+                .build(),
+            definitionVersions
+        );
     }
 }
