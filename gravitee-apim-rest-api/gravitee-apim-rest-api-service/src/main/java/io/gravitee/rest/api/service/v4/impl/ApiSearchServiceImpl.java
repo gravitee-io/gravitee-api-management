@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.isNotEmpty;
+import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -58,6 +60,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -423,7 +426,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         final Map<String, Object> filters,
         final Sortable sortable
     ) {
-        return searchIds(executionContext, query, filters, sortable, false);
+        return searchIds(executionContext, query, filters, sortable, EnumSet.noneOf(DefinitionVersion.class));
     }
 
     @Override
@@ -432,14 +435,16 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         final String query,
         final Map<String, Object> filters,
         final Sortable sortable,
-        final boolean excludeV4Definition
+        Collection<DefinitionVersion> excludeDefinitionVersions
     ) {
         QueryBuilder<GenericApiEntity> searchEngineQueryBuilder = QueryBuilder
             .create(GenericApiEntity.class)
             .setSort(sortable)
             .setFilters(filters);
-        if (excludeV4Definition) {
-            searchEngineQueryBuilder.setExcludedFilters(Map.of(FIELD_DEFINITION_VERSION, List.of(DefinitionVersion.V4.getLabel())));
+        if (isNotEmpty(excludeDefinitionVersions)) {
+            searchEngineQueryBuilder.setExcludedFilters(
+                Map.of(FIELD_DEFINITION_VERSION, stream(excludeDefinitionVersions).map(DefinitionVersion::getLabel).toList())
+            );
         }
         if (!isBlank(query)) {
             searchEngineQueryBuilder.setQuery(query);

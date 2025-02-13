@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -40,6 +41,7 @@ import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import org.junit.AfterClass;
@@ -150,7 +152,13 @@ public class ApiSearchService_SearchIdsTest {
         when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build())))
             .thenReturn(new SearchResult(List.of()));
 
-        final var apis = apiSearchService.searchIds(GraviteeContext.getExecutionContext(), "*", filters, null, false);
+        final var apis = apiSearchService.searchIds(
+            GraviteeContext.getExecutionContext(),
+            "*",
+            filters,
+            null,
+            EnumSet.noneOf(DefinitionVersion.class)
+        );
 
         assertThat(apis).isNotNull();
         assertThat(apis.size()).isEqualTo(0);
@@ -168,7 +176,13 @@ public class ApiSearchService_SearchIdsTest {
         when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build())))
             .thenReturn(new SearchResult(List.of("api-id")));
 
-        final var apis = apiSearchService.searchIds(GraviteeContext.getExecutionContext(), "*", filters, null, false);
+        final var apis = apiSearchService.searchIds(
+            GraviteeContext.getExecutionContext(),
+            "*",
+            filters,
+            null,
+            EnumSet.noneOf(DefinitionVersion.class)
+        );
 
         assertThat(apis).isNotNull();
         assertThat(apis.size()).isEqualTo(1);
@@ -187,7 +201,13 @@ public class ApiSearchService_SearchIdsTest {
         when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build())))
             .thenReturn(new SearchResult(List.of("api-id")));
 
-        final var apis = apiSearchService.searchIds(GraviteeContext.getExecutionContext(), "", filters, null, false);
+        final var apis = apiSearchService.searchIds(
+            GraviteeContext.getExecutionContext(),
+            "",
+            filters,
+            null,
+            EnumSet.noneOf(DefinitionVersion.class)
+        );
 
         assertThat(apis).isNotNull();
         assertThat(apis.size()).isEqualTo(1);
@@ -206,7 +226,13 @@ public class ApiSearchService_SearchIdsTest {
         when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build())))
             .thenReturn(new SearchResult(List.of("api-id")));
 
-        final var apis = apiSearchService.searchIds(GraviteeContext.getExecutionContext(), null, filters, null, false);
+        final var apis = apiSearchService.searchIds(
+            GraviteeContext.getExecutionContext(),
+            null,
+            filters,
+            null,
+            EnumSet.noneOf(DefinitionVersion.class)
+        );
 
         assertThat(apis).isNotNull();
         assertThat(apis.size()).isEqualTo(1);
