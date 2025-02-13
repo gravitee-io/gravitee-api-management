@@ -249,7 +249,7 @@ public class GraviteeDefinitionFixtures {
             )
             .plans(
                 Set.of(
-                    PlanDescriptor.PlanDescriptorV4
+                    PlanDescriptor.V4
                         .builder()
                         .id("plan-id")
                         .name("Default Keyless (UNSECURED)")

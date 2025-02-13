@@ -31,7 +31,7 @@ export class RulesetFormatPipe implements PipeTransform {
         return 'Gravitee Message API';
       case RulesetFormat.GRAVITEE_PROXY:
         return 'Gravitee Proxy API';
-      case RulesetFormat.GRAVITEE_KAFKA:
+      case RulesetFormat.GRAVITEE_NATIVE:
         return 'Gravitee Native API';
       case RulesetFormat.OPENAPI:
         return 'OpenAPI';

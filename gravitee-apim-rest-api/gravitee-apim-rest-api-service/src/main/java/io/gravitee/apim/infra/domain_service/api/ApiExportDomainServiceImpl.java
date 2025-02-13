@@ -43,6 +43,7 @@ import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainServ
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.metadata.crud_service.MetadataCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.workflow.crud_service.WorkflowCrudService;
 import io.gravitee.apim.core.workflow.model.Workflow;
 import io.gravitee.apim.infra.adapter.GraviteeDefinitionAdapter;
@@ -55,9 +56,11 @@ import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
+import jakarta.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -98,16 +101,29 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
             .findFirst()
             .orElse(null);
 
-        var plans = !excluded.contains(Excludable.PLANS) ? exportApiPlansV4(apiId) : null;
         var groups = !excluded.contains(GROUPS) ? api1.getGroups() : null;
-        var api =
-            switch (apiType(api1)) {
-                case V2 -> DEFINITION_ADAPTER.mapV2(api1, apiPrimaryOwner, workflowState, groups, metadata);
-                case V4 -> DEFINITION_ADAPTER.mapV4(api1, apiPrimaryOwner, workflowState, groups, metadata);
-                case V4_NATIVE -> DEFINITION_ADAPTER.mapNative(api1, apiPrimaryOwner, workflowState, groups, metadata);
-                case FEDERATED -> DEFINITION_ADAPTER.mapFederated(api1, apiPrimaryOwner, workflowState, groups, metadata);
-            };
-        return GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
+        return switch (apiType(api1)) {
+            case V2 -> {
+                var plans = mapPlan(apiId, DEFINITION_ADAPTER::mapPlanV2, excluded);
+                var api = DEFINITION_ADAPTER.mapV2(api1, apiPrimaryOwner, workflowState, groups, metadata);
+                yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
+            }
+            case V4 -> {
+                var plans = mapPlan(apiId, DEFINITION_ADAPTER::mapPlanV4, excluded);
+                var api = DEFINITION_ADAPTER.mapV4(api1, apiPrimaryOwner, workflowState, groups, metadata);
+                yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
+            }
+            case V4_NATIVE -> {
+                var plans = mapPlan(apiId, DEFINITION_ADAPTER::mapPlanNative, excluded);
+                var api = DEFINITION_ADAPTER.mapNative(api1, apiPrimaryOwner, workflowState, groups, metadata);
+                yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
+            }
+            case FEDERATED -> {
+                var plans = mapPlan(apiId, DEFINITION_ADAPTER::mapPlanFederated, excluded);
+                var api = DEFINITION_ADAPTER.mapFederated(api1, apiPrimaryOwner, workflowState, groups, metadata);
+                yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
+            }
+        };
     }
 
     private Set<ApiMember> exportApiMembers(String apiId) {
@@ -137,10 +153,16 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
             : null;
     }
 
-    private Collection<PlanDescriptor.PlanDescriptorV4> exportApiPlansV4(String apiId) {
-        return permissionService.hasPermission(GraviteeContext.getExecutionContext(), API_PLAN, apiId, READ)
-            ? DEFINITION_ADAPTER.mapPlanV4(planCrudService.findByApiId(apiId))
-            : null;
+    private Collection<? extends PlanDescriptor> exportApiPlans(Api api) {
+        if (!permissionService.hasPermission(GraviteeContext.getExecutionContext(), API_PLAN, api.getId(), READ)) {
+            return null;
+        }
+        return switch (apiType(api)) {
+            case V2 -> stream(planCrudService.findByApiId(api.getId())).map(DEFINITION_ADAPTER::mapPlanV2).toList();
+            case V4 -> stream(planCrudService.findByApiId(api.getId())).map(DEFINITION_ADAPTER::mapPlanV4).toList();
+            case V4_NATIVE -> stream(planCrudService.findByApiId(api.getId())).map(DEFINITION_ADAPTER::mapPlanNative).toList();
+            case FEDERATED -> List.of();
+        };
     }
 
     private enum ValidatedType {
@@ -170,5 +192,10 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
                 api1.getDefinitionVersion() != null ? api1.getDefinitionVersion().getLabel() : null
             );
         }
+    }
+
+    @Nullable
+    private <T> Collection<T> mapPlan(String apiId, Function<Plan, T> mapper, Collection<Excludable> excluded) {
+        return excluded.contains(Excludable.PLANS) ? null : stream(planCrudService.findByApiId(apiId)).map(mapper).toList();
     }
 }

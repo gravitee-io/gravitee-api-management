@@ -791,7 +791,7 @@ components:
             - GRAVITEE_FEDERATION
             - GRAVITEE_MESSAGE
             - GRAVITEE_PROXY
-            - GRAVITEE_KAFKA
+            - GRAVITEE_NATIVE
             - OPENAPI
             - ASYNCAPI
         ImportScoringFunction:
