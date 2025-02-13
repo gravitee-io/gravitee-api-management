@@ -23,4 +23,5 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: 
+  artifacthub.io/changes: |
+    - 'fix typo and indentation about mapping of user.anonymize-on-delete.enabled (APIM-8628)'
