@@ -72,6 +72,7 @@ import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -481,6 +482,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
     protected Observable<Long> stopUntil(long timeout) {
         return interval(100, TimeUnit.MILLISECONDS)
+            .observeOn(Schedulers.io())
             .timeout(timeout, TimeUnit.MILLISECONDS)
             .takeWhile(t -> pendingRequests.get() > 0)
             .doFinally(this::stopNow);
