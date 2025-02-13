@@ -62,9 +62,7 @@ public class PlanUpdates {
 
         var definition = result.getPlanDefinitionV4();
         definition.setSelectionRule(selectionRule);
-        if (securityConfiguration != null) {
-            definition.getSecurity().setConfiguration(securityConfiguration);
-        }
+        definition.getSecurity().setConfiguration(securityConfiguration);
 
         return result;
     }
