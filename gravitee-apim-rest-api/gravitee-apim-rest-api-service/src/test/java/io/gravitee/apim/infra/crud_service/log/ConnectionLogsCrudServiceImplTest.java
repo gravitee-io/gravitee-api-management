@@ -18,19 +18,27 @@ package io.gravitee.apim.infra.crud_service.log;
 import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.common.http.HttpMethod;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.LogRepository;
+import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetailQuery;
+import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
+import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -233,6 +241,104 @@ public class ConnectionLogsCrudServiceImplTest {
                             .isEmpty();
                     });
             });
+        }
+    }
+
+    @Nested
+    class SearchApplicationConnectionLogs {
+
+        @Test
+        void should_search_connection_logs_with_empty_query() throws AnalyticsException {
+            when(
+                logRepository.searchConnectionLogs(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4)))
+            )
+                .thenReturn(new LogResponse<>(1, List.of()));
+
+            logCrudService.searchApplicationConnectionLogs(
+                GraviteeContext.getExecutionContext(),
+                "application-id",
+                SearchLogsFilters.builder().build(),
+                new PageableImpl(1, 20)
+            );
+
+            var captorQueryContext = ArgumentCaptor.forClass(QueryContext.class);
+            var captorConnectionLogQuery = ArgumentCaptor.forClass(ConnectionLogQuery.class);
+            verify(logRepository)
+                .searchConnectionLogs(
+                    captorQueryContext.capture(),
+                    captorConnectionLogQuery.capture(),
+                    eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
+                );
+
+            final QueryContext queryContext = captorQueryContext.getValue();
+            assertThat(queryContext.getOrgId()).isEqualTo("DEFAULT");
+            assertThat(queryContext.getEnvId()).isEqualTo("DEFAULT");
+
+            assertThat(captorConnectionLogQuery.getValue())
+                .isEqualTo(
+                    ConnectionLogQuery
+                        .builder()
+                        .filter(ConnectionLogQuery.Filter.builder().applicationIds(Set.of("application-id")).build())
+                        .build()
+                );
+        }
+
+        @Test
+        void should_search_connection_logs_with_query() throws AnalyticsException {
+            when(
+                logRepository.searchConnectionLogs(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4)))
+            )
+                .thenReturn(new LogResponse<>(1, List.of()));
+
+            logCrudService.searchApplicationConnectionLogs(
+                GraviteeContext.getExecutionContext(),
+                "application-id",
+                SearchLogsFilters
+                    .builder()
+                    .to(1L)
+                    .from(0L)
+                    .apiIds(Set.of("api-1"))
+                    .applicationIds(Set.of("app-1"))
+                    .entrypointIds(Set.of("entrypoint-id"))
+                    .planIds(Set.of("plan-1"))
+                    .methods(Set.of(HttpMethod.GET))
+                    .statuses(Set.of(3))
+                    .build(),
+                new PageableImpl(1, 20)
+            );
+
+            var captorQueryContext = ArgumentCaptor.forClass(QueryContext.class);
+            var captorConnectionLogQuery = ArgumentCaptor.forClass(ConnectionLogQuery.class);
+            verify(logRepository)
+                .searchConnectionLogs(
+                    captorQueryContext.capture(),
+                    captorConnectionLogQuery.capture(),
+                    eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
+                );
+
+            final QueryContext queryContext = captorQueryContext.getValue();
+            assertThat(queryContext.getOrgId()).isEqualTo("DEFAULT");
+            assertThat(queryContext.getEnvId()).isEqualTo("DEFAULT");
+
+            assertThat(captorConnectionLogQuery.getValue())
+                .isEqualTo(
+                    ConnectionLogQuery
+                        .builder()
+                        .filter(
+                            ConnectionLogQuery.Filter
+                                .builder()
+                                .to(1L)
+                                .from(0L)
+                                .apiIds(Set.of("api-1"))
+                                .applicationIds(Set.of("application-id"))
+                                .entrypointIds(Set.of("entrypoint-id"))
+                                .planIds(Set.of("plan-1"))
+                                .methods(Set.of(HttpMethod.GET))
+                                .statuses(Set.of(3))
+                                .build()
+                        )
+                        .build()
+                );
         }
     }
 }
