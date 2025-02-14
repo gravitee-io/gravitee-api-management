@@ -21,11 +21,9 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import org.springframework.util.CollectionUtils;
 
 public class SearchConnectionLogQueryAdapter {
@@ -53,7 +51,7 @@ public class SearchConnectionLogQueryAdapter {
 
         var mustFilterList = new ArrayList<JsonObject>();
 
-        addApiIdFilter(filter, mustFilterList);
+        addApisFilter(filter, mustFilterList);
 
         addFromAndToFilters(filter, mustFilterList);
 
@@ -67,6 +65,12 @@ public class SearchConnectionLogQueryAdapter {
 
         addEntrypointIdsFilter(filter, mustFilterList);
 
+        addRequestIdsFilter(filter, mustFilterList);
+
+        addTransactionIdsFilter(filter, mustFilterList);
+
+        addUriFilter(filter, mustFilterList);
+
         if (!mustFilterList.isEmpty()) {
             return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(mustFilterList.toArray())));
         }
@@ -74,43 +78,61 @@ public class SearchConnectionLogQueryAdapter {
         return null;
     }
 
-    private static void addApiIdFilter(ConnectionLogQuery.Filter filter, List<JsonObject> mustFilterList) {
-        if (filter.getApiId() != null) {
-            var apiShouldTerms = new ArrayList<JsonObject>();
-            apiShouldTerms.add(JsonObject.of("term", JsonObject.of("api-id", filter.getApiId())));
-            apiShouldTerms.add(JsonObject.of("term", JsonObject.of("api", filter.getApiId())));
+    private static void addApisFilter(ConnectionLogQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getApiIds())) {
+            mustFilterList.add(buildV2AndV4Terms(ConnectionLogField.API_ID, filter.getApiIds()));
+        }
+    }
 
-            mustFilterList.add(buildShould(apiShouldTerms));
+    private static void addRequestIdsFilter(ConnectionLogQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getRequestIds())) {
+            mustFilterList.add(buildV2AndV4Terms(ConnectionLogField.REQUEST_ID, filter.getRequestIds()));
+        }
+    }
+
+    private static void addTransactionIdsFilter(ConnectionLogQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getTransactionIds())) {
+            mustFilterList.add(buildV2AndV4Terms(ConnectionLogField.TRANSACTION_ID, filter.getTransactionIds()));
+        }
+    }
+
+    private static void addUriFilter(ConnectionLogQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (filter.getUri() != null) {
+            mustFilterList.add(JsonObject.of("term", JsonObject.of(ConnectionLogField.URI, filter.getUri())));
         }
     }
 
     private static void addEntrypointIdsFilter(ConnectionLogQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getEntrypointIds())) {
-            mustFilterList.add(JsonObject.of("terms", JsonObject.of("entrypoint-id", filter.getEntrypointIds())));
+            mustFilterList.add(
+                JsonObject.of("terms", JsonObject.of(ConnectionLogField.ENTRYPOINT_ID.v4Metrics(), filter.getEntrypointIds()))
+            );
         }
     }
 
     private static void addStatusesFilter(ConnectionLogQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getStatuses())) {
-            mustFilterList.add(JsonObject.of("terms", JsonObject.of("status", filter.getStatuses())));
+            mustFilterList.add(JsonObject.of("terms", JsonObject.of(ConnectionLogField.STATUS, filter.getStatuses())));
         }
     }
 
     private static void addHttpMethodsFilter(ConnectionLogQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getMethods())) {
-            mustFilterList.add(buildV2AndV4Terms("method", "http-method", filter.getMethods().stream().map(HttpMethod::code).toList()));
+            mustFilterList.add(
+                buildV2AndV4Terms(ConnectionLogField.HTTP_METHOD, filter.getMethods().stream().map(HttpMethod::code).toList())
+            );
         }
     }
 
     private static void addPlansFilter(ConnectionLogQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getPlanIds())) {
-            mustFilterList.add(buildV2AndV4Terms("plan", "plan-id", filter.getPlanIds()));
+            mustFilterList.add(buildV2AndV4Terms(ConnectionLogField.PLAN_ID, filter.getPlanIds()));
         }
     }
 
     private static void addApplicationsFilter(ConnectionLogQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getApplicationIds())) {
-            mustFilterList.add(buildV2AndV4Terms("application", "application-id", filter.getApplicationIds()));
+            mustFilterList.add(buildV2AndV4Terms(ConnectionLogField.APPLICATION_ID, filter.getApplicationIds()));
         }
     }
 
@@ -123,18 +145,18 @@ public class SearchConnectionLogQueryAdapter {
             if (filter.getTo() != null) {
                 timestampJsonObject.put("lte", new Date(filter.getTo()));
             }
-            mustFilterList.add(JsonObject.of("range", JsonObject.of("@timestamp", timestampJsonObject)));
+            mustFilterList.add(JsonObject.of("range", JsonObject.of(ConnectionLogField.TIMESTAMP, timestampJsonObject)));
         }
     }
 
     private static JsonObject buildSort() {
-        return JsonObject.of("@timestamp", JsonObject.of("order", "desc"));
+        return JsonObject.of(ConnectionLogField.TIMESTAMP, JsonObject.of("order", "desc"));
     }
 
-    private static JsonObject buildV2AndV4Terms(String v2RequestIndexRef, String v4MetricsIndexRef, Collection<?> value) {
+    private static JsonObject buildV2AndV4Terms(ConnectionLogField.Field field, Collection<?> value) {
         var terms = new ArrayList<JsonObject>();
-        terms.add(JsonObject.of("terms", JsonObject.of(v2RequestIndexRef, value.toArray())));
-        terms.add(JsonObject.of("terms", JsonObject.of(v4MetricsIndexRef, value.toArray())));
+        terms.add(JsonObject.of("terms", JsonObject.of(field.v2Request(), value.toArray())));
+        terms.add(JsonObject.of("terms", JsonObject.of(field.v4Metrics(), value.toArray())));
         return buildShould(terms);
     }
 

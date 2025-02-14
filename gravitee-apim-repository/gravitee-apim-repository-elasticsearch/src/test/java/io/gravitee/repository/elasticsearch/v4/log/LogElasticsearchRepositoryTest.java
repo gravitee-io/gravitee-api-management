@@ -75,7 +75,11 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
         void should_return_the_1st_page_of_connection_logs_of_an_api() {
             var result = logV4Repository.searchConnectionLogs(
                 queryContext,
-                ConnectionLogQuery.builder().filter(Filter.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build()).size(2).build(),
+                ConnectionLogQuery
+                    .builder()
+                    .filter(Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).build())
+                    .size(2)
+                    .build(),
                 List.of(DefinitionVersion.V4)
             );
             assertThat(result).isNotNull();
@@ -127,7 +131,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                     .builder()
                     .page(3)
                     .size(2)
-                    .filter(Filter.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build())
+                    .filter(Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).build())
                     .build(),
                 List.of(DefinitionVersion.V4)
             );
@@ -369,7 +373,11 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
         void should_return_the_1st_page_of_connection_logs_of_a_v4_api() {
             var result = logV4Repository.searchConnectionLogs(
                 queryContext,
-                ConnectionLogQuery.builder().filter(Filter.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build()).size(2).build(),
+                ConnectionLogQuery
+                    .builder()
+                    .filter(Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).build())
+                    .size(2)
+                    .build(),
                 List.of(DefinitionVersion.V4, DefinitionVersion.V2)
             );
             assertThat(result).isNotNull();
@@ -421,7 +429,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                     .builder()
                     .page(3)
                     .size(2)
-                    .filter(Filter.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build())
+                    .filter(Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).build())
                     .build(),
                 List.of(DefinitionVersion.V4, DefinitionVersion.V2)
             );

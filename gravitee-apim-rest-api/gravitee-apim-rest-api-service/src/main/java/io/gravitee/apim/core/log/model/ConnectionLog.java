@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.v4.log.connection;
+package io.gravitee.apim.core.log.model;
 
-import io.gravitee.common.http.HttpMethod;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.plan.model.Plan;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,20 +26,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
-public class BaseConnectionLog {
+public class ConnectionLog extends BaseConnectionLog {
 
-    private String apiId;
-    private String requestId;
-    private String timestamp;
-    private String applicationId;
-    private String planId;
-    private String clientIdentifier;
-    private String transactionId;
-    private HttpMethod method;
-    private int status;
-    private boolean requestEnded;
-    private String entrypointId;
-    private String gateway;
-    private String uri;
-    private long gatewayResponseTime;
+    private Api api;
+    private Plan plan;
 }

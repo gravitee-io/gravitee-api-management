@@ -19,7 +19,7 @@ import io.gravitee.common.http.HttpMethod;
 import java.util.Set;
 import lombok.Builder;
 
-@Builder
+@Builder(toBuilder = true)
 public record SearchLogsFilters(
     Long from,
     Long to,
@@ -27,5 +27,6 @@ public record SearchLogsFilters(
     Set<String> planIds,
     Set<HttpMethod> methods,
     Set<Integer> statuses,
-    Set<String> entrypointIds
+    Set<String> entrypointIds,
+    Set<String> apiIds
 ) {}

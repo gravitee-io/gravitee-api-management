@@ -82,7 +82,7 @@ class SearchConnectionLogQueryAdapterTest {
     private static Stream<Arguments> getFilters() {
         return Stream.of(
             Arguments.of(
-                ConnectionLogQuery.Filter.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build(),
+                ConnectionLogQuery.Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).build(),
                 """
                              {
                                  "from": 0,
@@ -94,12 +94,12 @@ class SearchConnectionLogQueryAdapterTest {
                                              "bool": {
                                                 "should": [
                                                     {
-                                                         "term": {
-                                                             "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                         "terms": {
+                                                             "api-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
                                                          }
                                                     }, {
-                                                         "term": {
-                                                             "api": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                         "terms": {
+                                                             "api": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
                                                          }
                                                     }
                                                 ]
@@ -118,7 +118,7 @@ class SearchConnectionLogQueryAdapterTest {
             Arguments.of(
                 ConnectionLogQuery.Filter
                     .builder()
-                    .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                    .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
                     .from(1695081660000L)
                     .to(1695167999000L)
                     .build(),
@@ -133,12 +133,12 @@ class SearchConnectionLogQueryAdapterTest {
                                                  "bool": {
                                                     "should": [
                                                         {
-                                                             "term": {
-                                                                 "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                             "terms": {
+                                                                 "api-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
                                                              }
                                                         }, {
-                                                             "term": {
-                                                                 "api": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                             "terms": {
+                                                                 "api": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
                                                              }
                                                         }
                                                     ]
@@ -246,7 +246,7 @@ class SearchConnectionLogQueryAdapterTest {
                              """
             ),
             Arguments.of(
-                ConnectionLogQuery.Filter.builder().apiId("1").applicationIds(Set.of("2", "3")).build(),
+                ConnectionLogQuery.Filter.builder().apiIds(Set.of("1")).applicationIds(Set.of("2", "3")).build(),
                 """
                              {
                                  "from": 0,
@@ -258,12 +258,12 @@ class SearchConnectionLogQueryAdapterTest {
                                                  "bool": {
                                                     "should": [
                                                         {
-                                                             "term": {
-                                                                 "api-id": "1"
+                                                             "terms": {
+                                                                 "api-id": [ "1" ]
                                                              }
                                                         }, {
-                                                             "term": {
-                                                                 "api": "1"
+                                                             "terms": {
+                                                                 "api": [ "1" ]
                                                              }
                                                         }
                                                     ]
@@ -297,7 +297,7 @@ class SearchConnectionLogQueryAdapterTest {
             Arguments.of(
                 ConnectionLogQuery.Filter
                     .builder()
-                    .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                    .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
                     .planIds(Set.of("plan-1", "plan-2"))
                     .build(),
                 """
@@ -311,12 +311,12 @@ class SearchConnectionLogQueryAdapterTest {
                                                  "bool": {
                                                     "should": [
                                                         {
-                                                             "term": {
-                                                                 "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                             "terms": {
+                                                                 "api-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
                                                              }
                                                         }, {
-                                                             "term": {
-                                                                 "api": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                             "terms": {
+                                                                 "api": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
                                                              }
                                                         }
                                                     ]
@@ -350,7 +350,7 @@ class SearchConnectionLogQueryAdapterTest {
             Arguments.of(
                 ConnectionLogQuery.Filter
                     .builder()
-                    .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                    .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
                     .planIds(Set.of("plan-1", "plan-2"))
                     .applicationIds(Set.of("app-1", "app-2", "app-3"))
                     .build(),
@@ -365,12 +365,12 @@ class SearchConnectionLogQueryAdapterTest {
                                                  "bool": {
                                                     "should": [
                                                         {
-                                                             "term": {
-                                                                 "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                             "terms": {
+                                                                 "api-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
                                                              }
                                                         }, {
-                                                             "term": {
-                                                                 "api": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                             "terms": {
+                                                                 "api": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
                                                              }
                                                         }
                                                     ]
@@ -416,7 +416,7 @@ class SearchConnectionLogQueryAdapterTest {
                              """
             ),
             Arguments.of(
-                ConnectionLogQuery.Filter.builder().apiId("1").methods(Set.of(HttpMethod.GET, HttpMethod.CONNECT)).build(),
+                ConnectionLogQuery.Filter.builder().apiIds(Set.of("1")).methods(Set.of(HttpMethod.GET, HttpMethod.CONNECT)).build(),
                 """
                                      {
                                          "from": 0,
@@ -428,12 +428,12 @@ class SearchConnectionLogQueryAdapterTest {
                                                      "bool": {
                                                         "should": [
                                                             {
-                                                                 "term": {
-                                                                     "api-id": "1"
+                                                                 "terms": {
+                                                                     "api-id": [ "1" ]
                                                                  }
                                                             }, {
-                                                                 "term": {
-                                                                     "api": "1"
+                                                                 "terms": {
+                                                                     "api": [ "1" ]
                                                                  }
                                                             }
                                                         ]
@@ -465,7 +465,11 @@ class SearchConnectionLogQueryAdapterTest {
                                      """
             ),
             Arguments.of(
-                ConnectionLogQuery.Filter.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").statuses(Set.of(200, 202)).build(),
+                ConnectionLogQuery.Filter
+                    .builder()
+                    .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
+                    .statuses(Set.of(200, 202))
+                    .build(),
                 """
                                      {
                                          "from": 0,
@@ -477,12 +481,12 @@ class SearchConnectionLogQueryAdapterTest {
                                                      "bool": {
                                                         "should": [
                                                             {
-                                                                 "term": {
-                                                                     "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                                 "terms": {
+                                                                     "api-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
                                                                  }
                                                             }, {
-                                                                 "term": {
-                                                                     "api": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                                 "terms": {
+                                                                     "api": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
                                                                  }
                                                             }
                                                         ]
@@ -516,6 +520,66 @@ class SearchConnectionLogQueryAdapterTest {
                                                      {
                                                          "terms": {
                                                              "entrypoint-id": ["http-post", "http-get"]
+                                                         }
+                                                     }
+                                                 ]
+                                             }
+                                         },
+                                         "sort": {
+                                             "@timestamp": {
+                                                 "order": "desc"
+                                             }
+                                         }
+                                      }
+            """
+            ),
+            Arguments.of(
+                ConnectionLogQuery.Filter
+                    .builder()
+                    .requestIds(Set.of("req-1", "req-2"))
+                    .transactionIds(Set.of("t-1"))
+                    .uri("my-path")
+                    .build(),
+                """
+                                     {
+                                         "from": 0,
+                                         "size": 20,
+                                         "query": {
+                                             "bool": {
+                                                 "must": [
+                                                     {
+                                                         "bool": {
+                                                            "should": [
+                                                                {
+                                                                     "terms": {
+                                                                         "_id": [ "req-1", "req-2" ]
+                                                                     }
+                                                                }, {
+                                                                     "terms": {
+                                                                         "request-id": [ "req-1", "req-2" ]
+                                                                     }
+                                                                }
+                                                            ]
+                                                         }
+                                                     },
+                                                     {
+                                                         "bool": {
+                                                            "should": [
+                                                                {
+                                                                     "terms": {
+                                                                         "transaction": [ "t-1" ]
+                                                                     }
+                                                                }, {
+                                                                     "terms": {
+                                                                         "transaction-id": [ "t-1" ]
+                                                                     }
+                                                                }
+                                                            ]
+                                                         }
+                                                     },
+                                                     {
+                                                         "term": {
+                                                             "uri": "my-path"
                                                          }
                                                      }
                                                  ]
