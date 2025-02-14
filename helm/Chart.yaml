@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.4.20
-appVersion: 4.4.20
+version: 4.4.21
+appVersion: 4.4.21
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -23,6 +23,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: |
-    - 'fix typo and indentation about mapping of user.anonymize-on-delete.enabled (APIM-8628)'
-    - 'remove nginx `configuration-snippet` by default (APIM-8630)'
+  artifacthub.io/changes: 
