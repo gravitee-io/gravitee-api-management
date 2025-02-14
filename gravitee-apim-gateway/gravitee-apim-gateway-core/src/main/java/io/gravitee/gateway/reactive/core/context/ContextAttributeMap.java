@@ -19,31 +19,64 @@ import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_PR
 
 import java.io.Serial;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Special {@link java.util.Map} implementation allowing to retrieve attributes prefixed with #ATTR_PREFIX without having to specify it explicitly.
  */
-class ContextAttributeMap extends HashMap<String, Object> {
+public class ContextAttributeMap extends HashMap<String, Object> {
 
     @Serial
     private static final long serialVersionUID = -8914016743809221307L;
+
+    private boolean enableGraviteePrefix = true;
+
+    private Map<String, Object> fallbackContextAttributeMap;
 
     /**
      * In the most general case, the context will not store more than 12 elements in the Map.
      * Then, the initial capacity must be set to limit size in memory.
      */
-    ContextAttributeMap() {
+    public ContextAttributeMap() {
         super(12, 1.0f);
+    }
+
+    public ContextAttributeMap(boolean enableGraviteePrefix) {
+        this();
+        this.enableGraviteePrefix = enableGraviteePrefix;
+    }
+
+    public ContextAttributeMap(Map<String, Object> fallbackContextAttributeMap) {
+        this();
+        this.fallbackContextAttributeMap = fallbackContextAttributeMap;
+    }
+
+    public ContextAttributeMap(Map<String, Object> fallbackContextAttributeMap, boolean enableGraviteePrefix) {
+        this(enableGraviteePrefix);
+        this.fallbackContextAttributeMap = fallbackContextAttributeMap;
     }
 
     @Override
     public Object get(Object key) {
         Object value = super.get(key);
-        return (value != null) ? value : super.get(ATTR_PREFIX + key);
+        if (value != null) {
+            return value;
+        }
+        if (enableGraviteePrefix) {
+            value = super.get(ATTR_PREFIX + key);
+            if (value != null) {
+                return value;
+            }
+        }
+        return (fallbackContextAttributeMap != null) ? fallbackContextAttributeMap.get(key) : null;
     }
 
     @Override
     public boolean containsKey(Object key) {
-        return super.containsKey(key) || super.containsKey(ATTR_PREFIX + key);
+        return (
+            super.containsKey(key) ||
+            (enableGraviteePrefix && super.containsKey(ATTR_PREFIX + key)) ||
+            (fallbackContextAttributeMap != null && fallbackContextAttributeMap.containsKey(key))
+        );
     }
 }
