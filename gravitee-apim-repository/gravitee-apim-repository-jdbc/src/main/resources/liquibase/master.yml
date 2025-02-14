@@ -233,3 +233,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_7_0/00_add_origin_to_shared_policy_groups_table.yml
     - include:
         - file: liquibase/changelogs/v4_7_0/01_add_origin_to_groups_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_7_0/02_add_application_name_to_subscription_table.yml

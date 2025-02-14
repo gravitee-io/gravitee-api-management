@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.7.0_02-add_application_name_to_subscription_table
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}subscriptions
+            columns:
+              - column:
+                  name: application_name
+                  type: nvarchar(512)
+                  constraints:
+                    nullable: false
+                    defaultValue: '!NOT_SYNCED!'
+        - sql:
+            sql: >
+              UPDATE ${gravitee_prefix}subscriptions s
+              SET application_name = (
+                SELECT a.name
+                FROM ${gravitee_prefix}applications a
+                WHERE a.id = s.application
+              )
+              WHERE s.application IS NOT NULL;
