@@ -22,8 +22,8 @@ import static io.gravitee.repository.management.model.Subscription.Status.PENDIN
 import static java.util.stream.Collectors.groupingBy;
 
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
-import io.gravitee.gateway.services.sync.process.repository.mapper.SubscriptionMapper;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
