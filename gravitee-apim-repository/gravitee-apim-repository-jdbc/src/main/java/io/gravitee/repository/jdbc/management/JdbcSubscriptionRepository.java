@@ -87,6 +87,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("plan", Types.NVARCHAR, String.class)
             .addColumn("application", Types.NVARCHAR, String.class)
+            .addColumn("application_name", Types.NVARCHAR, String.class)
             .addColumn("api", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("starting_at", Types.TIMESTAMP, Date.class)
