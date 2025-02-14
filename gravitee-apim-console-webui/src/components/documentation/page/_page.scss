@@ -228,6 +228,7 @@
 .toastui-editor-contents p {
   margin: 10px 0;
   color: #555;
+  word-wrap: break-word;
 }
 
 .toastui-editor-contents h1 {
@@ -383,6 +384,9 @@
 
 .toastui-editor-contents table td {
   border: 1px solid #eaeaea;
+  word-break: break-all;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .toastui-editor-contents table th {
