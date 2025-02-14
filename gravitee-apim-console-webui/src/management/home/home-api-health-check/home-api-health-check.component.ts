@@ -18,9 +18,9 @@ import { UntypedFormControl, Validators } from '@angular/forms';
 import { get, has, isEmpty, isEqual, isNumber } from 'lodash';
 import { BehaviorSubject, combineLatest, merge, Observable, of, Subject } from 'rxjs';
 import {
-  delay,
   catchError,
   debounceTime,
+  delay,
   distinctUntilChanged,
   map,
   mergeMap,
@@ -34,24 +34,28 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { HealthAvailabilityTimeFrameOption } from './health-availability-time-frame/health-availability-time-frame.component';
 
-import { Api, ApiMetrics, ApiOrigin, ApiState } from '../../../entities/api';
-import { PagedResult } from '../../../entities/pagedResult';
+import { ApiMetrics } from '../../../entities/api';
 import { ApiService } from '../../../services-ngx/api.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { toOrder, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { GioQuickTimeRangeComponent } from '../components/gio-quick-time-range/gio-quick-time-range.component';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import { apiSortByParamFromString, ApisResponse, ApiState, ApiV2, ApiV4, GenericApi, Origin } from '../../../entities/management-api-v2';
 
-export type ApisTableDS = {
+type ApisTableDS = {
   id: string;
+  definitionVersion: GenericApi['definitionVersion'];
   name: string;
   version: string;
-  contextPath: string;
   tags: string;
   owner: string;
   ownerEmail: string;
   picture: string;
   state: ApiState;
-  origin: ApiOrigin;
+  origin: Origin;
+  lifecycleState: GenericApi['lifecycleState'];
+  workflowBadge: { text: string; class: string };
+  healthcheck_enabled: boolean;
   availability$: Observable<
     | {
         type: 'not-configured';
@@ -95,6 +99,7 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiService,
+    private readonly apiServiceV2: ApiV2Service,
   ) {}
 
   ngOnInit(): void {
@@ -115,13 +120,13 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
           });
         }),
         switchMap(({ pagination, searchTerm, sort }) =>
-          this.apiService
-            .list(searchTerm, toOrder(sort), pagination.index, pagination.size)
-            .pipe(catchError(() => of(new PagedResult<Api>()))),
+          this.apiServiceV2
+            .search({ query: searchTerm }, apiSortByParamFromString(sort), pagination.index, pagination.size)
+            .pipe(catchError(() => of({ data: [] } as ApisResponse))),
         ),
         tap((apisPage) => {
           this.apisTableDS.set(this.toApisTableDS(apisPage));
-          this.apisTableDSUnpaginatedLength = apisPage.page.total_elements;
+          this.apisTableDSUnpaginatedLength = apisPage?.pagination?.totalCount ?? 0;
           this.isLoadingData = false;
         }),
         takeUntil(this.unsubscribe$),
@@ -146,10 +151,18 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
     this.filters$.next(this.filters);
   }
 
-  onViewHealthCheckClicked(api: ApisTableDS) {
-    this.router.navigate(['../../', 'apis', api.id, 'v2', 'healthcheck-dashboard'], {
-      relativeTo: this.activatedRoute,
-    });
+  path2dashboard(api: ApisTableDS) {
+    if (!api.healthcheck_enabled) {
+      return undefined;
+    }
+    switch (api.definitionVersion) {
+      case 'V2':
+        return ['../../', 'apis', api.id, 'v2', 'healthcheck-dashboard'];
+      case 'V4':
+        return ['../../', 'apis', api.id, 'v4', 'health-check-dashboard'];
+      default:
+        return undefined;
+    }
   }
 
   onRefreshClicked() {
@@ -168,12 +181,12 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
 
     loadPage$
       .pipe(
-        mergeMap((page) => this.apiService.list('has_health_check:true', undefined, page, 100)),
+        mergeMap((page: number) => this.apiServiceV2.search({ query: 'has_health_check:true' }, null, page, 100)),
         delay(100),
-        map((apisResult) => {
-          const hasNextPage = apisResult.page.total_pages > apisResult.page.current;
+        map((apisResult: ApisResponse) => {
+          const hasNextPage = apisResult.pagination.pageCount > apisResult.pagination.page;
           if (hasNextPage) {
-            loadPage$.next(apisResult.page.current + 1);
+            loadPage$.next(apisResult.pagination.page + 1);
           }
 
           return {
@@ -182,14 +195,12 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
           };
         }),
         mergeMap(({ apis, hasNextPage }) => {
-          const getApisHealth: Observable<{ apiMetrics?: ApiMetrics; isLastApiHealth: boolean }>[] = apis
-            .filter((a) => a.healthcheck_enabled)
-            .map((api, index, array) =>
-              this.apiService.apiHealth(api.id, 'availability').pipe(
-                map((apiMetrics) => ({ apiMetrics, isLastApiHealth: !hasNextPage && array.length - 1 <= index })),
-                delay(100),
-              ),
-            );
+          const getApisHealth: Observable<{ apiMetrics?: ApiMetrics; isLastApiHealth: boolean }>[] = apis.map((api, index, array) =>
+            this.apiService.apiHealth(api.id, 'availability').pipe(
+              map((apiMetrics) => ({ apiMetrics, isLastApiHealth: !hasNextPage && array.length - 1 <= index })),
+              delay(100),
+            ),
+          );
           const emptyDefaultReturn = { apiMetrics: undefined, isLastApiHealth: !hasNextPage };
 
           return isEmpty(getApisHealth) ? of(emptyDefaultReturn) : merge(...getApisHealth);
@@ -240,41 +251,85 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
     this.filters$.next(this.filters);
   }
 
-  private toApisTableDS(api: PagedResult<Api>): ApisTableDS[] {
-    return api.data.map(
-      (api) =>
-        ({
-          id: api.id,
-          name: api.name,
-          version: api.version,
-          contextPath: api.context_path,
-          tags: api.tags.join(', '),
-          owner: api?.owner?.displayName,
-          ownerEmail: api?.owner?.email,
-          picture: api.picture_url,
-          state: api.state,
-          lifecycleState: api.lifecycle_state,
-          workflowBadge: this.getWorkflowBadge(api),
-          healthcheck_enabled: api.healthcheck_enabled,
-          origin: api.definition_context.origin,
-          availability$: this.getAvailability$(api),
-        }) as ApisTableDS,
-    );
+  private toApisTableDS(apiR: ApisResponse): ApisTableDS[] {
+    return apiR.data.flatMap((api) => {
+      switch (api.definitionVersion) {
+        case 'FEDERATED':
+          return []; // TODO FEDERATED should be removed in query too
+        case 'V1':
+          return []; // TODO V1 should be removed in query too
+        case 'V2':
+          return [this.v2toApisTableDS(api)];
+        case 'V4':
+          return this.v4toApisTableDS(api);
+      }
+    });
   }
 
-  private getWorkflowBadge(api) {
-    const state = api.lifecycle_state === 'DEPRECATED' ? api.lifecycle_state : api.workflow_state;
+  private v2toApisTableDS(api: ApiV2): ApisTableDS {
+    return {
+      id: api.id,
+      name: api.name,
+      definitionVersion: api.definitionVersion,
+      version: api.apiVersion,
+      tags: api.tags.join(', '),
+      owner: api?.primaryOwner.displayName,
+      ownerEmail: api?.primaryOwner.email,
+      state: api.state,
+      lifecycleState: api.lifecycleState,
+      workflowBadge: this.getWorkflowBadge(api),
+      availability$: this.getAvailability$(api.id, this.healthcheckEnabledApiV2(api)),
+      picture: api._links.pictureUrl,
+      healthcheck_enabled: this.healthcheckEnabledApiV2(api),
+      origin: api.originContext.origin,
+    } satisfies ApisTableDS;
+  }
+
+  private v4toApisTableDS(api: ApiV4): ApisTableDS[] {
+    if (api.type === 'NATIVE') {
+      return [];
+    }
+    return [
+      {
+        id: api.id,
+        name: api.name,
+        definitionVersion: api.definitionVersion,
+        version: api.apiVersion,
+        tags: api.tags?.join(', ') ?? '',
+        owner: api.primaryOwner.displayName,
+        ownerEmail: api.primaryOwner.email,
+        state: api.state,
+        lifecycleState: api.lifecycleState,
+        workflowBadge: this.getWorkflowBadge(api),
+        picture: api._links.pictureUrl,
+        healthcheck_enabled: this.healthcheckEnabled(api),
+        origin: api.originContext.origin,
+        availability$: this.getAvailability$(api.id, this.healthcheckEnabled(api)),
+      } satisfies ApisTableDS,
+    ];
+  }
+
+  private getWorkflowBadge(api: ApiV2 | ApiV4): ApisTableDS['workflowBadge'] {
     const toReadableState = {
       DEPRECATED: { text: 'Deprecated', class: 'gio-badge-error' },
       DRAFT: { text: 'Draft', class: 'gio-badge-primary' },
       IN_REVIEW: { text: 'In Review', class: 'gio-badge-error' },
       REQUEST_FOR_CHANGES: { text: 'Need changes', class: 'gio-badge-error' },
     };
-    return toReadableState?.[state] ?? null;
+    return toReadableState?.[api.lifecycleState] ?? null;
   }
 
-  private getAvailability$(api: Api): ApisTableDS['availability$'] {
-    if (!api.healthcheck_enabled) {
+  private healthcheckEnabled(api: ApiV4): boolean {
+    console.log(api);
+    return api.endpointGroups?.some((e) => e.services?.healthCheck?.enabled) ?? false;
+  }
+
+  private healthcheckEnabledApiV2(api: ApiV2): boolean {
+    return api?.services?.healthCheck?.enabled ?? false;
+  }
+
+  private getAvailability$(apiId: string, enabled: boolean = true): ApisTableDS['availability$'] {
+    if (enabled) {
       return of({
         type: 'not-configured' as const,
       });
@@ -283,7 +338,7 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
     return this.refreshAvailability$.pipe(
       switchMap(() =>
         combineLatest([
-          this.apiService.apiHealth(api.id, 'availability'),
+          this.apiService.apiHealth(apiId, 'availability'),
           this.timeFrameControl.valueChanges.pipe(startWith(this.timeFrameControl.value)) as Observable<string>,
         ]),
       ),
@@ -292,7 +347,7 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
         return combineLatest([
           of(healthAvailability),
           of(timeFrame),
-          this.apiService.apiHealthAverage(api.id, {
+          this.apiService.apiHealthAverage(apiId, {
             from: currentTimeFrameRangesParams.from,
             to: currentTimeFrameRangesParams.to,
             interval: currentTimeFrameRangesParams.interval,
