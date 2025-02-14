@@ -121,6 +121,7 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
         responseTimes: queryParams['response-time'],
         api: queryParams.api,
         payloads: queryParams.body,
+        status: queryParams.status
       };
 
       this.analyticsForm.reset(formValues);
