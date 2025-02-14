@@ -17,7 +17,9 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static java.lang.String.format;
 
+import io.gravitee.apim.core.log.use_case.SearchApplicationConnectionLogsUseCase;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
 import io.gravitee.rest.api.model.log.ApplicationRequest;
 import io.gravitee.rest.api.model.log.ApplicationRequestItem;
@@ -40,6 +42,8 @@ import jakarta.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -57,6 +61,9 @@ public class ApplicationLogsResource extends AbstractResource {
     @Inject
     private ApplicationService applicationService;
 
+    @Inject
+    private SearchApplicationConnectionLogsUseCase searchApplicationConnectionLogsUseCase;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
@@ -69,18 +76,33 @@ public class ApplicationLogsResource extends AbstractResource {
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getSearchLogResponse(applicationId, paginationParam, logsParam);
-
-        List<Log> logs = searchLogResponse.getLogs().stream().map(logMapper::convert).collect(Collectors.toList());
-
-        final Map<String, Object> metadataTotal = new HashMap<>();
-        metadataTotal.put(METADATA_DATA_TOTAL_KEY, searchLogResponse.getTotal());
-
-        final Map<String, Map<String, Object>> metadata = searchLogResponse.getMetadata() == null
-            ? new HashMap()
-            : new HashMap(searchLogResponse.getMetadata());
-        metadata.put(METADATA_DATA_KEY, metadataTotal);
+        //
+        //        List<Log> logs = searchLogResponse.getLogs().stream().map(logMapper::convert).collect(Collectors.toList());
+        //
+        //        final Map<String, Object> metadataTotal = new HashMap<>();
+        //        metadataTotal.put(METADATA_DATA_TOTAL_KEY, searchLogResponse.getTotal());
+        //
+        //        final Map<String, Map<String, Object>> metadata = searchLogResponse.getMetadata() == null
+        //            ? new HashMap()
+        //            : new HashMap(searchLogResponse.getMetadata());
+        //        metadata.put(METADATA_DATA_KEY, metadataTotal);
         //No pagination, because logsService did it already
-        return createListResponse(GraviteeContext.getExecutionContext(), logs, paginationParam, metadata, false);
+        //        return createListResponse(GraviteeContext.getExecutionContext(), logs, paginationParam, metadata, false);
+        var result = searchApplicationConnectionLogsUseCase.execute(
+            GraviteeContext.getExecutionContext(),
+            new SearchApplicationConnectionLogsUseCase.Input(
+                applicationId,
+                new SearchLogsFilters(logsParam.getFrom(), logsParam.getTo(), Set.of(applicationId), null, null, null, null, null),
+                Optional.empty()
+            )
+        );
+        return createListResponse(
+            GraviteeContext.getExecutionContext(),
+            result.data().stream().map(log -> logMapper.convert(log)).toList(),
+            paginationParam,
+            result.metadata(),
+            true
+        );
     }
 
     @SuppressWarnings("unchecked")
