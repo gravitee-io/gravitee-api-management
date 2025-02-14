@@ -72,6 +72,18 @@ export const EnvironmentGuard: {
         gioMenuSearchService.addMenuSearchItems(settingsNavigationService.getSettingsNavigationSearchItems(route.params.envHrid));
         return true;
       }),
+<<<<<<< HEAD
+=======
+      tap(() => {
+        if (paramEnv === currentEnvironment.id.toLowerCase() && currentEnvironment.hrids?.length > 0) {
+          // Replace environment ID by hrid but keep url path and navigate
+          const target = state.url.replace(new RegExp(currentEnvironment.id, 'i'), currentEnvironment.hrids[0]);
+          if (target !== state.url) {
+            router.navigateByUrl(target);
+          }
+        }
+      }),
+>>>>>>> 8b6b9faf10 (fix: don’t navigate to the current URL to avoid redirection loop)
     );
   },
 
