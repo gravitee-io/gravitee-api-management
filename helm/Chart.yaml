@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.6.4
-appVersion: 4.6.4
+version: 4.6.5
+appVersion: 4.6.5
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -23,19 +23,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: |
-    - kind: fixed
-      description: 'fix Kafka Gateway configuration'
-      links:
-        - name: Github Issue
-          url: https://github.com/gravitee-io/issues/issues/10330
-    - kind: added
-      description: 'Allow to customize Kafka Gateway bootstrap and brokers domain patterns'
-      links:
-        - name: Github Issue
-          url: https://github.com/gravitee-io/issues/issues/10337
-    - kind: fixed
-      description: 'fix typo and indentation about mapping of user.anonymize-on-delete.enabled (APIM-8628)'
-    - kind: fixed
-      description: 'remove nginx `configuration-snippet` by default (APIM-8630)'
-
+  artifacthub.io/changes: 
