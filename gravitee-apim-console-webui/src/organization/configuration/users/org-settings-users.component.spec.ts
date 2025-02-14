@@ -116,6 +116,38 @@ describe('OrgSettingsUsersComponent', () => {
       ]);
     }));
 
+    it('should display user in the process of being deleted', fakeAsync(async () => {
+      expectUsersListRequest([fakeAdminUser()]);
+
+      const table = await loader.getHarness(MatTableHarness.with({ selector: '#usersTable' }));
+      const headerRows = await table.getHeaderRows();
+      const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+
+      const rows = await table.getRows();
+      const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+
+      expect(headerCells).toEqual([
+        {
+          actions: '',
+          displayName: 'Display name',
+          email: 'Email',
+          source: 'Source',
+          status: 'Status',
+          userPicture: '',
+        },
+      ]);
+      expect(rowCells).toEqual([
+        {
+          actions: '',
+          displayName: 'adminPrimary Owner Active Token',
+          email: '',
+          source: 'memory',
+          status: 'Active',
+          userPicture: '',
+        },
+      ]);
+    }));
+
     it('should confirm and delete user', fakeAsync(async () => {
       expectUsersListRequest([
         {

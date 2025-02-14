@@ -138,7 +138,7 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
       displayName: u.displayName,
       email: u.email,
       source: u.source,
-      status: u.status,
+      status: u.status === 'ARCHIVED' ? 'Deleting in Progress' : u.status,
       userPicture: this.usersService.getUserAvatar(u.id),
       primary_owner: u.primary_owner,
       number_of_active_tokens: u.number_of_active_tokens,

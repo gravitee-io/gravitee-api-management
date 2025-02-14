@@ -21,6 +21,7 @@ export abstract class UserHelper {
       case 'ACTIVE':
         return 'gio-badge-success';
       case 'PENDING':
+      case 'ARCHIVED':
         return 'gio-badge-warning';
       case 'REJECTED':
         return 'gio-badge-error';
