@@ -24,7 +24,7 @@ import { config } from '../../config';
 export class PortalWebuiBuildJob {
   private static jobName = 'job-portal-webui-build';
 
-  public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment, buildDockerImage: boolean): Job {
     const installYarnCmd = InstallYarnCommand.get();
     dynamicConfig.addReusableCommand(installYarnCmd);
 
@@ -33,9 +33,6 @@ export class PortalWebuiBuildJob {
 
     const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(notifyOnFailureCommand);
-
-    const buildUiImageCommand = BuildUiImageCommand.get(dynamicConfig, environment);
-    dynamicConfig.addReusableCommand(buildUiImageCommand);
 
     const apimVersion = computeApimVersion(environment);
 
@@ -70,16 +67,25 @@ export class PortalWebuiBuildJob {
         },
         working_directory: `${config.dockerImages.portal.next.project}`,
       }),
-      new reusable.ReusedCommand(buildUiImageCommand, {
-        'docker-image-name': `${config.dockerImages.portal.image}`,
-        'apim-ui-project': `${config.dockerImages.portal.project}`,
-      }),
+    ];
+    if (buildDockerImage) {
+      const buildUiImageCommand = BuildUiImageCommand.get(dynamicConfig, environment);
+      dynamicConfig.addReusableCommand(buildUiImageCommand);
+
+      steps.push(
+        new reusable.ReusedCommand(buildUiImageCommand, {
+          'docker-image-name': `${config.dockerImages.portal.image}`,
+          'apim-ui-project': `${config.dockerImages.portal.project}`,
+        }),
+      );
+    }
+    steps.push(
       new reusable.ReusedCommand(notifyOnFailureCommand),
       new commands.workspace.Persist({
         root: '.',
         paths: [`${config.dockerImages.portal.project}/dist`],
       }),
-    ];
+    );
 
     return new Job(PortalWebuiBuildJob.jobName, NodeLtsExecutor.create('large'), steps);
   }
