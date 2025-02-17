@@ -11,12 +11,14 @@ const versions = computeVersion(releasingVersion);
 
 console.log(chalk.green(`💪 Triggering Release Pipeline!\n`));
 
-const isReadyToRelease = await question(chalk.blue(`📝 Ensure Release list is good for ${releasingVersion} in JIRA. Should we continue? (y/n)\n`));
+const isReadyToRelease = await question(
+  chalk.blue(`📝 Ensure Release list is good for ${releasingVersion} in JIRA. Should we continue? (y/n)\n`),
+);
 if (isReadyToRelease === 'n') {
   try {
     await $`exit 1`;
   } catch (p) {
-    console.log(chalk.yellow(`🚦 Release process interrupted. Verify JIRA release for ${releasingVersion} and try again!`))
+    console.log(chalk.yellow(`🚦 Release process interrupted. Verify JIRA release for ${releasingVersion} and try again!`));
   }
 }
 
@@ -56,11 +58,11 @@ if (response.status === 201) {
   echo`Follow its progress on: https://app.circleci.com/pipelines/github/gravitee-io/gravitee-api-management/${data.number}`;
 
   console.log(
-      chalk.greenBright(
-          'Just wait for the end of the workflow and release is done! Congrats 🏆\n' +
-          'When it\'s done, do not forget to:\n' +
-          `- merge gravitee-docs PR if it exists for ${releasingVersion}`
-      ),
+    chalk.greenBright(
+      'Just wait for the end of the workflow and release is done! Congrats 🏆\n' +
+        "When it's done, do not forget to:\n" +
+        `- merge gravitee-docs PR if it exists for ${releasingVersion}`,
+    ),
   );
 } else {
   console.log(chalk.yellow('Something went wrong'));

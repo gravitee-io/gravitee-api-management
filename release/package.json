@@ -4,10 +4,11 @@
   "main": "index.js",
   "author": "Gravitee Team",
   "license": "MIT",
-  "dependencies": {
+  "devDependencies": {
     "dotenv": "16.4.7",
+    "prettier": "3.5.1",
     "xml2json": "0.12.0",
-    "zx": "7.2.3"
+    "zx": "8.3.2"
   },
   "scripts": {
     "prettier": "prettier --check \"**/*.{js,mjs,json}\"",
@@ -20,9 +21,6 @@
     "release_notes": "zx steps/5-generate_release_notes.mjs",
     "nexus_sync": "zx steps/6-nexus_sync.mjs",
     "zx": "zx --quiet"
-  },
-  "devDependencies": {
-    "prettier": "2.8.4"
   },
   "packageManager": "yarn@4.1.1"
 }
