@@ -75,7 +75,7 @@ export class FullReleaseWorkflow {
     const nexusStagingJob = NexusStagingJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(nexusStagingJob);
 
-    const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create(environment);
+    const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create(environment, 'prod');
     dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
 
     return new Workflow(FullReleaseWorkflow.workflowName, [
