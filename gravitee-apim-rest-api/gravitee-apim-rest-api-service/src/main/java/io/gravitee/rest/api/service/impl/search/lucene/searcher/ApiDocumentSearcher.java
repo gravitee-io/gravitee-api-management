@@ -23,7 +23,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer;
@@ -204,13 +203,13 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         BooleanQuery.Builder apiQuery = new BooleanQuery.Builder();
 
         try {
-            final Optional<Query> baseFilterQuery = this.buildFilterQuery(FIELD_ID, query.getFilters());
-            this.buildExcludedFilters(query.getExcludedFilters()).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.MUST_NOT));
-            this.buildExplicitQuery(executionContext, query, baseFilterQuery).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.MUST));
-            this.buildExactMatchQuery(executionContext, query, baseFilterQuery)
+            final Optional<Query> baseFilterQuery = buildFilterQuery(query.getFilters(), Map.of(FIELD_API_TYPE_VALUE, FIELD_ID));
+            buildExcludedFilters(query.getExcludedFilters()).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.MUST_NOT));
+            buildExplicitQuery(executionContext, query, baseFilterQuery).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.MUST));
+            buildExactMatchQuery(executionContext, query, baseFilterQuery)
                 .ifPresent(q -> apiQuery.add(new BoostQuery(q, 4.0f), BooleanClause.Occur.SHOULD));
-            this.buildWildcardQuery(executionContext, query, baseFilterQuery).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.SHOULD));
-            this.buildIdsQuery(executionContext, query).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.SHOULD));
+            buildWildcardQuery(executionContext, query, baseFilterQuery).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.SHOULD));
+            buildIdsQuery(executionContext, query).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.SHOULD));
         } catch (ParseException pe) {
             logger.error("Invalid query to search for API documents", pe);
             throw new TechnicalException("Invalid query to search for API documents", pe);
@@ -219,11 +218,11 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         BooleanQuery finalQuery = apiQuery.build();
 
         try {
-            return this.search(finalQuery, query.getSort());
+            return search(finalQuery, query.getSort());
         } catch (IndexSearcher.TooManyClauses tooManyClauses) {
             int maxClauseCount = getClauseCount(finalQuery);
             increaseMaxClauseCountIfNecessary(maxClauseCount);
-            return this.search(finalQuery, query.getSort());
+            return search(finalQuery, query.getSort());
         }
     }
 
@@ -243,7 +242,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
     }
 
     private Optional<BooleanQuery> buildExcludedFilters(Map<String, Collection<String>> excludedFilters) {
-        if (excludedFilters != null && excludedFilters.size() > 0) {
+        if (excludedFilters != null && !excludedFilters.isEmpty()) {
             BooleanQuery.Builder excludedFiltersQuery = new BooleanQuery.Builder();
             List<Query> excludedQuery = excludedFilters
                 .keySet()
@@ -286,7 +285,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             Set<String> rest = appendExplicitFilters(query.getQuery(), mainQuery, restQuery);
             BooleanQuery build = restQuery.build();
             if (!build.clauses().isEmpty()) {
-                mainQuery.add(build, build.clauses().get(0).getOccur());
+                mainQuery.add(build, build.clauses().getFirst().getOccur());
             }
             if (!CollectionUtils.isEmpty(rest)) {
                 return String.join(" ", rest);

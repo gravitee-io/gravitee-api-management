@@ -15,67 +15,61 @@
  */
 package io.gravitee.rest.api.service.impl.search.lucene.searcher;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import org.apache.lucene.search.BooleanQuery;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
 public class ApiDocumentSearcherTest {
 
     ApiDocumentSearcher searcher = new ApiDocumentSearcher(null);
 
     @Test
-    public void shouldCompleteQueryWithFilters() {
-        Query<ApiEntity> query = QueryBuilder.create(ApiEntity.class).setQuery("name: Foobar AND name: \"Foo Foo\"").build();
+    public void should_complete_query_with_filters() {
+        var query = QueryBuilder.create(ApiEntity.class).setQuery("name: Foobar AND name: \"Foo Foo\"").build();
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
-        assertEquals("", searcher.completeQueryWithFilters(query, builder));
-        assertEquals(
-            "#(+(name_lowercase:\"foobar\" name_lowercase:foobar) +(name_lowercase:\"foo foo\" name_lowercase:foo foo))",
-            builder.build().toString()
-        );
+        assertThat(searcher.completeQueryWithFilters(query, builder)).isEmpty();
+        assertThat(builder.build())
+            .hasToString("#(+(name_lowercase:\"foobar\" name_lowercase:foobar) +(name_lowercase:\"foo foo\" name_lowercase:foo foo))");
     }
 
     @Test
-    public void shouldCompleteQueryWithFiltersAndWildcard() {
-        Query<ApiEntity> query = QueryBuilder.create(ApiEntity.class).setQuery("name: *").build();
+    public void should_complete_query_with_filters_and_wildcard() {
+        var query = QueryBuilder.create(ApiEntity.class).setQuery("name: *").build();
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
-        assertEquals("", searcher.completeQueryWithFilters(query, builder));
-        assertEquals("#name:*", builder.build().toString());
+        assertThat(searcher.completeQueryWithFilters(query, builder)).isEmpty();
+        assertThat(builder.build()).hasToString("#name:*");
     }
 
     @Test
-    public void shouldCompleteQueryWithFiltersAndText() {
-        Query<ApiEntity> query = QueryBuilder.create(ApiEntity.class).setQuery("categories:Sports AND Cycling").build();
+    public void should_complete_query_with_filters_and_text() {
+        var query = QueryBuilder.create(ApiEntity.class).setQuery("categories:Sports AND Cycling").build();
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
-        assertEquals("", searcher.completeQueryWithFilters(query, builder));
-        assertEquals(
-            "#(+(categories:\"sports\" categories:sports)) +(+((name:*Cycling*)^20.0 (name_lowercase:*cycling*)^18.0 (name_sorted:*cycling*)^15.0 (name:*Cycling*)^12.0 (name_lowercase:*cycling*)^10.0 (paths:*Cycling*)^8.0 description:*Cycling* description_lowercase:*cycling* hosts:*Cycling* labels:*Cycling* categories:*Cycling* tags:*Cycling* metadata:*Cycling*))",
-            builder.build().toString()
-        );
+        assertThat(searcher.completeQueryWithFilters(query, builder)).isEmpty();
+        assertThat(builder.build())
+            .hasToString(
+                "#(+(categories:\"sports\" categories:sports)) +(+((name:*Cycling*)^20.0 (name_lowercase:*cycling*)^18.0 (name_sorted:*cycling*)^15.0 (name:*Cycling*)^12.0 (name_lowercase:*cycling*)^10.0 (paths:*Cycling*)^8.0 description:*Cycling* description_lowercase:*cycling* hosts:*Cycling* labels:*Cycling* categories:*Cycling* tags:*Cycling* metadata:*Cycling*))"
+            );
     }
 
     @Test
-    public void shouldCompleteQueryWithOrigin() {
-        Query query = QueryBuilder.create(ApiEntity.class).setQuery("origin:kubernetes").build();
+    public void should_complete_query_with_origin() {
+        var query = QueryBuilder.create(ApiEntity.class).setQuery("origin:kubernetes").build();
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
-        assertEquals("", searcher.completeQueryWithFilters(query, builder));
-        assertEquals("#(origin:\"kubernetes\" origin:kubernetes)", builder.build().toString());
+        assertThat(searcher.completeQueryWithFilters(query, builder)).isEmpty();
+        assertThat(builder.build()).hasToString("#(origin:\"kubernetes\" origin:kubernetes)");
     }
 
     @Test
-    public void shouldCompleteQueryWithHasHealthCheck() {
-        Query query = QueryBuilder.create(ApiEntity.class).setQuery("has_health_check:true").build();
+    public void should_complete_query_with_has_health_check() {
+        var query = QueryBuilder.create(ApiEntity.class).setQuery("has_health_check:true").build();
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
-        assertEquals("", searcher.completeQueryWithFilters(query, builder));
-        assertEquals("#(has_health_check:\"true\" has_health_check:true)", builder.build().toString());
+        assertThat(searcher.completeQueryWithFilters(query, builder)).isEmpty();
+        assertThat(builder.build()).hasToString("#(has_health_check:\"true\" has_health_check:true)");
     }
 }
