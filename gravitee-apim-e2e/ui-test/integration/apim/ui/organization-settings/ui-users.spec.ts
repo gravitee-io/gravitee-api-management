@@ -54,6 +54,13 @@ describe('Users', () => {
       cy.contains('Delete').click();
     });
 
+    cy.contains(firstName);
+    cy.contains(lastName);
+    cy.contains(email);
+    cy.contains('Deletion In Progress');
+
+    cy.reload();
+
     cy.contains(email).should('not.exist');
   });
 
@@ -84,6 +91,11 @@ describe('Users', () => {
     cy.get('mat-dialog-actions').within(() => {
       cy.contains('Delete').click();
     });
+
+    cy.contains(email);
+    cy.contains('Deletion In Progress');
+
+    cy.reload();
 
     cy.contains(email).should('not.exist');
   });
