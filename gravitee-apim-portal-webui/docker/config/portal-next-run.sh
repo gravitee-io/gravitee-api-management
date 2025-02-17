@@ -20,3 +20,7 @@ if [ -f "/usr/share/nginx/html/next/browser/assets/config.json" ]; then
     envsubst < /usr/share/nginx/html/next/browser/assets/config.json > /usr/share/nginx/html/next/browser/assets/config.json.tmp
     mv /usr/share/nginx/html/next/browser/assets/config.json.tmp /usr/share/nginx/html/next/browser/assets/config.json
 fi
+
+if [ "$DEFAULT_PORTAL" = "next" ]; then
+    cp /etc/nginx/conf.d/default-next.conf /etc/nginx/conf.d/default.conf
+fi

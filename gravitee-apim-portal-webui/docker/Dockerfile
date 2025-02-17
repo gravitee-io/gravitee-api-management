@@ -22,12 +22,14 @@ EXPOSE 8080
 ENV ALLOWED_FRAME_ANCESTOR_URLS "'self'"
 ENV PORTAL_BASE_HREF "/"
 ENV PORTAL_API_URL "http://localhost:8083/portal"
+ENV DEFAULT_PORTAL "classic"
 
 COPY ./dist /usr/share/nginx/html/
 
 COPY docker/config/config.json /usr/share/nginx/html/assets/config.json
 COPY docker/config/config-next.json /usr/share/nginx/html/next/browser/assets/config.json
 COPY docker/config/default.conf /etc/nginx/conf.d/default.conf
+COPY docker/config/default-next.conf /etc/nginx/conf.d/default-next.conf
 
 RUN chown -R 101:0 /usr/share/nginx/ /etc/nginx/
 
