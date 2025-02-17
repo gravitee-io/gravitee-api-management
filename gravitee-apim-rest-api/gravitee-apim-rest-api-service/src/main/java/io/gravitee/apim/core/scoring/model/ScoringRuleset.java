@@ -40,6 +40,7 @@ public record ScoringRuleset(
         GRAVITEE_MESSAGE,
         GRAVITEE_PROXY,
         GRAVITEE_NATIVE,
+        GRAVITEE_V2,
         OPENAPI,
         ASYNCAPI,
     }

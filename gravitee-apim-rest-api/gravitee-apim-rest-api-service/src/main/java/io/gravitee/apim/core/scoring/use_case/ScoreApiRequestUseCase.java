@@ -20,7 +20,6 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
-import io.gravitee.apim.core.api.model.import_definition.ApiDescriptor;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.async_job.crud_service.AsyncJobCrudService;
 import io.gravitee.apim.core.async_job.model.AsyncJob;
@@ -132,13 +131,15 @@ public class ScoreApiRequestUseCase {
     }
 
     private static ScoreRequest.Format getFormat(GraviteeDefinition definition) {
-        if (definition.api() instanceof ApiDescriptor.Federated) {
-            return ScoreRequest.Format.GRAVITEE_FEDERATED;
-        }
-        return switch (definition.api().type()) {
-            case PROXY -> ScoreRequest.Format.GRAVITEE_PROXY;
-            case MESSAGE -> ScoreRequest.Format.GRAVITEE_MESSAGE;
-            case NATIVE -> ScoreRequest.Format.GRAVITEE_NATIVE;
+        return switch (definition) {
+            case GraviteeDefinition.V2 ignored -> ScoreRequest.Format.GRAVITEE_V2;
+            case GraviteeDefinition.Federated ignored -> ScoreRequest.Format.GRAVITEE_FEDERATED;
+            case GraviteeDefinition.Native ignored -> ScoreRequest.Format.GRAVITEE_NATIVE;
+            case GraviteeDefinition.V4 v4 -> switch (v4.api().type()) {
+                case PROXY -> ScoreRequest.Format.GRAVITEE_PROXY;
+                case MESSAGE -> ScoreRequest.Format.GRAVITEE_MESSAGE;
+                case NATIVE -> ScoreRequest.Format.GRAVITEE_NATIVE;
+            };
         };
     }
 
@@ -155,6 +156,7 @@ public class ScoreApiRequestUseCase {
             case GRAVITEE_MESSAGE -> ScoreRequest.Format.GRAVITEE_MESSAGE;
             case GRAVITEE_PROXY -> ScoreRequest.Format.GRAVITEE_PROXY;
             case GRAVITEE_NATIVE -> ScoreRequest.Format.GRAVITEE_NATIVE;
+            case GRAVITEE_V2 -> ScoreRequest.Format.GRAVITEE_V2;
             case OPENAPI, ASYNCAPI -> null;
         };
     }
