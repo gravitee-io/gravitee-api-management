@@ -42,7 +42,7 @@ export class ApiV4MenuService implements ApiMenuService {
 
     const subMenuItems: MenuItem[] = [
       this.addConfigurationMenuEntry(),
-      ...(this.constants.org.settings?.scoring?.enabled && api.type !== 'NATIVE' ? [this.addApiScoreMenuEntry()] : []),
+      ...(this.constants.org.settings?.scoring?.enabled ? [this.addApiScoreMenuEntry()] : []),
       this.addEntrypointsMenuEntry(hasTcpListeners, api),
       this.addEndpointsMenuEntry(api, hasTcpListeners),
       this.addPoliciesMenuEntry(hasTcpListeners),
