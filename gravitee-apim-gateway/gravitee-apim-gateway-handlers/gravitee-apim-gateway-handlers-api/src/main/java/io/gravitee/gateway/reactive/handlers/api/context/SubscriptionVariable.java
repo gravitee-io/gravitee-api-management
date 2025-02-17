@@ -39,4 +39,12 @@ public class SubscriptionVariable {
     public Map<String, String> getMetadata() {
         return this.subscription.getMetadata();
     }
+
+    public String getApplicationName() {
+        return this.subscription.getApplicationName();
+    }
+
+    public String getClientId() {
+        return this.subscription.getClientId();
+    }
 }

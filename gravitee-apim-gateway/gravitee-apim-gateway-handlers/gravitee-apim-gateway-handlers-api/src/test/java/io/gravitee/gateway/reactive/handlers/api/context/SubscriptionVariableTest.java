@@ -28,15 +28,23 @@ import org.junit.jupiter.api.Test;
 class SubscriptionVariableTest {
 
     @Test
-    void shouldGiveAccessToSubscription() {
+    void should_give_access_to_subscription() {
         Subscription subscription = new Subscription();
         subscription.setId("id");
         subscription.setType(Subscription.Type.PUSH);
         subscription.setMetadata(Map.of("key", "value"));
+        subscription.setApplicationName("applicationName");
+        subscription.setClientId("clientId");
         SubscriptionVariable subscriptionVariable = new SubscriptionVariable(subscription);
 
-        assertThat(subscriptionVariable.getId()).isEqualTo("id");
-        assertThat(subscriptionVariable.getType()).isEqualTo(Subscription.Type.PUSH);
-        assertThat(subscriptionVariable.getMetadata().get("key")).isEqualTo("value");
+        assertThat(subscriptionVariable)
+            .extracting(
+                SubscriptionVariable::getId,
+                SubscriptionVariable::getType,
+                SubscriptionVariable::getMetadata,
+                SubscriptionVariable::getApplicationName,
+                SubscriptionVariable::getClientId
+            )
+            .containsExactly("id", Subscription.Type.PUSH, Map.of("key", "value"), "applicationName", "clientId");
     }
 }
