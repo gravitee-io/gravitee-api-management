@@ -33,6 +33,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -146,8 +147,15 @@ public class GroupResource extends AbstractResource {
             array = @ArraySchema(schema = @Schema(oneOf = { ApiEntity.class, ApplicationEntity.class }))
         )
     )
+    @ApiResponse(responseCode = "204", description = "Group exist but there is no content to return because the type was not provided")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
-    public Response getGroupMemberships(@QueryParam("type") String type) {
+    public Response getGroupMemberships(
+        @Parameter(
+            in = ParameterIn.QUERY,
+            description = "Type of the group member",
+            schema = @Schema(allowableValues = { "api", "application" })
+        ) @QueryParam("type") String type
+    ) {
         // Check that group belongs to current environment
         groupService.findById(GraviteeContext.getExecutionContext(), group);
 
