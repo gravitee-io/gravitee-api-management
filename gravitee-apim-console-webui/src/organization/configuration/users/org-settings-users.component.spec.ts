@@ -116,6 +116,28 @@ describe('OrgSettingsUsersComponent', () => {
       ]);
     }));
 
+    it('should display user in the process of being deleted', fakeAsync(async () => {
+      const archivedUser = fakeAdminUser();
+      archivedUser.status = 'ARCHIVED';
+      expectUsersListRequest([archivedUser]);
+
+      const table = await loader.getHarness(MatTableHarness.with({ selector: '#usersTable' }));
+
+      const rows = await table.getRows();
+      const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+
+      expect(rowCells).toEqual([
+        {
+          actions: '',
+          displayName: 'adminPrimary Owner Active Token',
+          email: '',
+          source: 'memory',
+          status: 'Deletion In Progress',
+          userPicture: '',
+        },
+      ]);
+    }));
+
     it('should confirm and delete user', fakeAsync(async () => {
       expectUsersListRequest([
         {

@@ -122,7 +122,7 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
       .pipe(
         filter((confirm) => confirm === true),
         switchMap(() => this.usersService.remove(userId)),
-        tap(() => this.snackBarService.success(`User ${displayName} successfully deleted!`)),
+        tap(() => this.snackBarService.success(`User ${displayName} is being deleted!`)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.filtersStream.next({ ...this.filtersStream.value }));
@@ -138,7 +138,7 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
       displayName: u.displayName,
       email: u.email,
       source: u.source,
-      status: u.status,
+      status: u.status === 'ARCHIVED' ? 'Deletion In Progress' : u.status,
       userPicture: this.usersService.getUserAvatar(u.id),
       primary_owner: u.primary_owner,
       number_of_active_tokens: u.number_of_active_tokens,
