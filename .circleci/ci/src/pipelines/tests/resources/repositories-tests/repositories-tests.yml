@@ -301,6 +301,7 @@ workflows:
                 - "5.0"
                 - "6.0"
                 - "7.0"
+                - "8.0"
       - job-elastic-test-container:
           name: Analytics repository tests - ElasticSearch << matrix.engineVersion >>
           context:
