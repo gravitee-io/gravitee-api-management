@@ -47,6 +47,7 @@ import {
   ConsoleWebuiBuildJob,
   PortalWebuiBuildJob,
   WebuiLintTestJob,
+  TriggerSaasDockerImagesJob,
 } from '../jobs';
 import { orbs } from '../orbs';
 
@@ -300,6 +301,7 @@ export class PullRequestsWorkflow {
           name: 'Build APIM Console and publish image',
           context: config.jobContext,
         }),
+
         new workflow.WorkflowJob(storybookConsoleJob, {
           name: 'Build Console Storybook',
           context: config.jobContext,
@@ -459,12 +461,25 @@ export class PullRequestsWorkflow {
     const deployOnAzureJob = DeployOnAzureJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(deployOnAzureJob);
 
+    const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create(environment, 'dev');
+    dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
+
     return [
       new workflow.WorkflowJob(communityBuildJob, { name: 'Check build as Community user', context: config.jobContext }),
+      // Trigger SaaS Docker images creation
+      new workflow.WorkflowJob(runTriggerSaasDockerImagesJob, {
+        context: [...config.jobContext, 'keeper-orb-publishing'],
+        name: 'Trigger SaaS Docker images creation',
+        requires: [
+          'Build and push rest api and gateway images',
+          'Build APIM Console and publish image',
+          'Build APIM Portal and publish image',
+        ],
+      }),
       new workflow.WorkflowJob(releaseHelmDryRunJob, {
         name: 'Publish Helm chart (internal repo)',
         context: config.jobContext,
-        requires: ['Setup'],
+        requires: ['Trigger SaaS Docker images creation'],
       }),
       new workflow.WorkflowJob(publishOnArtifactoryJob, {
         name: 'Publish on artifactory',

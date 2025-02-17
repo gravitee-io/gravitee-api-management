@@ -1037,6 +1037,31 @@ jobs:
             kubectl rollout restart deployment -n apim-apim-4-1-x-ce
             kubectl rollout restart deployment -n apim-apim-4-1-x-oem
       - cmd-notify-on-failure
+  job-trigger-saas-docker-images:
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - run:
+          name: Trigger SaaS Docker images pipeline
+          command: |-
+            PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"dev", "branch-version":"4.1.x", "release-version":"", "dry-run":true}}' | jq -r '.id')
+            echo "Pipeline triggered with ID: $PIPELINE_ID"
+            waitForPipelineCompletion() {
+                while true; do
+                    STATUS=$(curl --request GET --url "https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow" --header "Circle-Token: ${CIRCLE_TOKEN}" | jq -r '.items[].status')
+                    echo "Current status: $STATUS"
+                    if [[ "$STATUS" == "success" ]]; then
+                        echo "Pipeline completed successfully."
+                        break
+                    elif [[ "$STATUS" == "failed" ]]; then
+                        echo "Pipeline failed."
+                        exit 1
+                    fi
+                    sleep 30
+                done
+            }  
+            waitForPipelineCompletion
 workflows:
   pull_requests:
     jobs:
@@ -1266,12 +1291,21 @@ workflows:
           name: Check build as Community user
           context:
             - cicd-orchestrator
+      - job-trigger-saas-docker-images:
+          context:
+            - cicd-orchestrator
+            - keeper-orb-publishing
+          name: Trigger SaaS Docker images creation
+          requires:
+            - Build and push rest api and gateway images
+            - Build APIM Console and publish image
+            - Build APIM Portal and publish image
       - job-release-helm:
           name: Publish Helm chart (internal repo)
           context:
             - cicd-orchestrator
           requires:
-            - Setup
+            - Trigger SaaS Docker images creation
       - job-publish-on-artifactory:
           name: Publish on artifactory
           context:
