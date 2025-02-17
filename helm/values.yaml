@@ -668,7 +668,7 @@ api:
   user:
     login:
       defaultApplication: true
-    anynomizeOnDelete: false
+    anonymizeOnDelete: false
   supportEnabled: true
   ratingEnabled: true
   newsletterEnabled: true
@@ -715,7 +715,7 @@ api:
         - apim.example.com
       annotations:
         kubernetes.io/ingress.class: nginx
-        nginx.ingress.kubernetes.io/configuration-snippet: "etag on;\nproxy_pass_header ETag;\nproxy_pass_header if-match;\n"
+        #nginx.ingress.kubernetes.io/configuration-snippet: "etag on;\nproxy_pass_header ETag;\nproxy_pass_header if-match;\n"
         # kubernetes.io/tls-acme: "true"
       # tls:
         # Secrets must be manually created in the namespace.
@@ -733,7 +733,6 @@ api:
         - apim.example.com
       annotations: 
         kubernetes.io/ingress.class: nginx
-        nginx.ingress.kubernetes.io/configuration-snippet: "etag on;\nproxy_pass_header ETag;\nproxy_set_header if-match \"\";\n"
         # kubernetes.io/tls-acme: "true"
       # tls:
         # Secrets must be manually created in the namespace.
@@ -1375,7 +1374,6 @@ portal:
     annotations:
       kubernetes.io/ingress.class: nginx
       nginx.ingress.kubernetes.io/rewrite-target: /
-      nginx.ingress.kubernetes.io/configuration-snippet: "etag on;\nproxy_pass_header ETag;\n"
     #tls:
       # Secrets must be manually created in the namespace.
     #  - hosts:
@@ -1572,7 +1570,6 @@ ui:
     annotations:
       kubernetes.io/ingress.class: nginx
       nginx.ingress.kubernetes.io/rewrite-target: /$1
-      nginx.ingress.kubernetes.io/configuration-snippet: "etag on;\nproxy_pass_header ETag;\n"
     # tls:
       # Secrets must be manually created in the namespace.
     #  - hosts:

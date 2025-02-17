@@ -478,8 +478,8 @@ data:
         #enabled: true
         token:
           #expire-after: 86400
-        anonymize-on-delete:
-          enabled: {{ .Values.api.user.anynomizeOnDelete }}
+      anonymize-on-delete:
+        enabled: {{ .Values.api.user.anonymizeOnDelete }}
     # The portal URL used in emails
     {{- if .Values.api.portalURL }}
     portalURL: {{ .Values.api.portalURL }}

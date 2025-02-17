@@ -3,6 +3,11 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.3.23
+
+- fix typo and indentation about mapping of user.anonymize-on-delete.enabled (APIM-8628)
+- remove nginx `configuration-snippet` by default (APIM-8630)
+
 ### 4.3.21
 
 - Improve HPA by allowing custom annotation, custom metrics and define the behavior spec (APIM-8186)
