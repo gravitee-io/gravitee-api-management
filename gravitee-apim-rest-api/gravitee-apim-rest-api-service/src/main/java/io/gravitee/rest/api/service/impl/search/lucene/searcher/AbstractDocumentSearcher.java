@@ -23,6 +23,7 @@ import io.gravitee.rest.api.service.impl.search.lucene.DocumentSearcher;
 import io.gravitee.rest.api.service.impl.search.lucene.analyzer.CustomWhitespaceAnalyzer;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Stream;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
@@ -31,7 +32,6 @@ import org.apache.lucene.queryparser.classic.QueryParserBase;
 import org.apache.lucene.search.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -120,39 +120,43 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
         return new IndexSearcher(DirectoryReader.open(indexWriter));
     }
 
-    protected Optional<Query> buildFilterQuery(String apiReferenceField, Map<String, Object> filters) {
+    protected Optional<Query> buildFilterQuery(Map<String, Object> filters, Map<String, String> remapFields) {
         if (filters == null || filters.isEmpty()) {
             return Optional.empty();
         }
-        BooleanQuery.Builder filtersQuery = new BooleanQuery.Builder();
-        if (filters.containsKey(FIELD_API_TYPE_VALUE)) {
-            Object values = filters.get(FIELD_API_TYPE_VALUE);
-            if (Collection.class.isAssignableFrom(values.getClass())) {
-                Collection valuesAsCollection = (Collection) values;
-                increaseMaxClauseCountIfNecessary(valuesAsCollection.size());
 
-                BooleanQuery.Builder filterApisQuery = new BooleanQuery.Builder();
-                ((Collection<?>) values).forEach(value ->
-                        filterApisQuery.add(new TermQuery(new Term(apiReferenceField, (String) value)), BooleanClause.Occur.SHOULD)
-                    );
-                if (valuesAsCollection.size() > 0) {
-                    filtersQuery.add(filterApisQuery.build(), BooleanClause.Occur.MUST);
-                }
+        var queries = filters.entrySet().stream().flatMap(e -> prepareQuery(e.getKey(), e.getValue(), remapFields)).toList();
+
+        return switch (queries.size()) {
+            case 0 -> Optional.empty();
+            case 1 -> Optional.of(queries.getFirst());
+            default -> {
+                BooleanQuery.Builder filtersQuery = new BooleanQuery.Builder();
+                queries.forEach(v -> filtersQuery.add(new BooleanClause(v, BooleanClause.Occur.MUST)));
+                filtersQuery.add(filtersQuery.build(), BooleanClause.Occur.MUST);
+                yield Optional.of(filtersQuery.build());
             }
-        }
+        };
+    }
 
-        final boolean[] hasClause = { false };
-        filters.forEach((field, value) -> {
-            if (!Collection.class.isAssignableFrom(value.getClass())) {
-                filtersQuery.add(new TermQuery(new Term(field, QueryParserBase.escape((String) value))), BooleanClause.Occur.MUST);
-                hasClause[0] = true;
+    private Stream<Query> prepareQuery(String field, Object values, Map<String, String> remapFields) {
+        if (Collection.class.isAssignableFrom(values.getClass())) {
+            Collection<?> valuesAsCollection = (Collection<?>) values;
+            increaseMaxClauseCountIfNecessary(valuesAsCollection.size());
+
+            BooleanQuery.Builder filterApisQuery = new BooleanQuery.Builder();
+            valuesAsCollection.forEach(value ->
+                filterApisQuery.add(
+                    new TermQuery(new Term(remapFields.getOrDefault(field, field), (String) value)),
+                    BooleanClause.Occur.SHOULD
+                )
+            );
+            if (!valuesAsCollection.isEmpty()) {
+                return Stream.of(filterApisQuery.build());
             }
-        });
-
-        if (hasClause[0]) {
-            filtersQuery.add(filtersQuery.build(), BooleanClause.Occur.MUST);
+        } else if (values instanceof String value) {
+            return Stream.of(new TermQuery(new Term(remapFields.getOrDefault(field, field), QueryParserBase.escape(value))));
         }
-
-        return Optional.of(filtersQuery.build());
+        return Stream.empty();
     }
 }

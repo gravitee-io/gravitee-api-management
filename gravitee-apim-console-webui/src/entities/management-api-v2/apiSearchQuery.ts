@@ -25,4 +25,5 @@ export interface ApiSearchQuery {
    */
   ids?: string[];
   definitionVersion?: DefinitionVersion;
+  definitionVersions?: DefinitionVersion[];
 }

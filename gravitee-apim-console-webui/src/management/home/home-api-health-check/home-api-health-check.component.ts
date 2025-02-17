@@ -121,7 +121,12 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
         }),
         switchMap(({ pagination, searchTerm, sort }) =>
           this.apiServiceV2
-            .search({ query: searchTerm }, apiSortByParamFromString(sort), pagination.index, pagination.size)
+            .search(
+              { query: searchTerm, definitionVersions: ['V2', 'V4'] },
+              apiSortByParamFromString(sort),
+              pagination.index,
+              pagination.size,
+            )
             .pipe(catchError(() => of({ data: [] } as ApisResponse))),
         ),
         tap((apisPage) => {
@@ -151,7 +156,7 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
     this.filters$.next(this.filters);
   }
 
-  path2dashboard(api: ApisTableDS) {
+  path2dashboard(api: ApisTableDS): string[] | undefined {
     if (!api.healthcheck_enabled) {
       return undefined;
     }
@@ -184,9 +189,9 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
         mergeMap((page: number) => this.apiServiceV2.search({ query: 'has_health_check:true' }, null, page, 100)),
         delay(100),
         map((apisResult: ApisResponse) => {
-          const hasNextPage = apisResult.pagination.pageCount > apisResult.pagination.page;
+          const hasNextPage = (apisResult?.pagination?.pageCount ?? 0) > (apisResult?.pagination?.page ?? 0);
           if (hasNextPage) {
-            loadPage$.next(apisResult.pagination.page + 1);
+            loadPage$.next(apisResult?.pagination?.page + 1);
           }
 
           return {
@@ -255,13 +260,13 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
     return apiR.data.flatMap((api) => {
       switch (api.definitionVersion) {
         case 'FEDERATED':
-          return []; // TODO FEDERATED should be removed in query too
+          return [];
         case 'V1':
-          return []; // TODO V1 should be removed in query too
+          return [];
         case 'V2':
           return [this.v2toApisTableDS(api)];
         case 'V4':
-          return this.v4toApisTableDS(api);
+          return [this.v4toApisTableDS(api)];
       }
     });
   }
@@ -285,28 +290,23 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
     } satisfies ApisTableDS;
   }
 
-  private v4toApisTableDS(api: ApiV4): ApisTableDS[] {
-    if (api.type === 'NATIVE') {
-      return [];
-    }
-    return [
-      {
-        id: api.id,
-        name: api.name,
-        definitionVersion: api.definitionVersion,
-        version: api.apiVersion,
-        tags: api.tags?.join(', ') ?? '',
-        owner: api.primaryOwner.displayName,
-        ownerEmail: api.primaryOwner.email,
-        state: api.state,
-        lifecycleState: api.lifecycleState,
-        workflowBadge: this.getWorkflowBadge(api),
-        picture: api._links.pictureUrl,
-        healthcheck_enabled: this.healthcheckEnabled(api),
-        origin: api.originContext.origin,
-        availability$: this.getAvailability$(api.id, this.healthcheckEnabled(api)),
-      } satisfies ApisTableDS,
-    ];
+  private v4toApisTableDS(api: ApiV4): ApisTableDS {
+    return {
+      id: api.id,
+      name: api.name,
+      definitionVersion: api.definitionVersion,
+      version: api.apiVersion,
+      tags: api.tags?.join(', ') ?? '',
+      owner: api.primaryOwner.displayName,
+      ownerEmail: api.primaryOwner.email,
+      state: api.state,
+      lifecycleState: api.lifecycleState,
+      workflowBadge: this.getWorkflowBadge(api),
+      picture: api._links.pictureUrl,
+      healthcheck_enabled: this.healthcheckEnabled(api),
+      origin: api.originContext.origin,
+      availability$: this.getAvailability$(api.id, this.healthcheckEnabled(api)),
+    } satisfies ApisTableDS;
   }
 
   private getWorkflowBadge(api: ApiV2 | ApiV4): ApisTableDS['workflowBadge'] {
@@ -320,7 +320,6 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
   }
 
   private healthcheckEnabled(api: ApiV4): boolean {
-    console.log(api);
     return api.endpointGroups?.some((e) => e.services?.healthCheck?.enabled) ?? false;
   }
 
@@ -329,7 +328,7 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
   }
 
   private getAvailability$(apiId: string, enabled: boolean = true): ApisTableDS['availability$'] {
-    if (enabled) {
+    if (!enabled) {
       return of({
         type: 'not-configured' as const,
       });

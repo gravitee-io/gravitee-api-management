@@ -22,7 +22,7 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
-import java.util.Optional;
+import java.util.Map;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
@@ -46,7 +46,7 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
     }
 
     @Override
-    public SearchResult searchReference(ExecutionContext executionContext, io.gravitee.rest.api.service.search.query.Query query)
+    public SearchResult searchReference(ExecutionContext executionContext, io.gravitee.rest.api.service.search.query.Query<?> query)
         throws TechnicalException {
         try {
             BooleanQuery.Builder pageQuery = this.buildQuery(query);
@@ -59,7 +59,7 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
     }
 
     @Override
-    public SearchResult search(ExecutionContext executionContext, io.gravitee.rest.api.service.search.query.Query query)
+    public SearchResult search(ExecutionContext executionContext, io.gravitee.rest.api.service.search.query.Query<?> query)
         throws TechnicalException {
         try {
             BooleanQuery.Builder pageQuery = this.buildQuery(query);
@@ -71,7 +71,7 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
         }
     }
 
-    private BooleanQuery.Builder buildQuery(io.gravitee.rest.api.service.search.query.Query query) throws ParseException {
+    private BooleanQuery.Builder buildQuery(io.gravitee.rest.api.service.search.query.Query<?> query) throws ParseException {
         QueryParser parser = new MultiFieldQueryParser(new String[] { "name", "name_lowercase", "content" }, analyzer);
         parser.setFuzzyMinSim(0.6f);
 
@@ -91,7 +91,7 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
 
         pageQuery.add(pageFieldsQuery.build(), BooleanClause.Occur.MUST);
         pageQuery.add(new TermQuery(new Term(FIELD_TYPE, FIELD_TYPE_VALUE)), BooleanClause.Occur.MUST);
-        Optional<Query> baseFilterQuery = this.buildFilterQuery(FIELD_REFERENCE_ID, query.getFilters());
+        var baseFilterQuery = this.buildFilterQuery(query.getFilters(), Map.of(FIELD_API_TYPE_VALUE, FIELD_REFERENCE_ID));
         baseFilterQuery.ifPresent(q -> pageQuery.add(q, BooleanClause.Occur.FILTER));
         return pageQuery;
     }

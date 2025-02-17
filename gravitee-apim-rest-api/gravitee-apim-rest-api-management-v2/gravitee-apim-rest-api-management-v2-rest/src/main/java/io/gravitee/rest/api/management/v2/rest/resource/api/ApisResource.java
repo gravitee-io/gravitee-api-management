@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.isNotEmpty;
+import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TYPE_VALUE;
 
@@ -34,6 +36,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
@@ -85,6 +88,8 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -355,11 +360,14 @@ public class ApisResource extends AbstractResource {
             apiQueryBuilder.addFilter(FIELD_TYPE_VALUE, apiSearchQuery.getIds());
         }
 
-        if (Objects.nonNull(apiSearchQuery.getDefinitionVersion())) {
-            apiQueryBuilder.addFilter(
-                FIELD_DEFINITION_VERSION,
-                ApiMapper.INSTANCE.mapDefinitionVersion(apiSearchQuery.getDefinitionVersion()).getLabel()
-            );
+        var selectedDefinitions = Stream
+            .concat(Stream.ofNullable(apiSearchQuery.getDefinitionVersion()), stream(apiSearchQuery.getDefinitionVersions()))
+            .filter(Objects::nonNull)
+            .map(ApiMapper.INSTANCE::mapDefinitionVersion)
+            .map(DefinitionVersion::getLabel)
+            .collect(Collectors.toSet());
+        if (isNotEmpty(selectedDefinitions)) {
+            apiQueryBuilder.addFilter(FIELD_DEFINITION_VERSION, selectedDefinitions);
         }
 
         apiQueryBuilder.setSort(apiSortByParam.toSortable());

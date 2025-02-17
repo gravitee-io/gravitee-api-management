@@ -27,15 +27,20 @@ import { HomeApiHealthCheckComponent } from './home-api-health-check.component';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { HomeModule } from '../home.module';
-import { Api } from '../../../entities/api';
 import { fakePagedResult } from '../../../entities/pagedResult';
-import { fakeApi } from '../../../entities/api/Api.fixture';
 import { GioQuickTimeRangeHarness } from '../components/gio-quick-time-range/gio-quick-time-range.harness';
+import { ApiV4, fakeApiV4 } from '../../../entities/management-api-v2';
 
 describe('HomeApiHealthCheckComponent', () => {
   let fixture: ComponentFixture<HomeApiHealthCheckComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+  const healthCheckEnableTrait: Partial<ApiV4> = {
+    endpointGroups: [{ type: '', services: { healthCheck: { enabled: true } } }],
+  };
+  const healthCheckDisableTrait: Partial<ApiV4> = {
+    endpointGroups: [{ type: '', services: { healthCheck: { enabled: false } } }],
+  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -78,9 +83,7 @@ describe('HomeApiHealthCheckComponent', () => {
 
   it('should display a table with one row', async () => {
     fixture.detectChanges();
-    const api = fakeApi({
-      healthcheck_enabled: false,
-    });
+    const api = fakeApiV4(healthCheckDisableTrait);
     // For "Health-check of all APIs" check
     await expectApisListRequest([], 'has_health_check:true', undefined, 1, 100);
     // For table
@@ -101,9 +104,7 @@ describe('HomeApiHealthCheckComponent', () => {
 
   it('should display api with HeathCheck configured', async () => {
     fixture.detectChanges();
-    const api = fakeApi({
-      healthcheck_enabled: true,
-    });
+    const api = fakeApiV4(healthCheckEnableTrait);
     // For "Health-check of all APIs" check
     await expectApisListRequest([], 'has_health_check:true', undefined, 1, 100);
 
@@ -139,9 +140,7 @@ describe('HomeApiHealthCheckComponent', () => {
   });
 
   describe('onRefreshClick', () => {
-    const api = fakeApi({
-      healthcheck_enabled: true,
-    });
+    const api = fakeApiV4(healthCheckEnableTrait);
     beforeEach(async () => {
       fixture.detectChanges();
       // For "Health-check of all APIs" check
@@ -166,9 +165,7 @@ describe('HomeApiHealthCheckComponent', () => {
   });
 
   describe('onOnlyHCConfigured', () => {
-    const api = fakeApi({
-      healthcheck_enabled: true,
-    });
+    const api: ApiV4 = fakeApiV4(healthCheckEnableTrait);
     beforeEach(async () => {
       fixture.detectChanges();
       // For "Health-check of all APIs" check
@@ -199,12 +196,10 @@ describe('HomeApiHealthCheckComponent', () => {
     return { headerCells, rowCells };
   }
 
-  async function expectApisListRequest(apis: Api[] = [], q?: string, order?: string, page = 1, size = 10) {
+  async function expectApisListRequest(apis: ApiV4[] = [], q?: string, order?: string, page = 1, size = 10) {
     await fixture.whenStable();
 
-    const req = httpTestingController.expectOne(
-      `${CONSTANTS_TESTING.env.baseURL}/apis/_search/_paged?page=${page}&size=${size}&q=${q ? q : '*'}${order ? `&order=${order}` : ''}`,
-    );
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=${page}&perPage=${size}`);
     expect(req.request.method).toEqual('POST');
     req.flush(fakePagedResult(apis));
   }

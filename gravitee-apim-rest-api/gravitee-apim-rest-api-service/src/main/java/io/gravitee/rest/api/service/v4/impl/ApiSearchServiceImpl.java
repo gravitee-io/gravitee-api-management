@@ -276,10 +276,10 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
             .ids(apiIdPageSubset);
 
-        if (Objects.nonNull(apiQuery.getFilters()) && apiQuery.getFilters().containsKey(FIELD_DEFINITION_VERSION)) {
-            apiCriteriaBuilder.definitionVersion(
-                List.of(DefinitionVersion.valueOfLabel((String) apiQuery.getFilters().get(FIELD_DEFINITION_VERSION)))
-            );
+        if (Objects.nonNull(apiQuery.getFilters())) {
+            if (apiQuery.getFilters().getOrDefault(FIELD_DEFINITION_VERSION, List.of()) instanceof List<?> versions) {
+                apiCriteriaBuilder.definitionVersion(stream(versions).map(Object::toString).map(DefinitionVersion::valueOfLabel).toList());
+            }
         }
 
         // Step 4: get APIs from repository by ids and add primary owner
