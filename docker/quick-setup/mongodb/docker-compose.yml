@@ -148,6 +148,7 @@ services:
       - management_api
     environment:
       - PORTAL_API_URL=http://localhost:8083/portal
+      #- DEFAULT_PORTAL=next # Uncomment this line to use the next portal as default portal
     volumes:
       - ./.logs/apim-portal-ui:/var/log/nginx
     networks:
