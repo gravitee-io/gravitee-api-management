@@ -20,8 +20,11 @@ import static io.gravitee.repository.mongodb.management.upgrade.upgrader.sharedp
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateManyModel;
 import com.mongodb.client.model.Updates;
+import com.mongodb.client.model.WriteModel;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
-import java.util.stream.Collectors;
+import io.gravitee.repository.mongodb.utils.BulkWriteCollector;
+import java.util.List;
+import java.util.function.Function;
 import java.util.stream.StreamSupport;
 import org.bson.Document;
 import org.springframework.stereotype.Component;
@@ -35,8 +38,10 @@ public class SubscriptionApplicationNameUpgrader extends MongoUpgrader {
     public boolean upgrade() {
         // Fetch all documents from applications
         var applicationDocs = getCollection("applications").find().projection(new Document("_id", 1).append("name", 1));
+        Function<List<WriteModel<Document>>, Boolean> bulkWriteFunction = bulkActions ->
+            getCollection("subscriptions").bulkWrite(bulkActions).wasAcknowledged();
 
-        var bulkActions = StreamSupport
+        return StreamSupport
             .stream(applicationDocs.spliterator(), false)
             .map(applicationDoc -> {
                 String applicationId = applicationDoc.get("_id").toString();
@@ -47,13 +52,7 @@ public class SubscriptionApplicationNameUpgrader extends MongoUpgrader {
                     Updates.set("applicationName", applicationName)
                 );
             })
-            .collect(Collectors.toList());
-
-        // Execute bulk actions
-        if (!bulkActions.isEmpty()) {
-            return getCollection("subscriptions").bulkWrite(bulkActions).wasAcknowledged();
-        }
-        return true;
+            .collect(new BulkWriteCollector(1000, bulkWriteFunction));
     }
 
     @Override
