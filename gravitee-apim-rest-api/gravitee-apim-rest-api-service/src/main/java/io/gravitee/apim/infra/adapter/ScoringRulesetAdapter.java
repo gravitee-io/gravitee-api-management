@@ -43,6 +43,7 @@ public interface ScoringRulesetAdapter {
             case GRAVITEE_PROXY -> ScoringRuleset.Format.GRAVITEE_PROXY;
             case GRAVITEE_MESSAGE -> ScoringRuleset.Format.GRAVITEE_MESSAGE;
             case GRAVITEE_FEDERATION -> ScoringRuleset.Format.GRAVITEE_FEDERATION;
+            case GRAVITEE_V2 -> ScoringRuleset.Format.GRAVITEE_V2;
             case null -> null;
         };
     }
@@ -63,6 +64,7 @@ public interface ScoringRulesetAdapter {
             case GRAVITEE_MESSAGE -> io.gravitee.repository.management.model.ScoringRuleset.Format.GRAVITEE_MESSAGE;
             case GRAVITEE_FEDERATION -> io.gravitee.repository.management.model.ScoringRuleset.Format.GRAVITEE_FEDERATION;
             case GRAVITEE_NATIVE -> io.gravitee.repository.management.model.ScoringRuleset.Format.GRAVITEE_NATIVE;
+            case GRAVITEE_V2 -> io.gravitee.repository.management.model.ScoringRuleset.Format.GRAVITEE_V2;
             case null -> null;
         };
     }

@@ -50,5 +50,6 @@ public record ScoreRequest(
         GRAVITEE_MESSAGE,
         GRAVITEE_FEDERATED,
         GRAVITEE_NATIVE,
+        GRAVITEE_V2,
     }
 }
