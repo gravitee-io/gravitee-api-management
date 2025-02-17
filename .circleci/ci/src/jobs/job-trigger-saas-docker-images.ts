@@ -20,7 +20,7 @@ import { BaseExecutor } from '../executors';
 
 export class TriggerSaasDockerImagesJob {
   private static jobName: string = 'job-trigger-saas-docker-images';
-  public static create(environment: CircleCIEnvironment): Job {
+  public static create(environment: CircleCIEnvironment, distribution: 'dev' | 'prod'): Job {
     const steps: Command[] = [
       new commands.Run({
         name: 'Trigger SaaS Docker images pipeline',
@@ -28,7 +28,7 @@ export class TriggerSaasDockerImagesJob {
 --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline \
 --header "Circle-Token: \${CIRCLE_TOKEN}" \
 --header 'content-type: application/json' \
---data '{"parameters":{"project":"apim", "branch-version":"${environment.branch}", "release-version":"${environment.graviteeioVersion}", "dry-run":${environment.isDryRun}}}' | jq -r '.id')
+--data '{"parameters":{"project":"apim", "distribution":"${distribution}", "branch-version":"${environment.branch}", "release-version":"${environment.graviteeioVersion}", "dry-run":${environment.isDryRun}}}' | jq -r '.id')
 echo "Pipeline triggered with ID: $PIPELINE_ID"
 waitForPipelineCompletion() {
     while true; do
