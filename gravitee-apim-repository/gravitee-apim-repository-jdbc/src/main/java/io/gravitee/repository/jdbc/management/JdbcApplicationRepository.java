@@ -148,7 +148,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             if (application.getGroups() == null) {
                 application.setGroups(new HashSet<>());
             }
-            application.getGroups().add(row.get(1));
+            application.addGroup(row.get(1));
         }
     }
 

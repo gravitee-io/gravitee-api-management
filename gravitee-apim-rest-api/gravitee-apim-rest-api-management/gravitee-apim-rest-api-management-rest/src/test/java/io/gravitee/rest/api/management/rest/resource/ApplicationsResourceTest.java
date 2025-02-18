@@ -32,7 +32,11 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import org.junit.Test;
 
@@ -105,12 +109,15 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         var app1 = mock(ApplicationListItem.class);
         when(app1.getId()).thenReturn("app1");
         when(app1.getUpdatedAt()).thenReturn(new Date());
+        when(app1.getGroups()).thenReturn(Collections.emptySet());
         var app2 = mock(ApplicationListItem.class);
         when(app2.getId()).thenReturn("app2");
         when(app2.getUpdatedAt()).thenReturn(new Date());
+        when(app2.getGroups()).thenReturn(new HashSet<>(Arrays.asList("GROUP1", "GROUP2")));
         var app3 = mock(ApplicationListItem.class);
         when(app3.getId()).thenReturn("app3");
         when(app3.getUpdatedAt()).thenReturn(new Date());
+        when(app3.getGroups()).thenReturn(Collections.emptySet());
 
         List<ApplicationListItem> applications = List.of(app1, app2, app3);
         Page<ApplicationListItem> pagedApplications = new Page(applications, 0, 3, 3);
@@ -127,6 +134,8 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals(3, pagedApplicationsResult.getPage().getSize());
         assertEquals(1, pagedApplicationsResult.getPage().getTotalPages());
         assertEquals(3, pagedApplicationsResult.getPage().getTotalElements());
+        Collection<ApplicationListItem> resultApplications = pagedApplicationsResult.getData();
+        assertEquals(2, resultApplications.stream().filter(app -> app.getId().equals("app2")).findFirst().get().getGroups().size());
     }
 
     @Test
