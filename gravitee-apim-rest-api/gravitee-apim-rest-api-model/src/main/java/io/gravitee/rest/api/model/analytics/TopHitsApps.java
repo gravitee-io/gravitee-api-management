@@ -13,11 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.application.query_service;
+package io.gravitee.rest.api.model.analytics;
 
-import io.gravitee.rest.api.model.BaseApplicationEntity;
-import java.util.Set;
+import java.util.List;
+import lombok.Builder;
+import lombok.Data;
 
-public interface ApplicationQueryService {
-    Set<BaseApplicationEntity> findByEnvironment(String environmentId);
+@Data
+@Builder
+public class TopHitsApps {
+
+    List<TopHitApp> data;
+
+    @Builder
+    public record TopHitApp(String id, String name, long count) {}
 }

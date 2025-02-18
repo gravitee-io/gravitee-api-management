@@ -31,6 +31,7 @@ import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeAggre
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
+import io.gravitee.rest.api.model.analytics.TopHitsApps;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -229,6 +230,31 @@ class AnalyticsQueryServiceImplTest {
                 softly.assertThat(queryCaptor.getValue().to()).isEqualTo(TIME_RANGE.to());
                 softly.assertThat(queryCaptor.getValue().interval()).isEqualTo(TIME_RANGE.interval());
             });
+        }
+    }
+
+    @Nested
+    class SearchTopApps {
+
+        @Test
+        void should_search_top_apps() {
+            var queryParameters = AnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
+            when(analyticsRepository.searchTopApps(any(QueryContext.class), any()))
+                .thenReturn(
+                    Optional.of(TopHitsAggregate.builder().topHitsCounts(Map.of("app-id-1", 15L, "app-id-2", 2L, "app-id-3", 17L)).build())
+                );
+
+            var result = cut.searchTopHitsApps(GraviteeContext.getExecutionContext(), queryParameters);
+
+            assertThat(result)
+                .hasValueSatisfying(topHits ->
+                    assertThat(topHits.getData())
+                        .containsExactlyInAnyOrder(
+                            TopHitsApps.TopHitApp.builder().id("app-id-1").count(15L).build(),
+                            TopHitsApps.TopHitApp.builder().id("app-id-2").count(2L).build(),
+                            TopHitsApps.TopHitApp.builder().id("app-id-3").count(17L).build()
+                        )
+                );
         }
     }
 }

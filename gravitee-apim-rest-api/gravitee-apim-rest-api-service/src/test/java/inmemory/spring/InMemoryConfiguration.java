@@ -30,6 +30,7 @@ import inmemory.ApiSpecGenQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ApplicationMetadataCrudServiceInMemory;
 import inmemory.ApplicationMetadataQueryServiceInMemory;
+import inmemory.ApplicationQueryServiceInMemory;
 import inmemory.AsyncJobCrudServiceInMemory;
 import inmemory.AsyncJobQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
@@ -96,6 +97,7 @@ import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.ValidateResourceDomainServiceInMemory;
 import inmemory.WorkflowQueryServiceInMemory;
+import io.gravitee.apim.core.application.query_service.ApplicationQueryService;
 import io.gravitee.apim.core.specgen.crud_service.ApiSpecGenCrudService;
 import io.gravitee.apim.core.specgen.query_service.ApiSpecGenQueryService;
 import io.gravitee.apim.core.specgen.service_provider.OasProvider;
@@ -525,5 +527,10 @@ public class InMemoryConfiguration {
     @Bean
     public WorkflowQueryService workflowQueryService() {
         return new WorkflowQueryServiceInMemory();
+    }
+
+    @Bean
+    public ApplicationQueryServiceInMemory applicationQueryService(ApplicationCrudServiceInMemory applicationCrudService) {
+        return new ApplicationQueryServiceInMemory(applicationCrudService);
     }
 }

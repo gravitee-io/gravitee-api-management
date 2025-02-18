@@ -373,4 +373,45 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             });
         }
     }
+
+    @Nested
+    class TopHitApps {
+
+        private static final String V4_API_ID = "f1608475-dd77-4603-a084-75dd775603e9";
+        private static final String APP_ID = "1e478236-e6e4-4cf5-8782-36e6e4ccf57d";
+        private static final long FROM = 1728992401566L;
+        private static final long TO = 1729078801566L;
+
+        @Test
+        void should_return_top_hits_count_for_a_given_api_and_date_range() {
+            var yesterdayAtStartOfTheDayEpochMilli = LocalDate.now().minusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+            var yesterdayAtEndOfTheDayEpochMilli = LocalDate.now().minusDays(1).atTime(23, 59, 59).toInstant(ZoneOffset.UTC).toEpochMilli();
+
+            var result = cut.searchTopApps(
+                new QueryContext("org#1", "env#1"),
+                new TopHitsQueryCriteria(List.of(V4_API_ID), yesterdayAtStartOfTheDayEpochMilli, yesterdayAtEndOfTheDayEpochMilli)
+            );
+
+            assertThat(result)
+                .isNotNull()
+                .isPresent()
+                .get()
+                .extracting(TopHitsAggregate::getTopHitsCounts)
+                .isEqualTo(Map.of("f37a5799-0490-43f6-ba57-990490f3f678", 1L, "613dc986-41ce-4b5b-bdc9-8641cedb5bdb", 1L));
+        }
+
+        @Test
+        void should_return_empty_top_hits_count_for_empty_ids_list() {
+            var result = cut.searchTopApps(new QueryContext("org#1", "env#1"), new TopHitsQueryCriteria(List.of(API_ID), FROM, TO));
+
+            assertThat(result).isNotNull().get().extracting(TopHitsAggregate::getTopHitsCounts).isEqualTo(Map.of());
+        }
+
+        @Test
+        void should_return_empty_top_hits_count_for_null_query_criteria() {
+            var result = cut.searchTopApps(new QueryContext("org#1", "env#1"), null);
+
+            assertThat(result).isNotNull().get().extracting(TopHitsAggregate::getTopHitsCounts).isEqualTo(Map.of());
+        }
+    }
 }

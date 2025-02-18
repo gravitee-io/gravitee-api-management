@@ -19,7 +19,9 @@ import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsRequestResponseTimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusRangesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopAppsByRequestCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopHitsApisResponse;
+import io.gravitee.rest.api.model.analytics.TopHitsApps;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
@@ -37,4 +39,6 @@ public interface EnvironmentAnalyticsMapper {
     EnvironmentAnalyticsRequestResponseTimeResponse map(RequestResponseTime requestResponseTime);
 
     EnvironmentAnalyticsResponseStatusOvertimeResponse map(ResponseStatusOvertime source);
+
+    EnvironmentAnalyticsTopAppsByRequestCountResponse map(TopHitsApps topHitsApps);
 }

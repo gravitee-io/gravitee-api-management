@@ -18,22 +18,26 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.assertj.core.api.InstanceOfAssertFactories.INSTANT;
 import static org.mockito.Mockito.when;
 
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiQueryServiceInMemory;
+import inmemory.ApplicationQueryServiceInMemory;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsOverPeriodResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsRequestResponseTimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusRangesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopAppsByRequestCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopHitsApisResponse;
+import io.gravitee.rest.api.management.v2.rest.model.TopApp;
 import io.gravitee.rest.api.management.v2.rest.model.TopHitApi;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.analytics.TopHitsApps;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
@@ -61,6 +65,9 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Inject
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
+
+    @Inject
+    private final ApplicationQueryServiceInMemory applicationQueryService = new ApplicationQueryServiceInMemory();
 
     @Inject
     FakeAnalyticsQueryService analyticsQueryService;
@@ -334,6 +341,80 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                         .data(Map.of("200", List.of(0L, 0L, 0L, 1L, 4L, 0L, 0L)))
                         .build()
                 );
+        }
+    }
+
+    @Nested
+    class TopAppsByRequestCount {
+
+        @BeforeEach
+        void setup() {
+            target = rootTarget().path("top-apps-by-request-count");
+        }
+
+        @Test
+        void should_return_200_with_valid_top_apps_by_request_count() {
+            //Given
+            var topHitApp1 = BaseApplicationEntity
+                .builder()
+                .id("top-hit-app-id-1")
+                .name("Top Hit App 1")
+                .environmentId(ENVIRONMENT)
+                .build();
+            var topHitApp2 = BaseApplicationEntity
+                .builder()
+                .id("top-hit-app-id-2")
+                .name("Top Hit App 2")
+                .environmentId(ENVIRONMENT)
+                .build();
+            var proxyApiV4 = ApiFixtures.aProxyApiV4().toBuilder().id("api-1").name("API 1").build();
+            var messageApiV4 = ApiFixtures.aMessageApiV4().toBuilder().id("api-2").name("API 2").build();
+
+            apiQueryService.initWith(List.of(proxyApiV4, messageApiV4));
+            applicationQueryService.initWith(List.of(topHitApp1, topHitApp2));
+
+            analyticsQueryService.topHitsApps =
+                TopHitsApps
+                    .builder()
+                    .data(
+                        List.of(
+                            TopHitsApps.TopHitApp.builder().id(topHitApp1.getId()).count(7L).build(),
+                            TopHitsApps.TopHitApp.builder().id(topHitApp2.getId()).count(13L).build()
+                        )
+                    )
+                    .build();
+
+            //When
+            Response response = target.queryParam("from", FROM).queryParam("to", TO).request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(EnvironmentAnalyticsTopAppsByRequestCountResponse.class)
+                .isEqualTo(
+                    EnvironmentAnalyticsTopAppsByRequestCountResponse
+                        .builder()
+                        .data(
+                            List.of(
+                                TopApp.builder().id("top-hit-app-id-2").name("Top Hit App 2").count(13L).build(),
+                                TopApp.builder().id("top-hit-app-id-1").name("Top Hit App 1").count(7L).build()
+                            )
+                        )
+                        .build()
+                );
+        }
+
+        @Test
+        void should_return_200_with_empty_list_if_no_apis_found() {
+            apiQueryService.initWith(List.of());
+            analyticsQueryService.topHitsApis = TopHitsApis.builder().data(List.of()).build();
+
+            //When
+            Response response = target.queryParam("from", FROM).queryParam("to", TO).request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(EnvironmentAnalyticsTopAppsByRequestCountResponse.class)
+                .isEqualTo(EnvironmentAnalyticsTopAppsByRequestCountResponse.builder().data(List.of()).build());
         }
     }
 }

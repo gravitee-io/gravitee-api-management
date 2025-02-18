@@ -1,5 +1,23 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.gravitee.apim.infra.query_service.application;
 
+import static assertions.CoreAssertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApplicationFixture;
 import io.gravitee.apim.infra.adapter.ApplicationAdapter;
@@ -8,6 +26,7 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Set;
 import lombok.SneakyThrows;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Nested;
@@ -16,12 +35,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Set;
-
-import static assertions.CoreAssertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ApplicationQueryServiceImplTest {
@@ -58,7 +71,8 @@ class ApplicationQueryServiceImplTest {
         void should_throw_when_technical_exception_occurs() {
             // Given
             var envId = "different-env";
-            when(applicationRepository.findAllByEnvironment("different-env", ApplicationStatus.values())).thenThrow(TechnicalException.class);
+            when(applicationRepository.findAllByEnvironment("different-env", ApplicationStatus.values()))
+                .thenThrow(TechnicalException.class);
 
             // When
             Throwable throwable = catchThrowable(() -> service.findByEnvironment(envId));
@@ -68,7 +82,5 @@ class ApplicationQueryServiceImplTest {
                 .isInstanceOf(TechnicalManagementException.class)
                 .hasMessage("An error occurred while finding applications by environment id: different-env");
         }
-
     }
-
 }
