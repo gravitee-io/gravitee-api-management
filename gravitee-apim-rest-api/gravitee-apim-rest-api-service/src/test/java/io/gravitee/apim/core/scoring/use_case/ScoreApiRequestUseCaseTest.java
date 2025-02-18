@@ -52,6 +52,7 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.vertx.core.json.JsonObject;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
@@ -169,7 +170,7 @@ class ScoreApiRequestUseCaseTest {
                                                             {"api":{"id":"my-api","name":"My Api","definitionVersion":"FEDERATED","tags":[],"properties":[],"resources":[],"responseTemplates":{},"state":"STOPPED","originContext":{"origin":"MANAGEMENT"},"disableMembershipNotifications":false}}"""
                 )
             );
-        assertThat(scoringProvider.pendingRequests().get(0).assets())
+        assertThat(scoringProvider.pendingRequests().getFirst().assets())
             .map(ScoreRequest.AssetToScore::content)
             .map(JsonObject::new)
             .first()
@@ -187,6 +188,7 @@ class ScoreApiRequestUseCaseTest {
                     .upperLimit(1L)
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                    .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(30)))
                     .build()
             );
     }
@@ -227,6 +229,7 @@ class ScoreApiRequestUseCaseTest {
                     .upperLimit(1L)
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                    .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(30)))
                     .build()
             );
     }
@@ -276,6 +279,7 @@ class ScoreApiRequestUseCaseTest {
                     .upperLimit(1L)
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                    .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(30)))
                     .build()
             );
     }
@@ -325,6 +329,7 @@ class ScoreApiRequestUseCaseTest {
                     .upperLimit(1L)
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                    .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(30)))
                     .build()
             );
     }
