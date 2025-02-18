@@ -57,6 +57,12 @@ export class ImportApiScoreRulesetComponent implements OnInit {
       value: RulesetFormat.GRAVITEE_FEDERATION,
       isDisabled: false,
     },
+    {
+      title: 'Gravitee V2 API',
+      subtitle: 'For V2 APIs.',
+      value: RulesetFormat.GRAVITEE_V2,
+      isDisabled: false,
+    },
   ];
 
   public isLoading = false;
