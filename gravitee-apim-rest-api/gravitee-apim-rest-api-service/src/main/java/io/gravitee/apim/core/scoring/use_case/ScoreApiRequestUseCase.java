@@ -42,6 +42,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
+import java.time.Duration;
 import java.util.EnumSet;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -107,7 +108,7 @@ public class ScoreApiRequestUseCase {
                     )
             )
             .flatMapCompletable(request -> {
-                var job = newScoringJob(request.jobId(), input.auditInfo, input.apiId);
+                var job = newScoringJob(request.jobId(), input.auditInfo, input.apiId, deadLine(request));
                 return scoringProvider.requestScore(request).doOnComplete(() -> asyncJobCrudService.create(job));
             });
     }
@@ -161,7 +162,7 @@ public class ScoreApiRequestUseCase {
         };
     }
 
-    public AsyncJob newScoringJob(String id, AuditInfo auditInfo, String apiId) {
+    public AsyncJob newScoringJob(String id, AuditInfo auditInfo, String apiId, Duration ttl) {
         var now = TimeProvider.now();
         return AsyncJob
             .builder()
@@ -174,10 +175,27 @@ public class ScoreApiRequestUseCase {
             .upperLimit(1L)
             .createdAt(now)
             .updatedAt(now)
+            .deadLine(now.plus(ttl))
             .build();
     }
 
     public record Input(String apiId, AuditInfo auditInfo) {}
 
     private record RulesetAndFunctions(List<ScoreRequest.CustomRuleset> rulesets, List<ScoreRequest.Function> functions) {}
+
+    /**
+     * Compute the TTL of the scoring job.
+     *
+     * As simple rule, we consider that the scoring job will take 10 seconds per asset per ruleset to score (as simple ) and 30 seconds for the margin.
+     *
+     * @param request the scoring request
+     * @return the TTL of the scoring job
+     */
+    private Duration deadLine(ScoreRequest request) {
+        var margin = Duration.ofSeconds(30);
+        int nbAssets = request.assets().size();
+        int rulesets = Math.min(1, request.customRulesets().size());
+        int numberOfRuns = nbAssets * rulesets;
+        return Duration.ofSeconds(10).multipliedBy(numberOfRuns).plus(margin);
+    }
 }
