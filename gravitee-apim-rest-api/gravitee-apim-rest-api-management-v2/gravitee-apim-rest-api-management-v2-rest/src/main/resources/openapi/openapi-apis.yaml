@@ -3466,6 +3466,10 @@ components:
                         - apiId-2
                 definitionVersion:
                     $ref: "#/components/schemas/DefinitionVersion"
+                definitionVersions:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/DefinitionVersion"
         ApiType:
             type: string
             description: API's type.

@@ -47,14 +47,22 @@ import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 public class ApisResource_SearchApisTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "fake-env";
+
+    @Captor
+    ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor;
 
     @Override
     protected String contextPath() {
@@ -91,8 +99,6 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setState(Lifecycle.State.INITIALIZED);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
-        ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor = ArgumentCaptor.forClass(QueryBuilder.class);
-
         when(
             apiSearchServiceV4.search(
                 eq(GraviteeContext.getExecutionContext()),
@@ -113,7 +119,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
             .extracting(ApisResponse::getData)
             .satisfies(list -> {
                 assertThat(list).hasSize(1);
-                assertThat(list.get(0).getApiV4().getId()).isEqualTo("api-id");
+                assertThat(list.getFirst().getApiV4().getId()).isEqualTo("api-id");
             });
 
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
@@ -133,8 +139,6 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setId("api-id");
         apiEntity.setState(Lifecycle.State.INITIALIZED);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-
-        ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor = ArgumentCaptor.forClass(QueryBuilder.class);
 
         when(
             apiSearchServiceV4.search(
@@ -157,7 +161,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
             .satisfies(list -> {
                 assertThat(list).hasSize(1);
                 // Check no expands fields are set
-                assertThat(list.get(0).getApiV4().getDeploymentState()).isNull();
+                assertThat(list.getFirst().getApiV4().getDeploymentState()).isNull();
             });
 
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
@@ -178,8 +182,6 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setState(Lifecycle.State.INITIALIZED);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
-        ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor = ArgumentCaptor.forClass(QueryBuilder.class);
-
         when(
             apiSearchServiceV4.search(
                 eq(GraviteeContext.getExecutionContext()),
@@ -198,9 +200,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
             .hasStatus(OK_200)
             .asEntity(ApisResponse.class)
             .extracting(ApisResponse::getData)
-            .satisfies(list -> {
-                assertThat(list).hasSize(1);
-            });
+            .satisfies(list -> assertThat(list).hasSize(1));
 
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
         var apiQuery = apiQueryBuilder.build();
@@ -220,8 +220,6 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setState(Lifecycle.State.INITIALIZED);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
-        ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor = ArgumentCaptor.forClass(QueryBuilder.class);
-
         when(
             apiSearchServiceV4.search(
                 eq(GraviteeContext.getExecutionContext()),
@@ -242,14 +240,12 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
             .extracting(ApisResponse::getData)
             .satisfies(list -> {
                 assertThat(list).hasSize(1);
-                assertThat(list.get(0).getApiV4().getId()).isEqualTo("id-1");
+                assertThat(list.getFirst().getApiV4().getId()).isEqualTo("id-1");
             });
 
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
         var apiQuery = apiQueryBuilder.build();
-        SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(apiQuery.getFilters()).containsOnly(Map.entry("api", List.of("id-1", "id-2")));
-        });
+        SoftAssertions.assertSoftly(soft -> soft.assertThat(apiQuery.getFilters()).containsOnly(Map.entry("api", List.of("id-1", "id-2"))));
     }
 
     @Test
@@ -275,8 +271,6 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setState(Lifecycle.State.INITIALIZED);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
-        ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor = ArgumentCaptor.forClass(QueryBuilder.class);
-
         when(
             apiSearchServiceV4.search(
                 eq(GraviteeContext.getExecutionContext()),
@@ -295,9 +289,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
             .hasStatus(OK_200)
             .asEntity(ApisResponse.class)
             .extracting(ApisResponse::getData)
-            .satisfies(list -> {
-                assertThat(list).hasSize(1);
-            });
+            .satisfies(list -> assertThat(list).hasSize(1));
 
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
         var apiQuery = apiQueryBuilder.build();
@@ -317,8 +309,6 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setState(Lifecycle.State.INITIALIZED);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
-        ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor = ArgumentCaptor.forClass(QueryBuilder.class);
-
         when(
             apiSearchServiceV4.search(
                 eq(GraviteeContext.getExecutionContext()),
@@ -337,9 +327,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
             .hasStatus(OK_200)
             .asEntity(ApisResponse.class)
             .extracting(ApisResponse::getData)
-            .satisfies(list -> {
-                assertThat(list).hasSize(1);
-            });
+            .satisfies(list -> assertThat(list).hasSize(1));
 
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
         var apiQuery = apiQueryBuilder.build();
@@ -360,8 +348,6 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setState(Lifecycle.State.INITIALIZED);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
-        ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor = ArgumentCaptor.forClass(QueryBuilder.class);
-
         when(
             apiSearchServiceV4.search(
                 eq(GraviteeContext.getExecutionContext()),
@@ -380,15 +366,18 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
             .hasStatus(OK_200)
             .asEntity(ApisResponse.class)
             .extracting(ApisResponse::getData)
-            .satisfies(list -> {
-                assertThat(list).hasSize(1);
-            });
+            .satisfies(list -> assertThat(list).hasSize(1));
 
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
         var apiQuery = apiQueryBuilder.build();
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(apiQuery.getQuery()).isNull();
-            soft.assertThat(apiQuery.getFilters()).containsOnly(Map.entry("definition_version", "4.0.0"));
+            soft.assertThat(apiQuery.getFilters()).containsOnlyKeys("definition_version");
+            soft
+                .assertThat(apiQuery.getFilters().values())
+                .first()
+                .asInstanceOf(InstanceOfAssertFactories.COLLECTION)
+                .containsOnly("4.0.0");
             soft.assertThat(apiQuery.getSort()).isNull();
         });
     }
@@ -402,8 +391,6 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setId("id-1");
         apiEntity.setState(Lifecycle.State.INITIALIZED);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-
-        ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor = ArgumentCaptor.forClass(QueryBuilder.class);
 
         when(
             apiSearchServiceV4.search(
@@ -423,15 +410,18 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
             .hasStatus(OK_200)
             .asEntity(ApisResponse.class)
             .extracting(ApisResponse::getData)
-            .satisfies(list -> {
-                assertThat(list).hasSize(1);
-            });
+            .satisfies(list -> assertThat(list).hasSize(1));
 
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
         var apiQuery = apiQueryBuilder.build();
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(apiQuery.getQuery()).isNull();
-            soft.assertThat(apiQuery.getFilters()).containsOnly(Map.entry("definition_version", "4.0.0"));
+            soft.assertThat(apiQuery.getFilters()).containsOnlyKeys("definition_version");
+            soft
+                .assertThat(apiQuery.getFilters().values())
+                .first()
+                .asInstanceOf(InstanceOfAssertFactories.COLLECTION)
+                .containsOnly("4.0.0");
             soft.assertThat(apiQuery.getSort()).isEqualTo(new SortableImpl("paths", true));
         });
     }
@@ -445,8 +435,6 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setId("api-id");
         apiEntity.setState(Lifecycle.State.INITIALIZED);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-
-        ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor = ArgumentCaptor.forClass(QueryBuilder.class);
 
         when(
             apiSearchServiceV4.search(
@@ -470,7 +458,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
             .extracting(ApisResponse::getData)
             .satisfies(list -> {
                 assertThat(list).hasSize(1);
-                assertThat(list.get(0).getApiV4())
+                assertThat(list.getFirst().getApiV4())
                     .extracting(ApiV4::getId, ApiV4::getDeploymentState)
                     .containsExactly("api-id", GenericApi.DeploymentStateEnum.DEPLOYED);
             });
@@ -487,8 +475,6 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
             .name("api-name")
             .originContext(new OriginContext.Integration("integration-id"))
             .build();
-
-        ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor = ArgumentCaptor.forClass(QueryBuilder.class);
 
         when(
             apiSearchServiceV4.search(
@@ -562,7 +548,6 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setState(Lifecycle.State.INITIALIZED);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
-        ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor = ArgumentCaptor.forClass(QueryBuilder.class);
         when(
             apiSearchServiceV4.search(
                 eq(GraviteeContext.getExecutionContext()),
@@ -583,7 +568,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
             .extracting(ApisResponse::getData)
             .satisfies(list -> {
                 assertThat(list).hasSize(1);
-                assertThat(list.get(0).getApiV4().getId()).isEqualTo("api-id");
+                assertThat(list.getFirst().getApiV4().getId()).isEqualTo("api-id");
             });
     }
 }

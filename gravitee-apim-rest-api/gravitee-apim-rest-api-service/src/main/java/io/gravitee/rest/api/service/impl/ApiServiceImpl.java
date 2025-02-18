@@ -2049,7 +2049,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Search paged APIs by {}", query);
 
-            Collection<String> apiIds = apiSearchService.searchIds(executionContext, query, filters, sortable, true);
+            Collection<String> apiIds = apiSearchService.searchIds(
+                executionContext,
+                query,
+                filters,
+                sortable,
+                EnumSet.of(DefinitionVersion.V4, DefinitionVersion.FEDERATED)
+            );
 
             if (apiIds.isEmpty()) {
                 return new Page<>(List.of(), 0, 0, 0);
@@ -2127,7 +2133,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public Collection<String> searchIds(ExecutionContext executionContext, String query, Map<String, Object> filters, Sortable sortable) {
-        return apiSearchService.searchIds(executionContext, query, filters, sortable, true);
+        return apiSearchService.searchIds(executionContext, query, filters, sortable, EnumSet.of(DefinitionVersion.V4));
     }
 
     @Override

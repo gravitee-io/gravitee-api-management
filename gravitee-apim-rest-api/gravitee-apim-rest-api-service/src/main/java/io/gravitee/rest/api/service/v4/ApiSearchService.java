@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.v4;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -76,6 +77,6 @@ public interface ApiSearchService {
         String query,
         Map<String, Object> filters,
         Sortable sortable,
-        boolean excludeV4Definition
+        Collection<DefinitionVersion> excludeDefinitionVersions
     );
 }

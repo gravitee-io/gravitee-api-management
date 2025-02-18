@@ -213,7 +213,7 @@ public class ApiService_SearchTest {
         api3.setId("api3");
         api3.setName("API Test");
 
-        when(apiSearchService.searchIds(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), eq(true)))
+        when(apiSearchService.searchIds(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any()))
             .thenReturn(List.of(api3.getId(), api1.getId(), api2.getId()));
 
         when(
