@@ -46,7 +46,9 @@ parameters:
         description: "Path to pom.xml with APIM version"
 jobs:
     generate-config:
-        executor: node/default
+        executor:
+          name: node/default
+          tag: "20.9"
         environment:
             CI_ACTION: "<< pipeline.parameters.gio_action >>"
             CI_DRY_RUN: "<< pipeline.parameters.dry_run >>"
