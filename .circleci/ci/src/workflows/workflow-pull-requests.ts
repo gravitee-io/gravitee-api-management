@@ -461,7 +461,13 @@ export class PullRequestsWorkflow {
     const deployOnAzureJob = DeployOnAzureJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(deployOnAzureJob);
 
-    const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create(environment, 'dev');
+    const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create(
+      {
+        ...environment,
+        isDryRun: false,
+      },
+      'dev',
+    );
     dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
 
     return [
