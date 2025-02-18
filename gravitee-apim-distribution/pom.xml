@@ -1137,19 +1137,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>io.gravitee.tracer</groupId>
-            <artifactId>gravitee-tracer-opentelemetry</artifactId>
-            <version>${gravitee-tracer-opentelemetry.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
     </dependencies>
 
     <build>
