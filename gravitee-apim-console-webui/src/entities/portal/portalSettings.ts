@@ -24,6 +24,7 @@ export interface PortalConfiguration {
   portal?: PortalSettingsPortal;
   metadata?: PortalSettingsMetadata;
   application?: PortalSettingsApplication;
+  apiScore?: PortalSettingsApiScore;
   apiQualityMetrics?: PortalSettingsApiQualityMetrics;
   apiReview?: PortalSettingsApiReview;
   authentication?: PortalSettingsAuthentication;
@@ -126,6 +127,10 @@ export interface PortalSettingsApiQualityMetrics {
   categoriesWeight: number;
   labelsWeight: number;
   healthcheckWeight: number;
+}
+
+export interface PortalSettingsApiScore {
+  enabled: boolean;
 }
 
 export interface PortalSettingsApiReview {

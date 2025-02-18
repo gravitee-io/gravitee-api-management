@@ -19,27 +19,27 @@ import { LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
 
 import { ApiFederatedMenuService } from './api-federated-menu.service';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermission, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
-import { ConsoleSettings } from '../../../entities/consoleSettings';
-import { Constants } from '../../../entities/Constants';
+import { EnvSettings } from '../../../entities/Constants';
 import { fakeApiFederated } from '../../../entities/management-api-v2';
+import { EnvironmentSettingsService } from '../../../services-ngx/environment-settings.service';
 
 const DEFAULT_PERMISSIONS: GioTestingPermission = ['api-member-r', 'api-audit-r', 'api-documentation-r', 'api-metadata-r', 'api-plan-r'];
-const DEFAULT_SETTINGS: ConsoleSettings = { scoring: { enabled: true } };
+const DEFAULT_ENV_SETTINGS: Partial<EnvSettings> = { apiScore: { enabled: true } };
 
 describe('ApiFederatedMenuService', () => {
   const init = async (
-    { permissions, settings } = {
+    { permissions, envSettings } = {
       permissions: DEFAULT_PERMISSIONS,
-      settings: DEFAULT_SETTINGS,
+      envSettings: DEFAULT_ENV_SETTINGS,
     },
   ) => {
     await TestBed.configureTestingModule({
       imports: [GioTestingModule],
       providers: [
         { provide: ApiFederatedMenuService },
-        { provide: Constants, useValue: { ...CONSTANTS_TESTING, org: { settings } } },
+        { provide: EnvironmentSettingsService, useValue: { getSnapshot: () => envSettings } },
         {
           provide: GioTestingPermissionProvider,
           useValue: permissions,
@@ -152,7 +152,7 @@ describe('ApiFederatedMenuService', () => {
     });
 
     it('should hide elements for published API when not enough permissions', async () => {
-      await init({ permissions: [], settings: DEFAULT_SETTINGS });
+      await init({ permissions: [], envSettings: DEFAULT_ENV_SETTINGS });
       const service = TestBed.inject(ApiFederatedMenuService);
 
       expect(service.getMenu(fakeApiFederated({ lifecycleState: 'PUBLISHED' }))).toEqual({
@@ -220,7 +220,10 @@ describe('ApiFederatedMenuService', () => {
     });
 
     it('should hide scoring elements when feature is disabled', async () => {
-      await init({ permissions: DEFAULT_PERMISSIONS, settings: { scoring: { enabled: false } } });
+      await init({
+        permissions: DEFAULT_PERMISSIONS,
+        envSettings: { apiScore: { enabled: false } },
+      });
       const service = TestBed.inject(ApiFederatedMenuService);
 
       const menu = service.getMenu(fakeApiFederated());

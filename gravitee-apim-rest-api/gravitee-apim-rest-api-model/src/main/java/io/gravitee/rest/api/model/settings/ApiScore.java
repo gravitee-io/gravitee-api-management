@@ -22,8 +22,8 @@ import lombok.Getter;
 
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Scoring {
+public class ApiScore {
 
-    @ParameterKey(Key.SCORING_ENABLED)
+    @ParameterKey(Key.API_SCORE_ENABLED)
     private Boolean enabled;
 }

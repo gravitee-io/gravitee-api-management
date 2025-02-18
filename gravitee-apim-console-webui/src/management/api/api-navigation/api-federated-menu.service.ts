@@ -25,6 +25,7 @@ import { GioPermissionService } from '../../../shared/components/gio-permission/
 import { Constants } from '../../../entities/Constants';
 import { ApiFederated } from '../../../entities/management-api-v2';
 import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
+import { EnvironmentSettingsService } from '../../../services-ngx/environment-settings.service';
 
 @Injectable()
 export class ApiFederatedMenuService implements ApiMenuService {
@@ -32,6 +33,7 @@ export class ApiFederatedMenuService implements ApiMenuService {
     private readonly permissionService: GioPermissionService,
     private readonly gioLicenseService: GioLicenseService,
     private readonly apiDocumentationV2Service: ApiDocumentationV2Service,
+    private readonly environmentSettingsService: EnvironmentSettingsService,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
@@ -41,7 +43,7 @@ export class ApiFederatedMenuService implements ApiMenuService {
   } {
     const subMenuItems: MenuItem[] = [
       this.addConfigurationMenuEntry(),
-      ...(this.constants.org.settings?.scoring?.enabled ? [this.addApiScoreMenuEntry()] : []),
+      ...(this.environmentSettingsService.getSnapshot().apiScore.enabled ? [this.addApiScoreMenuEntry()] : []),
       this.addConsumersMenuEntry(),
       this.addDocumentationMenuEntry(api),
     ];

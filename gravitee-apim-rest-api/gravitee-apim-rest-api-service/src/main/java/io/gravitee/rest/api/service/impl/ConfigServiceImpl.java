@@ -422,6 +422,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             // Portal Config
             portalConfigEntity.getAnalytics(),
             portalConfigEntity.getApi(),
+            portalConfigEntity.getApiScore(),
             portalConfigEntity.getApiQualityMetrics(),
             portalConfigEntity.getApiReview(),
             portalConfigEntity.getApplication(),
@@ -489,7 +490,6 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             consoleConfigEntity.getLicenseExpirationNotification(),
             consoleConfigEntity.getTrialInstance(),
             consoleConfigEntity.getFederation(),
-            consoleConfigEntity.getScoring(),
             consoleConfigEntity.getCloudHosted(),
         };
     }

@@ -182,6 +182,7 @@ public enum Key {
     ),
     OPEN_API_DOC_TYPE_DEFAULT("open.api.doc.type.default", "Swagger", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
+    API_SCORE_ENABLED("api.score.enabled", "false", new HashSet<>(singletonList(ENVIRONMENT))),
     API_QUALITY_METRICS_ENABLED("api.quality.metrics.enabled", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     API_QUALITY_METRICS_FUNCTIONAL_DOCUMENTATION_WEIGHT(
         "api.quality.metrics.functional.documentation.weight",
@@ -412,8 +413,6 @@ public enum Key {
 
     ALERT_ENGINE_ENABLED("alerts.alert-engine.enabled", "false", Set.of(SYSTEM)),
     FEDERATION_ENABLED("integration.enabled", "false", Set.of(SYSTEM)),
-
-    SCORING_ENABLED("scoring.enabled", "false", Set.of(SYSTEM)),
 
     INSTALLATION_TYPE("installation.type", "standalone", Set.of(SYSTEM)),
     TRIAL_INSTANCE("trialInstance.enabled", "false", Set.of(SYSTEM)),

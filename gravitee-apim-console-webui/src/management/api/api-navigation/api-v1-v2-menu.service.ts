@@ -25,12 +25,14 @@ import { Constants } from '../../../entities/Constants';
 import { ApiV1, ApiV2, DefinitionVersion } from '../../../entities/management-api-v2';
 import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 import { GioRoleService } from '../../../shared/components/gio-role/gio-role.service';
+import { EnvironmentSettingsService } from '../../../services-ngx/environment-settings.service';
 
 @Injectable()
 export class ApiV1V2MenuService implements ApiMenuService {
   constructor(
     private readonly permissionService: GioPermissionService,
     private readonly roleService: GioRoleService,
+    private readonly environmentSettingsService: EnvironmentSettingsService,
     @Inject(Constants) private readonly constants: Constants,
     private readonly gioLicenseService: GioLicenseService,
   ) {}
@@ -137,7 +139,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
     }
 
     // Api Score
-    if (this.constants.org.settings?.scoring?.enabled && definitionVersion === 'V2') {
+    if (this.environmentSettingsService.getSnapshot().apiScore.enabled && definitionVersion === 'V2') {
       portalGroup.items.push({
         displayName: 'API Score',
         routerLink: 'api-score',

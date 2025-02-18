@@ -28,6 +28,7 @@ public class PortalConfigEntity {
 
     private Analytics analytics;
     private Api api;
+    private ApiScore apiScore;
     private ApiQualityMetrics apiQualityMetrics;
     private ApiReview apiReview;
     private PortalApplicationSettings application;
@@ -46,6 +47,7 @@ public class PortalConfigEntity {
         super();
         analytics = new Analytics();
         api = new Api();
+        apiScore = new ApiScore();
         apiQualityMetrics = new ApiQualityMetrics();
         apiReview = new ApiReview();
         application = new PortalApplicationSettings();
