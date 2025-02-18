@@ -116,6 +116,8 @@ spec:
             - name: CONSOLE_BASE_HREF
               value: {{ print (regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.ui.ingress.path) "/" }}
             {{- end }}
+            - name: DEFAULT_PORTAL
+              value: {{ .Values.portal.defaultPortal }}
 {{- if .Values.ui.env | default .Values.ui.deployment.extraEnvs }}
 {{ toYaml ( .Values.ui.env | default .Values.ui.deployment.extraEnvs ) | indent 12 }}
 {{- end }}

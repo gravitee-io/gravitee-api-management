@@ -11,6 +11,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - Kafka Gateway: add fields to configure bootstrap and broker domain patterns
 - fix typo and indentation about mapping of user.anonymize-on-delete.enabled (APIM-8628)
 - remove nginx `configuration-snippet` by default (APIM-8630)
+- allow users to define which portal should be used by default
 
 ### 4.6.0
 

@@ -43,4 +43,5 @@ annotations:
       description: 'fix typo and indentation about mapping of user.anonymize-on-delete.enabled (APIM-8628)'
     - kind: fixed
       description: 'remove nginx `configuration-snippet` by default (APIM-8630)'
-
+    - kind: added
+      description: 'Allow users to define which portal should be used by default'

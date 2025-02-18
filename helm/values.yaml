@@ -1735,6 +1735,8 @@ portal:
     # - name: extra-volume
     #   mountPath: /mnt/volume
     #   readOnly: true
+  defaultPortal: "classic" # set value to "next" to use the new portal by default
+
   # If you want to use your own config.json you have to provide your configmap or secret in extraVolume part.
   # the name of the volume MUST be "config".
   # In this case, values configuration related to config.json defined in this file will be ignored
