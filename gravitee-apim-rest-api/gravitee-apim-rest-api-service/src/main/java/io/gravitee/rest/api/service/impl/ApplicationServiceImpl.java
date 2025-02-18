@@ -694,12 +694,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             LOGGER.debug("Update application {}", applicationId);
 
             validateApplicationClientId(executionContext, applicationId, updateApplicationEntity);
-            final Set<Application> activeApplicationsForCurrentEnvironment = getActiveApplicationsForCurrentEnvironment(
-                executionContext.getEnvironmentId()
-            )
-                .stream()
-                .filter(application -> !application.getId().equals(applicationId))
-                .collect(toSet());
 
             if (updateApplicationEntity.getGroups() != null && !updateApplicationEntity.getGroups().isEmpty()) {
                 //throw a NotFoundException if the group doesn't exist
@@ -832,6 +826,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             Consumer<Subscription> clientCertificateSubscriptionModifier = s -> {
                 s.setClientCertificate(clientCertificate);
             };
+            Consumer<Subscription> applicationNameSubscriptionModifier = s -> s.setApplicationName(application.getName());
 
             subscriptionService
                 .search(executionContext, subQuery)
@@ -845,6 +840,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                             subscriptionModifier == null
                                 ? clientCertificateSubscriptionModifier
                                 : subscriptionModifier.andThen(clientCertificateSubscriptionModifier);
+                    }
+                    if (areNotEmptyAndDifferent(application.getName(), subscriptionEntity.getApplicationName())) {
+                        subscriptionModifier =
+                            subscriptionModifier == null
+                                ? applicationNameSubscriptionModifier
+                                : subscriptionModifier.andThen(applicationNameSubscriptionModifier);
                     }
                     if (subscriptionModifier != null) {
                         UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();

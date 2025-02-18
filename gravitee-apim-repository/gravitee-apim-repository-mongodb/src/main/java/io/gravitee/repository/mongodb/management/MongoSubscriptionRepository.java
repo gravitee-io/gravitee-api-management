@@ -82,7 +82,7 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
 
     @Override
     public Subscription create(Subscription subscription) throws TechnicalException {
-        SubscriptionMongo subscriptionMongo = map(subscription);
+        SubscriptionMongo subscriptionMongo = mapper.map(subscription);
         subscriptionMongo = internalSubscriptionRepository.insert(subscriptionMongo);
         return map(subscriptionMongo);
     }
@@ -99,7 +99,7 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
             throw new IllegalStateException(String.format("No subscription found with id [%s]", subscription.getId()));
         }
 
-        subscriptionMongo = map(subscription);
+        subscriptionMongo = mapper.map(subscription);
         subscriptionMongo = internalSubscriptionRepository.save(subscriptionMongo);
         return map(subscriptionMongo);
     }
@@ -139,10 +139,6 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
         } catch (Exception e) {
             throw new TechnicalException("An error occurred trying to find subscriptions by id list", e);
         }
-    }
-
-    private SubscriptionMongo map(Subscription subscription) {
-        return (subscription == null) ? null : mapper.map(subscription);
     }
 
     private Subscription map(SubscriptionMongo subscriptionMongo) {
