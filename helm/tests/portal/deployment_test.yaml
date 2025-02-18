@@ -47,7 +47,7 @@ tests:
           path: spec.template.spec.containers[0].env[1].value
           value: "/test/"
 
-  - it: Should override generated CONSOLE_BASE_HREF environment variable
+  - it: Should override generated PORTAL_BASE_HREF environment variable
     template: portal/portal-deployment.yaml
     set:
       portal:
@@ -58,10 +58,10 @@ tests:
       - hasDocuments:
           count: 1
       - equal:
-          path: spec.template.spec.containers[0].env[1].name
+          path: spec.template.spec.containers[0].env[2].name
           value: "PORTAL_BASE_HREF"
       - equal:
-          path: spec.template.spec.containers[0].env[1].value
+          path: spec.template.spec.containers[0].env[2].value
           value: "/test/"
 
   - it: Check DB Less mode
@@ -228,3 +228,30 @@ tests:
       - equal:
           path: spec.template.spec.serviceAccountName
           value: "apim-portal"
+
+  - it: Should set DEFAULT_PORTAL environment variable with classic value by default
+    template: portal/portal-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[2].name
+          value: "DEFAULT_PORTAL"
+      - equal:
+          path: spec.template.spec.containers[0].env[2].value
+          value: "classic"
+
+  - it: Should override DEFAULT_PORTAL environment variable value with next
+    template: portal/portal-deployment.yaml
+    set:
+      portal:
+        defaultPortal: "next"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[2].name
+          value: "DEFAULT_PORTAL"
+      - equal:
+          path: spec.template.spec.containers[0].env[2].value
+          value: "next"

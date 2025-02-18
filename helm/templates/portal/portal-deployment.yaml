@@ -121,6 +121,8 @@ spec:
             - name: PORTAL_BASE_HREF
               value: {{ print (regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.portal.ingress.path) "/" }}
             {{- end }}
+            - name: DEFAULT_PORTAL
+              value: {{ .Values.portal.defaultPortal }}
 {{- if .Values.portal.env | default .Values.portal.deployment.extraEnvs }}
 {{ toYaml ( .Values.portal.env | default .Values.portal.deployment.extraEnvs ) | indent 12 }}
 {{- end }}
