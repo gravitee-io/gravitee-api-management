@@ -2,11 +2,38 @@ import { danger, schedule } from "danger";
 
 const { git, github } = danger;
 
-const checks = [
+type Check = {
+    name: string;
+    location: string;
+    why: string;
+    checkFn: Function;
+};
+type Message = {
+    why: string;
+    file: string;
+};
+
+const checks: Check[] = [
     {
         name: "liquibase",
         location: "gravitee-apim-repository/gravitee-apim-repository-jdbc/src/main/resources/liquibase/changelogs",
         why: "Changing this file might cause some start up issues because of a failing checksum validation during liquibase execution.",
+        checkFn: async (check: Check) => {
+            const messages = checkNoLiquibaseFileUpdated(check);
+            if (messages.length > 0) {
+                await postMessages(messages);
+            }
+
+            const { file } = await checkLiquibaseAddPrimaryKey(check);
+            if (file != null) {
+                await postMessages([
+                    {
+                        why: "`addPrimaryKey` detected in liquibase changelog 💥. Please create the primary key directly with the create table statement.",
+                        file,
+                    },
+                ]);
+            }
+        },
     },
 ];
 
@@ -14,27 +41,17 @@ schedule(check);
 
 async function check() {
     for (const check of checks) {
-        await postMessages(getMessagesForCheck(check));
-
-        const { hasAddPrimaryKey, file } = await checkLiquibaseAddPrimaryKey(check);
-        if (hasAddPrimaryKey) {
-            await postMessages([
-                {
-                    why: "`addPrimaryKey` detected in liquibase changelog 💥. Please create the primary key directly with the create table statement.",
-                    file,
-                },
-            ]);
-        }
+        await check.checkFn(check);
     }
 }
 
-async function postMessages(messages) {
+async function postMessages(messages: Message[]) {
     for (const message of messages) {
         await addPrComment(message);
     }
 }
 
-async function addPrComment(message) {
+async function addPrComment(message: Message) {
     const commit_id = github.pr.head.sha;
     const owner = github.thisPR.owner;
     const repo = github.thisPR.repo;
@@ -48,23 +65,19 @@ async function addPrComment(message) {
     });
 }
 
-function getMessagesForCheck(check) {
-    return getModifiedFiles(check).map((file) => toMessage(check, file));
+function getModifiedFiles(path: string) {
+    return git.modified_files.filter((file) => file.startsWith(path));
 }
 
-function toMessage(check, file) {
-    return {
+function checkNoLiquibaseFileUpdated(check: Check) {
+    return getModifiedFiles(check.location).map((file) => ({
         why: check.why,
         file,
-    };
+    }));
 }
 
-function getModifiedFiles(check) {
-    return git.modified_files.filter((file) => file.startsWith(check.location));
-}
-
-async function checkLiquibaseAddPrimaryKey(check) {
-    const files = getModifiedFiles(check);
+async function checkLiquibaseAddPrimaryKey(check: Check) {
+    const files = getModifiedFiles(check.location);
     let hasAddPrimaryKey = false;
     let fileToChange = null;
 
@@ -76,5 +89,5 @@ async function checkLiquibaseAddPrimaryKey(check) {
             break;
         }
     }
-    return { hasAddPrimaryKey, file: fileToChange };
+    return { file: fileToChange };
 }
