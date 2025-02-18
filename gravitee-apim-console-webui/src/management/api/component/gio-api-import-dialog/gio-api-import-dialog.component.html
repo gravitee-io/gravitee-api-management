@@ -125,7 +125,7 @@
     color="primary"
     mat-raised-button
     data-testid="confirm-dialog"
-    [disabled]="!isImportValid"
+    [disabled]="!isImportValid || isImportingApi()"
     (click)="onImport()"
   >
     Import
