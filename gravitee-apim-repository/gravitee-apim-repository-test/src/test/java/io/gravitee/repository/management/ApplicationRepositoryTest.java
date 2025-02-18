@@ -128,6 +128,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         application.setDomain("Updated domain");
         Map<String, String> metadata = new HashMap<>();
         metadata.put("type", "update-type");
+        metadata.put("client_certificate", null);
         application.setMetadata(metadata);
         application.setPicture("New picture");
         application.setBackground("New background");
