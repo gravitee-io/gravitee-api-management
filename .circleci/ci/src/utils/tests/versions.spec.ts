@@ -52,6 +52,7 @@ describe('version', function () {
       expect(
         computeApimVersion({
           action: 'package_bundle',
+          baseBranch: 'master',
           branch: 'master',
           sha1: '784ff35ca',
           changedFiles: [],
@@ -70,6 +71,7 @@ describe('version', function () {
       try {
         computeApimVersion({
           action: 'package_bundle',
+          baseBranch: 'master',
           branch: 'master',
           sha1: '784ff35ca',
           changedFiles: [],
@@ -99,7 +101,7 @@ describe('version', function () {
     it('should not throw exception with valid graviteeio version', () => {
       try {
         validateGraviteeioVersion('1.2.3-alpha.4');
-      } catch (e) {
+      } catch {
         fail('Should not throw exception');
       }
     });
