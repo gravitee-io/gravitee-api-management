@@ -141,7 +141,24 @@ paths:
             $ref: "#/components/responses/EnvironmentAnalyticsResponseStatusOvertimeResponse"
           default:
             $ref: "#/components/responses/Error"
-
+    /analytics/top-apps-by-request-count:
+        parameters:
+            -   $ref: "#/components/parameters/from"
+            -   $ref: "#/components/parameters/to"
+        get:
+            tags:
+                - API Analytics
+            summary: Get Environment Analytics for top applications by the request count
+            description: |-
+                Get Environment Analytics for top applications by the request count
+                
+                User must have the API_ANALYTICS[READ] permission.
+            operationId: getEnvironmentTopAppByRequestCount
+            responses:
+                "200":
+                    $ref: "#/components/responses/EnvironmentAnalyticsTopAppsByRequestCountResponse"
+                default:
+                    $ref: "#/components/responses/Error"
   # Shared policy group
     /shared-policy-groups:
         post:
@@ -493,6 +510,22 @@ components:
               format: int64
               description: The interval in milliseconds splitting the data
               example: 120000
+        TopApp:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: The Application ID
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                name:
+                    type: string
+                    description: The Application Name
+                    example: Sample Application Name
+                count:
+                    type: integer
+                    format: int64
+                    description: The Application Hit count
+                    example: 675234
 
       # Shared policy group
         CreateSharedPolicyGroup:
@@ -1172,6 +1205,19 @@ components:
                       items:
                         type: integer
                         format: int64
+        EnvironmentAnalyticsTopAppsByRequestCountResponse:
+            description: Analytics for top applications by the request count
+            content:
+                application/json:
+                    schema:
+                        title: "EnvironmentAnalyticsTopAppsByRequestCountResponse"
+                        description: Analytics for top applications by the request count
+                        properties:
+                            data:
+                                type: array
+                                description: List of top application results
+                                items:
+                                    $ref: "#/components/schemas/TopApp"
 
       # Scoring
         EnvironmentApisScoringResponse:

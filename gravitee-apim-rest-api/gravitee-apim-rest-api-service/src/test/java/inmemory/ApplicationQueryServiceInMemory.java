@@ -15,34 +15,24 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
+import io.gravitee.apim.core.application.query_service.ApplicationQueryService;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-public class ApplicationCrudServiceInMemory implements ApplicationCrudService, InMemoryAlternative<BaseApplicationEntity> {
+public class ApplicationQueryServiceInMemory implements ApplicationQueryService, InMemoryAlternative<BaseApplicationEntity> {
 
-    final List<BaseApplicationEntity> storage = new ArrayList<>();
+    private final List<BaseApplicationEntity> storage;
 
-    @Override
-    public BaseApplicationEntity findById(ExecutionContext executionContext, String applicationId) {
-        return storage
-            .stream()
-            .filter(application -> applicationId.equals(application.getId()))
-            .findFirst()
-            .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
+    public ApplicationQueryServiceInMemory() {
+        this.storage = new ArrayList<>();
     }
 
-    @Override
-    public BaseApplicationEntity findById(String applicationId, String environmentId) {
-        return storage
-            .stream()
-            .filter(application -> applicationId.equals(application.getId()))
-            .findFirst()
-            .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
+    public ApplicationQueryServiceInMemory(ApplicationCrudServiceInMemory applicationCrudServiceInMemory) {
+        storage = applicationCrudServiceInMemory.storage;
     }
 
     @Override
@@ -59,5 +49,10 @@ public class ApplicationCrudServiceInMemory implements ApplicationCrudService, I
     @Override
     public List<BaseApplicationEntity> storage() {
         return Collections.unmodifiableList(storage);
+    }
+
+    @Override
+    public Set<BaseApplicationEntity> findByEnvironment(String environmentId) {
+        return storage.stream().filter(application -> application.getEnvironmentId().equals(environmentId)).collect(Collectors.toSet());
     }
 }

@@ -31,6 +31,7 @@ import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsC
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusOverTimeAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchTopAppsAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchTopHitsAdapter;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
@@ -151,5 +152,14 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         return this.client.search(index, null, esQuery)
             .map(response -> SearchRequestResponseTimeAdapter.adaptResponse(response, queryCriteria))
             .blockingGet();
+    }
+
+    @Override
+    public Optional<TopHitsAggregate> searchTopApps(QueryContext queryContext, TopHitsQueryCriteria criteria) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var esQuery = SearchTopAppsAdapter.adaptQuery(criteria);
+
+        log.debug("Search response top apps query: {}", esQuery);
+        return this.client.search(index, null, esQuery).map(SearchTopAppsAdapter::adaptResponse).blockingGet();
     }
 }

@@ -28,6 +28,7 @@ import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
+import io.gravitee.rest.api.model.analytics.TopHitsApps;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
@@ -174,6 +175,24 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             .data(result.getStatusCount())
             .timeRange(new ResponseStatusOvertime.TimeRange(query.from(), query.to(), query.interval()))
             .build();
+    }
+
+    @Override
+    public Optional<TopHitsApps> searchTopHitsApps(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
+        return analyticsRepository
+            .searchTopApps(
+                executionContext.getQueryContext(),
+                new TopHitsQueryCriteria(parameters.getApiIds(), parameters.getFrom(), parameters.getTo())
+            )
+            .map(TopHitsAggregate::getTopHitsCounts)
+            .map(topHitCounts ->
+                topHitCounts
+                    .entrySet()
+                    .stream()
+                    .map(entry -> TopHitsApps.TopHitApp.builder().id(entry.getKey()).count(entry.getValue()).build())
+                    .toList()
+            )
+            .map(topHitApp -> TopHitsApps.builder().data(topHitApp).build());
     }
 
     @Override

@@ -20,14 +20,15 @@ import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentRequestResponse
 import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentResponseStatusOverTimeUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentResponseStatusRangesUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentResponseTimeOverTimeUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentTopAppsByRequestCountUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentTopHitsApisCountUseCase;
-import io.gravitee.rest.api.management.v2.rest.mapper.ApiAnalyticsMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.EnvironmentAnalyticsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsOverPeriodResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsRequestResponseTimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusRangesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopAppsByRequestCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopHitsApisResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.param.TimeRangeParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -63,6 +64,9 @@ public class EnvironmentAnalyticsResource {
 
     @Inject
     SearchEnvironmentResponseStatusOverTimeUseCase searchEnvironmentResponseStatusOverTimeUseCase;
+
+    @Inject
+    SearchEnvironmentTopAppsByRequestCountUseCase searchEnvironmentTopAppsByRequestCountUseCase;
 
     @Path("/response-status-ranges")
     @GET
@@ -153,5 +157,22 @@ public class EnvironmentAnalyticsResource {
         }
 
         return EnvironmentAnalyticsMapper.INSTANCE.map(result);
+    }
+
+    @Path("/top-apps-by-request-count")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    public EnvironmentAnalyticsTopAppsByRequestCountResponse getTopAppsByRequestCount(@BeanParam @Valid TimeRangeParam timeRangeParam) {
+        var params = AnalyticsQueryParameters.builder().from(timeRangeParam.getFrom()).to(timeRangeParam.getTo()).build();
+        var input = new SearchEnvironmentTopAppsByRequestCountUseCase.Input(GraviteeContext.getExecutionContext(), params);
+
+        var topHitsApps = searchEnvironmentTopAppsByRequestCountUseCase.execute(input).topHitsApps();
+
+        if (topHitsApps == null) {
+            return EnvironmentAnalyticsTopAppsByRequestCountResponse.builder().build();
+        }
+
+        return EnvironmentAnalyticsMapper.INSTANCE.map(topHitsApps);
     }
 }
