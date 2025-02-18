@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy } from '@angular/core';
+import { Component, Inject, OnDestroy, signal, WritableSignal } from '@angular/core';
 import { FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatTabChangeEvent } from '@angular/material/tabs';
@@ -53,6 +53,7 @@ export class GioApiImportDialogComponent implements OnDestroy {
   descriptorUrlForm = new UntypedFormControl();
   configsForm: UntypedFormGroup;
   selectedTabIndex = 0;
+  isImportingApi: WritableSignal<boolean> = signal(false);
 
   public get isImportValid(): boolean {
     return !!this.importType && (!!this.importFile || !!this.descriptorUrlForm?.value);
@@ -159,6 +160,8 @@ export class GioApiImportDialogComponent implements OnDestroy {
       throw new Error('No file or url provided');
     }
 
+    this.isImportingApi.set(true);
+
     let importRequest$: Observable<Api | ApiV4>;
 
     switch (this.importType) {
@@ -209,6 +212,7 @@ export class GioApiImportDialogComponent implements OnDestroy {
       .pipe(
         tap(() => this.snackBarService.success('API imported successfully')),
         catchError(({ error }) => {
+          this.isImportingApi.set(false);
           this.snackBarService.error(error.message ?? 'An error occurred while importing the API');
           return EMPTY;
         }),
