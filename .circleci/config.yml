@@ -1,10 +1,10 @@
 version: 2.1
 
 orbs:
-    continuation: circleci/continuation@0.3.1
-    node: circleci/node@5.1.1
+    continuation: circleci/continuation@1.1.0
+    node: circleci/node@7.1.0
     keeper: gravitee-io/keeper@0.6.3
-    slack: circleci/slack@4.12.5
+    slack: circleci/slack@5.1.1
 
 setup: true
 
