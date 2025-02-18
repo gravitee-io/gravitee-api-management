@@ -221,128 +221,79 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     protected PortalMenuLinkRepository portalMenuLinkRepository;
 
     protected void createModel(Object object) throws TechnicalException {
-        if (object instanceof Application application) {
-            applicationRepository.create(application);
-        } else if (object instanceof Api api) {
-            apiRepository.create(api);
-        } else if (object instanceof User user) {
-            userRepository.create(user);
-        } else if (object instanceof Event event) {
-            eventRepository.create(event);
-        } else if (object instanceof ApiKey apiKey) {
-            apiKeyRepository.create(apiKey);
-        } else if (object instanceof Category category) {
-            categoryRepository.create(category);
-        } else if (object instanceof Group group) {
-            groupRepository.create(group);
-        } else if (object instanceof Membership membership) {
-            membershipRepository.create(membership);
-        } else if (object instanceof Plan plan) {
-            planRepository.create(plan);
-        } else if (object instanceof Tag tag) {
-            tagRepository.create(tag);
-        } else if (object instanceof Page page) {
-            pageRepository.create(page);
-        } else if (object instanceof Subscription subscription) {
-            subscriptionRepository.create(subscription);
-        } else if (object instanceof Tenant tenant) {
-            tenantRepository.create(tenant);
-        } else if (object instanceof Metadata metadata) {
-            metadataRepository.create(metadata);
-        } else if (object instanceof Role role) {
-            roleRepository.create(role);
-        } else if (object instanceof Audit audit) {
-            auditRepository.create(audit);
-        } else if (object instanceof Rating rating) {
-            ratingRepository.create(rating);
-        } else if (object instanceof RatingAnswer ratingAnswer) {
-            ratingAnswerRepository.create(ratingAnswer);
-        } else if (object instanceof PortalNotification portalNotification) {
-            portalNotificationRepository.create(portalNotification);
-        } else if (object instanceof PortalNotificationConfig portalNotificationConfig) {
-            portalNotificationConfigRepository.create(portalNotificationConfig);
-        } else if (object instanceof GenericNotificationConfig genericNotificationConfig) {
-            genericNotificationConfigRepository.create(genericNotificationConfig);
-        } else if (object instanceof Parameter parameter) {
-            parameterRepository.create(parameter);
-        } else if (object instanceof Dictionary dictionary) {
-            dictionaryRepository.create(dictionary);
-        } else if (object instanceof ApiHeader apiHeader) {
-            apiHeaderRepository.create(apiHeader);
-        } else if (object instanceof Command command) {
-            commandRepository.create(command);
-        } else if (object instanceof IdentityProvider identityProvider) {
-            identityProviderRepository.create(identityProvider);
-        } else if (object instanceof AlertTrigger alertTrigger) {
-            alertRepository.create(alertTrigger);
-        } else if (object instanceof Entrypoint entrypoint) {
-            entrypointRepository.create(entrypoint);
-        } else if (object instanceof Invitation invitation) {
-            invitationRepository.create(invitation);
-        } else if (object instanceof ClientRegistrationProvider clientRegistrationProvider) {
-            clientRegistrationProviderRepository.create(clientRegistrationProvider);
-        } else if (object instanceof Workflow workflow) {
-            workflowRepository.create(workflow);
-        } else if (object instanceof QualityRule qualityRule) {
-            qualityRuleRepository.create(qualityRule);
-        } else if (object instanceof ApiQualityRule apiQualityRule) {
-            apiQualityRuleRepository.create(apiQualityRule);
-        } else if (object instanceof ScoringReport scoringReport) {
-            scoringReportRepository.create(scoringReport);
-        } else if (object instanceof ScoringRuleset scoringRuleset) {
-            scoringRulesetRepository.create(scoringRuleset);
-        } else if (object instanceof ScoringFunction scoringFunction) {
-            scoringFunctionRepository.create(scoringFunction);
-        } else if (object instanceof Dashboard apiQualityRule) {
-            dashboardRepository.create(apiQualityRule);
-        } else if (object instanceof AlertEvent alertEvent) {
-            alertEventRepository.create(alertEvent);
-        } else if (object instanceof Environment environment) {
-            environmentRepository.create(environment);
-        } else if (object instanceof Organization organization) {
-            organizationRepository.create(organization);
-        } else if (object instanceof License license) {
-            licenseRepository.create(license);
-        } else if (object instanceof Theme theme) {
-            themeRepository.create(theme);
-        } else if (object instanceof IdentityProviderActivation identityProviderActivation) {
-            identityProviderActivationRepository.create(identityProviderActivation);
-        } else if (object instanceof Token token) {
-            tokenRepository.create(token);
-        } else if (object instanceof PageRevision pageRevision) {
-            pageRevisionRepository.create(pageRevision);
-        } else if (object instanceof CustomUserField customUserField) {
-            customUserFieldsRepository.create(customUserField);
-        } else if (object instanceof NotificationTemplate notificationTemplate) {
-            notificationTemplateRepository.create(notificationTemplate);
-        } else if (object instanceof Ticket ticket) {
-            ticketRepository.create(ticket);
-        } else if (object instanceof Installation installation) {
-            installationRepository.create(installation);
-        } else if (object instanceof Monitoring monitoring) {
-            try {
-                nodeMonitoringRepository.create(monitoring).test().await(15, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+        switch (object) {
+            case Application application -> applicationRepository.create(application);
+            case Api api -> apiRepository.create(api);
+            case User user -> userRepository.create(user);
+            case Event event -> eventRepository.create(event);
+            case ApiKey apiKey -> apiKeyRepository.create(apiKey);
+            case Category category -> categoryRepository.create(category);
+            case Group group -> groupRepository.create(group);
+            case Membership membership -> membershipRepository.create(membership);
+            case Plan plan -> planRepository.create(plan);
+            case Tag tag -> tagRepository.create(tag);
+            case Page page -> pageRepository.create(page);
+            case Subscription subscription -> subscriptionRepository.create(subscription);
+            case Tenant tenant -> tenantRepository.create(tenant);
+            case Metadata metadata -> metadataRepository.create(metadata);
+            case Role role -> roleRepository.create(role);
+            case Audit audit -> auditRepository.create(audit);
+            case Rating rating -> ratingRepository.create(rating);
+            case RatingAnswer ratingAnswer -> ratingAnswerRepository.create(ratingAnswer);
+            case PortalNotification portalNotification -> portalNotificationRepository.create(portalNotification);
+            case PortalNotificationConfig portalNotificationConfig -> portalNotificationConfigRepository.create(portalNotificationConfig);
+            case GenericNotificationConfig genericNotificationConfig -> genericNotificationConfigRepository.create(
+                genericNotificationConfig
+            );
+            case Parameter parameter -> parameterRepository.create(parameter);
+            case Dictionary dictionary -> dictionaryRepository.create(dictionary);
+            case ApiHeader apiHeader -> apiHeaderRepository.create(apiHeader);
+            case Command command -> commandRepository.create(command);
+            case IdentityProvider identityProvider -> identityProviderRepository.create(identityProvider);
+            case AlertTrigger alertTrigger -> alertRepository.create(alertTrigger);
+            case Entrypoint entrypoint -> entrypointRepository.create(entrypoint);
+            case Invitation invitation -> invitationRepository.create(invitation);
+            case ClientRegistrationProvider clientRegistrationProvider -> clientRegistrationProviderRepository.create(
+                clientRegistrationProvider
+            );
+            case Workflow workflow -> workflowRepository.create(workflow);
+            case QualityRule qualityRule -> qualityRuleRepository.create(qualityRule);
+            case ApiQualityRule apiQualityRule -> apiQualityRuleRepository.create(apiQualityRule);
+            case ScoringReport scoringReport -> scoringReportRepository.create(scoringReport);
+            case ScoringRuleset scoringRuleset -> scoringRulesetRepository.create(scoringRuleset);
+            case ScoringFunction scoringFunction -> scoringFunctionRepository.create(scoringFunction);
+            case Dashboard apiQualityRule -> dashboardRepository.create(apiQualityRule);
+            case AlertEvent alertEvent -> alertEventRepository.create(alertEvent);
+            case Environment environment -> environmentRepository.create(environment);
+            case Organization organization -> organizationRepository.create(organization);
+            case License license -> licenseRepository.create(license);
+            case Theme theme -> themeRepository.create(theme);
+            case IdentityProviderActivation identityProviderActivation -> identityProviderActivationRepository.create(
+                identityProviderActivation
+            );
+            case Token token -> tokenRepository.create(token);
+            case PageRevision pageRevision -> pageRevisionRepository.create(pageRevision);
+            case CustomUserField customUserField -> customUserFieldsRepository.create(customUserField);
+            case NotificationTemplate notificationTemplate -> notificationTemplateRepository.create(notificationTemplate);
+            case Ticket ticket -> ticketRepository.create(ticket);
+            case Installation installation -> installationRepository.create(installation);
+            case Monitoring monitoring -> {
+                try {
+                    nodeMonitoringRepository.create(monitoring).test().await(15, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
-        } else if (object instanceof Flow flow) {
-            flowRepository.create(flow);
-        } else if (object instanceof Promotion promotion) {
-            promotionRepository.create(promotion);
-        } else if (object instanceof UpgradeRecord upgradeRecord) {
-            upgraderRepository.create(upgradeRecord);
-        } else if (object instanceof AccessPoint accessPoint) {
-            accessPointRepository.create(accessPoint);
-        } else if (object instanceof Integration integration) {
-            integrationRepository.create(integration);
-        } else if (object instanceof AsyncJob job) {
-            asyncJobRepository.create(job);
-        } else if (object instanceof ApiCategoryOrder apiCategoryOrder) {
-            apiCategoryOrderRepository.create(apiCategoryOrder);
-        } else if (object instanceof SharedPolicyGroup sharedPolicyGroup) {
-            sharedPolicyGroupRepository.create(sharedPolicyGroup);
-        } else if (object instanceof PortalMenuLink portalMenuLink) {
-            portalMenuLinkRepository.create(portalMenuLink);
+            case Flow flow -> flowRepository.create(flow);
+            case Promotion promotion -> promotionRepository.create(promotion);
+            case UpgradeRecord upgradeRecord -> upgraderRepository.create(upgradeRecord);
+            case AccessPoint accessPoint -> accessPointRepository.create(accessPoint);
+            case Integration integration -> integrationRepository.create(integration);
+            case AsyncJob job -> asyncJobRepository.create(job);
+            case ApiCategoryOrder apiCategoryOrder -> apiCategoryOrderRepository.create(apiCategoryOrder);
+            case SharedPolicyGroup sharedPolicyGroup -> sharedPolicyGroupRepository.create(sharedPolicyGroup);
+            case PortalMenuLink portalMenuLink -> portalMenuLinkRepository.create(portalMenuLink);
+            case null, default -> {}
         }
     }
 

@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.7.0_add_deadline_to_async_jobs_table
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}asyncjobs
+            columns:
+              - column: { name: dead_line, type: timestamp(6), constraints: { nullable: true } }

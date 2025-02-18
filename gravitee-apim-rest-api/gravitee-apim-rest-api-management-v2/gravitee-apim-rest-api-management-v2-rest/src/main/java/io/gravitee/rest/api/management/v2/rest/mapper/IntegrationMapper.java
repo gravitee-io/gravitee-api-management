@@ -22,11 +22,11 @@ import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationView;
 import io.gravitee.apim.core.integration.use_case.DiscoveryUseCase;
+import io.gravitee.rest.api.management.v2.rest.model.AsyncJobStatus;
 import io.gravitee.rest.api.management.v2.rest.model.CreateIntegration;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionJob;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionPreviewResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionPreviewResponseApisInner;
-import io.gravitee.rest.api.management.v2.rest.model.IngestionStatus;
 import java.util.List;
 import java.util.Set;
 import org.mapstruct.Mapper;
@@ -55,7 +55,7 @@ public interface IntegrationMapper {
 
     Integration map(io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration source);
 
-    IngestionStatus map(AsyncJob.Status source);
+    AsyncJobStatus map(AsyncJob.Status source);
 
     static IngestionPreviewResponse mapper(DiscoveryUseCase.Output preview) {
         return IngestionPreviewResponse

@@ -19,7 +19,9 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.AsyncJobRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.AsyncJobMongo;
+import java.util.Date;
 
 public interface AsyncJobMongoRepositoryCustom {
     Page<AsyncJobMongo> search(AsyncJobRepository.SearchCriteria criteria, Pageable pageable);
+    void delay(String id, Date newDeadLine);
 }

@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static java.util.function.Predicate.not;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -28,11 +30,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
+@Slf4j
 @Repository
 public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob, String> implements AsyncJobRepository {
 
@@ -45,15 +49,13 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
     @Override
     public Optional<AsyncJob> findPendingJobFor(String sourceId) throws TechnicalException {
         LOGGER.debug("JdbcAsyncJobRepository.findPendingJobFor({})", sourceId);
-        final List<AsyncJob> jobs;
         try {
-            jobs =
-                jdbcTemplate.query(
-                    getOrm().getSelectAllSql() + " where source_id = ? and status = 'PENDING'",
-                    getOrm().getRowMapper(),
-                    sourceId
-                );
-            return jobs.stream().findFirst();
+            var jobs = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " where source_id = ? and status = 'PENDING'",
+                getOrm().getRowMapper(),
+                sourceId
+            );
+            return jobs.stream().map(this::handleDeadLine).filter(not(AsyncJob::isTimedOut)).findFirst();
         } catch (final Exception ex) {
             final String message = "Failed to find pending AsyncJob for: " + sourceId;
             LOGGER.error(message, ex);
@@ -64,17 +66,27 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
     @Override
     public Page<AsyncJob> search(SearchCriteria criteria, Pageable pageable) throws TechnicalException {
         LOGGER.debug("JdbcAsyncJobRepository.search({})", criteria);
-        final List<AsyncJob> jobs;
         try {
-            jobs =
-                jdbcTemplate.query(
-                    getOrm().getSelectAllSql() + " where " + convert(criteria) + " order by updated_at desc",
-                    ps -> fillPreparedStatement(criteria, ps),
-                    getOrm().getRowMapper()
-                );
-            return getResultAsPage(pageable, jobs);
+            var jobs = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " where " + convert(criteria) + " order by updated_at desc",
+                ps -> fillPreparedStatement(criteria, ps),
+                getOrm().getRowMapper()
+            );
+            return getResultAsPage(pageable, jobs.stream().map(this::handleDeadLine).toList());
         } catch (final Exception ex) {
             final String message = "Failed to search AsyncJob with: " + criteria;
+            LOGGER.error(message, ex);
+            throw new TechnicalException(message, ex);
+        }
+    }
+
+    @Override
+    public void delay(String id, Date newDeadLine) throws TechnicalException {
+        LOGGER.debug("JdbcAsyncJobRepository.delay({}, {})", id, newDeadLine);
+        try {
+            jdbcTemplate.update("update " + tableName + " set updated_at = ?, dead_line = ? where id = ?", new Date(), newDeadLine, id);
+        } catch (final Exception ex) {
+            final String message = "Failed to delay AsyncJob: " + id;
             LOGGER.error(message, ex);
             throw new TechnicalException(message, ex);
         }
@@ -122,6 +134,7 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
             .addColumn("upper_limit", Types.INTEGER, Long.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .addColumn("dead_line", Types.TIMESTAMP, Date.class)
             .build();
     }
 
@@ -134,10 +147,7 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
         criteria.status().ifPresent(status -> clauses.add("status = ?"));
         criteria.sourceId().ifPresent(sourceId -> clauses.add("source_id = ?"));
 
-        if (!clauses.isEmpty()) {
-            return String.join(" AND ", clauses);
-        }
-        return null;
+        return String.join(" AND ", clauses);
     }
 
     private void fillPreparedStatement(SearchCriteria criteria, PreparedStatement ps) throws SQLException {

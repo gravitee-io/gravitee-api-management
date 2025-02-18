@@ -18,18 +18,20 @@ package io.gravitee.repository.mongodb.management.internal.asyncjob;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.AsyncJobRepository;
 import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.mongodb.management.internal.integration.IntegrationMongoRepositoryCustom;
 import io.gravitee.repository.mongodb.management.internal.model.AsyncJobMongo;
-import io.gravitee.repository.mongodb.management.internal.model.IntegrationMongo;
-import java.util.List;
+import java.util.Date;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @AllArgsConstructor
 public class AsyncJobMongoRepositoryImpl implements AsyncJobMongoRepositoryCustom {
@@ -48,6 +50,14 @@ public class AsyncJobMongoRepositoryImpl implements AsyncJobMongoRepositoryCusto
 
         var result = mongoTemplate.find(query, AsyncJobMongo.class);
         return new Page<>(result, (pageable != null) ? pageable.pageNumber() : 0, result.size(), total);
+    }
+
+    @Override
+    public void delay(String id, Date newDeadLine) {
+        Query query = new Query().addCriteria(Criteria.where("id").is(id)).addCriteria(Criteria.where("status").is("PENDING"));
+
+        UpdateDefinition update = Update.update("deadLine", newDeadLine).set("updatedAt", new Date());
+        mongoTemplate.updateFirst(query, update, AsyncJobMongo.class);
     }
 
     private Query toQuery(AsyncJobRepository.SearchCriteria criteria) {

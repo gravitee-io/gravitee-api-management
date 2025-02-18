@@ -15,16 +15,17 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import static java.util.function.Predicate.not;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AsyncJobRepository;
 import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.AsyncJob;
 import io.gravitee.repository.mongodb.management.internal.asyncjob.AsyncJobMongoRepository;
-import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.management.internal.model.AsyncJobMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -46,7 +47,7 @@ public class MongoAsyncJobRepository implements AsyncJobRepository {
     @Override
     public Optional<AsyncJob> findById(String s) throws TechnicalException {
         log.debug("Find asyncJob by id [{}]", s);
-        Optional<AsyncJob> result = internalRepository.findById(s).map(source -> mapper.map(source));
+        Optional<AsyncJob> result = internalRepository.findById(s).map(source -> mapper.map(source)).map(this::handleDeadLine);
         log.debug("Find asyncJob by id [{}] - DONE", s);
         return result;
     }
@@ -85,12 +86,21 @@ public class MongoAsyncJobRepository implements AsyncJobRepository {
 
     @Override
     public Set<AsyncJob> findAll() throws TechnicalException {
-        return internalRepository.findAll().stream().map(source -> mapper.map(source)).collect(Collectors.toSet());
+        return internalRepository
+            .findAll()
+            .stream()
+            .map(source -> mapper.map(source))
+            .map(this::handleDeadLine)
+            .collect(Collectors.toSet());
     }
 
     @Override
     public Optional<AsyncJob> findPendingJobFor(String sourceId) {
-        return internalRepository.findPendingJobFor(sourceId).map(source -> mapper.map(source));
+        return internalRepository
+            .findPendingJobFor(sourceId)
+            .map(source -> mapper.map(source))
+            .map(this::handleDeadLine)
+            .filter(not(AsyncJob::isTimedOut));
     }
 
     @Override
@@ -98,7 +108,14 @@ public class MongoAsyncJobRepository implements AsyncJobRepository {
         log.debug("Search by [{}]", criteria);
         var result = internalRepository.search(criteria, pageable);
         log.debug("Search by [{}] - Done", criteria);
-        return result.map(source -> mapper.map(source));
+        return result.map(source -> mapper.map(source)).map(this::handleDeadLine);
+    }
+
+    @Override
+    public void delay(String id, Date newDeadLine) {
+        log.debug("Delay asyncJob [{}]", id);
+        internalRepository.delay(id, newDeadLine);
+        log.debug("Delay asyncJob [{}] - Done", id);
     }
 
     @Override

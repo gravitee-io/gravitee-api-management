@@ -17,6 +17,7 @@ package inmemory;
 
 import io.gravitee.apim.core.async_job.crud_service.AsyncJobCrudService;
 import io.gravitee.apim.core.async_job.model.AsyncJob;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,6 +48,11 @@ public class AsyncJobCrudServiceInMemory implements AsyncJobCrudService, InMemor
         }
 
         throw new IllegalStateException("AsyncJob not found");
+    }
+
+    @Override
+    public void delay(String id, ZonedDateTime newDeadLine) {
+        findById(id).ifPresent(integration -> integration.setDeadLine(newDeadLine));
     }
 
     @Override

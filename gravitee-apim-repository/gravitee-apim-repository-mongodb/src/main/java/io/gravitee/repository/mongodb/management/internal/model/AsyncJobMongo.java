@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.Date;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -37,4 +38,5 @@ public class AsyncJobMongo extends Auditable {
     private String status;
     private String errorMessage;
     private Long upperLimit;
+    private Date deadLine;
 }

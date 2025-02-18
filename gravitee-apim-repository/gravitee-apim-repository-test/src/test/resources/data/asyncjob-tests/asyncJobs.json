@@ -74,7 +74,6 @@
     "status": "PENDING",
     "upperLimit": 1,
     "createdAt": 1470157767000,
-    "updatedAt": 1470157767004,
     "updatedAt": 1470157767000
   },
   {
@@ -98,5 +97,17 @@
     "upperLimit": 100,
     "createdAt": 1470157767000,
     "updatedAt": 1470157767000
+  },
+  {
+    "id": "459a022c-e79c-4411-9a02-2ce79c141456",
+    "sourceId": "timeout-test-source-id",
+    "environmentId": "my-timeout-env",
+    "initiatorId": "initiator-id",
+    "type": "FEDERATED_API_INGESTION",
+    "status": "PENDING",
+    "upperLimit": 100,
+    "createdAt": 1470157767009,
+    "updatedAt": 1470157767009,
+    "deadLine": 1470157767009
   }
 ]
