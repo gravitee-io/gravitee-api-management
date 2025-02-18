@@ -1,4 +1,5 @@
 {
   "baseURL": "/management",
+  "defaultPortal": "classic",
   "production": false
 }

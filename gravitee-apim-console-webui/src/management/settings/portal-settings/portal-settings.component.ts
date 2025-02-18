@@ -207,7 +207,9 @@ export class PortalSettingsComponent implements OnInit {
             ? undefined
             : this.constants.env.baseURL.replace('{:envId}', this.constants.org.currentEnv.id) +
               '/portal/redirect' +
-              (this.isPortalNextEnabled ? '?version=next' : '');
+              (this.isPortalNextEnabled && (!this.constants.defaultPortal || this.constants.defaultPortal === 'classic')
+                ? '?version=next'
+                : '');
         }),
         takeUntilDestroyed(this.destroyRef),
       )
