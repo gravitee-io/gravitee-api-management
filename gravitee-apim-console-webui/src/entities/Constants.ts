@@ -43,6 +43,7 @@ export interface Constants {
   v2BaseURL?: string;
   isOEM: boolean;
   customization?: ConsoleCustomization;
+  defaultPortal: DefaultPortal;
 }
 
 // eslint-disable-next-line no-redeclare
@@ -213,3 +214,5 @@ export interface EnvSettings {
     notifications: number;
   };
 }
+
+export type DefaultPortal = 'classic' | 'next' | null;

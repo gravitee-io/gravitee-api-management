@@ -133,6 +133,7 @@ services:
       - management_api
     environment:
       - MGMT_API_URL=http://localhost:8083/management/
+      #- DEFAULT_PORTAL=next # Uncomment to set the portal-next as the default portal for management UI environment redirection.
     volumes:
       - ./.logs/apim-management-ui:/var/log/nginx
     networks:
@@ -148,7 +149,7 @@ services:
       - management_api
     environment:
       - PORTAL_API_URL=http://localhost:8083/portal
-      #- DEFAULT_PORTAL=next # Uncomment this line to use the next portal as default portal
+      #- DEFAULT_PORTAL=next # Uncomment to set the portal-next as default portal
     volumes:
       - ./.logs/apim-portal-ui:/var/log/nginx
     networks:
