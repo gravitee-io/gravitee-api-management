@@ -174,23 +174,30 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             jdbcTemplate.update("delete from " + APPLICATION_METADATA + " where application_id = ?", application.getId());
         }
         if (application.getMetadata() != null && !application.getMetadata().isEmpty()) {
-            List<Map.Entry<String, String>> entries = new ArrayList<>(application.getMetadata().entrySet());
-            jdbcTemplate.batchUpdate(
-                "insert into " + APPLICATION_METADATA + " ( application_id, k, v ) values ( ?, ?, ? )",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setString(1, application.getId());
-                        ps.setString(2, entries.get(i).getKey());
-                        ps.setString(3, entries.get(i).getValue());
-                    }
+            List<Map.Entry<String, String>> entries = application
+                .getMetadata()
+                .entrySet()
+                .stream()
+                .filter(entry -> entry.getValue() != null)
+                .toList();
+            if (!entries.isEmpty()) {
+                jdbcTemplate.batchUpdate(
+                    "insert into " + APPLICATION_METADATA + " ( application_id, k, v ) values ( ?, ?, ? )",
+                    new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            ps.setString(1, application.getId());
+                            ps.setString(2, entries.get(i).getKey());
+                            ps.setString(3, entries.get(i).getValue());
+                        }
 
-                    @Override
-                    public int getBatchSize() {
-                        return entries.size();
+                        @Override
+                        public int getBatchSize() {
+                            return entries.size();
+                        }
                     }
-                }
-            );
+                );
+            }
         }
     }
 
