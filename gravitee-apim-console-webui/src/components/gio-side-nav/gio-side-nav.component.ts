@@ -20,7 +20,7 @@ import { Observable, Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
-import { Constants } from '../../entities/Constants';
+import { Constants, EnvSettings } from '../../entities/Constants';
 import { ApimFeature, UTMTags } from '../../shared/components/gio-license/gio-license-data';
 import { Environment } from '../../entities/environment/environment';
 import { cleanRouterLink } from '../../util/router-link.util';
@@ -91,8 +91,8 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
 
     this.licenseExpirationDate$ = this.gioLicenseService.getExpiresAt$().pipe(distinctUntilChanged(), takeUntil(this.unsubscribe$));
 
-    this.environmentSettingsService.get().subscribe((_) => {
-      this.mainMenuItems = this.buildMainMenuItems();
+    this.environmentSettingsService.get().subscribe((envSettings) => {
+      this.mainMenuItems = this.buildMainMenuItems(envSettings);
     });
   }
 
@@ -109,7 +109,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     this.router.navigate([selectedItem.routerLink]);
   }
 
-  private buildMainMenuItems(): MenuItem[] {
+  private buildMainMenuItems(envSettings?: EnvSettings): MenuItem[] {
     const auditLicenseOptions: LicenseOptions = {
       feature: ApimFeature.APIM_AUDIT_TRAIL,
       context: UTMTags.CONTEXT_ENVIRONMENT,
@@ -157,7 +157,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       });
     }
 
-    if (this.constants.org.settings?.scoring?.enabled) {
+    if (envSettings?.apiScore.enabled) {
       mainMenuItems.push({
         icon: 'gio:shield-check',
         routerLink: './api-score',

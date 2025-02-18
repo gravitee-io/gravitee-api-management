@@ -36,6 +36,9 @@ import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 interface ApiQualityRulesForm {
+  apiScore: FormGroup<{
+    enabled: FormControl<boolean>;
+  }>;
   apiReview: FormGroup<{
     enabled: FormControl<boolean>;
   }>;
@@ -111,6 +114,12 @@ export class ApiQualityRulesComponent implements OnInit {
           ]);
 
           this.apiQualityRulesForm = new FormGroup<ApiQualityRulesForm>({
+            apiScore: new FormGroup({
+              enabled: new FormControl({
+                value: this.settings.apiScore.enabled,
+                disabled: this.isReadonly('api.score.enabled') || settingsPermission,
+              }),
+            }),
             apiReview: new FormGroup({
               enabled: new FormControl({
                 value: this.settings.apiReview.enabled,
@@ -177,6 +186,10 @@ export class ApiQualityRulesComponent implements OnInit {
     this.portalSettingsService
       .save({
         ...this.settings,
+        apiScore: {
+          ...this.settings.apiScore,
+          enabled: this.apiQualityRulesForm.get('apiScore.enabled').value,
+        },
         apiReview: {
           ...this.settings.apiReview,
           enabled: this.apiQualityRulesForm.get('apiReview.enabled').value,

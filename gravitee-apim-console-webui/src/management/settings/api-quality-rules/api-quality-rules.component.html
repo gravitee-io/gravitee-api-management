@@ -22,6 +22,11 @@
 <form *ngIf="apiQualityRulesForm" [formGroup]="apiQualityRulesForm" autocomplete="off">
   <mat-card class="api-quality-rules__form__card">
     <mat-card-content>
+      <gio-form-slide-toggle formGroupName="apiScore" class="api-quality-rules__form__card__form-field">
+        <mat-icon *ngIf="isReadonly('api.score.enabled')" gioFormPrefix>lock</mat-icon>
+        <gio-form-label>Enable API Score</gio-form-label>
+        <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Enable API Score"></mat-slide-toggle>
+      </gio-form-slide-toggle>
       <gio-form-slide-toggle
         [matTooltip]="'Configuration provided by the system'"
         [matTooltipDisabled]="!isReadonly('api.review.enabled')"
@@ -30,7 +35,12 @@
       >
         <mat-icon *ngIf="isReadonly('api.review.enabled')" gioFormPrefix>lock</mat-icon>
         <gio-form-label>Enable API review</gio-form-label>
-        <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Enable API review"></mat-slide-toggle>
+        <mat-slide-toggle
+          formControlName="enabled"
+          gioFormSlideToggle
+          aria-label="Enable API review"
+          data-testid="api-review-enabled-toggle"
+        ></mat-slide-toggle>
       </gio-form-slide-toggle>
       <gio-form-slide-toggle
         [matTooltip]="'Configuration provided by the system'"

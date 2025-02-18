@@ -56,6 +56,9 @@ describe('ApiQualityRulesComponent', () => {
     apiReview: {
       enabled: false,
     },
+    apiScore: {
+      enabled: false,
+    },
   };
 
   beforeEach(() => {
@@ -105,7 +108,9 @@ describe('ApiQualityRulesComponent', () => {
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isVisible()).toBe(false);
 
-      const enableApiReviewToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName=enabled]' }));
+      const enableApiReviewToggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[data-testid=api-review-enabled-toggle]' }),
+      );
       expect(await enableApiReviewToggle.isChecked()).toBe(false);
       await enableApiReviewToggle.toggle();
 
@@ -131,6 +136,9 @@ describe('ApiQualityRulesComponent', () => {
           technicalDocumentationWeight: 500,
         },
         apiReview: {
+          enabled: false,
+        },
+        apiScore: {
           enabled: false,
         },
       });

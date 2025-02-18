@@ -56,6 +56,9 @@ export interface EnvSettings {
     labelsDictionary: string[];
     primaryOwnerMode: string;
   };
+  apiScore: {
+    enabled: boolean;
+  };
   apiQualityMetrics: {
     enabled: boolean;
     functionalDocumentationWeight: number;

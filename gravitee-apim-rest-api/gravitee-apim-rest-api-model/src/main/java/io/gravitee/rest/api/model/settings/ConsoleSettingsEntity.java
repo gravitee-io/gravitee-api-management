@@ -21,11 +21,13 @@ import io.gravitee.rest.api.model.parameters.Key;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * @author GraviteeSource Team
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
 
     private Alert alert;
@@ -47,7 +49,6 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
     private LicenseExpirationNotification licenseExpirationNotification;
     private TrialInstance trialInstance;
     private Federation federation;
-    private Scoring scoring;
     private CloudHosted cloudHosted;
 
     public ConsoleSettingsEntity() {
@@ -67,7 +68,6 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
         licenseExpirationNotification = new LicenseExpirationNotification();
         trialInstance = new TrialInstance();
         federation = new Federation();
-        scoring = new Scoring();
         cloudHosted = new CloudHosted();
     }
 

@@ -32,7 +32,6 @@ export interface ConsoleSettings {
   licenseExpirationNotification?: ConsoleSettingsLicenseExpirationNotification;
   trialInstance?: ConsoleSettingsTrialInstance;
   federation?: ConsoleSettingsFederation;
-  scoring?: ConsoleSettingsScoring;
   cloudHosted?: ConsoleSettingsCloudHosted;
 }
 
@@ -182,10 +181,6 @@ export interface ConsoleSettingsTrialInstance {
 }
 
 export interface ConsoleSettingsFederation {
-  enabled?: boolean;
-}
-
-export interface ConsoleSettingsScoring {
   enabled?: boolean;
 }
 

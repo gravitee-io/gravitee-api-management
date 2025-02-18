@@ -35,6 +35,7 @@ import { License } from '../../entities/license/License';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
 import { Constants } from '../../entities/Constants';
+import { EnvironmentSettingsService } from '../../services-ngx/environment-settings.service';
 
 describe('GioSideNavComponent', () => {
   let fixture: ComponentFixture<GioSideNavComponent>;
@@ -71,7 +72,6 @@ describe('GioSideNavComponent', () => {
             constants.org.settings = {
               ...constants.org.settings,
               licenseExpirationNotification: { enabled: licenseNotificationEnabled },
-              scoring: { enabled: scoringEnabled },
             };
             constants.org.environments = [
               {
@@ -83,6 +83,14 @@ describe('GioSideNavComponent', () => {
             ];
 
             return constants;
+          },
+        },
+        {
+          provide: EnvironmentSettingsService,
+          useValue: {
+            get: () => {
+              return of({ apiScore: { enabled: scoringEnabled } });
+            },
           },
         },
         { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },

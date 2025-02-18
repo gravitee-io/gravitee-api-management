@@ -27,8 +27,9 @@ import { ApiNavigationComponent } from './api-navigation.component';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { Api, fakeApiV1, fakeApiV2, fakeApiV4 } from '../../../entities/management-api-v2';
 import { GioPermissionService, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
-import { Constants } from '../../../entities/Constants';
+import { Constants, EnvSettings } from '../../../entities/Constants';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
+import { EnvironmentSettingsService } from '../../../services-ngx/environment-settings.service';
 
 describe('ApiNavigationComponent', () => {
   const API_ID = 'apiId';
@@ -165,6 +166,7 @@ describe('ApiNavigationComponent', () => {
   describe('side nave search items', () => {
     let addSearchItemByGroupIds: jest.SpyInstance;
     const menuSearchService = new GioMenuSearchService();
+    const DEFAULT_ENV_SETTINGS: Partial<EnvSettings> = { apiScore: { enabled: true } };
 
     beforeEach(async () => {
       addSearchItemByGroupIds = jest.spyOn(menuSearchService, 'addMenuSearchItems');
@@ -188,6 +190,12 @@ describe('ApiNavigationComponent', () => {
           { provide: Constants, useValue: { ...CONSTANTS_TESTING, org: { settings: { scoring: { enabled: true } } } } },
           { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
           { provide: GioMenuSearchService, useValue: menuSearchService },
+          {
+            provide: EnvironmentSettingsService,
+            useValue: {
+              getSnapshot: () => DEFAULT_ENV_SETTINGS,
+            },
+          },
         ],
       }).compileComponents();
 
