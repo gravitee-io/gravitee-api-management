@@ -60,7 +60,7 @@
         <gravitee-integration-api.version>4.1.0</gravitee-integration-api.version>
         <gravitee-json-validation.version>2.0.1</gravitee-json-validation.version>
         <gravitee-kubernetes.version>3.5.1</gravitee-kubernetes.version>
-        <gravitee-node.version>7.0.5</gravitee-node.version>
+        <gravitee-node.version>7.0.6</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
         <gravitee-platform-repository-api.version>1.4.0</gravitee-platform-repository-api.version>
         <gravitee-plugin.version>4.6.1</gravitee-plugin.version>
@@ -250,7 +250,6 @@
         <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
         <!--    <gravitee-gateway-services-ratelimit.version>1.15.0</gravitee-gateway-services-ratelimit.version>    -->
         <gravitee-tracer-jaeger.version>3.0.1</gravitee-tracer-jaeger.version>
-        <gravitee-tracer-opentelemetry.version>1.0.1</gravitee-tracer-opentelemetry.version>
 
         <!-- Versions of the plugins for the full distribution on dev environment-->
         <!-- Management API & Gateway -->
