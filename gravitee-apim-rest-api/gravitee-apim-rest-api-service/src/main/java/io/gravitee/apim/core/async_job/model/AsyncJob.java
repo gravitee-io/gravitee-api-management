@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.async_job.model;
 
 import io.gravitee.common.utils.TimeProvider;
+import jakarta.annotation.Nullable;
 import java.time.ZonedDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -50,6 +51,9 @@ public class AsyncJob {
     ZonedDateTime createdAt;
     ZonedDateTime updatedAt;
 
+    @Nullable
+    ZonedDateTime deadLine;
+
     Status status;
 
     /** The error message if the job failed */
@@ -64,7 +68,12 @@ public class AsyncJob {
     public enum Status {
         PENDING,
         SUCCESS,
-        ERROR,
+        TIMEOUT,
+        ERROR;
+
+        public boolean isFinal() {
+            return this != PENDING;
+        }
     }
 
     public enum Type {
@@ -74,5 +83,17 @@ public class AsyncJob {
 
     public AsyncJob complete() {
         return toBuilder().status(Status.SUCCESS).updatedAt(TimeProvider.now()).build();
+    }
+
+    public AsyncJob timeout() {
+        return toBuilder().status(Status.TIMEOUT).updatedAt(TimeProvider.now()).build();
+    }
+
+    public boolean isTimedOut() {
+        return !status.isFinal() && deadLine != null && deadLine.isBefore(TimeProvider.now());
+    }
+
+    public boolean isLate() {
+        return !status.isFinal() && deadLine != null && deadLine.isBefore(TimeProvider.now());
     }
 }

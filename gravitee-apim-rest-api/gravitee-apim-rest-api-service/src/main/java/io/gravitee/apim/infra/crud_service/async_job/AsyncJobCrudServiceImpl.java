@@ -21,6 +21,8 @@ import io.gravitee.apim.infra.adapter.AsyncJobAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AsyncJobRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.Optional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -47,7 +49,10 @@ public class AsyncJobCrudServiceImpl implements AsyncJobCrudService {
     @Override
     public Optional<AsyncJob> findById(String id) {
         try {
-            return asyncJobRepository.findById(id).map(AsyncJobAdapter.INSTANCE::toEntity);
+            return asyncJobRepository
+                .findById(id)
+                .map(AsyncJobAdapter.INSTANCE::toEntity)
+                .map(job -> job.isLate() ? update(job.timeout()) : job);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to find the AsyncJob: " + id, e);
         }
@@ -60,6 +65,15 @@ public class AsyncJobCrudServiceImpl implements AsyncJobCrudService {
             return AsyncJobAdapter.INSTANCE.toEntity(updated);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurred when updating AsyncJob: " + job.getId(), e);
+        }
+    }
+
+    @Override
+    public void delay(String id, ZonedDateTime newDeadLine) {
+        try {
+            asyncJobRepository.delay(id, Date.from(newDeadLine.toInstant()));
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurred when give more delay to AsyncJob: " + id, e);
         }
     }
 

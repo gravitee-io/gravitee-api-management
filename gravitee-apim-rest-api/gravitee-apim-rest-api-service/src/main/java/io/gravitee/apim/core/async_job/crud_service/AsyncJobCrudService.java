@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.async_job.crud_service;
 
 import io.gravitee.apim.core.async_job.model.AsyncJob;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 
 public interface AsyncJobCrudService {
@@ -24,6 +25,8 @@ public interface AsyncJobCrudService {
     Optional<AsyncJob> findById(String id);
 
     AsyncJob update(AsyncJob job);
+
+    void delay(String id, ZonedDateTime newDeadLine);
 
     void delete(String id);
 }

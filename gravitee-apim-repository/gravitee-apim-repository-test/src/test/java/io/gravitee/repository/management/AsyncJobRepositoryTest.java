@@ -15,16 +15,16 @@
  */
 package io.gravitee.repository.management;
 
+import static io.gravitee.repository.utils.DateUtils.close;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.AsyncJobRepository;
 import io.gravitee.repository.management.api.AsyncJobRepository.SearchCriteria;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.AsyncJob;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 import org.junit.Test;
@@ -245,6 +245,27 @@ public class AsyncJobRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(nbBeforeDeletion).isEqualTo(2L);
         assertThat(deleted).isEqualTo(2);
         assertThat(nbAfterDeletion).isEqualTo(0);
+    }
+
+    @Test
+    public void should_not_return_pending_job_if_too_old() throws TechnicalException {
+        var result = asyncJobRepository.findPendingJobFor("timeout-test-source-id");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void should_add_delay() throws TechnicalException {
+        // Given
+        String newDeadline = "2025-03-01T00:00:00Z";
+        String apiId = "459a022c-e79c-4411-9a02-2ce79c141456";
+
+        // When
+        asyncJobRepository.delay(apiId, Date.from(Instant.parse(newDeadline)));
+
+        // Then
+        AsyncJob asyncJob = asyncJobRepository.findById(apiId).orElseThrow();
+        assertThat(asyncJob.getDeadLine()).is(close(newDeadline));
     }
 
     private static AsyncJob aJob(String uuid, Date date) {

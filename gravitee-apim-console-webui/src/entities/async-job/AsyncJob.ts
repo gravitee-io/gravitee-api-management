@@ -29,4 +29,4 @@ export interface AsyncJob {
 }
 
 export type AsyncJobType = 'FEDERATED_APIS_INGESTION' | 'SCORING_REQUEST';
-export type AsyncJobStatus = 'ERROR' | 'PENDING' | 'SUCCESS';
+export type AsyncJobStatus = 'ERROR' | 'PENDING' | 'SUCCESS' | 'TIMEOUT';

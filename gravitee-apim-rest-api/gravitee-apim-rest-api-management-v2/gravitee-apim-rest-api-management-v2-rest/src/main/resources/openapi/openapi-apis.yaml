@@ -4030,7 +4030,7 @@ components:
                     description: The last datetime when the job was started.
                     example: 2023-05-25T12:40:46.184Z
                 status:
-                    $ref: "#/components/schemas/IngestionStatus"
+                  $ref: "#/components/schemas/AsyncJobStatus"
 
         IngestionPreviewResponse:
             type: object
@@ -4070,20 +4070,11 @@ components:
             type: object
             properties:
                 status:
-                    $ref: "#/components/schemas/IngestionStatus"
+                  $ref: "#/components/schemas/AsyncJobStatus"
                 message:
                     type: string
                     description: Integration Ingestion message.
                     example: Integration APIs have been ingested successfully
-
-        IngestionStatus:
-            type: string
-            description: Integration Ingestion status.
-            example: SUCCESS
-            enum:
-                - SUCCESS
-                - PENDING
-                - ERROR
 
         Links:
             description: List of links for pagination
@@ -7354,6 +7345,7 @@ components:
                 - SUCCESS
                 - PENDING
                 - ERROR
+                - TIMEOUT
 
         # Analytics
         AnalyticTimeRange:

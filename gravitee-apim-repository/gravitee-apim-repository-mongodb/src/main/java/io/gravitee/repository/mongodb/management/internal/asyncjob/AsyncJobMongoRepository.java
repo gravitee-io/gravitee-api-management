@@ -15,8 +15,6 @@
  */
 package io.gravitee.repository.mongodb.management.internal.asyncjob;
 
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.api.AsyncJobRepository;
 import io.gravitee.repository.mongodb.management.internal.model.AsyncJobMongo;
 import java.util.List;
 import java.util.Optional;

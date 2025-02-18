@@ -31,9 +31,9 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.IntegrationMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApisIngest;
+import io.gravitee.rest.api.management.v2.rest.model.AsyncJobStatus;
 import io.gravitee.rest.api.management.v2.rest.model.DeletedIngestedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApisResponse;
-import io.gravitee.rest.api.management.v2.rest.model.IngestionStatus;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationIngestionResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
@@ -151,7 +151,7 @@ public class IntegrationResource extends AbstractResource {
         startIngestIntegrationApisUseCase
             .execute(new StartIngestIntegrationApisUseCase.Input(integrationId, apisIngest.getApiIds(), audit))
             .subscribe(
-                status -> response.resume(IntegrationIngestionResponse.builder().status(IngestionStatus.PENDING).build()),
+                status -> response.resume(IntegrationIngestionResponse.builder().status(AsyncJobStatus.PENDING).build()),
                 response::resume
             );
     }
