@@ -36,8 +36,8 @@ export class PageRedocComponent implements AfterViewInit {
   ngAfterViewInit() {
     const redocElement = this.element.nativeElement.querySelector('#redoc');
 
-    // Force the right-side panel to join into the middle panel
-    const options = { theme: { breakpoints: { medium: '120rem' } } };
+    // Force the right-side panel to join into the middle panel with an extremely high value for the medium breakpoint
+    const options = { theme: { breakpoints: { medium: '599rem', large: '600rem' } } };
 
     this.redocService.init(this.page.content, options, redocElement);
   }
