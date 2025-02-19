@@ -15,7 +15,8 @@
  */
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivateFn, CanDeactivateFn, Router, RouterStateSnapshot } from '@angular/router';
-import { map, switchMap } from 'rxjs/operators';
+import { map, switchMap, tap } from 'rxjs/operators';
+import { of } from 'rxjs';
 import { GioMenuSearchService } from '@gravitee/ui-particles-angular';
 import { get } from 'lodash';
 
@@ -39,16 +40,18 @@ export const EnvironmentGuard: {
     const gioPermissionService = inject(GioPermissionService);
     const gioMenuSearchService = inject(GioMenuSearchService);
     const settingsNavigationService = inject(SettingsNavigationService);
+    const paramEnv = route.params.envHrid?.toLowerCase();
 
-    const paramEnv = route.params.envHrid;
+    let currentEnvironment = null;
 
     return environmentService.list().pipe(
-      map((environments) => {
+      switchMap((environments) => {
         if (!environments || environments.length === 0) {
           throw new Error('No environment found!');
         }
 
-        const currentEnvironment = environments.find((e) => e.id === paramEnv || e.hrids?.includes(paramEnv));
+        currentEnvironment = environments.find((e) => e.id.toLowerCase() === paramEnv || e.hrids?.includes(paramEnv));
+
         // Redirect to first environment if no environment is found
         if (!currentEnvironment) {
           const hrid = get(environments[0], 'hrids[0]');
@@ -58,19 +61,27 @@ export const EnvironmentGuard: {
         constants.org.environments = environments;
         constants.org.currentEnv = currentEnvironment;
 
-        if (paramEnv === currentEnvironment.id && currentEnvironment.hrids?.length > 0) {
-          // Replace environment ID by hrid but keep url path
-          router.navigateByUrl(state.url.replace(currentEnvironment.id, currentEnvironment.hrids[0]));
-        }
+        return of(currentEnvironment.id);
       }),
       // Load permissions
-      switchMap(() => gioPermissionService.loadEnvironmentPermissions(paramEnv)),
+      switchMap((envId) => {
+        return gioPermissionService.loadEnvironmentPermissions(envId);
+      }),
       // Load env settings
       switchMap(() => environmentSettingsService.load()),
       // Load search items in menu
       map(() => {
         gioMenuSearchService.addMenuSearchItems(settingsNavigationService.getSettingsNavigationSearchItems(route.params.envHrid));
         return true;
+      }),
+      tap(() => {
+        if (paramEnv === currentEnvironment.id.toLowerCase() && currentEnvironment.hrids?.length > 0) {
+          // Replace environment ID by hrid but keep url path and navigate
+          const target = state.url.replace(new RegExp(currentEnvironment.id, 'i'), currentEnvironment.hrids[0]);
+          if (target !== state.url) {
+            router.navigateByUrl(target);
+          }
+        }
       }),
     );
   },
