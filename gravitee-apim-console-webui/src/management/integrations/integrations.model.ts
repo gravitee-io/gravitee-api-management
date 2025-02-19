@@ -105,7 +105,7 @@ export enum IntegrationPreviewApisState {
   UPDATE = 'UPDATE',
 }
 
-export interface IntegrationPreviewApis {
+export interface IntegrationPreviewApi {
   id: string;
   name: string;
   state: IntegrationPreviewApisState;
@@ -115,5 +115,5 @@ export interface IntegrationPreview {
   totalCount: number;
   newCount: number;
   updateCount: number;
-  apis: IntegrationPreviewApis[];
+  apis: IntegrationPreviewApi[];
 }

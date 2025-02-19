@@ -16,14 +16,14 @@
 
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError } from 'rxjs/operators';
+import { switchMap } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup } from '@angular/forms';
 
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { IntegrationPreview, IntegrationPreviewApisState } from '../integrations.model';
+import { AgentStatus, IntegrationPreview, IntegrationPreviewApi, IntegrationPreviewApisState } from '../integrations.model';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 
@@ -33,27 +33,28 @@ import { gioTableFilterCollection } from '../../../shared/components/gio-table-w
   styleUrls: ['./discovery-preview.component.scss'],
 })
 export class DiscoveryPreviewComponent implements OnInit {
-  IntegrationPreviewApisState = IntegrationPreviewApisState;
   private destroyRef: DestroyRef = inject(DestroyRef);
+  public isLoading = true;
+  public readonly IntegrationPreviewApisState = IntegrationPreviewApisState;
+  private integrationId = this.activatedRoute.snapshot.params.integrationId;
 
   private selectToIngest = new Set<IntegrationPreviewApisState>([IntegrationPreviewApisState.NEW, IntegrationPreviewApisState.UPDATE]);
-
-  public displayedColumns = ['name', 'state'];
-  public isLoadingPreview = true;
-  public integrationPreview: IntegrationPreview = null;
-  public ingestParametersForm: FormGroup<Record<IntegrationPreviewApisState, FormControl<boolean | null>>> = new FormGroup({
+  public form: FormGroup<Record<IntegrationPreviewApisState, FormControl<boolean | null>>> = new FormGroup({
     NEW: new FormControl(false),
     UPDATE: new FormControl(false),
   });
+
+  public displayedColumns = ['name', 'state'];
+  public integrationPreview: IntegrationPreview = null;
   public nbTotalInstances = -1;
+
   public filters: GioTableWrapperFilters = {
     pagination: { index: 1, size: 10 },
     searchTerm: '',
     sort: { active: null, direction: null },
   };
-  public apisFiltered: IntegrationPreview['apis'] = [];
 
-  private integrationId = this.activatedRoute.snapshot.params.integrationId;
+  public apisFiltered: IntegrationPreviewApi[] = [];
 
   constructor(
     public readonly integrationsService: IntegrationsService,
@@ -64,38 +65,32 @@ export class DiscoveryPreviewComponent implements OnInit {
 
   ngOnInit() {
     this.getIntegration();
-    this.getPreview();
   }
 
   private getIntegration(): void {
     this.integrationsService
       .getIntegration(this.integrationId)
       .pipe(
-        catchError(({ error }) => {
-          this.snackBarService.error(error.message);
-          this.router.navigate(['../..'], {
-            relativeTo: this.activatedRoute,
-          });
-          return EMPTY;
+        switchMap((integration) => {
+          if (integration.agentStatus === AgentStatus.DISCONNECTED) {
+            this.snackBarService.error('Agent is DISCONNECTED, make sure your Agent is CONNECTED');
+            this.router.navigate(['..'], { relativeTo: this.activatedRoute });
+            return EMPTY;
+          } else {
+            return this.integrationsService.previewIntegration(this.integrationId);
+          }
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe();
-  }
-
-  private getPreview(): void {
-    this.integrationsService
-      .previewIntegration(this.integrationId)
-      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (integrationPreview) => {
+        next: (integrationPreview: IntegrationPreview) => {
+          this.nbTotalInstances = integrationPreview.totalCount;
+          this.apisFiltered = integrationPreview.apis;
           this.integrationPreview = integrationPreview;
-          this.nbTotalInstances = this.integrationPreview.totalCount;
-          this.apisFiltered = this.integrationPreview.apis;
           this.setupForm(IntegrationPreviewApisState.NEW, this.integrationPreview.newCount);
           this.setupForm(IntegrationPreviewApisState.UPDATE, this.integrationPreview.updateCount);
           this.runFilters(this.filters);
-          this.isLoadingPreview = false;
+          this.isLoading = false;
         },
       });
   }
@@ -123,19 +118,19 @@ export class DiscoveryPreviewComponent implements OnInit {
       });
   }
 
-  public apiToIngest(): IntegrationPreview['apis'] {
+  public apiToIngest(): IntegrationPreviewApi[] {
     return this.integrationPreview?.apis?.filter((api) => this.selectToIngest.has(api.state)) ?? [];
   }
 
   private setupForm(controlName: IntegrationPreviewApisState, value: number) {
     if (value <= 0) {
-      this.ingestParametersForm.controls[controlName].disable({ onlySelf: true });
+      this.form.controls[controlName].disable({ onlySelf: true });
       this.selectToIngest.delete(controlName);
     } else {
-      this.ingestParametersForm.controls[controlName].setValue(value > 0);
+      this.form.controls[controlName].setValue(value > 0);
       this.selectToIngest.add(controlName);
     }
-    this.ingestParametersForm.controls[controlName].valueChanges.subscribe((selected) => {
+    this.form.controls[controlName].valueChanges.subscribe((selected) => {
       if (selected) {
         this.selectToIngest.add(controlName);
       } else {
@@ -146,6 +141,7 @@ export class DiscoveryPreviewComponent implements OnInit {
   }
 
   public runFilters(filters: GioTableWrapperFilters): void {
+    this.filters = { ...this.filters, ...filters };
     const filtered = gioTableFilterCollection(this.apiToIngest(), filters);
     this.apisFiltered = filtered.filteredCollection;
     this.nbTotalInstances = filtered.unpaginatedLength;

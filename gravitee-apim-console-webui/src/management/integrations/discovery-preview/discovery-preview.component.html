@@ -39,8 +39,8 @@
 
   <div class="separator"></div>
 
-  @if (!isLoadingPreview && integrationPreview) {
-    <div [formGroup]="ingestParametersForm" class="preview">
+  @if (!isLoading && integrationPreview) {
+    <div [formGroup]="form" class="preview">
       <section class="preview__toggles">
         <p class="desc">
           {{
