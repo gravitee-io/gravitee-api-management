@@ -41,7 +41,7 @@
 
 <gio-save-bar
   class="gio-policy-studio-layout__save-bar"
-  [opened]="this.isDirty"
+  [opened]="this.isDirty && !this.isSubmitting"
   [creationMode]="false"
   (resetClicked)="onReset()"
   (submitted)="onSubmit()"
