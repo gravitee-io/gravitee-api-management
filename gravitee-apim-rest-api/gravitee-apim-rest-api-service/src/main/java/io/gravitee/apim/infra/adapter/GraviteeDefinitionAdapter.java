@@ -23,6 +23,7 @@ import io.gravitee.apim.core.api.model.import_definition.ApiDescriptor;
 import io.gravitee.apim.core.api.model.import_definition.PageExport;
 import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.plan.model.Plan;
@@ -121,16 +122,25 @@ public interface GraviteeDefinitionAdapter {
     );
 
     @Mapping(target = "id", source = "apiEntity.id")
+    @Mapping(target = "name", source = "apiEntity.name")
+    @Mapping(target = "description", source = "apiEntity.description")
+    @Mapping(target = "createdAt", source = "apiEntity.createdAt")
+    @Mapping(target = "updatedAt", source = "apiEntity.updatedAt")
+    @Mapping(target = "groups", source = "apiEntity.groups")
     @Mapping(target = "type", source = "apiEntity.type")
     @Mapping(target = "state", source = "apiEntity.lifecycleState")
     @Mapping(target = "lifecycleState", source = "apiEntity.apiLifecycleState")
     @Mapping(target = "providerId", source = "apiEntity.federatedApiDefinition.providerId")
+    @Mapping(target = "originContext.integrationId", source = "integration.id")
+    @Mapping(target = "originContext.integrationName", source = "integration.name")
+    @Mapping(target = "originContext.provider", source = "integration.provider")
     ApiDescriptor.Federated mapFederated(
         Api apiEntity,
         PrimaryOwnerEntity primaryOwner,
         WorkflowState workflowState,
         Set<String> groups,
-        Collection<NewApiMetadata> metadata
+        Collection<NewApiMetadata> metadata,
+        Integration integration
     );
 
     @Mapping(target = "id", source = "apiEntity.id")

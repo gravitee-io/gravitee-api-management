@@ -186,7 +186,7 @@ public sealed interface ApiDescriptor {
         Set<String> tags,
         PrimaryOwnerEntity primaryOwner,
         Set<String> categories,
-        OriginContext originContext,
+        OriginContext.Integration originContext,
         WorkflowState workflowState,
         String picture,
         String background,

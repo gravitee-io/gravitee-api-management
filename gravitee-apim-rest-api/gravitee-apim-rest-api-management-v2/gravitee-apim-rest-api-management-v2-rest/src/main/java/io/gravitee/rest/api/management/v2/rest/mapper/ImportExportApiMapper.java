@@ -30,6 +30,7 @@ import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.BaseOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointV4;
 import io.gravitee.rest.api.management.v2.rest.model.Entrypoint;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
@@ -37,6 +38,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.Metadata;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
@@ -97,6 +99,21 @@ public interface ImportExportApiMapper {
             );
             case TcpListener tcp -> new io.gravitee.rest.api.management.v2.rest.model.Listener(mapTcpListener(tcp));
             default -> throw new IllegalStateException("Unexpected value: " + src);
+        };
+    }
+
+    default BaseOriginContext map(OriginContext src) {
+        return switch (src) {
+            case null -> null;
+            case OriginContext.Management management -> new io.gravitee.rest.api.management.v2.rest.model.ManagementOriginContext()
+                .origin(BaseOriginContext.OriginEnum.MANAGEMENT);
+            case OriginContext.Kubernetes k8s -> new io.gravitee.rest.api.management.v2.rest.model.KubernetesOriginContext()
+                .origin(BaseOriginContext.OriginEnum.KUBERNETES);
+            case OriginContext.Integration integration -> new io.gravitee.rest.api.management.v2.rest.model.IntegrationOriginContext()
+                .integrationId(integration.integrationId())
+                .integrationName(integration.integrationName())
+                .provider(integration.provider())
+                .origin(BaseOriginContext.OriginEnum.INTEGRATION);
         };
     }
 

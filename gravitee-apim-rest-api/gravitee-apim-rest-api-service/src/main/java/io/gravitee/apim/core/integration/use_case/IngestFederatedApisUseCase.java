@@ -36,6 +36,7 @@ import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
+import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -84,6 +85,7 @@ public class IngestFederatedApisUseCase {
     private final ApiIndexerDomainService apiIndexerDomainService;
     private final HomepageDomainService homepageDomainService;
     private final ClearIngestedApiDocumentationDomainService clearIngestedApiDocumentationDomainService;
+    private final IntegrationCrudService integrationCrudService;
 
     public Completable execute(Input input) {
         log.info("Ingesting {} federated APIs [jobId={}]", input.apisToIngest().size(), input.ingestJobId);
@@ -101,7 +103,10 @@ public class IngestFederatedApisUseCase {
 
                 try (var bulk = apiIndexerDomainService.bulk(auditInfo)) {
                     for (IntegrationApi api : input.apisToIngest) {
-                        var federatedApi = ApiModelFactory.fromIngestionJob(api, job);
+                        var integration = integrationCrudService
+                            .findById(job.getSourceId())
+                            .orElseThrow(() -> new IllegalStateException("Integration %s not found".formatted(job.getSourceId())));
+                        var federatedApi = ApiModelFactory.fromIngestionJob(api, job, integration);
 
                         apiCrudService
                             .findById(federatedApi.getId())

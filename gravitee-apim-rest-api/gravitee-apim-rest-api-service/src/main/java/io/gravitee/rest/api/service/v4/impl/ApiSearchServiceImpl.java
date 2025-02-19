@@ -35,6 +35,7 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -469,11 +470,18 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
 
     private GenericApiEntity enrichFederatedApi(GenericApiEntity genericApi) {
         try {
-            if (genericApi instanceof FederatedApiEntity fede) {
+            if (
+                genericApi instanceof FederatedApiEntity fede &&
+                fede.getOriginContext() != null && fede.getOriginContext().integrationName() == null
+            ) {
                 integrationRepository
                     .findById(fede.getOriginContext().integrationId())
                     .map(integration ->
-                        new FederatedApiEntity.OriginContextView(fede.getOriginContext(), integration.getProvider(), integration.getName())
+                        new OriginContext.Integration(
+                            fede.getOriginContext().integrationId(),
+                            integration.getProvider(),
+                            integration.getName()
+                        )
                     )
                     .ifPresent(fede::setOriginContext);
             }

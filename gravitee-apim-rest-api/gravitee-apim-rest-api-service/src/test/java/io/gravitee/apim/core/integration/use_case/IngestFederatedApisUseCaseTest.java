@@ -80,6 +80,7 @@ import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
@@ -332,7 +333,8 @@ class IngestFederatedApisUseCaseTest {
                 apiMetadataDomainService,
                 apiIndexerDomainService,
                 homepageDomainService,
-                clearIngestedApiDocumentationDomainService
+                clearIngestedApiDocumentationDomainService,
+                integrationCrudService
             );
 
         enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode.USER);
@@ -372,6 +374,8 @@ class IngestFederatedApisUseCaseTest {
             )
         );
         userCrudService.initWith(List.of(BaseUserEntity.builder().id("my-member-id").email("one_valid@email.com").build()));
+
+        integrationCrudService.create(new Integration().withId(INTEGRATION_ID));
     }
 
     @AfterEach

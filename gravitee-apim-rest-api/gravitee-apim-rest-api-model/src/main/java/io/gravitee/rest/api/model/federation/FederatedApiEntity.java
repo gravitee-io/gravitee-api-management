@@ -124,26 +124,4 @@ public class FederatedApiEntity implements GenericApiEntity {
     public WorkflowState getWorkflowState() {
         return null;
     }
-
-    @ToString
-    @EqualsAndHashCode(callSuper = true)
-    public static final class OriginContextView extends OriginContext.Integration {
-
-        private final String provider;
-        private final String integrationName;
-
-        public OriginContextView(OriginContext.Integration baseCtx, String provider, String integrationName) {
-            super(baseCtx.integrationId());
-            this.provider = provider;
-            this.integrationName = integrationName;
-        }
-
-        public String provider() {
-            return provider;
-        }
-
-        public String integrationName() {
-            return integrationName;
-        }
-    }
 }

@@ -15,8 +15,7 @@
  */
 package io.gravitee.rest.api.model.context;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import javax.annotation.Nullable;
 
 /**
  * Context explaining where an API comes from.
@@ -55,23 +54,14 @@ public sealed interface OriginContext {
         }
     }
 
-    @EqualsAndHashCode
-    @ToString
-    non-sealed class Integration implements OriginContext {
-
-        private final String integrationId;
+    record Integration(Origin origin, String integrationId, @Nullable String integrationName, @Nullable String provider)
+        implements OriginContext {
+        public Integration(String integrationId, String integrationName, String provider) {
+            this(Origin.INTEGRATION, integrationId, integrationName, provider);
+        }
 
         public Integration(String integrationId) {
-            this.integrationId = integrationId;
-        }
-
-        @Override
-        public Origin origin() {
-            return Origin.INTEGRATION;
-        }
-
-        public String integrationId() {
-            return integrationId;
+            this(Origin.INTEGRATION, integrationId, null, null);
         }
     }
 }
