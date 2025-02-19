@@ -40,6 +40,8 @@ public class SubscriptionEntity {
     private String planId;
     /** The application linked to the subscription */
     private String applicationId;
+    /** The application name linked to the subscription */
+    private String applicationName;
     /** The clientId linked to the subscription */
     private String clientId;
     /** The clientCertificate linked to the subscription */
