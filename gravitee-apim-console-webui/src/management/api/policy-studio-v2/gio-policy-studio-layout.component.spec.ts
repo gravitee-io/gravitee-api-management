@@ -81,9 +81,9 @@ describe('GioPolicyStudioLayoutComponent', () => {
     httpTestingController.expectOne(LICENSE_CONFIGURATION_TESTING.resourceURL);
 
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`).flush(api);
-    httpTestingController.expectOne(
-      `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/plans?page=1&perPage=9999&statuses=PUBLISHED,DEPRECATED`,
-    );
+    httpTestingController
+      .expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/plans?page=1&perPage=9999&statuses=PUBLISHED,DEPRECATED`)
+      .flush({ data: [] });
 
     fixture.detectChanges();
   });
