@@ -93,6 +93,8 @@ public class PlanHelper {
         subscription.setId(SUBSCRIPTION_ID);
         subscription.setPlan(planId);
         subscription.setApi(apiId);
+        subscription.setApplicationName("Application name");
+        subscription.setClientId(JWT_CLIENT_ID);
         if (isExpired) {
             subscription.setEndingAt(new Date(Instant.now().minus(1, HOURS).toEpochMilli()));
         }

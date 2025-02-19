@@ -1,0 +1,85 @@
+{
+    "id": "api-with-subscription-el",
+    "name": "api-with-subscription-el",
+    "gravitee": "4.0.0",
+    "type": "proxy",
+    "listeners": [
+        {
+            "type": "http",
+            "paths": [
+                {
+                    "path": "/test"
+                }
+            ],
+            "entrypoints": [
+                {
+                    "type": "http-proxy"
+                }
+            ]
+        }
+    ],
+    "endpointGroups": [
+        {
+            "name": "default-group",
+            "type": "http-proxy",
+            "endpoints": [
+                {
+                    "name": "default",
+                    "type": "http-proxy",
+                    "weight": 1,
+                    "inheritConfiguration": false,
+                    "configuration": {
+                        "target": "http://localhost:8080/endpoint"
+                    }
+                }
+            ]
+        }
+    ],
+    "flows": [
+        {
+            "name": "flow-1",
+            "enabled": true,
+            "selectors": [
+                {
+                    "type": "http",
+                    "path": "/",
+                    "pathOperator": "START_WITH",
+                    "methods": ["GET"]
+                }
+            ],
+            "request": [
+            ],
+            "response": [
+                {
+                    "name": "Transform Headers",
+                    "enabled": true,
+                    "policy": "transform-headers",
+                    "configuration": {
+                        "whitelistHeaders": [],
+                        "addHeaders": [
+                            {
+                                "name": "X-Expression-ClientId",
+                                "value": "{#subscription.clientId}"
+                            },
+                          {
+                            "name": "X-Expression-ApplicationName",
+                            "value": "{#subscription.applicationName}"
+                          },
+                          {
+                            "name": "X-Expression-Subscription",
+                            "value": "{#subscription.id}"
+                          }
+                        ],
+                        "scope": "REQUEST",
+                        "removeHeaders": []
+                    }
+                }
+            ]
+        }
+    ],
+    "properties": [
+    ],
+    "analytics": {
+        "enabled": false
+    }
+}
