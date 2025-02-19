@@ -80,7 +80,7 @@
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "rxjs": "7.8.1",
-    "swagger-ui": "5.17.9",
+    "swagger-ui": "5.19.0",
     "tinycolor2": "1.4.2",
     "unicode": "11.0.1",
     "v-accordion": "1.6.0",
@@ -156,6 +156,9 @@
     "test": "jest",
     "test:auto": "jest --watch",
     "test:coverage": "JEST_JUNIT_ADD_FILE_ATTRIBUTE=true JEST_JUNIT_OUTPUT_DIR=\"coverage\" node --max-old-space-size=10240 --expose-gc  ./node_modules/.bin/jest --ci --reporters=default --reporters=jest-junit  --maxWorkers=7 --collectCoverage=true --logHeapUsage"
+  },
+  "scarfSettings": {
+    "enabled": false
   },
   "packageManager": "yarn@4.1.1"
 }
