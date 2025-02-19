@@ -145,12 +145,12 @@ public class ApiModelFactory {
             .updatedAt(now)
             .environmentId(integration.getEnvironmentId())
             .lifecycleState(null)
-            .originContext(new OriginContext.Integration(integration.getId()))
+            .originContext(new OriginContext.Integration(integration.getId(), integration.getName(), integration.getProvider()))
             .federatedApiDefinition(integrationApi.toFederatedApiDefinitionBuilder().id(id).build())
             .build();
     }
 
-    public static Api fromIngestionJob(IntegrationApi integrationApi, AsyncJob job) {
+    public static Api fromIngestionJob(IntegrationApi integrationApi, AsyncJob job, Integration integration) {
         var id = generateFederatedApiId(integrationApi, job);
         var now = TimeProvider.now();
         var defaultVersion = "0.0.0";
@@ -166,7 +166,7 @@ public class ApiModelFactory {
             .updatedAt(now)
             .environmentId(job.getEnvironmentId())
             .lifecycleState(null)
-            .originContext(new OriginContext.Integration(job.getSourceId()))
+            .originContext(new OriginContext.Integration(job.getSourceId(), integration.getName(), integration.getProvider()))
             .federatedApiDefinition(integrationApi.toFederatedApiDefinitionBuilder().id(id).build())
             .build();
     }

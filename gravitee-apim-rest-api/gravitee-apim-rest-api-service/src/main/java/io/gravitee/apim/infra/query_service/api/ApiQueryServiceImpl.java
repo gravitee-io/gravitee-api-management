@@ -31,7 +31,6 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;

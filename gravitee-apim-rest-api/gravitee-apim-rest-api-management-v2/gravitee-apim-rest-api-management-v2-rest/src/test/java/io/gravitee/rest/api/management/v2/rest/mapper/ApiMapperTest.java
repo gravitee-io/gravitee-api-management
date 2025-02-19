@@ -27,7 +27,6 @@ import io.gravitee.rest.api.management.v2.rest.model.IntegrationOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.KubernetesOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.ManagementOriginContext;
 import io.gravitee.rest.api.model.context.OriginContext;
-import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import java.util.ArrayList;
@@ -159,7 +158,7 @@ public class ApiMapperTest {
                     new IntegrationOriginContext().integrationId("integID").origin(BaseOriginContext.OriginEnum.INTEGRATION)
                 ),
                 arguments(
-                    new FederatedApiEntity.OriginContextView(new OriginContext.Integration("integID"), "provider", "inte name"),
+                    new OriginContext.Integration("integID", "inte name", "provider"),
                     new IntegrationOriginContext()
                         .integrationId("integID")
                         .provider("provider")

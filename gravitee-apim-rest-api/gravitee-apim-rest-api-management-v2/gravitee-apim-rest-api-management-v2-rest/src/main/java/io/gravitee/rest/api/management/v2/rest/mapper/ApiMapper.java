@@ -388,10 +388,8 @@ public interface ApiMapper {
             var ctx = new IntegrationOriginContext();
             ctx.origin(BaseOriginContext.OriginEnum.INTEGRATION);
             ctx.integrationId(inte.integrationId());
-            if (inte instanceof FederatedApiEntity.OriginContextView view) {
-                ctx.provider(view.provider());
-                ctx.integrationName(view.integrationName());
-            }
+            ctx.integrationName(inte.integrationName());
+            ctx.provider(inte.provider());
             return ctx;
         }
         return null;

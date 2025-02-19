@@ -36,6 +36,8 @@ import io.gravitee.apim.core.api.model.import_definition.PageExport;
 import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
+import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
+import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.media.model.Media;
 import io.gravitee.apim.core.media.query_service.MediaQueryService;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
@@ -51,6 +53,7 @@ import io.gravitee.apim.infra.adapter.MemberAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.WorkflowState;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -59,6 +62,7 @@ import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedE
 import jakarta.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -80,6 +84,7 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
     private final ApiCrudService apiCrudService;
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final PlanCrudService planCrudService;
+    private final IntegrationCrudService integrationCrudService;
 
     @Override
     public GraviteeDefinition export(String apiId, AuditInfo auditInfo, Collection<Excludable> excluded) {
@@ -120,7 +125,10 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
             }
             case FEDERATED -> {
                 var plans = mapPlan(apiId, DEFINITION_ADAPTER::mapPlanFederated, excluded);
-                var api = DEFINITION_ADAPTER.mapFederated(api1, apiPrimaryOwner, workflowState, groups, metadata);
+                var integ = api1.getOriginContext() instanceof OriginContext.Integration ori && ori.integrationName() == null
+                    ? integrationCrudService.findById(ori.integrationId()).orElse(null)
+                    : null;
+                var api = DEFINITION_ADAPTER.mapFederated(api1, apiPrimaryOwner, workflowState, groups, metadata, integ);
                 yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
             }
         };

@@ -25,6 +25,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
+import inmemory.IntegrationCrudServiceInMemory;
 import inmemory.MediaQueryServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
@@ -97,6 +98,7 @@ class ExportApiUseCaseTest {
     MetadataCrudServiceInMemory metadataCrudService = new MetadataCrudServiceInMemory();
     PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
+    IntegrationCrudServiceInMemory integrationCrudService = new IntegrationCrudServiceInMemory();
 
     ApiExportDomainService apiExportDomainService;
 
@@ -127,7 +129,8 @@ class ExportApiUseCaseTest {
                 pageQueryService,
                 apiCrudService,
                 apiPrimaryOwnerDomainService,
-                planCrudService
+                planCrudService,
+                integrationCrudService
             );
         sut = new ExportApiUseCase(apiExportDomainService);
         roleQueryService.initWith(
@@ -171,7 +174,8 @@ class ExportApiUseCaseTest {
                 metadataCrudService,
                 pageQueryService,
                 apiCrudService,
-                planCrudService
+                planCrudService,
+                integrationCrudService
             )
             .forEach(InMemoryAlternative::reset);
     }
