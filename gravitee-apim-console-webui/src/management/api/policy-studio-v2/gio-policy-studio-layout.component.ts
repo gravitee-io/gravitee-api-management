@@ -51,6 +51,7 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
   ];
   apiDefinition: ApiDefinition;
   isDirty: boolean;
+  isSubmitting: boolean;
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -95,6 +96,11 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
+    if (this.isSubmitting) {
+      return;
+    }
+    this.isSubmitting = true;
+
     const updatePlans$ = this.apiPlanService
       .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED'], undefined, 1, 9999)
       .pipe(
@@ -129,10 +135,12 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
       .pipe(
         tap(() => {
           this.ngOnInit();
+          this.isSubmitting = false;
           this.snackBarService.success('Configuration successfully saved!');
         }),
         catchError(({ error }) => {
           this.snackBarService.error(error?.message ?? 'An error occurred while saving the configuration.');
+          this.isSubmitting = false;
           return EMPTY;
         }),
         takeUntil(this.unsubscribe$),
