@@ -64,7 +64,7 @@
     "redoc": "2.1.5",
     "resize-observer-polyfill": "1.5.1",
     "rxjs": "6.5.5",
-    "swagger-ui": "5.17.9",
+    "swagger-ui": "5.19.0",
     "tslib": "2.3.1",
     "url": "0.11.0",
     "zone.js": "0.14.2"
@@ -107,6 +107,9 @@
     "prettier": "2.8.4",
     "ts-node": "8.10.2",
     "typescript": "5.2.2"
+  },
+  "scarfSettings": {
+    "enabled": false
   },
   "packageManager": "yarn@4.1.1",
   "overrides": {
