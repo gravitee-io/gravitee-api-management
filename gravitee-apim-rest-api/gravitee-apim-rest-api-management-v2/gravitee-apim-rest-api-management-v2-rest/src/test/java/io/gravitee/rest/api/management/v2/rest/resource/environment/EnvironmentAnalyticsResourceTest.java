@@ -24,6 +24,7 @@ import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.ApplicationQueryServiceInMemory;
+import inmemory.InMemoryAlternative;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsOverPeriodResponse;
@@ -50,6 +51,7 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -64,10 +66,10 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
     private static final long TO = 1729068138L;
 
     @Inject
-    private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
+    ApiQueryServiceInMemory apiQueryService;
 
     @Inject
-    private final ApplicationQueryServiceInMemory applicationQueryService = new ApplicationQueryServiceInMemory();
+    ApplicationQueryServiceInMemory applicationQueryService;
 
     @Inject
     FakeAnalyticsQueryService analyticsQueryService;
@@ -91,8 +93,8 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @AfterEach
     void teardown() {
+        Stream.of(apiQueryService, applicationQueryService).forEach(InMemoryAlternative::reset);
         analyticsQueryService.reset();
-        apiQueryService.reset();
     }
 
     @Nested

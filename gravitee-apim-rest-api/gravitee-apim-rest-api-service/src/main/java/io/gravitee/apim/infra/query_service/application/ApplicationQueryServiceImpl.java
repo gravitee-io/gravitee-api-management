@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.infra.query_service.application;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+
 import io.gravitee.apim.core.application.query_service.ApplicationQueryService;
 import io.gravitee.apim.infra.adapter.ApplicationAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -42,9 +44,7 @@ public class ApplicationQueryServiceImpl extends AbstractService implements Appl
     @Override
     public Set<BaseApplicationEntity> findByEnvironment(String environmentId) {
         try {
-            return applicationRepository
-                .findAllByEnvironment(environmentId, ApplicationStatus.values())
-                .stream()
+            return stream(applicationRepository.findAllByEnvironment(environmentId, ApplicationStatus.values()))
                 .map(ApplicationAdapter.INSTANCE::toEntity)
                 .collect(Collectors.toSet());
         } catch (TechnicalException e) {

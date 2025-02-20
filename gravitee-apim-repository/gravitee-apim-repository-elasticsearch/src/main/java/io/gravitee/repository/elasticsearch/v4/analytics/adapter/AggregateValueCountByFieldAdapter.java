@@ -19,6 +19,7 @@ import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,25 +27,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class SearchTopAppsAdapter {
+public class AggregateValueCountByFieldAdapter {
 
-    public static final String APP_TOP_HITS_COUNT = "app_top_hits_count";
     public static final String FIELD = "field";
     public static final String HITS_COUNT = "hits_count";
-    public static final String APPLICATION_ID_FIELD = "application-id";
 
-    public static String adaptQuery(TopHitsQueryCriteria queryCriteria) {
+    public static String adaptQueryForFields(List<String> fields, TopHitsQueryCriteria queryCriteria) {
         var jsonContent = new HashMap<String, Object>();
 
         jsonContent.put("size", 0);
         jsonContent.put("query", buildQuery(queryCriteria));
-        jsonContent.put("aggs", buildAggregation());
+        jsonContent.put("aggs", buildAggregationsPerField(fields));
         return new JsonObject(jsonContent).encode();
     }
 
@@ -65,25 +61,36 @@ public class SearchTopAppsAdapter {
         return JsonObject.of("bool", JsonObject.of("filter", filterQuery));
     }
 
+    protected static JsonObject buildAggregationsPerField(List<String> fields) {
+        return fields.stream().reduce(JsonObject.of(), (a, b) -> a.mergeIn(buildAggregationForField(b)), JsonObject::mergeIn);
+    }
+
+    private static JsonObject buildAggregationForField(String field) {
+        return JsonObject.of(
+            "top_hits_count_" + field,
+            JsonObject.of(
+                "terms",
+                JsonObject.of(FIELD, field),
+                "aggs",
+                JsonObject.of(HITS_COUNT, JsonObject.of("value_count", JsonObject.of(FIELD, field)))
+            )
+        );
+    }
+
     private static JsonObject apiIdsFilterForQuery(List<String> apiIds) {
-        return JsonObject.of("terms", JsonObject.of("api-id", apiIds));
+        var terms = new ArrayList<JsonObject>();
+        terms.add(JsonObject.of("terms", JsonObject.of("api-id", apiIds)));
+        terms.add(JsonObject.of("terms", JsonObject.of("api", apiIds)));
+        return buildShould(terms);
+    }
+
+    private static JsonObject buildShould(List<JsonObject> terms) {
+        return JsonObject.of("bool", JsonObject.of("should", JsonArray.of(terms.toArray())));
     }
 
     private static JsonObject dateRangeFilterForQuery(Long from, Long to) {
         log.info("Top Hits Query: filtering date range from {} to {}", from, to);
         return JsonObject.of("range", JsonObject.of("@timestamp", JsonObject.of("gte", from, "lte", to)));
-    }
-
-    private static JsonObject buildAggregation() {
-        return JsonObject.of(
-            APP_TOP_HITS_COUNT,
-            JsonObject.of(
-                "terms",
-                JsonObject.of(FIELD, APPLICATION_ID_FIELD),
-                "aggs",
-                JsonObject.of(HITS_COUNT, JsonObject.of("value_count", JsonObject.of(FIELD, APPLICATION_ID_FIELD)))
-            )
-        );
     }
 
     public static Optional<TopHitsAggregate> adaptResponse(SearchResponse response) {
@@ -93,17 +100,19 @@ public class SearchTopAppsAdapter {
             return Optional.empty();
         }
 
-        final var topHitsAggregation = aggregations.get(APP_TOP_HITS_COUNT);
-        if (topHitsAggregation == null) {
-            return Optional.empty();
-        }
-
-        final Map<String, Long> result = topHitsAggregation
-            .getBuckets()
+        final var result = aggregations
+            .values()
             .stream()
+            .filter(aggregation -> aggregation.getBuckets() != null)
+            .flatMap(aggregation -> aggregation.getBuckets().stream())
             .collect(
-                Collectors.toMap(jsonNode -> jsonNode.get("key").asText(), jsonNode -> jsonNode.get(HITS_COUNT).get("value").asLong())
+                Collectors.toMap(
+                    jsonNode -> jsonNode.get("key").asText(),
+                    jsonNode -> jsonNode.get(HITS_COUNT).get("value").asLong(),
+                    Long::sum
+                )
             );
+
         return Optional.of(TopHitsAggregate.builder().topHitsCounts(result).build());
     }
 }
