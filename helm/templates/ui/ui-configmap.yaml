@@ -74,5 +74,8 @@ data:
       {{- if .Values.ui.scheduler }},
       "scheduler": {{ toJson .Values.ui.scheduler }}
       {{- end }}
+      {{- if .Values.portal.defaultPortal }},
+      "defaultPortal": "{{ .Values.portal.defaultPortal }}"
+      {{- end }}
     }
 {{- end -}}
