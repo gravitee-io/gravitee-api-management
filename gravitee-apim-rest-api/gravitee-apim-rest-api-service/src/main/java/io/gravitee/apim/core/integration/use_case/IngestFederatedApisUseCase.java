@@ -125,6 +125,8 @@ public class IngestFederatedApisUseCase {
                         environmentId,
                         new FederatedApisIngestionCompleteHookContext(job.getSourceId())
                     );
+                } else {
+                    asyncJobCrudService.delay(job.getId(), TimeProvider.now().plusMinutes(5));
                 }
             })
             .ignoreElement();

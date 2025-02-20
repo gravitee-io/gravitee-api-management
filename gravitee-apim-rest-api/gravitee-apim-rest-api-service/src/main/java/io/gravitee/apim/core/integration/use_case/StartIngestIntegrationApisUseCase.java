@@ -28,6 +28,7 @@ import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.reactivex.rxjava3.core.Single;
+import java.time.Duration;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -93,6 +94,7 @@ public class StartIngestIntegrationApisUseCase {
             .upperLimit(total)
             .createdAt(now)
             .updatedAt(now)
+            .deadLine(now.plus(Duration.ofMinutes(5)))
             .build();
     }
 
