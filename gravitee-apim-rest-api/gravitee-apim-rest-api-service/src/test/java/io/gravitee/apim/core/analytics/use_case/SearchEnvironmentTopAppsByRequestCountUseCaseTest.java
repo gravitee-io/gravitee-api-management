@@ -64,7 +64,7 @@ class SearchEnvironmentTopAppsByRequestCountUseCaseTest {
     }
 
     @Test
-    void should_get_environment_top_apps_by_request_count_for_v4_apis() {
+    void should_get_environment_top_apps_by_request_count_for_all_apis() {
         apiQueryService.initWith(
             List.of(
                 ApiFixtures.aMessageApiV4().toBuilder().id("message-api-v4-id").name("Message Api v4").build(),

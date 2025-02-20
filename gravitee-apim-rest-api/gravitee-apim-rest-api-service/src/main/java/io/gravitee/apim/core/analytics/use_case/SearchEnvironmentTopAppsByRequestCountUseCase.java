@@ -47,22 +47,26 @@ public class SearchEnvironmentTopAppsByRequestCountUseCase {
 
     public Output execute(Input input) {
         var envId = input.executionContext().getEnvironmentId();
-        var v4Apis = getAllV4ApisForEnv(envId);
-        var v4ApiIds = v4Apis.keySet().stream().toList();
+        var apis = getAllApisForEnv(envId);
+        var apisIds = apis.keySet().stream().toList();
 
-        log.info("Searching top Apps hits with v4 APIs for env: {}", envId);
+        log.info("Searching top Apps hits with all APIs for env: {}", envId);
 
         return analyticsQueryService
-            .searchTopHitsApps(input.executionContext(), input.parameters().withApiIds(v4ApiIds))
+            .searchTopHitsApps(input.executionContext(), input.parameters().withApiIds(apisIds))
             .map(topHitsApps -> sortByCountAndUpdateTopHitsWithAppNames(envId, topHitsApps))
             .map(Output::new)
             .orElse(new Output(TopHitsApps.builder().data(List.of()).build()));
     }
 
-    private Map<String, Api> getAllV4ApisForEnv(String envId) {
+    private Map<String, Api> getAllApisForEnv(String envId) {
         return apiQueryService
             .search(
-                ApiSearchCriteria.builder().environmentId(envId).definitionVersion(List.of(DefinitionVersion.V4)).build(),
+                ApiSearchCriteria
+                    .builder()
+                    .environmentId(envId)
+                    .definitionVersion(List.of(DefinitionVersion.V4, DefinitionVersion.V2, DefinitionVersion.V1))
+                    .build(),
                 null,
                 ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
             )
