@@ -15,18 +15,29 @@
     limitations under the License.
 
 -->
-<div class="title">
-  <h1>API Quality</h1>
-</div>
+<h2 class="title">API Quality</h2>
 
 <form *ngIf="apiQualityRulesForm" [formGroup]="apiQualityRulesForm" autocomplete="off">
   <mat-card class="api-quality-rules__form__card">
+    <mat-card-header>
+      <mat-card-title class="mat-h5">API Score</mat-card-title>
+      <mat-card-subtitle>Ensure that your APIs match your organization's security, documentation, and design standards.</mat-card-subtitle>
+    </mat-card-header>
+    <div class="separator-hr"></div>
     <mat-card-content>
-      <gio-form-slide-toggle formGroupName="apiScore" class="api-quality-rules__form__card__form-field">
+      <gio-banner-info>
+        This tech preview feature is new! We're gathering feedback on it to make it even better, so it may change as we make improvements.
+      </gio-banner-info>
+      <gio-form-slide-toggle formGroupName="apiScore">
         <mat-icon *ngIf="isReadonly('api.score.enabled')" gioFormPrefix>lock</mat-icon>
         <gio-form-label>Enable API Score</gio-form-label>
         <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Enable API Score"></mat-slide-toggle>
       </gio-form-slide-toggle>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="api-quality-rules__form__card">
+    <mat-card-content>
       <gio-form-slide-toggle
         [matTooltip]="'Configuration provided by the system'"
         [matTooltipDisabled]="!isReadonly('api.review.enabled')"
@@ -135,8 +146,9 @@
 </form>
 
 <mat-card>
-  <div class="title">
-    <h3>Manual rules</h3>
+  <mat-card-header class="mat-card-header">
+    <mat-card-title>Manual rules</mat-card-title>
+
     <button
       *gioPermission="{ anyOf: ['environment-quality_rule-c'] }"
       mat-raised-button
@@ -147,7 +159,8 @@
       <mat-icon>add</mat-icon>
       Add new quality rule
     </button>
-  </div>
+  </mat-card-header>
+
   <gio-table-wrapper
     [filters]="initialFilters"
     [length]="qualityRulesUnpaginatedLength"
@@ -228,4 +241,5 @@
     </table>
   </gio-table-wrapper>
 </mat-card>
+
 <gio-save-bar [form]="apiQualityRulesForm" [formInitialValues]="formInitialValues" (submitted)="onSubmit()"></gio-save-bar>

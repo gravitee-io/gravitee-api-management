@@ -15,7 +15,7 @@
  */
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { GioFormSlideToggleModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormSlideToggleModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSortModule } from '@angular/material/sort';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -56,6 +56,7 @@ import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrap
     MatTableModule,
     MatTooltipModule,
     MatSnackBarModule,
+    GioBannerModule,
   ],
   declarations: [ApiQualityRulesComponent, ApiQualityRulesAddDialogComponent],
   exports: [ApiQualityRulesComponent, ApiQualityRulesAddDialogComponent],

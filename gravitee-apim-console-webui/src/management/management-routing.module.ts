@@ -31,6 +31,7 @@ import { UserComponent } from '../user/my-accout/user.component';
 import { ApimFeature } from '../shared/components/gio-license/gio-license-data';
 import { HasLicenseGuard } from '../shared/components/gio-license/has-license.guard';
 import { PermissionGuard } from '../shared/components/gio-permission/gio-permission.guard';
+import { ApiScoringGuard } from '../shared/guards/api-scoring.guard';
 
 const managementRoutes: Routes = [
   {
@@ -99,6 +100,7 @@ const managementRoutes: Routes = [
       {
         path: 'api-score',
         loadChildren: () => import('./api-score/api-score.module').then((m) => m.ApiScoreModule),
+        canActivate: [ApiScoringGuard],
         data: {
           permissions: {
             anyOf: ['environment-integration-r'],

@@ -18,7 +18,7 @@ $foreground: map.get(gio.$mat-theme, foreground);
 
   &__form {
     &__card {
-      margin-bottom: 16px;
+      margin-bottom: 24px;
 
       &__form-field {
         width: 100%;
@@ -36,12 +36,18 @@ $foreground: map.get(gio.$mat-theme, foreground);
 }
 
 .title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 16px;
+  margin-bottom: 24px;
+}
 
-  h3 {
-    margin-bottom: 0;
-  }
+.separator-hr {
+  background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+  margin-top: 16px;
+  margin-bottom: 10px;
+  height: 1px;
+}
+
+.mat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }

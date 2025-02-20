@@ -101,6 +101,7 @@ import { ApimFeature } from '../../shared/components/gio-license/gio-license-dat
 import { HasLicenseGuard } from '../../shared/components/gio-license/has-license.guard';
 import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
 import { RuntimeAlertCreateComponent } from '../../components/runtime-alerts';
+import { ApiScoringGuard } from '../../shared/guards/api-scoring.guard';
 
 const apisRoutes: Routes = [
   {
@@ -300,6 +301,7 @@ const apisRoutes: Routes = [
       {
         path: 'api-score',
         component: ApiScoringComponent,
+        canActivate: [ApiScoringGuard],
       },
       {
         path: 'metadata',
