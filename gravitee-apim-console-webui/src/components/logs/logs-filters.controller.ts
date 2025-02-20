@@ -29,6 +29,7 @@ class LogsFiltersController {
   public filters: any = {
     api: [],
     application: [],
+    status: [],
   };
 
   public methods = {
@@ -230,7 +231,7 @@ class LogsFiltersController {
   }
 
   private decodeQueryFilters(query) {
-    const filters = query.split('AND');
+    const filters = query.includes('status:') ? query.split('OR') : query.split('AND');
     for (let i = 0; i < filters.length; i++) {
       const filter = filters[i].replace(/[()]/g, '');
       const k = filter.split(':')[0].trim();
@@ -267,7 +268,7 @@ class LogsFiltersController {
           this.filters.method = v;
           break;
         case 'status':
-          this.filters.status = v;
+          this.filters.status.push(v);
           break;
         case '_id':
           this.filters.id = v[0];
