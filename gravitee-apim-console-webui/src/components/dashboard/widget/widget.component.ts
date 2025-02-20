@@ -105,9 +105,15 @@ const WidgetComponent: ng.IComponentOptions = {
           }
 
           chartRequest.query = [
-            // Specific initial query or empty string
             chartRequest.query,
-            filters.map((f) => `(${f}:${queryFilters[f].map((qp) => this.AnalyticsService.buildQueryParam(qp, f)).join(' OR ')})`),
+            filters.map((f) => {
+              const formattedParams = queryFilters[f].map((qp) => {
+                const formattedValue = this.AnalyticsService.buildQueryParam(qp, f);
+                return `${f}:${formattedValue}`;
+              });
+              const joinedParams = formattedParams.join(' OR ');
+              return `(${joinedParams})`;
+            }),
           ]
             .reduce((acc, val) => acc.concat(val), [])
             .filter((part) => part)
