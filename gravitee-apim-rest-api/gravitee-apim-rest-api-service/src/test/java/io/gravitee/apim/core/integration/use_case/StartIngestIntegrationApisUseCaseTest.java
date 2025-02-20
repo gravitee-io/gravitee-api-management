@@ -38,6 +38,7 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
@@ -126,9 +127,13 @@ class StartIngestIntegrationApisUseCaseTest {
                     .upperLimit(10L)
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                    .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofMinutes(5)))
                     .build()
             );
     }
+
+    //2023-10-22T12:15:30+02:00[Europe/Paris]
+    //2023-10-22T12:20:30+02:00[Europe/Paris]
 
     @Test
     void should_return_done_status_when_no_job_has_started_because_no_apis_to_ingest() {

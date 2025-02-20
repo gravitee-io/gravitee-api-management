@@ -44,12 +44,12 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.model.ApisIngest;
+import io.gravitee.rest.api.management.v2.rest.model.AsyncJobStatus;
 import io.gravitee.rest.api.management.v2.rest.model.DeletedIngestedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApi;
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionPreviewResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionPreviewResponseApisInner;
-import io.gravitee.rest.api.management.v2.rest.model.IngestionStatus;
 import io.gravitee.rest.api.management.v2.rest.model.Integration;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationIngestionResponse;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
@@ -214,7 +214,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                             io.gravitee.rest.api.management.v2.rest.model.IngestionJob
                                 .builder()
                                 .id(job.getId())
-                                .status(IngestionStatus.PENDING)
+                                .status(AsyncJobStatus.PENDING)
                                 .build()
                         )
                         .groups(List.of())
@@ -302,7 +302,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(IntegrationIngestionResponse.class)
-                .isEqualTo(IntegrationIngestionResponse.builder().status(IngestionStatus.PENDING).build());
+                .isEqualTo(IntegrationIngestionResponse.builder().status(AsyncJobStatus.PENDING).build());
         }
     }
 
