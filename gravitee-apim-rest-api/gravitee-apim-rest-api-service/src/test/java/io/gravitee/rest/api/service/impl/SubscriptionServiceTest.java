@@ -205,6 +205,9 @@ public class SubscriptionServiceTest {
     private ApiModel apiModelEntity;
 
     @Mock
+    PrimaryOwnerEntity primaryOwnerEntity;
+
+    @Mock
     private AuditService auditService;
 
     @Mock
@@ -1547,6 +1550,8 @@ public class SubscriptionServiceTest {
         when(apiEntity.getId()).thenReturn(API_ID);
         when(apiSearchService.findGenericByEnvironmentAndIdIn(GraviteeContext.getExecutionContext(), Set.of(API_ID)))
             .thenReturn(Set.of(apiEntity));
+        when(apiEntity.getPrimaryOwner()).thenReturn(primaryOwnerEntity);
+        when(primaryOwnerEntity.getDisplayName()).thenReturn("Primary Owner Display Name");
         final SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setId(SUBSCRIPTION_ID);
         subscriptionEntity.setApplication(APPLICATION_ID);
@@ -1609,6 +1614,8 @@ public class SubscriptionServiceTest {
         when(apiEntity.getId()).thenReturn(API_ID);
         when(apiSearchService.findGenericByEnvironmentAndIdIn(GraviteeContext.getExecutionContext(), Set.of(API_ID)))
             .thenReturn(Set.of(apiEntity));
+        when(apiEntity.getPrimaryOwner()).thenReturn(primaryOwnerEntity);
+        when(primaryOwnerEntity.getDisplayName()).thenReturn("Primary Owner Display Name");
         final SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setId(SUBSCRIPTION_ID);
         subscriptionEntity.setApplication(APPLICATION_ID);
