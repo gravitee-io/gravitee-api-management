@@ -38,7 +38,6 @@ import {
   Api,
   ConnectorPlugin,
   fakeApiFederated,
-  fakeApiV2,
   fakeApiV4,
   fakePlanFederated,
   fakePlanV2,
@@ -140,7 +139,6 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
     tick(800);
     expectApplicationGetRequest(app);
     expectSubscriptionsGetRequest([API_KEY_SUBSCRIPTION]);
-    expectApiGetRequest(fakeApiV2({ id: ANOTHER_API_ID }));
 
     // open subscription's creation dialog
     await harness.createSubscription();
@@ -418,15 +416,6 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
       })
       .flush(fakePagedResult(subscriptions));
     fixture.detectChanges();
-  };
-
-  const expectApiGetRequest = (api: Api) => {
-    httpTestingController
-      .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
-        method: 'GET',
-      })
-      .flush(api);
   };
 
   const expectApplicationGetRequest = (application: Application) => {
