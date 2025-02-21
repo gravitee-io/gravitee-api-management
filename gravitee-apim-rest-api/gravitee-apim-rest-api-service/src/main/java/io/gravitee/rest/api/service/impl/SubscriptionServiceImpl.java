@@ -1609,6 +1609,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             metadata.put(api.getId(), "name", api.getName());
             metadata.put(api.getId(), "definitionVersion", api.getDefinitionVersion());
             metadata.put(api.getId(), "apiVersion", api.getApiVersion());
+            metadata.put(api.getId(), "apiPrimaryOwner", api.getPrimaryOwner().getDisplayName());
             if (query.hasDetails()) {
                 metadata.put(api.getId(), "state", api.getLifecycleState());
                 metadata.put(api.getId(), "version", api.getApiVersion());
