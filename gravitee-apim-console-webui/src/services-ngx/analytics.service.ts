@@ -25,7 +25,7 @@ import {
   AnalyticsGroupByResponse,
   AnalyticsStatsResponse,
   AnalyticsV4StatsResponse,
-  AnalyticsV4TopApisResponse,
+  AnalyticsTopApisResponse,
 } from '../entities/analytics/analyticsResponse';
 import { AnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
 import { GioChartLineData, GioChartLineOptions } from '../shared/components/gio-chart-line/gio-chart-line.component';
@@ -120,9 +120,9 @@ export class AnalyticsService {
     return this.http.get<AnalyticsResponseStatusRanges>(url);
   }
 
-  getV4TopApis(from: number, to: number): Observable<AnalyticsV4TopApisResponse> {
+  getTopApis(from: number, to: number): Observable<AnalyticsTopApisResponse> {
     const url = `${this.constants.env.v2BaseURL}/analytics/top-hits?from=${from}&to=${to}`;
-    return this.http.get<AnalyticsV4TopApisResponse>(url);
+    return this.http.get<AnalyticsTopApisResponse>(url);
   }
 
   getV4RequestResponseStats(from: number, to: number): Observable<AnalyticsV4StatsResponse> {

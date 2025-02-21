@@ -53,6 +53,11 @@
       </mat-card-content>
     </mat-card>
   </div>
+  <div class="row">
+    <div class="row-cards">
+      <app-top-apis-widget [data]="topApis" [period]="this.timeRangeParams"></app-top-apis-widget>
+    </div>
+  </div>
 
   <div class="row">
     <h2 class="row-title">V2 APIs</h2>
@@ -70,8 +75,8 @@
           Top APIs
           <mat-icon class="card__header__tooltip" svgIcon="gio:info" matTooltip="Ordered by API calls"></mat-icon>
         </div>
-        <ng-container *ngIf="topApis; else loader">
-          <gio-top-apis-table [data]="topApis"></gio-top-apis-table>
+        <ng-container *ngIf="topApisV2; else loader">
+          <gio-top-apis-table [data]="topApisV2"></gio-top-apis-table>
         </ng-container>
       </mat-card>
       <mat-card class="card">
@@ -106,7 +111,6 @@
         title="API Response Status"
         [responseStatusRanges]="v4ApiAnalyticsResponseStatusRanges"
       ></api-analytics-response-status-ranges>
-      <app-top-apis-widget [data]="topApisV4" [period]="this.timeRangeParams"></app-top-apis-widget>
       <dashboard-v4-api-request-stats [data]="requestStatsV4"></dashboard-v4-api-request-stats>
     </div>
   </div>

@@ -19,7 +19,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { BrowserAnimationsModule, NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 
-import { TopApisWidgetComponent } from './top-apis-widget.component';
+import { DefinitionVersion, TopApisWidgetComponent } from './top-apis-widget.component';
 import { TopApisWidgetHarness } from './top-apis-widget.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../testing';
@@ -57,16 +57,19 @@ describe('TopApisWidgetComponent', () => {
         id: '7c316e07-7661-406b-b16e-077661f06b73',
         name: 'John Doe',
         count: 10000,
+        definitionVersion: DefinitionVersion.V2,
       },
       {
         id: '7c316e07-7661-406b-b16e-077661f06b73',
         name: 'APIs s',
         count: 2000,
+        definitionVersion: DefinitionVersion.V4,
       },
       {
         id: '7c316e07-7661-406b-b16e-077661f06b73',
         name: 'APIs sd2',
         count: 1500,
+        definitionVersion: DefinitionVersion.V4,
       },
     ];
 

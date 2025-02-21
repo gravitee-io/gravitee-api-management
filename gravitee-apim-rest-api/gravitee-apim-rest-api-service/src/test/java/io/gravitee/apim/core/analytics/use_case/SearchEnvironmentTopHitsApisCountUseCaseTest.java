@@ -24,6 +24,7 @@ import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiQueryServiceInMemory;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
@@ -79,7 +80,8 @@ class SearchEnvironmentTopHitsApisCountUseCaseTest {
                         .data(
                             List.of(
                                 TopHitsApis.TopHitApi.builder().id("message-api-v4-id").count(17L).build(),
-                                TopHitsApis.TopHitApi.builder().id("proxy-api-v4-id").count(3L).build()
+                                TopHitsApis.TopHitApi.builder().id("proxy-api-v4-id").count(3L).build(),
+                                TopHitsApis.TopHitApi.builder().id("proxy-api-v2-id").count(7L).build()
                             )
                         )
                         .build()
@@ -92,8 +94,27 @@ class SearchEnvironmentTopHitsApisCountUseCaseTest {
             .extracting(TopHitsApis::getData)
             .isEqualTo(
                 List.of(
-                    TopHitsApis.TopHitApi.builder().id("message-api-v4-id").name("Message Api v4").count(17L).build(),
-                    TopHitsApis.TopHitApi.builder().id("proxy-api-v4-id").name("Proxy Api v4").count(3L).build()
+                    TopHitsApis.TopHitApi
+                        .builder()
+                        .id("message-api-v4-id")
+                        .name("Message Api v4")
+                        .count(17L)
+                        .definitionVersion(DefinitionVersion.V4)
+                        .build(),
+                    TopHitsApis.TopHitApi
+                        .builder()
+                        .id("proxy-api-v2-id")
+                        .name("Proxy Api v2")
+                        .definitionVersion(DefinitionVersion.V2)
+                        .count(7L)
+                        .build(),
+                    TopHitsApis.TopHitApi
+                        .builder()
+                        .id("proxy-api-v4-id")
+                        .name("Proxy Api v4")
+                        .definitionVersion(DefinitionVersion.V4)
+                        .count(3L)
+                        .build()
                 )
             );
     }
@@ -124,7 +145,17 @@ class SearchEnvironmentTopHitsApisCountUseCaseTest {
 
         assertThat(result)
             .extracting(TopHitsApis::getData)
-            .isEqualTo(List.of(TopHitsApis.TopHitApi.builder().id("message-api-v4-id").name("Message Api v4").count(17L).build()));
+            .isEqualTo(
+                List.of(
+                    TopHitsApis.TopHitApi
+                        .builder()
+                        .id("message-api-v4-id")
+                        .name("Message Api v4")
+                        .count(17L)
+                        .definitionVersion(DefinitionVersion.V4)
+                        .build()
+                )
+            );
     }
 
     @Test
