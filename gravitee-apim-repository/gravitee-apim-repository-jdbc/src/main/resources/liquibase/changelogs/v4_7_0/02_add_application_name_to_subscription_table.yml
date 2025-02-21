@@ -10,8 +10,7 @@ databaseChangeLog:
                   name: application_name
                   type: nvarchar(512)
                   constraints:
-                    nullable: false
-                    defaultValue: '!NOT_SYNCED!'
+                    nullable: true
         - sql:
             sql: >
               UPDATE ${gravitee_prefix}subscriptions s
@@ -21,3 +20,7 @@ databaseChangeLog:
                 WHERE a.id = s.application
               )
               WHERE s.application IS NOT NULL;
+        - addNotNullConstraint:
+            tableName: ${gravitee_prefix}subscriptions
+            columnName: application_name
+            columnDataType: nvarchar(512)
