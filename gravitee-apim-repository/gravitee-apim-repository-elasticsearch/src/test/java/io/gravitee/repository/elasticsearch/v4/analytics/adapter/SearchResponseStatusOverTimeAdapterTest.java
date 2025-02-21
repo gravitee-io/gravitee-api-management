@@ -17,17 +17,26 @@ package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.elasticsearch.version.Version;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.List;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class SearchResponseStatusOverTimeAdapterTest {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private SearchResponseStatusOverTimeAdapter cut = new SearchResponseStatusOverTimeAdapter();
 
@@ -132,6 +141,19 @@ class SearchResponseStatusOverTimeAdapterTest {
                                    "size": 0
                                  }"""
                 );
+        }
+    }
+
+    @Nested
+    class AdaptResponse {
+
+        @Test
+        @SneakyThrows
+        public void handle_null_aggregation_response() {
+            var searchResponse = new SearchResponse();
+            var result = cut.adaptResponse(searchResponse);
+
+            assertThatJson(result).isEqualTo(new ResponseStatusOverTimeAggregate(new HashMap<>()));
         }
     }
 
