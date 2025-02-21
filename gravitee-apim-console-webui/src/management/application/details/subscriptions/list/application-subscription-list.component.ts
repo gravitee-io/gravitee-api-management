@@ -40,7 +40,7 @@ type SubscriptionsTableDS = {
   securityType: string;
   isSharedApiKey: boolean;
   apiName: string;
-  apiPo$: Observable<string>;
+  apiPo: string;
   createdAt: Date;
   processedAt: Date;
   startingAt: Date;
@@ -192,10 +192,7 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
           return {
             id: subscription.id,
             apiName: apiMetadata['name'] ? `${apiMetadata['name']} - ${apiMetadata['apiVersion']}` : subscription.api,
-            apiPo$: this.apiService.get(subscription.api).pipe(
-              map((api) => api.primaryOwner?.displayName),
-              catchError(() => of("Unknown API's owner")),
-            ),
+            apiPo: apiMetadata['apiPrimaryOwner'] ?? 'Unknown API owner',
             createdAt: subscription.created_at,
             endAt: subscription.ending_at,
             planName: planMetadata['name'] ?? subscription.plan,
