@@ -2,7 +2,7 @@
   {
     "id": "subscription1",
     "api": "api1",
-    "environmentId" : "DEFAULT",
+    "environmentId": "DEFAULT",
     "plan": "plan2",
     "application": "b9651828-7620-446e-a518-287620d46ea3",
     "status": "ACCEPTED",
@@ -10,12 +10,13 @@
     "processedAt": 1645192111324,
     "startingAt": 1645192111324,
     "createdAt": 1645192111324,
-    "updatedAt": 1645192111324
+    "updatedAt": 1645192111324,
+    "applicationName": "unknown"
   },
   {
     "id": "subscription2",
     "api": "api2",
-    "environmentId" : "DEFAULT",
+    "environmentId": "DEFAULT",
     "plan": "plan3",
     "application": "b9651828-7620-446e-a518-287620d46ea3",
     "status": "ACCEPTED",
@@ -23,12 +24,13 @@
     "processedAt": 1645192111324,
     "startingAt": 1645192111324,
     "createdAt": 1645192111324,
-    "updatedAt": 1645192111324
+    "updatedAt": 1645192111324,
+    "applicationName": "unknown"
   },
   {
     "id": "sub1",
     "api": "api2",
-    "environmentId" : "DEFAULT",
+    "environmentId": "DEFAULT",
     "plan": "plan4",
     "application": "app1",
     "status": "ACCEPTED",
@@ -36,12 +38,13 @@
     "processedAt": 1645192110345,
     "startingAt": 1645192110345,
     "createdAt": 1645192110345,
-    "updatedAt": 1645192110345
+    "updatedAt": 1645192110345,
+    "applicationName": "unknown"
   },
   {
     "id": "sub2",
     "api": "api2",
-    "environmentId" : "DEFAULT",
+    "environmentId": "DEFAULT",
     "plan": "plan4",
     "application": "app2",
     "status": "ACCEPTED",
@@ -49,65 +52,69 @@
     "processedAt": 1645192110345,
     "startingAt": 1645192110345,
     "createdAt": 1645192110345,
-    "updatedAt": 1645192110345
+    "updatedAt": 1645192110345,
+    "applicationName": "unknown"
   },
   {
     "id": "sub3",
     "plan": "plan1",
     "api": "api2",
-    "environmentId" : "DEFAULT",
+    "environmentId": "DEFAULT",
     "application": "app1",
     "status": "ACCEPTED",
     "consumerStatus": "STARTED",
     "processedAt": 1645192110345,
     "startingAt": 1645192110345,
     "createdAt": 1645192110345,
-    "updatedAt": 1645192110345
+    "updatedAt": 1645192110345,
+    "applicationName": "unknown"
   },
   {
     "id": "sub4",
     "plan": "plan4",
     "api": "api4",
-    "environmentId" : "DEFAULT",
+    "environmentId": "DEFAULT",
     "application": "app4",
     "status": "ACCEPTED",
     "consumerStatus": "STARTED",
     "processedAt": 1645192110345,
     "startingAt": 1645192110345,
     "createdAt": 1645192110345,
-    "updatedAt": 1645192110345
+    "updatedAt": 1645192110345,
+    "applicationName": "unknown"
   },
   {
     "id": "sub5",
     "plan": "plan5",
     "api": "api5",
-    "environmentId" : "DEFAULT",
+    "environmentId": "DEFAULT",
     "application": "app4",
     "status": "ACCEPTED",
     "consumerStatus": "STARTED",
     "processedAt": 1645192110345,
     "startingAt": 1645192110345,
     "createdAt": 1645192110345,
-    "updatedAt": 1645192110345
+    "updatedAt": 1645192110345,
+    "applicationName": "unknown"
   },
   {
     "id": "sub6",
     "plan": "plan6",
     "api": "api6",
-    "environmentId" : "DEFAULT",
+    "environmentId": "DEFAULT",
     "application": "app4",
     "status": "ACCEPTED",
     "consumerStatus": "STARTED",
     "processedAt": 1645192110345,
     "startingAt": 1645192110345,
     "createdAt": 1645192110345,
-    "updatedAt": 1645192110345
+    "updatedAt": 1645192110345,
+    "applicationName": "unknown"
   },
-
   {
     "id": "sub7",
     "api": "api7",
-    "environmentId" : "env7",
+    "environmentId": "env7",
     "plan": "plan7",
     "application": "app7",
     "status": "ACCEPTED",
@@ -115,12 +122,13 @@
     "processedAt": 1645192111324,
     "startingAt": 1645192111324,
     "createdAt": 1645192111324,
-    "updatedAt": 1645192111324
+    "updatedAt": 1645192111324,
+    "applicationName": "app7"
   },
   {
     "id": "sub8",
     "api": "api8",
-    "environmentId" : "env8",
+    "environmentId": "env8",
     "plan": "plan8",
     "application": "app8",
     "status": "ACCEPTED",
@@ -128,6 +136,7 @@
     "processedAt": 1645192111324,
     "startingAt": 1645192111324,
     "createdAt": 1645192111324,
-    "updatedAt": 1645192111324
+    "updatedAt": 1645192111324,
+    "applicationName": "app8"
   }
 ]

@@ -43,7 +43,6 @@ import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomai
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Origin;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -525,6 +524,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setPlan(plan);
             subscription.setId(customId == null ? UuidString.generateRandom() : customId);
             subscription.setApplication(application);
+            subscription.setApplicationName(applicationEntity.getName());
             subscription.setEnvironmentId(executionContext.getEnvironmentId());
             subscription.setCreatedAt(new Date());
             subscription.setUpdatedAt(subscription.getCreatedAt());

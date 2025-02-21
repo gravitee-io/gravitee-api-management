@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.sync.process.local.mapper;
+package io.gravitee.gateway.services.sync.process.common.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.api.service.Subscription;
@@ -32,6 +32,7 @@ public class SubscriptionMapper {
             Subscription subscription = new Subscription();
             subscription.setApi(subscriptionModel.getApi());
             subscription.setApplication(subscriptionModel.getApplication());
+            subscription.setApplicationName(subscriptionModel.getApplicationName());
             subscription.setClientId(subscriptionModel.getClientId());
             subscription.setClientCertificate(subscriptionModel.getClientCertificate());
             subscription.setStartingAt(subscriptionModel.getStartingAt());

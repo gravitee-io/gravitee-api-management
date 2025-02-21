@@ -17,11 +17,11 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.subscr
 
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.SubscriptionDeployer;
+import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.SubscriptionFetcher;
-import io.gravitee.gateway.services.sync.process.repository.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.repository.management.model.Subscription;
 import io.reactivex.rxjava3.core.Completable;

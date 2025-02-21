@@ -62,6 +62,11 @@ public class SubscriptionMongo extends Auditable {
     private String application;
 
     /**
+     * The application name linked to the subscription
+     */
+    private String applicationName;
+
+    /**
      * The clientId linked to the subscription
      */
     private String clientId;

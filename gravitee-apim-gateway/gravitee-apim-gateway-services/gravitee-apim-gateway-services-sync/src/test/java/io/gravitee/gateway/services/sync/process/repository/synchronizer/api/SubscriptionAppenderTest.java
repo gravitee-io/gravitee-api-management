@@ -27,7 +27,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.reactor.ReactableApi;
-import io.gravitee.gateway.services.sync.process.repository.mapper.SubscriptionMapper;
+import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import java.util.List;

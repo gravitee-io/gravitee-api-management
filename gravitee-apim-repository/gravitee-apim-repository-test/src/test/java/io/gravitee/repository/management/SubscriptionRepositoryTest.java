@@ -39,7 +39,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.junit.Test;
 
 /**
@@ -61,10 +60,11 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
         assertEquals("Subscriptions size", 1, subscriptions.size());
-        final Subscription subscription = subscriptions.iterator().next();
+        final Subscription subscription = subscriptions.getFirst();
         assertEquals("Subscription id", "sub1", subscription.getId());
         assertEquals("Subscription plan", "plan1", subscription.getPlan());
         assertEquals("Subscription application", "app1", subscription.getApplication());
+        assertEquals("Subscription application name", "app1 name", subscription.getApplicationName());
         assertEquals("Subscription api", "api1", subscription.getApi());
         assertEquals("Subscription reason", "reason", subscription.getReason());
         assertEquals("Subscription request", "request", subscription.getRequest());
@@ -201,7 +201,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     public void shouldFindByIdIn_withUnknownId() throws TechnicalException {
         List<Subscription> subscriptions = subscriptionRepository.findByIdIn(Set.of("sub1", "unknown-id"));
         assertEquals(1, subscriptions.size());
-        Subscription subscription = subscriptions.iterator().next();
+        Subscription subscription = subscriptions.getFirst();
         assertEquals("Subscription id", "sub1", subscription.getId());
         assertEquals("Subscription plan", "plan1", subscription.getPlan());
         assertEquals("Subscription application", "app1", subscription.getApplication());
@@ -224,10 +224,10 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldUpdate() throws TechnicalException {
-        Optional<Subscription> subscription = this.subscriptionRepository.findById("sub1");
-        subscription.get().setUpdatedAt(new Date(1000000000000L));
+        var subscription = this.subscriptionRepository.findById("sub1").orElseThrow();
+        subscription.setUpdatedAt(new Date(1000000000000L));
 
-        Subscription update = this.subscriptionRepository.update(subscription.get());
+        Subscription update = this.subscriptionRepository.update(subscription);
 
         assertNotNull(update);
         assertTrue(compareDate(update.getUpdatedAt(), new Date(1000000000000L)));
@@ -264,7 +264,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
         assertEquals("Subscriptions size", 1, subscriptions.size());
-        assertEquals("Subscription id", "sub1", subscriptions.iterator().next().getId());
+        assertEquals("Subscription id", "sub1", subscriptions.getFirst().getId());
     }
 
     @Test
@@ -282,7 +282,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder().to(1569022010883L).build());
 
         assertEquals("Subscriptions size", 1, subscriptions.size());
-        assertEquals("Subscription id", "sub1", subscriptions.iterator().next().getId());
+        assertEquals("Subscription id", "sub1", subscriptions.getFirst().getId());
     }
 
     @Test
@@ -323,7 +323,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
                 );
 
         assertEquals("Subscriptions size", 1, subscriptions.size());
-        assertEquals("Subscription id", "sub1", subscriptions.iterator().next().getId());
+        assertEquals("Subscription id", "sub1", subscriptions.getFirst().getId());
     }
 
     @Test
@@ -332,7 +332,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
             this.subscriptionRepository.search(SubscriptionCriteria.builder().endingAtAfter(1449022010880L).build());
 
         assertEquals("Subscriptions size", 1, subscriptions.size());
-        assertEquals("Subscription id", "sub1", subscriptions.iterator().next().getId());
+        assertEquals("Subscription id", "sub1", subscriptions.getFirst().getId());
     }
 
     @Test
@@ -347,7 +347,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
             "Subscription id",
             List
                 .of("sub3", "sub2", "sub5", "sub4", "sub1", "sub6", "sub7", "sub8")
-                .containsAll(subscriptions.stream().map(Subscription::getId).collect(Collectors.toList()))
+                .containsAll(subscriptions.stream().map(Subscription::getId).toList())
         );
     }
 
@@ -357,7 +357,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
             this.subscriptionRepository.search(SubscriptionCriteria.builder().endingAtBefore(1569022010883L).build());
 
         assertEquals("Subscriptions size", 1, subscriptions.size());
-        assertEquals("Subscription id", "sub1", subscriptions.iterator().next().getId());
+        assertEquals("Subscription id", "sub1", subscriptions.getFirst().getId());
     }
 
     @Test
@@ -372,7 +372,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
             "Subscription id",
             List
                 .of("sub3", "sub2", "sub5", "sub4", "sub1", "sub6", "sub7", "sub8")
-                .containsAll(subscriptions.stream().map(Subscription::getId).collect(Collectors.toList()))
+                .containsAll(subscriptions.stream().map(Subscription::getId).toList())
         );
     }
 

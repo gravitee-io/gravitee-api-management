@@ -84,6 +84,7 @@ public class ApplicationService_UpdateTest {
     private static final String APPLICATION_NAME = "myApplication";
     private static final String USER_NAME = "myUser";
     private static final String CLIENT_ID = "myClientId";
+    private static final String NEW_APPLICATION_NAME = "newApplication";
 
     @InjectMocks
     private ApplicationServiceImpl applicationService = new ApplicationServiceImpl();
@@ -583,7 +584,7 @@ public class ApplicationService_UpdateTest {
     }
 
     @Test
-    public void should_update_client_id_of_subscriptions() throws TechnicalException {
+    public void should_update_client_id_and_application_name_of_subscriptions() throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
         clientSettings.setClientId(CLIENT_ID);
@@ -593,6 +594,7 @@ public class ApplicationService_UpdateTest {
         when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
         when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(NEW_APPLICATION_NAME);
         when(applicationRepository.update(any())).thenReturn(existingApplication);
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
@@ -609,10 +611,12 @@ public class ApplicationService_UpdateTest {
         SubscriptionEntity subscription1 = new SubscriptionEntity();
         subscription1.setId("sub-1");
         subscription1.setClientId("old id");
+        subscription1.setApplicationName(APPLICATION_NAME);
 
         SubscriptionEntity subscription2 = new SubscriptionEntity();
         subscription2.setId("sub-2");
         subscription2.setClientId("old id");
+        subscription2.setApplicationName(APPLICATION_NAME);
 
         List<SubscriptionEntity> subscriptions = List.of(subscription1, subscription2);
         when(
@@ -637,6 +641,7 @@ public class ApplicationService_UpdateTest {
         Subscription fakeSubscription = new Subscription();
         subscriptionModifierCaptor.getValue().accept(fakeSubscription);
         Assertions.assertThat(fakeSubscription.getClientId()).isEqualTo(CLIENT_ID);
+        Assertions.assertThat(fakeSubscription.getApplicationName()).isEqualTo(NEW_APPLICATION_NAME);
     }
 
     @Test

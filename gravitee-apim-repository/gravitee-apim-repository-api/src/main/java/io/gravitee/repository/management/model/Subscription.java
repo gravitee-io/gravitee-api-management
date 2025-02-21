@@ -15,10 +15,10 @@
  */
 package io.gravitee.repository.management.model;
 
-import io.gravitee.definition.model.Origin;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -67,6 +67,10 @@ public class Subscription implements Serializable {
      * The application linked to the subscription
      */
     private String application;
+    /**
+     * The application name linked to the subscription
+     */
+    private String applicationName;
     /**
      * The clientId linked to the subscription
      */
@@ -143,6 +147,7 @@ public class Subscription implements Serializable {
         this.environmentId = cloned.environmentId;
         this.plan = cloned.plan;
         this.application = cloned.application;
+        this.applicationName = cloned.applicationName;
         this.clientId = cloned.clientId;
         this.clientCertificate = cloned.clientCertificate;
         this.processedAt = cloned.processedAt;
@@ -193,7 +198,7 @@ public class Subscription implements Serializable {
 
         Subscription that = (Subscription) o;
 
-        return id != null ? id.equals(that.id) : that.id == null;
+        return Objects.equals(id, that.id);
     }
 
     @Override
