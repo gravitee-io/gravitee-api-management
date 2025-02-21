@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeAggregate;
@@ -30,8 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 
 public class SearchResponseStatusOverTimeAdapter {
 
@@ -46,10 +45,20 @@ public class SearchResponseStatusOverTimeAdapter {
     }
 
     public ResponseStatusOverTimeAggregate adaptResponse(SearchResponse response) {
+        final Map<String, Aggregation> aggregations = response.getAggregations();
+        if (aggregations == null || aggregations.isEmpty()) {
+            return new ResponseStatusOverTimeAggregate(new HashMap<>());
+        }
+
+        final var byDateAggregation = aggregations.get(SearchResponseStatusOverTimeAdapter.AGGREGATION_BY_DATE);
+        if (byDateAggregation == null) {
+            return new ResponseStatusOverTimeAggregate(new HashMap<>());
+        }
+
         var treeMap = new TreeMap<Long, Map<String, Long>>();
         var statusValues = new TreeSet<String>();
-        var byDate = response.getAggregations().get(SearchResponseStatusOverTimeAdapter.AGGREGATION_BY_DATE);
-        for (var dateBucket : byDate.getBuckets()) {
+
+        for (var dateBucket : byDateAggregation.getBuckets()) {
             var keyAsDate = dateBucket.get("key").asLong();
             var statusCount = new HashMap<String, Long>();
 
