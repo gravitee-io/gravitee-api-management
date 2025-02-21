@@ -149,17 +149,20 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
             //Given
             var topHitApi1Id = "top-hit-api-1";
             var topHitApi2Id = "top-hit-api-2";
+            var topHitApi3Id = "top-hit-api-3";
             var proxyApiV4 = ApiFixtures.aProxyApiV4().toBuilder().id(topHitApi1Id).name("Top Hit API 1").build();
             var messageApiV4 = ApiFixtures.aMessageApiV4().toBuilder().id(topHitApi2Id).name("Top Hit API 2").build();
+            var proxyApiV2 = ApiFixtures.aProxyApiV2().toBuilder().id(topHitApi3Id).name("Top Hit API legacy v2").build();
 
-            apiQueryService.initWith(List.of(proxyApiV4, messageApiV4));
+            apiQueryService.initWith(List.of(proxyApiV4, messageApiV4, proxyApiV2));
             analyticsQueryService.topHitsApis =
                 TopHitsApis
                     .builder()
                     .data(
                         List.of(
                             TopHitsApis.TopHitApi.builder().id(topHitApi1Id).count(7L).build(),
-                            TopHitsApis.TopHitApi.builder().id(topHitApi2Id).count(13L).build()
+                            TopHitsApis.TopHitApi.builder().id(topHitApi2Id).count(13L).build(),
+                            TopHitsApis.TopHitApi.builder().id(topHitApi3Id).count(6L).build()
                         )
                     )
                     .build();
@@ -176,8 +179,9 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                         .builder()
                         .data(
                             List.of(
-                                TopHitApi.builder().id(topHitApi2Id).name("Top Hit API 2").count(13L).build(),
-                                TopHitApi.builder().id(topHitApi1Id).name("Top Hit API 1").count(7L).build()
+                                TopHitApi.builder().id(topHitApi2Id).name("Top Hit API 2").count(13L).definitionVersion("V4").build(),
+                                TopHitApi.builder().id(topHitApi1Id).name("Top Hit API 1").count(7L).definitionVersion("V4").build(),
+                                TopHitApi.builder().id(topHitApi3Id).name("Top Hit API legacy v2").count(6L).definitionVersion("V2").build()
                             )
                         )
                         .build()

@@ -25,7 +25,7 @@ import { ApiResponseStatusData } from '../components/gio-api-response-status/gio
 import { ApiStateData } from '../components/gio-api-state/gio-api-state.component';
 import { ApiLifecycleStateData } from '../components/gio-api-lifecycle-state/gio-api-lifecycle-state.component';
 import { ApiAnalyticsResponseStatusRanges } from '../../../shared/components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component';
-import { TopApisV4 } from '../../../shared/components/top-apis-widget/top-apis-widget.component';
+import { TopApis } from '../../../shared/components/top-apis-widget/top-apis-widget.component';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { TimeRangeParams } from '../../../shared/utils/timeFrameRanges';
 import { v4ApisRequestStats } from '../components/dashboard-v4-api-request-stats/dashboard-v4-api-request-stats';
@@ -40,8 +40,8 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public loading = false;
-  public topApis: TopApisData;
-  public topApisV4: TopApisV4[];
+  public topApisV2: TopApisData;
+  public topApis: TopApis[];
   public requestStats: RequestStats;
   public requestStatsV4: v4ApisRequestStats;
   public apiResponseStatus: ApiResponseStatusData;
@@ -178,28 +178,28 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
         },
       });
 
+    // Top APIs v2
+    this.homeService
+      .timeRangeParams()
+      .pipe(
+        tap(() => (this.topApisV2 = undefined)),
+        switchMap((val) => this.statsService.getGroupBy({ field: 'api', interval: val.interval, from: val.from, to: val.to })),
+        tap((data) => (this.topApisV2 = data)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => this.changeDetectorRef.markForCheck());
+
     // Top APIs
     this.homeService
       .timeRangeParams()
       .pipe(
         tap(() => (this.topApis = undefined)),
-        switchMap((val) => this.statsService.getGroupBy({ field: 'api', interval: val.interval, from: val.from, to: val.to })),
-        tap((data) => (this.topApis = data)),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe(() => this.changeDetectorRef.markForCheck());
-
-    // Top APIs V4
-    this.homeService
-      .timeRangeParams()
-      .pipe(
-        tap(() => (this.topApisV4 = undefined)),
-        switchMap((val) => this.statsService.getV4TopApis(val.from, val.to)),
+        switchMap((val) => this.statsService.getTopApis(val.from, val.to)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
         next: ({ data }) => {
-          this.topApisV4 = data;
+          this.topApis = data;
           this.changeDetectorRef.markForCheck();
         },
         error: () => {

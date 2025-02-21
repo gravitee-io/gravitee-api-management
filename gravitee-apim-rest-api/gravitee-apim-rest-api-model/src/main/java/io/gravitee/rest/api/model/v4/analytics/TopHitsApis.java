@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model.v4.analytics;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;
@@ -26,5 +27,5 @@ public class TopHitsApis {
     List<TopHitApi> data;
 
     @Builder
-    public record TopHitApi(String id, String name, long count) {}
+    public record TopHitApi(String id, String name, long count, DefinitionVersion definitionVersion) {}
 }

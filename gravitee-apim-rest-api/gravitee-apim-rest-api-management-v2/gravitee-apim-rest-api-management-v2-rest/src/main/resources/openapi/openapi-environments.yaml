@@ -491,6 +491,10 @@ components:
               format: int64
               description: The API Hit count
               example: 675234
+            definitionVersion:
+              type: string
+              description: The API definition version
+              example: v4
         AnalyticTimeRange:
           type: object
           description: A Time range
@@ -1123,7 +1127,7 @@ components:
                       500.0-600.0:
                         value: 0
         EnvironmentAnalyticsTopHitsApisResponse:
-          description: Analytics for top hits APIs at environment level
+          description: Analytics for v2 and v4 top hits APIs at environment level
           content:
             application/json:
               schema:
@@ -1206,7 +1210,7 @@ components:
                         type: integer
                         format: int64
         EnvironmentAnalyticsTopAppsByRequestCountResponse:
-            description: Analytics for top applications by the request count
+            description: Analytics for v2 and v4 top applications by the request count
             content:
                 application/json:
                     schema:

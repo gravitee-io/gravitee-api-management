@@ -37,7 +37,7 @@
           <td mat-cell *matCellDef="let element">
             <ng-container *ngIf="element.unknown; else elementLink">{{ element.name }}</ng-container>
             <ng-template #elementLink
-              ><a (click)="navigateToApi(element.id)">{{ element.name }}</a></ng-template
+              ><a (click)="navigateToApi(element.id, element.definitionVersion)">{{ element.name }}</a></ng-template
             >
           </td>
         </ng-container>
