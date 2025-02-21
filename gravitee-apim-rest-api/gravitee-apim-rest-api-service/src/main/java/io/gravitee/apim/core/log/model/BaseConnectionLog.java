@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.v4.log.connection;
+package io.gravitee.apim.core.log.model;
 
 import io.gravitee.common.http.HttpMethod;
 import lombok.AllArgsConstructor;
