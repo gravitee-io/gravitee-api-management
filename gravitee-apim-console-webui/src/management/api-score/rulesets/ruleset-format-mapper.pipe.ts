@@ -33,12 +33,15 @@ export class RulesetFormatPipe implements PipeTransform {
         return 'Gravitee Proxy API';
       case RulesetFormat.GRAVITEE_NATIVE:
         return 'Gravitee Native API';
+      case RulesetFormat.GRAVITEE_V2:
+        return 'Gravitee V2 API';
       case RulesetFormat.OPENAPI:
         return 'OpenAPI';
       case RulesetFormat.ASYNCAPI:
         return 'AsyncAPI';
+
       default:
-        return '';
+        return 'API';
     }
   }
 }
