@@ -48,6 +48,8 @@ public class DefaultHttpAcceptor implements HttpAcceptor {
     @EqualsAndHashCode.Include
     private final String host;
 
+    private final boolean wildcardHost;
+
     @EqualsAndHashCode.Include
     private final Set<String> serverIds;
 
@@ -73,7 +75,13 @@ public class DefaultHttpAcceptor implements HttpAcceptor {
     }
 
     public DefaultHttpAcceptor(String host, String path, Collection<String> serverIds) {
-        this.host = host;
+        if (host == null) {
+            this.host = null;
+            this.wildcardHost = false;
+        } else {
+            this.host = host.replaceFirst("^\\*", "");
+            this.wildcardHost = !this.host.equals(host);
+        }
 
         // Sanitize
         if (path == null || path.isEmpty()) {
@@ -135,7 +143,7 @@ public class DefaultHttpAcceptor implements HttpAcceptor {
     }
 
     private boolean matchHost(String host) {
-        return this.host == null || this.host.equalsIgnoreCase(host);
+        return this.host == null || (this.wildcardHost ? host.endsWith(this.host) : this.host.equalsIgnoreCase(host));
     }
 
     private boolean matchPath(String path) {
@@ -162,6 +170,7 @@ public class DefaultHttpAcceptor implements HttpAcceptor {
             return 0;
         }
 
+        // this will set virtual hosts first
         final int hostCompare = Objects.compare(
             toLower(this.host()),
             toLower(o2.host()),
@@ -176,7 +185,7 @@ public class DefaultHttpAcceptor implements HttpAcceptor {
         );
 
         if (hostCompare == 0) {
-            final int pathCompare = this.path().compareTo(o2.path());
+            final int pathCompare = this.path().compareTo(o2.path()) * -1;
 
             if (pathCompare == 0) {
                 if (this.priority() <= o2.priority()) {
