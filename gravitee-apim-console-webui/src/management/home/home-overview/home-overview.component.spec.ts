@@ -81,6 +81,7 @@ describe('HomeOverviewComponent', () => {
       req = expectCountApplicationRequest();
       expect(req.request.url).toContain('interval=120000');
 
+      expectTopApplicationsGetRequest();
       expectSearchApiEventsRequest();
       expectConsoleSettingsGetRequest();
       expectTopApisGetRequest();
@@ -123,6 +124,7 @@ describe('HomeOverviewComponent', () => {
       const req = expectApiLifecycleStateRequest();
       expect(req.request.url).toContain(`from=${fromDateInMilliSeconds}&to=${toDateInMilliseconds}`);
 
+      expectTopApplicationsGetRequest();
       expectResponseStatusRequest();
       expectApiStateRequest();
       expectRequestStatsRequest();
@@ -166,6 +168,7 @@ describe('HomeOverviewComponent', () => {
   });
 
   function expectRequests() {
+    expectTopApplicationsGetRequest();
     expectApiLifecycleStateRequest();
     expectApiStateRequest();
     expectResponseStatusRequest();
@@ -181,6 +184,23 @@ describe('HomeOverviewComponent', () => {
     expectResponseTimesLogsGetRequest();
     expectV4ResponseTimesGetRequest();
     expectV4ResponseStatusGetRequest();
+  }
+
+  function expectTopApplicationsGetRequest() {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/analytics/top-apps-by-request-count`;
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(url);
+    });
+    req.flush({
+      data: [
+        {
+          id: 'tst',
+          name: 'name-test',
+          count: 100,
+        },
+      ],
+    });
+    expect(req.request.method).toEqual('GET');
   }
 
   function expectRequestStatsRequest(): TestRequest {
