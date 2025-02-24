@@ -159,6 +159,24 @@ paths:
                     $ref: "#/components/responses/EnvironmentAnalyticsTopAppsByRequestCountResponse"
                 default:
                     $ref: "#/components/responses/Error"
+    /analytics/top-failed-apis:
+        parameters:
+            -   $ref: "#/components/parameters/from"
+            -   $ref: "#/components/parameters/to"
+        get:
+            tags:
+                - API Analytics
+            summary: Get Environment Analytics for top failed v2 and v4 APIs
+            description: |-
+                Get Environment Analytics for top failed v2 and v4 APIs 
+
+                User must have the API_ANALYTICS[READ] permission.
+            operationId: getEnvironmentTopFailedApis
+            responses:
+                "200":
+                    $ref: "#/components/responses/EnvironmentAnalyticsTopFailedApisResponse"
+                default:
+                    $ref: "#/components/responses/Error"
   # Shared policy group
     /shared-policy-groups:
         post:
@@ -530,6 +548,31 @@ components:
                     format: int64
                     description: The Application Hit count
                     example: 675234
+        TopFailedApis:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: The Application ID
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                definitionVersion:
+                    type: string
+                    description: The API definition version
+                    example: v4
+                name:
+                    type: string
+                    description: The Application Name
+                    example: Sample Application Name
+                failedCalls:
+                    type: integer
+                    format: int64
+                    description: Number of 5xx calls for the API
+                    example: 2137
+                failedCallsRatio:
+                    type: number
+                    format: double
+                    description: Ratio of failed API calls to the total number of calls
+                    example: 0.8
 
       # Shared policy group
         CreateSharedPolicyGroup:
@@ -1223,6 +1266,19 @@ components:
                                 items:
                                     $ref: "#/components/schemas/TopApp"
 
+        EnvironmentAnalyticsTopFailedApisResponse:
+            description: Analytics for top failed v2 and v4 APIs based on 5xx status calls
+            content:
+                application/json:
+                    schema:
+                        title: "EnvironmentAnalyticsTopFailedApisResponse"
+                        description: Analytics for top failed v2 and v4 APIs based on 5xx status calls
+                        properties:
+                            data:
+                                type: array
+                                description: List of top failed APIs results
+                                items:
+                                    $ref: "#/components/schemas/TopFailedApis"
       # Scoring
         EnvironmentApisScoringResponse:
             description: Page of Apis Scoring

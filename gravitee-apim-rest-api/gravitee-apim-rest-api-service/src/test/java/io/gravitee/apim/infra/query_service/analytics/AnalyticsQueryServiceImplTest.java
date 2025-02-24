@@ -30,9 +30,11 @@ import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregat
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
+import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
+import io.gravitee.rest.api.model.v4.analytics.TopFailedApis;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Duration;
@@ -253,6 +255,45 @@ class AnalyticsQueryServiceImplTest {
                             TopHitsApps.TopHitApp.builder().id("app-id-1").count(15L).build(),
                             TopHitsApps.TopHitApp.builder().id("app-id-2").count(2L).build(),
                             TopHitsApps.TopHitApp.builder().id("app-id-3").count(17L).build()
+                        )
+                );
+        }
+    }
+
+    @Nested
+    class SearchTopFailedApis {
+
+        @Test
+        void should_search_top_failed_apis() {
+            var queryParameters = AnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
+            when(analyticsRepository.searchTopFailedApis(any(QueryContext.class), any()))
+                .thenReturn(
+                    Optional.of(
+                        TopFailedAggregate
+                            .builder()
+                            .failedApis(
+                                Map.of(
+                                    "app-id-1",
+                                    new TopFailedAggregate.FailedApiInfo(13L, 0.3),
+                                    "app-id-2",
+                                    new TopFailedAggregate.FailedApiInfo(7L, 0.2),
+                                    "app-id-3",
+                                    new TopFailedAggregate.FailedApiInfo(3L, 0.1)
+                                )
+                            )
+                            .build()
+                    )
+                );
+
+            var result = cut.searchTopFailedApis(GraviteeContext.getExecutionContext(), queryParameters);
+
+            assertThat(result)
+                .hasValueSatisfying(topHits ->
+                    assertThat(topHits.getData())
+                        .containsExactlyInAnyOrder(
+                            TopFailedApis.TopFailedApi.builder().id("app-id-1").failedCalls(13L).failedCallsRatio(0.3).build(),
+                            TopFailedApis.TopFailedApi.builder().id("app-id-2").failedCalls(7L).failedCallsRatio(0.2).build(),
+                            TopFailedApis.TopFailedApi.builder().id("app-id-3").failedCalls(3L).failedCallsRatio(0.1).build()
                         )
                 );
         }

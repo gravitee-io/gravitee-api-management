@@ -21,6 +21,7 @@ import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentResponseStatusO
 import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentResponseStatusRangesUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentResponseTimeOverTimeUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentTopAppsByRequestCountUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentTopFailedApisUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentTopHitsApisCountUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.EnvironmentAnalyticsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
@@ -29,6 +30,7 @@ import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsRequest
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusRangesResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopAppsByRequestCountResponse;
+import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopFailedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopHitsApisResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.param.TimeRangeParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -67,6 +69,9 @@ public class EnvironmentAnalyticsResource {
 
     @Inject
     SearchEnvironmentTopAppsByRequestCountUseCase searchEnvironmentTopAppsByRequestCountUseCase;
+
+    @Inject
+    SearchEnvironmentTopFailedApisUseCase searchEnvironmentTopFailedApisUseCase;
 
     @Path("/response-status-ranges")
     @GET
@@ -174,5 +179,22 @@ public class EnvironmentAnalyticsResource {
         }
 
         return EnvironmentAnalyticsMapper.INSTANCE.map(topHitsApps);
+    }
+
+    @Path("/top-failed-apis")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    public EnvironmentAnalyticsTopFailedApisResponse getTopFailedApis(@BeanParam @Valid TimeRangeParam timeRangeParam) {
+        var params = AnalyticsQueryParameters.builder().from(timeRangeParam.getFrom()).to(timeRangeParam.getTo()).build();
+        var input = new SearchEnvironmentTopFailedApisUseCase.Input(GraviteeContext.getExecutionContext(), params);
+
+        var topFailedApis = searchEnvironmentTopFailedApisUseCase.execute(input).topFailedApis();
+
+        if (topFailedApis == null) {
+            return EnvironmentAnalyticsTopFailedApisResponse.builder().build();
+        }
+
+        return EnvironmentAnalyticsMapper.INSTANCE.map(topFailedApis);
     }
 }

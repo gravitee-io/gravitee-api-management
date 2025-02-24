@@ -32,6 +32,7 @@ import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsRequest
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusRangesResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopAppsByRequestCountResponse;
+import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopFailedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopHitsApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.TopApp;
 import io.gravitee.rest.api.management.v2.rest.model.TopHitApi;
@@ -41,6 +42,7 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
+import io.gravitee.rest.api.model.v4.analytics.TopFailedApis;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
@@ -421,6 +423,94 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsTopAppsByRequestCountResponse.class)
                 .isEqualTo(EnvironmentAnalyticsTopAppsByRequestCountResponse.builder().data(List.of()).build());
+        }
+    }
+
+    @Nested
+    class TopFailedApisAnalytics {
+
+        @BeforeEach
+        void setup() {
+            target = rootTarget().path("top-failed-apis");
+        }
+
+        @Test
+        void should_return_200_with_valid_top_failed_apis_list() {
+            var apiId1 = "api-1";
+            var apiId2 = "api-2";
+            var apiId3 = "api-3";
+            //Given
+            var proxyApiV4 = ApiFixtures.aProxyApiV4().toBuilder().id(apiId1).name("API 1").build();
+            var messageApiV4 = ApiFixtures.aMessageApiV4().toBuilder().id(apiId2).name("API 2").build();
+            var proxyApiV2 = ApiFixtures.aProxyApiV2().toBuilder().id(apiId3).name("API 3").build();
+
+            apiQueryService.initWith(List.of(proxyApiV4, messageApiV4, proxyApiV2));
+
+            analyticsQueryService.topFailedApis =
+                TopFailedApis
+                    .builder()
+                    .data(
+                        List.of(
+                            TopFailedApis.TopFailedApi.builder().id(apiId1).failedCalls(7L).failedCallsRatio(0.1).build(),
+                            TopFailedApis.TopFailedApi.builder().id(apiId2).failedCalls(13L).failedCallsRatio(0.2).build(),
+                            TopFailedApis.TopFailedApi.builder().id(apiId3).failedCalls(3L).failedCallsRatio(0.3).build()
+                        )
+                    )
+                    .build();
+
+            //When
+            Response response = target.queryParam("from", FROM).queryParam("to", TO).request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(EnvironmentAnalyticsTopFailedApisResponse.class)
+                .isEqualTo(
+                    EnvironmentAnalyticsTopFailedApisResponse
+                        .builder()
+                        .data(
+                            List.of(
+                                io.gravitee.rest.api.management.v2.rest.model.TopFailedApis
+                                    .builder()
+                                    .id(apiId2)
+                                    .name("API 2")
+                                    .definitionVersion("V4")
+                                    .failedCalls(13L)
+                                    .failedCallsRatio(0.2)
+                                    .build(),
+                                io.gravitee.rest.api.management.v2.rest.model.TopFailedApis
+                                    .builder()
+                                    .id(apiId1)
+                                    .name("API 1")
+                                    .definitionVersion("V4")
+                                    .failedCalls(7L)
+                                    .failedCallsRatio(0.1)
+                                    .build(),
+                                io.gravitee.rest.api.management.v2.rest.model.TopFailedApis
+                                    .builder()
+                                    .id(apiId3)
+                                    .name("API 3")
+                                    .definitionVersion("V2")
+                                    .failedCalls(3L)
+                                    .failedCallsRatio(0.3)
+                                    .build()
+                            )
+                        )
+                        .build()
+                );
+        }
+
+        @Test
+        void should_return_200_with_empty_list_if_no_apis_found() {
+            apiQueryService.initWith(List.of());
+            analyticsQueryService.topFailedApis = TopFailedApis.builder().data(List.of()).build();
+
+            //When
+            Response response = target.queryParam("from", FROM).queryParam("to", TO).request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(EnvironmentAnalyticsTopFailedApisResponse.class)
+                .isEqualTo(EnvironmentAnalyticsTopFailedApisResponse.builder().data(List.of()).build());
         }
     }
 }

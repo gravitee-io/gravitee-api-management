@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
 import java.util.List;
 import java.util.Map;
@@ -496,32 +497,27 @@ class AggregateValueCountByFieldAdapterTest {
             @Test
             void should_return_top_hits_aggregate() {
                 final var API_ID_1 = "api-id-1";
-                final var API_ID_1_COUNT = 35L;
-                final var API_ID_2 = "api-id-2";
-                final var API_ID_2_COUNT = 47L;
-                final Aggregation topHitsCountAggregation = new Aggregation();
+                final Aggregation topFailedAggregation = new Aggregation();
 
-                searchResponse.setAggregations(Map.of(TOP_HITS_COUNT, topHitsCountAggregation));
+                searchResponse.setAggregations(Map.of("failed_apis_agg_api-id", topFailedAggregation));
 
-                topHitsCountAggregation.setBuckets(
-                    List.of(createTopHitsBucket(API_ID_1, API_ID_1_COUNT), createTopHitsBucket(API_ID_2, API_ID_2_COUNT))
-                );
+                topFailedAggregation.setBuckets(List.of(createFailedApiBucket(API_ID_1)));
 
-                var result = AggregateValueCountByFieldAdapter.adaptResponse(searchResponse);
+                var result = SearchTopFailedApisAdapter.adaptResponse(searchResponse);
 
                 assertThat(result)
                     .hasValueSatisfying(topHits ->
-                        assertThat(topHits.getTopHitsCounts())
-                            .containsEntry(API_ID_1, API_ID_1_COUNT)
-                            .containsEntry(API_ID_2, API_ID_2_COUNT)
+                        assertThat(topHits.failedApis()).containsEntry(API_ID_1, new TopFailedAggregate.FailedApiInfo(10, 0.5))
                     );
             }
 
-            JsonNode createTopHitsBucket(String apiId, long topHitsCount) {
+            JsonNode createFailedApiBucket(String apiId) {
                 var node = objectMapper.createObjectNode();
                 node.put("key", apiId);
-                node.put("doc_count", topHitsCount);
-                node.putObject(HITS_COUNT).put("value", topHitsCount);
+                node.put("doc_count", 20);
+                node.putObject("failed_requests").putObject("failed_requests_count").put("value", 10);
+                node.putObject("total_requests").put("value", 20);
+                node.putObject("failed_requests_ratio").put("value", 0.5);
                 return node;
             }
         }

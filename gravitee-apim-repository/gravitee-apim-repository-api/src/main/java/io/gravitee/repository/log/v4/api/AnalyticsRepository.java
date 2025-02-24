@@ -28,6 +28,8 @@ import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
+import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
 import io.reactivex.rxjava3.annotations.NonNull;
@@ -54,4 +56,6 @@ public interface AnalyticsRepository {
     RequestResponseTimeAggregate searchRequestResponseTimes(QueryContext queryContext, RequestResponseTimeQueryCriteria query);
 
     Optional<TopHitsAggregate> searchTopApps(QueryContext queryContext, TopHitsQueryCriteria criteria);
+
+    Optional<TopFailedAggregate> searchTopFailedApis(QueryContext queryContext, TopFailedQueryCriteria criteria);
 }

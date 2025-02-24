@@ -26,6 +26,8 @@ import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQu
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
+import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
@@ -34,6 +36,7 @@ import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
+import io.gravitee.rest.api.model.v4.analytics.TopFailedApis;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
@@ -210,5 +213,30 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             .responseMaxTime(result.getResponseMaxTime())
             .responseAvgTime(result.getResponseAvgTime())
             .build();
+    }
+
+    @Override
+    public Optional<TopFailedApis> searchTopFailedApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
+        return analyticsRepository
+            .searchTopFailedApis(
+                executionContext.getQueryContext(),
+                new TopFailedQueryCriteria(parameters.getApiIds(), parameters.getFrom(), parameters.getTo())
+            )
+            .map(TopFailedAggregate::failedApis)
+            .map(topFailedApis ->
+                topFailedApis
+                    .entrySet()
+                    .stream()
+                    .map(entry ->
+                        TopFailedApis.TopFailedApi
+                            .builder()
+                            .id(entry.getKey())
+                            .failedCalls(entry.getValue().failedCalls())
+                            .failedCallsRatio(entry.getValue().failedCallsRatio())
+                            .build()
+                    )
+                    .toList()
+            )
+            .map(topFailedApi -> TopFailedApis.builder().data(topFailedApi).build());
     }
 }

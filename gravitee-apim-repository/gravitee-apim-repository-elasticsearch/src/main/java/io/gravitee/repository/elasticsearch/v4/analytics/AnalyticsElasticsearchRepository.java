@@ -32,6 +32,7 @@ import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsC
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusOverTimeAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchTopFailedApisAdapter;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
@@ -45,6 +46,8 @@ import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
+import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
 import io.reactivex.rxjava3.annotations.NonNull;
@@ -169,5 +172,17 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("Search response top apps query: {}", esQuery);
         return this.client.search(indexes, null, esQuery).map(AggregateValueCountByFieldAdapter::adaptResponse).blockingGet();
+    }
+
+    @Override
+    public Optional<TopFailedAggregate> searchTopFailedApis(QueryContext queryContext, TopFailedQueryCriteria criteria) {
+        var indexV1V2Request = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
+        var indexV4Metrics = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexes = String.join(",", List.of(indexV1V2Request, indexV4Metrics));
+
+        var esQuery = SearchTopFailedApisAdapter.adaptQuery(criteria);
+
+        log.debug("Search top failed apis query: {}", esQuery);
+        return this.client.search(indexes, null, esQuery).map(SearchTopFailedApisAdapter::adaptResponse).blockingGet();
     }
 }
