@@ -12,14 +12,23 @@ databaseChangeLog:
                   constraints:
                     nullable: true
         - sql:
+            dbms: mariadb, mysql, postgresql
             sql: >
               UPDATE ${gravitee_prefix}subscriptions s
               SET application_name = (
                 SELECT a.name
                 FROM ${gravitee_prefix}applications a
                 WHERE a.id = s.application
-              )
-              WHERE s.application IS NOT NULL;
+              );
+        - sql:
+            dbms: mssql
+            sql: >
+              UPDATE ${gravitee_prefix}subscriptions
+              SET application_name = (
+                SELECT a.name
+                FROM ${gravitee_prefix}applications a
+                WHERE a.id = ${gravitee_prefix}subscriptions.application
+              );
         - addNotNullConstraint:
             tableName: ${gravitee_prefix}subscriptions
             columnName: application_name

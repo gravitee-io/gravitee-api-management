@@ -26,6 +26,25 @@ const checks = [
         },
     },
     {
+        name: "liquibase-sql",
+        location: "gravitee-apim-repository/gravitee-apim-repository-jdbc/src/main/resources/liquibase/changelogs",
+        why: "Some SQL statements are not compatible with all databases. Please make sure that the SQL statements are compatible with all supported databases.",
+        checkFn: async (check) => {
+            const files = getModifiedFiles(check.location);
+            for (const file of files) {
+                const content = await git.diffForFile(file);
+                if (content && content.added.includes("sql:")) {
+                    await postMessages([
+                        {
+                            why: "SQL statement detected in liquibase changelog 💥. Please make sure that the SQL statements are compatible with all supported databases.",
+                            file,
+                        },
+                    ]);
+                }
+            }
+        },
+    },
+    {
         name: "gravitee-node-version-consistency",
         location: "pom.xml",
         why: "Gravitee node plugins defined in Helm values.yaml needs to be consistent with the version defined in the pom.xml.",
