@@ -36,6 +36,7 @@ import io.gravitee.gateway.reactive.policy.HttpPolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
@@ -64,6 +65,7 @@ public class DebugV4ApiReactorHandlerFactory extends DefaultApiReactorFactory {
         final ReporterService reporterService,
         final AccessPointManager accessPointManager,
         final EventManager eventManager,
+        final HttpAcceptorFactory httpAcceptorFactory,
         final GatewayConfiguration gatewayConfiguration
     ) {
         super(
@@ -81,6 +83,7 @@ public class DebugV4ApiReactorHandlerFactory extends DefaultApiReactorFactory {
             reporterService,
             accessPointManager,
             eventManager,
+            httpAcceptorFactory,
             OpenTelemetryConfiguration.builder().tracesEnabled(false).build(),
             null,
             null,
@@ -128,6 +131,7 @@ public class DebugV4ApiReactorHandlerFactory extends DefaultApiReactorFactory {
             reporterService,
             accessPointManager,
             eventManager,
+            httpAcceptorFactory,
             TracingContext.noop()
         );
     }

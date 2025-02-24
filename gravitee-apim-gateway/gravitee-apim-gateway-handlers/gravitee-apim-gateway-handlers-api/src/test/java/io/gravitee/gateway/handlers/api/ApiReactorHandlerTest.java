@@ -32,6 +32,7 @@ import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.policy.DirectPolicyChain;
 import io.gravitee.gateway.policy.NoOpPolicyChain;
 import io.gravitee.gateway.policy.PolicyManager;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
@@ -164,6 +165,7 @@ public class ApiReactorHandlerTest {
             api,
             accessPointManager,
             eventManager,
+            new HttpAcceptorFactory(false),
             TracingContext.noop()
         );
         apiReactorHandler.setNode(node);

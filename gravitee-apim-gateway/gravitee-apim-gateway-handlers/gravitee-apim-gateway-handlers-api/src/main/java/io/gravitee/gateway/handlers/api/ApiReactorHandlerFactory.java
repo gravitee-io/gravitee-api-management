@@ -73,6 +73,7 @@ import io.gravitee.gateway.reactive.policy.HttpPolicyChainFactory;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactableApi;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.context.DefaultV3ExecutionContextFactory;
 import io.gravitee.gateway.reactor.handler.context.V3ExecutionContextFactory;
@@ -133,6 +134,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
     private final AccessPointManager accessPointManager;
     private final EventManager eventManager;
+    protected final HttpAcceptorFactory httpAcceptorFactory;
     private final OpenTelemetryConfiguration openTelemetryConfiguration;
     private final OpenTelemetryFactory openTelemetryFactory;
     private final List<InstrumenterTracerFactory> instrumenterTracerFactories;
@@ -152,6 +154,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         AccessPointManager accessPointManager,
         EventManager eventManager,
+        HttpAcceptorFactory httpAcceptorFactory,
         OpenTelemetryConfiguration openTelemetryConfiguration,
         OpenTelemetryFactory openTelemetryFactory,
         List<InstrumenterTracerFactory> instrumenterTracerFactories
@@ -169,6 +172,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         this.requestTimeoutConfiguration = requestTimeoutConfiguration;
         this.accessPointManager = accessPointManager;
         this.eventManager = eventManager;
+        this.httpAcceptorFactory = httpAcceptorFactory;
         this.openTelemetryConfiguration = openTelemetryConfiguration;
         this.openTelemetryFactory = openTelemetryFactory;
         this.instrumenterTracerFactories = instrumenterTracerFactories;
@@ -365,6 +369,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
             requestTimeoutConfiguration,
             accessPointManager,
             eventManager,
+            httpAcceptorFactory,
             createTracingContext(api, "API_V2_EMULATED")
         );
     }
@@ -429,7 +434,14 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         AccessPointManager accessPointManager,
         EventManager eventManager
     ) {
-        return new ApiReactorHandler(configuration, api, accessPointManager, eventManager, createTracingContext(api, "API_V2"));
+        return new ApiReactorHandler(
+            configuration,
+            api,
+            accessPointManager,
+            eventManager,
+            httpAcceptorFactory,
+            createTracingContext(api, "API_V2")
+        );
     }
 
     private TracingContext createTracingContext(final Api api, final String spanNamespace) {

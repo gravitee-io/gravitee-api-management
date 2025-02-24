@@ -50,6 +50,7 @@ import io.gravitee.gateway.reactive.v4.flow.BestMatchFlowSelector;
 import io.gravitee.gateway.reactive.v4.flow.selection.ConditionSelectorConditionFilter;
 import io.gravitee.gateway.reactive.v4.flow.selection.HttpSelectorConditionFilter;
 import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
@@ -94,6 +95,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
     protected final RequestTimeoutConfiguration requestTimeoutConfiguration;
     protected final ReporterService reporterService;
     protected final GatewayConfiguration gatewayConfiguration;
+    protected final HttpAcceptorFactory httpAcceptorFactory;
     private final Logger logger = LoggerFactory.getLogger(DefaultApiReactorFactory.class);
 
     public DefaultApiReactorFactory(
@@ -111,6 +113,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         final ReporterService reporterService,
         final AccessPointManager accessPointManager,
         final EventManager eventManager,
+        final HttpAcceptorFactory httpAcceptorFactory,
         final OpenTelemetryConfiguration openTelemetryConfiguration,
         final OpenTelemetryFactory openTelemetryFactory,
         final List<InstrumenterTracerFactory> instrumenterTracerFactories,
@@ -125,6 +128,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         this.organizationManager = organizationManager;
         this.accessPointManager = accessPointManager;
         this.eventManager = eventManager;
+        this.httpAcceptorFactory = httpAcceptorFactory;
         this.openTelemetryConfiguration = openTelemetryConfiguration;
         this.gatewayConfiguration = gatewayConfiguration;
         this.apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, reporterService);
@@ -152,6 +156,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         final ReporterService reporterService,
         final AccessPointManager accessPointManager,
         final EventManager eventManager,
+        final HttpAcceptorFactory httpAcceptorFactory,
         final OpenTelemetryConfiguration openTelemetryConfiguration,
         final OpenTelemetryFactory openTelemetryFactory,
         final List<InstrumenterTracerFactory> instrumenterTracerFactories,
@@ -166,6 +171,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         this.organizationManager = organizationManager;
         this.accessPointManager = accessPointManager;
         this.eventManager = eventManager;
+        this.httpAcceptorFactory = httpAcceptorFactory;
         this.openTelemetryConfiguration = openTelemetryConfiguration;
         this.gatewayConfiguration = gatewayConfiguration;
         this.apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, reporterService);
@@ -314,6 +320,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
             reporterService,
             accessPointManager,
             eventManager,
+            httpAcceptorFactory,
             createTracingContext(api, "API_V4")
         );
     }
