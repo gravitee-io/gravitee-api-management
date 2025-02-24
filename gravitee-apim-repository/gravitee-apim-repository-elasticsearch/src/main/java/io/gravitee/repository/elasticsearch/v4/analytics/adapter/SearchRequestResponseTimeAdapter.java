@@ -50,15 +50,15 @@ public class SearchRequestResponseTimeAdapter {
     private static JsonObject buildQuery(RequestResponseTimeQueryCriteria queryCriteria) {
         var filterQuery = new ArrayList<JsonObject>();
 
-        if (queryCriteria == null || queryCriteria.getApiIds() == null) {
+        if (queryCriteria == null || queryCriteria.apiIds() == null) {
             log.warn("Null query params or queried API IDs. Empty ranges will be returned");
             filterQuery.add(apiIdsFilterForQuery(List.of()));
         } else {
-            filterQuery.add(apiIdsFilterForQuery(queryCriteria.getApiIds()));
+            filterQuery.add(apiIdsFilterForQuery(queryCriteria.apiIds()));
         }
 
         if (queryCriteria != null) {
-            filterQuery.add(dateRangeFilterForQuery(queryCriteria.getFrom(), queryCriteria.getTo()));
+            filterQuery.add(dateRangeFilterForQuery(queryCriteria.from(), queryCriteria.to()));
         }
 
         filterQuery.add(entrypointFilterForQuery());
@@ -106,7 +106,7 @@ public class SearchRequestResponseTimeAdapter {
             var totalRequestValue = response.getSearchHits().getTotal().getValue();
             requestResponseTimeAggregateBuilder.requestsTotal(totalRequestValue);
 
-            var timeDiffInSeconds = ((queryCriteria.getTo() - queryCriteria.getFrom()) / 1000);
+            var timeDiffInSeconds = ((queryCriteria.to() - queryCriteria.from()) / 1000);
             double requestsPerSecond = (double) totalRequestValue / timeDiffInSeconds;
             requestResponseTimeAggregateBuilder.requestsPerSecond(requestsPerSecond);
         }
