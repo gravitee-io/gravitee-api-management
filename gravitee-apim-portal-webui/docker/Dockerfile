@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-FROM graviteeio/nginx:1.27.2
+FROM graviteeio/nginx:1.27.4
 LABEL maintainer="contact@graviteesource.com"
 
 EXPOSE 8080
