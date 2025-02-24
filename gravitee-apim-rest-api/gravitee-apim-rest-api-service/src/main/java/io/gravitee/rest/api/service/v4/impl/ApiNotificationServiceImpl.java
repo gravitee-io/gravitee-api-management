@@ -51,38 +51,38 @@ public class ApiNotificationServiceImpl extends AbstractService implements ApiNo
     }
 
     @Override
-    @Async
+    @Async("asyncNotificationThreadPoolTaskExecutor")
     public void triggerUpdateNotification(final ExecutionContext executionContext, final Api api) {
         GenericApiEntity indexableApi = indexableApiMapper.toGenericApi(api, null);
         triggerUpdateNotification(executionContext, indexableApi);
     }
 
     @Override
-    @Async
+    @Async("asyncNotificationThreadPoolTaskExecutor")
     public void triggerUpdateNotification(final ExecutionContext executionContext, final GenericApiEntity indexableApi) {
         triggerNotification(executionContext, ApiHook.API_UPDATED, indexableApi);
     }
 
     @Override
-    @Async
+    @Async("asyncNotificationThreadPoolTaskExecutor")
     public void triggerDeprecatedNotification(final ExecutionContext executionContext, final GenericApiEntity indexableApi) {
         triggerNotification(executionContext, ApiHook.API_DEPRECATED, indexableApi);
     }
 
     @Override
-    @Async
+    @Async("asyncNotificationThreadPoolTaskExecutor")
     public void triggerDeployNotification(final ExecutionContext executionContext, final GenericApiEntity indexableApi) {
         triggerNotification(executionContext, ApiHook.API_DEPLOYED, indexableApi);
     }
 
     @Override
-    @Async
+    @Async("asyncNotificationThreadPoolTaskExecutor")
     public void triggerStartNotification(final ExecutionContext executionContext, final GenericApiEntity indexableApi) {
         triggerNotification(executionContext, ApiHook.API_STARTED, indexableApi);
     }
 
     @Override
-    @Async
+    @Async("asyncNotificationThreadPoolTaskExecutor")
     public void triggerStopNotification(final ExecutionContext executionContext, final GenericApiEntity indexableApi) {
         triggerNotification(executionContext, ApiHook.API_STOPPED, indexableApi);
     }
