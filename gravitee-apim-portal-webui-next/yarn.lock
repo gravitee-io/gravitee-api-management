@@ -6292,7 +6292,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:4":
+"@types/lodash@npm:4.17.14":
   version: 4.17.14
   resolution: "@types/lodash@npm:4.17.14"
   checksum: 10c0/343c6f722e0b39969036a885ad5aad6578479ead83987128c9b994e6b7f2fb9808244d802d4d332396bb09096f720a6c7060de16a492f5460e06a44560360322
@@ -11502,7 +11502,7 @@ __metadata:
     "@storybook/test": "npm:8.5.0"
     "@types/jest": "npm:29.5.14"
     "@types/js-yaml": "npm:4.0.9"
-    "@types/lodash": "npm:4"
+    "@types/lodash": "npm:4.17.14"
     "@types/swagger-ui": "npm:3.52.4"
     "@typescript-eslint/eslint-plugin": "npm:7.2.0"
     "@typescript-eslint/parser": "npm:7.2.0"
