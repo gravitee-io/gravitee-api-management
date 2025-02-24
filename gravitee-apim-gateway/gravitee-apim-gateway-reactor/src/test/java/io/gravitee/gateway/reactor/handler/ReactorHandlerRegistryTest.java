@@ -32,6 +32,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -71,7 +72,10 @@ public class ReactorHandlerRegistryTest {
     public void shouldHaveTwoHttpAcceptors_singleReactable() {
         Reactable reactable = createReactable("reactable1");
 
-        ReactorHandler handler = createReactorHandler(new DefaultHttpAcceptor("/products/v1"), new DefaultHttpAcceptor("/products/v2"));
+        ReactorHandler handler = createReactorHandler(
+            new OverlappingHttpAcceptor("/products/v1"),
+            new OverlappingHttpAcceptor("/products/v2")
+        );
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
 
         reactorHandlerRegistry.create(reactable);
@@ -79,8 +83,8 @@ public class ReactorHandlerRegistryTest {
         final Collection<HttpAcceptor> httpAcceptorHandlers = reactorHandlerRegistry.getAcceptors(HttpAcceptor.class);
         final Iterator<HttpAcceptor> httpAcceptorHandlerIterator = httpAcceptorHandlers.iterator();
         Assert.assertEquals(2, httpAcceptorHandlers.size());
-        assertEntryPoint(null, "/products/v1/", httpAcceptorHandlerIterator.next());
         assertEntryPoint(null, "/products/v2/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint(null, "/products/v1/", httpAcceptorHandlerIterator.next());
     }
 
     @Test
@@ -195,28 +199,28 @@ public class ReactorHandlerRegistryTest {
 
         DummyReactable reactable2 = createReactable("reactable2");
         ReactorHandler handler2 = createReactorHandler(
-            new DefaultHttpAcceptor("api.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("api1.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("api2.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("api3.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("api4.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("apiX.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("api10.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("api11.gravitee.io", "/a")
+            new OverlappingHttpAcceptor("api.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("api1.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("api2.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("api3.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("api4.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("apiX.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("api10.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("api11.gravitee.io", "/a")
         );
         when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.create(reactable2);
 
         DummyReactable reactable3 = createReactable("reactable3");
         ReactorHandler handler3 = createReactorHandler(
-            new DefaultHttpAcceptor("api.gravitee.io", "/a-v1"),
-            new DefaultHttpAcceptor("api1.gravitee.io", "/a-v1"),
-            new DefaultHttpAcceptor("api2.gravitee.io", "/a-v1"),
-            new DefaultHttpAcceptor("api3.gravitee.io", "/a-v1"),
-            new DefaultHttpAcceptor("api4.gravitee.io", "/a-v1"),
-            new DefaultHttpAcceptor("apiX.gravitee.io", "/a-v1"),
-            new DefaultHttpAcceptor("api10.gravitee.io", "/a-v1"),
-            new DefaultHttpAcceptor("api11.gravitee.io", "/a-v1")
+            new OverlappingHttpAcceptor("api.gravitee.io", "/a-v1"),
+            new OverlappingHttpAcceptor("api1.gravitee.io", "/a-v1"),
+            new OverlappingHttpAcceptor("api2.gravitee.io", "/a-v1"),
+            new OverlappingHttpAcceptor("api3.gravitee.io", "/a-v1"),
+            new OverlappingHttpAcceptor("api4.gravitee.io", "/a-v1"),
+            new OverlappingHttpAcceptor("apiX.gravitee.io", "/a-v1"),
+            new OverlappingHttpAcceptor("api10.gravitee.io", "/a-v1"),
+            new OverlappingHttpAcceptor("api11.gravitee.io", "/a-v1")
         );
         when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(List.of(handler3));
         reactorHandlerRegistry.create(reactable3);
@@ -224,22 +228,22 @@ public class ReactorHandlerRegistryTest {
         final Collection<HttpAcceptor> httpAcceptorHandlers = reactorHandlerRegistry.getAcceptors(HttpAcceptor.class);
         final Iterator<HttpAcceptor> httpAcceptorHandlerIterator = httpAcceptorHandlers.iterator();
         Assert.assertEquals(17, httpAcceptorHandlers.size());
-        assertEntryPoint("api.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api1.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api1.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api10.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api10.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api11.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api11.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api2.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api2.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api3.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api3.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api4.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api4.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("apiX.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
         assertEntryPoint("apiX.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("apiX.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api4.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api4.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api3.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api3.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api2.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api2.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api1.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api1.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api11.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api11.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api10.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api10.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
         assertEntryPoint(null, "/", httpAcceptorHandlerIterator.next());
     }
 
@@ -252,28 +256,28 @@ public class ReactorHandlerRegistryTest {
 
         DummyReactable reactable2 = createReactable("reactable2");
         ReactorHandler handler2 = createReactorHandler(
-            new DefaultHttpAcceptor("api.gravitee.io", "/a/b/c"),
-            new DefaultHttpAcceptor("api1.gravitee.io", "/a/b/c"),
-            new DefaultHttpAcceptor("api2.gravitee.io", "/a/b/c"),
-            new DefaultHttpAcceptor("api3.gravitee.io", "/a/b/c"),
-            new DefaultHttpAcceptor("api4.gravitee.io", "/a/b/c"),
-            new DefaultHttpAcceptor("apiX.gravitee.io", "/a/b/c"),
-            new DefaultHttpAcceptor("api10.gravitee.io", "/a/b/c"),
-            new DefaultHttpAcceptor("api11.gravitee.io", "/a/b/c")
+            new OverlappingHttpAcceptor("api.gravitee.io", "/a/b/c"),
+            new OverlappingHttpAcceptor("api1.gravitee.io", "/a/b/c"),
+            new OverlappingHttpAcceptor("api2.gravitee.io", "/a/b/c"),
+            new OverlappingHttpAcceptor("api3.gravitee.io", "/a/b/c"),
+            new OverlappingHttpAcceptor("api4.gravitee.io", "/a/b/c"),
+            new OverlappingHttpAcceptor("apiX.gravitee.io", "/a/b/c"),
+            new OverlappingHttpAcceptor("api10.gravitee.io", "/a/b/c"),
+            new OverlappingHttpAcceptor("api11.gravitee.io", "/a/b/c")
         );
         when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.create(reactable2);
 
         DummyReactable reactable3 = createReactable("reactable3");
         ReactorHandler handler3 = createReactorHandler(
-            new DefaultHttpAcceptor("api.gravitee.io", "/a/b/a"),
-            new DefaultHttpAcceptor("api1.gravitee.io", "/a/b/b"),
-            new DefaultHttpAcceptor("api2.gravitee.io", "/a/b/d"),
-            new DefaultHttpAcceptor("api3.gravitee.io", "/a/b/e"),
-            new DefaultHttpAcceptor("api4.gravitee.io", "/a/b/f"),
-            new DefaultHttpAcceptor("apiX.gravitee.io", "/a/b/c1/sub"),
-            new DefaultHttpAcceptor("api10.gravitee.io", "/a/b/c1/sub"),
-            new DefaultHttpAcceptor("api11.gravitee.io", "/a/b/c1/sub")
+            new OverlappingHttpAcceptor("api.gravitee.io", "/a/b/a"),
+            new OverlappingHttpAcceptor("api1.gravitee.io", "/a/b/b"),
+            new OverlappingHttpAcceptor("api2.gravitee.io", "/a/b/d"),
+            new OverlappingHttpAcceptor("api3.gravitee.io", "/a/b/e"),
+            new OverlappingHttpAcceptor("api4.gravitee.io", "/a/b/f"),
+            new OverlappingHttpAcceptor("apiX.gravitee.io", "/a/b/c1/sub"),
+            new OverlappingHttpAcceptor("api10.gravitee.io", "/a/b/c1/sub"),
+            new OverlappingHttpAcceptor("api11.gravitee.io", "/a/b/c1/sub")
         );
 
         when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(List.of(handler3));
@@ -282,22 +286,96 @@ public class ReactorHandlerRegistryTest {
         final Collection<HttpAcceptor> httpAcceptorHandlers = reactorHandlerRegistry.getAcceptors(HttpAcceptor.class);
         final Iterator<HttpAcceptor> httpAcceptorHandlerIterator = httpAcceptorHandlers.iterator();
         Assert.assertEquals(17, httpAcceptorHandlers.size());
-        assertEntryPoint("api.gravitee.io", "/a/b/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api1.gravitee.io", "/a/b/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api1.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api10.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api10.gravitee.io", "/a/b/c1/sub/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api11.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api11.gravitee.io", "/a/b/c1/sub/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api2.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api2.gravitee.io", "/a/b/d/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api3.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api3.gravitee.io", "/a/b/e/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api4.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api4.gravitee.io", "/a/b/f/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("apiX.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
         assertEntryPoint("apiX.gravitee.io", "/a/b/c1/sub/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("apiX.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api.gravitee.io", "/a/b/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api4.gravitee.io", "/a/b/f/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api4.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api3.gravitee.io", "/a/b/e/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api3.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api2.gravitee.io", "/a/b/d/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api2.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api1.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api1.gravitee.io", "/a/b/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api11.gravitee.io", "/a/b/c1/sub/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api11.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api10.gravitee.io", "/a/b/c1/sub/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api10.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint(null, "/", httpAcceptorHandlerIterator.next());
+    }
+
+    @Test
+    public void shouldHaveMultipleHttpAcceptors_multipleVhostsWithSubPathsAndWildcards() {
+        DummyReactable reactable = createReactable("reactable1");
+        ReactorHandler handler = createReactorHandler(
+            new OverlappingHttpAcceptor(null, "/"),
+            new OverlappingHttpAcceptor("*.gravitee.io", "/"),
+            new OverlappingHttpAcceptor("test.gravitee.io", "/")
+        );
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
+        reactorHandlerRegistry.create(reactable);
+
+        DummyReactable reactable2 = createReactable("reactable2");
+        ReactorHandler handler2 = createReactorHandler(
+            new OverlappingHttpAcceptor("test.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("test.gravitee.io", "/a/b"),
+            new OverlappingHttpAcceptor("test.gravitee.io", "/a/b/c"),
+            new OverlappingHttpAcceptor("1.test.gravitee.io", "/a/b/c"),
+            new OverlappingHttpAcceptor("2.test.gravitee.io", "/a/b/c"),
+            new OverlappingHttpAcceptor("3.test.gravitee.io", "/a/b/c")
+        );
+        when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
+        reactorHandlerRegistry.create(reactable2);
+
+        DummyReactable reactable3 = createReactable("reactable3");
+        ReactorHandler handler3 = createReactorHandler(
+            new OverlappingHttpAcceptor("*.gravitee.io", "/a/b/c"),
+            new OverlappingHttpAcceptor("*.gravitee.io", "/a/b/c/sub"),
+            new OverlappingHttpAcceptor("*.foo.gravitee.io", "/a/b/c"),
+            new OverlappingHttpAcceptor("*.foo.gravitee.io", "/a/b/c/sub"),
+            new OverlappingHttpAcceptor("*.test.gravitee.io", "/a/b/c"),
+            new OverlappingHttpAcceptor("*.test.gravitee.io", "/a/b/c/sub")
+        );
+        when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(List.of(handler3));
+        reactorHandlerRegistry.create(reactable3);
+
+        DummyReactable reactable4 = createReactable("reactable4");
+        ReactorHandler handler4 = createReactorHandler(
+            new OverlappingHttpAcceptor(null, "/a/b/a"),
+            new OverlappingHttpAcceptor(null, "/a/b/b"),
+            new OverlappingHttpAcceptor(null, "/a/b/c"),
+            new OverlappingHttpAcceptor(null, "/a/b/a/sub"),
+            new OverlappingHttpAcceptor(null, "/a/b/b/sub"),
+            new OverlappingHttpAcceptor(null, "/a/b/c/sub")
+        );
+
+        when(reactorHandlerFactoryManager.create(reactable4)).thenReturn(List.of(handler4));
+        reactorHandlerRegistry.create(reactable4);
+
+        final Collection<HttpAcceptor> httpAcceptorHandlers = reactorHandlerRegistry.getAcceptors(HttpAcceptor.class);
+        final Iterator<HttpAcceptor> httpAcceptorHandlerIterator = httpAcceptorHandlers.iterator();
+        Assert.assertEquals(21, httpAcceptorHandlers.size());
+        assertEntryPoint("3.test.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("2.test.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("1.test.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint(".test.gravitee.io", "/a/b/c/sub/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint(".test.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("test.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("test.gravitee.io", "/a/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("test.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("test.gravitee.io", "/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint(".foo.gravitee.io", "/a/b/c/sub/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint(".foo.gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint(".gravitee.io", "/a/b/c/sub/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint(".gravitee.io", "/a/b/c/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint(".gravitee.io", "/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint(null, "/a/b/c/sub/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint(null, "/a/b/c/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint(null, "/a/b/b/sub/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint(null, "/a/b/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint(null, "/a/b/a/sub/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint(null, "/a/b/a/", httpAcceptorHandlerIterator.next());
         assertEntryPoint(null, "/", httpAcceptorHandlerIterator.next());
     }
 
@@ -310,28 +388,28 @@ public class ReactorHandlerRegistryTest {
 
         DummyReactable reactable2 = createReactable("reactable2");
         ReactorHandler handler2 = createReactorHandler(
-            new DefaultHttpAcceptor("api.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("api1.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("api2.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("api3.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("api4.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("apiX.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("api10.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("api11.gravitee.io", "/a")
+            new OverlappingHttpAcceptor("api.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("api1.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("api2.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("api3.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("api4.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("apiX.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("api10.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("api11.gravitee.io", "/a")
         );
         when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.create(reactable2);
 
         DummyReactable reactable3 = createReactable("reactable3");
         ReactorHandler handler3 = createReactorHandler(
-            new DefaultHttpAcceptor("api.gravitee.io", "/a-v1"),
-            new DefaultHttpAcceptor("api1.gravitee.io", "/a-v1"),
-            new DefaultHttpAcceptor("api2.gravitee.io", "/a-v1"),
-            new DefaultHttpAcceptor("api3.gravitee.io", "/a-v1"),
-            new DefaultHttpAcceptor("api4.gravitee.io", "/a-v1"),
-            new DefaultHttpAcceptor("apiX.gravitee.io", "/a-v1"),
-            new DefaultHttpAcceptor("api10.gravitee.io", "/a-v1"),
-            new DefaultHttpAcceptor("api11.gravitee.io", "/a-v1")
+            new OverlappingHttpAcceptor("api.gravitee.io", "/a-v1"),
+            new OverlappingHttpAcceptor("api1.gravitee.io", "/a-v1"),
+            new OverlappingHttpAcceptor("api2.gravitee.io", "/a-v1"),
+            new OverlappingHttpAcceptor("api3.gravitee.io", "/a-v1"),
+            new OverlappingHttpAcceptor("api4.gravitee.io", "/a-v1"),
+            new OverlappingHttpAcceptor("apiX.gravitee.io", "/a-v1"),
+            new OverlappingHttpAcceptor("api10.gravitee.io", "/a-v1"),
+            new OverlappingHttpAcceptor("api11.gravitee.io", "/a-v1")
         );
         when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(List.of(handler3));
         reactorHandlerRegistry.create(reactable3);
@@ -339,14 +417,14 @@ public class ReactorHandlerRegistryTest {
         reactable2 = createReactable("reactable2");
         handler2 =
             createReactorHandler(
-                new DefaultHttpAcceptor("api.gravitee.io", "/b"),
-                new DefaultHttpAcceptor("api1.gravitee.io", "/b"),
-                new DefaultHttpAcceptor("api2.gravitee.io", "/b"),
-                new DefaultHttpAcceptor("api3.gravitee.io", "/b"),
-                new DefaultHttpAcceptor("api4.gravitee.io", "/b"),
-                new DefaultHttpAcceptor("apiX.gravitee.io", "/b"),
-                new DefaultHttpAcceptor("api10.gravitee.io", "/b"),
-                new DefaultHttpAcceptor("api11.gravitee.io", "/b")
+                new OverlappingHttpAcceptor("api.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("api1.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("api2.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("api3.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("api4.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("apiX.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("api10.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("api11.gravitee.io", "/b")
             );
         when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.update(reactable2);
@@ -354,22 +432,22 @@ public class ReactorHandlerRegistryTest {
         final Collection<HttpAcceptor> httpAcceptorHandlers = reactorHandlerRegistry.getAcceptors(HttpAcceptor.class);
         final Iterator<HttpAcceptor> httpAcceptorHandlerIterator = httpAcceptorHandlers.iterator();
         Assert.assertEquals(17, httpAcceptorHandlers.size());
-        assertEntryPoint("api.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api1.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api1.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api10.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api10.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api11.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api11.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api2.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api2.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api3.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api3.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api4.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api4.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("apiX.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
         assertEntryPoint("apiX.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("apiX.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api4.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api4.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api3.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api3.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api2.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api2.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api1.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api1.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api11.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api11.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api10.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api10.gravitee.io", "/a-v1/", httpAcceptorHandlerIterator.next());
         assertEntryPoint(null, "/", httpAcceptorHandlerIterator.next());
     }
 
@@ -509,28 +587,28 @@ public class ReactorHandlerRegistryTest {
 
         DummyReactable reactable2 = createReactable("reactable2");
         ReactorHandler handler2 = createReactorHandler(
-            new DefaultHttpAcceptor("api.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("api1.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("api2.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("api3.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("api4.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("apiX.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("api10.gravitee.io", "/a"),
-            new DefaultHttpAcceptor("api11.gravitee.io", "/a")
+            new OverlappingHttpAcceptor("api.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("api1.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("api2.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("api3.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("api4.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("apiX.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("api10.gravitee.io", "/a"),
+            new OverlappingHttpAcceptor("api11.gravitee.io", "/a")
         );
         when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.create(reactable2);
 
         DummyReactable reactable3 = createReactable("reactable3");
         ReactorHandler handler3 = createReactorHandler(
-            new DefaultHttpAcceptor("api.gravitee.io", "/b"),
-            new DefaultHttpAcceptor("api1.gravitee.io", "/b"),
-            new DefaultHttpAcceptor("api2.gravitee.io", "/b"),
-            new DefaultHttpAcceptor("api3.gravitee.io", "/b"),
-            new DefaultHttpAcceptor("api4.gravitee.io", "/b"),
-            new DefaultHttpAcceptor("apiX.gravitee.io", "/b"),
-            new DefaultHttpAcceptor("api10.gravitee.io", "/b"),
-            new DefaultHttpAcceptor("api11.gravitee.io", "/b")
+            new OverlappingHttpAcceptor("api.gravitee.io", "/b"),
+            new OverlappingHttpAcceptor("api1.gravitee.io", "/b"),
+            new OverlappingHttpAcceptor("api2.gravitee.io", "/b"),
+            new OverlappingHttpAcceptor("api3.gravitee.io", "/b"),
+            new OverlappingHttpAcceptor("api4.gravitee.io", "/b"),
+            new OverlappingHttpAcceptor("apiX.gravitee.io", "/b"),
+            new OverlappingHttpAcceptor("api10.gravitee.io", "/b"),
+            new OverlappingHttpAcceptor("api11.gravitee.io", "/b")
         );
         when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(List.of(handler3));
         reactorHandlerRegistry.create(reactable3);
@@ -538,57 +616,57 @@ public class ReactorHandlerRegistryTest {
         Collection<HttpAcceptor> httpAcceptorHandlers = reactorHandlerRegistry.getAcceptors(HttpAcceptor.class);
         Iterator<HttpAcceptor> httpAcceptorHandlerIterator = httpAcceptorHandlers.iterator();
         Assert.assertEquals(17, httpAcceptorHandlers.size());
-        assertEntryPoint("api.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api1.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api1.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api10.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api10.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api11.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api11.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api2.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api2.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api3.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api3.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api4.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api4.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("apiX.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
         assertEntryPoint("apiX.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("apiX.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api4.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api4.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api3.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api3.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api2.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api2.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api1.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api1.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api11.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api11.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api10.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api10.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
         assertEntryPoint(null, "/", httpAcceptorHandlerIterator.next());
 
         reactorHandlerRegistry.remove(reactable);
         httpAcceptorHandlers = reactorHandlerRegistry.getAcceptors(HttpAcceptor.class);
         httpAcceptorHandlerIterator = httpAcceptorHandlers.iterator();
         Assert.assertEquals(16, httpAcceptorHandlers.size());
-        assertEntryPoint("api.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api1.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api1.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api10.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api10.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api11.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api11.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api2.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api2.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api3.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api3.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api4.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api4.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("apiX.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
         assertEntryPoint("apiX.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("apiX.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api4.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api4.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api3.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api3.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api2.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api2.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api1.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api1.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api11.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api11.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api10.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api10.gravitee.io", "/a/", httpAcceptorHandlerIterator.next());
 
         reactorHandlerRegistry.remove(reactable2);
         httpAcceptorHandlers = reactorHandlerRegistry.getAcceptors(HttpAcceptor.class);
         httpAcceptorHandlerIterator = httpAcceptorHandlers.iterator();
         Assert.assertEquals(8, httpAcceptorHandlers.size());
-        assertEntryPoint("api.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api1.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api10.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api11.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api2.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api3.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
-        assertEntryPoint("api4.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
         assertEntryPoint("apiX.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api4.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api3.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api2.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api1.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api11.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
+        assertEntryPoint("api10.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
 
         reactorHandlerRegistry.remove(reactable3);
         Assert.assertEquals(0, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
@@ -644,7 +722,7 @@ public class ReactorHandlerRegistryTest {
         return createReactorHandler(new DefaultHttpAcceptor(virtualHost, contextPath));
     }
 
-    private ReactorHandler createReactorHandler(Acceptor<? extends Acceptor<?>>... httpAcceptors) {
+    private ReactorHandler createReactorHandler(Acceptor<?>... httpAcceptors) {
         ReactorHandler handler = mock(ReactorHandler.class);
 
         List<Acceptor<?>> acceptors = Arrays
@@ -692,7 +770,7 @@ public class ReactorHandlerRegistryTest {
         }
 
         @Override
-        public int compareTo(DummyAcceptor o) {
+        public int compareTo(@Nonnull DummyAcceptor o) {
             return 0;
         }
     }
@@ -701,7 +779,7 @@ public class ReactorHandlerRegistryTest {
         String apiId();
     }
 
-    private class DummyReactable implements Reactable {
+    private static class DummyReactable implements Reactable {
 
         private final String id;
 

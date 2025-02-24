@@ -27,6 +27,7 @@ import io.gravitee.gateway.handlers.api.ApiReactorHandler;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.node.api.configuration.Configuration;
 
 /**
@@ -40,9 +41,10 @@ public class DebugApiReactorHandler extends ApiReactorHandler {
         Api api,
         AccessPointManager accessPointManager,
         EventManager eventManager,
+        HttpAcceptorFactory httpAcceptorFactory,
         TracingContext tracingContext
     ) {
-        super(configuration, api, accessPointManager, eventManager, tracingContext);
+        super(configuration, api, accessPointManager, eventManager, httpAcceptorFactory, tracingContext);
     }
 
     @Override

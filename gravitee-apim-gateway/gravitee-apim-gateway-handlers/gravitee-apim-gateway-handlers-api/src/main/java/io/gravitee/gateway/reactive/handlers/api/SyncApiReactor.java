@@ -63,6 +63,7 @@ import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.http.AccessPointHttpAcceptor;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
@@ -119,6 +120,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     private final String loggingExcludedResponseType;
     private final String loggingMaxSize;
     private final AtomicInteger pendingRequests = new AtomicInteger(0);
+    private final HttpAcceptorFactory httpAcceptorFactory;
     private final long pendingRequestsTimeout;
     protected AnalyticsContext analyticsContext;
     protected HttpSecurityChain httpSecurityChain;
@@ -139,6 +141,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         final RequestTimeoutConfiguration requestTimeoutConfiguration,
         final AccessPointManager accessPointManager,
         final EventManager eventManager,
+        final HttpAcceptorFactory httpAcceptorFactory,
         final TracingContext tracingContext
     ) {
         this.api = api;
@@ -151,6 +154,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         this.requestTimeoutConfiguration = requestTimeoutConfiguration;
         this.accessPointManager = accessPointManager;
         this.eventManager = eventManager;
+        this.httpAcceptorFactory = httpAcceptorFactory;
         this.tracingContext = tracingContext;
 
         this.beforeHandleProcessors = apiProcessorChainFactory.beforeHandle(api, tracingContext);
@@ -400,7 +404,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
                         .stream()
                         .map(virtualHost -> {
                             if (virtualHost.getHost() != null) {
-                                return new DefaultHttpAcceptor(
+                                return httpAcceptorFactory.create(
                                     virtualHost.getHost(),
                                     virtualHost.getPath(),
                                     this,
@@ -409,6 +413,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
                             } else {
                                 return new AccessPointHttpAcceptor(
                                     eventManager,
+                                    httpAcceptorFactory,
                                     api.getEnvironmentId(),
                                     accessPointManager.getByEnvironmentId(api.getEnvironmentId()),
                                     virtualHost.getPath(),

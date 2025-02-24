@@ -80,6 +80,7 @@ import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.http.AccessPointHttpAcceptor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
@@ -402,6 +403,7 @@ class DefaultApiReactorTest {
                     reporterService,
                     accessPointManager,
                     eventManager,
+                    new HttpAcceptorFactory(false),
                     tracingContext
                 );
             ReflectionTestUtils.setField(defaultApiReactor, "entrypointConnectorResolver", entrypointConnectorResolver);

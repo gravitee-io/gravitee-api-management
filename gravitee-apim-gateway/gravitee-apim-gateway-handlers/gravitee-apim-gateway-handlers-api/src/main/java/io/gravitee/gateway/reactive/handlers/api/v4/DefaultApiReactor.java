@@ -64,8 +64,8 @@ import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainF
 import io.gravitee.gateway.reactive.handlers.api.v4.security.HttpSecurityChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactor.handler.Acceptor;
-import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.http.AccessPointHttpAcceptor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
@@ -115,6 +115,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected final ReporterService reporterService;
     private final AccessPointManager accessPointManager;
     private final EventManager eventManager;
+    private final HttpAcceptorFactory httpAcceptorFactory;
     private final ResourceLifecycleManager resourceLifecycleManager;
     protected final ProcessorChain beforeHandleProcessors;
     protected final ProcessorChain afterHandleProcessors;
@@ -155,6 +156,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
         final ReporterService reporterService,
         final AccessPointManager accessPointManager,
         final EventManager eventManager,
+        final HttpAcceptorFactory httpAcceptorFactory,
         final TracingContext tracingContext
     ) {
         super(
@@ -173,6 +175,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
         this.reporterService = reporterService;
         this.accessPointManager = accessPointManager;
         this.eventManager = eventManager;
+        this.httpAcceptorFactory = httpAcceptorFactory;
+
         this.defaultInvoker = endpointInvoker(endpointManager);
 
         this.resourceLifecycleManager = resourceLifecycleManager;
@@ -475,10 +479,11 @@ public class DefaultApiReactor extends AbstractApiReactor {
             .stream()
             .map(path -> {
                 if (path.getHost() != null) {
-                    return new DefaultHttpAcceptor(path.getHost(), path.getPath(), this, listener.getServers());
+                    return httpAcceptorFactory.create(path.getHost(), path.getPath(), this, listener.getServers());
                 } else {
                     return new AccessPointHttpAcceptor(
                         eventManager,
+                        httpAcceptorFactory,
                         api.getEnvironmentId(),
                         accessPointManager.getByEnvironmentId(api.getEnvironmentId()),
                         path.getPath(),

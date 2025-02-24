@@ -21,6 +21,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.gateway.reactor.accesspoint.AccessPointEvent;
 import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +43,8 @@ class AccessPointHttpAcceptorTest {
 
     private EventManager eventManager = new EventManagerImpl();
 
+    final HttpAcceptorFactory httpAcceptorFactory = new HttpAcceptorFactory(false);
+
     @Mock
     private ReactorHandler reactorHandler;
 
@@ -53,7 +56,15 @@ class AccessPointHttpAcceptorTest {
 
         @Test
         void should_accept_but_with_matching_path() {
-            final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(eventManager, ENV_ID, List.of(), "/test", null, List.of());
+            final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
+                eventManager,
+                httpAcceptorFactory,
+                ENV_ID,
+                List.of(),
+                "/test",
+                null,
+                List.of()
+            );
             assertThat(cut.accept("localhost", "/test", SERVER_ID)).isTrue();
         }
 
@@ -61,6 +72,7 @@ class AccessPointHttpAcceptorTest {
         void should_not_accept_with_non_matching_path() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
                 eventManager,
+                httpAcceptorFactory,
                 ENV_ID,
                 List.of(),
                 "/test",
@@ -75,6 +87,7 @@ class AccessPointHttpAcceptorTest {
         void should_accept_with_matching_path_and_server() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
                 eventManager,
+                httpAcceptorFactory,
                 ENV_ID,
                 List.of(),
                 "/test",
@@ -88,6 +101,7 @@ class AccessPointHttpAcceptorTest {
         void should_not_accept_with_matching_path_and_not_matching_server() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
                 eventManager,
+                httpAcceptorFactory,
                 ENV_ID,
                 List.of(),
                 "/test",
@@ -106,6 +120,7 @@ class AccessPointHttpAcceptorTest {
         void should_accept_with_matching_path_and_server_and_host_and_target() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
                 eventManager,
+                httpAcceptorFactory,
                 ENV_ID,
                 List.of(
                     ReactableAccessPoint
@@ -135,6 +150,7 @@ class AccessPointHttpAcceptorTest {
         void should_not_accept_with_matching_path_and_server_and_not_matching_host() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
                 eventManager,
+                httpAcceptorFactory,
                 ENV_ID,
                 List.of(ReactableAccessPoint.builder().id("id").environmentId(ENV_ID).host("host").build()),
                 "/test",
@@ -149,6 +165,7 @@ class AccessPointHttpAcceptorTest {
         void should_not_accept_with_matching_path_and_host_and_server_null() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
                 eventManager,
+                httpAcceptorFactory,
                 ENV_ID,
                 List.of(ReactableAccessPoint.builder().id("id").environmentId(ENV_ID).host("host").build()),
                 "/test",
@@ -163,6 +180,7 @@ class AccessPointHttpAcceptorTest {
         void should_return_single_host_and_path() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
                 eventManager,
+                httpAcceptorFactory,
                 ENV_ID,
                 List.of(
                     ReactableAccessPoint
@@ -191,6 +209,7 @@ class AccessPointHttpAcceptorTest {
         void should_accept_with_matching_path_and_server_and_host_and_target() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
                 eventManager,
+                httpAcceptorFactory,
                 ENV_ID,
                 List.of(
                     ReactableAccessPoint
@@ -234,6 +253,7 @@ class AccessPointHttpAcceptorTest {
         void should_not_accept_with_matching_path_and_server_and_not_matching_host() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
                 eventManager,
+                httpAcceptorFactory,
                 ENV_ID,
                 List.of(
                     ReactableAccessPoint
@@ -263,6 +283,7 @@ class AccessPointHttpAcceptorTest {
         void should_not_accept_with_matching_path_and_host_and_server_null() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
                 eventManager,
+                httpAcceptorFactory,
                 ENV_ID,
                 List.of(
                     ReactableAccessPoint.builder().id("id1").environmentId(ENV_ID).host("host1").build(),
@@ -280,6 +301,7 @@ class AccessPointHttpAcceptorTest {
         void should_return_first_host_and_path() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
                 eventManager,
+                httpAcceptorFactory,
                 ENV_ID,
                 List.of(
                     ReactableAccessPoint
@@ -318,6 +340,7 @@ class AccessPointHttpAcceptorTest {
             cut =
                 new AccessPointHttpAcceptor(
                     eventManager,
+                    httpAcceptorFactory,
                     ENV_ID,
                     List.of(
                         ReactableAccessPoint
@@ -425,6 +448,7 @@ class AccessPointHttpAcceptorTest {
             cut =
                 new AccessPointHttpAcceptor(
                     eventManager,
+                    httpAcceptorFactory,
                     ENV_ID,
                     List.of(
                         ReactableAccessPoint
