@@ -16,14 +16,5 @@
 package io.gravitee.repository.log.v4.model.analytics;
 
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Value;
 
-@Value
-@AllArgsConstructor
-public class RequestResponseTimeQueryCriteria {
-
-    List<String> apiIds;
-    long from;
-    long to;
-}
+public record RequestResponseTimeQueryCriteria(List<String> apiIds, long from, long to) {}
