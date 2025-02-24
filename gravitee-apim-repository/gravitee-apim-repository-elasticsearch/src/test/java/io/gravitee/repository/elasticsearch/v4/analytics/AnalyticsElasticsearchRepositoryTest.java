@@ -30,6 +30,8 @@ import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
+import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
 import java.time.Duration;
@@ -412,6 +414,44 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var result = cut.searchTopApps(new QueryContext("org#1", "env#1"), null);
 
             assertThat(result).isNotNull().get().extracting(TopHitsAggregate::getTopHitsCounts).isEqualTo(Map.of());
+        }
+    }
+
+    @Nested
+    class TopFailedApis {
+
+        private static final String V4_API_ID = "4a6895d5-a1bc-4041-a895-d5a1bce041ae";
+        private static final Instant NOW = Instant.now();
+        private static final long FROM = NOW.truncatedTo(ChronoUnit.DAYS).minus(Duration.ofDays(1)).toEpochMilli();
+        private static final long TO = NOW.truncatedTo(ChronoUnit.DAYS).toEpochMilli();
+
+        @Test
+        void should_return_top_failed_apis() {
+            var result = cut.searchTopFailedApis(
+                new QueryContext("org#1", "env#1"),
+                new TopFailedQueryCriteria(List.of(V4_API_ID), FROM, TO)
+            );
+
+            assertThat(result)
+                .isNotNull()
+                .isPresent()
+                .get()
+                .extracting(TopFailedAggregate::failedApis)
+                .isEqualTo(Map.of("4a6895d5-a1bc-4041-a895-d5a1bce041ae", new TopFailedAggregate.FailedApiInfo(1L, 0.5)));
+        }
+
+        @Test
+        void should_return_empty_top_failed_apis_for_empty_ids_list() {
+            var result = cut.searchTopFailedApis(new QueryContext("org#1", "env#1"), new TopFailedQueryCriteria(List.of(API_ID), FROM, TO));
+
+            assertThat(result).isNotNull().get().extracting(TopFailedAggregate::failedApis).isEqualTo(Map.of());
+        }
+
+        @Test
+        void should_return_empty_top_failed_apis_for_null_query_criteria() {
+            var result = cut.searchTopFailedApis(new QueryContext("org#1", "env#1"), null);
+
+            assertThat(result).isNotNull().get().extracting(TopFailedAggregate::failedApis).isEqualTo(Map.of());
         }
     }
 }

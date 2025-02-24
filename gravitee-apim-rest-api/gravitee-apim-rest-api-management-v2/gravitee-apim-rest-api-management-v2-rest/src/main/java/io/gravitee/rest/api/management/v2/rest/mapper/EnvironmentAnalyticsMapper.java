@@ -20,10 +20,12 @@ import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsRequest
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsResponseStatusRangesResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopAppsByRequestCountResponse;
+import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopFailedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopHitsApisResponse;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
+import io.gravitee.rest.api.model.v4.analytics.TopFailedApis;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -41,4 +43,6 @@ public interface EnvironmentAnalyticsMapper {
     EnvironmentAnalyticsResponseStatusOvertimeResponse map(ResponseStatusOvertime source);
 
     EnvironmentAnalyticsTopAppsByRequestCountResponse map(TopHitsApps topHitsApps);
+
+    EnvironmentAnalyticsTopFailedApisResponse map(TopFailedApis topFailedApis);
 }

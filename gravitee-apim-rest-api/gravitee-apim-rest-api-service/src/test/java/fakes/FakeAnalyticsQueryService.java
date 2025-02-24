@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
+import io.gravitee.rest.api.model.v4.analytics.TopFailedApis;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
@@ -49,6 +50,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public LinkedHashMap<String, Double> averageAggregate = new LinkedHashMap<>();
     public ResponseStatusOvertime responseStatusOvertime;
     public TopHitsApps topHitsApps;
+    public TopFailedApis topFailedApis;
 
     @Override
     public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
@@ -83,6 +85,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
         responseStatusRanges = null;
         responseStatusOvertime = null;
         requestResponseTime = null;
+        topFailedApis = null;
     }
 
     @Override
@@ -122,5 +125,10 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     @Override
     public RequestResponseTime searchRequestResponseTime(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
         return requestResponseTime;
+    }
+
+    @Override
+    public Optional<TopFailedApis> searchTopFailedApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
+        return Optional.ofNullable(topFailedApis);
     }
 }
