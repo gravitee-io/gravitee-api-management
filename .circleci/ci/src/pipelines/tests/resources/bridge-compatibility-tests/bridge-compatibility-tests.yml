@@ -327,7 +327,7 @@ workflows:
                 - bridge
               apim_client_tag:
                 - 4.4.x-latest
-                - graviteeio@4.4.0
+                - graviteeio@4.4.2
                 - 4.3.x-latest
                 - graviteeio@4.3.0
                 - graviteeio@4.2
