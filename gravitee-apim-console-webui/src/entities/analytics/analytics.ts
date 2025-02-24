@@ -58,3 +58,13 @@ export interface AnalyticsV4ResponseTimes {
   timeRange: AnalyticsTimestamp;
   data: number[];
 }
+
+export interface TopApplication {
+  id: string;
+  name: string;
+  count: number;
+}
+
+export interface TopApplicationsByRequestsCountRes {
+  data: TopApplication[];
+}

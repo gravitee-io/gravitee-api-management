@@ -45,6 +45,7 @@ import { V2ResponseTimesComponent } from './components/v2-response-times/v2-resp
 import { V2ResponseStatusComponent } from './components/v2-response-status/v2-response-status.component';
 import { V4ResponseStatusComponent } from './components/v4-response-status/v4-response-status.component';
 import { V4ResponseTimesComponent } from './components/v4-response-times/v4-response-times.component';
+import { TopApplicationsByRequestsComponent } from './components/top-applications-by-requests/top-applications-by-requests.component';
 
 import { GioCircularPercentageModule } from '../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
@@ -125,6 +126,7 @@ const homeRoutes: Route[] = [
     V2ResponseStatusComponent,
     V4ResponseStatusComponent,
     V4ResponseTimesComponent,
+    TopApplicationsByRequestsComponent,
   ],
   declarations: [HomeLayoutComponent, HomeOverviewComponent, HomeApiHealthCheckComponent],
 })

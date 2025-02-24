@@ -36,6 +36,7 @@ import {
   AnalyticsResponseStatus,
   AnalyticsV4ResponseTimes,
   AnalyticsV4ResponseStatus,
+  TopApplicationsByRequestsCountRes,
 } from '../entities/analytics/analytics';
 
 @Injectable({
@@ -138,5 +139,10 @@ export class AnalyticsService {
   getV4ResponseStatus({ from, to }: TimeRangeParams): Observable<AnalyticsV4ResponseStatus> {
     const url = `${this.constants.env.v2BaseURL}/analytics/response-status-overtime?from=${from}&to=${to}`;
     return this.http.get<AnalyticsV4ResponseStatus>(url);
+  }
+
+  getTopApplicationsByRequestsCount({ from, to }: TimeRangeParams): Observable<TopApplicationsByRequestsCountRes> {
+    const url = `${this.constants.env.v2BaseURL}/analytics/top-apps-by-request-count?from=${from}&to=${to}`;
+    return this.http.get<TopApplicationsByRequestsCountRes>(url);
   }
 }
