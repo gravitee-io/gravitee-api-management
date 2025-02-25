@@ -25,11 +25,11 @@ import { ApiResponseStatusData } from '../components/gio-api-response-status/gio
 import { ApiStateData } from '../components/gio-api-state/gio-api-state.component';
 import { ApiLifecycleStateData } from '../components/gio-api-lifecycle-state/gio-api-lifecycle-state.component';
 import { ApiAnalyticsResponseStatusRanges } from '../../../shared/components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component';
-import { TopApis } from '../../../shared/components/top-apis-widget/top-apis-widget.component';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { TimeRangeParams } from '../../../shared/utils/timeFrameRanges';
 import { v4ApisRequestStats } from '../components/dashboard-v4-api-request-stats/dashboard-v4-api-request-stats';
 import { HomeService } from '../../../services-ngx/home.service';
+import { AnalyticsTopApis } from '../../../entities/analytics/analytics';
 
 @Component({
   selector: 'home-overview',
@@ -41,7 +41,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
 
   public loading = false;
   public topApisV2: TopApisData;
-  public topApis: TopApis[];
+  public topApis: AnalyticsTopApis[];
   public requestStats: RequestStats;
   public requestStatsV4: v4ApisRequestStats;
   public apiResponseStatus: ApiResponseStatusData;
@@ -231,6 +231,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.homeService.resetTimeRange();
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
   }

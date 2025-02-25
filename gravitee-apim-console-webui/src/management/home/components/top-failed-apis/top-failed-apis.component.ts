@@ -15,45 +15,45 @@
  */
 
 import { ChangeDetectorRef, Component, DestroyRef, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatSortModule } from '@angular/material/sort';
-import { DecimalPipe, NgIf } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { GioLoaderModule } from '@gravitee/ui-particles-angular';
-import { MatCardModule } from '@angular/material/card';
-import { EMPTY } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
+import { EMPTY } from 'rxjs';
+import { GioLoaderModule } from '@gravitee/ui-particles-angular';
+import { DecimalPipe } from '@angular/common';
 
-import { AnalyticsService } from '../../../../services-ngx/analytics.service';
 import { HomeService } from '../../../../services-ngx/home.service';
+import { AnalyticsService } from '../../../../services-ngx/analytics.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { TimeRangeParams } from '../../../../shared/utils/timeFrameRanges';
-import { TopApplication } from '../../../../entities/analytics/analytics';
+import { AnalyticsTopFailedApi, AnalyticsDefinitionVersion } from '../../../../entities/analytics/analytics';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 @Component({
-  selector: 'top-applications-by-requests',
+  selector: 'top-failed-apis',
   standalone: true,
-  imports: [MatCardModule, GioTableWrapperModule, MatTableModule, MatSortModule, NgIf, DecimalPipe, GioLoaderModule, RouterLink],
-  templateUrl: './top-applications-by-requests.component.html',
-  styleUrl: './top-applications-by-requests.component.scss',
+  imports: [GioLoaderModule, GioTableWrapperModule, MatCardModule, MatSortModule, MatTableModule, DecimalPipe],
+  templateUrl: './top-failed-apis.component.html',
+  styleUrl: './top-failed-apis.component.scss',
 })
-export class TopApplicationsByRequestsComponent implements OnInit {
-  public isLoading = false;
-  public topApplications: TopApplication[] = [];
-  public timeFrame: TimeRangeParams;
+export class TopFailedApisComponent implements OnInit {
+  public isLoading = true;
+  public timeframe: TimeRangeParams;
+  public topFailedApis: AnalyticsTopFailedApi[];
 
-  public displayedColumns = ['name', 'count'];
-  public filteredTableData: TopApplication[] = [];
+  public tableColumns = ['name', 'failedCalls', 'failedCallsRatio'];
   public tableFilters: GioTableWrapperFilters = { pagination: { index: 1, size: 5 }, searchTerm: '' };
+  public filteredTableData: AnalyticsTopFailedApi[] = [];
   public totalLength: number = 0;
 
   constructor(
-    private readonly analyticsService: AnalyticsService,
     private readonly homeService: HomeService,
+    private readonly analyticsService: AnalyticsService,
     private readonly destroyRef: DestroyRef,
     private readonly snackBarService: SnackBarService,
     private readonly router: Router,
@@ -65,21 +65,18 @@ export class TopApplicationsByRequestsComponent implements OnInit {
     this.homeService
       .timeRangeParams()
       .pipe(
-        tap((timeFrame: TimeRangeParams) => (this.timeFrame = timeFrame)),
+        tap((timeframe: TimeRangeParams) => (this.timeframe = timeframe)),
         switchMap(({ from, to }: TimeRangeParams) => {
           this.isLoading = true;
           this.filteredTableData = [];
-          this.topApplications = [];
-          return this.analyticsService.getTopApplicationsByRequestsCount({
-            from,
-            to,
-          });
+          this.topFailedApis = [];
+          return this.analyticsService.getTopFailedApis(from, to);
         }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: (res) => {
-          this.topApplications = res.data;
+          this.topFailedApis = res.data;
           this.isLoading = false;
           this.onFiltersChanged(this.tableFilters);
         },
@@ -92,21 +89,21 @@ export class TopApplicationsByRequestsComponent implements OnInit {
 
   onFiltersChanged(filters: GioTableWrapperFilters) {
     this.tableFilters = { ...this.tableFilters, ...filters };
-    const { filteredCollection, unpaginatedLength } = gioTableFilterCollection(this.topApplications, filters);
+    const { filteredCollection, unpaginatedLength } = gioTableFilterCollection(this.topFailedApis, filters);
     this.filteredTableData = filteredCollection;
     this.totalLength = unpaginatedLength;
     this.changeDetector.detectChanges();
   }
 
-  navigateToApplication(id: string): void {
-    const queryParams = {
-      from: this.timeFrame.from,
-      to: this.timeFrame.to,
-    };
+  navigateToApi(id: string, definitionVersion: AnalyticsDefinitionVersion): void {
+    const customTimeframeParams = this.timeframe.id === 'custom' ? { from: this.timeframe.from, to: this.timeframe.to } : {};
 
-    this.router.navigate(['../..', 'applications', id, 'analytics'], {
-      relativeTo: this.activatedRoute,
-      queryParams,
-    });
+    this.router.navigate(
+      ['../../', 'apis', id, definitionVersion.toLowerCase(), definitionVersion === 'V2' ? 'analytics-overview' : 'analytics'],
+      {
+        relativeTo: this.activatedRoute,
+        queryParams: { period: this.timeframe.id, ...customTimeframeParams },
+      },
+    );
   }
 }

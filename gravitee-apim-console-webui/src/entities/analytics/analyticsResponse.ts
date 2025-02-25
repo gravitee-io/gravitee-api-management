@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TopApis } from '../../shared/components/top-apis-widget/top-apis-widget.component';
+
+import { AnalyticsTopApis } from './analytics';
 
 export class AnalyticsMetadata {
   name: string;
@@ -43,7 +44,7 @@ export class AnalyticsCountResponse {
 }
 
 export interface AnalyticsTopApisResponse {
-  data: TopApis[];
+  data: AnalyticsTopApis[];
 }
 
 export interface AnalyticsV4StatsResponse {

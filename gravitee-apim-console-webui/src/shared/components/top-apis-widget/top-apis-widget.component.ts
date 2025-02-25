@@ -28,18 +28,7 @@ import { GioTableWrapperModule } from '../gio-table-wrapper/gio-table-wrapper.mo
 import { GioTableWrapperFilters } from '../gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../gio-table-wrapper/gio-table-wrapper.util';
 import { TimeRangeParams } from '../../utils/timeFrameRanges';
-
-export interface TopApis {
-  id: string;
-  name: string;
-  count: number;
-  definitionVersion: DefinitionVersion;
-}
-
-export enum DefinitionVersion {
-  V2 = 'V2',
-  V4 = 'V4',
-}
+import { AnalyticsDefinitionVersion, AnalyticsTopApis } from '../../../entities/analytics/analytics';
 
 @Component({
   selector: 'app-top-apis-widget',
@@ -59,11 +48,11 @@ export enum DefinitionVersion {
   styleUrl: './top-apis-widget.component.scss',
 })
 export class TopApisWidgetComponent implements OnChanges {
-  @Input() data: TopApis[];
+  @Input() data: AnalyticsTopApis[];
   @Input() period: TimeRangeParams;
 
   displayedColumns = ['name', 'count'];
-  filteredTableData: TopApis[];
+  filteredTableData: AnalyticsTopApis[];
   tableFilters: GioTableWrapperFilters = {
     pagination: { index: 1, size: 5 },
     searchTerm: '',
@@ -79,7 +68,7 @@ export class TopApisWidgetComponent implements OnChanges {
     this.runFilters(this.tableFilters);
   }
 
-  navigateToApi(apiKey: string, definitionVersion: DefinitionVersion): void {
+  navigateToApi(apiKey: string, definitionVersion: AnalyticsDefinitionVersion): void {
     const customTimeframeParams = this.period.id === 'custom' ? { from: this.period.from, to: this.period.to } : {};
 
     this.router.navigate(

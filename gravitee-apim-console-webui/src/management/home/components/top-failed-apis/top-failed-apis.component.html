@@ -16,9 +16,9 @@
 
 -->
 
-<mat-card class="top-applications-card">
+<mat-card class="top-failed-apis-card">
   <mat-card-header>
-    <mat-card-title class="mat-h4 card-title">Top Application</mat-card-title>
+    <mat-card-title class="mat-h4 card-title">Top failed APIs</mat-card-title>
   </mat-card-header>
 
   <gio-table-wrapper
@@ -29,23 +29,28 @@
     [length]="totalLength"
     (filtersChange)="onFiltersChanged($event)"
   >
-    <table mat-table matSort [dataSource]="filteredTableData" aria-label="Top Application table">
+    <table mat-table matSort [dataSource]="filteredTableData" aria-label="Top failed apis table">
       <ng-container matColumnDef="name">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
         <td mat-cell *matCellDef="let element">
-          <a (click)="navigateToApplication(element.id)">{{ element.name }}</a>
+          <a (click)="navigateToApi(element.id, element.definitionVersion)">{{ element.name }}</a>
         </td>
       </ng-container>
 
-      <ng-container matColumnDef="count">
+      <ng-container matColumnDef="failedCalls">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Hits</th>
-        <td mat-cell *matCellDef="let element">{{ element.count | number }}</td>
+        <td mat-cell *matCellDef="let element">{{ element.failedCalls }}</td>
       </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      <ng-container matColumnDef="failedCallsRatio">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Percent</th>
+        <td mat-cell *matCellDef="let element">{{ element.failedCallsRatio * 100 | number: '1.0-0' }}%</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="tableColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: tableColumns"></tr>
       <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
-        <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
+        <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="tableColumns.length">
           @if (isLoading) {
             <gio-loader></gio-loader>
           } @else {

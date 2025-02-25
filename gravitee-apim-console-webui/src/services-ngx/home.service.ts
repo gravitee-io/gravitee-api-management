@@ -32,4 +32,8 @@ export class HomeService {
   public setTimeRangeParams(value: TimeRangeParams): void {
     this.timeRangeParams$.next(value);
   }
+
+  public resetTimeRange(): void {
+    this.timeRangeParams$.next(this.initialTimeRange);
+  }
 }

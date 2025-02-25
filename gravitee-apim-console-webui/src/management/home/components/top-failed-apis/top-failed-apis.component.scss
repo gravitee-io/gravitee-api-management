@@ -1,9 +1,5 @@
-.top-applications-card {
+.top-failed-apis-card {
   height: 100%;
-}
-
-gio-loader {
-  width: 32px;
 }
 
 .card-title {
@@ -12,4 +8,8 @@ gio-loader {
 
 tr.mat-mdc-row {
   height: 28px;
+}
+
+gio-loader {
+  width: 32px;
 }

@@ -15,7 +15,7 @@
  */
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { isNil } from 'lodash';
 
 import { Constants } from '../entities/Constants';
@@ -24,18 +24,20 @@ import {
   AnalyticsCountResponse,
   AnalyticsGroupByResponse,
   AnalyticsStatsResponse,
-  AnalyticsV4StatsResponse,
   AnalyticsTopApisResponse,
+  AnalyticsV4StatsResponse,
 } from '../entities/analytics/analyticsResponse';
 import { AnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
 import { GioChartLineData, GioChartLineOptions } from '../shared/components/gio-chart-line/gio-chart-line.component';
 import { TimeRangeParams } from '../shared/utils/timeFrameRanges';
 import {
-  AnalyticsBucket,
   AnalyticsAverageResponseTimes,
+  AnalyticsBucket,
+  AnalyticsDefinitionVersion,
   AnalyticsResponseStatus,
-  AnalyticsV4ResponseTimes,
+  AnalyticsTopFailedApisRes,
   AnalyticsV4ResponseStatus,
+  AnalyticsV4ResponseTimes,
   TopApplicationsByRequestsCountRes,
 } from '../entities/analytics/analytics';
 
@@ -124,6 +126,34 @@ export class AnalyticsService {
   getTopApis(from: number, to: number): Observable<AnalyticsTopApisResponse> {
     const url = `${this.constants.env.v2BaseURL}/analytics/top-hits?from=${from}&to=${to}`;
     return this.http.get<AnalyticsTopApisResponse>(url);
+  }
+
+  // TopFailedApisRes
+
+  getTopFailedApis(from: number, to: number): Observable<AnalyticsTopFailedApisRes> {
+    // TODO: uncomment/fix when BE ready:
+    // const url = `${this.constants.env.v2BaseURL}/analytics/top-failed-apis?from=${from}&to=${to}`;
+    // return this.http.get<AnalyticsTopFailedApisRes>(url);
+
+    // TODO: remove when backend ready;
+    return of({
+      data: [
+        {
+          id: '9f060ca4-326b-473a-860c-a4326be73a28',
+          definitionVersion: AnalyticsDefinitionVersion.V2,
+          name: 'Test api',
+          failedCalls: to - from,
+          failedCallsRatio: 0.25,
+        },
+        {
+          id: '28113601-5197-4815-9136-015197b81592',
+          definitionVersion: AnalyticsDefinitionVersion.V4,
+          name: 'brand new api',
+          failedCalls: 2,
+          failedCallsRatio: 0.2857142857142857,
+        },
+      ],
+    });
   }
 
   getV4RequestResponseStats(from: number, to: number): Observable<AnalyticsV4StatsResponse> {
