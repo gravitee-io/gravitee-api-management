@@ -26,13 +26,13 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioChartLineModule } from '../../../../shared/components/gio-chart-line/gio-chart-line.module';
 
 @Component({
-  selector: 'v4-response-times',
+  selector: 'response-times',
   standalone: true,
   imports: [GioChartLineModule, GioLoaderModule, MatCardModule],
-  templateUrl: './v4-response-times.component.html',
-  styleUrl: './v4-response-times.component.scss',
+  templateUrl: './response-times.component.html',
+  styleUrl: './response-times.component.scss',
 })
-export class V4ResponseTimesComponent implements OnInit {
+export class ResponseTimesComponent implements OnInit {
   public isLoading = true;
   public chartInput: GioChartLineData[];
   public chartOptions: GioChartLineOptions;

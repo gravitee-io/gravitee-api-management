@@ -79,11 +79,6 @@ export class AnalyticsService {
     };
   }
 
-  getAverageResponseTimes({ from, to, interval }: TimeRangeParams): Observable<AnalyticsAverageResponseTimes> {
-    const url = `${this.constants.env.baseURL}/analytics?type=date_histo&aggs=avg:response-time%3Bavg:api-response-time&interval=${interval}&from=${from}&to=${to}`;
-    return this.http.get<AnalyticsAverageResponseTimes>(url);
-  }
-
   getResponseStatus({ from, to, interval }: TimeRangeParams): Observable<AnalyticsResponseStatus> {
     const url = `${this.constants.env.baseURL}/analytics?type=date_histo&aggs=field:status&interval=${interval}&from=${from}&to=${to}`;
     return this.http.get<AnalyticsResponseStatus>(url);
