@@ -158,6 +158,7 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
     },
     documentation: {
       url: 'https://docs.gravitee.ios',
+      pageNotFoundMessage: null,
     },
     openAPIDocViewer: {
       openAPIDocType: {

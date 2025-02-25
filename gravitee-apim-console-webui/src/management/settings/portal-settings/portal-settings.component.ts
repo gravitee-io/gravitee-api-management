@@ -114,6 +114,7 @@ interface PortalForm {
   }>;
   documentation: FormGroup<{
     url: FormControl<string>;
+    pageNotFoundMessage: FormControl<string>;
   }>;
   openAPIDocViewer: FormGroup<{
     openAPIDocType: FormGroup<{
@@ -400,6 +401,10 @@ export class PortalSettingsComponent implements OnInit {
         url: new FormControl({
           value: this.settings.documentation.url,
           disabled: this.isReadonly('documentation.url'),
+        }),
+        pageNotFoundMessage: new FormControl({
+          value: this.settings.documentation.pageNotFoundMessage,
+          disabled: this.isReadonly('documentation.pageNotFoundMessage'),
         }),
       }),
       openAPIDocViewer: new FormGroup({

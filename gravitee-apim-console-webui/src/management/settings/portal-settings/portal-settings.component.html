@@ -413,6 +413,15 @@
           <mat-label>Documentation URL</mat-label>
           <input formControlName="url" matInput type="text" />
         </mat-form-field>
+        <mat-form-field
+          matTooltip="Message to be displayed when a Documentation Page is not found"
+          [matTooltipDisabled]="!isReadonly('documentation.pageNotFoundMessage')"
+          class="portal__form__card__form-field"
+          formGroupName="documentation"
+        >
+          <mat-label>Page Not Found Message</mat-label>
+          <textarea formControlName="pageNotFoundMessage" matInput></textarea>
+        </mat-form-field>
       </mat-card-content>
     </mat-card>
 

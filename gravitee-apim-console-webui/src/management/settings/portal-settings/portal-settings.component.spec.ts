@@ -253,6 +253,30 @@ describe('PortalSettingsComponent', () => {
         },
       });
     });
+
+    it('display settings form and edit Documentation field', async () => {
+      const message = 'Page not found';
+
+      portalSettingsMock = fakePortalSettings();
+      expectPortalSettingsGetRequest(portalSettingsMock);
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      const pageNotFoundMessageInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=pageNotFoundMessage' }));
+      await pageNotFoundMessageInput.setValue(message);
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body).toEqual({
+        ...portalSettingsMock,
+        documentation: {
+          ...portalSettingsMock.documentation,
+          pageNotFoundMessage: message,
+        },
+      });
+    });
   });
   describe('Portal next setting form', () => {
     beforeEach(() => {
