@@ -47,9 +47,12 @@
   <section>
     <gv-message class="message-empty">
       <gv-icon shape="home:library"></gv-icon>
-      <div class="title">
-        {{ 'gv-documentation.empty' | translate }}
+      <div *ngIf="!!pageNotFoundMessage; else defaultMessage">
+        <div class="title" [innerHTML]="pageNotFoundMessage | safe : 'html'"></div>
       </div>
+      <ng-template #defaultMessage>
+        <div class="title">{{ 'gv-documentation.empty' | translate }}</div>
+      </ng-template>
     </gv-message>
   </section>
 </div>

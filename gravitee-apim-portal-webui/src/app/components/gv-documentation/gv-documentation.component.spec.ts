@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
+import { DomSanitizer } from '@angular/platform-browser';
 
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
+import { ConfigurationService } from '../../services/configuration.service';
 
 import { GvDocumentationComponent } from './gv-documentation.component';
 
@@ -26,6 +28,7 @@ describe('GvDocumentationComponent', () => {
     component: GvDocumentationComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [RouterTestingModule],
+    providers: [mockProvider(ConfigurationService), { provide: DomSanitizer, useValue: { sanitize: jest.fn() } }],
   });
 
   let spectator: Spectator<GvDocumentationComponent>;
