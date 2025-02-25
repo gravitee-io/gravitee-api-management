@@ -562,22 +562,20 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             Set<GenericPlanEntity> plans = planSearchService.findByApi(executionContext, apiId);
             if (closePlans) {
-                plans =
-                    plans
-                        .stream()
-                        .filter(plan -> plan.getPlanStatus() != PlanStatus.CLOSED)
-                        .map(plan -> planService.close(executionContext, plan.getId()))
-                        .collect(Collectors.toSet());
-            }
+                plans
+                    .stream()
+                    .filter(plan -> plan.getPlanStatus() != PlanStatus.CLOSED)
+                    .forEach(plan -> planService.close(executionContext, plan.getId()));
+            } else {
+                Set<String> plansNotClosed = plans
+                    .stream()
+                    .filter(plan -> plan.getPlanStatus() == PlanStatus.PUBLISHED)
+                    .map(GenericPlanEntity::getName)
+                    .collect(toSet());
 
-            Set<String> plansNotClosed = plans
-                .stream()
-                .filter(plan -> plan.getPlanStatus() == PlanStatus.PUBLISHED)
-                .map(GenericPlanEntity::getName)
-                .collect(toSet());
-
-            if (!plansNotClosed.isEmpty()) {
-                throw new ApiNotDeletableException(plansNotClosed);
+                if (!plansNotClosed.isEmpty()) {
+                    throw new ApiNotDeletableException(plansNotClosed);
+                }
             }
 
             Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(executionContext, apiId);
