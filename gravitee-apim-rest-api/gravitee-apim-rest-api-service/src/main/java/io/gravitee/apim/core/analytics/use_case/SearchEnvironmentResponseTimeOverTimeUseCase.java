@@ -15,6 +15,10 @@
  */
 package io.gravitee.apim.core.analytics.use_case;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.model.Api;
@@ -27,7 +31,9 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Single;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -42,23 +48,27 @@ public class SearchEnvironmentResponseTimeOverTimeUseCase {
         Instant from = input.from();
         Duration interval = DurationUtils.buildIntervalFromTimePeriod(from, to);
 
-        var apiIds = getAllV4ApisIdsForEnv(input.environmentId);
+        var apiIds = apisIdsForEnv(input.environmentId);
+        var apis = apiIds.values().stream().flatMap(List::stream).toList();
 
         return analyticsQueryService
-            .searchAvgResponseTimeOverTime(executionContext, apiIds, from, to, interval)
+            .searchAvgResponseTimeOverTime(executionContext, apis, from, to, interval, apiIds.keySet())
             .map(statsData -> new Output(from, to, interval, statsData.values().stream().map(Math::round).toList()))
             .defaultIfEmpty(new Output(from, to, interval, List.of()));
     }
 
-    private List<String> getAllV4ApisIdsForEnv(String envId) {
+    private Map<DefinitionVersion, List<String>> apisIdsForEnv(String envId) {
         return apiQueryService
             .search(
-                ApiSearchCriteria.builder().environmentId(envId).definitionVersion(List.of(DefinitionVersion.V4)).build(),
+                ApiSearchCriteria
+                    .builder()
+                    .environmentId(envId)
+                    .definitionVersion(EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2))
+                    .build(),
                 null,
                 ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
             )
-            .map(Api::getId)
-            .toList();
+            .collect(groupingBy(Api::getDefinitionVersion, mapping(Api::getId, toList())));
     }
 
     public record Input(String environmentId, Instant from, Instant to) {}

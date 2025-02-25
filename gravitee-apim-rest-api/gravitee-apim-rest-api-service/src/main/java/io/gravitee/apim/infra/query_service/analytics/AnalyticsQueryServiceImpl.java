@@ -19,6 +19,7 @@ import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.infra.adapter.ResponseStatusQueryCriteriaAdapter;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
@@ -42,6 +43,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -152,12 +154,13 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         List<String> apiIds,
         Instant startTime,
         Instant endTime,
-        Duration interval
+        Duration interval,
+        Collection<DefinitionVersion> versions
     ) {
         return analyticsRepository
             .searchResponseTimeOverTime(
                 executionContext.getQueryContext(),
-                new ResponseTimeRangeQuery(apiIds, startTime, endTime, interval)
+                new ResponseTimeRangeQuery(apiIds, startTime, endTime, interval, versions)
             )
             .map(AverageAggregate::getAverageBy);
     }

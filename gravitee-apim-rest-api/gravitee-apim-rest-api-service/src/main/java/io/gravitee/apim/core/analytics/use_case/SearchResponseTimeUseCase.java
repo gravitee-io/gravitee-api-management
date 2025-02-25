@@ -46,7 +46,14 @@ public class SearchResponseTimeUseCase {
 
         return validateApiRequirements(input)
             .flatMapMaybe(api ->
-                analyticsQueryService.searchAvgResponseTimeOverTime(executionContext, List.of(api.getId()), from, to, interval)
+                analyticsQueryService.searchAvgResponseTimeOverTime(
+                    executionContext,
+                    List.of(api.getId()),
+                    from,
+                    to,
+                    interval,
+                    List.of(api.getDefinitionVersion())
+                )
             )
             .map(statsData -> new Output(from, to, interval, statsData.values().stream().map(Math::round).toList()))
             .defaultIfEmpty(new Output(from, to, interval, List.of()));

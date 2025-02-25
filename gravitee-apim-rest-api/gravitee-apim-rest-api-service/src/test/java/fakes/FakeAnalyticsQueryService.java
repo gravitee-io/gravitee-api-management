@@ -18,6 +18,7 @@ package fakes;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
@@ -30,6 +31,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,7 +109,8 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
         List<String> apiIds,
         Instant startTime,
         Instant endTime,
-        Duration interval
+        Duration interval,
+        Collection<DefinitionVersion> versions
     ) {
         return averageAggregate != null ? Maybe.just(averageAggregate) : Maybe.empty();
     }
