@@ -88,7 +88,6 @@ describe('HomeOverviewComponent', () => {
       expectGetRequestStatsForV4();
 
       expectResponseStatusGetRequest();
-      expectResponseTimesLogsGetRequest();
 
       expectV4ResponseTimesGetRequest();
       expectV4ResponseStatusGetRequest();
@@ -136,7 +135,6 @@ describe('HomeOverviewComponent', () => {
       expectTopApisGetRequest();
       expectGetRequestStatsForV4();
       expectResponseStatusGetRequest();
-      expectResponseTimesLogsGetRequest();
       expectV4ResponseTimesGetRequest();
       expectV4ResponseStatusGetRequest();
     });
@@ -181,7 +179,6 @@ describe('HomeOverviewComponent', () => {
     expectTopApisGetRequest();
     expectGetRequestStatsForV4();
     expectResponseStatusGetRequest();
-    expectResponseTimesLogsGetRequest();
     expectV4ResponseTimesGetRequest();
     expectV4ResponseStatusGetRequest();
   }
@@ -305,21 +302,6 @@ describe('HomeOverviewComponent', () => {
 
   function expectResponseStatusGetRequest() {
     const url = `${CONSTANTS_TESTING.env.baseURL}/analytics?type=date_histo&aggs=field:status`;
-    const req = httpTestingController.expectOne((req) => {
-      return req.method === 'GET' && req.url.startsWith(url);
-    });
-    req.flush({
-      timestamp: {
-        from: 100,
-        to: 100000,
-        interval: 10,
-      },
-      values: [],
-    });
-    expect(req.request.method).toEqual('GET');
-  }
-  function expectResponseTimesLogsGetRequest() {
-    const url = `${CONSTANTS_TESTING.env.baseURL}/analytics?type=date_histo&aggs=avg:response-time%3Bavg:api-response-time`;
     const req = httpTestingController.expectOne((req) => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
