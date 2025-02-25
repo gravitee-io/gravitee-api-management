@@ -17,9 +17,6 @@ package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.elasticsearch.version.Version;
@@ -75,7 +72,7 @@ class SearchResponseStatusOverTimeAdapterTest {
                                    "query": {
                                      "bool": {
                                        "filter": [
-                                         { "terms": { "api-id": ["my-api-id"] } },
+                                         {"bool":{"minimum_should_match":1,"should":[{"terms":{"api-id":["my-api-id"]}},{"terms":{"api":["my-api-id"]}}]}},
                                          {
                                            "range": {
                                              "@timestamp": {
@@ -122,7 +119,7 @@ class SearchResponseStatusOverTimeAdapterTest {
                                    "query": {
                                      "bool": {
                                        "filter": [
-                                         { "terms": { "api-id": ["my-api-id"] } },
+                                         {"bool":{"minimum_should_match":1,"should":[{"terms":{"api-id":["my-api-id"]}},{"terms":{"api":["my-api-id"]}}]}},
                                          {
                                            "range": {
                                              "@timestamp": {

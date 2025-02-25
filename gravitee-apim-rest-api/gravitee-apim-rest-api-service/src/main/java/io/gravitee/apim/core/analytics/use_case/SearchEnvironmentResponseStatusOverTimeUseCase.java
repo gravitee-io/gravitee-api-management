@@ -15,6 +15,10 @@
  */
 package io.gravitee.apim.core.analytics.use_case;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
@@ -27,7 +31,10 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,25 +48,39 @@ public class SearchEnvironmentResponseStatusOverTimeUseCase {
 
     public Output execute(ExecutionContext executionContext, Input input) {
         Duration interval = DurationUtils.buildIntervalFromTimePeriod(input.from(), input.to());
-        var apiIds = getAllV4ApisIdsForEnv(input.environmentId);
+        var apiIdsByDefinitionVersion = apisIdsForEnv(input.environmentId);
+        var apiIds = apiIdsByDefinitionVersion.values().stream().flatMap(Collection::stream).toList();
 
         var result = analyticsQueryService.searchResponseStatusOvertime(
             executionContext,
-            new AnalyticsQueryService.ResponseStatusOverTimeQuery(apiIds, input.from(), input.to(), interval)
+            new AnalyticsQueryService.ResponseStatusOverTimeQuery(
+                apiIds,
+                input.from(),
+                input.to(),
+                interval,
+                apiIdsByDefinitionVersion.keySet()
+            )
         );
 
         return new Output(result);
     }
 
-    private List<String> getAllV4ApisIdsForEnv(String envId) {
+    private Map<DefinitionVersion, List<String>> apisIdsForEnv(String envId) {
         return apiQueryService
             .search(
-                ApiSearchCriteria.builder().environmentId(envId).definitionVersion(List.of(DefinitionVersion.V4)).build(),
+                ApiSearchCriteria
+                    .builder()
+                    .environmentId(envId)
+                    .definitionVersion(EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2))
+                    .build(),
                 null,
                 ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
             )
-            .map(Api::getId)
-            .toList();
+            .collect(groupingBy(SearchEnvironmentResponseStatusOverTimeUseCase::getDefinitionVersion, mapping(Api::getId, toList())));
+    }
+
+    private static DefinitionVersion getDefinitionVersion(Api api) {
+        return api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
     }
 
     public record Input(String environmentId, Instant from, Instant to) {}

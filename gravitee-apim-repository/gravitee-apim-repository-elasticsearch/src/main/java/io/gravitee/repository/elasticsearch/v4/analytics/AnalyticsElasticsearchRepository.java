@@ -137,11 +137,17 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public ResponseStatusOverTimeAggregate searchResponseStatusOvertime(QueryContext queryContext, ResponseStatusOverTimeQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexByVersion = Map.of(DefinitionVersion.V4, Type.V4_METRICS, DefinitionVersion.V2, Type.REQUEST);
+        String indices = query
+            .versions()
+            .stream()
+            .flatMap(v -> Stream.ofNullable(indexByVersion.get(v)))
+            .map(v -> indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), v, clusters))
+            .collect(Collectors.joining(","));
         var esQuery = searchResponseStatusOverTimeAdapter.adaptQuery(query, info);
 
         log.debug("Search response status over time: {}", esQuery);
-        return this.client.search(index, null, esQuery).map(searchResponseStatusOverTimeAdapter::adaptResponse).blockingGet();
+        return client.search(indices, null, esQuery).map(searchResponseStatusOverTimeAdapter::adaptResponse).blockingGet();
     }
 
     @Override

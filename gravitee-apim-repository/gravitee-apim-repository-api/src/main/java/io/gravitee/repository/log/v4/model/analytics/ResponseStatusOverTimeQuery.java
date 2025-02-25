@@ -15,10 +15,36 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import lombok.Builder;
 
 @Builder(toBuilder = true)
-public record ResponseStatusOverTimeQuery(List<String> apiIds, Instant from, Instant to, Duration interval) {}
+public record ResponseStatusOverTimeQuery(
+    List<String> apiIds,
+    Instant from,
+    Instant to,
+    Duration interval,
+    Collection<DefinitionVersion> versions
+) {
+    public ResponseStatusOverTimeQuery(
+        List<String> apiIds,
+        Instant from,
+        Instant to,
+        Duration interval,
+        Collection<DefinitionVersion> versions
+    ) {
+        this.apiIds = apiIds;
+        this.from = from;
+        this.to = to;
+        this.interval = interval;
+        this.versions = versions == null || versions.isEmpty() ? List.of(DefinitionVersion.V4) : versions;
+    }
+
+    public ResponseStatusOverTimeQuery(List<String> apiIds, Instant from, Instant to, Duration interval) {
+        this(apiIds, from, to, interval, null);
+    }
+}
