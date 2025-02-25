@@ -35,7 +35,9 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 @UseCase
 public class SearchEnvironmentResponseTimeOverTimeUseCase {
@@ -68,10 +70,10 @@ public class SearchEnvironmentResponseTimeOverTimeUseCase {
                 null,
                 ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
             )
-            .collect(groupingBy(SearchEnvironmentResponseTimeOverTimeUseCase::getDefinitionVersion, mapping(Api::getId, toList())));
+            .collect(groupingBy(this::getDefinitionVersion, mapping(Api::getId, toList())));
     }
 
-    private static DefinitionVersion getDefinitionVersion(Api api) {
+    private DefinitionVersion getDefinitionVersion(Api api) {
         return api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
     }
 

@@ -15,22 +15,21 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
-import io.vertx.core.json.JsonObject;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SearchRequestResponseTimeAdapter {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private static final List<String> FILTERED_ENTRYPOINT_TYPES = List.of("http-post", "http-get", "http-proxy");
     private static final String GATEWAY_RESPONSE_TIME_MS_FIELD = "gateway-response-time-ms";
@@ -38,17 +37,12 @@ public class SearchRequestResponseTimeAdapter {
     private static final String MIN_RESPONSE_TIME_AGG = "min_response_time";
     private static final String AVG_RESPONSE_TIME_AGG = "avg_response_time";
 
-    public static String adaptQuery(RequestResponseTimeQueryCriteria queryCriteria) {
-        var jsonContent = new HashMap<String, Object>();
-
-        jsonContent.put("size", 0);
-        jsonContent.put("query", buildQuery(queryCriteria));
-        jsonContent.put("aggs", buildAggregation());
-        return new JsonObject(jsonContent).encode();
+    public String adaptQuery(RequestResponseTimeQueryCriteria queryCriteria) {
+        return json().put("size", 0).<ObjectNode>set("query", buildQuery(queryCriteria)).set("aggs", buildAggregation()).toString();
     }
 
-    private static JsonObject buildQuery(RequestResponseTimeQueryCriteria queryCriteria) {
-        var filterQuery = new ArrayList<JsonObject>();
+    private ObjectNode buildQuery(RequestResponseTimeQueryCriteria queryCriteria) {
+        var filterQuery = array();
 
         if (queryCriteria == null || queryCriteria.apiIds() == null) {
             log.warn("Null query params or queried API IDs. Empty ranges will be returned");
@@ -63,34 +57,38 @@ public class SearchRequestResponseTimeAdapter {
 
         filterQuery.add(entrypointFilterForQuery());
 
-        return JsonObject.of("bool", JsonObject.of("filter", filterQuery));
+        return json().set("bool", json().<ObjectNode>set("filter", filterQuery));
     }
 
-    private static JsonObject apiIdsFilterForQuery(List<String> apiIds) {
-        return JsonObject.of("terms", JsonObject.of("api-id", apiIds));
+    private ObjectNode apiIdsFilterForQuery(List<String> apiIds) {
+        return json().set("terms", json().set("api-id", toArray(apiIds)));
     }
 
-    private static JsonObject dateRangeFilterForQuery(Long from, Long to) {
+    private ObjectNode dateRangeFilterForQuery(Long from, Long to) {
         log.info("Top Hits Query: filtering date range from {} to {}", from, to);
-        return JsonObject.of("range", JsonObject.of("@timestamp", JsonObject.of("gte", from, "lte", to)));
+        return json().set("range", json().set("@timestamp", json().put("gte", from).put("lte", to)));
     }
 
-    private static JsonObject entrypointFilterForQuery() {
-        return JsonObject.of("terms", JsonObject.of("entrypoint-id", FILTERED_ENTRYPOINT_TYPES));
+    private ObjectNode entrypointFilterForQuery() {
+        return json().set("terms", json().set("entrypoint-id", toArray(FILTERED_ENTRYPOINT_TYPES)));
     }
 
-    private static JsonObject buildAggregation() {
-        return JsonObject.of(
-            MAX_RESPONSE_TIME_AGG,
-            JsonObject.of("max", JsonObject.of("field", GATEWAY_RESPONSE_TIME_MS_FIELD)),
-            MIN_RESPONSE_TIME_AGG,
-            JsonObject.of("min", JsonObject.of("field", GATEWAY_RESPONSE_TIME_MS_FIELD)),
-            AVG_RESPONSE_TIME_AGG,
-            JsonObject.of("avg", JsonObject.of("field", GATEWAY_RESPONSE_TIME_MS_FIELD))
-        );
+    private ObjectNode buildAggregation() {
+        String script =
+            "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }";
+        return json()
+            .<ObjectNode>set(
+                MAX_RESPONSE_TIME_AGG,
+                json().set("max", json().set("script", json().put("lang", "painless").put("source", script)))
+            )
+            .<ObjectNode>set(
+                MIN_RESPONSE_TIME_AGG,
+                json().set("min", json().set("script", json().put("lang", "painless").put("source", script)))
+            )
+            .set(AVG_RESPONSE_TIME_AGG, json().set("avg", json().set("script", json().put("lang", "painless").put("source", script))));
     }
 
-    public static RequestResponseTimeAggregate adaptResponse(SearchResponse response, RequestResponseTimeQueryCriteria queryCriteria) {
+    public RequestResponseTimeAggregate adaptResponse(SearchResponse response, RequestResponseTimeQueryCriteria queryCriteria) {
         final Map<String, Aggregation> aggregations = response.getAggregations();
         var requestResponseTimeAggregateBuilder = RequestResponseTimeAggregate.builder();
 
@@ -114,12 +112,26 @@ public class SearchRequestResponseTimeAdapter {
         return requestResponseTimeAggregateBuilder.build();
     }
 
-    private static Double getAggregationResponseValue(Map<String, Aggregation> aggregations, String aggregationName) {
+    private Double getAggregationResponseValue(Map<String, Aggregation> aggregations, String aggregationName) {
         var aggregation = aggregations.get(aggregationName);
         if (aggregation == null || aggregation.getValue() == null) {
             log.error("Aggregation with name {} not found", aggregationName);
             return 0.0;
         }
         return aggregation.getValue().doubleValue();
+    }
+
+    private ObjectNode json() {
+        return MAPPER.createObjectNode();
+    }
+
+    private ArrayNode array() {
+        return MAPPER.createArrayNode();
+    }
+
+    private ArrayNode toArray(List<String> list) {
+        var arrayNode = array();
+        list.forEach(arrayNode::add);
+        return arrayNode;
     }
 }

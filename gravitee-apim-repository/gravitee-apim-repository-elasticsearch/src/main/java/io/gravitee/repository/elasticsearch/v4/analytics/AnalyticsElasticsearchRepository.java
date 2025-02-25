@@ -168,13 +168,14 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         QueryContext queryContext,
         RequestResponseTimeQueryCriteria queryCriteria
     ) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
-        var esQuery = SearchRequestResponseTimeAdapter.adaptQuery(queryCriteria);
+        var indexV4 = indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV2 = indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
+        var indices = String.join(",", List.of(indexV2, indexV4));
+        var adapter = new SearchRequestResponseTimeAdapter();
+        var esQuery = adapter.adaptQuery(queryCriteria);
 
         log.debug("Search request response time query: {}", esQuery);
-        return this.client.search(index, null, esQuery)
-            .map(response -> SearchRequestResponseTimeAdapter.adaptResponse(response, queryCriteria))
-            .blockingGet();
+        return client.search(indices, null, esQuery).map(response -> adapter.adaptResponse(response, queryCriteria)).blockingGet();
     }
 
     @Override

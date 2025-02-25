@@ -36,6 +36,8 @@ class SearchRequestResponseTimeAdapterTest {
     private static final long TO = 1729078801566L;
     private static final List<String> API_IDS = List.of("api-id-1", "api-id-2");
 
+    SearchRequestResponseTimeAdapter sut = new SearchRequestResponseTimeAdapter();
+
     @Nested
     class Query {
 
@@ -43,7 +45,7 @@ class SearchRequestResponseTimeAdapterTest {
         void should_build_request_response_time_query_searching_for_ids_and_time_ranges() {
             var queryParams = new RequestResponseTimeQueryCriteria(API_IDS, FROM, TO);
 
-            var result = SearchRequestResponseTimeAdapter.adaptQuery(queryParams);
+            var result = sut.adaptQuery(queryParams);
 
             assertThatJson(result).isEqualTo(REQUEST_RESPONSE_TIME_QUERY_WITH_API_IDS_AND_TIME_RANGES);
         }
@@ -52,7 +54,7 @@ class SearchRequestResponseTimeAdapterTest {
         void should_build_top_hits_query_with_empty_id_filter_array_for_null_query_params() {
             RequestResponseTimeQueryCriteria queryParams = null;
 
-            var result = SearchRequestResponseTimeAdapter.adaptQuery(queryParams);
+            var result = sut.adaptQuery(queryParams);
 
             assertThatJson(result).isEqualTo(REQUEST_RESPONSE_TIME_QUERY_WITH_NULL_QUERY_PARAMS);
         }
@@ -60,7 +62,7 @@ class SearchRequestResponseTimeAdapterTest {
         @Test
         void should_build_top_hits_query_with_empty_id_filter_array_for_empty_api_ids_query_params() {
             var queryParams = new RequestResponseTimeQueryCriteria(List.of(), FROM, TO);
-            var result = SearchRequestResponseTimeAdapter.adaptQuery(queryParams);
+            var result = sut.adaptQuery(queryParams);
 
             assertThatJson(result).isEqualTo(REQUEST_RESPONSE_TIME_QUERY_WITH_EMPTY_ID_LIST);
         }
@@ -102,19 +104,13 @@ class SearchRequestResponseTimeAdapterTest {
                     },
                     "aggs": {
                         "max_response_time": {
-                            "max": {
-                                "field": "gateway-response-time-ms"
-                            }
+                            "max": {"script":{"lang":"painless","source":"if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"}}
                         },
                         "min_response_time": {
-                            "min": {
-                                "field": "gateway-response-time-ms"
-                            }
+                            "min": {"script":{"lang":"painless","source":"if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"}}
                         },
                         "avg_response_time": {
-                            "avg": {
-                                "field": "gateway-response-time-ms"
-                            }
+                            "avg": {"script":{"lang":"painless","source":"if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"}}
                         }
                     }
                 }
@@ -146,19 +142,13 @@ class SearchRequestResponseTimeAdapterTest {
                     },
                     "aggs": {
                         "max_response_time": {
-                            "max": {
-                                "field": "gateway-response-time-ms"
-                            }
+                            "max": {"script":{"lang":"painless","source":"if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"}}
                         },
                         "min_response_time": {
-                            "min": {
-                                "field": "gateway-response-time-ms"
-                            }
+                            "min": {"script":{"lang":"painless","source":"if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"}}
                         },
                         "avg_response_time": {
-                            "avg": {
-                                "field": "gateway-response-time-ms"
-                            }
+                            "avg": {"script":{"lang":"painless","source":"if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"}}
                         }
                     }
                 }
@@ -198,19 +188,13 @@ class SearchRequestResponseTimeAdapterTest {
                     },
                     "aggs": {
                         "max_response_time": {
-                            "max": {
-                                "field": "gateway-response-time-ms"
-                            }
+                            "max": {"script":{"lang":"painless","source":"if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"}}
                         },
                         "min_response_time": {
-                            "min": {
-                                "field": "gateway-response-time-ms"
-                            }
+                            "min": {"script":{"lang":"painless","source":"if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"}}
                         },
                         "avg_response_time": {
-                            "avg": {
-                                "field": "gateway-response-time-ms"
-                            }
+                            "avg": {"script":{"lang":"painless","source":"if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"}}
                         }
                     }
                 }
@@ -225,30 +209,26 @@ class SearchRequestResponseTimeAdapterTest {
 
         @Test
         void should_return_empty_result_if_aggregations_is_null() {
-            assertThat(SearchRequestResponseTimeAdapter.adaptResponse(searchResponse, queryParams))
-                .isEqualTo(RequestResponseTimeAggregate.builder().build());
+            assertThat(sut.adaptResponse(searchResponse, queryParams)).isEqualTo(RequestResponseTimeAggregate.builder().build());
         }
 
         @Test
         void should_return_just_zeros_result_if_no_aggregation_exist() {
             searchResponse.setAggregations(Map.of());
 
-            assertThat(SearchRequestResponseTimeAdapter.adaptResponse(searchResponse, queryParams))
-                .isEqualTo(RequestResponseTimeAggregate.builder().build());
+            assertThat(sut.adaptResponse(searchResponse, queryParams)).isEqualTo(RequestResponseTimeAggregate.builder().build());
         }
 
         @Test
         void should_return_just_zeros_result_if_no_top_hits_count_aggregation_exist() {
             searchResponse.setAggregations(Map.of("fake_aggregation", new Aggregation()));
 
-            assertThat(SearchRequestResponseTimeAdapter.adaptResponse(searchResponse, queryParams))
-                .isEqualTo(RequestResponseTimeAggregate.builder().build());
+            assertThat(sut.adaptResponse(searchResponse, queryParams)).isEqualTo(RequestResponseTimeAggregate.builder().build());
         }
 
         @Test
         void should_return_just_zeros_result_if_query_criteria_is_null() {
-            assertThat(SearchRequestResponseTimeAdapter.adaptResponse(searchResponse, null))
-                .isEqualTo(RequestResponseTimeAggregate.builder().build());
+            assertThat(sut.adaptResponse(searchResponse, null)).isEqualTo(RequestResponseTimeAggregate.builder().build());
         }
 
         @Test
@@ -275,7 +255,7 @@ class SearchRequestResponseTimeAdapterTest {
             searchHits.setTotal(new TotalHits(4L));
             searchResponse.setSearchHits(searchHits);
 
-            var result = SearchRequestResponseTimeAdapter.adaptResponse(searchResponse, queryParams);
+            var result = sut.adaptResponse(searchResponse, queryParams);
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(result.getRequestsPerSecond()).isEqualTo(4.6296296296296294E-5);
