@@ -9,6 +9,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - add kubernetes access account token projection support
 - Kafka Gateway: fix configuration
 - Kafka Gateway: add fields to configure bootstrap and broker domain patterns
+- Kafka Gateway: use quotes in kafka configuration to avoid parsing issues
 - fix typo and indentation about mapping of user.anonymize-on-delete.enabled (APIM-8628)
 - remove nginx `configuration-snippet` by default (APIM-8630)
 - allow users to define which portal should be used by default
