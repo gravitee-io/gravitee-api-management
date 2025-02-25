@@ -21,11 +21,11 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 
 /**
  * Comparator used to sort {@link HttpAcceptor} in a centralized acceptor collection.
- *
  * Http acceptors are first sorted by host (lower-cased), then in case of equality, by path and, in case of
  * equality in path, the http acceptor priority is used (higher priority first).
  *
@@ -37,7 +37,7 @@ public class DefaultHttpAcceptor implements HttpAcceptor {
 
     private static final int HOST_MASK = 1000;
 
-    private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("[//]+");
+    private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("[/]+");
 
     private static final String URI_PATH_SEPARATOR = "/";
 
@@ -165,26 +165,35 @@ public class DefaultHttpAcceptor implements HttpAcceptor {
     }
 
     @Override
-    public int compareTo(HttpAcceptor o2) {
+    public int compareTo(@Nonnull HttpAcceptor o2) {
         if (this.equals(o2)) {
             return 0;
         }
 
-        // this will set virtual hosts first
+        // Order from the most specific to the least
+        // by reserving domain name and reserving order
+        // Example:
+        // 1) foo.bar.acme.com
+        // 2) .bar.acme.com
+        // 3) bar.acme.com
+        // 4) .acme.com
+        // 5) acme.com
         final int hostCompare = Objects.compare(
-            toLower(this.host()),
-            toLower(o2.host()),
-            (host1, host2) -> {
-                if (host1 == null) {
+            toLower(reverse(this.host())),
+            toLower(reverse(o2.host())),
+            (thisHost, otherHost) -> {
+                if (thisHost == null) {
                     return 1;
-                } else if (host2 == null) {
+                } else if (otherHost == null) {
                     return -1;
                 }
-                return host1.compareTo(host2);
+                // allow wildcard to be after any non-wild card for the same name
+                return thisHost.compareTo(otherHost) * -1;
             }
         );
 
         if (hostCompare == 0) {
+            // allow sub-path to be first /a/b/c is then before /a/b
             final int pathCompare = this.path().compareTo(o2.path()) * -1;
 
             if (pathCompare == 0) {
@@ -203,6 +212,13 @@ public class DefaultHttpAcceptor implements HttpAcceptor {
         if (value != null) {
             return value.toLowerCase();
         }
-        return value;
+        return null;
+    }
+
+    private String reverse(String value) {
+        if (value != null) {
+            return new StringBuilder(value).reverse().toString();
+        }
+        return null;
     }
 }
