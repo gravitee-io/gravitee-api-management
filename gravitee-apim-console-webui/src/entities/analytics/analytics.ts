@@ -65,6 +65,30 @@ export interface TopApplication {
   count: number;
 }
 
+export enum AnalyticsDefinitionVersion {
+  V2 = 'V2',
+  V4 = 'V4',
+}
+
 export interface TopApplicationsByRequestsCountRes {
   data: TopApplication[];
+}
+
+export interface AnalyticsTopApis {
+  id: string;
+  name: string;
+  count: number;
+  definitionVersion: AnalyticsDefinitionVersion;
+}
+
+export interface AnalyticsTopFailedApi {
+  id: string;
+  name: string;
+  definitionVersion: AnalyticsDefinitionVersion;
+  failedCalls: number;
+  failedCallsRatio: number;
+}
+
+export interface AnalyticsTopFailedApisRes {
+  data: AnalyticsTopFailedApi[];
 }
