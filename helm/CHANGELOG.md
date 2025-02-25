@@ -3,6 +3,10 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.6.5
+
+- Kafka Gateway: use quotes in kafka configuration to avoid parsing issues
+
 ### 4.6.4
 
 - Kafka Gateway: fix configuration

@@ -43,9 +43,53 @@ tests:
               routingMode: host
               routingHostMode:
                 brokerPrefix: fox-
-                domainSeparator: |
-                defaultDomain: gravitee.io
+                domainSeparator: "|"
+                defaultDomain: "gravitee.io"
                 defaultPort: 42
+              api-key:
+                securityMechanisms: SCRAM-SHA-512
+              port: 9042
+              host: 42.42.42.42
+              idleTimeout: 42
+              tcpKeepAlive: 42
+              instances: 42
+              requestTimeout: 42
+  - it: Enable Kafka and set pattern values
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          routingMode: host
+          routingHostMode:
+            brokerPrefix: "fox-"
+            domainSeparator: "|"
+            defaultDomain: "gravitee.io"
+            defaultPort: 42
+            bootstrapDomainPattern: "{apiHost}.mycompany.org"
+            brokerDomainPattern: "broker-{brokerId}-{apiHost}.mycompany.org"
+          apiKey:
+            securityMechanisms: SCRAM-SHA-512
+          port: 9042
+          host: 42.42.42.42
+          idleTimeout: 42
+          tcpKeepAlive: 42
+          instances: 42
+          requestTimeout: 42
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: true
+              routingMode: host
+              routingHostMode:
+                brokerPrefix: "fox-"
+                domainSeparator: "|"
+                defaultDomain: "gravitee.io"
+                defaultPort: 42
+                bootstrapDomainPattern: "{apiHost}.mycompany.org"
+                brokerDomainPattern: "broker-{brokerId}-{apiHost}.mycompany.org"
               api-key:
                 securityMechanisms: SCRAM-SHA-512
               port: 9042
