@@ -98,7 +98,7 @@ paths:
           - Environment Analytics
         summary: V4 APIs request and response times analytics
         description: |-
-          Get analytics for v4 APIs regarding number of requests, requests per second and response max, min and average times for 
+          Get analytics for v2 & v4 APIs regarding number of requests, requests per second and response max, min and average times for 
           specified time range. Analytics contains data only for HTTP GET, HTTP POST and HTTP PROXY entrypoints.
 
         operationId: getDashboardRequestResponseTime

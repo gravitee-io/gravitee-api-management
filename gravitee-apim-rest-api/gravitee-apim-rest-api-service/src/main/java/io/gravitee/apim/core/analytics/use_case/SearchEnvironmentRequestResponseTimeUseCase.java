@@ -56,7 +56,11 @@ public class SearchEnvironmentRequestResponseTimeUseCase {
     private List<String> getAllV4ApisIdsForEnv(String envId) {
         return apiQueryService
             .search(
-                ApiSearchCriteria.builder().environmentId(envId).definitionVersion(List.of(DefinitionVersion.V4)).build(),
+                ApiSearchCriteria
+                    .builder()
+                    .environmentId(envId)
+                    .definitionVersion(List.of(DefinitionVersion.V4, DefinitionVersion.V2))
+                    .build(),
                 null,
                 ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
             )
