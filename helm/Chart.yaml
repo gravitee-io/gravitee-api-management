@@ -18,6 +18,12 @@ kubeVersion: ">=1.14.0-0"
 annotations:
   # List of changes for the release in artifacthub.io
   # https://artifacthub.io/packages/helm/graviteeio/apim?modal=changelog
+  # example:
+  #     - kind: added
+  #      description: 'Allow to customize Kafka Gateway bootstrap and brokers domain patterns'
+  #      links:
+  #        - name: Github Issue
+  #          url: https://github.com/gravitee-io/issues/issues/xxx
   ###########
   # WARNING #
   ###########
@@ -45,3 +51,5 @@ annotations:
       description: 'remove nginx `configuration-snippet` by default (APIM-8630)'
     - kind: added
       description: 'Allow users to define which portal should be used by default'
+    - kind: fixed
+      description: 'Use quotes in kafka configuration to avoid parsing issues'
