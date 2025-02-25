@@ -18,22 +18,21 @@ package io.gravitee.rest.api.model.settings;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Getter
+@Setter
 public class Documentation {
 
     @ParameterKey(Key.DOCUMENTATION_URL)
     String url;
 
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
+    @ParameterKey(Key.DOCUMENTATION_PAGE_NOT_FOUND_MESSAGE)
+    String pageNotFoundMessage;
 }

@@ -207,6 +207,7 @@ public class ConfigurationMapper {
     private ConfigurationDocumentation convert(Documentation documentation) {
         ConfigurationDocumentation configuration = new ConfigurationDocumentation();
         configuration.setUrl(documentation.getUrl());
+        configuration.setPageNotFoundMessage(documentation.getPageNotFoundMessage());
         return configuration;
     }
 
