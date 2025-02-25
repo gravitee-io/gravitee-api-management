@@ -197,6 +197,7 @@ export interface PortalSettingsScheduler {
 
 export interface PortalSettingsDocumentation {
   url: string;
+  pageNotFoundMessage: string;
 }
 
 export interface PortalSettingsEmail {
