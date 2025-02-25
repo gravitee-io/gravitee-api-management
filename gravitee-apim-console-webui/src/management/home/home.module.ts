@@ -41,8 +41,7 @@ import { GioApiEventsTableModule } from './components/gio-api-events-table/gio-a
 import { DashboardV4ApiRequestStats } from './components/dashboard-v4-api-request-stats/dashboard-v4-api-request-stats';
 import { DashboardFiltersBarComponent } from './components/dashboard-filters-bar/dashboard-filters-bar.component';
 import { V2ApiCallsWithNoContextPathComponent } from './components/v2-api-calls-with-no-contex-path/v2-api-calls-with-no-context-path.component';
-import { V2ResponseStatusComponent } from './components/v2-response-status/v2-response-status.component';
-import { V4ResponseStatusComponent } from './components/v4-response-status/v4-response-status.component';
+import { ResponseStatusComponent } from './components/response-status/response-status.component';
 import { ResponseTimesComponent } from './components/response-times/response-times.component';
 import { TopApplicationsByRequestsComponent } from './components/top-applications-by-requests/top-applications-by-requests.component';
 import { TopFailedApisComponent } from './components/top-failed-apis/top-failed-apis.component';
@@ -122,8 +121,7 @@ const homeRoutes: Route[] = [
 
     DashboardFiltersBarComponent,
     V2ApiCallsWithNoContextPathComponent,
-    V2ResponseStatusComponent,
-    V4ResponseStatusComponent,
+    ResponseStatusComponent,
     ResponseTimesComponent,
     TopApplicationsByRequestsComponent,
     TopFailedApisComponent,

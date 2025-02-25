@@ -67,6 +67,10 @@
   </div>
 
   <div class="row">
+    <response-status />
+  </div>
+
+  <div class="row">
     <response-times />
   </div>
 
@@ -108,10 +112,6 @@
   <!--  </div>-->
 
   <div class="row">
-    <v2-response-status></v2-response-status>
-  </div>
-
-  <div class="row">
     <h2 class="row-title">V4 APIs</h2>
     <div class="row-cards">
       <api-analytics-response-status-ranges
@@ -120,10 +120,6 @@
       ></api-analytics-response-status-ranges>
       <dashboard-v4-api-request-stats [data]="requestStatsV4"></dashboard-v4-api-request-stats>
     </div>
-  </div>
-
-  <div class="row">
-    <v4-response-status></v4-response-status>
   </div>
 
   <div class="row" *gioPermission="{ anyOf: ['environment-platform-r'] }">
