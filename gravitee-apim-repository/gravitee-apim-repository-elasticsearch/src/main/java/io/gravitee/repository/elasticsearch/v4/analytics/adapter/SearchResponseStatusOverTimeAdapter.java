@@ -89,7 +89,8 @@ public class SearchResponseStatusOverTimeAdapter {
     }
 
     private ObjectNode query(ResponseStatusOverTimeQuery query) {
-        JsonNode termFilter = json().set("terms", json().set("api-id", toArray(query.apiIds())));
+        JsonNode apiV4 = json().set("terms", json().set("api-id", toArray(query.apiIds())));
+        JsonNode apiV2 = json().set("terms", json().set("api", toArray(query.apiIds())));
 
         // we just ensure to fetch full bucket interval (a bit too)
         Instant from = query.from().minus(query.interval());
@@ -102,7 +103,9 @@ public class SearchResponseStatusOverTimeAdapter {
             .put("include_upper", true);
         JsonNode rangeFilter = json().set("range", json().set(TIME_FIELD, timestamp));
 
-        var bool = json().set("filter", array().add(termFilter).add(rangeFilter));
+        var v2orv4 = json().put("minimum_should_match", 1).set("should", array().add(apiV4).add(apiV2));
+        JsonNode apiIdsFilter = json().set("bool", v2orv4);
+        var bool = json().set("filter", array().add(apiIdsFilter).add(rangeFilter));
         return json().set("bool", bool);
     }
 

@@ -28,8 +28,6 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,22 +41,29 @@ public class SearchResponseStatusOverTimeUseCase {
     private final ApiCrudService apiCrudService;
 
     public Output execute(ExecutionContext executionContext, Input input) {
-        validateApiRequirements(input);
+        Api api = validateApiRequirements(input);
         Duration interval = DurationUtils.buildIntervalFromTimePeriod(input.from(), input.to());
 
         var result = analyticsQueryService.searchResponseStatusOvertime(
             executionContext,
-            new AnalyticsQueryService.ResponseStatusOverTimeQuery(List.of(input.apiId), input.from(), input.to(), interval)
+            new AnalyticsQueryService.ResponseStatusOverTimeQuery(
+                List.of(api.getId()),
+                input.from(),
+                input.to(),
+                interval,
+                List.of(api.getDefinitionVersion())
+            )
         );
 
         return new Output(result);
     }
 
-    private void validateApiRequirements(Input input) {
+    private Api validateApiRequirements(Input input) {
         final Api api = apiCrudService.get(input.apiId);
         validateApiDefinitionVersion(api.getDefinitionVersion(), input.apiId);
         validateApiMultiTenancyAccess(api, input.environmentId);
         validateApiIsNotTcp(api);
+        return api;
     }
 
     private void validateApiIsNotTcp(Api api) {

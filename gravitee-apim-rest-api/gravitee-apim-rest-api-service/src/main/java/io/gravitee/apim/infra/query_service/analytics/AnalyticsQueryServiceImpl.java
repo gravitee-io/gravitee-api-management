@@ -173,7 +173,8 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                 query.apiIds(),
                 query.from(),
                 query.to(),
-                query.interval()
+                query.interval(),
+                query.versions()
             )
         );
         return ResponseStatusOvertime

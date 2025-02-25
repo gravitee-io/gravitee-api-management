@@ -74,5 +74,25 @@ public interface AnalyticsQueryService {
 
     Optional<TopFailedApis> searchTopFailedApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
 
-    record ResponseStatusOverTimeQuery(List<String> apiIds, Instant from, Instant to, Duration interval) {}
+    record ResponseStatusOverTimeQuery(
+        List<String> apiIds,
+        Instant from,
+        Instant to,
+        Duration interval,
+        Collection<DefinitionVersion> versions
+    ) {
+        public ResponseStatusOverTimeQuery(
+            List<String> apiIds,
+            Instant from,
+            Instant to,
+            Duration interval,
+            Collection<DefinitionVersion> versions
+        ) {
+            this.apiIds = apiIds;
+            this.from = from;
+            this.to = to;
+            this.interval = interval;
+            this.versions = versions == null || versions.isEmpty() ? List.of(DefinitionVersion.V4) : versions;
+        }
+    }
 }

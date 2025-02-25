@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
@@ -218,7 +219,8 @@ class AnalyticsQueryServiceImplTest {
                     List.of(API_ID),
                     TIME_RANGE.from(),
                     TIME_RANGE.to(),
-                    TIME_RANGE.interval()
+                    TIME_RANGE.interval(),
+                    List.of(DefinitionVersion.V4)
                 )
             );
 
