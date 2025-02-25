@@ -172,22 +172,22 @@ data:
       {{- if hasKey .Values.gateway.kafka "routingHostMode" }}
       routingHostMode:
         {{- if hasKey .Values.gateway.kafka.routingHostMode "brokerPrefix" }}
-        brokerPrefix: {{ .Values.gateway.kafka.routingHostMode.brokerPrefix }}
+        brokerPrefix: {{ .Values.gateway.kafka.routingHostMode.brokerPrefix | quote }}
         {{- end}}
         {{- if hasKey .Values.gateway.kafka.routingHostMode "domainSeparator" }}
-        domainSeparator: {{ .Values.gateway.kafka.routingHostMode.domainSeparator }}
+        domainSeparator: {{ .Values.gateway.kafka.routingHostMode.domainSeparator | quote }}
         {{- end}}
         {{- if hasKey .Values.gateway.kafka.routingHostMode "defaultDomain" }}
-        defaultDomain: {{ .Values.gateway.kafka.routingHostMode.defaultDomain }}
+        defaultDomain: {{ .Values.gateway.kafka.routingHostMode.defaultDomain | quote }}
         {{- end}}
         {{- if hasKey .Values.gateway.kafka.routingHostMode "defaultPort" }}
         defaultPort: {{ .Values.gateway.kafka.routingHostMode.defaultPort }}
         {{- end}}
         {{- if hasKey .Values.gateway.kafka.routingHostMode "bootstrapDomainPattern" }}
-        bootstrapDomainPattern: {{ .Values.gateway.kafka.routingHostMode.bootstrapDomainPattern }}
+        bootstrapDomainPattern: {{ .Values.gateway.kafka.routingHostMode.bootstrapDomainPattern | quote }}
         {{- end}}
         {{- if hasKey .Values.gateway.kafka.routingHostMode "brokerDomainPattern" }}
-        brokerDomainPattern: {{ .Values.gateway.kafka.routingHostMode.brokerDomainPattern }}
+        brokerDomainPattern: {{ .Values.gateway.kafka.routingHostMode.brokerDomainPattern | quote }}
         {{- end}}
       {{- end}}
       {{- if hasKey .Values.gateway.kafka "apiKey" }}
