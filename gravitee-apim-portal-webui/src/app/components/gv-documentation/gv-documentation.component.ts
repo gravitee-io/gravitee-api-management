@@ -15,13 +15,14 @@
  */
 import '@gravitee/ui-components/wc/gv-tree';
 import { animate, style, transition, trigger } from '@angular/animations';
-import { AfterViewInit, Component, HostListener, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, HostListener, Input, OnInit, SecurityContext, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DomSanitizer } from '@angular/platform-browser';
 
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { TreeItem } from '../../model/tree-item';
-import { NotificationService } from '../../services/notification.service';
 import { ScrollService } from '../../services/scroll.service';
+import { ConfigurationService } from '../../services/configuration.service';
 
 @Component({
   selector: 'app-gv-documentation',
@@ -72,7 +73,17 @@ export class GvDocumentationComponent implements OnInit, AfterViewInit {
     return this._pages;
   }
 
-  constructor(private notificationService: NotificationService, private route: ActivatedRoute, private router: Router) {}
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly configurationService: ConfigurationService,
+    private readonly sanitizer: DomSanitizer,
+  ) {
+    this.pageNotFoundMessage = this.sanitizer.sanitize(
+      SecurityContext.HTML,
+      this.configurationService.get('documentation.pageNotFoundMessage'),
+    );
+  }
 
   static PAGE_PADDING_TOP_BOTTOM = 44;
   static PAGE_COMPONENT = 'app-gv-page';
@@ -83,6 +94,7 @@ export class GvDocumentationComponent implements OnInit, AfterViewInit {
   isLoaded = false;
   hasTreeClosed = true;
   hasOneOrLessPages = true;
+  pageNotFoundMessage: string;
 
   @Input() rootDir: string;
   private _pages: Page[];
