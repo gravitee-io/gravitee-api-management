@@ -89,8 +89,6 @@ describe('HomeOverviewComponent', () => {
       expectTopApisGetRequest();
       expectGetRequestStatsForV4();
 
-      expectResponseStatusGetRequest();
-
       expectV4ResponseTimesGetRequest();
       expectV4ResponseStatusGetRequest();
     });
@@ -137,7 +135,6 @@ describe('HomeOverviewComponent', () => {
       expectConsoleSettingsGetRequest();
       expectTopApisGetRequest();
       expectGetRequestStatsForV4();
-      expectResponseStatusGetRequest();
       expectV4ResponseTimesGetRequest();
       expectV4ResponseStatusGetRequest();
     });
@@ -182,7 +179,6 @@ describe('HomeOverviewComponent', () => {
     expectConsoleSettingsGetRequest();
     expectTopApisGetRequest();
     expectGetRequestStatsForV4();
-    expectResponseStatusGetRequest();
     expectV4ResponseTimesGetRequest();
     expectV4ResponseStatusGetRequest();
   }
@@ -329,22 +325,6 @@ describe('HomeOverviewComponent', () => {
   //   req.flush(fakePlatformLogsResponse());
   //   expect(req.request.method).toEqual('GET');
   // }
-
-  function expectResponseStatusGetRequest() {
-    const url = `${CONSTANTS_TESTING.env.baseURL}/analytics?type=date_histo&aggs=field:status`;
-    const req = httpTestingController.expectOne((req) => {
-      return req.method === 'GET' && req.url.startsWith(url);
-    });
-    req.flush({
-      timestamp: {
-        from: 100,
-        to: 100000,
-        interval: 10,
-      },
-      values: [],
-    });
-    expect(req.request.method).toEqual('GET');
-  }
 
   // v4
   function expectV4ResponseTimesGetRequest() {

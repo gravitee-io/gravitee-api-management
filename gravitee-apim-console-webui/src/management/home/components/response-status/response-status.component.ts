@@ -28,13 +28,13 @@ import { GioChartLineModule } from '../../../../shared/components/gio-chart-line
 import { TimeRangeParams } from '../../../../shared/utils/timeFrameRanges';
 
 @Component({
-  selector: 'v4-response-status',
+  selector: 'response-status',
   standalone: true,
   imports: [GioChartLineModule, GioLoaderModule, MatCard, MatCardHeader, MatCardSubtitle, MatCardTitle],
-  templateUrl: './v4-response-status.component.html',
-  styleUrl: './v4-response-status.component.scss',
+  templateUrl: './response-status.component.html',
+  styleUrl: './response-status.component.scss',
 })
-export class V4ResponseStatusComponent implements OnInit {
+export class ResponseStatusComponent implements OnInit {
   public isLoading = true;
   public chartInput: GioChartLineData[];
   public chartOptions: GioChartLineOptions;

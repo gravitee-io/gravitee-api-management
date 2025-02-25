@@ -78,11 +78,6 @@ export class AnalyticsService {
     };
   }
 
-  getResponseStatus({ from, to, interval }: TimeRangeParams): Observable<AnalyticsResponseStatus> {
-    const url = `${this.constants.env.baseURL}/analytics?type=date_histo&aggs=field:status&interval=${interval}&from=${from}&to=${to}`;
-    return this.http.get<AnalyticsResponseStatus>(url);
-  }
-
   getStats(params: AnalyticsRequestParam): Observable<AnalyticsStatsResponse> {
     const url =
       `${this.constants.env.baseURL}/analytics?type=stats` +
