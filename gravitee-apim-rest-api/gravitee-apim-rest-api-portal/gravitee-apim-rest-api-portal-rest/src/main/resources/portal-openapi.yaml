@@ -4902,6 +4902,9 @@ components:
                 url:
                     description: URL of the main documentation.
                     type: string
+                pageNotFoundMessage:
+                  description: Message to display when a page is not found.
+                  type: string
         ConfigurationPlan:
             properties:
                 security:
