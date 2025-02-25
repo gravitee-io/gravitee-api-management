@@ -151,6 +151,8 @@ public enum Key {
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
 
+    DOCUMENTATION_PAGE_NOT_FOUND_MESSAGE("documentation.pageNotFoundMessage", "", new HashSet<>(Arrays.asList(ENVIRONMENT))),
+
     PLAN_SECURITY_MTLS_ENABLED("plan.security.mtls.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PLAN_SECURITY_JWT_ENABLED("plan.security.jwt.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PLAN_SECURITY_OAUTH2_ENABLED("plan.security.oauth2.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
