@@ -34,8 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.SneakyThrows;
-import org.junit.Test;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.node.ArrayNode;
+import org.junit.jupiter.api.Test;
 
 public class ResponseTimeRangeQueryAdapterTest {
 
@@ -60,7 +59,11 @@ public class ResponseTimeRangeQueryAdapterTest {
         // Then
         JsonNode jsonQuery = MAPPER.readTree(result);
         // query part
-        assertThat(jsonQuery.at("/query/bool/filter/0/terms/api-id").elements())
+        assertThat(jsonQuery.at("/query/bool/filter/0/bool/should/0/terms/api-id").elements())
+            .toIterable()
+            .extracting(JsonNode::asText)
+            .contains("MyAPI");
+        assertThat(jsonQuery.at("/query/bool/filter/0/bool/should/1/terms/api").elements())
             .toIterable()
             .extracting(JsonNode::asText)
             .contains("MyAPI");
@@ -99,8 +102,11 @@ public class ResponseTimeRangeQueryAdapterTest {
         // Then
         JsonNode jsonQuery = MAPPER.readTree(result);
         // query part
-
-        assertThat(jsonQuery.at("/query/bool/filter/0/terms/api-id").elements())
+        assertThat(jsonQuery.at("/query/bool/filter/0/bool/should/0/terms/api-id").elements())
+            .toIterable()
+            .extracting(JsonNode::asText)
+            .contains("MyAPI");
+        assertThat(jsonQuery.at("/query/bool/filter/0/bool/should/1/terms/api").elements())
             .toIterable()
             .extracting(JsonNode::asText)
             .contains("MyAPI");

@@ -36,9 +36,7 @@ import org.junit.jupiter.api.Test;
 
 class SearchResponseStatusOverTimeAdapterTest {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
-
-    private SearchResponseStatusOverTimeAdapter cut = new SearchResponseStatusOverTimeAdapter();
+    private final SearchResponseStatusOverTimeAdapter cut = new SearchResponseStatusOverTimeAdapter();
 
     @Nested
     class AdaptQuery {

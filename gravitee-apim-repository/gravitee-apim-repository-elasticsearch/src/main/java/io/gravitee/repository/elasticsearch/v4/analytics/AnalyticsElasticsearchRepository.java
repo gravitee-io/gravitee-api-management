@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
@@ -50,7 +51,10 @@ import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -118,8 +122,14 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     @Override
     public @NonNull Maybe<AverageAggregate> searchResponseTimeOverTime(QueryContext queryContext, ResponseTimeRangeQuery query) {
         var adapter = new ResponseTimeRangeQueryAdapter();
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
-        return client.search(index, null, adapter.queryAdapt(info, query)).flatMapMaybe(adapter::responseAdapt);
+        var indexByVersion = Map.of(DefinitionVersion.V4, Type.V4_METRICS, DefinitionVersion.V2, Type.REQUEST);
+        String indices = query
+            .versions()
+            .stream()
+            .flatMap(v -> Stream.ofNullable(indexByVersion.get(v)))
+            .map(v -> indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), v, clusters))
+            .collect(Collectors.joining(","));
+        return client.search(indices, null, adapter.queryAdapt(info, query)).flatMapMaybe(adapter::responseAdapt);
     }
 
     @Override

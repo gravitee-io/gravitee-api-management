@@ -75,7 +75,8 @@ public class ResponseTimeRangeQueryAdapter {
     }
 
     private ObjectNode query(ResponseTimeRangeQuery query) {
-        JsonNode termFilter = json().set("terms", json().set("api-id", toArray(query.apiIds())));
+        JsonNode termFilterV4 = json().set("terms", json().set("api-id", toArray(query.apiIds())));
+        JsonNode termFilterV2 = json().set("terms", json().set("api", toArray(query.apiIds())));
 
         // we just ensure to fetch full bucket interval (a bit too)
         var from = query.from().minus(query.interval());
@@ -88,7 +89,9 @@ public class ResponseTimeRangeQueryAdapter {
             .put("include_upper", true);
         JsonNode rangeFilter = json().set("range", json().set(TIME_FIELD, timestamp));
 
-        var bool = json().set("filter", array().add(termFilter).add(rangeFilter));
+        var v2orv4 = json().put("minimum_should_match", 1).set("should", array().add(termFilterV4).add(termFilterV2));
+        JsonNode apiIdsFilter = json().set("bool", v2orv4);
+        var bool = json().set("filter", array().add(apiIdsFilter).add(rangeFilter));
         return json().set("bool", bool);
     }
 
@@ -105,8 +108,13 @@ public class ResponseTimeRangeQueryAdapter {
                     .put("min", query.from().toEpochMilli())
                     .put("max", query.to().toEpochMilli())
             );
+        String script =
+            "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }";
         ObjectNode agg = json()
-            .set(REDUCE_OPERATION + "_" + RESPONSE_TIME_FIELD, json().set(REDUCE_OPERATION, json().put("field", RESPONSE_TIME_FIELD)));
+            .set(
+                REDUCE_OPERATION + "_" + RESPONSE_TIME_FIELD,
+                json().set(REDUCE_OPERATION, json().set("script", json().put("lang", "painless").put("source", script)))
+            );
 
         return json().set(HISTOGRAM, json().<ObjectNode>set("date_histogram", histogram).set("aggregations", agg));
     }
