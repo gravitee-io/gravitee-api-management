@@ -15,13 +15,22 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import io.gravitee.apim.core.log.model.ConnectionLog;
+import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.log.ApplicationRequest;
 import io.gravitee.rest.api.model.log.ApplicationRequestItem;
 import io.gravitee.rest.api.portal.rest.model.HttpMethod;
 import io.gravitee.rest.api.portal.rest.model.Log;
 import io.gravitee.rest.api.portal.rest.model.Request;
 import io.gravitee.rest.api.portal.rest.model.Response;
+import io.gravitee.rest.api.portal.rest.resource.param.SearchApplicationLogsParam;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 /**
@@ -85,5 +94,52 @@ public class LogMapper {
         logItem.setUser(applicationRequestItem.getUser());
 
         return logItem;
+    }
+
+    public List<Log> convert(List<ConnectionLog> logs) {
+        if (logs == null) {
+            return new ArrayList<>();
+        }
+        return logs.stream().map(this::convert).toList();
+    }
+
+    public Log convert(ConnectionLog connectionLog) {
+        final Log logItem = new Log();
+        logItem.setApi(connectionLog.getApiId());
+        logItem.setId(connectionLog.getRequestId());
+        logItem.setMethod(HttpMethod.fromValue(connectionLog.getMethod().name()));
+        logItem.setPath(connectionLog.getUri());
+        logItem.setPlan(connectionLog.getPlanId());
+        logItem.setResponseTime(connectionLog.getGatewayResponseTime());
+        logItem.setStatus(connectionLog.getStatus());
+        logItem.setTimestamp(Instant.parse(connectionLog.getTimestamp()).toEpochMilli());
+        logItem.setTransactionId(connectionLog.getTransactionId());
+        //        logItem.setUser(connectionLog.getUser()); TODO: Get user information
+
+        return logItem;
+    }
+
+    public SearchLogsFilters convert(String applicationId, SearchApplicationLogsParam searchLogsParam) {
+        return SearchLogsFilters
+            .builder()
+            .to(searchLogsParam.getTo())
+            .from(searchLogsParam.getFrom())
+            .applicationIds(Set.of(applicationId))
+            .planIds(searchLogsParam.getPlanIds())
+            .methods(convert(searchLogsParam.getMethods()))
+            .statuses(searchLogsParam.getStatuses())
+            .apiIds(searchLogsParam.getApiIds())
+            .requestIds(searchLogsParam.getRequestIds())
+            .transactionIds(searchLogsParam.getTransactionIds())
+            .uri(searchLogsParam.getPath())
+            .build();
+    }
+
+    public Set<io.gravitee.common.http.HttpMethod> convert(Set<HttpMethod> httpMethod) {
+        if (httpMethod == null) {
+            return new HashSet<>();
+        }
+
+        return httpMethod.stream().map(method -> io.gravitee.common.http.HttpMethod.valueOf(method.name())).collect(Collectors.toSet());
     }
 }

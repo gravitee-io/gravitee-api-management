@@ -1439,6 +1439,7 @@ paths:
         parameters:
             - $ref: "#/components/parameters/applicationIdParam"
         get:
+            deprecated: true
             tags:
                 - Application
                 - Analytics
@@ -1453,9 +1454,48 @@ paths:
             summary: Get Application logs
             description: |
                 Get the application logs.
+                Deprecated: Use POST /applications/{applicationId}/logs/_search instead for more results and refined search.
 
                 User must have the APPLICATION_LOG[READ] permission.
             operationId: getApplicationLogs
+            responses:
+                200:
+                    description: List of logs
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/LogsResponse"
+                400:
+                    description: Invalid query params.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    $ref: "#/components/responses/ApplicationNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+
+    /applications/{applicationId}/logs/_search:
+        parameters:
+            - $ref: "#/components/parameters/applicationIdParam"
+        post:
+            tags:
+                - Application
+                - Analytics
+            parameters:
+                - $ref: "#/components/parameters/pageNumberParam"
+                - $ref: "#/components/parameters/pageSizeParam"
+            requestBody:
+                $ref: "#/components/requestBodies/searchApplicationLogsRequestBody"
+            summary: Search Application logs
+            description: |
+                Search an application's logs.
+
+                User must have the APPLICATION_LOG[READ] permission.
+            operationId: searchApplicationLogs
             responses:
                 200:
                     description: List of logs
@@ -2945,6 +2985,14 @@ components:
                     schema:
                         type: string
                         format: binary
+        searchApplicationLogsRequestBody:
+            description: Use to search application logs
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/SearchApplicationsLogsParams"
+            required: true
+
     parameters:
         ##############
         # Path Param #
@@ -3511,6 +3559,60 @@ components:
                     $ref: "#/components/schemas/MetadataMap"
                 links:
                     $ref: "#/components/schemas/Links"
+        SearchApplicationsLogsParams:
+          type: object
+          description: Search filters for application logs
+          properties:
+              from:
+                description: Timestamp in ms for the connection log date lower limit
+                type: integer
+                example: 1460222528644
+              to:
+                description: Timestamp in ms for the connection log date upper limit. Must be superior to the timestamp provided in the 'to' parameter
+                type: integer
+                example: 1460222528644
+              applicationIds:
+                  description: Filter with list of application IDs
+                  type: array
+                  items:
+                    type: string
+              planIds:
+                  description: Filter with list of plan IDs
+                  type: array
+                  items:
+                    type: string
+              methods:
+                  description: Filter with list of HTTP methods
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/HttpMethod"
+              statuses:
+                  description: Filter with list of response statuses
+                  example: [ 200 ]
+                  type: array
+                  items:
+                    type: integer
+              apiIds:
+                  description: Filter with list of API IDs
+                  type: array
+                  items:
+                    type: string
+              requestIds:
+                  description: Filter with list of connection log request IDs
+                  type: array
+                  items:
+                    type: string
+              transactionIds:
+                  description: Filter with list of connection log transaction IDs
+                  type: array
+                  items:
+                    type: string
+              path:
+                  description: Filter with path used for the request
+                  type: string
+          required:
+            - to
+            - from
         ApplicationsResponse:
             properties:
                 data:
