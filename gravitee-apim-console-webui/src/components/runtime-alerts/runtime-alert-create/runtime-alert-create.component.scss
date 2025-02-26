@@ -7,23 +7,25 @@
   @include gio-layout.gio-responsive-margin-container;
 }
 
-.create-alert {
-  &__header {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    justify-content: space-between;
+.page-header {
+  .title {
+    margin-bottom: 8px;
+  }
+  .paragraph {
+    margin-bottom: 0;
   }
 
-  &__forms {
-    .create-alert__general-form,
-    .create-alert__timeframe-form,
-    .create-alert__filters-form {
-      margin: 20px 0;
-    }
+  margin-bottom: 20px;
+}
 
-    .create-alert__condition-form {
-      margin: 20px 0 40px 0;
-    }
+.card-header {
+  margin-bottom: 20px;
+
+  &__title {
+    margin-bottom: 8px;
   }
+}
+
+.form-card {
+  margin: 20px 6px;
 }

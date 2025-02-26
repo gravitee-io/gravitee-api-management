@@ -30,6 +30,7 @@ import { RuntimeAlertCreateConditionsFactory } from './runtime-alert-create-cond
 
 import { Metrics, Scope } from '../../../../../entities/alert';
 import { Rule } from '../../../../../entities/alerts/rule.metrics';
+import { AlertTriggerEntity } from "../../../../../entities/alerts/alertTriggerEntity";
 
 @Component({
   selector: 'runtime-alert-create-conditions',
@@ -56,6 +57,8 @@ export class RuntimeAlertCreateConditionsComponent implements OnDestroy, Control
   @Input({ required: true }) referenceType: Scope;
   @Input({ required: true }) referenceId: string;
   @Input({ required: true }) set rule(value: Rule) {
+    console.log('conditions:: rule value: ', value)
+
     if (value) {
       this.ruleType = `${value.source}@${value.type}`;
       this.conditionsForm = RuntimeAlertCreateConditionsFactory.create(this.ruleType);
@@ -83,6 +86,7 @@ export class RuntimeAlertCreateConditionsComponent implements OnDestroy, Control
   protected metrics: Metrics[];
   protected types: string[];
   protected conditionsForm: FormGroup;
+  @Input() public alertToUpdate: AlertTriggerEntity;
 
   ngOnDestroy(): void {
     this.unsubscribe$.next(true);

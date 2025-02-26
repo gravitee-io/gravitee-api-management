@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, forwardRef, Input, OnDestroy } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, OnInit } from "@angular/core";
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -30,7 +30,7 @@ import { Subject } from 'rxjs';
 
 import { Rule } from '../../../../../entities/alerts/rule.metrics';
 import { Scope } from '../../../../../entities/alert';
-import { ALERT_SEVERITIES, AlertSeverity } from '../../../../../entities/alerts/alertTriggerEntity';
+import { ALERT_SEVERITIES, AlertSeverity, AlertTriggerEntity } from "../../../../../entities/alerts/alertTriggerEntity";
 
 export type GeneralFormValue = {
   name: string;
@@ -57,7 +57,9 @@ export type GeneralFormValue = {
     },
   ],
 })
-export class RuntimeAlertCreateGeneralComponent implements OnDestroy, ControlValueAccessor, Validator {
+export class RuntimeAlertCreateGeneralComponent implements OnInit,  OnDestroy, ControlValueAccessor, Validator {
+  @Input() public alertToUpdate: AlertTriggerEntity;
+
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private _onChange: (value: GeneralFormValue) => void = () => ({});
   private _onTouched: () => void = () => ({});
@@ -70,6 +72,7 @@ export class RuntimeAlertCreateGeneralComponent implements OnDestroy, ControlVal
   protected alertSeverities = ALERT_SEVERITIES;
 
   constructor() {
+
     this.form = new FormGroup({
       name: new FormControl<string>(null, [Validators.required]),
       enabled: new FormControl<boolean>(false),
@@ -77,6 +80,7 @@ export class RuntimeAlertCreateGeneralComponent implements OnDestroy, ControlVal
       severity: new FormControl<AlertSeverity>('INFO', [Validators.required, Validators.max(256)]),
       description: new FormControl<string>(null),
     });
+
     this.form.valueChanges
       .pipe(
         tap((value) => {
@@ -91,6 +95,24 @@ export class RuntimeAlertCreateGeneralComponent implements OnDestroy, ControlVal
   ngOnDestroy(): void {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
+  }
+
+  ngOnInit() {
+    if(this.alertToUpdate) {
+      this.seedForm();
+    }
+  }
+
+
+
+  seedForm() {
+    this.form.patchValue({
+      name: this.alertToUpdate.name,
+      enabled: this.alertToUpdate.enabled,
+      rule: this.rules.find((rule) => rule.type === this.alertToUpdate.type),
+      severity: this.alertToUpdate.severity,
+      description: this.alertToUpdate.description,
+    });
   }
 
   writeValue(value: GeneralFormValue): void {

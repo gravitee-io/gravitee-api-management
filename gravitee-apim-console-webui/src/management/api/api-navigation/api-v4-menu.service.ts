@@ -53,6 +53,7 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addDeploymentMenuEntry(),
       ...(api.type !== 'NATIVE' ? [this.addApiTrafficMenuEntry(hasTcpListeners)] : []),
       ...(api.type !== 'NATIVE' ? [this.addApiRuntimeAlertsMenuEntry()] : []),
+      this.addAlertsMenuEntry(),
     ].filter((entry) => entry != null && !entry.tabs?.every((tab) => tab.routerLink === 'DISABLED'));
 
     return { subMenuItems, groupItems: [] };
@@ -131,6 +132,14 @@ export class ApiV4MenuService implements ApiMenuService {
         title: 'API Score',
       },
     };
+  }
+
+  private addAlertsMenuEntry(): MenuItem {
+    return {
+          displayName: 'Alerts',
+          icon: 'alarm',
+          routerLink: 'ng/alerts',
+        }
   }
 
   private addEntrypointsMenuEntry(hasTcpListeners: boolean, api: ApiV4): MenuItem {

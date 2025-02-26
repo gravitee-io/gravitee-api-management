@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -24,4 +25,5 @@ import { RuntimeAlertCreateModule, RuntimeAlertListEmptyStateModule, RuntimeAler
   declarations: [ApiRuntimeAlertsComponent],
   imports: [CommonModule, RuntimeAlertListModule, RuntimeAlertListEmptyStateModule, RuntimeAlertCreateModule],
 })
-export class ApiRuntimeAlertsModule {}
+export class ApiRuntimeAlertsModule {
+}
