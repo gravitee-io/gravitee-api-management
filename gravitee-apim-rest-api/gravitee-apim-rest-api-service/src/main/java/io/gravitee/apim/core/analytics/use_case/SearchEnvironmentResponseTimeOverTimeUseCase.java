@@ -68,7 +68,11 @@ public class SearchEnvironmentResponseTimeOverTimeUseCase {
                 null,
                 ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
             )
-            .collect(groupingBy(Api::getDefinitionVersion, mapping(Api::getId, toList())));
+            .collect(groupingBy(SearchEnvironmentResponseTimeOverTimeUseCase::getDefinitionVersion, mapping(Api::getId, toList())));
+    }
+
+    private static DefinitionVersion getDefinitionVersion(Api api) {
+        return api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
     }
 
     public record Input(String environmentId, Instant from, Instant to) {}
