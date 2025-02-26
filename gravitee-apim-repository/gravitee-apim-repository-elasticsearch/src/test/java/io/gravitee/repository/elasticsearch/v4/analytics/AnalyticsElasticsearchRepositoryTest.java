@@ -18,7 +18,9 @@ package io.gravitee.repository.elasticsearch.v4.analytics;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.atIndex;
 import static org.assertj.core.api.Assertions.offset;
+import static org.assertj.core.api.Assertions.withPrecision;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
@@ -39,6 +41,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -332,7 +335,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             var result = cut.searchRequestResponseTimes(
                 new QueryContext("org#1", "env#1"),
-                new RequestResponseTimeQueryCriteria(List.of(API_ID), from, to)
+                new RequestResponseTimeQueryCriteria(List.of(API_ID), from, to, EnumSet.of(DefinitionVersion.V4))
             );
 
             SoftAssertions.assertSoftly(softly -> {
@@ -345,26 +348,40 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         }
 
         @Test
+        void should_return_top_hits_count_for_a_apiv2_and_v4() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS).toEpochMilli();
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS).toEpochMilli();
+
+            String APIV2_1 = "e2c0ecd5-893a-458d-80ec-d5893ab58d12";
+            String APIV2_2 = "4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1";
+            var result = cut.searchRequestResponseTimes(
+                new QueryContext("org#1", "env#1"),
+                new RequestResponseTimeQueryCriteria(
+                    List.of(API_ID, APIV2_1, APIV2_2),
+                    from,
+                    to,
+                    EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2)
+                )
+            );
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(result.getRequestsPerSecond()).isCloseTo(6.36574074074074E-5, withPrecision(.01d));
+                softly.assertThat(result.getRequestsTotal()).isEqualTo(11L);
+                softly.assertThat(result.getResponseMinTime()).isEqualTo(2.0);
+                softly.assertThat(result.getResponseMaxTime()).isEqualTo(30000.0);
+                softly.assertThat(result.getResponseAvgTime()).isCloseTo(2916.3635, withPrecision(.01d));
+            });
+        }
+
+        @Test
         void should_return_empty_request_response_time_aggregate_for_empty_ids_list() {
             var from = 1728992401566L;
             var to = 1729078801566L;
             var result = cut.searchRequestResponseTimes(
                 new QueryContext("org#1", "env#1"),
-                new RequestResponseTimeQueryCriteria(List.of(API_ID), from, to)
+                new RequestResponseTimeQueryCriteria(List.of(API_ID), from, to, EnumSet.of(DefinitionVersion.V4))
             );
-
-            SoftAssertions.assertSoftly(softly -> {
-                softly.assertThat(result.getRequestsPerSecond()).isEqualTo(0d);
-                softly.assertThat(result.getRequestsTotal()).isEqualTo(0L);
-                softly.assertThat(result.getResponseMinTime()).isEqualTo(0d);
-                softly.assertThat(result.getResponseMaxTime()).isEqualTo(0d);
-                softly.assertThat(result.getResponseAvgTime()).isEqualTo(0d);
-            });
-        }
-
-        @Test
-        void should_return_empty_request_response_time_aggregate_for_null_query_criteria() {
-            var result = cut.searchRequestResponseTimes(new QueryContext("org#1", "env#1"), null);
 
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(result.getRequestsPerSecond()).isEqualTo(0d);
@@ -380,7 +397,6 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
     class TopHitApps {
 
         private static final String V4_API_ID = "f1608475-dd77-4603-a084-75dd775603e9";
-        private static final String APP_ID = "1e478236-e6e4-4cf5-8782-36e6e4ccf57d";
         private static final long FROM = 1728992401566L;
         private static final long TO = 1729078801566L;
 

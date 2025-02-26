@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
+import io.gravitee.definition.model.DefinitionVersion;
+import java.util.Collection;
 import java.util.List;
 
-public record RequestResponseTimeQueryCriteria(List<String> apiIds, long from, long to) {}
+public record RequestResponseTimeQueryCriteria(List<String> apiIds, long from, long to, Collection<DefinitionVersion> definitionVersions) {}

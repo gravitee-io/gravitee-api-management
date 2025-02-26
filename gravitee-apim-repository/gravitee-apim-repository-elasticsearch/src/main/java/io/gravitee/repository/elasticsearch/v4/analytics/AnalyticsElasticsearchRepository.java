@@ -53,6 +53,7 @@ import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Maybe;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -125,25 +126,13 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     @Override
     public @NonNull Maybe<AverageAggregate> searchResponseTimeOverTime(QueryContext queryContext, ResponseTimeRangeQuery query) {
         var adapter = new ResponseTimeRangeQueryAdapter();
-        var indexByVersion = Map.of(DefinitionVersion.V4, Type.V4_METRICS, DefinitionVersion.V2, Type.REQUEST);
-        String indices = query
-            .versions()
-            .stream()
-            .flatMap(v -> Stream.ofNullable(indexByVersion.get(v)))
-            .map(v -> indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), v, clusters))
-            .collect(Collectors.joining(","));
+        String indices = getIndices(queryContext, query.versions());
         return client.search(indices, null, adapter.queryAdapt(info, query)).flatMapMaybe(adapter::responseAdapt);
     }
 
     @Override
     public ResponseStatusOverTimeAggregate searchResponseStatusOvertime(QueryContext queryContext, ResponseStatusOverTimeQuery query) {
-        var indexByVersion = Map.of(DefinitionVersion.V4, Type.V4_METRICS, DefinitionVersion.V2, Type.REQUEST);
-        String indices = query
-            .versions()
-            .stream()
-            .flatMap(v -> Stream.ofNullable(indexByVersion.get(v)))
-            .map(v -> indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), v, clusters))
-            .collect(Collectors.joining(","));
+        String indices = getIndices(queryContext, query.versions());
         var esQuery = searchResponseStatusOverTimeAdapter.adaptQuery(query, info);
 
         log.debug("Search response status over time: {}", esQuery);
@@ -168,9 +157,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         QueryContext queryContext,
         RequestResponseTimeQueryCriteria queryCriteria
     ) {
-        var indexV4 = indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
-        var indexV2 = indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
-        var indices = String.join(",", List.of(indexV2, indexV4));
+        String indices = getIndices(queryContext, queryCriteria.definitionVersions());
         var adapter = new SearchRequestResponseTimeAdapter();
         var esQuery = adapter.adaptQuery(queryCriteria);
 
@@ -201,5 +188,14 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("Search top failed apis query: {}", esQuery);
         return this.client.search(indexes, null, esQuery).map(SearchTopFailedApisAdapter::adaptResponse).blockingGet();
+    }
+
+    private String getIndices(QueryContext queryContext, Collection<DefinitionVersion> definitionVersions) {
+        var indexByVersion = Map.of(DefinitionVersion.V4, Type.V4_METRICS, DefinitionVersion.V2, Type.REQUEST);
+        return definitionVersions
+            .stream()
+            .flatMap(v -> Stream.ofNullable(indexByVersion.get(v)))
+            .map(v -> indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), v, clusters))
+            .collect(Collectors.joining(","));
     }
 }

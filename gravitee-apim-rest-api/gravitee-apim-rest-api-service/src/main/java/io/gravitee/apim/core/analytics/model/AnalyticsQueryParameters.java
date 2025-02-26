@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.analytics.model;
 
+import io.gravitee.definition.model.DefinitionVersion;
+import java.util.Collection;
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;
@@ -29,4 +31,7 @@ public class AnalyticsQueryParameters {
 
     long from;
     long to;
+
+    @With
+    Collection<DefinitionVersion> definitionVersions;
 }

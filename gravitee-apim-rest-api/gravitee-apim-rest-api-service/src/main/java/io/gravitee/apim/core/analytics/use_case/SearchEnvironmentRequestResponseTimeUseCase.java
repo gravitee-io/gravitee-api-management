@@ -15,6 +15,10 @@
  */
 package io.gravitee.apim.core.analytics.use_case;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
@@ -25,7 +29,9 @@ import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,18 +48,19 @@ public class SearchEnvironmentRequestResponseTimeUseCase {
     public Output execute(Input input) {
         var envId = input.executionContext().getEnvironmentId();
         var v4Apis = getAllV4ApisIdsForEnv(envId);
+        var apisId = v4Apis.values().stream().flatMap(Collection::stream).toList();
 
         log.info("Searching Request Response Time, found: {} v4 APIs for env: {}", v4Apis.size(), envId);
 
         var requestResponseTime = analyticsQueryService.searchRequestResponseTime(
             input.executionContext(),
-            input.parameters().withApiIds(v4Apis)
+            input.parameters().withApiIds(apisId).withDefinitionVersions(v4Apis.keySet())
         );
 
         return new Output(requestResponseTime);
     }
 
-    private List<String> getAllV4ApisIdsForEnv(String envId) {
+    private Map<DefinitionVersion, List<String>> getAllV4ApisIdsForEnv(String envId) {
         return apiQueryService
             .search(
                 ApiSearchCriteria
@@ -64,8 +71,11 @@ public class SearchEnvironmentRequestResponseTimeUseCase {
                 null,
                 ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
             )
-            .map(Api::getId)
-            .toList();
+            .collect(groupingBy(this::getDefinitionVersion, mapping(Api::getId, toList())));
+    }
+
+    private DefinitionVersion getDefinitionVersion(Api api) {
+        return api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
     }
 
     @Builder

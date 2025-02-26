@@ -206,7 +206,12 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     public RequestResponseTime searchRequestResponseTime(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
         var result = analyticsRepository.searchRequestResponseTimes(
             executionContext.getQueryContext(),
-            new RequestResponseTimeQueryCriteria(parameters.getApiIds(), parameters.getFrom(), parameters.getTo())
+            new RequestResponseTimeQueryCriteria(
+                parameters.getApiIds(),
+                parameters.getFrom(),
+                parameters.getTo(),
+                parameters.getDefinitionVersions()
+            )
         );
 
         return RequestResponseTime

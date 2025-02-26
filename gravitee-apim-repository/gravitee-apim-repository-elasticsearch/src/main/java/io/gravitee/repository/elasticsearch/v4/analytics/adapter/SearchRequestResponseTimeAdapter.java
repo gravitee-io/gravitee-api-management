@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregate;
@@ -32,7 +33,6 @@ public class SearchRequestResponseTimeAdapter {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private static final List<String> FILTERED_ENTRYPOINT_TYPES = List.of("http-post", "http-get", "http-proxy");
-    private static final String GATEWAY_RESPONSE_TIME_MS_FIELD = "gateway-response-time-ms";
     private static final String MAX_RESPONSE_TIME_AGG = "max_response_time";
     private static final String MIN_RESPONSE_TIME_AGG = "min_response_time";
     private static final String AVG_RESPONSE_TIME_AGG = "avg_response_time";
@@ -42,26 +42,25 @@ public class SearchRequestResponseTimeAdapter {
     }
 
     private ObjectNode buildQuery(RequestResponseTimeQueryCriteria queryCriteria) {
+        var apiFilter = array();
+
+        if (queryCriteria.definitionVersions().contains(DefinitionVersion.V4)) {
+            var idsV4 = json().set("terms", json().set("api-id", toArray(queryCriteria.apiIds())));
+            var filterV4 = json().set("bool", json().set("must", array().add(idsV4).add(entrypointFilterForQuery())));
+            apiFilter.add(filterV4);
+        }
+        if (queryCriteria.definitionVersions().contains(DefinitionVersion.V2)) {
+            var filterV2 = json().set("terms", json().set("api", toArray(queryCriteria.apiIds())));
+            apiFilter.add(filterV2);
+        }
+
+        var v2orv4 = json().put("minimum_should_match", 1).set("should", apiFilter);
         var filterQuery = array();
+        filterQuery.add(json().set("bool", v2orv4));
 
-        if (queryCriteria == null || queryCriteria.apiIds() == null) {
-            log.warn("Null query params or queried API IDs. Empty ranges will be returned");
-            filterQuery.add(apiIdsFilterForQuery(List.of()));
-        } else {
-            filterQuery.add(apiIdsFilterForQuery(queryCriteria.apiIds()));
-        }
-
-        if (queryCriteria != null) {
-            filterQuery.add(dateRangeFilterForQuery(queryCriteria.from(), queryCriteria.to()));
-        }
-
-        filterQuery.add(entrypointFilterForQuery());
+        filterQuery.add(dateRangeFilterForQuery(queryCriteria.from(), queryCriteria.to()));
 
         return json().set("bool", json().<ObjectNode>set("filter", filterQuery));
-    }
-
-    private ObjectNode apiIdsFilterForQuery(List<String> apiIds) {
-        return json().set("terms", json().set("api-id", toArray(apiIds)));
     }
 
     private ObjectNode dateRangeFilterForQuery(Long from, Long to) {
@@ -131,7 +130,9 @@ public class SearchRequestResponseTimeAdapter {
 
     private ArrayNode toArray(List<String> list) {
         var arrayNode = array();
-        list.forEach(arrayNode::add);
+        if (list != null) {
+            list.forEach(arrayNode::add);
+        }
         return arrayNode;
     }
 }

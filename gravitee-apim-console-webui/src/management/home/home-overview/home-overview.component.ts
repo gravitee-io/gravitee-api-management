@@ -205,7 +205,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
         },
       });
 
-    // Request Stats v4
+    // Request Stats
     this.homeService
       .timeRangeParams()
       .pipe(
