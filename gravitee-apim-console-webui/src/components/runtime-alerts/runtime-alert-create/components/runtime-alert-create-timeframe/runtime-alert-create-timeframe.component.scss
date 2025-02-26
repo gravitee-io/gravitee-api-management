@@ -4,33 +4,8 @@
 
 $typography: map.get(gio.$mat-theme, typography);
 
-.accordion {
-  display: block;
 
-  &__header {
-    display: flex;
-    justify-content: space-between;
-    margin: 16px 0;
-    width: 100%;
-    cursor: pointer;
-
-    &__titles {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-
-      &__title {
-        margin: 0 8px 0 0;
-      }
-
-      &__subtitle {
-        @include mat.m2-typography-level($typography, body-2);
-        color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-      }
-    }
-  }
-
-  &__form {
+  form {
     &__row {
       display: flex;
       flex-direction: row;
@@ -50,4 +25,20 @@ $typography: map.get(gio.$mat-theme, typography);
       color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
     }
   }
+
+
+.form-card {
+  margin: 20px 6px;
+}
+
+.card-header, .timeframe-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.separator-hr {
+  background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+  margin: 16px 0;
+  height: 1px;
 }

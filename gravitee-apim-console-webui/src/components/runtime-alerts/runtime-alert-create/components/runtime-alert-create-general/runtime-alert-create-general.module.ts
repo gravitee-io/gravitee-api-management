@@ -21,6 +21,7 @@ import { GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatInputModule } from '@angular/material/input';
+import { MatCard, MatCardContent, MatCardHeader, MatCardModule } from "@angular/material/card";
 
 import { RuntimeAlertCreateGeneralComponent } from './runtime-alert-create-general.component';
 
@@ -36,6 +37,7 @@ import { RuntimeAlertCreateGeneralComponent } from './runtime-alert-create-gener
     MatSelectModule,
     MatSlideToggleModule,
     GioFormSlideToggleModule,
-  ],
+    MatCardModule,
+  ]
 })
 export class RuntimeAlertCreateGeneralModule {}

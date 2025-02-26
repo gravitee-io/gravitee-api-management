@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy } from '@angular/core';
+import { Component, Inject, OnDestroy } from "@angular/core";
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { catchError, takeUntil, tap } from 'rxjs/operators';
+import { FormBuilder, FormGroup } from "@angular/forms";
+import { catchError, takeUntil, tap } from "rxjs/operators";
 import { EMPTY, Subject } from 'rxjs';
+import { GioJsonSchema } from "@gravitee/ui-particles-angular";
 
 import { GeneralFormValue } from './components/runtime-alert-create-general';
 import { toNewAlertTriggerEntity } from './runtime-alert-create.adapter';
@@ -37,12 +38,20 @@ export class RuntimeAlertCreateComponent implements OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   protected referenceType: Scope = Scope[this.activatedRoute.snapshot.data.referenceType as keyof typeof Scope];
   protected referenceId: string;
-  public alertForm: FormGroup;
   protected selectedRule: Rule;
+  public alertForm: FormGroup;
+  public channels = [
+    { label: "E-mail", value: "email-notifier" },
+    { label: "Slack", value: "slack-notifier" },
+    { label: "System e-mail", value: "default-email" },
+    { label: "Webhook", value: "webhook-notifier" }
+  ];
+  public schema: GioJsonSchema;
+  public isLoading = false;
 
   constructor(
-    private readonly activatedRoute: ActivatedRoute,
     @Inject(Constants) public readonly constants: Constants,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly formBuilder: FormBuilder,
     private readonly alertService: AlertService,
     private readonly snackBarService: SnackBarService,
@@ -65,6 +74,8 @@ export class RuntimeAlertCreateComponent implements OnDestroy {
       timeframeForm: [],
       conditionsForm: [],
       filtersForm: [],
+      notificationsForm: this.formBuilder.array([]),
+      dampeningForm: this.formBuilder.group({}),
     });
 
     this.alertForm.controls.generalForm.valueChanges
@@ -95,4 +106,9 @@ export class RuntimeAlertCreateComponent implements OnDestroy {
       )
       .subscribe(() => this.router.navigate(['..'], { relativeTo: this.activatedRoute }));
   }
+
+  show() {
+    console.log('SHOW: ', this.alertForm.value);
+  }
+
 }

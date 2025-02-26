@@ -64,4 +64,6 @@ export class AlertService {
   deleteAlert(apiId: string, alertId: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.env.baseURL}/apis/${apiId}/alerts/${alertId}`);
   }
+
+
 }
