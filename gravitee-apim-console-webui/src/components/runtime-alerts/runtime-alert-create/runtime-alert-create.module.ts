@@ -18,32 +18,50 @@ import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { MatTabsModule } from "@angular/material/tabs";
+import { MatButton } from "@angular/material/button";
+import { GioFormJsonSchemaModule, GioSaveBarModule } from "@gravitee/ui-particles-angular";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatOption } from "@angular/material/autocomplete";
+import { MatSelect } from "@angular/material/select";
 
 import { RuntimeAlertCreateComponent } from './runtime-alert-create.component';
 import { RuntimeAlertCreateGeneralModule } from './components/runtime-alert-create-general/runtime-alert-create-general.module';
 import { RuntimeAlertCreateTimeframeModule } from './components/runtime-alert-create-timeframe/runtime-alert-create-timeframe.module';
 import { RuntimeAlertCreateConditionsModule } from './components/runtime-alert-create-conditions/runtime-alert-create-conditions.module';
 import { RuntimeAlertCreateFiltersModule } from './components/runtime-alert-create-filters';
+import {
+    RuntimeAlertCreateNotificationsComponent
+} from "./notifications/runtime-alert-create-notifications.component";
 
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
+
+
 
 @NgModule({
   declarations: [RuntimeAlertCreateComponent],
   exports: [RuntimeAlertCreateComponent],
-  imports: [
-    CommonModule,
-    MatCardModule,
-    FormsModule,
-    ReactiveFormsModule,
-    RouterModule,
+    imports: [
+        CommonModule,
+        MatCardModule,
+        FormsModule,
+        ReactiveFormsModule,
+        RouterModule,
 
-    GioGoBackButtonModule,
-    RuntimeAlertCreateGeneralModule,
-    RuntimeAlertCreateTimeframeModule,
-    RuntimeAlertCreateConditionsModule,
-    RuntimeAlertCreateFiltersModule,
-    GioSaveBarModule,
-  ],
+        MatTabsModule,
+
+        GioGoBackButtonModule,
+        RuntimeAlertCreateGeneralModule,
+        RuntimeAlertCreateTimeframeModule,
+        RuntimeAlertCreateConditionsModule,
+        RuntimeAlertCreateFiltersModule,
+        GioSaveBarModule,
+        MatButton,
+        GioFormJsonSchemaModule,
+        MatFormFieldModule,
+        MatOption,
+        MatSelect,
+        RuntimeAlertCreateNotificationsComponent
+    ]
 })
 export class RuntimeAlertCreateModule {}

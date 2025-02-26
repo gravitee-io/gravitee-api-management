@@ -1,0 +1,105 @@
+<mat-card class="form-card">
+  <mat-card-header class="card-header">
+    <mat-card-title class="card-title">Dampening</mat-card-title>
+    <mat-card-subtitle>Allows you to limit the number of notifications if the trigger is fired multiple times for the
+      same condition
+    </mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content formGroupName="dampeningForm" class="dampening">
+    <mat-form-field appearance="outline" class="form-field">
+      <mat-label>Mode</mat-label>
+      <mat-select formControlName="mode">
+        <mat-option *ngFor="let dampeningMode of dampeningModes"
+                    [value]="dampeningMode.type">{{ dampeningMode.description }}
+        </mat-option>
+      </mat-select>
+      <mat-hint align="start" class="hint">Select the most appropriate dampening mode for this alert.</mat-hint>
+    </mat-form-field>
+
+    @if (isDampeningVisible) {
+      @if (trueEvaluationsControl) {
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Number of true evaluations</mat-label>
+          <input matInput type="number" min="1" max="100" formControlName="trueEvaluations" />
+          <mat-hint align="start" class="hint">The number from 1 to 100 of consecutive true evaluations. </mat-hint>
+          <mat-error *ngIf="dampeningForm.get('trueEvaluations').hasError('required')">Field is required.</mat-error>
+          <mat-error *ngIf="dampeningForm.get('trueEvaluations').hasError('min')">Not less than 1</mat-error>
+          <mat-error *ngIf="dampeningForm.get('trueEvaluations').hasError('max')">Not more than a 100</mat-error>
+        </mat-form-field>
+      }
+
+      @if (totalEvaluationsControl) {
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Number of total evaluations.</mat-label>
+          <input matInput type="number" formControlName="totalEvaluations" />
+          <mat-hint align="start" class="hint">The number of total evaluations.</mat-hint>
+          <mat-error *ngIf="dampeningForm.get('totalEvaluations').hasError('required')">Field is required.</mat-error>
+        </mat-form-field>
+      }
+
+      @if (durationControl) {
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Duration</mat-label>
+          <input matInput type="number" formControlName="duration" />
+          <mat-hint align="start" class="hint">Set duration</mat-hint>
+          <mat-error *ngIf="dampeningForm.get('duration').hasError('required')">Field is required.</mat-error>
+        </mat-form-field>
+      }
+
+      @if (timeUnitControl) {
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Time Unit</mat-label>
+          <mat-select formControlName="timeUnit">
+            <mat-option *ngFor="let timeUnit of timeUnits" [value]="timeUnit.key">{{ timeUnit.name }}</mat-option>
+          </mat-select>
+          <mat-hint align="start" class="hint">Select time unit</mat-hint>
+          <mat-error *ngIf="dampeningForm.get('timeUnit').hasError('required')">Field is required.</mat-error>
+        </mat-form-field>
+      }
+    }
+  </mat-card-content>
+</mat-card>
+
+
+<mat-card class="form-card">
+  <mat-card-header class="card-header">
+    <mat-card-title class="card-title">Notifications</mat-card-title>
+    <mat-card-subtitle>Allow you to receive notifications via email, slack or webhooks.</mat-card-subtitle>
+
+    <button mat-raised-button color="primary" [matMenuTriggerFor]="menu">Add Notification</button>
+    <mat-menu #menu="matMenu">
+      @for (channel of channels; track channel.value) {
+        <button (click)="addNotification(channel.value)" mat-menu-item>
+          {{ channel.label }}
+        </button>
+      }
+    </mat-menu>
+
+  </mat-card-header>
+
+  <mat-card-content formArrayName="notificationsForm">
+    <ng-container *ngFor="let notificationsGroup of notificationsForm.controls; let i = index">
+
+      <div class="separator-hr"></div>
+
+      <div [formGroup]="getGroup(notificationsGroup)">
+        <div class="notification-header">
+          <h3>Configure notification {{ notificationsGroup.get('type')?.value }}</h3>
+          <button mat-raised-button color="primary" (click)="deleteNotification(i)">Remove</button>
+        </div>
+
+        @if (notificationsGroup.get('type')?.value && notificationsGroup.get('schema')?.value) {
+          <div class="schema">
+            <gio-form-json-schema
+              ngDefaultControl
+              formControlName="configuration"
+              [jsonSchema]="notificationsGroup.get('schema')?.value">
+            </gio-form-json-schema>
+          </div>
+        }
+
+      </div>
+    </ng-container>
+  </mat-card-content>
+</mat-card>

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
 import { map } from 'rxjs/operators';
 

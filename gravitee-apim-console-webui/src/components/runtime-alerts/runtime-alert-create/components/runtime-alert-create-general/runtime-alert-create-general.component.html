@@ -15,37 +15,48 @@
     limitations under the License.
 
 -->
-<h3>General</h3>
-<form [formGroup]="form" class="form">
-  <div class="form__row">
-    <mat-form-field class="form__name-form-field">
-      <mat-label>Name</mat-label>
-      <input matInput formControlName="name" required />
-      <mat-error *ngIf="form.controls.name.hasError('required')">Name is required.</mat-error>
-    </mat-form-field>
-    <gio-form-slide-toggle class="form__enabled-form-field">
-      <gio-form-label>Enable alert</gio-form-label>
-      <mat-slide-toggle gioFormSlideToggle formControlName="enabled" aria-label="Alert enable toggle" name="enableAlert"></mat-slide-toggle>
-    </gio-form-slide-toggle>
-  </div>
-  <div class="form__row">
-    <mat-form-field class="form__rules-form-field" *ngIf="rules">
-      <mat-label>Rule</mat-label>
-      <mat-select formControlName="rule">
-        <mat-option *ngFor="let rule of rules" [value]="rule">{{ rule.description }}</mat-option>
-      </mat-select>
-    </mat-form-field>
-    <mat-form-field class="form__severity-form-field">
-      <mat-label>Severity</mat-label>
-      <mat-select formControlName="severity">
-        <mat-option *ngFor="let severity of alertSeverities" [value]="severity">{{ severity | lowercase }}</mat-option>
-      </mat-select>
-    </mat-form-field>
-  </div>
-  <div class="form__row">
-    <mat-form-field class="form__description-form-field">
-      <mat-label>Description</mat-label>
-      <textarea id="description" matInput #input maxlength="256" formControlName="description" rows="4"></textarea>
-    </mat-form-field>
-  </div>
-</form>
+
+<mat-card class="form-card">
+  <mat-card-header>
+    <mat-card-title>General</mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content>
+    <form [formGroup]="generalForm" class="form">
+      <div class="form__row">
+        <mat-form-field class="form__name-form-field">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" required />
+          <mat-error *ngIf="generalForm.controls.name.hasError('required')">Name is required.</mat-error>
+        </mat-form-field>
+        <gio-form-slide-toggle class="form__enabled-form-field">
+          <gio-form-label>Enable alert</gio-form-label>
+          <mat-slide-toggle gioFormSlideToggle formControlName="enabled" aria-label="Alert enable toggle"
+                            name="enableAlert"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+      </div>
+      <div class="form__row">
+        <mat-form-field class="form__rules-form-field" *ngIf="rules">
+          <mat-label>Rule</mat-label>
+          <mat-select formControlName="rule">
+            <mat-option *ngFor="let rule of rules" [value]="rule">{{ rule.description }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field class="form__severity-form-field">
+          <mat-label>Severity</mat-label>
+          <mat-select formControlName="severity">
+            <mat-option *ngFor="let severity of alertSeverities" [value]="severity">{{ severity | lowercase }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div class="form__row">
+        <mat-form-field class="form__description-form-field">
+          <mat-label>Description</mat-label>
+          <textarea id="description" matInput #input maxlength="256" formControlName="description" rows="4"></textarea>
+        </mat-form-field>
+      </div>
+    </form>
+
+  </mat-card-content>
+</mat-card>

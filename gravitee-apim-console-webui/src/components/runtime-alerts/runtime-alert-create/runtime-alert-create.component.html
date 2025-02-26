@@ -15,69 +15,84 @@
     limitations under the License.
 
 -->
-<mat-card>
-  <mat-card-header>
-    <div class="create-alert__header">
-      <div>
-        <mat-card-title>Create a new alert</mat-card-title>
-        <mat-card-subtitle>
-          Configure your own alerts. Be alerted by email when the HC status changed or when the quota reached a percent rate. You can find
-          examples in the Gravitee documentation to configure
-          <a
-            href="https://documentation.gravitee.io/apim/getting-started/configuration/configure-alerts-and-notifications#configure-notifications-for-your-apis"
-            aria-label="learn more"
-            rel="noopener"
-            target="_blank"
-            >notifications</a
-          >
-          or
-          <a
-            href="https://documentation.gravitee.io/apim/getting-started/configuration/configure-alerts-and-notifications#configure-alerts"
-            aria-label="learn more"
-            rel="noopener"
-            target="_blank"
-            >alerts.</a
-          >
-        </mat-card-subtitle>
-      </div>
-      <div>
-        <gio-go-back-button routerLink="../"></gio-go-back-button>
-      </div>
-    </div>
-  </mat-card-header>
-  <mat-card-content>
-    <form [formGroup]="alertForm">
-      <div class="create-alert__forms">
-        <div class="create-alert__general-form">
-          <runtime-alert-create-general
-            *ngIf="referenceType != null"
-            [referenceType]="referenceType"
-            formControlName="generalForm"
-          ></runtime-alert-create-general>
-        </div>
-        <div class="create-alert__timeframe-form">
-          <runtime-alert-create-timeframe formControlName="timeframeForm"></runtime-alert-create-timeframe>
-        </div>
-        <div class="create-alert__condition-form">
-          <runtime-alert-create-conditions
-            *ngIf="referenceType != null"
-            [rule]="selectedRule"
-            [referenceType]="referenceType"
-            [referenceId]="referenceId"
-            formControlName="conditionsForm"
-          ></runtime-alert-create-conditions>
-        </div>
-        <div class="create-alert__filters-form">
-          <runtime-alert-create-filters
-            *ngIf="referenceType != null"
-            [rule]="selectedRule"
-            [referenceType]="referenceType"
-            [referenceId]="referenceId"
-            formControlName="filtersForm"
-          ></runtime-alert-create-filters>
-        </div>
-      </div>
-    </form>
-  </mat-card-content>
-</mat-card>
-<gio-save-bar *ngIf="alertForm.dirty" [form]="alertForm" (submitted)="save()" [creationMode]="true"></gio-save-bar>
+
+<div class="page-header">
+  <h1 class="title">{{ isUpdate ? 'Update alert' : 'Create new alert' }}</h1>
+  <p class="paragraph">Configure your own alerts. Be alerted by email when the HC status changed or when the quota
+    reached a percent
+    rate. You can find
+    examples in the Gravitee documentation to configure
+    <a
+      href="https://documentation.gravitee.io/apim/getting-started/configuration/configure-alerts-and-notifications#configure-notifications-for-your-apis"
+      aria-label="learn more"
+      rel="noopener"
+      target="_blank"
+    >notifications</a
+    >
+    or
+    <a
+      href="https://documentation.gravitee.io/apim/getting-started/configuration/configure-alerts-and-notifications#configure-alerts"
+      aria-label="learn more"
+      rel="noopener"
+      target="_blank"
+    >alerts.</a
+    >
+  </p>
+</div>
+
+<form [formGroup]="alertForm">
+  <mat-tab-group animationDuration="0">
+    <mat-tab label="Alerts">
+
+      @if(!isLoading || !isUpdate) {
+        <runtime-alert-create-general
+          *ngIf="referenceType != null"
+          [referenceType]="referenceType"
+          formGroupName="generalForm"
+          [alertToUpdate]="alertToUpdate"
+        ></runtime-alert-create-general>
+      }
+
+      <runtime-alert-create-timeframe
+        formControlName="timeframeForm">
+      </runtime-alert-create-timeframe>
+
+      <runtime-alert-create-conditions
+        *ngIf="referenceType != null"
+        [rule]="selectedRule"
+        [referenceType]="referenceType"
+        [referenceId]="referenceId"
+        formGroupName="conditionsForm"
+        [alertToUpdate]="alertToUpdate"
+      ></runtime-alert-create-conditions>
+
+
+      <runtime-alert-create-filters
+        *ngIf="referenceType != null"
+        [rule]="selectedRule"
+        [referenceType]="referenceType"
+        [referenceId]="referenceId"
+        formControlName="filtersForm"
+      ></runtime-alert-create-filters>
+    </mat-tab>
+
+    <mat-tab label="Notifications">
+      <runtime-alert-create-notifications
+        formGroupName="notificationsForm"
+      ></runtime-alert-create-notifications>
+    </mat-tab>
+
+    <mat-tab label="History">
+      History visible only in edit mode?
+    </mat-tab>
+  </mat-tab-group>
+
+</form>
+
+<p>Show form</p>
+<button (click)="show()">Show form</button>
+
+<gio-save-bar *ngIf="alertForm.dirty" [form]="alertForm" (submitted)="save()"
+              (resetClicked)="ngOnInit()"></gio-save-bar>
+
+
