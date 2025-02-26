@@ -36,7 +36,7 @@
         <mat-label i18n="@@applicationLogsHttpMethods">HTTP Methods</mat-label>
         <mat-select (selectionChange)="selectHttpMethods($event)" multiple [value]="filters().methods" aria-label="Filter by HTTP Method">
           @for (method of httpMethods; track method) {
-            <mat-option [value]="method">{{ method.label }}</mat-option>
+            <mat-option [value]="method">{{ method }}</mat-option>
           }
         </mat-select>
       </mat-form-field>
@@ -118,8 +118,8 @@
             }
           }
           @if (filters().methods) {
-            @for (method of filters().methods; track method.value) {
-              <mat-chip>{{ method.label }}</mat-chip>
+            @for (method of filters().methods; track method) {
+              <mat-chip>{{ method }}</mat-chip>
             }
           }
           @if (filters().responseTimes) {

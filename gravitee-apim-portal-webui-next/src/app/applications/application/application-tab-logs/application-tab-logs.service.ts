@@ -15,7 +15,7 @@
  */
 import { Injectable } from '@angular/core';
 
-import { ApplicationLogService, HttpMethodVM } from '../../../../services/application-log.service';
+import { ApplicationLogService } from '../../../../services/application-log.service';
 
 export interface ResponseTimeVM {
   value: string;
@@ -39,7 +39,7 @@ export interface HttpStatusVM {
   providedIn: 'root',
 })
 export class ApplicationTabLogsService {
-  get httpMethods(): HttpMethodVM[] {
+  get httpMethods(): string[] {
     return ApplicationLogService.METHODS;
   }
 
