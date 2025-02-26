@@ -26,8 +26,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatInputModule } from '@angular/material/input';
+import { MatCardModule } from "@angular/material/card";
 
 import { RuntimeAlertCreateTimeframeComponent } from './runtime-alert-create-timeframe.component';
+import { MatButton } from "@angular/material/button";
 
 @NgModule({
   declarations: [RuntimeAlertCreateTimeframeComponent],
@@ -45,6 +47,8 @@ import { RuntimeAlertCreateTimeframeComponent } from './runtime-alert-create-tim
     OwlMomentDateTimeModule,
     GioIconsModule,
     GioFormSlideToggleModule,
-  ],
+    MatCardModule,
+    MatButton
+  ]
 })
 export class RuntimeAlertCreateTimeframeModule {}

@@ -16,8 +16,8 @@
 
 import { Dampening } from './dampening';
 import { AlertCondition } from './conditions';
-import { Period } from './period';
-import { Notification } from './notification';
+import { NotificationPeriod } from './notificationPeriod';
+import { AlertNotification } from './notification';
 
 import { Scope } from '../alert';
 
@@ -62,10 +62,10 @@ interface Trigger {
   name?: string;
   description?: string;
   conditions?: AlertCondition[];
-  notifications?: Notification[];
+  notifications?: AlertNotification[];
   dampening?: Dampening;
   metadata?: Record<string, Record<string, string>>;
   enabled?: boolean;
   filters?: AlertCondition[];
-  notificationPeriods?: Period[];
+  notificationPeriods?: NotificationPeriod[];
 }

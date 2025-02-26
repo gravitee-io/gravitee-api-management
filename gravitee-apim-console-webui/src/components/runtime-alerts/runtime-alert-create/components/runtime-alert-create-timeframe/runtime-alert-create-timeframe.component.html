@@ -15,55 +15,77 @@
     limitations under the License.
 
 -->
-<cdk-accordion>
-  <cdk-accordion-item class="accordion" #accordionItem="cdkAccordionItem" [attr.aria-expanded]="accordionItem.expanded">
-    <div class="accordion__header" (click)="accordionItem.toggle()">
-      <div class="accordion__header__titles" (click)="accordionItem.toggle()">
-        <h3 class="accordion__header__titles__title" (click)="accordionItem.toggle()">Timeframe</h3>
-        <div class="accordion__header__titles__subtitle" (click)="accordionItem.toggle()">Timeframe when notifications should be sent</div>
-      </div>
-      <mat-icon [svgIcon]="accordionItem.expanded ? 'gio:nav-arrow-down' : 'gio:nav-arrow-up'"></mat-icon>
-    </div>
-    <div *ngIf="!accordionItem.expanded" class="accordion__form">
-      <form [formGroup]="form">
-        <div class="accordion__form__row">
-          <mat-form-field class="days-form-field">
-            <mat-label>Days</mat-label>
-            <mat-select formControlName="days" [multiple]="true">
-              <mat-option *ngFor="let day of days" [value]="day">{{ day }}</mat-option>
-            </mat-select>
-          </mat-form-field>
-          <gio-form-slide-toggle class="business-days-form-field">
-            <gio-form-label>Business day</gio-form-label>
-            <span class="gio-form-slide-toggle__description">Set any day except weekend</span>
-            <mat-slide-toggle
-              gioFormSlideToggle
-              formControlName="businessDays"
-              aria-label="enable business days only"
-              name="businessDays"
-            ></mat-slide-toggle>
-          </gio-form-slide-toggle>
-        </div>
-        <div class="accordion__form__row">
-          <mat-form-field class="time-range-form-field">
-            <mat-label>Time range</mat-label>
-            <input matInput [owlDateTime]="timeRange" [owlDateTimeTrigger]="timeRange" selectMode="range" formControlName="timeRange" />
-            <mat-icon [owlDateTimeTrigger]="timeRange" matSuffix svgIcon="gio:calendar"></mat-icon>
-            <owl-date-time [pickerType]="'timer'" [showSecondsTimer]="true" #timeRange></owl-date-time>
-          </mat-form-field>
 
-          <gio-form-slide-toggle class="office-hours-form-field">
-            <gio-form-label>Office hours</gio-form-label>
-            <span class="gio-form-slide-toggle__description">Set time range from 9:00 AM to 6:00 PM</span>
-            <mat-slide-toggle
-              gioFormSlideToggle
-              formControlName="officeHours"
-              aria-label="enable office hours only"
-              name="officeHours"
-            ></mat-slide-toggle>
-          </gio-form-slide-toggle>
-        </div>
-      </form>
-    </div>
-  </cdk-accordion-item>
-</cdk-accordion>
+<!-- todo refactor to mat-card, with button Add Timeframe -->
+
+<mat-card class="form-card">
+  <mat-card-header class="card-header">
+    <mat-card-title>Timeframes</mat-card-title>
+    <mat-card-subtitle>Choose timeframe when notifications should be sent.</mat-card-subtitle>
+    <button mat-raised-button color="primary" (click)="addTimeframe()">Add timeframe</button>
+  </mat-card-header>
+
+  <mat-card-content>
+    <form [formGroup]="form">
+      <div formArrayName="timeframes">
+
+        <ng-container *ngFor="let timeframe of timeframesControl.controls; let i = index">
+
+          <div class="separator-hr"></div>
+
+          <div class="timeframe-header">
+            <h3>Configure timeframe</h3>
+            <button mat-raised-button color="primary" (click)="deleteTimeframe(i)">Remove</button>
+          </div>
+
+          <div [formGroup]="getGroup(timeframe)">
+
+          <div class="form__row">
+            <mat-form-field class="days-form-field">
+              <mat-label>Days</mat-label>
+              <mat-select formControlName="days" [multiple]="true">
+                <mat-option *ngFor="let day of days" [value]="day">{{ day }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <gio-form-slide-toggle class="business-days-form-field">
+              <gio-form-label>Business day</gio-form-label>
+              <span class="gio-form-slide-toggle__description">Set any day except weekend</span>
+              <mat-slide-toggle
+                gioFormSlideToggle
+                formControlName="businessDays"
+                aria-label="enable business days only"
+                name="businessDays"
+              ></mat-slide-toggle>
+            </gio-form-slide-toggle>
+          </div>
+          <div class="form__row">
+            <mat-form-field class="time-range-form-field">
+              <mat-label>Time range</mat-label>
+              <input matInput [owlDateTime]="timeRange" [owlDateTimeTrigger]="timeRange" selectMode="range"
+                     formControlName="timeRange" />
+              <mat-icon [owlDateTimeTrigger]="timeRange" matSuffix svgIcon="gio:calendar"></mat-icon>
+              <owl-date-time [pickerType]="'timer'" [showSecondsTimer]="true" #timeRange></owl-date-time>
+            </mat-form-field>
+
+            <gio-form-slide-toggle class="office-hours-form-field">
+              <gio-form-label>Office hours</gio-form-label>
+              <span class="gio-form-slide-toggle__description">Set time range from 9:00 AM to 6:00 PM</span>
+              <mat-slide-toggle
+                gioFormSlideToggle
+                formControlName="officeHours"
+                aria-label="enable office hours only"
+                name="officeHours"
+              ></mat-slide-toggle>
+            </gio-form-slide-toggle>
+          </div>
+          </div>
+
+        </ng-container>
+
+      </div>
+
+
+    </form>
+  </mat-card-content>
+</mat-card>
+

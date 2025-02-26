@@ -489,9 +489,9 @@ const apisRoutes: Routes = [
             license: { feature: ApimFeature.ALERT_ENGINE },
             redirect: '/',
           },
-          permissions: {
-            anyOf: ['api-alert-r'],
-          },
+          // permissions: {
+          //   anyOf: ['api-alert-r'],
+          // },
         },
       },
       {
@@ -502,9 +502,9 @@ const apisRoutes: Routes = [
             license: { feature: ApimFeature.ALERT_ENGINE },
             redirect: '/',
           },
-          apiPermissions: {
-            only: ['api-alert-c'],
-          },
+          // apiPermissions: {
+          //   only: ['api-alert-c'],
+          // },
           referenceType: 'API',
         },
       },
