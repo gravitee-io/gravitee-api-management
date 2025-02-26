@@ -122,7 +122,7 @@ export class AnalyticsService {
     return this.http.get<AnalyticsTopFailedApisRes>(url);
   }
 
-  getV4RequestResponseStats(from: number, to: number): Observable<AnalyticsV4StatsResponse> {
+  getRequestResponseStats(from: number, to: number): Observable<AnalyticsV4StatsResponse> {
     const url = `${this.constants.env.v2BaseURL}/analytics/request-response-time?from=${from}&to=${to}`;
     return this.http.get<AnalyticsV4StatsResponse>(url);
   }

@@ -15,7 +15,7 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 
-export class DashboardV4ApiRequestStatsHarness extends ComponentHarness {
+export class DashboardApiRequestStatsHarness extends ComponentHarness {
   static hostSelector = '.stats';
   protected getRows = this.locatorForAll('.stats__body__row');
 
