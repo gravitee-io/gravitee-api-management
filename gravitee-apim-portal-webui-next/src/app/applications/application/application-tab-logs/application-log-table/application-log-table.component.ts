@@ -17,7 +17,7 @@ import { AsyncPipe, DatePipe } from '@angular/common';
 import { Component, computed, DestroyRef, inject, Input, OnInit, Signal, signal, WritableSignal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButton, MatIconButton } from '@angular/material/button';
-import { MatChip, MatChipRow } from '@angular/material/chips';
+import { MatChip } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
@@ -42,8 +42,7 @@ import { of } from 'rxjs/internal/observable/of';
 import { LoaderComponent } from '../../../../../components/loader/loader.component';
 import { Application } from '../../../../../entities/application/application';
 import { LogsResponse, LogsResponseMetadataApi, LogsResponseMetadataTotalData } from '../../../../../entities/log/log';
-import { CapitalizeFirstPipe } from '../../../../../pipe/capitalize-first.pipe';
-import { ApplicationLogService, HttpMethodVM } from '../../../../../services/application-log.service';
+import { ApplicationLogService, ResponseTimeRange } from '../../../../../services/application-log.service';
 import { SubscriptionService } from '../../../../../services/subscription.service';
 import { ApplicationTabLogsService, HttpStatusVM, PeriodVM, ResponseTimeVM } from '../application-tab-logs.service';
 import { MoreFiltersDialogComponent, MoreFiltersDialogData } from '../more-filters-dialog/more-filters-dialog.component';
@@ -65,7 +64,7 @@ interface ApiVM {
 
 interface FiltersVM {
   apis?: ApiVM[];
-  methods?: HttpMethodVM[];
+  methods?: string[];
   responseTimes?: ResponseTimeVM[];
   period?: PeriodVM;
   to?: number;
@@ -83,7 +82,6 @@ interface FiltersVM {
   imports: [
     AsyncPipe,
     LoaderComponent,
-    CapitalizeFirstPipe,
     MatCell,
     MatCellDef,
     MatColumnDef,
@@ -102,7 +100,6 @@ interface FiltersVM {
     MatSelect,
     MatOption,
     MatLabel,
-    MatChipRow,
     MatChip,
     RouterLink,
   ],
@@ -135,7 +132,7 @@ export class ApplicationLogTableComponent implements OnInit {
   );
   filtersPristine: Signal<boolean> = computed(() => isEqual(this.filters(), this.filtersInitialValue));
 
-  httpMethods: HttpMethodVM[] = inject(ApplicationTabLogsService).httpMethods;
+  httpMethods: string[] = inject(ApplicationTabLogsService).httpMethods;
   responseTimes: ResponseTimeVM[] = inject(ApplicationTabLogsService).responseTimes;
   periods: PeriodVM[] = inject(ApplicationTabLogsService).periods;
   httpStatuses: HttpStatusVM[] = inject(ApplicationTabLogsService).httpStatuses;
@@ -162,10 +159,9 @@ export class ApplicationLogTableComponent implements OnInit {
       distinctUntilChanged(),
       map(queryParams => {
         const page: number = queryParams['page'] ? +queryParams['page'] : 1;
-        const apis: string[] = this.mapQueryParamToStringArray(queryParams['apis']);
+        const apiIds: string[] = this.mapQueryParamToStringArray(queryParams['apis']);
 
-        const methodsQueryParams: string[] = this.mapQueryParamToStringArray(queryParams['methods']);
-        const methods = ApplicationLogService.METHODS.filter(method => methodsQueryParams.includes(method.value));
+        const methods: string[] = this.mapQueryParamToStringArray(queryParams['methods']);
 
         const responseTimes: string[] = this.mapQueryParamToStringArray(queryParams['responseTimes']);
 
@@ -177,19 +173,20 @@ export class ApplicationLogTableComponent implements OnInit {
         const requestId: string | undefined = queryParams['requestId'];
         const transactionId: string | undefined = queryParams['transactionId'];
 
-        const httpStatuses: string[] = this.mapQueryParamToStringArray(queryParams['httpStatuses']);
+        const statuses: string[] = this.mapQueryParamToStringArray(queryParams['httpStatuses']);
 
         const messageText: string | undefined = queryParams['messageText'];
         const path: string | undefined = queryParams['path'];
 
-        return { page, apis, methods, responseTimes, period, from, to, requestId, transactionId, httpStatuses, messageText, path };
+        return { page, apiIds, methods, responseTimes, period, from, to, requestId, transactionId, statuses, messageText, path };
       }),
       tap(values => this.initializeFiltersAndPagination(values)),
       switchMap(values => {
         const from = this.computeStartDateTimeFromQueryParams(values.from, values.to, values.period);
-        return this.applicationLogService.list(this.application.id, { ...values, from }).pipe(
-          catchError(err => {
-            console.error(err);
+        const responseTimeRanges: ResponseTimeRange[] = this.transformResponseTimes(values.responseTimes);
+
+        return this.applicationLogService.search(this.application.id, values.page, 10, { ...values, from, responseTimeRanges }).pipe(
+          catchError(_ => {
             return of({
               data: [],
               metadata: {
@@ -312,7 +309,7 @@ export class ApplicationLogTableComponent implements OnInit {
 
   private navigate(params: { page: number }) {
     const apis: string[] = this.filters().apis?.map(api => api.id) ?? [];
-    const methods: string[] = this.filters().methods?.map(method => method.value) ?? [];
+    const methods: string[] = this.filters().methods ?? [];
     const responseTimes: string[] = this.filters().responseTimes?.map(rt => rt.value) ?? [];
     const period: string = this.filters().period?.value ?? '';
     const from = this.filters().from;
@@ -344,26 +341,26 @@ export class ApplicationLogTableComponent implements OnInit {
 
   private initializeFiltersAndPagination(params: {
     page: number;
-    apis: string[];
-    methods: HttpMethodVM[];
+    apiIds: string[];
+    methods: string[];
     responseTimes: string[];
     period?: string;
     from?: number;
     to?: number;
     requestId?: string;
     transactionId?: string;
-    httpStatuses: string[];
+    statuses: string[];
     messageText?: string;
     path?: string;
   }): void {
     this.currentLogsPage.set(params.page);
-    this.selectedApis.set(params.apis);
+    this.selectedApis.set(params.apiIds);
 
     const responseTimes = this.responseTimes.filter(rt => params.responseTimes.includes(rt.value));
 
     const period = this.periods.find(p => p.value === params.period);
 
-    const httpStatuses = this.httpStatuses.filter(hs => params.httpStatuses.includes(hs.value));
+    const httpStatuses = this.httpStatuses.filter(hs => params.statuses.includes(hs.value));
 
     this.filters.update(filters => ({
       ...filters,
@@ -408,5 +405,12 @@ export class ApplicationLogTableComponent implements OnInit {
 
     const endDateTime = toQueryParam ?? Date.now();
     return endDateTime - periodDifference;
+  }
+
+  private transformResponseTimes(responseTimes: string[]): ResponseTimeRange[] {
+    if (!responseTimes) {
+      return [];
+    }
+    return this.responseTimes.filter(rt => responseTimes.includes(rt.value)).map(rt => ({ from: rt.min, to: rt.max }));
   }
 }
