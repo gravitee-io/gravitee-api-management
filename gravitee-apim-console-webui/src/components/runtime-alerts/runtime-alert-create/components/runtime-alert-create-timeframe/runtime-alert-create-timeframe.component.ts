@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, forwardRef, OnDestroy } from '@angular/core';
+import { Component, DestroyRef, forwardRef } from "@angular/core";
 import {
   AbstractControl,
-  ControlValueAccessor,
+  ControlValueAccessor, FormArray, FormBuilder,
   FormControl,
   FormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
-  Validator,
-} from '@angular/forms';
-import moment from 'moment';
-import { Subject } from 'rxjs';
-import { takeUntil, tap } from 'rxjs/operators';
-import { isEqual } from 'lodash';
+  Validator
+} from "@angular/forms";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import moment from "moment";
+import { tap } from "rxjs/operators";
+import { isEqual } from "lodash";
 
-import { Days } from '../../../../../entities/alerts/period';
+import { Days } from "../../../../../entities/alerts/notificationPeriod";
 
 export type TimeframeFormValue = {
   days: string[];
@@ -38,27 +38,33 @@ export type TimeframeFormValue = {
   officeHours: boolean;
 };
 
+export interface TimeframeControlInterface {
+  days: FormControl<string[]>,
+  timeRange: FormControl<moment.Moment[]>,
+  businessDays: FormControl<boolean>,
+  officeHours: FormControl<boolean>
+}
+
 @Component({
-  selector: 'runtime-alert-create-timeframe',
-  templateUrl: './runtime-alert-create-timeframe.component.html',
-  styleUrls: ['./runtime-alert-create-timeframe.component.scss'],
+  selector: "runtime-alert-create-timeframe",
+  templateUrl: "./runtime-alert-create-timeframe.component.html",
+  styleUrls: ["./runtime-alert-create-timeframe.component.scss"],
   standalone: false,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => RuntimeAlertCreateTimeframeComponent),
-      multi: true,
+      multi: true
     },
     {
       provide: NG_VALIDATORS,
       useExisting: forwardRef(() => RuntimeAlertCreateTimeframeComponent),
-      multi: true,
-    },
-  ],
+      multi: true
+    }
+  ]
 })
-export class RuntimeAlertCreateTimeframeComponent implements OnDestroy, ControlValueAccessor, Validator {
-  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private officeHours = [moment('09:00', 'HH:mm'), moment('18:00', 'HH:mm')];
+export class RuntimeAlertCreateTimeframeComponent implements ControlValueAccessor, Validator {
+  private officeHours = [moment("09:00", "HH:mm"), moment("18:00", "HH:mm")];
   private _onChange: (value: TimeframeFormValue) => void = () => ({});
   private _onTouched: () => void = () => ({});
 
@@ -66,30 +72,47 @@ export class RuntimeAlertCreateTimeframeComponent implements OnDestroy, ControlV
   protected days = Days.getAllDayNames();
   protected businessDay = Days.getBusinessDays();
 
-  constructor() {
-    this.form = new FormGroup({
-      days: new FormControl<string[]>([]),
-      timeRange: new FormControl<moment.Moment[]>(null),
-      businessDays: new FormControl<boolean>(false),
-      officeHours: new FormControl<boolean>(false),
+  constructor(
+    private readonly formBuilder: FormBuilder,
+    private readonly destroyRef: DestroyRef,
+  ) {
+    this.form = this.formBuilder.group({
+      timeframes: this.formBuilder.array([])
     });
+
     this.form.valueChanges
       .pipe(
         tap((value) => {
           this._onChange(value);
           this._onTouched();
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe();
-
-    this.syncDaysFormFields();
-    this.syncTimeRangeFormFields();
   }
 
-  ngOnDestroy(): void {
-    this.unsubscribe$.next(true);
-    this.unsubscribe$.unsubscribe();
+  get timeframesControl(): FormArray {
+    return this.form.get("timeframes") as FormArray;
+  }
+
+  public addTimeframe() {
+    const timeframeControl: FormGroup<TimeframeControlInterface> = this.formBuilder.group({
+      days: new FormControl<string[]>([]),
+      timeRange: new FormControl<moment.Moment[]>(null),
+      businessDays: new FormControl<boolean>(false),
+      officeHours: new FormControl<boolean>(false)
+    });
+    this.syncDaysFormFields(timeframeControl);
+    this.syncTimeRangeFormFields(timeframeControl)
+    this.timeframesControl.push(timeframeControl);
+  }
+
+  public deleteTimeframe(index: number) {
+    this.timeframesControl.removeAt(index);
+  }
+
+  public getGroup(control: AbstractControl) {
+    return control as FormGroup;
   }
 
   writeValue(value: TimeframeFormValue): void {
@@ -111,45 +134,45 @@ export class RuntimeAlertCreateTimeframeComponent implements OnDestroy, ControlV
   }
 
   validate(_: AbstractControl): ValidationErrors | null {
-    return this.form.valid ? null : { invalidForm: { valid: false, message: 'Timeframe form is invalid' } };
+    return this.form.valid ? null : { invalidForm: { valid: false, message: "Timeframe form is invalid" } };
   }
 
-  private syncDaysFormFields() {
-    this.form.controls.businessDays.valueChanges
+  private syncDaysFormFields(formGroup: FormGroup<TimeframeControlInterface>) {
+    formGroup.controls.businessDays.valueChanges
       .pipe(
-        tap((value) => this.form.controls.days.patchValue(value ? this.businessDay : null, { emitEvent: false })),
-        takeUntil(this.unsubscribe$),
+        tap((value) => formGroup.controls.days.patchValue(value ? this.businessDay : null, { emitEvent: false })),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe();
 
-    this.form.controls.days.valueChanges
+    formGroup.controls.days.valueChanges
       .pipe(
-        tap((value) => this.form.controls.businessDays.patchValue(isEqual(value, this.businessDay), { emitEvent: false })),
-        takeUntil(this.unsubscribe$),
+        tap((value) => formGroup.controls.businessDays.patchValue(isEqual(value, this.businessDay), { emitEvent: false })),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe();
   }
 
-  private syncTimeRangeFormFields() {
-    this.form.controls.timeRange.valueChanges
+  private syncTimeRangeFormFields(formGroup: FormGroup<TimeframeControlInterface>) {
+    formGroup.controls.timeRange.valueChanges
       .pipe(
-        tap((value) =>
-          this.form.controls.officeHours.patchValue(this.isOfficeHours(value), {
+        tap((value: moment.Moment[]) =>
+          formGroup.controls.officeHours.patchValue(this.isOfficeHours(value), {
             emitEvent: false,
           }),
         ),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe();
 
-    this.form.controls.officeHours.valueChanges
+    formGroup.controls.officeHours.valueChanges
       .pipe(
         tap((value) =>
-          this.form.controls.timeRange.patchValue(value ? this.officeHours : null, {
+          formGroup.controls.timeRange.patchValue(value ? this.officeHours : null, {
             emitEvent: false,
           }),
         ),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe();
   }
@@ -165,6 +188,6 @@ export class RuntimeAlertCreateTimeframeComponent implements OnDestroy, ControlV
   }
 
   private toTime(m: moment.Moment) {
-    return m.format('HH:mm:ss');
+    return m.format("HH:mm:ss");
   }
 }

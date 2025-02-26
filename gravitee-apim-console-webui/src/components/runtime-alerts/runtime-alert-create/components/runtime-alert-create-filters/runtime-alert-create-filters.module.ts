@@ -21,6 +21,7 @@ import { GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular'
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatCard, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from "@angular/material/card";
 
 import { RuntimeAlertCreateFiltersComponent } from './runtime-alert-create-filters.component';
 
@@ -39,6 +40,11 @@ import { RuntimeAlertCreateConditionModule } from '../components/runtime-alert-c
     MatInputModule,
     GioBannerModule,
     MatTooltipModule,
-  ],
+    MatCardTitle,
+    MatCardSubtitle,
+    MatCardHeader,
+    MatCard,
+    MatCardContent
+  ]
 })
 export class RuntimeAlertCreateFiltersModule {}

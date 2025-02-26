@@ -27,6 +27,7 @@
       </mat-select>
       <mat-error *ngIf="form.controls.metric.hasError('required')">Metric is required.</mat-error>
     </mat-form-field>
+
     <mat-form-field class="condition-row__form-field">
       <mat-label>Type</mat-label>
       <mat-select formControlName="type" required>
@@ -34,8 +35,10 @@
       </mat-select>
       <mat-error *ngIf="form.controls.type.hasError('required')">Type is required.</mat-error>
     </mat-form-field>
+
     <ng-container [ngSwitch]="form.controls.type.value">
       <threshold-condition *ngSwitchCase="conditionType.THRESHOLD" [form]="form"></threshold-condition>
+
       <threshold-range-condition *ngSwitchCase="conditionType.THRESHOLD_RANGE" [form]="form"></threshold-range-condition>
       <string-condition
         *ngSwitchCase="conditionType.STRING"

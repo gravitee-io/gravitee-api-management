@@ -1,20 +1,3 @@
-@use 'sass:map';
-@use '@angular/material' as mat;
-@use '@gravitee/ui-particles-angular' as gio;
-
-$typography: map.get(gio.$mat-theme, typography);
-
-.header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 16px;
-
-  &__title {
-    margin: 0 8px 0 0;
-  }
-
-  &__subtitle {
-    @include mat.m2-typography-level($typography, body-2);
-    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-  }
+.form-card {
+  margin: 20px 6px;
 }
