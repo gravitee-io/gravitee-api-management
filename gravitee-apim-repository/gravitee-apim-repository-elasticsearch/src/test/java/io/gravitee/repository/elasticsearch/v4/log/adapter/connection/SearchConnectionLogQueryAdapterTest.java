@@ -20,6 +20,7 @@ import static net.javacrumbs.jsonunit.core.Option.IGNORING_ARRAY_ORDER;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Nested;
@@ -580,6 +581,67 @@ class SearchConnectionLogQueryAdapterTest {
                                                      {
                                                          "wildcard": {
                                                              "uri": "/my-path*"
+                                                         }
+                                                     }
+                                                 ]
+                                             }
+                                         },
+                                         "sort": {
+                                             "@timestamp": {
+                                                 "order": "desc"
+                                             }
+                                         }
+                                      }
+            """
+            ),
+            Arguments.of(
+                ConnectionLogQuery.Filter
+                    .builder()
+                    .responseTimeRanges(
+                        List.of(
+                            ConnectionLogQuery.Filter.ResponseTimeRange.builder().to(10L).build(),
+                            ConnectionLogQuery.Filter.ResponseTimeRange.builder().from(400L).to(500L).build()
+                        )
+                    )
+                    .build(),
+                """
+                                     {
+                                         "from": 0,
+                                         "size": 20,
+                                         "query": {
+                                             "bool": {
+                                                 "must": [
+                                                     {
+                                                         "bool": {
+                                                            "should": [
+                                                                {
+                                                                     "range": {
+                                                                         "response-time": {
+                                                                            "lte": 10
+                                                                         }
+                                                                     }
+                                                                }, {
+                                                                     "range": {
+                                                                         "gateway-response-time-ms": {
+                                                                            "lte": 10
+                                                                         }
+                                                                     }
+                                                                }, {
+                                                                     "range": {
+                                                                         "response-time": {
+                                                                            "lte": 500,
+                                                                            "gte": 400
+                                                                         }
+                                                                     }
+                                                                }, {
+                                                                     "range": {
+                                                                         "gateway-response-time-ms": {
+                                                                            "lte": 500,
+                                                                            "gte": 400
+                                                                         }
+                                                                     }
+                                                                }
+                                                            ]
                                                          }
                                                      }
                                                  ]

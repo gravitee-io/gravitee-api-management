@@ -136,7 +136,8 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             .entrypointIds(searchLogsFilters.entrypointIds())
             .requestIds(searchLogsFilters.requestIds())
             .transactionIds(searchLogsFilters.transactionIds())
-            .uri(searchLogsFilters.uri());
+            .uri(searchLogsFilters.uri())
+            .responseTimeRanges(ConnectionLogAdapter.INSTANCE.convert(searchLogsFilters.responseTimeRanges()));
     }
 
     private @NotNull LogResponse<ConnectionLog> getConnectionLogsResponse(

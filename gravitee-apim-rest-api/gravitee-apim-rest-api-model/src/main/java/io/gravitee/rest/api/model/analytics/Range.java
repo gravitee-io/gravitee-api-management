@@ -15,23 +15,4 @@
  */
 package io.gravitee.rest.api.model.analytics;
 
-import io.gravitee.common.http.HttpMethod;
-import java.util.List;
-import java.util.Set;
-import lombok.Builder;
-
-@Builder(toBuilder = true)
-public record SearchLogsFilters(
-    Long from,
-    Long to,
-    Set<String> applicationIds,
-    Set<String> planIds,
-    Set<HttpMethod> methods,
-    Set<Integer> statuses,
-    Set<String> entrypointIds,
-    Set<String> apiIds,
-    Set<String> requestIds,
-    Set<String> transactionIds,
-    List<Range> responseTimeRanges,
-    String uri
-) {}
+public record Range(Long from, Long to) {}

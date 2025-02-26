@@ -41,6 +41,8 @@ import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.model.Log;
 import io.gravitee.rest.api.portal.rest.model.LogsResponse;
+import io.gravitee.rest.api.portal.rest.resource.param.Range;
+import io.gravitee.rest.api.portal.rest.resource.param.ResponseTimeRange;
 import io.gravitee.rest.api.portal.rest.resource.param.SearchApplicationLogsParam;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
@@ -465,6 +467,52 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
                 Map.of("name", API_2.getName(), "version", API_2.getVersion()),
                 PLAN_2_ID,
                 Map.of("name", PLAN_2.getName())
+            ),
+            logsResponse.getMetadata()
+        );
+    }
+
+    @Test
+    public void should_get_response_times_of_logs_in_search() {
+        // Given
+        connectionLogsCrudServiceInMemory.initWithConnectionLogs(
+            List.of(
+                connectionLogFixtures.aConnectionLog("req1").toBuilder().gatewayResponseTime(10L).build(),
+                connectionLogFixtures.aConnectionLog().toBuilder().gatewayResponseTime(200L).build(),
+                connectionLogFixtures.aConnectionLog().toBuilder().gatewayResponseTime(500L).build()
+            )
+        );
+
+        // When
+        var body = SearchApplicationLogsParam
+            .builder()
+            .to(SECOND_FEBRUARY_2020)
+            .from(FIRST_FEBRUARY_2020)
+            .responseTimeRanges(
+                List.of(ResponseTimeRange.builder().to(100L).build(), ResponseTimeRange.builder().from(400L).to(600L).build())
+            )
+            .build();
+
+        final Response response = target(APPLICATION_ID)
+            .path("logs/_search")
+            .queryParam("page", 1)
+            .queryParam("size", 10)
+            .request()
+            .post(Entity.json(body));
+
+        // Then
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        var logsResponse = response.readEntity(LogsResponse.class);
+        assertNotNull(logsResponse.getData());
+        assertEquals(2, logsResponse.getData().size());
+        assertEquals(
+            Map.of(
+                "data",
+                Map.of("total", 2),
+                API_1_ID,
+                Map.of("name", API_1.getName(), "version", API_1.getVersion()),
+                PLAN_1_ID,
+                Map.of("name", PLAN_1.getName())
             ),
             logsResponse.getMetadata()
         );

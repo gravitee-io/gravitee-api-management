@@ -16,6 +16,7 @@
 package io.gravitee.repository.log.v4.model.connection;
 
 import io.gravitee.common.http.HttpMethod;
+import java.util.List;
 import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
@@ -47,5 +48,14 @@ public class ConnectionLogQuery {
         private Set<String> requestIds;
         private Set<String> transactionIds;
         private String uri;
+        private List<ResponseTimeRange> responseTimeRanges;
+
+        @Data
+        @Builder
+        public static class ResponseTimeRange {
+
+            private Long to;
+            private Long from;
+        }
     }
 }

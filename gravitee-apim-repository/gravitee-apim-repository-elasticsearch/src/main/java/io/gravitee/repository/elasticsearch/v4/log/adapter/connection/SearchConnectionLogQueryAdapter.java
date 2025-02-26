@@ -71,6 +71,8 @@ public class SearchConnectionLogQueryAdapter {
 
         addUriFilter(filter, mustFilterList);
 
+        addResponseTimeRangesFilter(filter, mustFilterList);
+
         if (!mustFilterList.isEmpty()) {
             return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(mustFilterList.toArray())));
         }
@@ -139,6 +141,32 @@ public class SearchConnectionLogQueryAdapter {
     private static void addApplicationsFilter(ConnectionLogQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getApplicationIds())) {
             mustFilterList.add(buildV2AndV4Terms(ConnectionLogField.APPLICATION_ID, filter.getApplicationIds()));
+        }
+    }
+
+    private static void addResponseTimeRangesFilter(ConnectionLogQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getResponseTimeRanges())) {
+            var responseTimeRanges = new ArrayList<JsonObject>();
+            filter
+                .getResponseTimeRanges()
+                .forEach(responseTimeRange -> {
+                    var rangeJsonObject = new JsonObject();
+                    if (responseTimeRange.getFrom() != null) {
+                        rangeJsonObject.put("gte", responseTimeRange.getFrom());
+                    }
+                    if (responseTimeRange.getTo() != null) {
+                        rangeJsonObject.put("lte", new Date(responseTimeRange.getTo()));
+                    }
+
+                    responseTimeRanges.add(
+                        JsonObject.of("range", JsonObject.of(ConnectionLogField.GATEWAY_RESPONSE_TIME.v2Request(), rangeJsonObject))
+                    );
+                    responseTimeRanges.add(
+                        JsonObject.of("range", JsonObject.of(ConnectionLogField.GATEWAY_RESPONSE_TIME.v4Metrics(), rangeJsonObject))
+                    );
+                });
+
+            mustFilterList.add(buildShould(responseTimeRanges));
         }
     }
 
