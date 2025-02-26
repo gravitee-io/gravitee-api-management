@@ -15,7 +15,7 @@
  */
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { isNil } from 'lodash';
 
 import { Constants } from '../entities/Constants';
@@ -33,7 +33,6 @@ import { TimeRangeParams } from '../shared/utils/timeFrameRanges';
 import {
   AnalyticsAverageResponseTimes,
   AnalyticsBucket,
-  AnalyticsDefinitionVersion,
   AnalyticsResponseStatus,
   AnalyticsTopFailedApisRes,
   AnalyticsV4ResponseStatus,
@@ -123,32 +122,9 @@ export class AnalyticsService {
     return this.http.get<AnalyticsTopApisResponse>(url);
   }
 
-  // TopFailedApisRes
-
   getTopFailedApis(from: number, to: number): Observable<AnalyticsTopFailedApisRes> {
-    // TODO: uncomment/fix when BE ready:
-    // const url = `${this.constants.env.v2BaseURL}/analytics/top-failed-apis?from=${from}&to=${to}`;
-    // return this.http.get<AnalyticsTopFailedApisRes>(url);
-
-    // TODO: remove when backend ready;
-    return of({
-      data: [
-        {
-          id: '9f060ca4-326b-473a-860c-a4326be73a28',
-          definitionVersion: AnalyticsDefinitionVersion.V2,
-          name: 'Test api',
-          failedCalls: to - from,
-          failedCallsRatio: 0.25,
-        },
-        {
-          id: '28113601-5197-4815-9136-015197b81592',
-          definitionVersion: AnalyticsDefinitionVersion.V4,
-          name: 'brand new api',
-          failedCalls: 2,
-          failedCallsRatio: 0.2857142857142857,
-        },
-      ],
-    });
+    const url = `${this.constants.env.v2BaseURL}/analytics/top-failed-apis?from=${from}&to=${to}`;
+    return this.http.get<AnalyticsTopFailedApisRes>(url);
   }
 
   getV4RequestResponseStats(from: number, to: number): Observable<AnalyticsV4StatsResponse> {

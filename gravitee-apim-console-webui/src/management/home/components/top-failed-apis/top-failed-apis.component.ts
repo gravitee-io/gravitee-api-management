@@ -68,8 +68,7 @@ export class TopFailedApisComponent implements OnInit {
         tap((timeframe: TimeRangeParams) => (this.timeframe = timeframe)),
         switchMap(({ from, to }: TimeRangeParams) => {
           this.isLoading = true;
-          this.filteredTableData = [];
-          this.topFailedApis = [];
+          this.resetData();
           return this.analyticsService.getTopFailedApis(from, to);
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -87,6 +86,12 @@ export class TopFailedApisComponent implements OnInit {
       });
   }
 
+  resetData() {
+    this.filteredTableData = [];
+    this.topFailedApis = [];
+    this.tableFilters = { pagination: { index: 1, size: 5 }, searchTerm: '' };
+  }
+
   onFiltersChanged(filters: GioTableWrapperFilters) {
     this.tableFilters = { ...this.tableFilters, ...filters };
     const { filteredCollection, unpaginatedLength } = gioTableFilterCollection(this.topFailedApis, filters);
@@ -97,7 +102,6 @@ export class TopFailedApisComponent implements OnInit {
 
   navigateToApi(id: string, definitionVersion: AnalyticsDefinitionVersion): void {
     const customTimeframeParams = this.timeframe.id === 'custom' ? { from: this.timeframe.from, to: this.timeframe.to } : {};
-
     this.router.navigate(
       ['../../', 'apis', id, definitionVersion.toLowerCase(), definitionVersion === 'V2' ? 'analytics-overview' : 'analytics'],
       {
