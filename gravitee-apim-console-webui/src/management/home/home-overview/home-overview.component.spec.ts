@@ -27,6 +27,7 @@ import { HomeModule } from '../home.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { fakeV4AnalyticsResponseStatus, fakeV4AnalyticsResponseTime } from '../../../entities/analytics/analytics.fixture';
+import { AnalyticsDefinitionVersion } from '../../../entities/analytics/analytics';
 
 describe('HomeOverviewComponent', () => {
   let fixture: ComponentFixture<HomeOverviewComponent>;
@@ -82,6 +83,7 @@ describe('HomeOverviewComponent', () => {
       expect(req.request.url).toContain('interval=120000');
 
       expectTopApplicationsGetRequest();
+      expectTopFailedAppsGetRequest();
       expectSearchApiEventsRequest();
       expectConsoleSettingsGetRequest();
       expectTopApisGetRequest();
@@ -125,6 +127,7 @@ describe('HomeOverviewComponent', () => {
       expect(req.request.url).toContain(`from=${fromDateInMilliSeconds}&to=${toDateInMilliseconds}`);
 
       expectTopApplicationsGetRequest();
+      expectTopFailedAppsGetRequest();
       expectResponseStatusRequest();
       expectApiStateRequest();
       expectRequestStatsRequest();
@@ -169,6 +172,7 @@ describe('HomeOverviewComponent', () => {
 
   function expectRequests() {
     expectTopApplicationsGetRequest();
+    expectTopFailedAppsGetRequest();
     expectApiLifecycleStateRequest();
     expectApiStateRequest();
     expectResponseStatusRequest();
@@ -197,6 +201,32 @@ describe('HomeOverviewComponent', () => {
           id: 'tst',
           name: 'name-test',
           count: 100,
+        },
+      ],
+    });
+    expect(req.request.method).toEqual('GET');
+  }
+
+  function expectTopFailedAppsGetRequest() {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/analytics/top-failed-apis`;
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(url);
+    });
+    req.flush({
+      data: [
+        {
+          id: '9f060ca4-326b-473a-860c-a4326be73a28',
+          definitionVersion: AnalyticsDefinitionVersion.V2,
+          name: 'Test api',
+          failedCalls: 10,
+          failedCallsRatio: 0.25,
+        },
+        {
+          id: '28113601-5197-4815-9136-015197b81592',
+          definitionVersion: AnalyticsDefinitionVersion.V4,
+          name: 'brand new api',
+          failedCalls: 20,
+          failedCallsRatio: 0.2857142857142857,
         },
       ],
     });

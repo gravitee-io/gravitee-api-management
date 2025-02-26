@@ -68,8 +68,7 @@ export class TopApplicationsByRequestsComponent implements OnInit {
         tap((timeFrame: TimeRangeParams) => (this.timeFrame = timeFrame)),
         switchMap(({ from, to }: TimeRangeParams) => {
           this.isLoading = true;
-          this.filteredTableData = [];
-          this.topApplications = [];
+          this.resetData();
           return this.analyticsService.getTopApplicationsByRequestsCount({
             from,
             to,
@@ -88,6 +87,12 @@ export class TopApplicationsByRequestsComponent implements OnInit {
           return EMPTY;
         },
       });
+  }
+
+  resetData() {
+    this.filteredTableData = [];
+    this.topApplications = [];
+    this.tableFilters = { pagination: { index: 1, size: 5 }, searchTerm: '' };
   }
 
   onFiltersChanged(filters: GioTableWrapperFilters) {
