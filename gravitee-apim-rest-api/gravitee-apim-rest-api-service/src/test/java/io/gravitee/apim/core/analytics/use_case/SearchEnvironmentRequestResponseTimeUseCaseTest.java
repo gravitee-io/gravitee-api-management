@@ -24,8 +24,10 @@ import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiQueryServiceInMemory;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.EnumSet;
 import java.util.List;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
@@ -94,7 +96,15 @@ class SearchEnvironmentRequestResponseTimeUseCaseTest {
         SoftAssertions.assertSoftly(softAssertions -> {
             softAssertions
                 .assertThat(argumentCaptor.getValue())
-                .isEqualTo(AnalyticsQueryParameters.builder().from(FROM).to(TO).apiIds(List.of("proper-env-proxy-api-v4-id")).build());
+                .isEqualTo(
+                    AnalyticsQueryParameters
+                        .builder()
+                        .from(FROM)
+                        .to(TO)
+                        .apiIds(List.of("proper-env-proxy-api-v4-id"))
+                        .definitionVersions(EnumSet.of(DefinitionVersion.V4))
+                        .build()
+                );
             softAssertions
                 .assertThat(result)
                 .isPresent()
