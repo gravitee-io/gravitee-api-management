@@ -561,6 +561,20 @@ const apisRoutes: Routes = [
         },
       },
       {
+        path: 'ng/alerts/:alertId',
+        component: RuntimeAlertCreateComponent,
+        data: {
+          requireLicense: {
+            license: { feature: ApimFeature.ALERT_ENGINE },
+            redirect: '/',
+          },
+          apiPermissions: {
+            only: ['api-alert-c'],
+          },
+          referenceType: 'API',
+        },
+      },
+      {
         path: 'analytics-alerts',
         component: ApiAlertsDashboardComponent,
         data: {

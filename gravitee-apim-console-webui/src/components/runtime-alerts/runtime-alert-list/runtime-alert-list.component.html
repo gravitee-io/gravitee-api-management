@@ -101,8 +101,8 @@
               mat-icon-button
               aria-label="Button to edit an alert"
               matTooltip="Edit an alert"
+              [routerLink]="alert.id"
               *gioPermission="{ anyOf: ['api-alert-u'] }"
-              [disabled]="true"
             >
               <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
             </button>

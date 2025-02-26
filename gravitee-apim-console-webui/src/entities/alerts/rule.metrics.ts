@@ -137,6 +137,7 @@ export class Rule {
   public metrics: Metrics[];
 
   static findByScope(scope: Scope): Rule[] {
+
     return Rule.RULES.filter((rule) => rule.scopes.indexOf(scope) > -1);
   }
 
