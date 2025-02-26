@@ -18,6 +18,8 @@ import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatTabsModule } from "@angular/material/tabs";
+import { MatButton } from "@angular/material/button";
 import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
 
 import { RuntimeAlertCreateComponent } from './runtime-alert-create.component';
@@ -27,6 +29,7 @@ import { RuntimeAlertCreateConditionsModule } from './components/runtime-alert-c
 import { RuntimeAlertCreateFiltersModule } from './components/runtime-alert-create-filters';
 
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
+
 
 @NgModule({
   declarations: [RuntimeAlertCreateComponent],
@@ -38,12 +41,15 @@ import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-bu
     ReactiveFormsModule,
     RouterModule,
 
+    MatTabsModule,
+
     GioGoBackButtonModule,
     RuntimeAlertCreateGeneralModule,
     RuntimeAlertCreateTimeframeModule,
     RuntimeAlertCreateConditionsModule,
     RuntimeAlertCreateFiltersModule,
     GioSaveBarModule,
-  ],
+    MatButton,
+  ]
 })
 export class RuntimeAlertCreateModule {}

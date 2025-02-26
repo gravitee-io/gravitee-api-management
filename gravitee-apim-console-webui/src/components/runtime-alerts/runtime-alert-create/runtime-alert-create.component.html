@@ -15,20 +15,29 @@
     limitations under the License.
 
 -->
-<mat-card>
-  <mat-card-header>
-    <div class="create-alert__header">
-      <div>
-        <mat-card-title>Create a new alert</mat-card-title>
+
+<div class="page-header">
+  <h1>Create new alert</h1>
+  <button color="primary" mat-raised-button data-testid="back-button" routerLink="..">Back</button>
+</div>
+
+
+<mat-tab-group>
+  <mat-tab label="Alerts">
+
+    <mat-card class="form-card">
+      <mat-card-header class="card-header">
+        <mat-card-title class="card-header__title">Alerts</mat-card-title>
         <mat-card-subtitle>
-          Configure your own alerts. Be alerted by email when the HC status changed or when the quota reached a percent rate. You can find
+          <span>Configure your own alerts. Be alerted by email when the HC status changed or when the quota reached a percent
+          rate. You can find
           examples in the Gravitee documentation to configure
           <a
             href="https://documentation.gravitee.io/apim/getting-started/configuration/configure-alerts-and-notifications#configure-notifications-for-your-apis"
             aria-label="learn more"
             rel="noopener"
             target="_blank"
-            >notifications</a
+          >notifications</a
           >
           or
           <a
@@ -36,48 +45,66 @@
             aria-label="learn more"
             rel="noopener"
             target="_blank"
-            >alerts.</a
+          >alerts.</a
           >
+          </span>
         </mat-card-subtitle>
-      </div>
-      <div>
-        <gio-go-back-button routerLink="../"></gio-go-back-button>
-      </div>
-    </div>
-  </mat-card-header>
-  <mat-card-content>
+      </mat-card-header>
+    </mat-card>
+
+
     <form [formGroup]="alertForm">
-      <div class="create-alert__forms">
-        <div class="create-alert__general-form">
-          <runtime-alert-create-general
-            *ngIf="referenceType != null"
-            [referenceType]="referenceType"
-            formControlName="generalForm"
-          ></runtime-alert-create-general>
-        </div>
-        <div class="create-alert__timeframe-form">
-          <runtime-alert-create-timeframe formControlName="timeframeForm"></runtime-alert-create-timeframe>
-        </div>
-        <div class="create-alert__condition-form">
-          <runtime-alert-create-conditions
-            *ngIf="referenceType != null"
-            [rule]="selectedRule"
-            [referenceType]="referenceType"
-            [referenceId]="referenceId"
-            formControlName="conditionsForm"
-          ></runtime-alert-create-conditions>
-        </div>
-        <div class="create-alert__filters-form">
-          <runtime-alert-create-filters
-            *ngIf="referenceType != null"
-            [rule]="selectedRule"
-            [referenceType]="referenceType"
-            [referenceId]="referenceId"
-            formControlName="filtersForm"
-          ></runtime-alert-create-filters>
-        </div>
+      <div class="mat-cards create-alert__forms">
+
+        <mat-card class="form-card">
+          <mat-card-content>
+              <runtime-alert-create-general
+                *ngIf="referenceType != null"
+                [referenceType]="referenceType"
+                formControlName="generalForm"
+              ></runtime-alert-create-general>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="form-card">
+          <div class="timeframe-content">
+            <runtime-alert-create-timeframe formControlName="timeframeForm"></runtime-alert-create-timeframe>
+          </div>
+        </mat-card>
+
+        <mat-card class="form-card">
+          <mat-card-content>
+            <runtime-alert-create-conditions
+              *ngIf="referenceType != null"
+              [rule]="selectedRule"
+              [referenceType]="referenceType"
+              [referenceId]="referenceId"
+              formControlName="conditionsForm"
+            ></runtime-alert-create-conditions>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="form-card">
+          <mat-card-content>
+            <runtime-alert-create-filters
+              *ngIf="referenceType != null"
+              [rule]="selectedRule"
+              [referenceType]="referenceType"
+              [referenceId]="referenceId"
+              formControlName="filtersForm"
+            ></runtime-alert-create-filters>
+          </mat-card-content>
+        </mat-card>
+
       </div>
     </form>
-  </mat-card-content>
-</mat-card>
+
+
+    <!-- end of alerts   -->
+  </mat-tab>
+  <mat-tab label="Notifications"> ...Notifications here</mat-tab>
+  <mat-tab label="History">History visible only in edit mode?</mat-tab>
+</mat-tab-group>
+
+
 <gio-save-bar *ngIf="alertForm.dirty" [form]="alertForm" (submitted)="save()" [creationMode]="true"></gio-save-bar>

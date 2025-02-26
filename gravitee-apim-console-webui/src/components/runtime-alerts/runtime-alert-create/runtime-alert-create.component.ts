@@ -37,12 +37,12 @@ export class RuntimeAlertCreateComponent implements OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   protected referenceType: Scope = Scope[this.activatedRoute.snapshot.data.referenceType as keyof typeof Scope];
   protected referenceId: string;
-  public alertForm: FormGroup;
   protected selectedRule: Rule;
+  public alertForm: FormGroup;
 
   constructor(
-    private readonly activatedRoute: ActivatedRoute,
     @Inject(Constants) public readonly constants: Constants,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly formBuilder: FormBuilder,
     private readonly alertService: AlertService,
     private readonly snackBarService: SnackBarService,
