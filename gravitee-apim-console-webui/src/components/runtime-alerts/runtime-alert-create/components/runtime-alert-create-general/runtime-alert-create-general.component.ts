@@ -13,24 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, forwardRef, Input, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit } from "@angular/core";
 import {
-  AbstractControl,
-  ControlValueAccessor,
-  FormControl,
+  ControlContainer,
   FormGroup,
-  NG_VALIDATORS,
-  NG_VALUE_ACCESSOR,
-  ValidationErrors,
-  Validator,
-  Validators,
-} from '@angular/forms';
-import { takeUntil, tap } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+  FormGroupDirective,
+} from "@angular/forms";
 
 import { Rule } from '../../../../../entities/alerts/rule.metrics';
 import { Scope } from '../../../../../entities/alert';
-import { ALERT_SEVERITIES, AlertSeverity } from '../../../../../entities/alerts/alertTriggerEntity';
+import { ALERT_SEVERITIES, AlertSeverity, AlertTriggerEntity } from "../../../../../entities/alerts/alertTriggerEntity";
 
 export type GeneralFormValue = {
   name: string;
@@ -41,78 +33,48 @@ export type GeneralFormValue = {
 };
 
 @Component({
+  standalone: false,
   selector: 'runtime-alert-create-general',
   templateUrl: './runtime-alert-create-general.component.html',
   styleUrls: ['./runtime-alert-create-general.component.scss'],
-  standalone: false,
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => RuntimeAlertCreateGeneralComponent),
-      multi: true,
-    },
-    {
-      provide: NG_VALIDATORS,
-      useExisting: forwardRef(() => RuntimeAlertCreateGeneralComponent),
-      multi: true,
-    },
-  ],
+  viewProviders: [{ provide: ControlContainer, useExisting: FormGroupDirective }]
 })
-export class RuntimeAlertCreateGeneralComponent implements OnDestroy, ControlValueAccessor, Validator {
-  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private _onChange: (value: GeneralFormValue) => void = () => ({});
-  private _onTouched: () => void = () => ({});
-
+export class RuntimeAlertCreateGeneralComponent implements OnInit {
+  @Input() public alertToUpdate: AlertTriggerEntity;
   @Input({ required: true }) set referenceType(value: Scope) {
     this.rules = Rule.findByScope(value);
   }
-  protected form!: FormGroup;
-  protected rules: Rule[];
-  protected alertSeverities = ALERT_SEVERITIES;
 
-  constructor() {
-    this.form = new FormGroup({
-      name: new FormControl<string>(null, [Validators.required]),
-      enabled: new FormControl<boolean>(false),
-      rule: new FormControl<Rule>(null, [Validators.required]),
-      severity: new FormControl<AlertSeverity>('INFO', [Validators.required, Validators.max(256)]),
-      description: new FormControl<string>(null),
-    });
-    this.form.valueChanges
-      .pipe(
-        tap((value) => {
-          this._onChange(value);
-          this._onTouched();
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe();
-  }
+  public parentForm: FormGroup;
+  public generalForm: FormGroup;
+  public rules: Rule[];
+  public alertSeverities = ALERT_SEVERITIES;
 
-  ngOnDestroy(): void {
-    this.unsubscribe$.next(true);
-    this.unsubscribe$.unsubscribe();
-  }
+  constructor(
+    private readonly formGroupDirective: FormGroupDirective,
+  ) {}
 
-  writeValue(value: GeneralFormValue): void {
-    if (value) {
-      this.form.setValue(value, { emitEvent: false });
+  ngOnInit() {
+    this.parentForm = this.formGroupDirective.form;
+    this.generalForm = this.parentForm.get('generalForm') as FormGroup;
+
+    if(this.alertToUpdate) {
+      this.seedForm();
     }
   }
 
-  registerOnChange(fn: (value: GeneralFormValue) => void): void {
-    this._onChange = fn;
-  }
-
-  registerOnTouched(fn: () => void): void {
-    this._onTouched = fn;
+  seedForm() {
+    this.generalForm.patchValue({
+      name: this.alertToUpdate.name,
+      enabled: this.alertToUpdate.enabled,
+      rule: this.rules.find((rule) => rule.type === this.alertToUpdate.type),
+      severity: this.alertToUpdate.severity,
+      description: this.alertToUpdate.description,
+    });
   }
 
   setDisabledState(isDisabled: boolean): void {
-    isDisabled ? this.form.disable() : this.form.enable();
+    isDisabled ? this.generalForm.disable() : this.generalForm.enable();
   }
 
-  validate(_: AbstractControl): ValidationErrors | null {
-    return this.form.valid ? null : { invalidForm: { valid: false, message: 'General form is invalid' } };
-  }
 }

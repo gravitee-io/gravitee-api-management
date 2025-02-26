@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit } from "@angular/core";
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { catchError, takeUntil, tap } from 'rxjs/operators';
+import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { catchError, takeUntil, tap } from "rxjs/operators";
 import { EMPTY, Subject } from 'rxjs';
+import { GioJsonSchema } from "@gravitee/ui-particles-angular";
 
 import { GeneralFormValue } from './components/runtime-alert-create-general';
 import { toNewAlertTriggerEntity } from './runtime-alert-create.adapter';
@@ -27,6 +28,7 @@ import { Scope } from '../../../entities/alert';
 import { Rule } from '../../../entities/alerts/rule.metrics';
 import { AlertService } from '../../../services-ngx/alert.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { AlertSeverity, AlertTriggerEntity } from "../../../entities/alerts/alertTriggerEntity";
 
 @Component({
   selector: 'runtime-alert-create',
@@ -34,20 +36,28 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
   styleUrls: ['./runtime-alert-create.component.scss'],
   standalone: false,
 })
-export class RuntimeAlertCreateComponent implements OnDestroy {
+export class RuntimeAlertCreateComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   protected referenceType: Scope = Scope[this.activatedRoute.snapshot.data.referenceType as keyof typeof Scope];
   protected referenceId: string;
+  public selectedRule: Rule;
   public alertForm: FormGroup;
-  protected selectedRule: Rule;
+  public schema: GioJsonSchema;
+
+  public isLoading = true;
+
+  public alertId = this.activatedRoute.snapshot.params.alertId;
+  public isUpdate: boolean = !!this.alertId;
+  public alertToUpdate: AlertTriggerEntity = null;
 
   constructor(
-    private readonly activatedRoute: ActivatedRoute,
     @Inject(Constants) public readonly constants: Constants,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly formBuilder: FormBuilder,
     private readonly alertService: AlertService,
     private readonly snackBarService: SnackBarService,
     private readonly router: Router,
+    private readonly changeDetectorRef: ChangeDetectorRef,
   ) {
     switch (this.referenceType) {
       case Scope.API:
@@ -62,18 +72,39 @@ export class RuntimeAlertCreateComponent implements OnDestroy {
     }
 
     this.alertForm = this.formBuilder.group({
-      generalForm: [],
+      generalForm: this.formBuilder.group({
+          name: this.formBuilder.control<string>(null, [Validators.required]),
+          enabled: this.formBuilder.control<boolean>(false),
+          rule: this.formBuilder.control<Rule>(null, [Validators.required]),
+          severity: this.formBuilder.control<AlertSeverity>('INFO', [Validators.required, Validators.max(256)]),
+          description: this.formBuilder.control<string>(null),
+      }),
       timeframeForm: [],
-      conditionsForm: [],
+      conditionsForm: this.formBuilder.group({}),
       filtersForm: [],
+      notificationsForm: this.formBuilder.array([]),
+      dampeningForm: this.formBuilder.group({}),
     });
 
-    this.alertForm.controls.generalForm.valueChanges
+    this.alertForm.controls?.generalForm?.valueChanges
       .pipe(
         tap((value: GeneralFormValue) => (this.selectedRule = value.rule)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
+  }
+
+  ngOnInit() {
+    if(this.isUpdate) {
+      this.alertService.getAlert(this.activatedRoute.snapshot.params.apiId, this.alertId)
+        .subscribe({
+          next: (alert) => {
+            this.alertToUpdate = alert;
+            this.changeDetectorRef.detectChanges();
+            this.isLoading = false;
+          }
+        })
+    }
   }
 
   ngOnDestroy() {
@@ -82,18 +113,29 @@ export class RuntimeAlertCreateComponent implements OnDestroy {
   }
 
   save() {
-    return this.alertService
-      .createAlert(this.referenceId, toNewAlertTriggerEntity(this.referenceId, Scope[this.referenceType], this.alertForm.getRawValue()))
-      .pipe(
-        tap(() => {
-          this.snackBarService.success('Alert successfully created!');
-        }),
-        catchError(() => {
-          this.snackBarService.error('Alert creation failed!');
-          return EMPTY;
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe(() => this.router.navigate(['..'], { relativeTo: this.activatedRoute }));
+    if(this.isUpdate) {
+
+    } else {
+      return this.alertService
+        .createAlert(this.referenceId, toNewAlertTriggerEntity(this.referenceId, Scope[this.referenceType], this.alertForm.getRawValue()))
+        .pipe(
+          tap(() => {
+            this.snackBarService.success('Alert successfully created!');
+          }),
+          catchError(() => {
+            this.snackBarService.error('Alert creation failed!');
+            return EMPTY;
+          }),
+          takeUntil(this.unsubscribe$),
+        )
+        .subscribe(() => this.router.navigate(['..'], { relativeTo: this.activatedRoute }));
+    }
+
+
   }
+
+  show() {
+    console.log('SHOW: ', this.alertForm.value);
+  }
+
 }

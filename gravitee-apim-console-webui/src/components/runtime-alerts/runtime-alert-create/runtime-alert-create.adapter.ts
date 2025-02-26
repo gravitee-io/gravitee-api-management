@@ -29,7 +29,8 @@ import {
   ThresholdRangeCondition,
 } from '../../../entities/alerts/conditions';
 import { Projection } from '../../../entities/alerts/projection';
-import { Days, Period } from '../../../entities/alerts/period';
+import { Days, NotificationPeriod } from '../../../entities/alerts/notificationPeriod';
+import { AlertNotification } from "../../../entities/alerts/notification";
 
 export const toNewAlertTriggerEntity = (referenceId: string, referenceType: string, formValues: any): NewAlertTriggerEntity => {
   return {
@@ -42,12 +43,24 @@ export const toNewAlertTriggerEntity = (referenceId: string, referenceType: stri
     source: formValues.generalForm.rule.source,
     type: formValues.generalForm.rule.type,
     template: false,
-    notifications: [],
-    notificationPeriods: formValues.timeframeForm != null ? [toNotificationPeriod(formValues.timeframeForm)] : null,
+    notificationPeriods: mapNotificationPeriods(formValues.timeframeForm),
     conditions: [toCondition(formValues.conditionsForm)],
     filters: toConditions(formValues.filtersForm),
+    notifications: mapNotificationFormValues(formValues.notificationsForm),
+    dampening: formValues.dampeningForm,
   };
 };
+
+
+const mapNotificationFormValues = (notificationsForm: AlertNotification[]): AlertNotification[] => {
+  if(!notificationsForm || !notificationsForm.length) return null;
+  return notificationsForm.map(({ type, configuration }) => ({ type, configuration }));
+}
+
+const mapNotificationPeriods = (timeframeForm: NotificationPeriod[]): NotificationPeriod[] => {
+  if(!timeframeForm || !timeframeForm.length ) return null;
+  return timeframeForm.map((period: NotificationPeriod) => toNotificationPeriod(period));
+}
 
 const toConditions = (conditionValues): AlertCondition[] => {
   return conditionValues?.reduce((acc: AlertCondition[], condition) => {
@@ -164,7 +177,7 @@ const toProjection = (projectionValue): Projection => {
   return projectionValue.property != null ? { type: 'PROPERTY', property: projectionValue.property.key } : null;
 };
 
-const toNotificationPeriod = (timeframeFormValues): Period => {
+const toNotificationPeriod = (timeframeFormValues): NotificationPeriod => {
   let beginHour: number = 0; // 00:00:00
   let endHour: number = 86399; // 23:59:59 => (24 hours * 60 minutes * 60 seconds) - 1 second
 

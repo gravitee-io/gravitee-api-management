@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Period } from './period';
 
-export interface Notification {
+export interface AlertNotification {
   type: string;
-  periods: Period[];
+  configuration: {
+    form: string,
+    to: string,
+    subject: string
+  };
 }
+

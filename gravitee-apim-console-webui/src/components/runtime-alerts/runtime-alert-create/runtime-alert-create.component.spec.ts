@@ -28,7 +28,7 @@ import { RuntimeAlertCreateHarness } from './runtime-alert-create.harness';
 import { RuntimeAlertCreateTimeframeHarness } from './components/runtime-alert-create-timeframe/runtime-alert-create-timeframe.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import { Days } from '../../../entities/alerts/period';
+import { Days } from '../../../entities/alerts/notificationPeriod';
 import { NewAlertTriggerEntity } from '../../../entities/alerts/alertTriggerEntity';
 
 describe('RuntimeAlertCreateComponent', () => {
