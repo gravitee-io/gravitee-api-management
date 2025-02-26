@@ -119,8 +119,15 @@ export class Alert {
   }
 }
 
+export enum DampeningModesNames {
+  STRICT_COUNT= 'STRICT_COUNT',
+  RELAXED_COUNT= 'RELAXED_COUNT',
+  RELAXED_TIME= 'RELAXED_TIME',
+  STRICT_TIME= 'STRICT_TIME',
+}
+
 export class Dampening {
-  mode: string;
+  mode: DampeningModesNames;
   evaluations: number;
   total: number;
   duration: number;
