@@ -3610,9 +3610,23 @@ components:
               path:
                   description: Filter with path used for the request
                   type: string
+              responseTimeRanges:
+                type: array
+                description: List of filters for response time ranges
+                items:
+                  $ref: "#/components/schemas/ResponseTimeRange"
           required:
             - to
             - from
+
+        ResponseTimeRange:
+          properties:
+            from:
+              type: integer
+              description: Lower limit in milliseconds
+            to:
+              type: integer
+              description: Upper limit in milliseconds
         ApplicationsResponse:
             properties:
                 data:

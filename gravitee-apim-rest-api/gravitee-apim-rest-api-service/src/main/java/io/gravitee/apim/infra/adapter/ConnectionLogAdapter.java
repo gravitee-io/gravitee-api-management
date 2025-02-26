@@ -16,6 +16,8 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
+import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
+import io.gravitee.rest.api.model.analytics.Range;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import java.util.List;
@@ -35,4 +37,7 @@ public interface ConnectionLogAdapter {
     List<BaseConnectionLog> toEntitiesList(List<ConnectionLog> connectionLogs);
 
     ConnectionLogDetail toEntity(io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail connectionLogDetail);
+
+    ConnectionLogQuery.Filter.ResponseTimeRange convert(Range range);
+    List<ConnectionLogQuery.Filter.ResponseTimeRange> convert(List<Range> range);
 }

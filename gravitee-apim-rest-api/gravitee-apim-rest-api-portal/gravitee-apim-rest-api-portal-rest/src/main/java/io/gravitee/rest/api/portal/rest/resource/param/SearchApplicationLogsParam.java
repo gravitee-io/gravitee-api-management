@@ -22,6 +22,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.ws.rs.BadRequestException;
+import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -73,6 +74,9 @@ public class SearchApplicationLogsParam {
 
     @Parameter(name = "path", description = "Filter by API path")
     private String path;
+
+    @Parameter(name = "responseTimeRanges", description = "Filter by ranges of request response times")
+    private List<ResponseTimeRange> responseTimeRanges;
 
     public void validate() {
         if (from >= to) {

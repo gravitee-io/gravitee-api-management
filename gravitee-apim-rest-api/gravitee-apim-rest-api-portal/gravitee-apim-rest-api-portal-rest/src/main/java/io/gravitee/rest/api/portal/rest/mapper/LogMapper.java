@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.apim.core.log.model.ConnectionLog;
+import io.gravitee.rest.api.model.analytics.Range;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.log.ApplicationRequest;
 import io.gravitee.rest.api.model.log.ApplicationRequestItem;
@@ -23,6 +24,7 @@ import io.gravitee.rest.api.portal.rest.model.HttpMethod;
 import io.gravitee.rest.api.portal.rest.model.Log;
 import io.gravitee.rest.api.portal.rest.model.Request;
 import io.gravitee.rest.api.portal.rest.model.Response;
+import io.gravitee.rest.api.portal.rest.resource.param.ResponseTimeRange;
 import io.gravitee.rest.api.portal.rest.resource.param.SearchApplicationLogsParam;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -132,7 +134,16 @@ public class LogMapper {
             .requestIds(searchLogsParam.getRequestIds())
             .transactionIds(searchLogsParam.getTransactionIds())
             .uri(searchLogsParam.getPath())
+            .responseTimeRanges(convertResponseTimeRanges(searchLogsParam.getResponseTimeRanges()))
             .build();
+    }
+
+    private List<Range> convertResponseTimeRanges(List<ResponseTimeRange> responseTimeRanges) {
+        if (responseTimeRanges == null) {
+            return new ArrayList<>();
+        }
+
+        return responseTimeRanges.stream().map(r -> new Range(r.getFrom(), r.getTo())).toList();
     }
 
     public Set<io.gravitee.common.http.HttpMethod> convert(Set<HttpMethod> httpMethod) {

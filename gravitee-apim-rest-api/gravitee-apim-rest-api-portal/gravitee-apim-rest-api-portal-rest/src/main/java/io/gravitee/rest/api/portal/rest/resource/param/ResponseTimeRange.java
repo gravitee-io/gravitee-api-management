@@ -13,25 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.analytics;
+package io.gravitee.rest.api.portal.rest.resource.param;
 
-import io.gravitee.common.http.HttpMethod;
-import java.util.List;
-import java.util.Set;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Builder(toBuilder = true)
-public record SearchLogsFilters(
-    Long from,
-    Long to,
-    Set<String> applicationIds,
-    Set<String> planIds,
-    Set<HttpMethod> methods,
-    Set<Integer> statuses,
-    Set<String> entrypointIds,
-    Set<String> apiIds,
-    Set<String> requestIds,
-    Set<String> transactionIds,
-    List<Range> responseTimeRanges,
-    String uri
-) {}
+/**
+ * @author GraviteeSource Team
+ */
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class ResponseTimeRange {
+
+    private Long from;
+    private Long to;
+}

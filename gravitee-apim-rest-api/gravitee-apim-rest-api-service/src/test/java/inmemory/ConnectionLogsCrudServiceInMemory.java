@@ -160,6 +160,20 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
         if (!CollectionUtils.isEmpty(logsFilters.entrypointIds())) {
             predicate = predicate.and(connectionLog -> logsFilters.entrypointIds().contains(connectionLog.getEntrypointId()));
         }
+
+        if (!CollectionUtils.isEmpty(logsFilters.responseTimeRanges())) {
+            predicate =
+                predicate.and(connectionLog ->
+                    logsFilters
+                        .responseTimeRanges()
+                        .stream()
+                        .anyMatch(range ->
+                            (range.to() == null || range.to() >= connectionLog.getGatewayResponseTime()) &&
+                            (range.from() == null || range.from() <= connectionLog.getGatewayResponseTime())
+                        )
+                );
+        }
+
         return predicate;
     }
 
