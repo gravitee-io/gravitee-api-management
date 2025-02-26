@@ -55,7 +55,8 @@
   </div>
   <div class="row">
     <div class="row-cards">
-      <app-top-apis-widget [data]="topApis" [period]="this.timeRangeParams"></app-top-apis-widget>
+      <app-top-apis-widget [data]="topApis" [period]="this.timeRangeParams" />
+      <dashboard-api-request-stats [data]="requestStats" />
     </div>
   </div>
 
@@ -94,14 +95,6 @@
           <gio-top-apis-table [data]="topApisV2"></gio-top-apis-table>
         </ng-container>
       </mat-card>
-      <mat-card class="card">
-        <div class="card__header">API Request Stats</div>
-        <mat-card-content class="card__content">
-          <ng-container *ngIf="requestStats; else loader">
-            <gio-request-stats [data]="requestStats"></gio-request-stats>
-          </ng-container>
-        </mat-card-content>
-      </mat-card>
     </div>
   </div>
 
@@ -114,18 +107,14 @@
   <div class="row">
     <h2 class="row-title">V4 APIs</h2>
     <div class="row-cards">
-      <api-analytics-response-status-ranges
-        title="API Response Status"
-        [responseStatusRanges]="v4ApiAnalyticsResponseStatusRanges"
-      ></api-analytics-response-status-ranges>
-      <dashboard-v4-api-request-stats [data]="requestStatsV4"></dashboard-v4-api-request-stats>
+      <api-analytics-response-status-ranges title="API Response Status" [responseStatusRanges]="v4ApiAnalyticsResponseStatusRanges" />
     </div>
   </div>
 
   <div class="row" *gioPermission="{ anyOf: ['environment-platform-r'] }">
     <h2 class="row-title">API Events</h2>
     <ng-container *ngIf="timeRangeParams; else loader">
-      <gio-api-events-table [timeRangeParams]="timeRangeParams"></gio-api-events-table>
+      <gio-api-events-table [timeRangeParams]="timeRangeParams" />
     </ng-container>
   </div>
 </div>

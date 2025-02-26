@@ -20,14 +20,13 @@ import { toNumber } from 'lodash';
 
 import { AnalyticsService } from '../../../services-ngx/analytics.service';
 import { TopApisData } from '../components/gio-top-apis-table/gio-top-apis-table.component';
-import { RequestStats } from '../components/gio-request-stats/gio-request-stats.component';
 import { ApiResponseStatusData } from '../components/gio-api-response-status/gio-api-response-status.component';
 import { ApiStateData } from '../components/gio-api-state/gio-api-state.component';
 import { ApiLifecycleStateData } from '../components/gio-api-lifecycle-state/gio-api-lifecycle-state.component';
 import { ApiAnalyticsResponseStatusRanges } from '../../../shared/components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { TimeRangeParams } from '../../../shared/utils/timeFrameRanges';
-import { v4ApisRequestStats } from '../components/dashboard-v4-api-request-stats/dashboard-v4-api-request-stats';
+import { v4ApisRequestStats } from '../components/dashboard-api-request-stats/dashboard-api-request-stats.component';
 import { HomeService } from '../../../services-ngx/home.service';
 import { AnalyticsTopApis } from '../../../entities/analytics/analytics';
 
@@ -42,8 +41,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
   public loading = false;
   public topApisV2: TopApisData;
   public topApis: AnalyticsTopApis[];
-  public requestStats: RequestStats;
-  public requestStatsV4: v4ApisRequestStats;
+  public requestStats: v4ApisRequestStats;
   public apiResponseStatus: ApiResponseStatusData;
   public v4ApiAnalyticsResponseStatusRanges: ApiAnalyticsResponseStatusRanges;
   public apiState: ApiStateData;
@@ -207,24 +205,13 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
         },
       });
 
-    // Request Stats
-    this.homeService
-      .timeRangeParams()
-      .pipe(
-        tap(() => (this.requestStats = undefined)),
-        switchMap((val) => this.statsService.getStats({ field: 'response-time', interval: val.interval, from: val.from, to: val.to })),
-        tap((data) => (this.requestStats = data)),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe(() => this.changeDetectorRef.markForCheck());
-
     // Request Stats v4
     this.homeService
       .timeRangeParams()
       .pipe(
-        tap(() => (this.requestStatsV4 = undefined)),
-        switchMap((val) => this.statsService.getV4RequestResponseStats(val.from, val.to)),
-        tap((data) => (this.requestStatsV4 = data)),
+        tap(() => (this.requestStats = undefined)),
+        switchMap((val) => this.statsService.getRequestResponseStats(val.from, val.to)),
+        tap((data) => (this.requestStats = data)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.changeDetectorRef.markForCheck());

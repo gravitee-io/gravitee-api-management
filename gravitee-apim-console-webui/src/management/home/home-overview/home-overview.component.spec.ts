@@ -70,9 +70,6 @@ describe('HomeOverviewComponent', () => {
       req = expectResponseStatusRequest();
       expect(req.request.url).toContain('interval=120000');
 
-      req = expectRequestStatsRequest();
-      expect(req.request.url).toContain('interval=120000');
-
       req = expectTopApiRequest();
       expect(req.request.url).toContain('interval=120000');
 
@@ -127,7 +124,6 @@ describe('HomeOverviewComponent', () => {
       expectTopFailedAppsGetRequest();
       expectResponseStatusRequest();
       expectApiStateRequest();
-      expectRequestStatsRequest();
       expectTopApiRequest();
       expectCountApiRequest();
       expectCountApplicationRequest();
@@ -137,12 +133,6 @@ describe('HomeOverviewComponent', () => {
       expectGetRequestStatsForV4();
       expectV4ResponseTimesGetRequest();
       expectV4ResponseStatusGetRequest();
-    });
-
-    it('should show request stats', async () => {
-      expectRequests();
-      const stats = await componentHarness.getGioRequestStatsHarness();
-      expect(await stats.getAverage()).toEqual('8.43 ms');
     });
 
     it('should show v4 APIs request stats', async () => {
@@ -171,7 +161,6 @@ describe('HomeOverviewComponent', () => {
     expectApiLifecycleStateRequest();
     expectApiStateRequest();
     expectResponseStatusRequest();
-    expectRequestStatsRequest();
     expectTopApiRequest();
     expectCountApiRequest();
     expectCountApplicationRequest();
@@ -226,22 +215,6 @@ describe('HomeOverviewComponent', () => {
     expect(req.request.method).toEqual('GET');
   }
 
-  function expectRequestStatsRequest(): TestRequest {
-    const req = httpTestingController.expectOne((req) => {
-      return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=stats&field=response-time`);
-    });
-    req.flush({
-      min: 0.02336,
-      max: 23009.29032,
-      avg: 8.4323,
-      rps: 1.2012334,
-      rpm: 72.074004,
-      rph: 4324.44024,
-      count: 332981092,
-      sum: 4567115654.2,
-    });
-    return req;
-  }
   function expectApiLifecycleStateRequest(): TestRequest {
     const req = httpTestingController.expectOne((req) => {
       return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=group_by&field=lifecycle_state`);

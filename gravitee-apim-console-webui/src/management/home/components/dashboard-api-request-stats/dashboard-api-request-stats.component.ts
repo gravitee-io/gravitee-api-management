@@ -31,13 +31,13 @@ export type v4ApisRequestStats = {
 };
 
 @Component({
-  selector: 'dashboard-v4-api-request-stats',
+  selector: 'dashboard-api-request-stats',
   standalone: true,
   imports: [CommonModule, MatTooltip, DecimalPipe, GioShortNumberPipeModule, GioLoaderModule, MatCard, MatIcon],
-  templateUrl: './dashboard-v4-api-request-stats.html',
-  styleUrls: ['./dashboard-v4-api-request-stats.scss'],
+  templateUrl: './dashboard-api-request-stats.component.html',
+  styleUrls: ['./dashboard-api-request-stats.component.scss'],
 })
-export class DashboardV4ApiRequestStats {
+export class DashboardApiRequestStats {
   @Input()
   public data?: v4ApisRequestStats;
 }

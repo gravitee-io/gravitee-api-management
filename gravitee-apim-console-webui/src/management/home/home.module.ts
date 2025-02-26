@@ -38,7 +38,7 @@ import { GioApiResponseStatusModule } from './components/gio-api-response-status
 import { GioApiStateModule } from './components/gio-api-state/gio-api-state.module';
 import { GioApiLifecycleStateModule } from './components/gio-api-lifecycle-state/gio-api-lifecycle-state.module';
 import { GioApiEventsTableModule } from './components/gio-api-events-table/gio-api-events-table.module';
-import { DashboardV4ApiRequestStats } from './components/dashboard-v4-api-request-stats/dashboard-v4-api-request-stats';
+import { DashboardApiRequestStats } from './components/dashboard-api-request-stats/dashboard-api-request-stats.component';
 import { DashboardFiltersBarComponent } from './components/dashboard-filters-bar/dashboard-filters-bar.component';
 import { V2ApiCallsWithNoContextPathComponent } from './components/v2-api-calls-with-no-contex-path/v2-api-calls-with-no-context-path.component';
 import { ResponseStatusComponent } from './components/response-status/response-status.component';
@@ -117,7 +117,7 @@ const homeRoutes: Route[] = [
     GioPermissionModule,
     ApiAnalyticsResponseStatusRangesComponent,
     TopApisWidgetComponent,
-    DashboardV4ApiRequestStats,
+    DashboardApiRequestStats,
 
     DashboardFiltersBarComponent,
     V2ApiCallsWithNoContextPathComponent,
