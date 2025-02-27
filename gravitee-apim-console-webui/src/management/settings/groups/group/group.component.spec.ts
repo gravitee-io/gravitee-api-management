@@ -13,25 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 
 import { GroupComponent } from './group.component';
 
+import { GioTestingModule } from '../../../../shared/testing';
+
 describe('GroupComponent', () => {
-  let component: GroupComponent;
-  let fixture: ComponentFixture<GroupComponent>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [GroupComponent],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(GroupComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+  TestBed.configureTestingModule({
+    imports: [GroupComponent, MatDialogModule, GioTestingModule],
+    declarations: [],
+    providers: [
+      {
+        provide: MatDialogRef,
+        useValue: {
+          close: jest.fn(),
+        },
+      },
+      {
+        provide: MAT_DIALOG_DATA,
+        useValue: {
+          /* mock data */
+        },
+      },
+    ],
+  }).compileComponents();
 
   it('should create', () => {
+    const fixture = TestBed.createComponent(GroupComponent);
+    const component = fixture.componentInstance;
     expect(component).toBeTruthy();
   });
 });

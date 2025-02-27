@@ -91,21 +91,23 @@ export class DeleteMemberDialogComponent implements OnInit {
   deleteMember(): void {
     this.groupService.deleteMember(this.group.id, this.member.id).subscribe({
       next: () => {
-        if (this.updatedGroupMembership) {
-          this.groupService.addOrUpdateMemberships(this.group.id, [this.updatedGroupMembership]).subscribe({
-            next: () => {
-              this.snackBarService.success(`Successfully deleted ${this.member.displayName} from ${this.group.name}}`);
-            },
-            error: () => {
-              this.snackBarService.success(`Error occurred while transferring ownership from ${this.member.displayName}}`);
-            },
-          });
-        }
+        this.snackBarService.success(`Successfully deleted ${this.member.displayName} from ${this.group.name}}`);
       },
       error: () => {
         this.snackBarService.success(`Error occurred while deleting ${this.member.displayName} from ${this.group.name}}`);
       },
     });
+
+    if (this.updatedGroupMembership) {
+      this.groupService.addOrUpdateMemberships(this.group.id, [this.updatedGroupMembership]).subscribe({
+        next: () => {
+          this.snackBarService.success(`Successfully transferred ownership to {{ ${this.selectedPrimaryOwner.displayName}.`);
+        },
+        error: () => {
+          this.snackBarService.success(`Error occurred while transferring ownership from ${this.member.displayName}}`);
+        },
+      });
+    }
 
     this.matDialogRef.close();
   }
@@ -159,6 +161,6 @@ export class DeleteMemberDialogComponent implements OnInit {
   }
 
   disableSubmit() {
-    return this.member.roles['API'] == RoleName.PRIMARY_OWNER && !this.selectedPrimaryOwner;
+    return this.member.roles['API'] === RoleName.PRIMARY_OWNER && !this.selectedPrimaryOwner;
   }
 }

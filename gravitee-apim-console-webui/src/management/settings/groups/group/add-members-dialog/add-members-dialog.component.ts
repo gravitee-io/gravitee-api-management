@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { UsersService } from 'src/services-ngx/users.service';
 
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -40,7 +39,7 @@ import { SearchableUser } from '../../../../../entities/user/searchableUser';
 import { Member } from '../../../../../entities/management-api-v2';
 import { GroupMembership } from '../../../../../entities/group/groupMember';
 import { RoleName } from '../membershipState';
-
+import { UsersService } from '../../../../../services-ngx/users.service';
 
 @Component({
   selector: 'add-member-dialog',

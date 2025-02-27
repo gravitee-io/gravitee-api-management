@@ -59,6 +59,7 @@ type ApplicationFormType = FormGroup<{
   description: FormControl<string>;
   domain: FormControl<string>;
   picture: FormControl<string>;
+  groups: FormControl<string[]>;
   settings: FormControl<
     (
       | { app: { type: string; client_id: string } }
@@ -176,6 +177,7 @@ export class ApplicationCreationComponent implements OnInit {
       description: new FormControl(null, [Validators.required]),
       domain: new FormControl(null),
       picture: new FormControl(null),
+      groups: new FormControl([]),
       settings: new FormControl(null, [Validators.required]),
     });
   }

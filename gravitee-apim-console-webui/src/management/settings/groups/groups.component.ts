@@ -36,9 +36,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatMenuModule } from '@angular/material/menu';
+
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
@@ -174,7 +174,7 @@ export class GroupsComponent implements OnInit {
 
   private initializeFormValues() {
     this.settingsForm = new FormGroup<{ enabled: FormControl<boolean> }>({
-      enabled: new FormControl(this.settings.userGroups.required),
+      enabled: new FormControl(this.settings.userGroup.required.enabled),
     });
     this.initialSettings = this.settingsForm.getRawValue();
   }
@@ -212,7 +212,7 @@ export class GroupsComponent implements OnInit {
   }
 
   saveSettings() {
-    this.settings.userGroups.required = this.settingsForm.controls['enabled'].value;
+    this.settings.userGroup.required.enabled = this.settingsForm.controls['enabled'].value;
 
     this.consoleSettingsService.save(this.settings).subscribe({
       next: (response) => {

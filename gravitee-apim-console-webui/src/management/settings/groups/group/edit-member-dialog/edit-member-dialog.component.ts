@@ -27,21 +27,18 @@ import { MatAutocomplete, MatAutocompleteSelectedEvent, MatAutocompleteTrigger }
 import { MatInput } from '@angular/material/input';
 import { MatList, MatListItem } from '@angular/material/list';
 import { Observable, startWith } from 'rxjs';
-
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
+
 import { RoleName } from '../membershipState';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiPrimaryOwnerMode } from '../../../../../services/apiPrimaryOwnerMode.service';
 import { EnvironmentSettingsService } from '../../../../../services-ngx/environment-settings.service';
 import { Role } from '../../../../../entities/role/role';
 import { GroupMembership } from '../../../../../entities/group/groupMember';
-
 import { GroupService } from '../../../../../services-ngx/group.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { SearchableUser } from '../../../../../entities/user/searchableUser';
 import { UsersService } from '../../../../../services-ngx/users.service';
-
-
 import { Group, Member } from '../../../../../entities/management-api-v2';
 
 @Component({

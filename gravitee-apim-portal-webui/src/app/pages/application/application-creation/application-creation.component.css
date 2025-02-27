@@ -127,6 +127,10 @@ app-application-creation-step5 {
   width: 100%;
 }
 
+.application-creation-user-groups {
+  margin-top: 5.1em;
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;

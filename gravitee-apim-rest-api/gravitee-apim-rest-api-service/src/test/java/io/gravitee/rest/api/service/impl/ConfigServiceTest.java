@@ -208,6 +208,7 @@ public class ConfigServiceTest {
         params.put(Key.CONSOLE_SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
         params.put(Key.ALERT_ENABLED.key(), singletonList("true"));
         params.put(EMAIL_ENABLED.key(), singletonList("true"));
+        params.put(CONSOLE_USER_GROUP_REQUIRED_ENABLED.key(), singletonList("true"));
 
         when(
             mockParameterService.findAll(
@@ -234,6 +235,7 @@ public class ConfigServiceTest {
         assertThat(consoleSettings.getAnalyticsPendo().getApiKey()).as("analytics pendo apiKey").isEmpty();
         assertThat(consoleSettings.getLicenseExpirationNotification().getEnabled()).as("license expiration notification enabled").isTrue();
         assertThat(consoleSettings.getEmail().getEnabled()).as("email enabled").isTrue();
+        assertThat(consoleSettings.getUserGroup().getRequired().isEnabled()).as("user group required enabled").isTrue();
     }
 
     @Test
