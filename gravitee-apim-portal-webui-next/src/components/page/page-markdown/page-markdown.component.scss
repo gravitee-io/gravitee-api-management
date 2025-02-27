@@ -24,6 +24,7 @@ pre {
   word-wrap: break-word;
 }
 
+<<<<<<< HEAD
 table {
   overflow: hidden;
   width: auto;
@@ -97,4 +98,15 @@ table {
   &--caution {
     color: var(--gio-marked-alert-icon-caution-color, inherit);
   }
+=======
+table td {
+  overflow-wrap: break-word;
+  white-space: normal;
+  word-break: break-all;
+}
+
+p {
+  word-break: break-word;
+  word-break: break-all;
+>>>>>>> facbcf6b2c (fix(portal-next): text overflow in API documentation)
 }
