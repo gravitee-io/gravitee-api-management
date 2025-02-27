@@ -61,12 +61,12 @@
       <mat-hint *ngIf="!selectedPrimaryOwner">{{ 'Please search members to transfer ownership' }}</mat-hint>
     </mat-form-field>
 
-    <mat-list role="list" *ngIf="selectedPrimaryOwner">
-      <mat-list-item>
+    <mat-chip-set *ngIf="selectedPrimaryOwner">
+      <mat-chip [removable]="true" (removed)="deselectPrimaryOwner()">
         {{ selectedPrimaryOwner.displayName }}
-        <button mat-button (click)="deselectPrimaryOwner()"><mat-icon svgIcon="gio:trash"></mat-icon></button>
-      </mat-list-item>
-    </mat-list>
+        <mat-icon matChipRemove>cancel</mat-icon>
+      </mat-chip>
+    </mat-chip-set>
 
     <mat-hint *ngIf="this.ownershipTransferMessage">{{ this.ownershipTransferMessage }}</mat-hint>
   </form>

@@ -36,9 +36,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatMenuModule } from '@angular/material/menu';
+
+import { RoleName } from './group/membershipState';
+
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
@@ -151,7 +153,7 @@ export class GroupsComponent implements OnInit {
         this.isLoading = false;
       },
       error: () => {
-        this.snackBarService.error(`Error while loading groups.`);
+        this.snackBarService.error(`Error occurred while loading groups.`);
       },
     });
   }
@@ -167,14 +169,14 @@ export class GroupsComponent implements OnInit {
         this.initializeFormValues();
       },
       error: () => {
-        this.snackBarService.error(`Error while fetching console settings`);
+        this.snackBarService.error(`Error occurred while fetching console settings`);
       },
     });
   }
 
   private initializeFormValues() {
     this.settingsForm = new FormGroup<{ enabled: FormControl<boolean> }>({
-      enabled: new FormControl(this.settings.userGroups.required),
+      enabled: new FormControl(this.settings.userGroup.required.enabled),
     });
     this.initialSettings = this.settingsForm.getRawValue();
   }
@@ -212,7 +214,7 @@ export class GroupsComponent implements OnInit {
   }
 
   saveSettings() {
-    this.settings.userGroups.required = this.settingsForm.controls['enabled'].value;
+    this.settings.userGroup.required.enabled = this.settingsForm.controls['enabled'].value;
 
     this.consoleSettingsService.save(this.settings).subscribe({
       next: (response) => {
@@ -221,7 +223,7 @@ export class GroupsComponent implements OnInit {
         this.snackBarService.success('Successfully updated groups settings');
       },
       error: () => {
-        this.snackBarService.error('Error while saving groups settings');
+        this.snackBarService.error('Error occurred while saving groups settings');
       },
     });
   }
@@ -236,5 +238,9 @@ export class GroupsComponent implements OnInit {
   resetFilters() {
     this.groups$ = [];
     this.filteredData = [];
+  }
+
+  disableDelete() {
+    return this.groups$.length === 1 && this.groups$[0].roles['API'] === RoleName.PRIMARY_OWNER;
   }
 }

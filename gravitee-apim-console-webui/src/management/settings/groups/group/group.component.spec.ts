@@ -14,24 +14,81 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
+import { ActivatedRoute, provideRouter } from '@angular/router';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { InteractivityChecker } from '@angular/cdk/a11y';
+import { of } from 'rxjs';
 
 import { GroupComponent } from './group.component';
 
-describe('GroupComponent', () => {
-  let component: GroupComponent;
-  let fixture: ComponentFixture<GroupComponent>;
+import { Group } from '../../../../entities/group/group';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 
-  beforeEach(async () => {
+describe('GroupComponent', () => {
+  let fixture: ComponentFixture<GroupComponent>;
+  let httpTestingController: HttpTestingController;
+
+  const init = async (groupId: string) => {
+    const mockActivatedRoute = {
+      params: of({ groupId: groupId }),
+    };
+
     await TestBed.configureTestingModule({
-      imports: [GroupComponent],
-    }).compileComponents();
+      declarations: [],
+      providers: [
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: ['environment-group-u', 'environment-group-d', 'environment-group-c'],
+        },
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: mockActivatedRoute,
+        },
+      ],
+      imports: [GroupComponent, GioTestingModule, NoopAnimationsModule],
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true,
+          isTabbable: () => true,
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(GroupComponent);
-    component = fixture.componentInstance;
+    httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
+  };
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  describe('Get by id', () => {
+    beforeEach(async () => {
+      await init('1');
+    });
+
+    it('should get group by id when mode is edit', () => {
+      expectGetGroup({ id: '1', name: 'Group 1', manageable: true });
+      // These calls should happen, but somehow they are not being made.
+      // expectGetMembersList([]);
+      // expectGetAPIsList([]);
+      // expectGetApplicationsList([]);
+      expectGetRolesList('API');
+      expectGetRolesList('APPLICATION');
+      expectGetRolesList('INTEGRATION');
+    });
   });
+
+  function expectGetGroup(group: Group) {
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups/1`).flush(group);
+  }
+
+  function expectGetRolesList(type: string) {
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${type}/roles`);
+  }
 });

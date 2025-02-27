@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { UsersService } from 'src/services-ngx/users.service';
 
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -28,6 +27,7 @@ import { debounceTime, distinctUntilChanged, map, startWith } from 'rxjs/operato
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { Observable, of, switchMap } from 'rxjs';
 import { MatListModule } from '@angular/material/list';
+import { MatChipsModule } from '@angular/material/chips';
 
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { GroupService } from '../../../../../services-ngx/group.service';
@@ -40,7 +40,7 @@ import { SearchableUser } from '../../../../../entities/user/searchableUser';
 import { Member } from '../../../../../entities/management-api-v2';
 import { GroupMembership } from '../../../../../entities/group/groupMember';
 import { RoleName } from '../membershipState';
-
+import { UsersService } from '../../../../../services-ngx/users.service';
 
 @Component({
   selector: 'add-member-dialog',
@@ -56,6 +56,7 @@ import { RoleName } from '../membershipState';
     MatSelectModule,
     MatAutocompleteModule,
     MatListModule,
+    MatChipsModule,
   ],
   templateUrl: './add-members-dialog.component.html',
   styleUrl: './add-members-dialog.component.scss',
@@ -196,9 +197,8 @@ export class AddMembersDialogComponent implements OnInit {
 
     return this.usersService.search(searchTerm).pipe(
       map((users) => {
-        const excludedIds = this.members.map((member) => member.id);
-        excludedIds.concat(this.selectedUsers.map((user) => user.id));
-        return users.filter((user) => !excludedIds.includes(user.id));
+        const excludedIds = new Set([...this.members.map((member) => member.id), ...this.selectedUsers.map((user) => user.id)]);
+        return users.filter((user) => !excludedIds.has(user.id));
       }),
     );
   }

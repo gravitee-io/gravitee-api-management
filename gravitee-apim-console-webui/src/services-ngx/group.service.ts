@@ -76,7 +76,7 @@ export class GroupService {
   }
 
   getMembers(groupId: string): Observable<Member[]> {
-    return this.http.get<Member[]>(`${this.constants.env.baseURL}/configuration/groups/${groupId}/members`, {});
+    return this.http.get<Member[]>(`${this.constants.env.baseURL}/configuration/groups/${groupId}/members`);
   }
 
   inviteMember(groupId: string, invitation: Invitation) {

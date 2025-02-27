@@ -249,7 +249,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         if (values == null || values.isEmpty()) {
             return defaultValue;
         }
-        return values.get(0);
+        return values.getFirst();
     }
 
     private void enhanceAuthenticationFromConfigFile(CommonAuthentication authenticationConfig) {
@@ -489,7 +489,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             consoleConfigEntity.getTrialInstance(),
             consoleConfigEntity.getFederation(),
             consoleConfigEntity.getCloudHosted(),
-            consoleConfigEntity.getUserGroups(),
+            consoleConfigEntity.getUserGroup(),
         };
     }
 }

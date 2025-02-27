@@ -23,16 +23,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { isEmpty } from 'lodash';
-
-import { Invitation } from '../../../../entities/invitation/invitation';
 import {
   GioConfirmDialogComponent,
   GioConfirmDialogData,
   GioFormSlideToggleModule,
   GioSaveBarModule,
 } from '@gravitee/ui-particles-angular';
-import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { gioTableFilterCollection } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
@@ -40,19 +36,24 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatMenuModule } from '@angular/material/menu';
+
 import { DeleteMemberDialogComponent } from './delete-member-dialog/delete-member-dialog.component';
 import { EditMemberDialogComponent } from './edit-member-dialog/edit-member-dialog.component';
 import { AddMembersDialogComponent } from './add-members-dialog/add-members-dialog.component';
 import { InviteMemberDialogComponent } from './invite-member-dialog/invite-member-dialog.component';
+
+import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { gioTableFilterCollection } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
+import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { Invitation } from '../../../../entities/invitation/invitation';
 import { GroupService } from '../../../../services-ngx/group.service';
 import { Member } from '../../../../entities/management-api-v2';
 import { RoleService } from '../../../../services-ngx/role.service';
@@ -210,7 +211,11 @@ export class GroupComponent implements OnInit {
   private initializeData() {
     this.group$ = this.refreshGroup.pipe(
       switchMap((_) => {
-        this.groupId = this.route.snapshot.paramMap.get('groupId');
+        this.route.params.subscribe({
+          next: (response) => {
+            this.groupId = response.groupId;
+          },
+        });
 
         if (!!this.groupId && this.groupId !== 'new') {
           this.mode = 'edit';

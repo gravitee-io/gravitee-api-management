@@ -18,7 +18,7 @@
 @if (group$ | async; as group) {
   <mat-card class="group__form__card">
     <mat-card-header>
-      <gio-go-back-button routerLink=".."></gio-go-back-button>
+      <gio-go-back-button routerLink=".." aria-hidden="false" aria-label="Click to go back to groups"></gio-go-back-button>
       <h2>{{ mode === 'new' ? 'Create group' : group.name }}</h2>
     </mat-card-header>
     <mat-card-content>

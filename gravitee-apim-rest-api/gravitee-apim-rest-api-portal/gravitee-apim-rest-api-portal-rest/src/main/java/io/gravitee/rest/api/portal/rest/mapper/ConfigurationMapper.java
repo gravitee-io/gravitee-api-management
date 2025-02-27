@@ -19,6 +19,7 @@ import io.gravitee.rest.api.model.settings.*;
 import io.gravitee.rest.api.model.settings.PlanSettings;
 import io.gravitee.rest.api.model.settings.PortalApplicationSettings;
 import io.gravitee.rest.api.model.settings.PortalNext;
+import io.gravitee.rest.api.model.settings.UserGroup;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Enabled;
 import java.util.Objects;
@@ -44,7 +45,12 @@ public class ConfigurationMapper {
         configuration.setScheduler(convert(portalConfigEntity.getScheduler()));
         configuration.setRecaptcha(convert(portalConfigEntity.getReCaptcha()));
         configuration.setAlert(convert(consoleSettingsEntity.getAlert().getEnabled()));
+        configuration.setUserGroup(convert(consoleSettingsEntity.getUserGroup()));
         return configuration;
+    }
+
+    private ConfigurationUserGroup convert(UserGroup userGroup) {
+        return new ConfigurationUserGroup().required(convert(userGroup.getRequired()));
     }
 
     ConfigurationPortalNext convert(PortalNext portalNext) {

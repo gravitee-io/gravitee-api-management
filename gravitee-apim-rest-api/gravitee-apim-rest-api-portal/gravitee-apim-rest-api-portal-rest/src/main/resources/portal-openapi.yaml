@@ -4873,6 +4873,8 @@ components:
                     $ref: "#/components/schemas/ConfigurationReCaptcha"
                 alert:
                     $ref: "#/components/schemas/Enabled"
+                userGroup:
+                    $ref: "#/components/schemas/ConfigurationUserGroup"
         ConfigurationPortal:
             properties:
                 title:
@@ -5071,6 +5073,11 @@ components:
                 siteKey:
                     description: reCaptcha site key
                     type: string
+
+        ConfigurationUserGroup:
+            properties:
+                required:
+                    $ref: "#/components/schemas/Enabled"
 
         CategorizedLinks:
             properties:

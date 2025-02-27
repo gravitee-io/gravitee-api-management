@@ -422,11 +422,7 @@ public enum Key {
 
     EXTERNAL_AUTH_ENABLED("auth.external.enabled", "false", Set.of(SYSTEM)),
     EXTERNAL_AUTH_ACCOUNT_DELETION_ENABLED("auth.external.allowAccountDeletion", "true", Set.of(SYSTEM)),
-    CONSOLE_APPLICATION_USER_GROUPS_REQUIRED(
-        "console.application.groups.required.enabled",
-        "false",
-        Set.of(SYSTEM, ORGANIZATION, ENVIRONMENT)
-    );
+    CONSOLE_USER_GROUP_REQUIRED_ENABLED("console.userGroup.required.enabled", "false", Set.of(SYSTEM, ORGANIZATION));
 
     final String key;
     String defaultValue;

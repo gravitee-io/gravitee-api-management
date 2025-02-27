@@ -13,25 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { DeleteMemberDialogComponent } from './delete-member-dialog.component';
 
+import { GioTestingModule } from '../../../../../shared/testing';
+
 describe('DeleteMemberDialogComponent', () => {
-  let component: DeleteMemberDialogComponent;
-  let fixture: ComponentFixture<DeleteMemberDialogComponent>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [DeleteMemberDialogComponent],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(DeleteMemberDialogComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+  TestBed.configureTestingModule({
+    imports: [DeleteMemberDialogComponent, GioTestingModule],
+    declarations: [],
+    providers: [
+      {
+        provide: MatDialogRef,
+        useValue: {
+          close: jest.fn(),
+        },
+      },
+      {
+        provide: MAT_DIALOG_DATA,
+        useValue: {
+          /* mock data */
+        },
+      },
+    ],
+  }).compileComponents();
 
   it('should create', () => {
+    const fixture = TestBed.createComponent(DeleteMemberDialogComponent);
+    const component = fixture.componentInstance;
     expect(component).toBeTruthy();
   });
 });
