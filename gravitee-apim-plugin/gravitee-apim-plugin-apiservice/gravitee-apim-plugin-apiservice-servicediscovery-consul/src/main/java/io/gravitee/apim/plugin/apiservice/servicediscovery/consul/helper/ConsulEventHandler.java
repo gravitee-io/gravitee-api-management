@@ -15,14 +15,19 @@
  */
 package io.gravitee.apim.plugin.apiservice.servicediscovery.consul.helper;
 
+import static io.reactivex.rxjava3.core.Observable.interval;
+
 import io.gravitee.apim.plugin.apiservice.servicediscovery.consul.ConsulServiceDiscoveryServiceConfiguration;
 import io.gravitee.apim.plugin.apiservice.servicediscovery.consul.factory.EndpointFactory;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.ext.consul.ServiceEntry;
 import io.vertx.ext.consul.ServiceEntryList;
 import io.vertx.ext.consul.WatchResult;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -31,15 +36,18 @@ public class ConsulEventHandler {
     private final EndpointManager endpointManager;
     private final EndpointGroup group;
     private final ConsulServiceDiscoveryServiceConfiguration configuration;
+    private final long pendingRequestsTimeout;
 
     public ConsulEventHandler(
         EndpointManager endpointManager,
         EndpointGroup group,
-        ConsulServiceDiscoveryServiceConfiguration configuration
+        ConsulServiceDiscoveryServiceConfiguration configuration,
+        long pendingRequestsTimeout
     ) {
         this.endpointManager = endpointManager;
         this.group = group;
         this.configuration = configuration;
+        this.pendingRequestsTimeout = pendingRequestsTimeout;
     }
 
     public void handle(WatchResult<ServiceEntryList> event) {
@@ -67,8 +75,17 @@ public class ConsulEventHandler {
         if (previousEntries != null) {
             var old = previousEntries.getList();
             if (old.size() > newEntries.getList().size()) {
-                old.removeAll(newEntries.getList());
-                old.forEach(oldEntry -> endpointManager.removeEndpoint(EndpointFactory.endpointName(oldEntry.getService())));
+                old.forEach(oldEntry -> endpointManager.disable(EndpointFactory.endpointName(oldEntry.getService())));
+
+                Completable
+                    .defer(() -> {
+                        old.removeAll(newEntries.getList());
+                        old.forEach(oldEntry -> endpointManager.removeEndpoint(EndpointFactory.endpointName(oldEntry.getService())));
+                        return Completable.complete();
+                    })
+                    .onErrorComplete()
+                    .delaySubscription(pendingRequestsTimeout, TimeUnit.MILLISECONDS, Schedulers.io())
+                    .subscribe();
             }
         }
     }
