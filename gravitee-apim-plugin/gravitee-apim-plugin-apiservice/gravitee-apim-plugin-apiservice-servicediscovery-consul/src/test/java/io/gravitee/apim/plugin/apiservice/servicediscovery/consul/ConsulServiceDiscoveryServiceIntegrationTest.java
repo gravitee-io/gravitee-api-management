@@ -22,10 +22,14 @@ import static io.gravitee.apim.plugin.apiservice.servicediscovery.consul.factory
 import static io.gravitee.apim.plugin.apiservice.servicediscovery.consul.factory.configuration.EndpointConfigurationFactory.CONSUL_METADATA_TENANT;
 import static io.gravitee.apim.plugin.apiservice.servicediscovery.consul.factory.configuration.EndpointConfigurationFactory.CONSUL_METADATA_WEIGHT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
+import io.gravitee.common.http.GraviteeHttpHeader;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -61,6 +65,7 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.env.Environment;
 import org.testcontainers.consul.ConsulContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -84,6 +89,9 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
 
     @Mock
     GatewayConfiguration gatewayConfiguration;
+
+    @Mock
+    private Environment environment;
 
     private ConsulClient client;
     private Api api;
@@ -111,6 +119,9 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
         when(deploymentContext.getComponent(PluginConfigurationHelper.class)).thenReturn(pluginConfigurationHelper);
         when(deploymentContext.getTemplateEngine()).thenReturn(TemplateEngine.templateEngine());
         when(gatewayConfiguration.tenant()).thenReturn(Optional.empty());
+
+        when(environment.getProperty(eq("api.pending_requests_timeout"), eq(Long.class), anyLong())).thenReturn(1000L);
+        when(deploymentContext.getComponent(Environment.class)).thenReturn(environment);
     }
 
     @AfterEach

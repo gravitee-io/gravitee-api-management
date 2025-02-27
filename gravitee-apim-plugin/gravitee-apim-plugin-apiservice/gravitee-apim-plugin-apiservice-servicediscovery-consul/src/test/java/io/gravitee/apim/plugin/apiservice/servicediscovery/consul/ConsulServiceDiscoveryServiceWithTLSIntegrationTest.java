@@ -19,6 +19,8 @@ import static fixtures.ApiFixtures.anApiWithDefaultGroup;
 import static helper.Base64Helper.encodeFileToBase64;
 import static io.gravitee.apim.plugin.apiservice.servicediscovery.consul.ConsulServiceDiscoveryService.CONSUL_SERVICE_DISCOVERY_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -63,6 +65,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.env.Environment;
 import org.testcontainers.containers.DockerComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
@@ -133,6 +136,10 @@ class ConsulServiceDiscoveryServiceWithTLSIntegrationTest {
             )
                 .start();
         when(deploymentContext.getComponent(EndpointManager.class)).thenReturn(endpointManager);
+
+        Environment environment = mock(Environment.class);
+        when(environment.getProperty(eq("api.pending_requests_timeout"), eq(Long.class), anyLong())).thenReturn(10000L);
+        when(deploymentContext.getComponent(Environment.class)).thenReturn(environment);
     }
 
     @AfterEach
