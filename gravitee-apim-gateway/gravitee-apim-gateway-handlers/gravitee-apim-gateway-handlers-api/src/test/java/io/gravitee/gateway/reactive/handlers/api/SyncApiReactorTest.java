@@ -71,6 +71,7 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
+import io.reactivex.rxjava3.schedulers.Timed;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -377,8 +378,8 @@ class SyncApiReactorTest {
     void shouldStopUntil() throws Exception {
         RxJavaPlugins.setIoSchedulerHandler(scheduler -> testScheduler);
         ReflectionTestUtils.setField(cut, "pendingRequests", new AtomicInteger(1));
-        Observable<Long> stopUntil = cut.stopUntil(10000L);
-        TestObserver<Long> testObserver = stopUntil.test();
+        Observable<Timed<Long>> stopUntil = cut.stopUntil(10000L);
+        TestObserver<Timed<Long>> testObserver = stopUntil.test();
 
         testScheduler.advanceTimeBy(300L, TimeUnit.MILLISECONDS);
         testObserver.assertValueCount(3);
