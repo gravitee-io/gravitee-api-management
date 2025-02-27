@@ -21,12 +21,13 @@ import java.util.List;
 import lombok.Builder;
 
 @Builder
-public record ResponseStatusQueryCriteria(List<String> apiIds, Long from, Long to, Collection<DefinitionVersion> versions) {
-    public ResponseStatusQueryCriteria(List<String> apiIds, Long from, Long to, Collection<DefinitionVersion> versions) {
+public record ResponseStatusQueryCriteria(List<String> apiIds, Long from, Long to, Collection<DefinitionVersion> definitionVersions) {
+    public ResponseStatusQueryCriteria(List<String> apiIds, Long from, Long to, Collection<DefinitionVersion> definitionVersions) {
         this.apiIds = apiIds;
         this.from = from;
         this.to = to;
-        this.versions = versions == null || versions.isEmpty() ? List.of(DefinitionVersion.V4) : versions;
+        this.definitionVersions =
+            definitionVersions == null || definitionVersions.isEmpty() ? List.of(DefinitionVersion.V4) : definitionVersions;
     }
 
     public ResponseStatusQueryCriteria(List<String> apiIds, Long from, Long to) {

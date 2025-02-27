@@ -15,12 +15,14 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics;
 
+import static io.gravitee.definition.model.DefinitionVersion.V2;
+import static io.gravitee.definition.model.DefinitionVersion.V4;
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.atIndex;
 import static org.assertj.core.api.Assertions.offset;
 import static org.assertj.core.api.Assertions.withPrecision;
 
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
@@ -65,6 +67,8 @@ import org.springframework.test.context.TestPropertySource;
 class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchRepositoryTest {
 
     private static final String API_ID = "f1608475-dd77-4603-a084-75dd775603e9";
+    private static final String APIV2_1 = "e2c0ecd5-893a-458d-80ec-d5893ab58d12";
+    private static final String APIV2_2 = "4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1";
 
     @Autowired
     private AnalyticsElasticsearchRepository cut;
@@ -165,6 +169,30 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         }
 
         @Test
+        void should_return_response_status_for_V4_and_V2_definitions() {
+            var result = cut.searchResponseStatusRanges(
+                new QueryContext("org#1", "env#1"),
+                ResponseStatusQueryCriteria
+                    .builder()
+                    .apiIds(List.of(API_ID, APIV2_1, APIV2_2))
+                    .definitionVersions(EnumSet.of(V4, V2))
+                    .build()
+            );
+
+            assertThat(result)
+                .hasValueSatisfying(responseStatusAggregate -> {
+                    assertRanges(responseStatusAggregate.getRanges(), 7L, 10L);
+                    var statusRangesCountByEntrypoint = responseStatusAggregate.getStatusRangesCountByEntrypoint();
+                    assertThat(statusRangesCountByEntrypoint).containsOnlyKeys("websocket", "http-post", "webhook", "sse", "http-get");
+                    assertRanges(statusRangesCountByEntrypoint.get("websocket"), 0L, 3L);
+                    assertRanges(statusRangesCountByEntrypoint.get("http-post"), 2L, 1L);
+                    assertRanges(statusRangesCountByEntrypoint.get("webhook"), 0L, 1L);
+                    assertRanges(statusRangesCountByEntrypoint.get("sse"), 1L, 1L);
+                    assertRanges(statusRangesCountByEntrypoint.get("http-get"), 0L, 1L);
+                });
+        }
+
+        @Test
         void should_return_response_status_by_entrypoint_for_a_given_api_and_date_range() {
             var yesterdayAtStartOfTheDayEpochMilli = LocalDate.now().minusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
             var yesterdayAtEndOfTheDayEpochMilli = LocalDate.now().minusDays(1).atTime(23, 59, 59).toInstant(ZoneOffset.UTC).toEpochMilli();
@@ -234,14 +262,49 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             // Then
             long nbBuckets = Duration.between(from, to).dividedBy(interval);
-            assertThat(result.getAverageBy().entrySet())
+            assertThat(requireNonNull(result).getAverageBy().entrySet())
                 .hasSize((int) nbBuckets + 1)
                 .haveExactly(1, bucketOfTimeHaveValue("14:00:00.000Z", 332.5))
                 .haveExactly(1, STRICT_POSITIVE);
         }
 
+        @Test
+        void should_return_response_status_for_api_v2_and_v4() {
+            // Given
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = from.plus(Duration.ofDays(1));
+            Duration interval = Duration.ofMinutes(10);
+
+            // When
+            AverageAggregate result = cut
+                .searchResponseTimeOverTime(
+                    new QueryContext("org#1", "env#1"),
+                    new ResponseTimeRangeQuery(
+                        List.of("f1608475-dd77-4603-a084-75dd775603e9", APIV2_1, APIV2_2),
+                        from,
+                        to,
+                        interval,
+                        EnumSet.of(V4, V2)
+                    )
+                )
+                .blockingGet();
+
+            // Then
+            long nbBuckets = Duration.between(from, to).dividedBy(interval);
+            assertThat(requireNonNull(result).getAverageBy().entrySet())
+                .hasSize((int) nbBuckets + 1)
+                .haveExactly(1, bucketOfTimeHaveValue("14:00:00.000Z", 332.5))
+                .haveExactly(1, bucketWithValue(36.25))
+                .haveExactly(2, STRICT_POSITIVE);
+        }
+
         private static Condition<Map.Entry<String, Double>> bucketOfTimeHaveValue(String timeSuffix, double value) {
-            return bucket(key -> key.endsWith(timeSuffix), d -> d == value, "entre for '%s' with value %f".formatted(timeSuffix, value));
+            return bucket(key -> key.endsWith(timeSuffix), d -> d == value, "entry for '%s' with value %f".formatted(timeSuffix, value));
+        }
+
+        private static Condition<Map.Entry<String, Double>> bucketWithValue(double value) {
+            return bucket(key -> true, d -> d == value, "entry with value %f".formatted(value));
         }
 
         private static Condition<Map.Entry<String, Double>> bucket(
@@ -280,6 +343,38 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 softly.assertThat(result.getStatusCount().get("404")).hasSize((int) nbBuckets).contains(7L, atIndex(61));
             });
         }
+
+        @Test
+        void should_return_response_status_over_time_for_aapi_v2_and_v4() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var interval = Duration.ofMinutes(30);
+
+            var result = cut.searchResponseStatusOvertime(
+                new QueryContext("org#1", "env#1"),
+                ResponseStatusOverTimeQuery
+                    .builder()
+                    .apiIds(List.of(API_ID, APIV2_1, APIV2_2))
+                    .from(from)
+                    .to(to)
+                    .interval(interval)
+                    .versions(EnumSet.of(V4, V2))
+                    .build()
+            );
+
+            var nbBuckets = Duration.between(from, to).dividedBy(interval) + 1;
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(result.getStatusCount()).containsOnlyKeys("200", "202", "404", "401");
+                softly.assertThat(result.getStatusCount().get("200")).hasSize((int) nbBuckets).contains(1L, atIndex(28));
+                softly
+                    .assertThat(result.getStatusCount().get("202"))
+                    .hasSize((int) nbBuckets)
+                    .contains(1L, atIndex(28))
+                    .contains(1L, atIndex(61));
+                softly.assertThat(result.getStatusCount().get("404")).hasSize((int) nbBuckets).contains(7L, atIndex(61));
+            });
+        }
     }
 
     @Nested
@@ -304,6 +399,30 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 .get()
                 .extracting(TopHitsAggregate::getTopHitsCounts)
                 .hasFieldOrPropertyWithValue(API_ID, 2L);
+        }
+
+        @Test
+        void should_return_top_hits_count_for_api_v2_and_v4() {
+            var yesterdayAtStartOfTheDayEpochMilli = LocalDate.now().minusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+            var yesterdayAtEndOfTheDayEpochMilli = LocalDate.now().minusDays(1).atTime(23, 59, 59).toInstant(ZoneOffset.UTC).toEpochMilli();
+
+            var result = cut.searchTopHitsApi(
+                new QueryContext("org#1", "env#1"),
+                new TopHitsQueryCriteria(
+                    List.of(API_ID, APIV2_1, APIV2_2),
+                    yesterdayAtStartOfTheDayEpochMilli,
+                    yesterdayAtEndOfTheDayEpochMilli
+                )
+            );
+
+            assertThat(result)
+                .isNotNull()
+                .isPresent()
+                .get()
+                .extracting(TopHitsAggregate::getTopHitsCounts)
+                .hasFieldOrPropertyWithValue(API_ID, 2L)
+                .hasFieldOrPropertyWithValue(APIV2_1, 1L)
+                .hasFieldOrPropertyWithValue(APIV2_2, 3L);
         }
 
         @Test
@@ -332,7 +451,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             var result = cut.searchRequestResponseTimes(
                 new QueryContext("org#1", "env#1"),
-                new RequestResponseTimeQueryCriteria(List.of(API_ID), from, to, EnumSet.of(DefinitionVersion.V4))
+                new RequestResponseTimeQueryCriteria(List.of(API_ID), from, to, EnumSet.of(V4))
             );
 
             SoftAssertions.assertSoftly(softly -> {
@@ -350,16 +469,9 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS).toEpochMilli();
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS).toEpochMilli();
 
-            String APIV2_1 = "e2c0ecd5-893a-458d-80ec-d5893ab58d12";
-            String APIV2_2 = "4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1";
             var result = cut.searchRequestResponseTimes(
                 new QueryContext("org#1", "env#1"),
-                new RequestResponseTimeQueryCriteria(
-                    List.of(API_ID, APIV2_1, APIV2_2),
-                    from,
-                    to,
-                    EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2)
-                )
+                new RequestResponseTimeQueryCriteria(List.of(API_ID, APIV2_1, APIV2_2), from, to, EnumSet.of(V4, V2))
             );
 
             SoftAssertions.assertSoftly(softly -> {
@@ -377,7 +489,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var to = 1729078801566L;
             var result = cut.searchRequestResponseTimes(
                 new QueryContext("org#1", "env#1"),
-                new RequestResponseTimeQueryCriteria(List.of(API_ID), from, to, EnumSet.of(DefinitionVersion.V4))
+                new RequestResponseTimeQueryCriteria(List.of(API_ID), from, to, EnumSet.of(V4))
             );
 
             SoftAssertions.assertSoftly(softly -> {
@@ -416,6 +528,37 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         }
 
         @Test
+        void should_return_top_hits_fom_V4_and_V2() {
+            var yesterdayAtStartOfTheDayEpochMilli = LocalDate.now().minusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+            var yesterdayAtEndOfTheDayEpochMilli = LocalDate.now().minusDays(1).atTime(23, 59, 59).toInstant(ZoneOffset.UTC).toEpochMilli();
+
+            var result = cut.searchTopApps(
+                new QueryContext("org#1", "env#1"),
+                new TopHitsQueryCriteria(
+                    List.of(V4_API_ID, APIV2_1, APIV2_2),
+                    yesterdayAtStartOfTheDayEpochMilli,
+                    yesterdayAtEndOfTheDayEpochMilli
+                )
+            );
+
+            assertThat(result)
+                .isNotNull()
+                .isPresent()
+                .get()
+                .extracting(TopHitsAggregate::getTopHitsCounts)
+                .isEqualTo(
+                    Map.of(
+                        "f37a5799-0490-43f6-ba57-990490f3f678",
+                        1L,
+                        "613dc986-41ce-4b5b-bdc9-8641cedb5bdb",
+                        1L,
+                        "31b0d824-4f6a-4f58-b0d8-244f6a4f58d7",
+                        2L
+                    )
+                );
+        }
+
+        @Test
         void should_return_empty_top_hits_count_for_empty_ids_list() {
             var result = cut.searchTopApps(new QueryContext("org#1", "env#1"), new TopHitsQueryCriteria(List.of(API_ID), FROM, TO));
 
@@ -443,6 +586,21 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var result = cut.searchTopFailedApis(
                 new QueryContext("org#1", "env#1"),
                 new TopFailedQueryCriteria(List.of(V4_API_ID), FROM, TO)
+            );
+
+            assertThat(result)
+                .isNotNull()
+                .isPresent()
+                .get()
+                .extracting(TopFailedAggregate::failedApis)
+                .isEqualTo(Map.of("4a6895d5-a1bc-4041-a895-d5a1bce041ae", new TopFailedAggregate.FailedApiInfo(1L, 0.5)));
+        }
+
+        @Test
+        void should_return_top_failed_apis2() {
+            var result = cut.searchTopFailedApis(
+                new QueryContext("org#1", "env#1"),
+                new TopFailedQueryCriteria(List.of(V4_API_ID, APIV2_1, APIV2_2), FROM, TO)
             );
 
             assertThat(result)

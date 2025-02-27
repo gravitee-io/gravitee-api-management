@@ -112,7 +112,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         QueryContext queryContext,
         ResponseStatusQueryCriteria query
     ) {
-        String indices = getIndices(queryContext, query.versions());
+        String indices = getIndices(queryContext, query.definitionVersions());
 
         var adapter = new SearchResponseStatusRangesAdapter();
 
@@ -141,15 +141,15 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public Optional<TopHitsAggregate> searchTopHitsApi(QueryContext queryContext, TopHitsQueryCriteria criteria) {
-        var indexV1V2Request = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
-        var indexV4Metrics = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV1V2Request = indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
+        var indexV4Metrics = indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         var indexes = String.join(",", List.of(indexV1V2Request, indexV4Metrics));
 
         var apiIdFields = List.of("api-id", "api");
         var esQuery = AggregateValueCountByFieldAdapter.adaptQueryForFields(apiIdFields, criteria);
 
         log.debug("Search response top hit query: {}", esQuery);
-        return this.client.search(indexes, null, esQuery).map(AggregateValueCountByFieldAdapter::adaptResponse).blockingGet();
+        return client.search(indexes, null, esQuery).map(AggregateValueCountByFieldAdapter::adaptResponse).blockingGet();
     }
 
     @Override
