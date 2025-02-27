@@ -55,6 +55,7 @@
   </div>
   <div class="row">
     <div class="row-cards">
+      <api-analytics-response-status-ranges title="API Response Status" [responseStatusRanges]="v4ApiAnalyticsResponseStatusRanges" />
       <app-top-apis-widget [data]="topApis" [period]="this.timeRangeParams" />
       <dashboard-api-request-stats [data]="requestStats" />
     </div>
@@ -73,42 +74,6 @@
 
   <div class="row">
     <response-times />
-  </div>
-
-  <div class="row">
-    <h2 class="row-title">V2 APIs</h2>
-    <div class="row-cards">
-      <mat-card class="card">
-        <div class="card__header">API Response Status</div>
-        <mat-card-content class="card__content">
-          <ng-container *ngIf="apiResponseStatus; else loader">
-            <gio-api-response-status [data]="apiResponseStatus"></gio-api-response-status>
-          </ng-container>
-        </mat-card-content>
-      </mat-card>
-      <mat-card class="card">
-        <div class="card__header">
-          Top APIs
-          <mat-icon class="card__header__tooltip" svgIcon="gio:info" matTooltip="Ordered by API calls"></mat-icon>
-        </div>
-        <ng-container *ngIf="topApisV2; else loader">
-          <gio-top-apis-table [data]="topApisV2"></gio-top-apis-table>
-        </ng-container>
-      </mat-card>
-    </div>
-  </div>
-
-  <!--  TODO in APIM-7863: Uncomment when backend for this component is ready-->
-  <!--  <div class="row" *gioPermission="{ anyOf: ['environment-platform-r'] }">-->
-  <!--    <h2 class="row-title">API calls that didn't match any context path</h2>-->
-  <!--    <v2-api-calls-with-no-context-path></v2-api-calls-with-no-context-path>-->
-  <!--  </div>-->
-
-  <div class="row">
-    <h2 class="row-title">V4 APIs</h2>
-    <div class="row-cards">
-      <api-analytics-response-status-ranges title="API Response Status" [responseStatusRanges]="v4ApiAnalyticsResponseStatusRanges" />
-    </div>
   </div>
 
   <div class="row" *gioPermission="{ anyOf: ['environment-platform-r'] }">
