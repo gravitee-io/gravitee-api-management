@@ -73,6 +73,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.reactivex.rxjava3.schedulers.Timed;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -465,8 +466,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             stopNow();
         } else {
             log.debug("Current node is started, API handler will wait for pending requests before stopping");
-            long timeout = System.currentTimeMillis() + pendingRequestsTimeout;
-            stopUntil(timeout).subscribe();
+            stopUntil(pendingRequestsTimeout).onErrorComplete().subscribe();
         }
     }
 
@@ -480,11 +480,13 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         log.debug("API reactor is now stopped: {}", this);
     }
 
-    protected Observable<Long> stopUntil(long timeout) {
-        return interval(100, TimeUnit.MILLISECONDS)
+    protected Observable<Timed<Long>> stopUntil(long timeout) {
+        long period = 100;
+        return interval(period, TimeUnit.MILLISECONDS)
+            .timestamp()
             .observeOn(Schedulers.io())
-            .timeout(timeout, TimeUnit.MILLISECONDS)
-            .takeWhile(t -> pendingRequests.get() > 0)
+            .takeWhile(t -> pendingRequests.get() > 0 && (t.value() + 1) * period < timeout)
+            .onErrorComplete()
             .doFinally(this::stopNow);
     }
 
