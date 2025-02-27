@@ -36,10 +36,10 @@ export class ReleaseWorkflow {
     const slackAnnouncementJob = SlackAnnouncementJob.create(dynamicConfig);
     dynamicConfig.addJob(slackAnnouncementJob);
 
-    const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, false);
+    const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, false, true);
     dynamicConfig.addJob(consoleWebuiBuildJob);
 
-    const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, false);
+    const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, false, true);
     dynamicConfig.addJob(portalWebuiBuildJob);
 
     const webuiPublishArtifactoryJob = WebuiPublishArtifactoryJob.create(dynamicConfig, environment);

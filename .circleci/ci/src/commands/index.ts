@@ -24,3 +24,4 @@ export * from './cmd-restore-maven-cache';
 export * from './cmd-save-maven-cache';
 export * from './cmd-sync-folder-to-s3';
 export * from './cmd-webui-install';
+export * from './cmd-webui-publish-on-download-website';

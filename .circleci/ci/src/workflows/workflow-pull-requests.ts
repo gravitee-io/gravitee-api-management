@@ -282,7 +282,7 @@ export class PullRequestsWorkflow {
       const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig);
       dynamicConfig.addJob(webuiLintTestJob);
 
-      const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, shouldBuildDockerImages);
+      const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, shouldBuildDockerImages, false);
       dynamicConfig.addJob(consoleWebuiBuildJob);
 
       const storybookConsoleJob = StorybookConsoleJob.create(dynamicConfig);
@@ -330,7 +330,7 @@ export class PullRequestsWorkflow {
       const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig);
       dynamicConfig.addJob(webuiLintTestJob);
 
-      const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, shouldBuildDockerImages);
+      const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, shouldBuildDockerImages, false);
       dynamicConfig.addJob(portalWebuiBuildJob);
 
       const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
