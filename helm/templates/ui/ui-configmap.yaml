@@ -29,8 +29,10 @@ data:
     {
       {{- if .Values.ui.baseURL }}
       "baseURL": "{{ .Values.ui.baseURL }}"
-      {{- else }}
+      {{- else if .Values.api.ingress.management.hosts }}
       "baseURL": "{{ .Values.api.ingress.management.scheme }}://{{ index .Values.api.ingress.management.hosts 0 }}{{ .Values.api.ingress.management.path }}"
+      {{- else if .Values.api.application.configuration.files.gravitee_yml.installation.api.url }}
+      "baseURL": "{{ .Values.api.application.configuration.files.gravitee_yml.installation.api.url }}"
       {{- end }}
       {{- if .Values.ui.enforceOrganizationId }},
       "organizationId": "{{ .Values.ui.enforceOrganizationId }}"

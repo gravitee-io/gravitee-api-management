@@ -111,7 +111,11 @@ spec:
           securityContext: {{ toYaml .Values.ui.deployment.securityContext | nindent 12 }}
           env:
             - name: MGMT_API_URL
+            {{- if .Values.api.ingress.management.hosts }}
               value: "https://{{index .Values.api.ingress.management.hosts 0 }}{{ .Values.api.ingress.management.path }}/"
+            {{- else if .Values.api.application.configuration.files.gravitee_yml.installation.api.url }}
+              value: "{{ .Values.api.application.configuration.files.gravitee_yml.installation.api.url }}{{ .Values.api.application.configuration.files.gravitee_yml.installation.api.proxyPath.management }}/"
+            {{- end }}
             {{- if not (eq $base_href_defined "true") }}
             - name: CONSOLE_BASE_HREF
               value: {{ print (regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.ui.ingress.path) "/" }}

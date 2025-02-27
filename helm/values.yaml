@@ -478,7 +478,7 @@ api:
         #
         # Please have a look to https://documentation.gravitee.io/ for more options and fine-grained granularity
         ############################################################################################################
-        gravitee_yml: |
+        gravitee_yml:
           management:
             type: mongodb
             mongodb:
@@ -489,15 +489,15 @@ api:
           installation:
             type: standalone
             api:
-              url: https://{{ index .Values.api.ingress.management.hosts 0 }}
+              url: https://super.apim.example.com
               proxyPath:
-                management: {{ .Values.api.ingress.management.path }}
-                portal: {{ .Values.api.ingress.portal.path }}
+                management: /management
+                portal: /portal
             standalone:
               console:
-                url: https://{{ index .Values.api.ingress.management.hosts 0 }}{{ regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.ui.ingress.path }}
+                url: https://apim.example.com/console
               portal:
-                url: https://{{ index .Values.api.ingress.management.hosts 0 }}{{ regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.portal.ingress.path }}
+                url: https://apim.example.com
           
           console:
           services:
@@ -955,8 +955,8 @@ api:
       path: /management
       ingressClassName: ""
       # Used to create an Ingress record.
-      hosts:
-        - apim.example.com
+#      hosts:
+#        - apim.example.com
       annotations:
         kubernetes.io/ingress.class: nginx
         #nginx.ingress.kubernetes.io/configuration-snippet: "etag on;\nproxy_pass_header ETag;\nproxy_pass_header if-match;\n"
