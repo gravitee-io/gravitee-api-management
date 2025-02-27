@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal, Signal, WritableSignal } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { ReactiveFormsModule, FormControl, FormGroup } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -22,12 +22,13 @@ import { MatInputModule } from '@angular/material/input';
 import { GioAvatarModule, GioFormFilePickerModule, GioMonacoEditorModule, GioSaveBarModule, NewFile } from '@gravitee/ui-particles-angular';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
-import { MatAnchor, MatButton } from '@angular/material/button';
+import { MatButton } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { catchError, map, takeUntil, tap } from 'rxjs/operators';
-import { EMPTY, Subject } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
+import { EMPTY } from 'rxjs';
 import { isEqual } from 'lodash';
 import { MatOption, MatSelect } from '@angular/material/select';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 
 import { GioFormColorInputModule } from '../../../shared/components/gio-form-color-input/gio-form-color-input.module';
 import { PortalHeaderComponent } from '../../components/header/portal-header.component';
@@ -67,7 +68,6 @@ export interface ThemeVM {
     GioFormColorInputModule,
     GioAvatarModule,
     GioFormFilePickerModule,
-    MatAnchor,
     MatButton,
     MatTooltipModule,
     GioMonacoEditorModule,
@@ -78,18 +78,8 @@ export interface ThemeVM {
   ],
   standalone: true,
 })
-export class PortalThemeComponent implements OnInit, OnDestroy {
-  constructor(
-    private readonly uiPortalThemeService: UiPortalThemeService,
-    private readonly snackBarService: SnackBarService,
-    private readonly permissionService: GioPermissionService,
-  ) {}
-
-  private initialTheme: ThemePortalNext;
-  private defaultValues: ThemeVM;
-  private initialValues: ThemeVM;
-
-  public fontFamilies: string[] = [
+export class PortalThemeComponent implements OnInit {
+  fontFamilies: string[] = [
     'Arial, Helvetica, "Liberation Sans", FreeSans, sans-serif',
     'Courier, "Courier New", FreeMono, "Liberation Mono", monospace',
     'Georgia, "DejaVu Serif", Norasi, serif',
@@ -105,21 +95,62 @@ export class PortalThemeComponent implements OnInit, OnDestroy {
     'Verdana, DejaVu Sans, Bitstream Vera Sans, Geneva, sans-serif',
   ];
 
-  public portalThemeForm;
-  public isReadOnly: boolean = true;
+  portalThemeForm: FormGroup<{
+    logo: FormControl<string[]>;
+    favicon: FormControl<string[]>;
+    font: FormControl<string>;
+    primaryColor: FormControl<string>;
+    secondaryColor: FormControl<string>;
+    tertiaryColor: FormControl<string>;
+    errorColor: FormControl<string>;
+    pageBackgroundColor: FormControl<string>;
+    cardBackgroundColor: FormControl<string>;
+    customCSS: FormControl<string>;
+  }> = new FormGroup({
+    logo: new FormControl<string[]>([]),
+    favicon: new FormControl<string[]>([]),
+    font: new FormControl<string>(''),
+    primaryColor: new FormControl<string>(''),
+    secondaryColor: new FormControl<string>(''),
+    tertiaryColor: new FormControl<string>(''),
+    errorColor: new FormControl<string>(''),
+    pageBackgroundColor: new FormControl<string>(''),
+    cardBackgroundColor: new FormControl<string>(''),
+    customCSS: new FormControl<string>(''),
+  });
 
-  private unsubscribe$: Subject<void> = new Subject<void>();
+  isReadOnly: boolean = true;
 
-  formUnchanged: boolean = true;
+  isFormUnchanged$: Signal<boolean> = computed(() => isEqual(this.formValue$(), this.initialFormValue$()));
+  isFormSubmitDisabled$: Signal<boolean> = computed(() => this.isFormNotValid$() || this.isFormUnchanged$());
+
+  private formValue$: Signal<ThemeVM> = toSignal(this.portalThemeForm.valueChanges);
+  private isFormNotValid$: Signal<boolean> = toSignal(this.portalThemeForm.statusChanges.pipe(map((status) => status !== 'VALID')));
+
+  private initialFormValue$: WritableSignal<ThemeVM> = signal({});
+  private initialTheme: ThemePortalNext;
+  private defaultValues: ThemeVM;
+  private destroyRef = inject(DestroyRef);
+
+  constructor(
+    private readonly uiPortalThemeService: UiPortalThemeService,
+    private readonly snackBarService: SnackBarService,
+    private readonly permissionService: GioPermissionService,
+  ) {}
 
   ngOnInit() {
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['environment-theme-u']);
+    if (this.isReadOnly) {
+      this.portalThemeForm.disable();
+    }
+
     this.uiPortalThemeService
       .getDefaultTheme('PORTAL_NEXT')
       .pipe(
         tap((theme: ThemePortalNext) => {
           this.defaultValues = this.convertThemeToThemeVM(theme);
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
 
@@ -128,49 +159,27 @@ export class PortalThemeComponent implements OnInit, OnDestroy {
       .pipe(
         tap((theme: ThemePortalNext) => {
           this.initialTheme = theme;
-        }),
-        map((theme: ThemePortalNext) => this.convertThemeToThemeVM(theme)),
-        tap((themeVM: ThemeVM) => {
-          this.initialValues = themeVM;
-          this.portalThemeForm = new FormGroup({
-            logo: new FormControl(this.initialValues.logo),
-            favicon: new FormControl(this.initialValues.favicon),
-            font: new FormControl(this.initialValues.font),
-            primaryColor: new FormControl(this.initialValues.primaryColor),
-            secondaryColor: new FormControl(this.initialValues.secondaryColor),
-            tertiaryColor: new FormControl(this.initialValues.tertiaryColor),
-            errorColor: new FormControl(this.initialValues.errorColor),
-            pageBackgroundColor: new FormControl(this.initialValues.pageBackgroundColor),
-            cardBackgroundColor: new FormControl(this.initialValues.cardBackgroundColor),
-            customCSS: new FormControl(this.initialValues.customCSS),
+          this.portalThemeForm.setValue({
+            logo: theme.logo ? [theme.logo] : undefined,
+            favicon: theme.favicon ? [theme.favicon] : undefined,
+            font: theme.definition.font.fontFamily,
+            primaryColor: theme.definition.color.primary,
+            secondaryColor: theme.definition.color.secondary,
+            tertiaryColor: theme.definition.color.tertiary,
+            errorColor: theme.definition.color.error,
+            pageBackgroundColor: theme.definition.color.pageBackground,
+            cardBackgroundColor: theme.definition.color.cardBackground,
+            customCSS: theme.definition.customCss ?? '',
           });
-
-          this.portalThemeForm.valueChanges
-            .pipe(
-              tap((value) => {
-                this.formUnchanged = isEqual(this.initialValues, value);
-              }),
-              takeUntil(this.unsubscribe$),
-            )
-            .subscribe();
-
-          this.isReadOnly = !this.permissionService.hasAnyMatching(['environment-theme-u']);
-          if (this.isReadOnly) {
-            this.portalThemeForm.disable();
-          }
+          this.initialFormValue$.set(this.portalThemeForm.getRawValue());
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }
 
-  ngOnDestroy() {
-    this.unsubscribe$.next();
-    this.unsubscribe$.unsubscribe();
-  }
-
   reset() {
-    this.portalThemeForm.patchValue(this.initialValues);
+    this.portalThemeForm.reset(this.initialFormValue$());
   }
 
   restoreDefaultValues() {
@@ -188,19 +197,19 @@ export class PortalThemeComponent implements OnInit, OnDestroy {
         }),
         tap((theme: ThemePortalNext) => {
           this.initialTheme = theme;
-          this.initialValues = this.convertThemeToThemeVM(theme);
+          this.initialFormValue$.set(this.convertThemeToThemeVM(theme));
           this.reset();
         }),
         catchError((err) => {
           this.snackBarService.error(err.error?.message ?? err.message);
           return EMPTY;
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }
 
-  convertThemeToThemeVM(theme: ThemePortalNext): ThemeVM {
+  private convertThemeToThemeVM(theme: ThemePortalNext): ThemeVM {
     return {
       logo: theme.logo ? [theme.logo] : undefined,
       favicon: theme.favicon ? [theme.favicon] : undefined,
@@ -215,7 +224,7 @@ export class PortalThemeComponent implements OnInit, OnDestroy {
     };
   }
 
-  convertThemeVMToUpdateTheme(themeForm: ThemeVM): UpdateThemePortalNext {
+  private convertThemeVMToUpdateTheme(themeForm: ThemeVM): UpdateThemePortalNext {
     return {
       id: this.initialTheme.id,
       name: this.initialTheme.name,
