@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.services.endpoint.discovery.verticle;
 
+import static io.reactivex.rxjava3.core.Observable.interval;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.event.Event;
@@ -33,6 +35,9 @@ import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.services.endpoint.discovery.factory.ServiceDiscoveryFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.discovery.ServiceDiscoveryPlugin;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.functions.Action;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import java.util.ArrayList;
@@ -41,8 +46,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -64,6 +71,9 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
 
     @Autowired
     private ObjectMapper mapper;
+
+    @Value("${api.pending_requests_timeout:10000}")
+    private long pendingRequestsTimeout;
 
     @Override
     public void start(final Promise<Void> startPromise) {
@@ -150,7 +160,20 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
                             endpoints.add(endpoint);
                             break;
                         case UNREGISTER:
-                            endpoints.remove(endpoint);
+                            log.debug("Endpoint discovery will wait for pending requests before stopping");
+                            for (Endpoint e : endpoints) {
+                                if (e.equals(endpoint)) {
+                                    e.updateStatus(Endpoint.Status.DOWN);
+                                }
+                            }
+                            Completable
+                                .defer(() -> {
+                                    endpoints.remove(endpoint);
+                                    return Completable.complete();
+                                })
+                                .onErrorComplete()
+                                .delaySubscription(pendingRequestsTimeout, TimeUnit.MILLISECONDS, Schedulers.io())
+                                .subscribe();
                             break;
                     }
                 });

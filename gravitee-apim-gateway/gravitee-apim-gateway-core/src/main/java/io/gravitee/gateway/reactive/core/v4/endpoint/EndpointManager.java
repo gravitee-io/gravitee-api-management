@@ -73,6 +73,12 @@ public interface EndpointManager extends LifecycleComponent<EndpointManager> {
 
     void disable(ManagedEndpoint endpoint);
 
+    /**
+     * Disable endpoint
+     * @param name The endpoint name to disable
+     */
+    void disable(String name);
+
     void enable(ManagedEndpoint endpoint);
 
     enum Event {
