@@ -25,7 +25,7 @@ const cache = {
   prefix: 'gravitee-api-management-v11',
 };
 
-const dockerImages = {
+const components = {
   cacheDir: '/tmp/docker-cache',
   gateway: {
     project: 'gravitee-apim-gateway',
@@ -157,7 +157,7 @@ export const config = {
   artifactoryUrl,
   awsCliVersion,
   cache,
-  dockerImages,
+  components,
   executor,
   helm,
   jobContext,

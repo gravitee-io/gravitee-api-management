@@ -299,7 +299,7 @@ export class PullRequestsWorkflow {
         new workflow.WorkflowJob(webuiLintTestJob, {
           name: 'Lint & test APIM Console',
           context: config.jobContext,
-          'apim-ui-project': config.dockerImages.console.project,
+          'apim-ui-project': config.components.console.project,
           resource_class: 'xlarge',
         }),
         new workflow.WorkflowJob(consoleWebuiBuildJob, {
@@ -320,7 +320,7 @@ export class PullRequestsWorkflow {
           name: 'Sonar - gravitee-apim-console-webui',
           context: config.jobContext,
           requires: ['Lint & test APIM Console'],
-          working_directory: config.dockerImages.console.project,
+          working_directory: config.components.console.project,
           cache_type: 'frontend',
         }),
       );
@@ -342,12 +342,12 @@ export class PullRequestsWorkflow {
         new workflow.WorkflowJob(webuiLintTestJob, {
           name: 'Lint & test APIM Portal Next',
           context: config.jobContext,
-          'apim-ui-project': config.dockerImages.portal.next.project,
+          'apim-ui-project': config.components.portal.next.project,
         }),
         new workflow.WorkflowJob(webuiLintTestJob, {
           name: 'Lint & test APIM Portal',
           context: config.jobContext,
-          'apim-ui-project': config.dockerImages.portal.project,
+          'apim-ui-project': config.components.portal.project,
           resource_class: 'large',
         }),
         new workflow.WorkflowJob(portalWebuiBuildJob, {
@@ -358,14 +358,14 @@ export class PullRequestsWorkflow {
           name: 'Sonar - gravitee-apim-portal-webui',
           context: config.jobContext,
           requires: ['Lint & test APIM Portal'],
-          working_directory: config.dockerImages.portal.project,
+          working_directory: config.components.portal.project,
           cache_type: 'frontend',
         }),
         new workflow.WorkflowJob(sonarCloudAnalysisJob, {
           name: 'Sonar - gravitee-apim-portal-webui-next',
           context: config.jobContext,
           requires: ['Lint & test APIM Portal Next'],
-          working_directory: config.dockerImages.portal.next.project,
+          working_directory: config.components.portal.next.project,
           cache_type: 'frontend',
         }),
       );
@@ -530,11 +530,11 @@ function shouldBuildHelm(changedFiles: string[]): boolean {
 }
 
 function shouldBuildConsole(changedFiles: string[]): boolean {
-  return shouldBuildAll(changedFiles) || changedFiles.some((file) => file.includes(config.dockerImages.console.project));
+  return shouldBuildAll(changedFiles) || changedFiles.some((file) => file.includes(config.components.console.project));
 }
 
 function shouldBuildPortal(changedFiles: string[]): boolean {
-  return shouldBuildAll(changedFiles) || changedFiles.some((file) => file.includes(config.dockerImages.portal.project));
+  return shouldBuildAll(changedFiles) || changedFiles.some((file) => file.includes(config.components.portal.project));
 }
 
 function shouldBuildBackend(changedFiles: string[]): boolean {
