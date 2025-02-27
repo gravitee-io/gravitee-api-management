@@ -76,7 +76,7 @@ export class PublishProdDockerImagesJob {
       new reusable.ReusedCommand(orbs.aquasec.commands['install_billy']),
       new reusable.ReusedCommand(orbs.aquasec.commands['pull_aqua_scanner_image']),
 
-      ...[config.dockerImages.gateway, config.dockerImages.managementApi, config.dockerImages.console, config.dockerImages.portal].flatMap(
+      ...[config.components.gateway, config.components.managementApi, config.components.console, config.components.portal].flatMap(
         ({ image }) => [
           new reusable.ReusedCommand(orbs.aquasec.commands['register_artifact'], {
             artifact_to_register: `graviteeio/${image}:${parsedGraviteeioVersion.full}`,
@@ -99,10 +99,10 @@ export class PublishProdDockerImagesJob {
       : `docker login --username="\${DOCKERHUB_BOT_USER_NAME}" -p="\${DOCKERHUB_BOT_USER_TOKEN}"`;
 
     command += `
-${this.dockerBuildCommand(environment, config.dockerImages.gateway, graviteeioVersion)}
-${this.dockerBuildCommand(environment, config.dockerImages.managementApi, graviteeioVersion)}
-${this.dockerBuildCommand(environment, config.dockerImages.console, graviteeioVersion)}
-${this.dockerBuildCommand(environment, config.dockerImages.portal, graviteeioVersion)}
+${this.dockerBuildCommand(environment, config.components.gateway, graviteeioVersion)}
+${this.dockerBuildCommand(environment, config.components.managementApi, graviteeioVersion)}
+${this.dockerBuildCommand(environment, config.components.console, graviteeioVersion)}
+${this.dockerBuildCommand(environment, config.components.portal, graviteeioVersion)}
 `;
 
     if (!environment.isDryRun) {

@@ -41,10 +41,10 @@ export class PortalWebuiBuildJob {
       new commands.workspace.Attach({ at: '.' }),
       new commands.SetupRemoteDocker({ version: config.docker.version }),
       new reusable.ReusedCommand(installYarnCmd),
-      new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': `${config.dockerImages.portal.project}` }),
+      new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': `${config.components.portal.project}` }),
       new commands.Run({
         name: 'Update Build version',
-        command: `sed -i 's/"version": ".*"/"version": "${apimVersion}"/' ${config.dockerImages.portal.project}/build.json`,
+        command: `sed -i 's/"version": ".*"/"version": "${apimVersion}"/' ${config.components.portal.project}/build.json`,
       }),
       new commands.Run({
         name: 'Build',
@@ -52,12 +52,12 @@ export class PortalWebuiBuildJob {
         environment: {
           NODE_OPTIONS: '--max_old_space_size=4086',
         },
-        working_directory: `${config.dockerImages.portal.project}`,
+        working_directory: `${config.components.portal.project}`,
       }),
-      new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': `${config.dockerImages.portal.next.project}` }),
+      new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': `${config.components.portal.next.project}` }),
       new commands.Run({
         name: 'Update Build version',
-        command: `sed -i 's/"version": ".*"/"version": "${apimVersion}"/' ${config.dockerImages.portal.next.project}/build.json`,
+        command: `sed -i 's/"version": ".*"/"version": "${apimVersion}"/' ${config.components.portal.next.project}/build.json`,
       }),
       new commands.Run({
         name: 'Build',
@@ -65,7 +65,7 @@ export class PortalWebuiBuildJob {
         environment: {
           NODE_OPTIONS: '--max_old_space_size=4086',
         },
-        working_directory: `${config.dockerImages.portal.next.project}`,
+        working_directory: `${config.components.portal.next.project}`,
       }),
     ];
     if (buildDockerImage) {
@@ -74,8 +74,8 @@ export class PortalWebuiBuildJob {
 
       steps.push(
         new reusable.ReusedCommand(buildUiImageCommand, {
-          'docker-image-name': `${config.dockerImages.portal.image}`,
-          'apim-ui-project': `${config.dockerImages.portal.project}`,
+          'docker-image-name': `${config.components.portal.image}`,
+          'apim-ui-project': `${config.components.portal.project}`,
         }),
       );
     }
@@ -83,7 +83,7 @@ export class PortalWebuiBuildJob {
       new reusable.ReusedCommand(notifyOnFailureCommand),
       new commands.workspace.Persist({
         root: '.',
-        paths: [`${config.dockerImages.portal.project}/dist`],
+        paths: [`${config.components.portal.project}/dist`],
       }),
     );
 
