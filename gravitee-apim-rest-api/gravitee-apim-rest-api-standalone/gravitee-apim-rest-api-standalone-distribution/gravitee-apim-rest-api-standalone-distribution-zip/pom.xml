@@ -34,6 +34,11 @@
     <name>Gravitee.io APIM - Management API - Standalone - Distribution - Zip</name>
     <packaging>pom</packaging>
 
+    <properties>
+        <!-- Property used by the publication job in CI-->
+        <publish-folder-path>graviteeio-apim/components</publish-folder-path>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -51,7 +56,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <finalName>gravitee-apim-rest-api-standalone-${project.version}</finalName>
+                            <finalName>gravitee-management-rest-api-${project.version}</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
                             <descriptors>
                                 <descriptor>src/main/assembly/plugin-assembly-standalone.xml</descriptor>
