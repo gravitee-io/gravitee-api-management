@@ -384,6 +384,11 @@ jobs:
             sha1sum gravitee-apim-gateway-4.2.0-alpha.1.zip > gravitee-apim-gateway-4.2.0-alpha.1.zip.sha1
       - cmd-sync-folder-to-s3:
           folder-to-sync: folder_to_sync
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution
+            - gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
   job-release-commit-and-prepare-next-version:
     docker:
       - image: cimg/base:stable
