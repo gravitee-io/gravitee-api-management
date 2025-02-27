@@ -17,12 +17,12 @@ import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { OpenJdkNodeExecutor } from '../executors';
 import { orbs } from '../orbs';
 import { config } from '../config';
-import { ReusedCommand } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Reusable';
 import { keeper } from '../orbs/keeper';
 import { awsCli } from '../orbs/aws-cli';
 import { awsS3 } from '../orbs/aws-s3';
-import { GraviteeioVersion, parse } from '../utils';
+import { parse } from '../utils';
 import { InstallYarnCommand } from '../commands';
+import { SyncFolderToS3Command } from '../commands/cmd-sync-folder-to-s3';
 
 export class PackageBundleJob {
   private static readonly ARTIFACTORY_REPO_URL = `${config.artifactoryUrl}/external-dependencies-n-gravitee-all`;
@@ -32,10 +32,12 @@ export class PackageBundleJob {
     dynamicConfig.importOrb(awsS3);
     dynamicConfig.importOrb(awsCli);
 
-    const installYarnCmd = InstallYarnCommand.get();
-    dynamicConfig.addReusableCommand(installYarnCmd);
-
     const parsedGraviteeioVersion = parse(graviteeioVersion);
+
+    const installYarnCmd = InstallYarnCommand.get();
+    const syncFolderToS3Cmd = SyncFolderToS3Command.get(dynamicConfig, parsedGraviteeioVersion, isDryRun);
+    dynamicConfig.addReusableCommand(installYarnCmd);
+    dynamicConfig.addReusableCommand(syncFolderToS3Cmd);
 
     return new Job('job-package-bundle', OpenJdkNodeExecutor.create(), [
       new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
@@ -66,38 +68,9 @@ export class PackageBundleJob {
           ARTIFACTORY_REPO_URL: PackageBundleJob.ARTIFACTORY_REPO_URL,
         },
       }),
-      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-        'secret-url': config.secrets.awsAccessKeyId,
-        'var-name': 'AWS_ACCESS_KEY_ID',
+      new reusable.ReusedCommand(syncFolderToS3Cmd, {
+        'folder-to-sync': `./release/.tmp/${parsedGraviteeioVersion.full}/dist`,
       }),
-      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-        'secret-url': config.secrets.awsSecretAccessKey,
-        'var-name': 'AWS_SECRET_ACCESS_KEY',
-      }),
-      new reusable.ReusedCommand(orbs.awsCli.commands.setup, {
-        region: 'cloudfront',
-        version: `${config.awsCliVersion}`,
-      }),
-      PackageBundleJob.getSyncCommand(parsedGraviteeioVersion, isDryRun),
     ]);
-  }
-
-  private static getSyncCommand(graviteeioVersion: GraviteeioVersion, isDryRun: boolean): ReusedCommand {
-    const targetFolder =
-      graviteeioVersion.qualifier.full && graviteeioVersion.qualifier.full.length > 0
-        ? '/pre-releases/graviteeio-apim'
-        : '/graviteeio-apim';
-
-    let to = '';
-    if (isDryRun) {
-      to = `s3://gravitee-dry-releases-downloads${targetFolder}`;
-    } else {
-      to = `s3://gravitee-releases-downloads${targetFolder}`;
-    }
-    return new reusable.ReusedCommand(orbs.awsS3.commands.sync, {
-      arguments: '--endpoint-url https://cellar-c2.services.clever-cloud.com --acl public-read',
-      from: `./release/.tmp/${graviteeioVersion.full}/dist`,
-      to: `${to}`,
-    });
   }
 }
