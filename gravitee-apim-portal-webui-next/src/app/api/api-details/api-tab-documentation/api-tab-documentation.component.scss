@@ -32,4 +32,14 @@
       top: 96px;
     }
   }
+
+  &__page-content {
+    width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+
+    &__container {
+      min-width: 0;
+    }
+  }
 }

@@ -45,6 +45,12 @@ table {
     font-weight: 300;
   }
 
+  td {
+    overflow-wrap: break-word;
+    white-space: normal;
+    word-break: break-all;
+  }
+
   th,
   td {
     height: 32px;
@@ -98,4 +104,9 @@ table {
   &--caution {
     color: var(--gio-marked-alert-icon-caution-color, inherit);
   }
+}
+
+p {
+  word-break: break-word;
+  word-break: break-all;
 }
