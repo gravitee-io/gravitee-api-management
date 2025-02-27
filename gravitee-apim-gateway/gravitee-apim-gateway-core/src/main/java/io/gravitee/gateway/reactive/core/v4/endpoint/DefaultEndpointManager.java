@@ -127,6 +127,14 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
     }
 
     @Override
+    public void disable(String name) {
+        ManagedEndpoint endpoint = endpointsByName.get(name);
+        if (endpoint != null) {
+            disable(endpoint);
+        }
+    }
+
+    @Override
     public void enable(ManagedEndpoint endpoint) {
         endpoint.getGroup().addManagedEndpoint(endpoint);
         disabledEndpoints.remove(endpoint);
