@@ -96,11 +96,9 @@ public class InitializeSharedPolicyGroupUseCase {
         var rateLimitPolicy = policyPluginCrudService.get("rate-limit").orElseThrow(() -> new PolicyNotFoundException("rate-limit"));
 
         SharedPolicyGroup aiRateLimitAndRequestTokenLimitSPG = initializeSharedPolicyGroupForRequestPhase(input)
-            .name("\uD83E\uDD16 AI - Rate Limit & Request token limit")
+            .name("AI - Rate Limit & Request token limit")
             .crossId(spgCrossId)
-            .description(
-                "\uD83D\uDE80 This shared policy group limits the number of requests as well as the number of token sent per request."
-            )
+            .description("This shared policy group limits the number of requests as well as the number of token sent per request.")
             .prerequisiteMessage(
                 "You need the `#context.attributes['prompt']`, `context.attributes['maxTokens']`, `context.attributes['maxRequests']` set."
             )
@@ -178,9 +176,9 @@ public class InitializeSharedPolicyGroupUseCase {
             .orElseThrow(() -> new PolicyNotFoundException("policy-http-callout"));
 
         SharedPolicyGroup aiPromptTemplatingExampleSPG = initializeSharedPolicyGroupForRequestPhase(input)
-            .name("\uD83E\uDD16 AI - Prompt Templating Example")
+            .name("AI - Prompt Templating Example")
             .crossId(spgCrossId)
-            .description("\uD83D\uDE80 An example on how to use Assign Content policy to create/enhance prompt based on external data.")
+            .description("An example on how to use Assign Content policy to create/enhance prompt based on external data.")
             .prerequisiteMessage("You need the `ip` field set in your request body.")
             .steps(
                 List.of(
@@ -278,9 +276,9 @@ public class InitializeSharedPolicyGroupUseCase {
             .orElseThrow(() -> new PolicyNotFoundException("dynamic-routing"));
 
         SharedPolicyGroup aiRedirectToHuggingFaceSPG = initializeSharedPolicyGroupForRequestPhase(input)
-            .name("\uD83E\uDD16 AI - Redirect to HuggingFace")
+            .name("AI - Redirect to HuggingFace")
             .crossId(spgCrossId)
-            .description("\uD83D\uDE80 This shared policy group builds the content to reach a Text Generation model using Hugging Face.")
+            .description("This shared policy group builds the content to reach a Text Generation model using Hugging Face.")
             .prerequisiteMessage(
                 "These are required: `(#context.attributes['prompt']}`, `(#context.attributes['redirect-model']}` (the GPT model, try with: `meta-llama/Meta-Llama-3-8B-Instruct`, `(#context.attributes['redirect-source']}`: the source api path."
             )

@@ -110,23 +110,9 @@ public class InitializeSharedPolicyGroupUseCaseTest {
                 SharedPolicyGroup::getEnvironmentId
             )
             .containsExactly(
-                tuple("\uD83E\uDD16 AI - Redirect to HuggingFace", DEPLOYED, 0, ApiType.PROXY, PolicyPlugin.ExecutionPhase.REQUEST, ENV_ID),
-                tuple(
-                    "\uD83E\uDD16 AI - Prompt Templating Example",
-                    DEPLOYED,
-                    0,
-                    ApiType.PROXY,
-                    PolicyPlugin.ExecutionPhase.REQUEST,
-                    ENV_ID
-                ),
-                tuple(
-                    "\uD83E\uDD16 AI - Rate Limit & Request token limit",
-                    DEPLOYED,
-                    0,
-                    ApiType.PROXY,
-                    PolicyPlugin.ExecutionPhase.REQUEST,
-                    ENV_ID
-                )
+                tuple("AI - Redirect to HuggingFace", DEPLOYED, 0, ApiType.PROXY, PolicyPlugin.ExecutionPhase.REQUEST, ENV_ID),
+                tuple("AI - Prompt Templating Example", DEPLOYED, 0, ApiType.PROXY, PolicyPlugin.ExecutionPhase.REQUEST, ENV_ID),
+                tuple("AI - Rate Limit & Request token limit", DEPLOYED, 0, ApiType.PROXY, PolicyPlugin.ExecutionPhase.REQUEST, ENV_ID)
             );
 
         // - Check events
