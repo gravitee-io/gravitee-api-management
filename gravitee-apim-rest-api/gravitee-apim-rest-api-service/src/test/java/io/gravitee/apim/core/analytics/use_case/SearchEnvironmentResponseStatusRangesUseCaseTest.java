@@ -104,7 +104,7 @@ class SearchEnvironmentResponseStatusRangesUseCaseTest {
                         .from(FROM)
                         .to(TO)
                         .apiIds(List.of("proxy-api-v2-id", "message-api-v4-id", "proxy-api-v4-id"))
-                        .versions(Set.of(DefinitionVersion.V2, DefinitionVersion.V4))
+                        .definitionVersions(Set.of(DefinitionVersion.V2, DefinitionVersion.V4))
                         .build()
                 );
             softAssertions
@@ -154,7 +154,7 @@ class SearchEnvironmentResponseStatusRangesUseCaseTest {
                         .from(FROM)
                         .to(TO)
                         .apiIds(List.of("proper-env-proxy-api-v4-id"))
-                        .versions(Set.of(DefinitionVersion.V4))
+                        .definitionVersions(Set.of(DefinitionVersion.V4))
                         .build()
                 );
             softAssertions

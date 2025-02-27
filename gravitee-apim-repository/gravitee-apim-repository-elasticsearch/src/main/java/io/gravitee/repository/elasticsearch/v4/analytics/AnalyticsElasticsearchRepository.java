@@ -56,10 +56,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.swing.text.html.Option;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -114,22 +112,14 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         QueryContext queryContext,
         ResponseStatusQueryCriteria query
     ) {
-        var indexByVersion = Map.of(DefinitionVersion.V4, Type.V4_METRICS, DefinitionVersion.V2, Type.REQUEST);
-        String indices = Optional
-            .ofNullable(query)
-            .orElse(new ResponseStatusQueryCriteria(List.of(), null, null))
-            .versions()
-            .stream()
-            .flatMap(v -> Stream.ofNullable(indexByVersion.get(v)))
-            .map(v -> indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), v, clusters))
-            .collect(Collectors.joining(","));
+        String indices = getIndices(queryContext, query.versions());
+
+        var adapter = new SearchResponseStatusRangesAdapter();
 
         return this.client.getFieldTypes(indices, ENTRYPOINT_ID_FIELD)
             .map(types -> types.stream().allMatch(KEYWORD::equals))
-            .flatMap(isEntrypointIdKeyword ->
-                this.client.search(indices, null, SearchResponseStatusRangesAdapter.adaptQuery(query, isEntrypointIdKeyword))
-            )
-            .map(SearchResponseStatusRangesAdapter::adaptResponse)
+            .flatMap(isEntrypointIdKeyword -> this.client.search(indices, null, adapter.adaptQuery(query, isEntrypointIdKeyword)))
+            .map(adapter::adaptResponse)
             .blockingGet();
     }
 

@@ -16,13 +16,13 @@
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,31 +30,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SearchResponseStatusRangesAdapter {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public static final String BY_ENTRYPOINT_ID_AGG = "entrypoint_id_agg";
     public static final String FIELD = "field";
     public static final String STATUS_RANGES = "status_ranges";
     static final String ALL_APIS_STATUS_RANGES = "all_apis_status_ranges";
 
-    public static String adaptQuery(ResponseStatusQueryCriteria query, boolean isEntrypointIdKeyword) {
-        var jsonContent = new HashMap<String, Object>();
-
-        jsonContent.put("query", buildElasticQuery(query));
-        jsonContent.put("size", 0);
-        jsonContent.put("aggs", buildResponseCountPerStatusCodeRangePerEntrypointAggregation(isEntrypointIdKeyword));
-        return new JsonObject(jsonContent).encode();
+    public String adaptQuery(ResponseStatusQueryCriteria query, boolean isEntrypointIdKeyword) {
+        return json()
+            .put("size", 0)
+            .<ObjectNode>set("query", buildElasticQuery(query))
+            .set("aggs", buildResponseCountPerStatusCodeRangePerEntrypointAggregation(isEntrypointIdKeyword))
+            .toString();
     }
 
-    private static JsonObject buildElasticQuery(ResponseStatusQueryCriteria queryParams) {
-        var filterQuery = new ArrayList<JsonObject>();
+    private ObjectNode buildElasticQuery(ResponseStatusQueryCriteria queryParams) {
+        var filterQuery = array();
 
         if (queryParams == null || queryParams.apiIds() == null) {
             log.warn("Null query params or queried API IDs. Empty ranges will be returned");
@@ -67,73 +64,75 @@ public class SearchResponseStatusRangesAdapter {
             filterQuery.add(dateRangeFilterForQuery(queryParams.from(), queryParams.to()));
         }
 
-        return JsonObject.of("bool", JsonObject.of("filter", filterQuery));
+        return json().set("bool", json().set("filter", filterQuery));
     }
 
-    private static JsonObject apiIdsFilterForQuery(List<String> apiIds) {
-        var terms = new ArrayList<JsonObject>();
-        terms.add(JsonObject.of("terms", JsonObject.of("api-id", apiIds)));
-        terms.add(JsonObject.of("terms", JsonObject.of("api", apiIds)));
+    private static ObjectNode apiIdsFilterForQuery(List<String> apiIds) {
+        var terms = array();
+        terms.add(json().set("terms", json().set("api-id", toArray(apiIds))));
+        terms.add(json().set("terms", json().set("api", toArray(apiIds))));
         return buildShould(terms);
     }
 
-    private static JsonObject buildShould(List<JsonObject> terms) {
-        return JsonObject.of("bool", JsonObject.of("should", JsonArray.of(terms.toArray())));
+    private static ObjectNode buildShould(ArrayNode terms) {
+        return json().set("bool", json().set("should", terms));
     }
 
-    private static JsonObject dateRangeFilterForQuery(Long from, Long to) {
-        var fromDate = new Date(from);
-        var toDate = new Date(to);
-        log.info("Query filtering date range from {} to {}", fromDate, toDate);
-        return JsonObject.of("range", JsonObject.of("@timestamp", JsonObject.of("gte", fromDate, "lte", toDate)));
+    private static ObjectNode dateRangeFilterForQuery(Long from, Long to) {
+        log.info("Query filtering date range from {} to {}", new Date(from), new Date(to));
+        return json().set("range", json().set("@timestamp", json().put("gte", from).put("lte", to)));
     }
 
-    private static JsonObject buildResponseCountPerStatusCodeRangePerEntrypointAggregation(boolean isEntrypointIdKeyword) {
-        return JsonObject.of(
-            BY_ENTRYPOINT_ID_AGG,
-            JsonObject.of(
-                "terms",
-                JsonObject.of(FIELD, isEntrypointIdKeyword ? "entrypoint-id" : "entrypoint-id.keyword"),
-                "aggs",
-                JsonObject.of(
-                    STATUS_RANGES,
-                    JsonObject.of(
-                        "range",
-                        JsonObject.of(
-                            FIELD,
-                            "status",
-                            "ranges",
-                            JsonArray.of(
-                                JsonObject.of("from", 100.0, "to", 200.0),
-                                JsonObject.of("from", 200.0, "to", 300.0),
-                                JsonObject.of("from", 300.0, "to", 400.0),
-                                JsonObject.of("from", 400.0, "to", 500.0),
-                                JsonObject.of("from", 500.0, "to", 600.0)
+    private static ObjectNode buildResponseCountPerStatusCodeRangePerEntrypointAggregation(boolean isEntrypointIdKeyword) {
+        return json()
+            .<ObjectNode>set(
+                BY_ENTRYPOINT_ID_AGG,
+                json()
+                    .<ObjectNode>set("terms", json().put(FIELD, isEntrypointIdKeyword ? "entrypoint-id" : "entrypoint-id.keyword"))
+                    .<ObjectNode>set(
+                        "aggs",
+                        json()
+                            .set(
+                                STATUS_RANGES,
+                                json()
+                                    .set(
+                                        "range",
+                                        json()
+                                            .put(FIELD, "status")
+                                            .set(
+                                                "ranges",
+                                                array()
+                                                    .add(json().put("from", 100.0).put("to", 200.0))
+                                                    .add(json().put("from", 200.0).put("to", 300.0))
+                                                    .add(json().put("from", 300.0).put("to", 400.0))
+                                                    .add(json().put("from", 400.0).put("to", 500.0))
+                                                    .add(json().put("from", 500.0).put("to", 600.0))
+                                            )
+                                    )
                             )
-                        )
                     )
-                )
-            ),
-            ALL_APIS_STATUS_RANGES,
-            JsonObject.of(
-                "range",
-                JsonObject.of(
-                    FIELD,
-                    "status",
-                    "ranges",
-                    JsonArray.of(
-                        JsonObject.of("from", 100.0, "to", 200.0),
-                        JsonObject.of("from", 200.0, "to", 300.0),
-                        JsonObject.of("from", 300.0, "to", 400.0),
-                        JsonObject.of("from", 400.0, "to", 500.0),
-                        JsonObject.of("from", 500.0, "to", 600.0)
-                    )
-                )
             )
-        );
+            .set(
+                ALL_APIS_STATUS_RANGES,
+                json()
+                    .set(
+                        "range",
+                        json()
+                            .put(FIELD, "status")
+                            .set(
+                                "ranges",
+                                array()
+                                    .add(json().put("from", 100.0).put("to", 200.0))
+                                    .add(json().put("from", 200.0).put("to", 300.0))
+                                    .add(json().put("from", 300.0).put("to", 400.0))
+                                    .add(json().put("from", 400.0).put("to", 500.0))
+                                    .add(json().put("from", 500.0).put("to", 600.0))
+                            )
+                    )
+            );
     }
 
-    public static Optional<ResponseStatusRangesAggregate> adaptResponse(SearchResponse response) {
+    public Optional<ResponseStatusRangesAggregate> adaptResponse(SearchResponse response) {
         final Map<String, Aggregation> aggregations = response.getAggregations();
         if (aggregations == null || aggregations.isEmpty()) {
             return Optional.empty();
@@ -154,8 +153,6 @@ public class SearchResponseStatusRangesAdapter {
         if (allApisStatusRangesAggregation == null) {
             return Optional.empty();
         }
-
-        //        allApisStatusRangesAggregation.getBuckets().stream().flatMap(bucket -> bucket.get("bucket")).forEach(System.out::println);
 
         final Map<String, Long> allApisStatusRanges = allApisStatusRangesAggregation
             .getBuckets()
@@ -188,5 +185,19 @@ public class SearchResponseStatusRangesAdapter {
         }
 
         return result;
+    }
+
+    private static ObjectNode json() {
+        return MAPPER.createObjectNode();
+    }
+
+    private static ArrayNode array() {
+        return MAPPER.createArrayNode();
+    }
+
+    private static ArrayNode toArray(List<String> list) {
+        var arrayNode = array();
+        list.forEach(arrayNode::add);
+        return arrayNode;
     }
 }

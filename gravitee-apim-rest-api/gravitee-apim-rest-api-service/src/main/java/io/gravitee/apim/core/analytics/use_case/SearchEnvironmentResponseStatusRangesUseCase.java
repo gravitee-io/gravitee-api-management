@@ -52,7 +52,10 @@ public class SearchEnvironmentResponseStatusRangesUseCase {
 
         log.info("Searching environment API response status ranges, found: {} v4 APIs for env: {}", apis.size(), envId);
         return analyticsQueryService
-            .searchResponseStatusRanges(input.executionContext(), input.parameters().withApiIds(apis).withVersions(apiIds.keySet()))
+            .searchResponseStatusRanges(
+                input.executionContext(),
+                input.parameters().withApiIds(apis).withDefinitionVersions(apiIds.keySet())
+            )
             .map(SearchEnvironmentResponseStatusRangesUseCase.Output::new)
             .orElse(new SearchEnvironmentResponseStatusRangesUseCase.Output());
     }

@@ -54,7 +54,7 @@ public class SearchResponseStatusRangesUseCase {
             .apiIds(List.of(input.apiId()))
             .from(start)
             .to(end)
-            .versions(Set.of(DefinitionVersion.V4))
+            .definitionVersions(Set.of(DefinitionVersion.V4))
             .build();
 
         return analyticsQueryService.searchResponseStatusRanges(executionContext, queryParameters).map(Output::new).orElse(new Output());

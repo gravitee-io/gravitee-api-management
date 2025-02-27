@@ -40,6 +40,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class SearchResponseStatusRangesAdapterTest {
 
+    SearchResponseStatusRangesAdapter sut = new SearchResponseStatusRangesAdapter();
+
     @Nested
     public class Query {
 
@@ -48,7 +50,7 @@ class SearchResponseStatusRangesAdapterTest {
             var queryParams = ResponseStatusQueryCriteria.builder().apiIds(List.of("api-id")).build();
             var isEntrypointIdKeyword = true;
 
-            var result = SearchResponseStatusRangesAdapter.adaptQuery(queryParams, isEntrypointIdKeyword);
+            var result = sut.adaptQuery(queryParams, isEntrypointIdKeyword);
 
             assertThatJson(result).isEqualTo(API_IDS_FILTERED_QUERY);
         }
@@ -63,7 +65,7 @@ class SearchResponseStatusRangesAdapterTest {
                 .build();
             var isEntrypointIdKeyword = true;
 
-            var result = SearchResponseStatusRangesAdapter.adaptQuery(queryParams, isEntrypointIdKeyword);
+            var result = sut.adaptQuery(queryParams, isEntrypointIdKeyword);
 
             assertThatJson(result).isEqualTo(API_IDS_AND_TIME_FILTERED_QUERY);
         }
@@ -73,7 +75,7 @@ class SearchResponseStatusRangesAdapterTest {
             ResponseStatusQueryCriteria queryParams = null;
             var isEntrypointIdKeyword = true;
 
-            var result = SearchResponseStatusRangesAdapter.adaptQuery(queryParams, isEntrypointIdKeyword);
+            var result = sut.adaptQuery(queryParams, isEntrypointIdKeyword);
 
             assertThatJson(result).isEqualTo(API_EMPTY_IDS_ARRAY);
         }
@@ -82,7 +84,7 @@ class SearchResponseStatusRangesAdapterTest {
         void should_build_query_with_empty_id_filter_array_for_empty_api_ids_query_params() {
             var queryParams = ResponseStatusQueryCriteria.builder().apiIds(List.of()).build();
             var isEntrypointIdKeyword = true;
-            var result = SearchResponseStatusRangesAdapter.adaptQuery(queryParams, isEntrypointIdKeyword);
+            var result = sut.adaptQuery(queryParams, isEntrypointIdKeyword);
 
             assertThatJson(result).isEqualTo(API_EMPTY_IDS_ARRAY);
         }
@@ -372,7 +374,7 @@ class SearchResponseStatusRangesAdapterTest {
         void should_return_empty_result_if_no_aggregation() {
             final SearchResponse searchResponse = new SearchResponse();
 
-            assertThat(SearchResponseStatusRangesAdapter.adaptResponse(searchResponse)).isEmpty();
+            assertThat(sut.adaptResponse(searchResponse)).isEmpty();
         }
 
         @Test
@@ -380,7 +382,7 @@ class SearchResponseStatusRangesAdapterTest {
             final SearchResponse searchResponse = new SearchResponse();
             searchResponse.setAggregations(Map.of());
 
-            assertThat(SearchResponseStatusRangesAdapter.adaptResponse(searchResponse)).isEmpty();
+            assertThat(sut.adaptResponse(searchResponse)).isEmpty();
         }
 
         @ParameterizedTest
@@ -394,7 +396,7 @@ class SearchResponseStatusRangesAdapterTest {
 
             aggregation.setBuckets(Arrays.stream(entrypoints).map(this::provideBucket).toList());
 
-            assertThat(SearchResponseStatusRangesAdapter.adaptResponse(searchResponse))
+            assertThat(sut.adaptResponse(searchResponse))
                 .hasValueSatisfying(topHits ->
                     assertThat(topHits.getStatusRangesCountByEntrypoint().keySet()).containsExactlyInAnyOrder(entrypoints)
                 );
@@ -421,21 +423,15 @@ class SearchResponseStatusRangesAdapterTest {
         }
 
         private Aggregation provideAllApiStatusAggregation() {
-            var result = objectMapper.createObjectNode();
-            result
-                .putArray("buckets")
-                .addObject()
-                .put("key", "100.0-200.0")
-                .put("doc_count", 1)
-                .put("key", "200.0-300.0")
-                .put("doc_count", 2)
-                .put("key", "300.0-400.0")
-                .put("doc_count", 3)
-                .put("key", "400.0-500.0")
-                .put("doc_count", 4);
+            var result = List.<JsonNode>of(
+                objectMapper.createObjectNode().put("key", "100.0-200.0").put("doc_count", 1),
+                objectMapper.createObjectNode().put("key", "200.0-300.0").put("doc_count", 2),
+                objectMapper.createObjectNode().put("key", "300.0-400.0").put("doc_count", 3),
+                objectMapper.createObjectNode().put("key", "400.0-500.0").put("doc_count", 4)
+            );
 
             var aggregation = new Aggregation();
-            aggregation.setBuckets(List.of(result));
+            aggregation.setBuckets(result);
             return aggregation;
         }
     }
