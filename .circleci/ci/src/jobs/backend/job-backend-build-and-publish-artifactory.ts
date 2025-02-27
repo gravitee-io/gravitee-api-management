@@ -16,9 +16,10 @@
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { OpenJdkExecutor } from '../../executors';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
-import { PrepareGpgCmd, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import { PrepareGpgCmd, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand, SyncFolderToS3Command } from '../../commands';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
+import { parse } from '../../utils';
 
 export class BackendBuildAndPublishOnArtifactoryJob {
   private static jobName = 'job-backend-build-and-publish-artifactory';
@@ -32,6 +33,9 @@ export class BackendBuildAndPublishOnArtifactoryJob {
 
     const saveMavenJobCacheCommand = SaveMavenJobCacheCommand.get();
     dynamicConfig.addReusableCommand(saveMavenJobCacheCommand);
+
+    const syncFolderToS3Cmd = SyncFolderToS3Command.get(dynamicConfig, parse(environment.graviteeioVersion), environment.isDryRun);
+    dynamicConfig.addReusableCommand(syncFolderToS3Cmd);
 
     const steps: Command[] = [
       new commands.Checkout(),
@@ -53,7 +57,95 @@ sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml`,
         },
       }),
       new reusable.ReusedCommand(saveMavenJobCacheCommand, { jobName: 'job-backend-build-and-publish-artifactory' }),
+      /**
+       * In order to upload repositories, endpoints and entrypoints embedded in APIM mono-repository, we browse for all ZIP files in the project and check if they have a "publish folder path" property in pom.xml.
+       * Because we don't want to publish EVERY plugins (we don't want, apim-services or rest-api-idp-memory for instance), we only rely on this publish-folder-path maven property to determine if a ZIP has to be published or not.
+       * Each plugins is uploaded into a folder based on its name.
+       * Example:
+       *   gravitee-apim-repository-mongodb-x.x.x.zip is published into graviteeio-apim/plugins/repositories/gravitee-apim-repository-mongodb
+       *
+       *
+       */
+      new commands.Run({
+        name: 'Prepare plugin zip to upload',
+        command: `workingDir=$(pwd)
+for pathToArtefactFile in $(find . -path '*target/gravitee-apim*.zip'); do
+  # Extract folder of the artefact to publish
+  # e.g. ./gravitee-apim-repository/gravitee-apim-repository-mongodb/target/gravitee-apim-repository-mongodb-4.4.21.zip => ./gravitee-apim-repository/gravitee-apim-repository-mongodb
+  artefactFolder=\${pathToArtefactFile%/target*}
+
+  # extract publish folder from pom.xml properties, return '/' if no property found
+  publishFolderPath=/$(grep -Po '(?<=<publish-folder-path>).*(?=</publish-folder-path>)' $artefactFolder/pom.xml || echo '')
+
+  if [[ "$publishFolderPath" != "/" ]]; then
+    # extract artefact file of the artefact to publish
+    # e.g. ./gravitee-apim-repository/gravitee-apim-repository-mongodb/target/gravitee-apim-repository-mongodb-4.4.21.zip => gravitee-apim-repository-mongodb-4.4.21.zip
+    artefactFile=\${pathToArtefactFile##*/}
+
+    regex="(.*)-[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc).[0-9]+)?"
+    [[ $artefactFile =~ $regex ]]
+    artefactName=\${BASH_REMATCH[1]}
+
+    # compute the destination folder on S3 to publish the artefact
+    # e.g. gravitee-apim-repository-mongodb-4.4.21.zip => folder_to_sync/graviteeio-apim/plugins/repositories/gravitee-apim-repository-mongodb
+    artefactFolderToSync=folder_to_sync\${publishFolderPath}/\${artefactName}
+
+    mkdir -p $artefactFolderToSync
+    cp $pathToArtefactFile $artefactFolderToSync/
+
+    cd $artefactFolderToSync
+
+    md5sum $artefactFile > $artefactFile.md5
+    sha512sum $artefactFile > $artefactFile.sha512sum
+    sha1sum $artefactFile > $artefactFile.sha1
+
+    cd $workingDir
+  fi
+done`,
+      }),
+      BackendBuildAndPublishOnArtifactoryJob.buildSyncCommand(
+        'management-api',
+        `gravitee-apim-rest-api-${environment.graviteeioVersion}.zip`,
+        './gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target',
+        config.components.managementApi.publishFolderPath,
+      ),
+      BackendBuildAndPublishOnArtifactoryJob.buildSyncCommand(
+        'gateway',
+        `gravitee-apim-gateway-${environment.graviteeioVersion}.zip`,
+        './gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/gravitee-apim-gateway-standalone-distribution-zip/target',
+        config.components.gateway.publishFolderPath,
+      ),
+      new reusable.ReusedCommand(syncFolderToS3Cmd, {
+        'folder-to-sync': 'folder_to_sync',
+      }),
     ];
     return new Job(BackendBuildAndPublishOnArtifactoryJob.jobName, OpenJdkExecutor.create('large'), steps);
+  }
+
+  /**
+   * Unfortunately, because the mAPI & GW standalone zip file's names and publish folder path do not follow the same pattern, we can not use the same mechanism as for plugins.
+   * gravitee-apim-gateway-x.x.x.zip has to be published into graviteeio-apim/components/gravitee-gateway
+   * gravitee-apim-rest-api-x.x.x.zip has to be published into graviteeio-apim/components/gravitee-management-rest-api
+   *
+   * That's why we use a dedicated script
+   */
+  private static buildSyncCommand(
+    type: 'management-api' | 'gateway',
+    zipName: string,
+    pathToZipFile: string,
+    publishFolderPath: string,
+  ): Command {
+    return new commands.Run({
+      name: `Prepare ${type} component zip to upload`,
+      command: `mkdir -p folder_to_sync/${publishFolderPath}
+cp ${pathToZipFile}/${zipName} folder_to_sync/${publishFolderPath}/
+
+cd folder_to_sync/${publishFolderPath}
+
+md5sum ${zipName} > ${zipName}.md5
+sha512sum ${zipName} > ${zipName}.sha512sum
+sha1sum ${zipName} > ${zipName}.sha1
+`,
+    });
   }
 }
