@@ -62,9 +62,9 @@ paths:
           - $ref: "#/components/parameters/to"
         tags:
           - Environment Analytics
-        summary: Get response status counts for all v4 APIs from specified environment
+        summary: Get response status counts for v2 and v4 APIs from specified environment
         description: |-
-          Get v4 API analytics response status counts. Response statuses are grouped by endpoint and status code hundreds.
+          Get v2 and v4 API analytics response status counts. Response statuses are grouped by endpoint and status code hundreds.
 
         operationId: getDashboardResponseStatusCodes
         responses:

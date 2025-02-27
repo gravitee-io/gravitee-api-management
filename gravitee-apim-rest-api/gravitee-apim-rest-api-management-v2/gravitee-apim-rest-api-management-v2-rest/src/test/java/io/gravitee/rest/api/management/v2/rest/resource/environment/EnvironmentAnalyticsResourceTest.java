@@ -112,8 +112,9 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
             //Given
             var proxyApiV4 = ApiFixtures.aProxyApiV4();
             var messageApiV4 = ApiFixtures.aMessageApiV4();
+            var proxyApiV2 = ApiFixtures.aProxyApiV2();
 
-            apiQueryService.initWith(List.of(proxyApiV4, messageApiV4));
+            apiQueryService.initWith(List.of(proxyApiV4, messageApiV4, proxyApiV2));
             analyticsQueryService.responseStatusRanges =
                 ResponseStatusRanges
                     .builder()

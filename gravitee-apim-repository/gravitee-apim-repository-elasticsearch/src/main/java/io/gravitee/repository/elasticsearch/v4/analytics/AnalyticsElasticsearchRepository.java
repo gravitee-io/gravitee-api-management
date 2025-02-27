@@ -31,8 +31,7 @@ import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestRe
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsCountQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsCountResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusOverTimeAdapter;
-import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesQueryAdapter;
-import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchTopFailedApisAdapter;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
@@ -57,8 +56,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.swing.text.html.Option;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -113,13 +114,22 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         QueryContext queryContext,
         ResponseStatusQueryCriteria query
     ) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
-        return this.client.getFieldTypes(index, ENTRYPOINT_ID_FIELD)
+        var indexByVersion = Map.of(DefinitionVersion.V4, Type.V4_METRICS, DefinitionVersion.V2, Type.REQUEST);
+        String indices = Optional
+            .ofNullable(query)
+            .orElse(new ResponseStatusQueryCriteria(List.of(), null, null))
+            .versions()
+            .stream()
+            .flatMap(v -> Stream.ofNullable(indexByVersion.get(v)))
+            .map(v -> indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), v, clusters))
+            .collect(Collectors.joining(","));
+
+        return this.client.getFieldTypes(indices, ENTRYPOINT_ID_FIELD)
             .map(types -> types.stream().allMatch(KEYWORD::equals))
             .flatMap(isEntrypointIdKeyword ->
-                this.client.search(index, null, SearchResponseStatusRangesQueryAdapter.adapt(query, isEntrypointIdKeyword))
+                this.client.search(indices, null, SearchResponseStatusRangesAdapter.adaptQuery(query, isEntrypointIdKeyword))
             )
-            .map(SearchResponseStatusRangesResponseAdapter::adapt)
+            .map(SearchResponseStatusRangesAdapter::adaptResponse)
             .blockingGet();
     }
 

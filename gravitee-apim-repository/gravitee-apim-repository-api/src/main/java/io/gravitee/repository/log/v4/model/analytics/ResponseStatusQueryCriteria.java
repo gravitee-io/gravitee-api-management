@@ -15,15 +15,21 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
+import io.gravitee.definition.model.DefinitionVersion;
+import java.util.Collection;
 import java.util.List;
 import lombok.Builder;
-import lombok.Data;
 
 @Builder
-@Data
-public class ResponseStatusQueryCriteria {
+public record ResponseStatusQueryCriteria(List<String> apiIds, Long from, Long to, Collection<DefinitionVersion> versions) {
+    public ResponseStatusQueryCriteria(List<String> apiIds, Long from, Long to, Collection<DefinitionVersion> versions) {
+        this.apiIds = apiIds;
+        this.from = from;
+        this.to = to;
+        this.versions = versions == null || versions.isEmpty() ? List.of(DefinitionVersion.V4) : versions;
+    }
 
-    List<String> apiIds;
-    Long from;
-    Long to;
+    public ResponseStatusQueryCriteria(List<String> apiIds, Long from, Long to) {
+        this(apiIds, from, to, null);
+    }
 }

@@ -24,11 +24,14 @@ import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiQueryServiceInMemory;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,7 +67,7 @@ class SearchEnvironmentResponseStatusRangesUseCaseTest {
     }
 
     @Test
-    public void should_get_proper_ranges_only_for_v4_api() {
+    public void should_get_proper_ranges_only_for_all_apis() {
         apiQueryService.initWith(
             List.of(
                 ApiFixtures.aMessageApiV4().toBuilder().id("message-api-v4-id").build(),
@@ -96,7 +99,13 @@ class SearchEnvironmentResponseStatusRangesUseCaseTest {
             softAssertions
                 .assertThat(argumentCaptor.getValue())
                 .isEqualTo(
-                    AnalyticsQueryParameters.builder().from(FROM).to(TO).apiIds(List.of("message-api-v4-id", "proxy-api-v4-id")).build()
+                    AnalyticsQueryParameters
+                        .builder()
+                        .from(FROM)
+                        .to(TO)
+                        .apiIds(List.of("proxy-api-v2-id", "message-api-v4-id", "proxy-api-v4-id"))
+                        .versions(Set.of(DefinitionVersion.V2, DefinitionVersion.V4))
+                        .build()
                 );
             softAssertions
                 .assertThat(result)
@@ -139,7 +148,15 @@ class SearchEnvironmentResponseStatusRangesUseCaseTest {
         SoftAssertions.assertSoftly(softAssertions -> {
             softAssertions
                 .assertThat(argumentCaptor.getValue())
-                .isEqualTo(AnalyticsQueryParameters.builder().from(FROM).to(TO).apiIds(List.of("proper-env-proxy-api-v4-id")).build());
+                .isEqualTo(
+                    AnalyticsQueryParameters
+                        .builder()
+                        .from(FROM)
+                        .to(TO)
+                        .apiIds(List.of("proper-env-proxy-api-v4-id"))
+                        .versions(Set.of(DefinitionVersion.V4))
+                        .build()
+                );
             softAssertions
                 .assertThat(result)
                 .isPresent()
