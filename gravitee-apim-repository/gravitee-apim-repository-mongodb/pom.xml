@@ -41,6 +41,9 @@
         <mongo.version>5.1.4</mongo.version>
         <mongodb-crypt.version>1.8.0</mongodb-crypt.version>
         <jna.version>5.14.0</jna.version>
+
+        <!-- Property used by the publication job in CI-->
+        <publish-folder-path>graviteeio-apim/plugins/repositories</publish-folder-path>
     </properties>
 
     <dependencies>

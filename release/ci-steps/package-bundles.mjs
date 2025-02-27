@@ -99,35 +99,7 @@ await Promise.all(
 
 console.log(chalk.green(`\n   ${allDependencies.length} dependencies downloaded`));
 
-console.log(chalk.blue(`Step 3; Packaging - Components / Rest API`));
-const restApiComponentDir = `./dist/graviteeio-apim/components/gravitee-management-rest-api`;
-await $`rm -rf ${restApiComponentDir} && mkdir -p ${restApiComponentDir}`;
-
-await $`cp ${allDependenciesMap.get('gravitee-apim-rest-api-standalone-distribution-zip').fileName} ${restApiComponentDir}`;
-
-await within(async () => {
-  cd(`${restApiComponentDir}`);
-  await $`mv ${
-    allDependenciesMap.get('gravitee-apim-rest-api-standalone-distribution-zip').fileName
-  } gravitee-apim-rest-api-${releasingVersion}.zip`;
-  await createFileSum(`gravitee-apim-rest-api-${releasingVersion}.zip`);
-});
-
-console.log(chalk.blue(`Step 4: Packaging - Components / Gateway`));
-const gatewayComponentDir = `./dist/graviteeio-apim/components/gravitee-gateway`;
-await $`rm -rf ${gatewayComponentDir} && mkdir -p ${gatewayComponentDir}`;
-
-await $`cp ${allDependenciesMap.get('gravitee-apim-gateway-standalone-distribution-zip').fileName} ${gatewayComponentDir}`;
-
-await within(async () => {
-  cd(`${gatewayComponentDir}`);
-  await $`mv ${
-    allDependenciesMap.get('gravitee-apim-gateway-standalone-distribution-zip').fileName
-  } gravitee-apim-gateway-${releasingVersion}.zip`;
-  await createFileSum(`gravitee-apim-gateway-${releasingVersion}.zip`);
-});
-
-console.log(chalk.blue(`Step 5: Packaging - Distribution / Full`));
+console.log(chalk.blue(`Step 3: Packaging - Distribution / Full`));
 // TODO: Remove duplicated graviteeio-full-${releasingVersion} directory
 const fullDistributionDir = `./dist/graviteeio-apim/distributions/graviteeio-full-${releasingVersion}/graviteeio-full-${releasingVersion}`;
 await $`rm -rf ${fullDistributionDir} && mkdir -p ${fullDistributionDir}`;
@@ -203,24 +175,5 @@ await within(async () => {
   await createFileSum(`graviteeio-full-${releasingVersion}.zip`);
   await $`rm -rf graviteeio-full-${releasingVersion}`;
 });
-
-console.log(chalk.blue(`Step 6: Packaging - Plugins / Repositories`));
-const packagePlugins = async (pluginsDir, pluginsGroupId) => {
-  await $`rm -rf ${pluginsDir} && mkdir -p ${pluginsDir}`;
-
-  await Promise.all(
-    allDependencies
-      .filter((d) => d.groupId.startsWith(pluginsGroupId))
-      .map(async ({ fileName, artifactId }) => {
-        await $`mkdir -p  ${pluginsDir}/${artifactId} && cp ${fileName} ${pluginsDir}/${artifactId}/`;
-        await createFileSum(`${pluginsDir}/${artifactId}/${fileName}`);
-      }),
-  );
-};
-
-// Repositories
-await packagePlugins('./dist/graviteeio-apim/plugins/repositories', 'io.gravitee.apim.repository');
-await packagePlugins('./dist/graviteeio-apim/plugins/endpoints', 'io.gravitee.apim.plugin.endpoint');
-await packagePlugins('./dist/graviteeio-apim/plugins/entrypoints', 'io.gravitee.apim.plugin.entrypoint');
 
 console.log(chalk.magenta(`📦 The package is ready!`));

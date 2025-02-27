@@ -323,6 +323,67 @@ jobs:
             GIT_COMMIT: 784ff35ca
       - cmd-save-maven-job-cache:
           jobName: job-backend-build-and-publish-artifactory
+      - run:
+          name: Prepare plugin zip to upload
+          command: |-
+            workingDir=$(pwd)
+            for pathToArtefactFile in $(find . -path '*target/gravitee-apim*.zip'); do
+              # Extract folder of the artefact to publish
+              # e.g. ./gravitee-apim-repository/gravitee-apim-repository-mongodb/target/gravitee-apim-repository-mongodb-4.4.21.zip => ./gravitee-apim-repository/gravitee-apim-repository-mongodb
+              artefactFolder=${pathToArtefactFile%/target*}
+
+              # extract publish folder from pom.xml properties, return '/' if no property found
+              publishFolderPath=/$(grep -Po '(?<=<publish-folder-path>).*(?=</publish-folder-path>)' $artefactFolder/pom.xml || echo '')
+
+              if [[ "$publishFolderPath" != "/" ]]; then
+                # extract artefact file of the artefact to publish
+                # e.g. ./gravitee-apim-repository/gravitee-apim-repository-mongodb/target/gravitee-apim-repository-mongodb-4.4.21.zip => gravitee-apim-repository-mongodb-4.4.21.zip
+                artefactFile=${pathToArtefactFile##*/}
+
+                regex="(.*)-[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc).[0-9]+)?"
+                [[ $artefactFile =~ $regex ]]
+                artefactName=${BASH_REMATCH[1]}
+
+                # compute the destination folder on S3 to publish the artefact
+                # e.g. gravitee-apim-repository-mongodb-4.4.21.zip => folder_to_sync/graviteeio-apim/plugins/repositories/gravitee-apim-repository-mongodb
+                artefactFolderToSync=folder_to_sync${publishFolderPath}/${artefactName}
+
+                mkdir -p $artefactFolderToSync
+                cp $pathToArtefactFile $artefactFolderToSync/
+
+                cd $artefactFolderToSync
+
+                md5sum $artefactFile > $artefactFile.md5
+                sha512sum $artefactFile > $artefactFile.sha512sum
+                sha1sum $artefactFile > $artefactFile.sha1
+
+                cd $workingDir
+              fi
+            done
+      - run:
+          name: Prepare management-api component zip to upload
+          command: |
+            mkdir -p folder_to_sync/graviteeio-apim/components/gravitee-management-rest-api
+            cp ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target/gravitee-apim-rest-api-4.2.0.zip folder_to_sync/graviteeio-apim/components/gravitee-management-rest-api/
+
+            cd folder_to_sync/graviteeio-apim/components/gravitee-management-rest-api
+
+            md5sum gravitee-apim-rest-api-4.2.0.zip > gravitee-apim-rest-api-4.2.0.zip.md5
+            sha512sum gravitee-apim-rest-api-4.2.0.zip > gravitee-apim-rest-api-4.2.0.zip.sha512sum
+            sha1sum gravitee-apim-rest-api-4.2.0.zip > gravitee-apim-rest-api-4.2.0.zip.sha1
+      - run:
+          name: Prepare gateway component zip to upload
+          command: |
+            mkdir -p folder_to_sync/graviteeio-apim/components/gravitee-gateway
+            cp ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/gravitee-apim-gateway-standalone-distribution-zip/target/gravitee-apim-gateway-4.2.0.zip folder_to_sync/graviteeio-apim/components/gravitee-gateway/
+
+            cd folder_to_sync/graviteeio-apim/components/gravitee-gateway
+
+            md5sum gravitee-apim-gateway-4.2.0.zip > gravitee-apim-gateway-4.2.0.zip.md5
+            sha512sum gravitee-apim-gateway-4.2.0.zip > gravitee-apim-gateway-4.2.0.zip.sha512sum
+            sha1sum gravitee-apim-gateway-4.2.0.zip > gravitee-apim-gateway-4.2.0.zip.sha1
+      - cmd-sync-folder-to-s3:
+          folder-to-sync: folder_to_sync
   job-release-commit-and-prepare-next-version:
     docker:
       - image: cimg/base:stable

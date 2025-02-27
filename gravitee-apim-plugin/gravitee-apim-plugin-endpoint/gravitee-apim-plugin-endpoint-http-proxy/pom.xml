@@ -31,6 +31,11 @@
     <name>Gravitee.io APIM - Plugin - Endpoint HTTP proxy</name>
     <description>Endpoint that allows exposing HTTP SyncApi.</description>
 
+    <properties>
+        <!-- Property used by the publication job in CI-->
+        <publish-folder-path>graviteeio-apim/plugins/endpoints</publish-folder-path>
+    </properties>
+
     <dependencies>
         <!-- Gravitee dependencies -->
         <dependency>
