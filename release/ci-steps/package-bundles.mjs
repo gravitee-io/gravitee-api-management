@@ -1,79 +1,14 @@
 #!/usr/bin/env zx
 
-import xml2json from 'xml2json';
-
-console.log(chalk.magenta(`######################################`));
-console.log(chalk.magenta(`# 📦 Prepare APIM package bundles 📦 #`));
-console.log(chalk.magenta(`######################################`));
-
-console.log(chalk.blue(`Step 1: Prepare APIM distribution`));
-await within(async () => {
-  cd('../gravitee-apim-distribution');
-  // https://maven.apache.org/plugins/maven-help-plugin/effective-pom-mojo.html
-  // `help:effective-pom` allows to get the pom.xml with all the inherited properties
-  // `-Dbundle` activate the "bundle" profile (from distribution/pom.xml). This maven profile adds some EE plugins in the release.
-  await $`mvn help:effective-pom -Doutput=.effective-pom.xml -Dbundle`;
-});
-
-const pomXml = await fs.readFile(`../gravitee-apim-distribution/.effective-pom.xml`, 'utf-8');
-const jsonPom = JSON.parse(await xml2json.toJson(pomXml, {}));
+console.log(chalk.magenta(`#########################################`));
+console.log(chalk.magenta(`# 📦 Prepare APIM full distribution 📦 #`));
+console.log(chalk.magenta(`#########################################`));
 
 const releasingVersion = argv.version;
 const tmpPath = `./.tmp/${releasingVersion}`;
 
-const distributionDependencies = jsonPom.project.dependencies.dependency
-  .filter((dependency) => dependency.scope === 'runtime' && dependency.type === 'zip')
-  .map((dependency) => ({
-    ...dependency,
-  }));
-
-console.log(chalk.blue(`Step 2: Download all dependencies from artifactory`));
 await $`mkdir -p ${tmpPath}`;
 cd(tmpPath);
-
-console.log(chalk.yellow(`Dependencies:`));
-
-const allDependencies = [
-  ...distributionDependencies,
-  {
-    groupId: 'io.gravitee.apim.ui',
-    artifactId: 'gravitee-apim-console-webui',
-    version: releasingVersion,
-    type: 'zip',
-  },
-  {
-    groupId: 'io.gravitee.apim.ui',
-    artifactId: 'gravitee-apim-portal-webui',
-    version: releasingVersion,
-    type: 'zip',
-  },
-  {
-    groupId: 'io.gravitee.apim.rest.api.standalone.distribution',
-    artifactId: 'gravitee-apim-rest-api-standalone-distribution-zip',
-    version: releasingVersion,
-    type: 'zip',
-  },
-  {
-    groupId: 'io.gravitee.apim.gateway.standalone.distribution',
-    artifactId: 'gravitee-apim-gateway-standalone-distribution-zip',
-    version: releasingVersion,
-    type: 'zip',
-  },
-].map((dependency) => {
-  const fileName = `${dependency.artifactId}-${dependency.version}.${dependency.type}`;
-  console.log(chalk.yellow(` - ${dependency.artifactId}: ${dependency.version}`));
-  const path = `${dependency.groupId.replaceAll('.', '/')}/${dependency.artifactId}/${dependency.version}`;
-  return {
-    ...dependency,
-    fileName,
-    downloadUrl: `${process.env.ARTIFACTORY_REPO_URL}/${path}/${fileName}`,
-  };
-});
-const allDependenciesMap = new Map(
-  allDependencies.map((d) => {
-    return [d.artifactId, d];
-  }),
-);
 
 const createFileSum = async (file) => {
   await $`md5sum ${file} > ${file}.md5`;
@@ -81,86 +16,21 @@ const createFileSum = async (file) => {
   await $`sha1sum ${file} > ${file}.sha1`;
 };
 
-console.log(chalk.blue(`Downloading all dependencies from artifactory:`));
-await Promise.all(
-  allDependencies.map(async ({ downloadUrl }) => {
-    try {
-      await $`curl -u ${process.env.ARTIFACTORY_USERNAME}:${process.env.ARTIFACTORY_PASSWORD} -f -O ${downloadUrl}`;
-      console.log(chalk.yellow(` -  ✅ ${downloadUrl}`));
-      return Promise.resolve(downloadUrl);
-    } catch (e) {
-      console.log(chalk.red(`Failed to download ${downloadUrl}`));
-      return Promise.reject();
-    }
-  }),
-);
-
-console.log(chalk.green(`\n   ${allDependencies.length} dependencies downloaded`));
-
-console.log(chalk.blue(`Step 3: Packaging - Distribution / Full`));
-// TODO: Remove duplicated graviteeio-full-${releasingVersion} directory
+console.log(chalk.blue(`Packaging - Distribution / Full`));
 const fullDistributionDir = `./dist/graviteeio-apim/distributions/graviteeio-full-${releasingVersion}/graviteeio-full-${releasingVersion}`;
 await $`rm -rf ${fullDistributionDir} && mkdir -p ${fullDistributionDir}`;
 
 // Console
-await $`unzip -q -o ${allDependenciesMap.get('gravitee-apim-console-webui').fileName} -d ${fullDistributionDir}`;
+await $`cp ../../../gravitee-apim-console-webui/dist ${fullDistributionDir}/graviteeio-apim-console-ui-${releasingVersion}`;
 
 // Portal
-await $`unzip -q -o ${allDependenciesMap.get('gravitee-apim-portal-webui').fileName} -d ${fullDistributionDir}`;
+await $`cp ../../../gravitee-apim-portal-webui/dist ${fullDistributionDir}/graviteeio-apim-portal-ui-${releasingVersion}`;
 
 // Rest API
-await $`unzip -q -o ${restApiComponentDir}/gravitee-apim-rest-api-${releasingVersion}.zip -d ${fullDistributionDir}`;
-await $`mv ${fullDistributionDir}/gravitee-apim-rest-api-standalone-${releasingVersion} ${fullDistributionDir}/gravitee-apim-rest-api-${releasingVersion}`;
-const restApiDependenciesExclusion = [
-  // GroupIds to exclude
-  'io.gravitee.apim.ui',
-  'io.gravitee.apim.gateway.standalone.distribution',
-  'io.gravitee.apim.rest.api.standalone.distribution',
-  'com.graviteesource.reactor',
-  'com.graviteesource.reporter',
-  'io.gravitee.reporter',
-  'io.gravitee.tracer',
-  // ArtifactIds to exclude
-  'gravitee-apim-repository-bridge-http-client',
-  'gravitee-apim-repository-redis',
-  'gravitee-gateway-services-ratelimit',
-];
-
-console.log(chalk.blue(`Add plugins to Rest API`));
-await Promise.all(
-  allDependencies
-    .filter((d) => !restApiDependenciesExclusion.includes(d.artifactId) && !restApiDependenciesExclusion.includes(d.groupId))
-    .map(({ fileName }) => $`cp ${fileName} ${fullDistributionDir}/gravitee-apim-rest-api-${releasingVersion}/plugins`),
-);
+await $`cp ../../../gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ${fullDistributionDir}/graviteeio-apim-rest-api-${releasingVersion}`;
 
 // Gateway
-await $`unzip -q -o ${gatewayComponentDir}/gravitee-apim-gateway-${releasingVersion}.zip -d ${fullDistributionDir}`;
-await $`mv ${fullDistributionDir}/gravitee-apim-gateway-standalone-${releasingVersion} ${fullDistributionDir}/gravitee-apim-gateway-${releasingVersion}`;
-const gatewayDependenciesExclusion = [
-  // GroupIds to exclude
-  'io.gravitee.apim.ui',
-  'io.gravitee.apim.gateway.standalone.distribution',
-  'io.gravitee.apim.rest.api.standalone.distribution',
-  'io.gravitee.fetcher',
-  'io.gravitee.notifier',
-  // ArtifactIds to exclude
-  'gravitee-apim-repository-elasticsearch',
-  'gravitee-cockpit-connectors-ws',
-  'gravitee-apim-plugin-apiservice-dynamicproperties-http',
-];
-
-console.log(chalk.blue(`Add plugins to Gateway`));
-await Promise.all(
-  allDependencies
-    .filter((d) => !gatewayDependenciesExclusion.includes(d.artifactId) && !gatewayDependenciesExclusion.includes(d.groupId))
-    .map(async ({ fileName }) => $`cp ${fileName} ${fullDistributionDir}/gravitee-apim-gateway-${releasingVersion}/plugins`),
-);
-
-// TODO: Remove the following lines to align names of these components to match the naming convention `gravitee-*` and not `graviteeio-*`
-await $`mv ${fullDistributionDir}/gravitee-apim-console-webui-${releasingVersion} ${fullDistributionDir}/graviteeio-apim-console-ui-${releasingVersion}`;
-await $`mv ${fullDistributionDir}/gravitee-apim-portal-webui-${releasingVersion} ${fullDistributionDir}/graviteeio-apim-portal-ui-${releasingVersion}`;
-await $`mv ${fullDistributionDir}/gravitee-apim-gateway-${releasingVersion} ${fullDistributionDir}/graviteeio-apim-gateway-${releasingVersion}`;
-await $`mv ${fullDistributionDir}/gravitee-apim-rest-api-${releasingVersion} ${fullDistributionDir}/graviteeio-apim-rest-api-${releasingVersion}`;
+await $`cp ../../../gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ${fullDistributionDir}/graviteeio-apim-gateway-${releasingVersion}`;
 
 await within(async () => {
   cd(`${fullDistributionDir}`);
@@ -171,4 +41,4 @@ await within(async () => {
   await $`rm -rf graviteeio-full-${releasingVersion}`;
 });
 
-console.log(chalk.magenta(`📦 The package is ready!`));
+console.log(chalk.magenta(`📦 The full distribution ZIP is ready!`));
