@@ -26,11 +26,6 @@ parameters:
     default: /home/circleci/project/pom.xml
     description: Path to pom.xml with APIM version
 commands:
-  cmd-install-yarn:
-    steps:
-      - run:
-          name: Yarn Set Version Stable
-          command: yarn set version 4.1.1
   cmd-sync-folder-to-s3:
     parameters:
       folder-to-sync:
@@ -70,34 +65,37 @@ jobs:
             - .gravitee.settings.xml
   job-package-bundle:
     docker:
-      - image: cimg/openjdk:21.0.5-node
-    resource_class: medium
+      - image: cimg/base:stable
+    resource_class: small
     steps:
-      - keeper/env-export:
-          secret-url: keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/login
-          var-name: ARTIFACTORY_USERNAME
-      - keeper/env-export:
-          secret-url: keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/password
-          var-name: ARTIFACTORY_PASSWORD
-      - checkout
       - attach_workspace:
           at: .
       - run:
-          name: Checkout tag 4.1.0
-          command: git checkout 4.1.0
-      - cmd-install-yarn
-      - run:
-          name: Install dependencies
-          command: yarn
-          working_directory: ./release
-      - run:
-          name: Building package bundle
-          command: yarn zx --quiet --experimental ci-steps/package-bundles.mjs --version=4.1.0
-          working_directory: ./release
-          environment:
-            ARTIFACTORY_REPO_URL: https://odbxikk7vo-artifactory.services.clever-cloud.com/external-dependencies-n-gravitee-all
+          name: Building full-distribution bundle
+          command: |
+            mkdir -p ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.1.0
+            # Console
+            cp -r gravitee-apim-console-webui/dist ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.1.0/graviteeio-apim-console-ui-4.1.0
+
+            # Portal
+            cp -r gravitee-apim-portal-webui/dist ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.1.0/graviteeio-apim-portal-ui-4.1.0
+
+            # Rest API
+            cp -r gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.1.0/graviteeio-apim-rest-api-4.1.0
+
+            # Gateway
+            cp -r gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.1.0/graviteeio-apim-gateway-4.1.0
+
+            cd ./folder_to_sync/graviteeio-apim/distributions
+            zip -q -r graviteeio-full-4.1.0.zip graviteeio-full-4.1.0
+
+            md5sum graviteeio-full-4.1.0.zip > graviteeio-full-4.1.0.zip.md5
+            sha512sum graviteeio-full-4.1.0.zip > graviteeio-full-4.1.0.zip.sha512sum
+            sha1sum graviteeio-full-4.1.0.zip > graviteeio-full-4.1.0.zip.sha1
+
+            rm -rf graviteeio-full-4.1.0
       - cmd-sync-folder-to-s3:
-          folder-to-sync: ./release/.tmp/4.1.0/dist
+          folder-to-sync: folder_to_sync
 workflows:
   package_bundle:
     jobs:
@@ -113,5 +111,5 @@ workflows:
             - Setup
 orbs:
   keeper: gravitee-io/keeper@0.6.3
-  aws-s3: circleci/aws-s3@4.1.0
   aws-cli: circleci/aws-cli@5.1.2
+  aws-s3: circleci/aws-s3@4.1.0
