@@ -127,21 +127,7 @@ await within(async () => {
   await createFileSum(`gravitee-apim-gateway-${releasingVersion}.zip`);
 });
 
-console.log(chalk.blue(`Step 5: Packaging - Components / Console`));
-const consoleComponentDir = `./dist/graviteeio-apim/components/gravitee-management-webui`;
-await $`rm -rf ${consoleComponentDir} && mkdir -p ${consoleComponentDir}`;
-
-await $`cp ${allDependenciesMap.get('gravitee-apim-console-webui').fileName} ${consoleComponentDir}/`;
-await createFileSum(`${consoleComponentDir}/${allDependenciesMap.get('gravitee-apim-console-webui').fileName}`);
-
-console.log(chalk.blue(`Step 6: Packaging - Components / Portal`));
-const portalComponentDir = `./dist/graviteeio-apim/components/gravitee-portal-webui`;
-await $`rm -rf ${portalComponentDir} && mkdir -p ${portalComponentDir}`;
-
-await $`cp ${allDependenciesMap.get('gravitee-apim-portal-webui').fileName} ${portalComponentDir}/`;
-await createFileSum(`${portalComponentDir}/${allDependenciesMap.get('gravitee-apim-portal-webui').fileName}`);
-
-console.log(chalk.blue(`Step 7: Packaging - Distribution / Full`));
+console.log(chalk.blue(`Step 5: Packaging - Distribution / Full`));
 // TODO: Remove duplicated graviteeio-full-${releasingVersion} directory
 const fullDistributionDir = `./dist/graviteeio-apim/distributions/graviteeio-full-${releasingVersion}/graviteeio-full-${releasingVersion}`;
 await $`rm -rf ${fullDistributionDir} && mkdir -p ${fullDistributionDir}`;
@@ -218,7 +204,7 @@ await within(async () => {
   await $`rm -rf graviteeio-full-${releasingVersion}`;
 });
 
-console.log(chalk.blue(`Step 8: Packaging - Plugins / Repositories`));
+console.log(chalk.blue(`Step 6: Packaging - Plugins / Repositories`));
 const packagePlugins = async (pluginsDir, pluginsGroupId) => {
   await $`rm -rf ${pluginsDir} && mkdir -p ${pluginsDir}`;
 
