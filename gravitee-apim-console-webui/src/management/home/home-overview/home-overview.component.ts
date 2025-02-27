@@ -19,7 +19,6 @@ import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import { toNumber } from 'lodash';
 
 import { AnalyticsService } from '../../../services-ngx/analytics.service';
-import { TopApisData } from '../components/gio-top-apis-table/gio-top-apis-table.component';
 import { ApiResponseStatusData } from '../components/gio-api-response-status/gio-api-response-status.component';
 import { ApiStateData } from '../components/gio-api-state/gio-api-state.component';
 import { ApiLifecycleStateData } from '../components/gio-api-lifecycle-state/gio-api-lifecycle-state.component';
@@ -39,7 +38,6 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public loading = false;
-  public topApisV2: TopApisData;
   public topApis: AnalyticsTopApis[];
   public requestStats: v4ApisRequestStats;
   public apiResponseStatus: ApiResponseStatusData;
@@ -175,17 +173,6 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
           this.snackBarService.error('Can not get V4 Api Analytics Response Status');
         },
       });
-
-    // Top APIs v2
-    this.homeService
-      .timeRangeParams()
-      .pipe(
-        tap(() => (this.topApisV2 = undefined)),
-        switchMap((val) => this.statsService.getGroupBy({ field: 'api', interval: val.interval, from: val.from, to: val.to })),
-        tap((data) => (this.topApisV2 = data)),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe(() => this.changeDetectorRef.markForCheck());
 
     // Top APIs
     this.homeService

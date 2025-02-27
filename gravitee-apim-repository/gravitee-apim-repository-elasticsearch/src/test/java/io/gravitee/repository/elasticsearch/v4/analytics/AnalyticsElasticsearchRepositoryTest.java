@@ -196,14 +196,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 ResponseStatusQueryCriteria.builder().apiIds(List.of()).build()
             );
 
-            assertThat(result).isNotNull().get().extracting(ResponseStatusRangesAggregate::getRanges).isEqualTo(Map.of());
-        }
-
-        @Test
-        void should_response_empty_ranges_for_null_query_criteria() {
-            var result = cut.searchResponseStatusRanges(new QueryContext("org#1", "env#1"), null);
-
-            assertThat(result).isNotNull().get().extracting(ResponseStatusRangesAggregate::getRanges).isEqualTo(Map.of());
+            assertThat(result)
+                .isNotNull()
+                .get()
+                .extracting(ResponseStatusRangesAggregate::getRanges)
+                .isEqualTo(Map.of("100.0-200.0", 0L, "200.0-300.0", 0L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L));
         }
 
         private static void assertRanges(Map<String, Long> ranges, long status2xx, long status4xx) {

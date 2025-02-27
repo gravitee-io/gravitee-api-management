@@ -33,7 +33,6 @@ import { HomeOverviewComponent } from './home-overview/home-overview.component';
 import { HealthAvailabilityTimeFrameModule } from './home-api-health-check/health-availability-time-frame/health-availability-time-frame.module';
 import { GioQuickTimeRangeModule } from './components/gio-quick-time-range/gio-quick-time-range.module';
 import { GioRequestStatsModule } from './components/gio-request-stats/gio-request-stats.module';
-import { GioTopApisTableModule } from './components/gio-top-apis-table/gio-top-apis-table.module';
 import { GioApiResponseStatusModule } from './components/gio-api-response-status/gio-api-response-status.module';
 import { GioApiStateModule } from './components/gio-api-state/gio-api-state.module';
 import { GioApiLifecycleStateModule } from './components/gio-api-lifecycle-state/gio-api-lifecycle-state.module';
@@ -109,7 +108,6 @@ const homeRoutes: Route[] = [
     GioRequestStatsModule,
     HealthAvailabilityTimeFrameModule,
     GioQuickTimeRangeModule,
-    GioTopApisTableModule,
     GioApiResponseStatusModule,
     GioApiStateModule,
     GioApiLifecycleStateModule,

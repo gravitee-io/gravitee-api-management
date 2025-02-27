@@ -15,6 +15,10 @@
  */
 package io.gravitee.apim.core.analytics.use_case;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
@@ -25,7 +29,9 @@ import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,20 +47,35 @@ public class SearchEnvironmentResponseStatusRangesUseCase {
 
     public Output execute(Input input) {
         var envId = input.executionContext().getEnvironmentId();
-        var v4ApiIds = apiQueryService
+        var apiIds = apisIdsForEnv(envId);
+        var apis = apiIds.values().stream().flatMap(List::stream).toList();
+
+        log.info("Searching environment API response status ranges, found: {} v4 APIs for env: {}", apis.size(), envId);
+        return analyticsQueryService
+            .searchResponseStatusRanges(
+                input.executionContext(),
+                input.parameters().withApiIds(apis).withDefinitionVersions(apiIds.keySet())
+            )
+            .map(SearchEnvironmentResponseStatusRangesUseCase.Output::new)
+            .orElse(new SearchEnvironmentResponseStatusRangesUseCase.Output());
+    }
+
+    private Map<DefinitionVersion, List<String>> apisIdsForEnv(String envId) {
+        return apiQueryService
             .search(
-                ApiSearchCriteria.builder().environmentId(envId).definitionVersion(List.of(DefinitionVersion.V4)).build(),
+                ApiSearchCriteria
+                    .builder()
+                    .environmentId(envId)
+                    .definitionVersion(EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2))
+                    .build(),
                 null,
                 ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
             )
-            .map(Api::getId)
-            .toList();
+            .collect(groupingBy(SearchEnvironmentResponseStatusRangesUseCase::getDefinitionVersion, mapping(Api::getId, toList())));
+    }
 
-        log.info("Searching environment API response status ranges, found: {} v4 APIs for env: {}", v4ApiIds.size(), envId);
-        return analyticsQueryService
-            .searchResponseStatusRanges(input.executionContext(), input.parameters().withApiIds(v4ApiIds))
-            .map(SearchEnvironmentResponseStatusRangesUseCase.Output::new)
-            .orElse(new SearchEnvironmentResponseStatusRangesUseCase.Output());
+    private static DefinitionVersion getDefinitionVersion(Api api) {
+        return api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
     }
 
     @Builder

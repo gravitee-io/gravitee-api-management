@@ -31,6 +31,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,7 +49,13 @@ public class SearchResponseStatusRangesUseCase {
 
         validateDates(start, end);
         validateApiRequirements(input);
-        var queryParameters = AnalyticsQueryParameters.builder().apiIds(List.of(input.apiId())).from(start).to(end).build();
+        var queryParameters = AnalyticsQueryParameters
+            .builder()
+            .apiIds(List.of(input.apiId()))
+            .from(start)
+            .to(end)
+            .definitionVersions(Set.of(DefinitionVersion.V4))
+            .build();
 
         return analyticsQueryService.searchResponseStatusRanges(executionContext, queryParameters).map(Output::new).orElse(new Output());
     }

@@ -70,9 +70,6 @@ describe('HomeOverviewComponent', () => {
       req = expectResponseStatusRequest();
       expect(req.request.url).toContain('interval=120000');
 
-      req = expectTopApiRequest();
-      expect(req.request.url).toContain('interval=120000');
-
       req = expectCountApiRequest();
       expect(req.request.url).toContain('interval=120000');
 
@@ -124,7 +121,6 @@ describe('HomeOverviewComponent', () => {
       expectTopFailedAppsGetRequest();
       expectResponseStatusRequest();
       expectApiStateRequest();
-      expectTopApiRequest();
       expectCountApiRequest();
       expectCountApplicationRequest();
       expectSearchApiEventsRequest();
@@ -161,7 +157,6 @@ describe('HomeOverviewComponent', () => {
     expectApiLifecycleStateRequest();
     expectApiStateRequest();
     expectResponseStatusRequest();
-    expectTopApiRequest();
     expectCountApiRequest();
     expectCountApplicationRequest();
     expectSearchApiEventsRequest();
@@ -241,15 +236,6 @@ describe('HomeOverviewComponent', () => {
   function expectApiStateRequest(): TestRequest {
     const req = httpTestingController.expectOne((req) => {
       return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=group_by&field=state`);
-    });
-    req.flush({
-      values: {},
-    });
-    return req;
-  }
-  function expectTopApiRequest(): TestRequest {
-    const req = httpTestingController.expectOne((req) => {
-      return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=group_by&field=api`);
     });
     req.flush({
       values: {},
