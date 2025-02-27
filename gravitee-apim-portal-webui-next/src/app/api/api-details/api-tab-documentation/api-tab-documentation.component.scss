@@ -32,4 +32,17 @@
       top: 96px;
     }
   }
+<<<<<<< HEAD
+=======
+
+  &__page-content {
+    width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+
+    &__container {
+      min-width: 0;
+    }
+  }
+>>>>>>> facbcf6b2c (fix(portal-next): text overflow in API documentation)
 }
