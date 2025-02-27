@@ -118,6 +118,13 @@ done`,
       new reusable.ReusedCommand(syncFolderToS3Cmd, {
         'folder-to-sync': 'folder_to_sync',
       }),
+      new commands.workspace.Persist({
+        root: '.',
+        paths: [
+          'gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution',
+          'gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution',
+        ],
+      }),
     ];
     return new Job(BackendBuildAndPublishOnArtifactoryJob.jobName, OpenJdkExecutor.create('large'), steps);
   }

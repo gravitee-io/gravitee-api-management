@@ -14,62 +14,51 @@
  * limitations under the License.
  */
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
-import { OpenJdkNodeExecutor } from '../executors';
-import { orbs } from '../orbs';
-import { config } from '../config';
-import { keeper } from '../orbs/keeper';
-import { awsCli } from '../orbs/aws-cli';
-import { awsS3 } from '../orbs/aws-s3';
+import { BaseExecutor } from '../executors';
 import { parse } from '../utils';
-import { InstallYarnCommand } from '../commands';
-import { SyncFolderToS3Command } from '../commands/cmd-sync-folder-to-s3';
+import { SyncFolderToS3Command } from '../commands';
 
 export class PackageBundleJob {
-  private static readonly ARTIFACTORY_REPO_URL = `${config.artifactoryUrl}/external-dependencies-n-gravitee-all`;
-
   public static create(dynamicConfig: Config, graviteeioVersion: string, isDryRun: boolean) {
-    dynamicConfig.importOrb(keeper);
-    dynamicConfig.importOrb(awsS3);
-    dynamicConfig.importOrb(awsCli);
-
     const parsedGraviteeioVersion = parse(graviteeioVersion);
 
-    const installYarnCmd = InstallYarnCommand.get();
     const syncFolderToS3Cmd = SyncFolderToS3Command.get(dynamicConfig, parsedGraviteeioVersion, isDryRun);
-    dynamicConfig.addReusableCommand(installYarnCmd);
     dynamicConfig.addReusableCommand(syncFolderToS3Cmd);
 
-    return new Job('job-package-bundle', OpenJdkNodeExecutor.create(), [
-      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-        'secret-url': config.secrets.artifactoryUser,
-        'var-name': 'ARTIFACTORY_USERNAME',
-      }),
-      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-        'secret-url': config.secrets.artifactoryApiKey,
-        'var-name': 'ARTIFACTORY_PASSWORD',
-      }),
-      new commands.Checkout(),
+    const graviteeFullDistrib = `graviteeio-full-${graviteeioVersion}`;
+    const publishFolderPath = `graviteeio-apim/distributions`;
+    const zipName = `${graviteeFullDistrib}.zip`;
+    const fullDistributionDir = `./folder_to_sync/${publishFolderPath}/${graviteeFullDistrib}`;
+
+    return new Job('job-package-bundle', BaseExecutor.create('small'), [
       new commands.workspace.Attach({ at: '.' }),
       new commands.Run({
-        name: `Checkout tag ${parsedGraviteeioVersion.full}`,
-        command: `git checkout ${parsedGraviteeioVersion.full}`,
-      }),
-      new reusable.ReusedCommand(installYarnCmd),
-      new commands.Run({
-        name: 'Install dependencies',
-        command: 'yarn',
-        working_directory: './release',
-      }),
-      new commands.Run({
-        name: 'Building package bundle',
-        command: `yarn zx --quiet --experimental ci-steps/package-bundles.mjs --version=${parsedGraviteeioVersion.full}`,
-        working_directory: './release',
-        environment: {
-          ARTIFACTORY_REPO_URL: PackageBundleJob.ARTIFACTORY_REPO_URL,
-        },
+        name: 'Building full-distribution bundle',
+        command: `mkdir -p ${fullDistributionDir}
+# Console
+cp -r gravitee-apim-console-webui/dist ${fullDistributionDir}/graviteeio-apim-console-ui-${graviteeioVersion}
+
+# Portal
+cp -r gravitee-apim-portal-webui/dist ${fullDistributionDir}/graviteeio-apim-portal-ui-${graviteeioVersion}
+
+# Rest API
+cp -r gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ${fullDistributionDir}/graviteeio-apim-rest-api-${graviteeioVersion}
+
+# Gateway
+cp -r gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ${fullDistributionDir}/graviteeio-apim-gateway-${graviteeioVersion}
+
+cd ./folder_to_sync/${publishFolderPath}
+zip -q -r ${zipName} ${graviteeFullDistrib}
+
+md5sum ${zipName} > ${zipName}.md5
+sha512sum ${zipName} > ${zipName}.sha512sum
+sha1sum ${zipName} > ${zipName}.sha1
+
+rm -rf ${graviteeFullDistrib}
+`,
       }),
       new reusable.ReusedCommand(syncFolderToS3Cmd, {
-        'folder-to-sync': `./release/.tmp/${parsedGraviteeioVersion.full}/dist`,
+        'folder-to-sync': 'folder_to_sync',
       }),
     ]);
   }

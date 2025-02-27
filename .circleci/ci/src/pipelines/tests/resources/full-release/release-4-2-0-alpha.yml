@@ -391,6 +391,11 @@ jobs:
             sha1sum gravitee-apim-gateway-4.2.0-alpha.1.zip > gravitee-apim-gateway-4.2.0-alpha.1.zip.sha1
       - cmd-sync-folder-to-s3:
           folder-to-sync: folder_to_sync
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution
+            - gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
   job-release-commit-and-prepare-next-version:
     docker:
       - image: cimg/base:stable
@@ -451,34 +456,37 @@ jobs:
             git push --tags  origin 4.2.x
   job-package-bundle:
     docker:
-      - image: cimg/openjdk:21.0.5-node
-    resource_class: medium
+      - image: cimg/base:stable
+    resource_class: small
     steps:
-      - keeper/env-export:
-          secret-url: keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/login
-          var-name: ARTIFACTORY_USERNAME
-      - keeper/env-export:
-          secret-url: keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/password
-          var-name: ARTIFACTORY_PASSWORD
-      - checkout
       - attach_workspace:
           at: .
       - run:
-          name: Checkout tag 4.2.0-alpha.1
-          command: git checkout 4.2.0-alpha.1
-      - cmd-install-yarn
-      - run:
-          name: Install dependencies
-          command: yarn
-          working_directory: ./release
-      - run:
-          name: Building package bundle
-          command: yarn zx --quiet --experimental ci-steps/package-bundles.mjs --version=4.2.0-alpha.1
-          working_directory: ./release
-          environment:
-            ARTIFACTORY_REPO_URL: https://odbxikk7vo-artifactory.services.clever-cloud.com/external-dependencies-n-gravitee-all
+          name: Building full-distribution bundle
+          command: |
+            mkdir -p ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0-alpha.1
+            # Console
+            cp -r gravitee-apim-console-webui/dist ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0-alpha.1/graviteeio-apim-console-ui-4.2.0-alpha.1
+
+            # Portal
+            cp -r gravitee-apim-portal-webui/dist ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0-alpha.1/graviteeio-apim-portal-ui-4.2.0-alpha.1
+
+            # Rest API
+            cp -r gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0-alpha.1/graviteeio-apim-rest-api-4.2.0-alpha.1
+
+            # Gateway
+            cp -r gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0-alpha.1/graviteeio-apim-gateway-4.2.0-alpha.1
+
+            cd ./folder_to_sync/graviteeio-apim/distributions
+            zip -q -r graviteeio-full-4.2.0-alpha.1.zip graviteeio-full-4.2.0-alpha.1
+
+            md5sum graviteeio-full-4.2.0-alpha.1.zip > graviteeio-full-4.2.0-alpha.1.zip.md5
+            sha512sum graviteeio-full-4.2.0-alpha.1.zip > graviteeio-full-4.2.0-alpha.1.zip.sha512sum
+            sha1sum graviteeio-full-4.2.0-alpha.1.zip > graviteeio-full-4.2.0-alpha.1.zip.sha1
+
+            rm -rf graviteeio-full-4.2.0-alpha.1
       - cmd-sync-folder-to-s3:
-          folder-to-sync: ./release/.tmp/4.2.0-alpha.1/dist
+          folder-to-sync: folder_to_sync
   job-release-helm:
     docker:
       - image: cimg/node:20.11.1
