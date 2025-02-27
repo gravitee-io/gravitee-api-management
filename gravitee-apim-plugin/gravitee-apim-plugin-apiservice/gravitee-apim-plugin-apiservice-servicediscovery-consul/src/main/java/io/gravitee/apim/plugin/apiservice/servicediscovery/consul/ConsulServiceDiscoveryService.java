@@ -34,11 +34,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.env.Environment;
 
 @Slf4j
 public class ConsulServiceDiscoveryService implements ApiService {
 
     public static final String CONSUL_SERVICE_DISCOVERY_ID = "consul-service-discovery";
+    public static final String PENDING_REQUESTS_TIMEOUT_PROPERTY = "api.pending_requests_timeout";
 
     private final Map<String, Watch<ServiceEntryList>> watchers = new ConcurrentHashMap<>(1);
 
@@ -49,6 +51,8 @@ public class ConsulServiceDiscoveryService implements ApiService {
     private PluginConfigurationHelper pluginConfigurationHelper;
     private Vertx vertx;
     private EndpointManager endpointManager;
+    private Environment environment;
+    private long pendingRequestsTimeout;
 
     public ConsulServiceDiscoveryService(DeploymentContext deploymentContext) {
         this.deploymentContext = deploymentContext;
@@ -76,6 +80,8 @@ public class ConsulServiceDiscoveryService implements ApiService {
         pluginConfigurationHelper = deploymentContext.getComponent(PluginConfigurationHelper.class);
         vertx = deploymentContext.getComponent(Vertx.class);
         endpointManager = deploymentContext.getComponent(EndpointManager.class);
+        environment = deploymentContext.getComponent(Environment.class);
+        pendingRequestsTimeout = environment.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L);
 
         log.info("Starting service discovery service for api {}.", api.getName());
 
@@ -108,7 +114,7 @@ public class ConsulServiceDiscoveryService implements ApiService {
         var options = ConsulOptionsBuilder.from(configuration);
 
         Watch<ServiceEntryList> service = Watch.service(configuration.getService(), vertx.getDelegate(), options);
-        service.setHandler(event -> new ConsulEventHandler(endpointManager, group, configuration).handle(event));
+        service.setHandler(event -> new ConsulEventHandler(endpointManager, group, configuration, pendingRequestsTimeout).handle(event));
         return service.start();
     }
 }
