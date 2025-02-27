@@ -96,7 +96,7 @@ export class FullReleaseWorkflow {
       new workflow.WorkflowJob(webuiPublishArtifactoryJob, {
         context: config.jobContext,
         name: 'Publish APIM Portal to artifactory',
-        'apim-ui-project': config.dockerImages.portal.project,
+        'apim-ui-project': config.components.portal.project,
         requires: ['Build APIM Portal and publish image'],
       }),
 
@@ -109,7 +109,7 @@ export class FullReleaseWorkflow {
       new workflow.WorkflowJob(webuiPublishArtifactoryJob, {
         context: config.jobContext,
         name: 'Publish APIM Console to artifactory',
-        'apim-ui-project': config.dockerImages.console.project,
+        'apim-ui-project': config.components.console.project,
         requires: ['Build APIM Console and publish image'],
       }),
 
