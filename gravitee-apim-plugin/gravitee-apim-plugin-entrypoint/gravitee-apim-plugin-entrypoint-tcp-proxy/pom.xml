@@ -30,6 +30,11 @@
     <name>Gravitee.io APIM - Plugin - Entrypoint TCP Proxy</name>
     <description>APIs can be accessed using the TCP protocol.</description>
 
+    <properties>
+        <!-- Property used by the publication job in CI-->
+        <publish-folder-path>graviteeio-apim/plugins/entrypoints</publish-folder-path>
+    </properties>
+
     <dependencies>
         <!-- Gravitee dependencies -->
         <dependency>
