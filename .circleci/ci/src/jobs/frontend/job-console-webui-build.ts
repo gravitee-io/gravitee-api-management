@@ -41,10 +41,10 @@ export class ConsoleWebuiBuildJob {
       new commands.workspace.Attach({ at: '.' }),
       new commands.SetupRemoteDocker({ version: config.docker.version }),
       new reusable.ReusedCommand(installYarnCmd),
-      new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': `${config.dockerImages.console.project}` }),
+      new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': `${config.components.console.project}` }),
       new commands.Run({
         name: 'Update Build version',
-        command: `sed -i 's/"version": ".*"/"version": "${apimVersion}"/' ${config.dockerImages.console.project}/build.json`,
+        command: `sed -i 's/"version": ".*"/"version": "${apimVersion}"/' ${config.components.console.project}/build.json`,
       }),
       new commands.Run({
         name: 'Build',
@@ -52,7 +52,7 @@ export class ConsoleWebuiBuildJob {
         environment: {
           NODE_OPTIONS: '--max_old_space_size=4086',
         },
-        working_directory: `${config.dockerImages.console.project}`,
+        working_directory: `${config.components.console.project}`,
       }),
     ];
     if (buildDockerImage) {
@@ -61,8 +61,8 @@ export class ConsoleWebuiBuildJob {
 
       steps.push(
         new reusable.ReusedCommand(buildUiImageCommand, {
-          'docker-image-name': `${config.dockerImages.console.image}`,
-          'apim-ui-project': `${config.dockerImages.console.project}`,
+          'docker-image-name': `${config.components.console.image}`,
+          'apim-ui-project': `${config.components.console.project}`,
         }),
       );
     }
@@ -70,7 +70,7 @@ export class ConsoleWebuiBuildJob {
       new reusable.ReusedCommand(notifyOnFailureCommand),
       new commands.workspace.Persist({
         root: '.',
-        paths: [`${config.dockerImages.console.project}/dist`],
+        paths: [`${config.components.console.project}/dist`],
       }),
     );
 
