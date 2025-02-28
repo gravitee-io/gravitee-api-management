@@ -21,8 +21,8 @@ import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
 import { parse } from '../../utils';
 
-export class BackendBuildAndPublishOnArtifactoryJob {
-  private static jobName = 'job-backend-build-and-publish-artifactory';
+export class BackendBuildAndPublishOnDownloadWebsiteJob {
+  private static jobName = 'job-backend-build-and-publish-on-download-website';
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     const restoreMavenJobCacheCommand = RestoreMavenJobCacheCommand.get(environment);
@@ -40,7 +40,7 @@ export class BackendBuildAndPublishOnArtifactoryJob {
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
-      new reusable.ReusedCommand(restoreMavenJobCacheCommand, { jobName: 'job-backend-build-and-publish-artifactory' }),
+      new reusable.ReusedCommand(restoreMavenJobCacheCommand, { jobName: BackendBuildAndPublishOnDownloadWebsiteJob.jobName }),
       new commands.Run({
         name: 'Remove `-SNAPSHOT` from versions',
         command: `mvn -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
@@ -48,15 +48,15 @@ sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml`,
       }),
       new reusable.ReusedCommand(prepareGpgCommand),
       new commands.Run({
-        name: "Maven deploy to Gravitee's private Artifactory",
-        command: `mvn --settings ${config.maven.settingsFile} -B -U -P all-modules,gio-artifactory-release,gio-release,bundle-default clean deploy -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress`,
+        name: 'Maven build APIM backend',
+        command: `mvn --settings ${config.maven.settingsFile} -B -U -P all-modules,gio-release,bundle-default clean verify -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress`,
         environment: {
           BUILD_ID: environment.buildId,
           BUILD_NUMBER: environment.buildNum,
           GIT_COMMIT: environment.sha1,
         },
       }),
-      new reusable.ReusedCommand(saveMavenJobCacheCommand, { jobName: 'job-backend-build-and-publish-artifactory' }),
+      new reusable.ReusedCommand(saveMavenJobCacheCommand, { jobName: BackendBuildAndPublishOnDownloadWebsiteJob.jobName }),
       /**
        * In order to upload repositories, endpoints and entrypoints embedded in APIM mono-repository, we browse for all ZIP files in the project and check if they have a "publish folder path" property in pom.xml.
        * Because we don't want to publish EVERY plugins (we don't want, apim-services or rest-api-idp-memory for instance), we only rely on this publish-folder-path maven property to determine if a ZIP has to be published or not.
@@ -103,13 +103,13 @@ for pathToArtefactFile in $(find . -path '*target/gravitee-apim*.zip'); do
   fi
 done`,
       }),
-      BackendBuildAndPublishOnArtifactoryJob.buildSyncCommand(
+      BackendBuildAndPublishOnDownloadWebsiteJob.buildSyncCommand(
         'management-api',
         `gravitee-apim-rest-api-${environment.graviteeioVersion}.zip`,
         './gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target',
         config.components.managementApi.publishFolderPath,
       ),
-      BackendBuildAndPublishOnArtifactoryJob.buildSyncCommand(
+      BackendBuildAndPublishOnDownloadWebsiteJob.buildSyncCommand(
         'gateway',
         `gravitee-apim-gateway-${environment.graviteeioVersion}.zip`,
         './gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/gravitee-apim-gateway-standalone-distribution-zip/target',
@@ -126,7 +126,7 @@ done`,
         ],
       }),
     ];
-    return new Job(BackendBuildAndPublishOnArtifactoryJob.jobName, OpenJdkExecutor.create('large'), steps);
+    return new Job(BackendBuildAndPublishOnDownloadWebsiteJob.jobName, OpenJdkExecutor.create('large'), steps);
   }
 
   /**
