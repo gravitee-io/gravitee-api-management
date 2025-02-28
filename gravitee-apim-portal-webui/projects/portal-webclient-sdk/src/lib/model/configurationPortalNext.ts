@@ -8,6 +8,9 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { Enabled } from './enabled';
+import { ConfigurationPortalNextBanner } from './configurationPortalNextBanner';
+import { ConfigurationPortalNextCatalog } from './configurationPortalNextCatalog';
 
 
 export interface ConfigurationPortalNext { 
@@ -15,13 +18,8 @@ export interface ConfigurationPortalNext {
      * Title to display in the navigation menu
      */
     siteTitle?: string;
-    /**
-     * Title to display on the homepage banner.
-     */
-    bannerTitle?: string;
-    /**
-     * Subtitle to display on the homepage banner.
-     */
-    bannerSubtitle?: string;
+    banner?: ConfigurationPortalNextBanner;
+    access?: Enabled;
+    catalog?: ConfigurationPortalNextCatalog;
 }
 

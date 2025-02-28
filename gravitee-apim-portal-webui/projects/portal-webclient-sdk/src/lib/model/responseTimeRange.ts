@@ -8,15 +8,16 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { Enabled } from './enabled';
 
 
-export interface ConfigurationPortalApis { 
-    tilesMode?: Enabled;
-    documentationOnlyMode?: Enabled;
-    categoryMode?: Enabled;
-    promotedApiMode?: Enabled;
-    apiHeaderShowTags?: Enabled;
-    apiHeaderShowCategories?: Enabled;
+export interface ResponseTimeRange { 
+    /**
+     * Lower limit in milliseconds
+     */
+    from?: number;
+    /**
+     * Upper limit in milliseconds
+     */
+    to?: number;
 }
 
