@@ -15,23 +15,32 @@
  */
 package io.gravitee.apim.infra.crud_service.event;
 
+import com.google.common.util.concurrent.AtomicLongMap;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.infra.adapter.EventAdapter;
-import io.gravitee.rest.api.model.EventEntity;
+import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.reactivex.rxjava3.core.Flowable;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
+import java.util.concurrent.TimeUnit;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-@RequiredArgsConstructor
 @Service
 public class EventCrudServiceLegacyWrapper implements EventCrudService {
 
     private final EventService eventService;
+    private final EventRepository eventRepository;
+
+    public EventCrudServiceLegacyWrapper(EventService eventService, @Lazy EventRepository eventRepository) {
+        this.eventService = eventService;
+        this.eventRepository = eventRepository;
+    }
 
     @Override
     public Event createEvent(
@@ -57,5 +66,17 @@ public class EventCrudServiceLegacyWrapper implements EventCrudService {
     @Override
     public Event get(String organizationId, String environmentId, String eventId) {
         return EventAdapter.INSTANCE.fromEntity(eventService.findById(new ExecutionContext(organizationId, environmentId), eventId));
+    }
+
+    @Override
+    public void cleanupEvents(String environmentId, int nbEventsToKeep, Duration timeToLive) {
+        var counters = AtomicLongMap.<String>create();
+        Flowable
+            .fromStream(eventRepository.findGatewayEvents(environmentId))
+            .filter(event -> event.apiId() != null && counters.incrementAndGet(event.apiId()) > nbEventsToKeep)
+            .map(EventRepository.EventToClean::id)
+            .buffer(20)
+            .takeUntil(Flowable.timer(timeToLive.toSeconds(), TimeUnit.SECONDS))
+            .blockingForEach(eventRepository::delete);
     }
 }

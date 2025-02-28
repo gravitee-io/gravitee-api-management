@@ -13,25 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.event.crud_service;
+package io.gravitee.apim.core.event.use_case;
 
-import io.gravitee.apim.core.event.model.Event;
-import io.gravitee.rest.api.model.EventType;
+import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import java.time.Duration;
-import java.util.Map;
-import java.util.Set;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-public interface EventCrudService {
-    Event createEvent(
-        String organizationId,
-        String environmentId,
-        Set<String> environmentIds,
-        EventType eventType,
-        Object content,
-        Map<Event.EventProperties, String> properties
-    );
+@Slf4j
+@UseCase
+@RequiredArgsConstructor
+public class CleanupEventsUseCase {
 
-    Event get(String organizationId, String environmentId, String eventId);
+    private final EventCrudService eventCrudService;
 
-    void cleanupEvents(String environmentId, int nbEventsToKeep, Duration timeToLive);
+    public void execute(Input input) {
+        eventCrudService.cleanupEvents(input.environmentId(), input.nbEventsToKeep(), input.timeToLive());
+    }
+
+    public record Input(String environmentId, int nbEventsToKeep, Duration timeToLive) {}
 }

@@ -15,19 +15,26 @@
  */
 package io.gravitee.repository.mongodb.management.internal.event;
 
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.out;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
+import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -40,10 +47,26 @@ import org.springframework.data.mongodb.core.query.Update;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
+
+    public static final String BACKUP_COLLECTION = "events_history";
+    public static final String UPDATED_AT_FIELD = "updatedAt";
+    public static final String ENVIRONMENTS_FIELD = "environments";
+    public static final String ORGANIZATIONS_FIELD = "organizations";
+
+    private String backupCollection = BACKUP_COLLECTION;
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Value("${management.mongodb.prefix:}")
+    private String collectionPrefix;
+
+    @PostConstruct
+    void setup() {
+        backupCollection = collectionPrefix + BACKUP_COLLECTION;
+    }
 
     @Override
     public Page<EventMongo> search(EventCriteria criteria, Pageable pageable) {
@@ -52,7 +75,7 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         criteriaList.forEach(query::addCriteria);
 
         // set sort by updated at
-        query.with(Sort.by(Sort.Direction.DESC, "updatedAt", "_id"));
+        query.with(Sort.by(Sort.Direction.DESC, UPDATED_AT_FIELD, "_id"));
 
         long total = mongoTemplate.count(query, EventMongo.class);
 
@@ -72,10 +95,10 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         query.addCriteria(Criteria.where("id").is(event.getId()));
         Update update = new Update();
         if (event.getEnvironments() != null) {
-            update.set("environments", event.getEnvironments());
+            update.set(ENVIRONMENTS_FIELD, event.getEnvironments());
         }
         if (event.getOrganizations() != null) {
-            update.set("organizations", event.getOrganizations());
+            update.set(ORGANIZATIONS_FIELD, event.getOrganizations());
         }
         if (event.getType() != null) {
             update.set("type", event.getType());
@@ -87,7 +110,7 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
             update.set("parentId", event.getParentId());
         }
         if (event.getUpdatedAt() != null) {
-            update.set("updatedAt", event.getUpdatedAt());
+            update.set(UPDATED_AT_FIELD, event.getUpdatedAt());
         }
         if (event.getProperties() != null) {
             event.getProperties().forEach((property, value) -> update.set("properties." + property, value));
@@ -115,7 +138,7 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
                 .getProperties()
                 .forEach((k, v) -> {
                     if (v instanceof Collection) {
-                        criteriaList.add(Criteria.where("properties." + k).in((Collection) v));
+                        criteriaList.add(Criteria.where("properties." + k).in((Collection<?>) v));
                     } else {
                         criteriaList.add(Criteria.where("properties." + k).is(v));
                     }
@@ -124,11 +147,11 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
 
         // set range query
         if (criteria.getFrom() > 0 && criteria.getTo() > 0) {
-            criteriaList.add(Criteria.where("updatedAt").gte(new Date(criteria.getFrom())).lt(new Date(criteria.getTo())));
+            criteriaList.add(Criteria.where(UPDATED_AT_FIELD).gte(new Date(criteria.getFrom())).lt(new Date(criteria.getTo())));
         } else if (criteria.getFrom() > 0) {
-            criteriaList.add(Criteria.where("updatedAt").gte(new Date(criteria.getFrom())));
+            criteriaList.add(Criteria.where(UPDATED_AT_FIELD).gte(new Date(criteria.getFrom())));
         } else if (criteria.getTo() > 0) {
-            criteriaList.add(Criteria.where("updatedAt").lt(new Date(criteria.getTo())));
+            criteriaList.add(Criteria.where(UPDATED_AT_FIELD).lt(new Date(criteria.getTo())));
         }
 
         if (!isEmpty(criteria.getEnvironments()) && !isEmpty(criteria.getOrganizations())) {
@@ -145,20 +168,51 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
     private static Criteria buildOrganizationsCriteria(EventCriteria criteria) {
         return new Criteria()
             .orOperator(
-                Criteria.where("organizations").exists(false),
-                Criteria.where("organizations").isNull(),
-                Criteria.where("organizations").is(Collections.emptyList()),
-                Criteria.where("organizations").in(criteria.getOrganizations())
+                Criteria.where(ORGANIZATIONS_FIELD).exists(false),
+                Criteria.where(ORGANIZATIONS_FIELD).isNull(),
+                Criteria.where(ORGANIZATIONS_FIELD).is(Collections.emptyList()),
+                Criteria.where(ORGANIZATIONS_FIELD).in(criteria.getOrganizations())
             );
     }
 
     private static Criteria buildEnvironmentsCriteria(EventCriteria criteria) {
         return new Criteria()
             .orOperator(
-                Criteria.where("environments").exists(false),
-                Criteria.where("environments").isNull(),
-                Criteria.where("environments").is(Collections.emptyList()),
-                Criteria.where("environments").in(criteria.getEnvironments())
+                Criteria.where(ENVIRONMENTS_FIELD).exists(false),
+                Criteria.where(ENVIRONMENTS_FIELD).isNull(),
+                Criteria.where(ENVIRONMENTS_FIELD).is(Collections.emptyList()),
+                Criteria.where(ENVIRONMENTS_FIELD).in(criteria.getEnvironments())
             );
+    }
+
+    @Override
+    public Stream<EventRepository.EventToClean> findGatewayEvents(String environmentId) {
+        backupEvents();
+
+        var nonApiEventTypes = List.of(
+            "GATEWAY_STARTED",
+            "DEBUG_API",
+            "GATEWAY_STOPPED",
+            "PUBLISH_DICTIONARY",
+            "UNPUBLISH_DICTIONARY",
+            "START_DICTIONARY",
+            "STOP_DICTIONARY",
+            "PUBLISH_ORGANIZATION"
+        );
+
+        var criteria = new Criteria()
+            .andOperator(Criteria.where("type").nin(nonApiEventTypes), Criteria.where(ENVIRONMENTS_FIELD).is(environmentId));
+        var query = new Query(criteria).with(Sort.by(Sort.Direction.DESC, "createdAt"));
+        query.fields().include("_id", "properties.api_id");
+        return mongoTemplate
+            .stream(query, EventMongo.class)
+            .map(eventMongo -> new EventRepository.EventToClean(eventMongo.getId(), eventMongo.getProperties().get("api_id")));
+    }
+
+    private void backupEvents() {
+        mongoTemplate.dropCollection(backupCollection);
+        log.info("Backing up events to {}", backupCollection);
+        var agg = newAggregation(List.of(out(backupCollection)));
+        mongoTemplate.aggregate(agg, EventMongo.class, Object.class);
     }
 }

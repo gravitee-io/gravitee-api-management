@@ -36,14 +36,15 @@
 
     <modules>
         <module>gravitee-apim-rest-api-services-audit</module>
-        <module>gravitee-apim-rest-api-services-sync</module>
-        <module>gravitee-apim-rest-api-services-dynamic-properties</module>
-        <module>gravitee-apim-rest-api-services-subscriptions</module>
-        <module>gravitee-apim-rest-api-services-dictionary</module>
-        <module>gravitee-apim-rest-api-services-search-indexer</module>
-        <module>gravitee-apim-rest-api-services-v3-upgrader</module>
         <module>gravitee-apim-rest-api-services-auto-fetch</module>
+        <module>gravitee-apim-rest-api-services-dictionary</module>
+        <module>gravitee-apim-rest-api-services-dynamic-properties</module>
+        <module>gravitee-apim-rest-api-services-events</module>
+        <module>gravitee-apim-rest-api-services-sync</module>
+        <module>gravitee-apim-rest-api-services-search-indexer</module>
+        <module>gravitee-apim-rest-api-services-subscriptions</module>
         <module>gravitee-apim-rest-api-services-subscription-pre-expiration-notif</module>
+        <module>gravitee-apim-rest-api-services-v3-upgrader</module>
     </modules>
 
     <dependencies>

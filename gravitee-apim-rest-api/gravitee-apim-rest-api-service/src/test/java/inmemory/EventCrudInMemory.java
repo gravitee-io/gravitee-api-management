@@ -20,11 +20,14 @@ import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 
 public class EventCrudInMemory implements EventCrudService, InMemoryAlternative<Event> {
@@ -60,6 +63,27 @@ public class EventCrudInMemory implements EventCrudService, InMemoryAlternative<
             .filter(event -> event.getId().equals(eventId))
             .findFirst()
             .orElseThrow(() -> new EventNotFoundException(eventId));
+    }
+
+    @Override
+    public void cleanupEvents(String environmentId, int nbEventsToKeep, Duration timeToLive) {
+        String NO_REMOVE = "NO_API";
+        var byAPIs = storage
+            .stream()
+            .filter(event -> event.getEnvironments().contains(environmentId))
+            .collect(Collectors.groupingBy(event -> event.getProperties().getOrDefault(Event.EventProperties.API_ID, "NO_API")));
+        for (var entry : byAPIs.entrySet()) {
+            if (!NO_REMOVE.equals(entry.getKey())) {
+                var keep = entry
+                    .getValue()
+                    .stream()
+                    .sorted(Comparator.comparing(Event::getUpdatedAt))
+                    .limit(nbEventsToKeep)
+                    .map(Event::getId)
+                    .toList();
+                storage.removeIf(event -> keep.contains(event.getId()));
+            }
+        }
     }
 
     @Override

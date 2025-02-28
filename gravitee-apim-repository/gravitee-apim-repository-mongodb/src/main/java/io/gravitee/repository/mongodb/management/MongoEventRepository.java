@@ -24,9 +24,12 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.mongodb.management.internal.event.EventMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +39,7 @@ import org.springframework.stereotype.Component;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Component
 public class MongoEventRepository implements EventRepository {
 
@@ -160,5 +164,15 @@ public class MongoEventRepository implements EventRepository {
     public List<Event> findByOrganizationId(String organizationId) {
         List<EventMongo> eventsMongo = internalEventRepo.findByOrganizationsIn(Set.of(organizationId));
         return mapper.mapEvents(eventsMongo);
+    }
+
+    @Override
+    public Stream<EventToClean> findGatewayEvents(String environmentId) {
+        return internalEventRepo.findGatewayEvents(environmentId);
+    }
+
+    @Override
+    public void delete(Collection<String> ids) {
+        internalEventRepo.deleteAllById(ids);
     }
 }

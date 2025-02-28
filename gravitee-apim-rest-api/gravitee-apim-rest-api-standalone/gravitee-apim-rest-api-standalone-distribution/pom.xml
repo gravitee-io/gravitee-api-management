@@ -114,6 +114,20 @@
 
         <dependency>
             <groupId>io.gravitee.apim.rest.api.services</groupId>
+            <artifactId>gravitee-apim-rest-api-services-events</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.services</groupId>
             <artifactId>gravitee-apim-rest-api-services-subscription-pre-expiration-notif</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
