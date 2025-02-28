@@ -57,12 +57,13 @@ export interface Plan {
     usage_configuration?: PlanUsageConfiguration;
 }
 export namespace Plan {
-    export type SecurityEnum = 'API_KEY' | 'KEY_LESS' | 'JWT' | 'OAUTH2';
+    export type SecurityEnum = 'API_KEY' | 'KEY_LESS' | 'JWT' | 'OAUTH2' | 'MTLS';
     export const SecurityEnum = {
         APIKEY: 'API_KEY' as SecurityEnum,
         KEYLESS: 'KEY_LESS' as SecurityEnum,
         JWT: 'JWT' as SecurityEnum,
-        OAUTH2: 'OAUTH2' as SecurityEnum
+        OAUTH2: 'OAUTH2' as SecurityEnum,
+        MTLS: 'MTLS' as SecurityEnum
     };
     export type ValidationEnum = 'AUTO' | 'MANUAL';
     export const ValidationEnum = {

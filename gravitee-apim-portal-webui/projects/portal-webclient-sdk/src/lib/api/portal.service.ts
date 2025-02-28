@@ -30,6 +30,7 @@ import { Info } from '../model/models';
 import { LinksResponse } from '../model/models';
 import { Page } from '../model/models';
 import { PagesResponse } from '../model/models';
+import { PortalMenuLink } from '../model/models';
 import { ThemeResponse } from '../model/models';
 import { TicketInput } from '../model/models';
 import { TicketsResponse } from '../model/models';
@@ -101,6 +102,11 @@ export interface GetPortalIdentityProviderRequestParams {
 export interface GetPortalMediaRequestParams {
     /** Hash of media */
     mediaHash: string;
+}
+
+export interface GetPortalThemeRequestParams {
+    /** Type of theme */
+    type: 'PORTAL' | 'PORTAL_NEXT';
 }
 
 export interface GetTicketsRequestParams {
@@ -1222,15 +1228,79 @@ export class PortalService {
     }
 
     /**
-     * Get portal theme.
-     * Get portal theme. 
+     * Get the portal menu links for Portal NEXT.
+     * Get all the links to be displayed in the header of portal next only. 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getPortalTheme(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<ThemeResponse>;
-    public getPortalTheme(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<ThemeResponse>>;
-    public getPortalTheme(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<ThemeResponse>>;
-    public getPortalTheme(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public getPortalNextLinks(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<PortalMenuLink>>;
+    public getPortalNextLinks(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<PortalMenuLink>>>;
+    public getPortalNextLinks(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<PortalMenuLink>>>;
+    public getPortalNextLinks(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+
+        let headers = this.defaultHeaders;
+
+        // authentication (BasicAuth) required
+        if (this.configuration.username || this.configuration.password) {
+            headers = headers.set('Authorization', 'Basic ' + btoa(this.configuration.username + ':' + this.configuration.password));
+        }
+        // authentication (CookieAuth) required
+        if (this.configuration.apiKeys) {
+            const key: string | undefined = this.configuration.apiKeys["CookieAuth"] || this.configuration.apiKeys["Auth-Graviteeio-APIM"];
+            if (key) {
+            }
+        }
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.get<Array<PortalMenuLink>>(`${this.configuration.basePath}/portal-menu-links`,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Get portal theme.
+     * Get portal theme. 
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getPortalTheme(requestParameters: GetPortalThemeRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<ThemeResponse>;
+    public getPortalTheme(requestParameters: GetPortalThemeRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<ThemeResponse>>;
+    public getPortalTheme(requestParameters: GetPortalThemeRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<ThemeResponse>>;
+    public getPortalTheme(requestParameters: GetPortalThemeRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        const type = requestParameters.type;
+        if (type === null || type === undefined) {
+            throw new Error('Required parameter type was null or undefined when calling getPortalTheme.');
+        }
+
+        let queryParameters = new HttpParams({encoder: this.encoder});
+        if (type !== undefined && type !== null) {
+          queryParameters = this.addToHttpParams(queryParameters,
+            <any>type, 'type');
+        }
 
         let headers = this.defaultHeaders;
 
@@ -1265,6 +1335,7 @@ export class PortalService {
 
         return this.httpClient.get<ThemeResponse>(`${this.configuration.basePath}/theme`,
             {
+                params: queryParameters,
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,

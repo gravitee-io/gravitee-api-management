@@ -26,5 +26,9 @@ export interface Key {
     created_at?: Date;
     revoked_at?: Date;
     expire_at?: Date;
+    /**
+     * The MD5 hash of the API Key
+     */
+    hash?: string;
 }
 

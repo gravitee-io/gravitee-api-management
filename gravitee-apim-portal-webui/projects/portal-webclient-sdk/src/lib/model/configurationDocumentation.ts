@@ -15,5 +15,9 @@ export interface ConfigurationDocumentation {
      * URL of the main documentation.
      */
     url?: string;
+    /**
+     * Message to display when a page is not found.
+     */
+    pageNotFoundMessage?: string;
 }
 

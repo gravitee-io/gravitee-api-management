@@ -17,5 +17,6 @@ export interface ConfigurationPlanSecurity {
     oauth2?: Enabled;
     keyless?: Enabled;
     jwt?: Enabled;
+    mtls?: Enabled;
 }
 

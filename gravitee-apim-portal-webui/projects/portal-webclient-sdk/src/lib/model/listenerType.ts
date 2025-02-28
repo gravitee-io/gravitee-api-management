@@ -13,11 +13,12 @@
 /**
  * Listener of the API entrypoints.
  */
-export type ListenerType = 'HTTP' | 'TCP' | 'SUBSCRIPTION';
+export type ListenerType = 'HTTP' | 'TCP' | 'SUBSCRIPTION' | 'KAFKA';
 
 export const ListenerType = {
     HTTP: 'HTTP' as ListenerType,
     TCP: 'TCP' as ListenerType,
-    SUBSCRIPTION: 'SUBSCRIPTION' as ListenerType
+    SUBSCRIPTION: 'SUBSCRIPTION' as ListenerType,
+    KAFKA: 'KAFKA' as ListenerType
 };
 

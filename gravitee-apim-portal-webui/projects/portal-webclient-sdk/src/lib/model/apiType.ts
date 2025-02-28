@@ -8,15 +8,16 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { Enabled } from './enabled';
 
 
-export interface ConfigurationPortalApis { 
-    tilesMode?: Enabled;
-    documentationOnlyMode?: Enabled;
-    categoryMode?: Enabled;
-    promotedApiMode?: Enabled;
-    apiHeaderShowTags?: Enabled;
-    apiHeaderShowCategories?: Enabled;
-}
+/**
+ * Type of V4 APIs.
+ */
+export type ApiType = 'PROXY' | 'MESSAGE' | 'NATIVE';
+
+export const ApiType = {
+    PROXY: 'PROXY' as ApiType,
+    MESSAGE: 'MESSAGE' as ApiType,
+    NATIVE: 'NATIVE' as ApiType
+};
 
