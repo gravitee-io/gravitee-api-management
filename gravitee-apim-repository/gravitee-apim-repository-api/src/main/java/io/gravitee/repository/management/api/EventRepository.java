@@ -92,4 +92,6 @@ public interface EventRepository extends CrudRepository<Event, String> {
      * @return List of events
      */
     List<Event> findByOrganizationId(String organizationId);
+
+    void cleanupGatewayEvents(String environmentId, int keepRecordsCount);
 }
