@@ -18,8 +18,10 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.rest.api.model.UserEntity;
+import java.util.Map;
 import org.apache.lucene.document.Document;
-import org.junit.Test;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -35,5 +37,62 @@ public class UserDocumentTransformerTest {
         user.setId("user-uuid");
         Document doc = transformer.transform(user);
         assertThat(doc.get("id")).isEqualTo(user.getId());
+    }
+
+    @Nested
+    class CustomFields {
+
+        @Test
+        public void should_transform_a_user_with_custom_fields() {
+            // Given
+            var user = UserEntity
+                .builder()
+                .id("user-uuid")
+                .customFields(Map.ofEntries(Map.entry("prop1", "value1"), Map.entry("prop2", "value2")))
+                .build();
+
+            // When
+            var doc = transformer.transform(user);
+
+            // Then
+            assertThat(doc.getValues("custom")).containsExactlyInAnyOrder("value1", "value2");
+        }
+
+        @Test
+        public void should_ignore_empty_custom_fields() {
+            // Given
+            var user = UserEntity
+                .builder()
+                .id("user-uuid")
+                .customFields(Map.ofEntries(Map.entry("prop1", ""), Map.entry("prop3", "value")))
+                .build();
+
+            // When
+            var doc = transformer.transform(user);
+
+            // Then
+            assertThat(doc.getValues("custom")).containsExactlyInAnyOrder("value");
+        }
+
+        @Test
+        public void should_ignore_custom_fields_containing_base64_images() {
+            // Given
+            var user = UserEntity
+                .builder()
+                .id("user-uuid")
+                .customFields(
+                    Map.ofEntries(
+                        Map.entry("prop1", "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0A"),
+                        Map.entry("prop2", "value")
+                    )
+                )
+                .build();
+
+            // When
+            var doc = transformer.transform(user);
+
+            // Then
+            assertThat(doc.getValues("custom")).containsExactlyInAnyOrder("value");
+        }
     }
 }
