@@ -48,7 +48,7 @@ public class SearchEnvironmentTopHitsApisCountUseCase {
         var apis = getAllApisForEnv(envId);
         var apiIds = apis.keySet().stream().toList();
 
-        log.info("Searching top API hits, found: {} APIs for env: {}", apiIds.size(), envId);
+        log.debug("Searching top API hits, found: {} APIs for env: {}", apiIds.size(), envId);
 
         return analyticsQueryService
             .searchTopHitsApis(input.executionContext(), input.parameters().withApiIds(apiIds))

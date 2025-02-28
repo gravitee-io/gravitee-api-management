@@ -50,7 +50,7 @@ public class SearchEnvironmentTopAppsByRequestCountUseCase {
         var apis = getAllApisForEnv(envId);
         var apisIds = apis.keySet().stream().toList();
 
-        log.info("Searching top Apps hits with all APIs for env: {}", envId);
+        log.debug("Searching top Apps hits with all APIs for env: {}", envId);
 
         return analyticsQueryService
             .searchTopHitsApps(input.executionContext(), input.parameters().withApiIds(apisIds))

@@ -97,7 +97,7 @@ public class DictionaryRefresher implements Handler<Long> {
                 // Get a fresh version of the dictionary before updating its properties.
                 dictionary = dictionaryService.updateProperties(GraviteeContext.getExecutionContext(), dictionary.getId(), properties);
             } catch (DictionaryNotFoundException e) {
-                logger.info("Trying to update a deleted dictionary {} - nothing to do...", dictionary.getId());
+                logger.debug("Trying to update a deleted dictionary {} - nothing to do...", dictionary.getId());
             } catch (Exception ex) {
                 logger.error("Unexpected error while updating and deploying the dictionary {}", dictionary.getId(), ex);
             }

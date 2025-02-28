@@ -47,7 +47,7 @@ public class SearchEnvironmentTopFailedApisUseCase {
         var apis = getAllApisForEnv(envId);
         var apiIds = apis.keySet().stream().toList();
 
-        log.info("Searching top failed API, found: {} APIs for env: {}", apiIds.size(), envId);
+        log.debug("Searching top failed API, found: {} APIs for env: {}", apiIds.size(), envId);
 
         return analyticsQueryService
             .searchTopFailedApis(input.executionContext(), input.parameters().withApiIds(apiIds))
