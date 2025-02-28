@@ -11,6 +11,7 @@
 import { DefinitionVersion } from './definitionVersion';
 import { RatingSummary } from './ratingSummary';
 import { User } from './user';
+import { ApiType } from './apiType';
 import { ListenerType } from './listenerType';
 import { Page } from './page';
 import { ApiLinks } from './apiLinks';
@@ -38,6 +39,7 @@ export interface Api {
      * Description of the API.
      */
     description: string;
+    type?: ApiType;
     /**
      * Whether or not the API is in draft.
      */

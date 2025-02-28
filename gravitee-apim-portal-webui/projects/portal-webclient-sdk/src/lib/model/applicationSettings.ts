@@ -13,7 +13,7 @@ import { SimpleApplicationSettings } from './simpleApplicationSettings';
 import { TlsClientSettings } from './tlsClientSettings';
 
 
-export interface ApplicationSettings {
+export interface ApplicationSettings { 
     app?: SimpleApplicationSettings;
     oauth?: OAuthClientSettings;
     tls?: TlsClientSettings;
