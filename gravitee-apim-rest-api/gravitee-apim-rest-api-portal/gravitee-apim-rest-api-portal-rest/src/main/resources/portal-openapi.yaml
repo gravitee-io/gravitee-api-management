@@ -3571,11 +3571,6 @@ components:
                 description: Timestamp in ms for the connection log date upper limit. Must be superior to the timestamp provided in the 'to' parameter
                 type: integer
                 example: 1460222528644
-              applicationIds:
-                  description: Filter with list of application IDs
-                  type: array
-                  items:
-                    type: string
               planIds:
                   description: Filter with list of plan IDs
                   type: array
