@@ -3844,7 +3844,7 @@ __metadata:
     marked: "npm:12.0.2"
     marked-alert: "npm:2.1.2"
     marked-emoji: "npm:1.4.3"
-    marked-extended-tables: "npm:1.1.0"
+    marked-extended-tables: "npm:1.1.1"
     marked-gfm-heading-id: "npm:3.1.3"
     marked-highlight: "npm:2.1.1"
     ng-packagr: "npm:17.0.2"
@@ -14064,12 +14064,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked-extended-tables@npm:1.1.0":
-  version: 1.1.0
-  resolution: "marked-extended-tables@npm:1.1.0"
+"marked-extended-tables@npm:1.1.1":
+  version: 1.1.1
+  resolution: "marked-extended-tables@npm:1.1.1"
   peerDependencies:
     marked: ">=3 <16"
-  checksum: 10c0/0e14f9732f567a0c86279a9092e05e0b86c6e3807bf996449cb6aecacbcb6f1d6fd7c7b01df3cfe76e0954308142ec9e1113f44a8800d0fdeaa72b09d9cef990
+  checksum: 10c0/3361e7d61a20e43698b20f1d4f7f8a475d4f0a096a6121437ae441947e9db7f9016bdca35397ccf9f68238e424836c0296a574580202660d23b5793f1d1760f9
   languageName: node
   linkType: hard
 
