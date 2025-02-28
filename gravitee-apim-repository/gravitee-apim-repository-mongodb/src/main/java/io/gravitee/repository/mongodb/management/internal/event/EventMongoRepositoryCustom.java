@@ -16,11 +16,13 @@
 package io.gravitee.repository.mongodb.management.internal.event;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
-import java.util.List;
+import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -33,4 +35,6 @@ public interface EventMongoRepositoryCustom {
     Event patch(Event event);
 
     long deleteAllByApi(String apiId);
+
+    Stream<EventRepository.EventToClean> findGatewayEvents(String environmentId);
 }
