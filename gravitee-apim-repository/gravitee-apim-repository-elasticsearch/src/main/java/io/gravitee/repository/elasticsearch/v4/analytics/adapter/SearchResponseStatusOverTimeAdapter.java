@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
@@ -34,6 +35,7 @@ import java.util.TreeSet;
 
 public class SearchResponseStatusOverTimeAdapter {
 
+    private static final List<String> FILTERED_ENTRYPOINT_TYPES = List.of("http-post", "http-get", "http-proxy");
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public static final String AGGREGATION_BY_DATE = "by_date";
@@ -89,8 +91,17 @@ public class SearchResponseStatusOverTimeAdapter {
     }
 
     private ObjectNode query(ResponseStatusOverTimeQuery query) {
-        JsonNode apiV4 = json().set("terms", json().set("api-id", toArray(query.apiIds())));
-        JsonNode apiV2 = json().set("terms", json().set("api", toArray(query.apiIds())));
+        var apiFilter = array();
+
+        if (query.versions().contains(DefinitionVersion.V4)) {
+            var idsV4 = json().set("terms", json().set("api-id", toArray(query.apiIds())));
+            var filterV4 = json().set("bool", json().set("must", array().add(idsV4).add(entrypointFilterForQuery())));
+            apiFilter.add(filterV4);
+        }
+        if (query.versions().contains(DefinitionVersion.V2)) {
+            var filterV2 = json().set("terms", json().set("api", toArray(query.apiIds())));
+            apiFilter.add(filterV2);
+        }
 
         // we just ensure to fetch full bucket interval (a bit too)
         Instant from = query.from().minus(query.interval());
@@ -103,10 +114,14 @@ public class SearchResponseStatusOverTimeAdapter {
             .put("include_upper", true);
         JsonNode rangeFilter = json().set("range", json().set(TIME_FIELD, timestamp));
 
-        var v2orv4 = json().put("minimum_should_match", 1).set("should", array().add(apiV4).add(apiV2));
+        var v2orv4 = json().put("minimum_should_match", 1).set("should", apiFilter);
         JsonNode apiIdsFilter = json().set("bool", v2orv4);
         var bool = json().set("filter", array().add(apiIdsFilter).add(rangeFilter));
         return json().set("bool", bool);
+    }
+
+    private ObjectNode entrypointFilterForQuery() {
+        return json().set("terms", json().set("entrypoint-id", toArray(FILTERED_ENTRYPOINT_TYPES)));
     }
 
     private ObjectNode aggregations(ResponseStatusOverTimeQuery query, ElasticsearchInfo esInfo) {
