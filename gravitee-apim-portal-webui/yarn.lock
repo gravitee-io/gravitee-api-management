@@ -3841,7 +3841,7 @@ __metadata:
     jest-junit: "npm:16.0.0"
     js-yaml: "npm:4.1.0"
     license-check-and-add: "npm:4.0.3"
-    marked: "npm:12.0.0"
+    marked: "npm:12.0.2"
     marked-alert: "npm:2.1.2"
     marked-emoji: "npm:1.4.3"
     marked-extended-tables: "npm:1.1.0"
@@ -14093,12 +14093,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked@npm:12.0.0":
-  version: 12.0.0
-  resolution: "marked@npm:12.0.0"
+"marked@npm:12.0.2":
+  version: 12.0.2
+  resolution: "marked@npm:12.0.2"
   bin:
     marked: bin/marked.js
-  checksum: 10c0/485c0d2a1b59f7d305435d2d65aac477eee8e47ccd686e06c35145b7186c399fd741543f7c0bb02e67d53b3cc0341f491d967ca40a5c3aa49c6cc466e1f5d872
+  checksum: 10c0/45ae2e1e3f06b30a5b5f64efc6cde9830c81d1d024fd7668772a3217f1bc0f326e66a6b8970482d9783edf1f581fecac7023a7fa160f2c14dbcc16e064b4eafb
   languageName: node
   linkType: hard
 
