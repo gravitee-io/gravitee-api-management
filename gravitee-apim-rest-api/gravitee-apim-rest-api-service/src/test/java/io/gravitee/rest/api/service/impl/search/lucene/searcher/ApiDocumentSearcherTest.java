@@ -31,7 +31,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class ApiDocumentSearcherTest {
 
-    ApiDocumentSearcher searcher = new ApiDocumentSearcher();
+    ApiDocumentSearcher searcher = new ApiDocumentSearcher(null);
 
     @Test
     public void shouldCompleteQueryWithFilters() {
