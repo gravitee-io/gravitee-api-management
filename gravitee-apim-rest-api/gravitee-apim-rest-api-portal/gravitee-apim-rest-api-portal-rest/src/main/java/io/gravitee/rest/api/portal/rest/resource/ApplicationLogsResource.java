@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.log.ApplicationRequest;
 import io.gravitee.rest.api.model.log.ApplicationRequestItem;
+import io.gravitee.rest.api.model.log.LogMetadata;
 import io.gravitee.rest.api.model.log.SearchLogResponse;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -59,19 +60,6 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 public class ApplicationLogsResource extends AbstractResource {
-
-    private static final String UNKNOWN_SERVICE = "1";
-    private static final String UNKNOWN_SERVICE_MAPPED = "?";
-    private static final String METADATA_NAME = "name";
-    private static final String METADATA_DELETED = "deleted";
-    private static final String METADATA_UNKNOWN = "unknown";
-    private static final String METADATA_VERSION = "version";
-    private static final String METADATA_UNKNOWN_API_NAME = "Unknown API (not found)";
-    private static final String METADATA_UNKNOWN_APPLICATION_NAME = "Unknown application (keyless)";
-    private static final String METADATA_UNKNOWN_PLAN_NAME = "Unknown plan";
-    private static final String METADATA_DELETED_API_NAME = "Deleted API";
-    private static final String METADATA_DELETED_APPLICATION_NAME = "Deleted application";
-    private static final String METADATA_DELETED_PLAN_NAME = "Deleted plan";
 
     @Inject
     private LogsService logsService;
@@ -125,9 +113,10 @@ public class ApplicationLogsResource extends AbstractResource {
         searchLogsParam.validate();
 
         var executionContext = GraviteeContext.getExecutionContext();
-        Optional<Pageable> pageable = paginationParam.hasPagination()
-            ? Optional.of(new PageableImpl(paginationParam.getPage(), paginationParam.getSize()))
-            : Optional.empty();
+
+        Optional<Pageable> pageable = Optional.ofNullable(
+            paginationParam.hasPagination() ? new PageableImpl(paginationParam.getPage(), paginationParam.getSize()) : null
+        );
 
         var result = searchApplicationConnectionLogsUseCase.execute(
             new SearchApplicationConnectionLogsUseCase.Input(
@@ -139,8 +128,7 @@ public class ApplicationLogsResource extends AbstractResource {
             )
         );
 
-        var metadata = getMetadataForApplicationConnectionLog(result.data());
-        metadata.put(METADATA_DATA_KEY, Map.of(METADATA_DATA_TOTAL_KEY, result.total()));
+        var metadata = getMetadataForApplicationConnectionLog(result.data(), result.total());
 
         // No pagination, because logsService did it already
         return createListResponse(executionContext, logMapper.convert(result.data()), paginationParam, metadata, false);
@@ -209,7 +197,10 @@ public class ApplicationLogsResource extends AbstractResource {
             .build();
     }
 
-    public Map<String, Map<String, Object>> getMetadataForApplicationConnectionLog(@NotNull List<ConnectionLog> applicationConnectionLogs) {
+    public Map<String, Map<String, Object>> getMetadataForApplicationConnectionLog(
+        @NotNull List<ConnectionLog> applicationConnectionLogs,
+        Long total
+    ) {
         Map<String, Map<String, Object>> metadata = new HashMap<>();
 
         applicationConnectionLogs.forEach(applicationConnectionLog -> {
@@ -224,6 +215,9 @@ public class ApplicationLogsResource extends AbstractResource {
                 metadata.computeIfAbsent(planId, mapPlanToMetadata(planId, applicationConnectionLog.getPlan()));
             }
         });
+
+        metadata.put(METADATA_DATA_KEY, Map.of(METADATA_DATA_TOTAL_KEY, total));
+
         return metadata;
     }
 
@@ -232,19 +226,19 @@ public class ApplicationLogsResource extends AbstractResource {
             var metadata = new HashMap<String, Object>();
 
             if (isAnUnknownService(apiId)) {
-                metadata.put(METADATA_NAME, METADATA_UNKNOWN_API_NAME);
-                metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
+                metadata.put(LogMetadata.METADATA_NAME.getValue(), LogMetadata.METADATA_UNKNOWN_API_NAME.getValue());
+                metadata.put(LogMetadata.METADATA_UNKNOWN.getValue(), Boolean.TRUE.toString());
             } else if (api == null) {
-                metadata.put(METADATA_NAME, METADATA_DELETED_API_NAME);
-                metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+                metadata.put(LogMetadata.METADATA_NAME.getValue(), LogMetadata.METADATA_DELETED_API_NAME.getValue());
+                metadata.put(LogMetadata.METADATA_DELETED.getValue(), Boolean.TRUE.toString());
             } else if (isAnUnknownService(api.getId())) {
-                metadata.put(METADATA_NAME, METADATA_UNKNOWN_API_NAME);
-                metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
+                metadata.put(LogMetadata.METADATA_NAME.getValue(), LogMetadata.METADATA_UNKNOWN_API_NAME.getValue());
+                metadata.put(LogMetadata.METADATA_UNKNOWN.getValue(), Boolean.TRUE.toString());
             } else {
-                metadata.put(METADATA_NAME, api.getName());
-                metadata.put(METADATA_VERSION, api.getVersion());
+                metadata.put(LogMetadata.METADATA_NAME.getValue(), api.getName());
+                metadata.put(LogMetadata.METADATA_VERSION.getValue(), api.getVersion());
                 if (Api.ApiLifecycleState.ARCHIVED.equals(api.getApiLifecycleState())) {
-                    metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+                    metadata.put(LogMetadata.METADATA_DELETED.getValue(), Boolean.TRUE.toString());
                 }
             }
 
@@ -257,16 +251,16 @@ public class ApplicationLogsResource extends AbstractResource {
             var metadata = new HashMap<String, Object>();
 
             if (isAnUnknownService(planId)) {
-                metadata.put(METADATA_NAME, METADATA_UNKNOWN_PLAN_NAME);
-                metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
+                metadata.put(LogMetadata.METADATA_NAME.getValue(), LogMetadata.METADATA_UNKNOWN_PLAN_NAME.getValue());
+                metadata.put(LogMetadata.METADATA_UNKNOWN.getValue(), Boolean.TRUE.toString());
             } else if (plan == null) {
-                metadata.put(METADATA_NAME, METADATA_DELETED_PLAN_NAME);
-                metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+                metadata.put(LogMetadata.METADATA_NAME.getValue(), LogMetadata.METADATA_DELETED_PLAN_NAME.getValue());
+                metadata.put(LogMetadata.METADATA_DELETED.getValue(), Boolean.TRUE.toString());
             } else if (isAnUnknownService(plan.getId())) {
-                metadata.put(METADATA_NAME, METADATA_UNKNOWN_PLAN_NAME);
-                metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
+                metadata.put(LogMetadata.METADATA_NAME.getValue(), LogMetadata.METADATA_UNKNOWN_PLAN_NAME.getValue());
+                metadata.put(LogMetadata.METADATA_UNKNOWN.getValue(), Boolean.TRUE.toString());
             } else {
-                metadata.put(METADATA_NAME, plan.getName());
+                metadata.put(LogMetadata.METADATA_NAME.getValue(), plan.getName());
             }
 
             return metadata;
@@ -274,6 +268,8 @@ public class ApplicationLogsResource extends AbstractResource {
     }
 
     private static boolean isAnUnknownService(String id) {
-        return Objects.equals(id, UNKNOWN_SERVICE) || Objects.equals(id, UNKNOWN_SERVICE_MAPPED);
+        return (
+            Objects.equals(id, LogMetadata.UNKNOWN_SERVICE.getValue()) || Objects.equals(id, LogMetadata.UNKNOWN_SERVICE_MAPPED.getValue())
+        );
     }
 }
