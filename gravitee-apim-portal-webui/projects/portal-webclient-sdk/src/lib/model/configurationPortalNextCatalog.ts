@@ -8,15 +8,15 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { Enabled } from './enabled';
 
 
-export interface ConfigurationPortalApis { 
-    tilesMode?: Enabled;
-    documentationOnlyMode?: Enabled;
-    categoryMode?: Enabled;
-    promotedApiMode?: Enabled;
-    apiHeaderShowTags?: Enabled;
-    apiHeaderShowCategories?: Enabled;
+/**
+ * Configuration of the catalog for Portal Next
+ */
+export interface ConfigurationPortalNextCatalog { 
+    /**
+     * View mode used by the Catalog. If the value is invalid, the TABS view will be shown by default.
+     */
+    viewMode?: string;
 }
 

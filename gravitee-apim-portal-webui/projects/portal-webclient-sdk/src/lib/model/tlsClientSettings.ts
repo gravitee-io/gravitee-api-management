@@ -10,7 +10,7 @@
  */
 
 
-export interface TlsClientSettings {
+export interface TlsClientSettings { 
     client_certificate?: string;
 }
 

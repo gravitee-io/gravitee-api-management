@@ -20,6 +20,7 @@ import { CountAnalytics, DateHistoAnalytics, GroupByAnalytics } from '../model/m
 import { ErrorResponse } from '../model/models';
 import { Log } from '../model/models';
 import { LogsResponse } from '../model/models';
+import { SearchApplicationsLogsParams } from '../model/models';
 
 import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
 import { Configuration }                                     from '../configuration';
@@ -97,6 +98,17 @@ export interface GetApplicationLogsRequestParams {
     field?: string;
     /** Order used to sort the result list. */
     order?: 'ASC' | 'DESC';
+}
+
+export interface SearchApplicationLogsRequestParams {
+    /** Id of an application. */
+    applicationId: string;
+    /** Use to search application logs */
+    searchApplicationsLogsParams: SearchApplicationsLogsParams;
+    /** The page number for pagination. */
+    page?: number;
+    /** The number of items per page for pagination. If the size is 0, the response contains only metadata and returns the values as for a non-paged resource. If the size is -1, the response contains all datas.  */
+    size?: number;
 }
 
 
@@ -447,7 +459,7 @@ export class AnalyticsService {
 
     /**
      * Get Application logs
-     * Get the application logs.  User must have the APPLICATION_LOG[READ] permission. 
+     * Get the application logs. Deprecated: Use POST /applications/{applicationId}/logs/_search instead for more results and refined search.  User must have the APPLICATION_LOG[READ] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -530,6 +542,91 @@ export class AnalyticsService {
         }
 
         return this.httpClient.get<LogsResponse>(`${this.configuration.basePath}/applications/${encodeURIComponent(String(applicationId))}/logs`,
+            {
+                params: queryParameters,
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Search Application logs
+     * Search an application\&#39;s logs.  User must have the APPLICATION_LOG[READ] permission. 
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public searchApplicationLogs(requestParameters: SearchApplicationLogsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<LogsResponse>;
+    public searchApplicationLogs(requestParameters: SearchApplicationLogsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<LogsResponse>>;
+    public searchApplicationLogs(requestParameters: SearchApplicationLogsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<LogsResponse>>;
+    public searchApplicationLogs(requestParameters: SearchApplicationLogsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        const applicationId = requestParameters.applicationId;
+        if (applicationId === null || applicationId === undefined) {
+            throw new Error('Required parameter applicationId was null or undefined when calling searchApplicationLogs.');
+        }
+        const searchApplicationsLogsParams = requestParameters.searchApplicationsLogsParams;
+        if (searchApplicationsLogsParams === null || searchApplicationsLogsParams === undefined) {
+            throw new Error('Required parameter searchApplicationsLogsParams was null or undefined when calling searchApplicationLogs.');
+        }
+        const page = requestParameters.page;
+        const size = requestParameters.size;
+
+        let queryParameters = new HttpParams({encoder: this.encoder});
+        if (page !== undefined && page !== null) {
+          queryParameters = this.addToHttpParams(queryParameters,
+            <any>page, 'page');
+        }
+        if (size !== undefined && size !== null) {
+          queryParameters = this.addToHttpParams(queryParameters,
+            <any>size, 'size');
+        }
+
+        let headers = this.defaultHeaders;
+
+        // authentication (BasicAuth) required
+        if (this.configuration.username || this.configuration.password) {
+            headers = headers.set('Authorization', 'Basic ' + btoa(this.configuration.username + ':' + this.configuration.password));
+        }
+        // authentication (CookieAuth) required
+        if (this.configuration.apiKeys) {
+            const key: string | undefined = this.configuration.apiKeys["CookieAuth"] || this.configuration.apiKeys["Auth-Graviteeio-APIM"];
+            if (key) {
+            }
+        }
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            headers = headers.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.post<LogsResponse>(`${this.configuration.basePath}/applications/${encodeURIComponent(String(applicationId))}/logs/_search`,
+            searchApplicationsLogsParams,
             {
                 params: queryParameters,
                 responseType: <any>responseType,
