@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.query_service.audit;
+package inmemory;
 
 import io.gravitee.apim.core.audit.query_service.AuditEventQueryService;
-import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Audit;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -24,20 +23,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.reflections.Reflections;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
 
-@Service
-public class AuditEventQueryServiceImpl implements AuditEventQueryService {
+public class AuditEventQueryServiceInMemory implements AuditEventQueryService {
 
     private static final List<String> events = new ArrayList<>();
-    private final EventRepository eventRepository;
-
-    @Autowired
-    public AuditEventQueryServiceImpl(@Lazy EventRepository eventRepository) {
-        this.eventRepository = eventRepository;
-    }
 
     @Override
     public List<String> listAllApiAuditEvents() {
@@ -58,7 +47,5 @@ public class AuditEventQueryServiceImpl implements AuditEventQueryService {
     }
 
     @Override
-    public void cleanupEvents(String environmentId, int nbEventsToKeep) {
-        eventRepository.cleanupGatewayEvents(environmentId, nbEventsToKeep);
-    }
+    public void cleanupEvents(String environmentId, int nbEventsToKeep) {}
 }

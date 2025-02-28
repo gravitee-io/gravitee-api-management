@@ -13,11 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.audit.query_service;
+package io.gravitee.apim.core.audit.use_case;
 
-import java.util.List;
+import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.audit.query_service.AuditEventQueryService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-public interface AuditEventQueryService {
-    List<String> listAllApiAuditEvents();
-    void cleanupEvents(String environmentId, int nbEventsToKeep);
+@Slf4j
+@UseCase
+@RequiredArgsConstructor
+public class CleanupEventsUseCase {
+
+    private final AuditEventQueryService auditEventQueryService;
+
+    public void execute(Input input) {
+        auditEventQueryService.cleanupEvents(input.environmentId(), input.nbEventsToKeep());
+    }
+
+    public record Input(String environmentId, int nbEventsToKeep) {}
 }
