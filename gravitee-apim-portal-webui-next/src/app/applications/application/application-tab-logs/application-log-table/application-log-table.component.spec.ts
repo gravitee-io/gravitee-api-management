@@ -1157,14 +1157,14 @@ describe('ApplicationLogTableComponent', () => {
     expect(req.request.body).toEqual({
       from: fromInMilliseconds,
       to: toInMilliseconds,
-      ...(searchParams.apiIds?.length ? { apiIds: searchParams.apiIds } : {}),
-      ...(searchParams.methods?.length ? { methods: searchParams.methods } : {}),
-      ...(searchParams.requestId ? { requestIds: [searchParams.requestId] } : {}),
-      ...(searchParams.transactionId ? { transactionIds: [searchParams.transactionId] } : {}),
-      ...(searchParams.statuses?.length ? { statuses: searchParams.statuses } : {}),
-      ...(searchParams.messageText ? { messageText: searchParams.messageText } : {}),
-      ...(searchParams.path ? { path: searchParams.path } : {}),
-      ...(searchParams.responseTimeRanges?.length ? { responseTimeRanges: searchParams.responseTimeRanges } : {}),
+      apiIds: searchParams.apiIds ?? [],
+      methods: searchParams.methods ?? [],
+      requestIds: searchParams.requestId ? [searchParams.requestId] : undefined,
+      transactionIds: searchParams.transactionId ? [searchParams.transactionId] : undefined,
+      statuses: searchParams.statuses ?? [],
+      messageText: searchParams.messageText,
+      path: searchParams.path,
+      responseTimeRanges: searchParams.responseTimeRanges ?? [],
     });
 
     req.flush(logsResponse);
