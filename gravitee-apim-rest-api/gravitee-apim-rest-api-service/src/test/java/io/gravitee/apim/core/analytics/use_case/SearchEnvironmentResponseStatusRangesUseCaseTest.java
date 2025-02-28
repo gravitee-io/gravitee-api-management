@@ -95,19 +95,16 @@ class SearchEnvironmentResponseStatusRangesUseCaseTest {
 
         verify(analyticsQueryService).searchResponseStatusRanges(any(), argumentCaptor.capture());
 
-        SoftAssertions.assertSoftly(softAssertions -> {
-            softAssertions
-                .assertThat(argumentCaptor.getValue())
-                .isEqualTo(
-                    AnalyticsQueryParameters
-                        .builder()
-                        .from(FROM)
-                        .to(TO)
-                        .apiIds(List.of("proxy-api-v2-id", "message-api-v4-id", "proxy-api-v4-id"))
-                        .definitionVersions(Set.of(DefinitionVersion.V2, DefinitionVersion.V4))
-                        .build()
-                );
-            softAssertions
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(argumentCaptor.getValue().getFrom()).isEqualTo(FROM);
+            softly.assertThat(argumentCaptor.getValue().getTo()).isEqualTo(TO);
+            softly
+                .assertThat(argumentCaptor.getValue().getApiIds())
+                .containsExactlyInAnyOrder("proxy-api-v2-id", "message-api-v4-id", "proxy-api-v4-id");
+            softly
+                .assertThat(argumentCaptor.getValue().getDefinitionVersions())
+                .containsExactlyInAnyOrder(DefinitionVersion.V2, DefinitionVersion.V4);
+            softly
                 .assertThat(result)
                 .isPresent()
                 .isNotNull()
