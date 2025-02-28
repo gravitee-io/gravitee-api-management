@@ -15,13 +15,12 @@
  */
 import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
 import {
-  BackendBuildAndPublishOnArtifactoryJob,
+  BackendBuildAndPublishOnDownloadWebsiteJob,
   ConsoleWebuiBuildJob,
   PortalWebuiBuildJob,
   ReleaseCommitAndPrepareNextVersionJob,
   SetupJob,
   SlackAnnouncementJob,
-  WebuiPublishArtifactoryJob,
 } from '../jobs';
 import { CircleCIEnvironment } from '../pipelines';
 import { config } from '../config';
@@ -42,11 +41,8 @@ export class ReleaseWorkflow {
     const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, false, true);
     dynamicConfig.addJob(portalWebuiBuildJob);
 
-    const webuiPublishArtifactoryJob = WebuiPublishArtifactoryJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(webuiPublishArtifactoryJob);
-
-    const backendBuildAndPublishOnArtifactoryJob = BackendBuildAndPublishOnArtifactoryJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(backendBuildAndPublishOnArtifactoryJob);
+    const backendBuildAndPublishOnDownloadWebsiteJob = BackendBuildAndPublishOnDownloadWebsiteJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(backendBuildAndPublishOnDownloadWebsiteJob);
 
     const releaseCommitAndPrepareNextVersionJob = ReleaseCommitAndPrepareNextVersionJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(releaseCommitAndPrepareNextVersionJob);
@@ -63,33 +59,21 @@ export class ReleaseWorkflow {
       // APIM Portal
       new workflow.WorkflowJob(portalWebuiBuildJob, {
         context: config.jobContext,
-        name: 'Build APIM Portal and publish image',
+        name: 'Build APIM Portal and publish on download website',
         requires: ['Setup'],
-      }),
-      new workflow.WorkflowJob(webuiPublishArtifactoryJob, {
-        context: config.jobContext,
-        name: 'Publish APIM Portal to artifactory',
-        'apim-ui-project': config.components.portal.project,
-        requires: ['Build APIM Portal and publish image'],
       }),
 
       // APIM Console
       new workflow.WorkflowJob(consoleWebuiBuildJob, {
         context: config.jobContext,
-        name: 'Build APIM Console and publish image',
+        name: 'Build APIM Console and publish on download website',
         requires: ['Setup'],
-      }),
-      new workflow.WorkflowJob(webuiPublishArtifactoryJob, {
-        context: config.jobContext,
-        name: 'Publish APIM Console to artifactory',
-        'apim-ui-project': config.components.console.project,
-        requires: ['Build APIM Console and publish image'],
       }),
 
       // APIM Backend
-      new workflow.WorkflowJob(backendBuildAndPublishOnArtifactoryJob, {
+      new workflow.WorkflowJob(backendBuildAndPublishOnDownloadWebsiteJob, {
         context: config.jobContext,
-        name: 'Backend build and publish to artifactory',
+        name: 'Backend build and publish on download website',
         requires: ['Setup'],
       }),
 
@@ -97,7 +81,11 @@ export class ReleaseWorkflow {
       new workflow.WorkflowJob(releaseCommitAndPrepareNextVersionJob, {
         context: config.jobContext,
         name: 'Commit and prepare next version',
-        requires: ['Backend build and publish to artifactory', 'Publish APIM Console to artifactory', 'Publish APIM Portal to artifactory'],
+        requires: [
+          'Backend build and publish on download website',
+          'Build APIM Console and publish on download website',
+          'Build APIM Portal and publish on download website',
+        ],
       }),
     ]);
   }

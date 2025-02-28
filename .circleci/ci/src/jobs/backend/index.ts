@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './job-backend-build-and-publish-artifactory';
+export * from './job-backend-build-and-publish-on-download-website';
 export * from './job-build-backend';
 export * from './job-community-build-backend';
 export * from './job-nexus-staging';
