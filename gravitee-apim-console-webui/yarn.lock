@@ -5686,27 +5686,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ngx-formly/core@npm:6.3.0":
-  version: 6.3.0
-  resolution: "@ngx-formly/core@npm:6.3.0"
+"@ngx-formly/core@npm:6.3.12":
+  version: 6.3.12
+  resolution: "@ngx-formly/core@npm:6.3.12"
   dependencies:
     tslib: "npm:^2.0.0"
   peerDependencies:
     "@angular/forms": ">=13.2.0"
     rxjs: ^6.5.3 || ^7.0.0
-  checksum: 10c0/97cc6e48fe21a36bb9e27a31563b58f3af35a1d24831bec005899a03a0611129e537a9378c2efb6e3b7d722bf3ee11426de434025059befb7b5d2f72c5e57a8a
+  checksum: 10c0/c12c8aba938aa8c644e23a7b32aeca990e74603eb83246d35439b757d152d7655251b81e65ac30dbf1bf9e503afb7787e6b38fee59aeba4d93b0072cb7d32ffc
   languageName: node
   linkType: hard
 
-"@ngx-formly/material@npm:6.3.0":
-  version: 6.3.0
-  resolution: "@ngx-formly/material@npm:6.3.0"
+"@ngx-formly/material@npm:6.3.12":
+  version: 6.3.12
+  resolution: "@ngx-formly/material@npm:6.3.12"
   dependencies:
     tslib: "npm:^2.0.0"
   peerDependencies:
     "@angular/material": ">=13.0.0"
-    "@ngx-formly/core": 6.3.0
-  checksum: 10c0/6344aa2cce175342bc90796f287653a04654806de2982a65af0d03190d9b032336eb38b39595ca314589d75391b9d792adef034d6aed00c960ab15134c9a7a86
+    "@ngx-formly/core": 6.3.12
+  checksum: 10c0/569cb27b32b4ae145638d5896e25f08e67541f537e948bc2cb77b170b2436995dac6ab15d9e6c48fca369b98acb316858de3ca8b8d9cad0a063b739c038fa176
   languageName: node
   linkType: hard
 
@@ -15170,8 +15170,8 @@ __metadata:
     "@gravitee/ui-policy-studio-angular": "npm:13.9.1"
     "@gravitee/ui-schematics": "npm:13.9.1"
     "@highcharts/map-collection": "npm:1.1.4"
-    "@ngx-formly/core": "npm:6.3.0"
-    "@ngx-formly/material": "npm:6.3.0"
+    "@ngx-formly/core": "npm:6.3.12"
+    "@ngx-formly/material": "npm:6.3.12"
     "@storybook/addon-essentials": "npm:7.6.17"
     "@storybook/angular": "npm:7.6.17"
     "@toast-ui/editor": "npm:3.2.2"
