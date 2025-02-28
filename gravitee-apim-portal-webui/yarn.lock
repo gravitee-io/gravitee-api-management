@@ -3849,7 +3849,7 @@ __metadata:
     marked-highlight: "npm:2.1.1"
     ng-packagr: "npm:17.0.2"
     ngx-cookie-service: "npm:17.0.0"
-    ngx-translate-messageformat-compiler: "npm:6.5.0"
+    ngx-translate-messageformat-compiler: "npm:6.5.1"
     path: "npm:0.12.7"
     prettier: "npm:2.8.4"
     redoc: "npm:2.1.5"
@@ -14627,16 +14627,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ngx-translate-messageformat-compiler@npm:6.5.0":
-  version: 6.5.0
-  resolution: "ngx-translate-messageformat-compiler@npm:6.5.0"
+"ngx-translate-messageformat-compiler@npm:6.5.1":
+  version: 6.5.1
+  resolution: "ngx-translate-messageformat-compiler@npm:6.5.1"
   dependencies:
     tslib: "npm:^2.5.0"
   peerDependencies:
     "@angular/core": ">=13.0.0"
     "@messageformat/core": ^3.2.0
     "@ngx-translate/core": ^14.0.0 || ^15.0.0
-  checksum: 10c0/156eabb2bc59731dda55b7dd00251144fc49087da44c8f85894f11bca57272ab53f1926db1b13e6b92fcd10c3f1702a6d0148b125aa4eab331a057ab5f4155f3
+  checksum: 10c0/3f4281fbe16cef9569c80a5d16463f7e433db8fd615b9f5f6036cbea9f3f41db3204d31620bca180923a6136e8ee03a0330d92283b9a4e33f02cfab52845f79d
   languageName: node
   linkType: hard
 
