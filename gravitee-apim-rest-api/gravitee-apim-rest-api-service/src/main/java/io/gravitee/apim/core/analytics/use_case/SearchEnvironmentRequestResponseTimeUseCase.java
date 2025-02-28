@@ -50,7 +50,7 @@ public class SearchEnvironmentRequestResponseTimeUseCase {
         var v4Apis = getAllV4ApisIdsForEnv(envId);
         var apisId = v4Apis.values().stream().flatMap(Collection::stream).toList();
 
-        log.info("Searching Request Response Time, found: {} v4 APIs for env: {}", v4Apis.size(), envId);
+        log.debug("Searching Request Response Time, found: {} v4 APIs for env: {}", v4Apis.size(), envId);
 
         var requestResponseTime = analyticsQueryService.searchRequestResponseTime(
             input.executionContext(),

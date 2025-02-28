@@ -50,7 +50,7 @@ public class SearchEnvironmentResponseStatusRangesUseCase {
         var apiIds = apisIdsForEnv(envId);
         var apis = apiIds.values().stream().flatMap(List::stream).toList();
 
-        log.info("Searching environment API response status ranges, found: {} v4 APIs for env: {}", apis.size(), envId);
+        log.debug("Searching environment API response status ranges, found: {} v4 APIs for env: {}", apis.size(), envId);
         return analyticsQueryService
             .searchResponseStatusRanges(
                 input.executionContext(),
