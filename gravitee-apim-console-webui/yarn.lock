@@ -5686,27 +5686,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ngx-formly/core@npm:6.3.0":
-  version: 6.3.0
-  resolution: "@ngx-formly/core@npm:6.3.0"
+"@ngx-formly/core@npm:6.3.12":
+  version: 6.3.12
+  resolution: "@ngx-formly/core@npm:6.3.12"
   dependencies:
     tslib: "npm:^2.0.0"
   peerDependencies:
     "@angular/forms": ">=13.2.0"
     rxjs: ^6.5.3 || ^7.0.0
-  checksum: 10c0/97cc6e48fe21a36bb9e27a31563b58f3af35a1d24831bec005899a03a0611129e537a9378c2efb6e3b7d722bf3ee11426de434025059befb7b5d2f72c5e57a8a
+  checksum: 10c0/c12c8aba938aa8c644e23a7b32aeca990e74603eb83246d35439b757d152d7655251b81e65ac30dbf1bf9e503afb7787e6b38fee59aeba4d93b0072cb7d32ffc
   languageName: node
   linkType: hard
 
-"@ngx-formly/material@npm:6.3.0":
-  version: 6.3.0
-  resolution: "@ngx-formly/material@npm:6.3.0"
+"@ngx-formly/material@npm:6.3.12":
+  version: 6.3.12
+  resolution: "@ngx-formly/material@npm:6.3.12"
   dependencies:
     tslib: "npm:^2.0.0"
   peerDependencies:
     "@angular/material": ">=13.0.0"
-    "@ngx-formly/core": 6.3.0
-  checksum: 10c0/6344aa2cce175342bc90796f287653a04654806de2982a65af0d03190d9b032336eb38b39595ca314589d75391b9d792adef034d6aed00c960ab15134c9a7a86
+    "@ngx-formly/core": 6.3.12
+  checksum: 10c0/569cb27b32b4ae145638d5896e25f08e67541f537e948bc2cb77b170b2436995dac6ab15d9e6c48fca369b98acb316858de3ca8b8d9cad0a063b739c038fa176
   languageName: node
   linkType: hard
 
@@ -15170,8 +15170,8 @@ __metadata:
     "@gravitee/ui-policy-studio-angular": "npm:13.9.1"
     "@gravitee/ui-schematics": "npm:13.9.1"
     "@highcharts/map-collection": "npm:1.1.4"
-    "@ngx-formly/core": "npm:6.3.0"
-    "@ngx-formly/material": "npm:6.3.0"
+    "@ngx-formly/core": "npm:6.3.12"
+    "@ngx-formly/material": "npm:6.3.12"
     "@storybook/addon-essentials": "npm:7.6.17"
     "@storybook/angular": "npm:7.6.17"
     "@toast-ui/editor": "npm:3.2.2"
@@ -15249,12 +15249,12 @@ __metadata:
     ngclipboard: "npm:2.0.0"
     ngx-file-helpers: "npm:12.0.0"
     ngx-markdown: "npm:17.1.1"
-    oidc-client-ts: "npm:2.4.0"
+    oidc-client-ts: "npm:2.4.1"
     prettier: "npm:3.2.5"
     prismjs: "npm:1.29.0"
     react: "npm:17.0.2"
     react-dom: "npm:17.0.2"
-    rxjs: "npm:7.8.1"
+    rxjs: "npm:7.8.2"
     storybook: "npm:7.6.17"
     swagger-ui: "npm:5.19.0"
     tinycolor2: "npm:1.4.2"
@@ -19635,13 +19635,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oidc-client-ts@npm:2.4.0":
-  version: 2.4.0
-  resolution: "oidc-client-ts@npm:2.4.0"
+"oidc-client-ts@npm:2.4.1":
+  version: 2.4.1
+  resolution: "oidc-client-ts@npm:2.4.1"
   dependencies:
     crypto-js: "npm:^4.2.0"
     jwt-decode: "npm:^3.1.2"
-  checksum: 10c0/e077bc4bcc2bae3675628bb30956bbf2319e729b301cb301f8be8dda4282cf65a86db42c6cf9b84b4a1249aea5333d6ac0589435dd0f66c95c0308d579d25520
+  checksum: 10c0/230116ce254693fd1d6546c76a02efd0969455b18df8e4d01204d539ec12e5def133e04302d7a877a21eed7ab58844c2dc805b8de454079c946f7ac1b5b9f8ff
   languageName: node
   linkType: hard
 
@@ -21874,6 +21874,15 @@ __metadata:
   dependencies:
     tslib: "npm:^2.1.0"
   checksum: 10c0/3c49c1ecd66170b175c9cacf5cef67f8914dcbc7cd0162855538d365c83fea631167cacb644b3ce533b2ea0e9a4d0b12175186985f89d75abe73dbd8f7f06f68
+  languageName: node
+  linkType: hard
+
+"rxjs@npm:7.8.2":
+  version: 7.8.2
+  resolution: "rxjs@npm:7.8.2"
+  dependencies:
+    tslib: "npm:^2.1.0"
+  checksum: 10c0/1fcd33d2066ada98ba8f21fcbbcaee9f0b271de1d38dc7f4e256bfbc6ffcdde68c8bfb69093de7eeb46f24b1fb820620bf0223706cff26b4ab99a7ff7b2e2c45
   languageName: node
   linkType: hard
 
