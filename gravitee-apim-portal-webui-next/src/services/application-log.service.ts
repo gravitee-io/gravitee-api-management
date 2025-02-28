@@ -66,14 +66,14 @@ export class ApplicationLogService {
     return this.http.post<LogsResponse>(`${this.configService.baseURL}/applications/${applicationId}/logs/_search?${paginationParams}`, {
       from: params.from ?? yesterdayDate.getTime(),
       to: params.to ?? currentDate,
-      ...(params.apiIds?.length ? { apiIds: params.apiIds } : {}),
-      ...(params.methods?.length ? { methods: params.methods } : {}),
-      ...(params.requestId ? { requestIds: [params.requestId] } : {}),
-      ...(params.transactionId ? { transactionIds: [params.transactionId] } : {}),
-      ...(params.statuses?.length ? { statuses: params.statuses } : {}),
-      ...(params.messageText ? { messageText: params.messageText } : {}),
-      ...(params.path ? { path: params.path } : {}),
-      ...(params.responseTimeRanges?.length ? { responseTimeRanges: params.responseTimeRanges } : {}),
+      apiIds: params.apiIds,
+      methods: params.methods,
+      requestIds: params.requestId ? [params.requestId] : undefined,
+      transactionIds: params.transactionId ? [params.transactionId] : undefined,
+      statuses: params.statuses,
+      messageText: params.messageText,
+      path: params.path,
+      responseTimeRanges: params.responseTimeRanges,
     });
   }
 
