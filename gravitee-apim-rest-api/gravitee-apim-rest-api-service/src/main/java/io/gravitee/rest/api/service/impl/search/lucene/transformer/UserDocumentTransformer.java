@@ -144,7 +144,7 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
                 .stream()
                 .filter(Objects::nonNull)
                 .map(Object::toString)
-                .filter(Predicate.not(String::isEmpty))
+                .filter(Predicate.not(String::isEmpty).and(value -> !value.startsWith("data:")))
                 .forEach(customValue -> {
                     doc.add(new StringField(FIELD_CUSTOM, toLowerCaseAndStripAccents(customValue), Field.Store.NO));
                     doc.add(new TextField(FIELD_CUSTOM_SPLIT, toLowerCaseAndStripAccents(customValue), Field.Store.NO));
