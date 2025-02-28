@@ -541,6 +541,10 @@
       "name": {
         "label": "Application name",
         "placeholder": "Name your application"
+      },
+      "userGroups": {
+        "label": "Groups to add to application",
+        "placeholder": "Select one or more user groups"
       }
     },
     "planSubscription": {

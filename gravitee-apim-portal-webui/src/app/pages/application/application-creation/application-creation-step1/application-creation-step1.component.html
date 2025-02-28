@@ -66,6 +66,19 @@
         >
         </gv-file-upload>
       </div>
+
+      <div class="form-control application-creation-user-groups" *ngIf="!isLoading">
+        <gv-select
+          formControlName="groups"
+          name="groups"
+          multiple
+          [options]="groupsList"
+          required="requiresUserGroup"
+          label="{{ 'applicationCreation.general.userGroups.label' | translate }}"
+          placeholder="{{ 'applicationCreation.general.userGroups.placeholder' | translate }}"
+          ngDefaultControl
+        ></gv-select>
+      </div>
     </div>
   </form>
 </div>

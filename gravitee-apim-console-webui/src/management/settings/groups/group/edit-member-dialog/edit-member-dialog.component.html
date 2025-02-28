@@ -1,0 +1,78 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h2 mat-dialog-title>{{ member.displayName }}</h2>
+<mat-dialog-content>
+  <form [formGroup]="editMemberForm" class="edit-member__form">
+    <mat-form-field aria-hidden="false" aria-label="Select default API role">
+      <mat-label>Default API Role</mat-label>
+      <mat-select [disabled]="!canChangeDefaultAPIRole()" formControlName="defaultAPIRole" (selectionChange)="updateMemberships()">
+        <mat-option *ngFor="let role of defaultAPIRoles" [value]="role.name" [disabled]="isAPIRoleDisabled(role)"
+          >{{ role.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field aria-hidden="false" aria-label="Select default application role">
+      <mat-label>Default Application Role</mat-label>
+      <mat-select
+        [disabled]="!canChangeDefaultApplicationRole()"
+        formControlName="defaultApplicationRole"
+        (selectionChange)="updateMemberships()"
+      >
+        <mat-option *ngFor="let role of defaultApplicationRoles" [value]="role.name" [disabled]="role.system">{{ role.name }} </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field aria-hidden="false" aria-label="Select default integration role">
+      <mat-label>Default Integration Role</mat-label>
+      <mat-select
+        [disabled]="!canChangeDefaultIntegrationRole()"
+        formControlName="defaultIntegrationRole"
+        (selectionChange)="updateMemberships()"
+      >
+        <mat-option *ngFor="let role of defaultIntegrationRoles" [value]="role.name" [disabled]="role.system">{{ role.name }} </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" *ngIf="this.isDowngradeRole()">
+      <mat-label>Search Members</mat-label>
+      <input aria-label="Search members" matInput formControlName="searchTerm" [matAutocomplete]="auto" />
+      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectPrimaryOwner($event)">
+        <mat-option *ngFor="let member of filteredMembers | async" [value]="member">
+          {{ member.displayName }}
+        </mat-option>
+      </mat-autocomplete>
+
+      <mat-hint *ngIf="!selectedPrimaryOwner">{{ 'Please search members to transfer ownership' }}</mat-hint>
+    </mat-form-field>
+
+    <mat-list role="list" *ngIf="selectedPrimaryOwner">
+      <mat-list-item>
+        {{ selectedPrimaryOwner.displayName }}
+        <button mat-button (click)="deselectPrimaryOwner()"><mat-icon svgIcon="gio:trash"></mat-icon></button>
+      </mat-list-item>
+    </mat-list>
+
+    <mat-hint *ngIf="this.ownershipTransferMessage">{{ this.ownershipTransferMessage }}</mat-hint>
+  </form>
+
+  <mat-dialog-actions style="justify-content: flex-end">
+    <button mat-raised-button color="primary" [disabled]="disableSubmit()" (click)="save()">Save</button>
+    <button mat-raised-button mat-dialog-close>Cancel</button>
+  </mat-dialog-actions>
+</mat-dialog-content>

@@ -1,0 +1,72 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+    
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    
+            http://www.apache.org/licenses/LICENSE-2.0
+    
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h2 mat-dialog-title>Add members</h2>
+<mat-dialog-content>
+  <form [formGroup]="addMemberForm" class="add-member__form">
+    <mat-form-field aria-hidden="false" aria-label="Select default API role">
+      <mat-label>Default API Role</mat-label>
+      <mat-select [disabled]="!canChangeDefaultAPIRole()" formControlName="defaultAPIRole">
+        <mat-option *ngFor="let role of defaultAPIRoles" [value]="role.name" [disabled]="isAPIRoleDisabled(role)"
+          >{{ role.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field aria-hidden="false" aria-label="Select default application role">
+      <mat-label>Default Application Role</mat-label>
+      <mat-select [disabled]="!canChangeDefaultApplicationRole()" formControlName="defaultApplicationRole">
+        <mat-option *ngFor="let role of defaultApplicationRoles" [value]="role.name" [disabled]="role.system">{{ role.name }} </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field aria-hidden="false" aria-label="Select default integration role">
+      <mat-label>Default Integration Role</mat-label>
+      <mat-select [disabled]="!canChangeDefaultIntegrationRole()" formControlName="defaultIntegrationRole">
+        <mat-option *ngFor="let role of defaultIntegrationRoles" [value]="role.name" [disabled]="role.system">{{ role.name }} </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" *ngIf="!isAnotherMemberPrimaryOwner()">
+      <mat-label>Search Users</mat-label>
+      <input matInput formControlName="searchTerm" [matAutocomplete]="auto" />
+      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectUser($event)">
+        <mat-option *ngFor="let user of filteredUsers$ | async" [value]="user">
+          {{ user.displayName }}
+        </mat-option>
+      </mat-autocomplete>
+
+      <mat-hint *ngIf="selectedUsers.length === 0">{{ 'Please search users to add to the group' }}</mat-hint>
+    </mat-form-field>
+
+    <mat-error *ngIf="isAnotherMemberPrimaryOwner()"
+      >There is already a member with default API role as primary owner. Please select another default API role to continue. Ownership can
+      be transferred while editing the group members.
+    </mat-error>
+
+    <mat-list role="list">
+      <mat-list-item *ngFor="let user of selectedUsers">
+        {{ user.displayName }} <button mat-button (click)="deselectUser(user)"><mat-icon svgIcon="gio:trash"></mat-icon></button>
+      </mat-list-item>
+    </mat-list>
+  </form>
+
+  <mat-dialog-actions style="justify-content: flex-end">
+    <button mat-raised-button color="primary" [disabled]="isFormInvalid()" (click)="addMembers()">Add Users</button>
+    <button mat-raised-button mat-dialog-close>Cancel</button>
+  </mat-dialog-actions>
+</mat-dialog-content>
