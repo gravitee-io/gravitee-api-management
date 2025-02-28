@@ -31,6 +31,7 @@ import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
+import io.reactivex.rxjava3.core.Observable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -39,6 +40,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,8 +49,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Repository;
@@ -405,6 +407,60 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         return queryEvents(builder.toString(), args);
     }
 
+    @Override
+    public Stream<EventToClean> findGatewayEvents(String environmentId) {
+        List<String> nonApiEventTypes = List.of(
+            "GATEWAY_STARTED",
+            "DEBUG_API",
+            "GATEWAY_STOPPED",
+            "PUBLISH_DICTIONARY",
+            "UNPUBLISH_DICTIONARY",
+            "START_DICTIONARY",
+            "STOP_DICTIONARY",
+            "PUBLISH_ORGANIZATION"
+        );
+        String sql =
+            """
+                SELECT e.id as id, ep.property_value as api
+                FROM %s e left join %s ev on e.id = ev.event_id left join %s ep on ep.event_id = e.id
+                WHERE type NOT IN (?) AND ev.environment_id = ? AND ep.property_key = 'api_id'
+                ORDER BY e.updated_at DESC
+            """.formatted(
+                    tableName,
+                    EVENT_ENVIRONMENTS,
+                    EVENT_PROPERTIES
+                );
+        String inClause = String.join(",", Collections.nCopies(nonApiEventTypes.size(), "?"));
+        sql = sql.replace("(?)", "(" + inClause + ")");
+        var params = new ArrayList<Object>(nonApiEventTypes);
+        params.add(environmentId);
+
+        return jdbcTemplate.queryForStream(
+            sql,
+            (rs, rowNum) -> new EventToClean(rs.getString("id"), rs.getString("api")),
+            params.toArray()
+        );
+    }
+
+    @Override
+    public void delete(Collection<String> ids) {
+        // Delete in proper order to maintain referential integrity
+        executeBatchDelete("DELETE FROM " + EVENT_PROPERTIES + " WHERE event_id IN (?);", ids);
+        executeBatchDelete("DELETE FROM " + EVENT_ENVIRONMENTS + " WHERE event_id IN (?);", ids);
+        executeBatchDelete("DELETE FROM " + tableName + " WHERE id IN (?);", ids);
+    }
+
+    private void executeBatchDelete(String sql, Collection<String> batch) {
+        String inClause = String.join(",", Collections.nCopies(batch.size(), "?"));
+        String batchSql = sql.replace("(?)", "(" + inClause + ")");
+
+        jdbcTemplate.update(batchSql, batch.toArray());
+    }
+
+    private static List<List<String>> split(List<String> eventsToDelete) {
+        return Observable.fromIterable(eventsToDelete).buffer(1000).blockingStream().toList();
+    }
+
     private int patchEvent(Event event) {
         List<Object> args = new ArrayList<>();
         StringBuilder queryBuilder = new StringBuilder();
@@ -447,8 +503,7 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
                 PreparedStatement stmt = cnctn.prepareStatement(sql);
                 int idx = 1;
                 for (final Object arg : args) {
-                    if (arg instanceof Date) {
-                        final Date date = (Date) arg;
+                    if (arg instanceof Date date) {
                         stmt.setTimestamp(idx++, new Timestamp(date.getTime()));
                     } else {
                         stmt.setObject(idx++, arg);

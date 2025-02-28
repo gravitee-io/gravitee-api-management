@@ -19,7 +19,7 @@ import java.util.Comparator;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class AuditEventQueryServiceImplTest {
+class AuditEventQueryServiceImplTest {
 
     AuditEventQueryServiceImpl service = new AuditEventQueryServiceImpl();
 

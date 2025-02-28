@@ -98,18 +98,18 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void searchBySingleEventType() throws Exception {
+    public void searchBySingleEventType() {
         Page<Event> eventPage = eventRepository.search(
             EventCriteria.builder().from(1451606400000L).to(1470157767000L).type(EventType.START_API).build(),
             new PageableBuilder().pageNumber(0).pageSize(10).build()
         );
         assertEquals(5L, eventPage.getTotalElements());
-        Event event = eventPage.getContent().iterator().next();
+        Event event = eventPage.getContent().getFirst();
         assertEquals("event12", event.getId());
     }
 
     @Test
-    public void searchByMultipleEventType() throws Exception {
+    public void searchByMultipleEventType() {
         final EventCriteria eventCriteria = EventCriteria
             .builder()
             .from(1451606400000L)
@@ -121,28 +121,28 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertEquals(7, eventPage.getTotalElements());
         assertEquals(2, eventPage.getPageElements());
-        Event event = eventPage.getContent().iterator().next();
+        Event event = eventPage.getContent().getFirst();
         assertEquals("event14", event.getId());
 
         eventPage = eventRepository.search(eventCriteria, new PageableBuilder().pageNumber(2).pageSize(2).build());
 
         assertEquals(7, eventPage.getTotalElements());
         assertEquals(2, eventPage.getPageElements());
-        event = eventPage.getContent().iterator().next();
+        event = eventPage.getContent().getFirst();
         assertEquals("event15", event.getId());
     }
 
     @Test
-    public void searchOnlyByType() throws Exception {
+    public void searchOnlyByType() {
         List<Event> events = eventRepository.search(EventCriteria.builder().type(EventType.GATEWAY_STOPPED).build());
 
         assertEquals(1, events.size());
-        Event event = events.get(0);
+        Event event = events.getFirst();
         assertEquals("event07", event.getId());
     }
 
     @Test
-    public void searchByMissingType() throws Exception {
+    public void searchByMissingType() {
         Page<Event> eventPage = eventRepository.search(
             EventCriteria.builder().type(EventType.DEBUG_API).build(),
             new PageableBuilder().pageNumber(0).pageSize(10).build()
@@ -165,12 +165,12 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         );
 
         assertEquals(2L, eventPage.getTotalElements());
-        Event event = eventPage.getContent().iterator().next();
+        Event event = eventPage.getContent().getFirst();
         assertEquals("event02", event.getId());
     }
 
     @Test
-    public void searchByAPI_EmptyPageable() throws Exception {
+    public void searchByAPI_EmptyPageable() {
         Page<Event> eventPage = eventRepository.search(
             EventCriteria
                 .builder()
@@ -182,12 +182,12 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         );
 
         assertEquals(2L, eventPage.getTotalElements());
-        Event event = eventPage.getContent().iterator().next();
+        Event event = eventPage.getContent().getFirst();
         assertEquals("event02", event.getId());
     }
 
     @Test
-    public void searchByMixProperties() throws Exception {
+    public void searchByMixProperties() {
         Page<Event> eventPage = eventRepository.search(
             EventCriteria
                 .builder()
@@ -200,12 +200,12 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         );
 
         assertEquals(1L, eventPage.getTotalElements());
-        Event event = eventPage.getContent().iterator().next();
+        Event event = eventPage.getContent().getFirst();
         assertEquals("event04", event.getId());
     }
 
     @Test
-    public void searchByCollectionProperty() throws Exception {
+    public void searchByCollectionProperty() {
         Page<Event> eventPage = eventRepository.search(
             EventCriteria
                 .builder()
@@ -217,12 +217,12 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         );
 
         assertEquals(3L, eventPage.getTotalElements());
-        Event event = eventPage.getContent().iterator().next();
+        Event event = eventPage.getContent().getFirst();
         assertEquals("event04", event.getId());
     }
 
     @Test
-    public void searchByCollectionPropertyWithoutPaging() throws Exception {
+    public void searchByCollectionPropertyWithoutPaging() {
         List<Event> events = eventRepository.search(
             EventCriteria
                 .builder()
@@ -233,12 +233,12 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         );
 
         assertEquals(2L, events.size());
-        Event event = events.iterator().next();
+        Event event = events.getFirst();
         assertEquals("event04", event.getId());
     }
 
     @Test
-    public void searchByCollectionPropertyWithoutPagingAndBoundary() throws Exception {
+    public void searchByCollectionPropertyWithoutPagingAndBoundary() {
         List<Event> events = eventRepository.search(
             EventCriteria.builder().property(Event.EventProperties.API_ID.getValue(), Arrays.asList("api-1", "api-3")).build()
         );
@@ -402,7 +402,7 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void shouldFindEventByTypeByApiAndEnvironment() throws Exception {
+    public void shouldFindEventByTypeByApiAndEnvironment() {
         EventCriteria.EventCriteriaBuilder criteria = EventCriteria
             .builder()
             .types(List.of(EventType.PUBLISH_API, EventType.UNPUBLISH_API))

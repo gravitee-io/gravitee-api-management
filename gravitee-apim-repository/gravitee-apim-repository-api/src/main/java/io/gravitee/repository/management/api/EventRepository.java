@@ -20,7 +20,9 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Event API.
@@ -92,4 +94,10 @@ public interface EventRepository extends CrudRepository<Event, String> {
      * @return List of events
      */
     List<Event> findByOrganizationId(String organizationId);
+
+    Stream<EventToClean> findGatewayEvents(String environmentId);
+
+    void delete(Collection<String> ids);
+
+    record EventToClean(String id, String apiId) {}
 }
