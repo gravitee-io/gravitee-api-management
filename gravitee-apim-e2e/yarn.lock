@@ -2870,7 +2870,7 @@ __metadata:
     license-check-and-add: "npm:4.0.3"
     node-fetch: "npm:2.6.7"
     prettier: "npm:2.8.4"
-    rxjs: "npm:7.5.5"
+    rxjs: "npm:7.8.2"
     ts-jest: "npm:27.1.5"
     typescript: "npm:4.5.5"
     zx: "npm:7.1.1"
@@ -4984,12 +4984,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:7.5.5":
-  version: 7.5.5
-  resolution: "rxjs@npm:7.5.5"
+"rxjs@npm:7.8.2":
+  version: 7.8.2
+  resolution: "rxjs@npm:7.8.2"
   dependencies:
     tslib: "npm:^2.1.0"
-  checksum: 10c0/bc84ba51aa1fffb03a2622a406d8a5d5074a543054a60a813302e39b6d3cb485d6738c4aad567e8f2f0c58839a3c3c272a336487951b44013b99eb731a0453bf
+  checksum: 10c0/1fcd33d2066ada98ba8f21fcbbcaee9f0b271de1d38dc7f4e256bfbc6ffcdde68c8bfb69093de7eeb46f24b1fb820620bf0223706cff26b4ab99a7ff7b2e2c45
   languageName: node
   linkType: hard
 
