@@ -28,11 +28,13 @@ COPY ./dist /usr/share/nginx/html/
 COPY docker/config/config.json /usr/share/nginx/html/assets/config.json
 COPY docker/config/config-next.json /usr/share/nginx/html/next/browser/assets/config.json
 COPY docker/config/default.conf /etc/nginx/conf.d/default.conf
+COPY docker/config/default.no-ipv6.conf /etc/nginx/conf.d/default.no-ipv6.conf
 
 RUN chown -R 101:0 /usr/share/nginx/ /etc/nginx/
 
 COPY docker/config/portal-next-run.sh /portal-next-run.sh
+COPY docker/config/check_ip_config.sh /check_ip_config.sh
 
-CMD ["/bin/sh", "-c", "sh /portal-next-run.sh; sh /run.sh"]
+CMD ["/bin/sh", "-c", "sh /portal-next-run.sh; sh /check_ip_config.sh; sh /run.sh"]
 
 USER nginx
