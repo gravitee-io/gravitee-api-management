@@ -50,6 +50,7 @@ export class BuildUiImageCommand {
         name: 'Build UI docker image',
         command: `docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \\
 -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:${tag} \\
+-t graviteeio.azurecr.io/dev-<< parameters.docker-image-name >>:${tag} \\
 .`,
         working_directory: '<< parameters.apim-ui-project >>',
       }),
@@ -85,11 +86,11 @@ export class BuildUiImageCommand {
         new reusable.ReusedCommand(orbs.aquasec.commands['install_billy']),
         new reusable.ReusedCommand(orbs.aquasec.commands['pull_aqua_scanner_image']),
         new reusable.ReusedCommand(orbs.aquasec.commands['register_artifact'], {
-          artifact_to_register: `graviteeio.azurecr.io/<< parameters.docker-image-name >>:${tag}`,
+          artifact_to_register: `graviteeio.azurecr.io/dev-<< parameters.docker-image-name >>:${tag}`,
           debug: true,
         }),
         new reusable.ReusedCommand(orbs.aquasec.commands['scan_docker_image'], {
-          docker_image_to_scan: `graviteeio.azurecr.io/<< parameters.docker-image-name >>:${tag}`,
+          docker_image_to_scan: `graviteeio.azurecr.io/dev-<< parameters.docker-image-name >>:${tag}`,
           scanner_url: config.aqua.scannerUrl,
         }),
       );
