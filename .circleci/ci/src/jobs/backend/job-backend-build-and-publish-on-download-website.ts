@@ -21,8 +21,8 @@ import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
 import { parse } from '../../utils';
 
-export class BackendBuildAndPublishOnArtifactoryJob {
-  private static jobName = 'job-backend-build-and-publish-artifactory';
+export class BackendBuildAndPublishOnDownlodWebsiteJob {
+  private static jobName = 'job-backend-build-and-publish-on-download-website';
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     const restoreMavenJobCacheCommand = RestoreMavenJobCacheCommand.get(environment);
@@ -49,7 +49,7 @@ sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml`,
       new reusable.ReusedCommand(prepareGpgCommand),
       new commands.Run({
         name: "Maven deploy to Gravitee's private Artifactory",
-        command: `mvn --settings ${config.maven.settingsFile} -B -U -P all-modules,gio-artifactory-release,gio-release,bundle-default clean deploy -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress`,
+        command: `mvn --settings ${config.maven.settingsFile} -B -U -P all-modules,gio-release,bundle-default clean verify -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress`,
         environment: {
           BUILD_ID: environment.buildId,
           BUILD_NUMBER: environment.buildNum,
@@ -105,6 +105,6 @@ done`,
         ],
       }),
     ];
-    return new Job(BackendBuildAndPublishOnArtifactoryJob.jobName, OpenJdkExecutor.create('large'), steps);
+    return new Job(BackendBuildAndPublishOnDownlodWebsiteJob.jobName, OpenJdkExecutor.create('large'), steps);
   }
 }
