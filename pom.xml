@@ -130,7 +130,7 @@
         <netty-tcnative-boringssl-static.version>2.0.65.Final</netty-tcnative-boringssl-static.version>
         <nimbus-jose-jwt.version>9.40</nimbus-jose-jwt.version>
         <owasp-java-html-sanitizer.version>20240325.1</owasp-java-html-sanitizer.version>
-        <reactor-adapter.version>3.5.1</reactor-adapter.version>
+        <reactor-adapter.version>3.5.2</reactor-adapter.version>
         <reactor-core.version>3.6.7</reactor-core.version>
         <slf4j2-mock.version>2.3.0</slf4j2-mock.version>
         <snakeyaml.version>2.2</snakeyaml.version>
