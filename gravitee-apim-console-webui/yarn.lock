@@ -15249,7 +15249,7 @@ __metadata:
     ngclipboard: "npm:2.0.0"
     ngx-file-helpers: "npm:12.0.0"
     ngx-markdown: "npm:17.1.1"
-    oidc-client-ts: "npm:2.4.0"
+    oidc-client-ts: "npm:2.4.1"
     prettier: "npm:3.2.5"
     prismjs: "npm:1.29.0"
     react: "npm:17.0.2"
@@ -19635,13 +19635,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oidc-client-ts@npm:2.4.0":
-  version: 2.4.0
-  resolution: "oidc-client-ts@npm:2.4.0"
+"oidc-client-ts@npm:2.4.1":
+  version: 2.4.1
+  resolution: "oidc-client-ts@npm:2.4.1"
   dependencies:
     crypto-js: "npm:^4.2.0"
     jwt-decode: "npm:^3.1.2"
-  checksum: 10c0/e077bc4bcc2bae3675628bb30956bbf2319e729b301cb301f8be8dda4282cf65a86db42c6cf9b84b4a1249aea5333d6ac0589435dd0f66c95c0308d579d25520
+  checksum: 10c0/230116ce254693fd1d6546c76a02efd0969455b18df8e4d01204d539ec12e5def133e04302d7a877a21eed7ab58844c2dc805b8de454079c946f7ac1b5b9f8ff
   languageName: node
   linkType: hard
 
