@@ -25,6 +25,7 @@ import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.search.query.Query;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -44,6 +45,10 @@ import org.springframework.stereotype.Component;
 public class UserDocumentSearcher extends AbstractDocumentSearcher {
 
     protected static final String FIELD_TYPE_VALUE = "user";
+
+    public UserDocumentSearcher(IndexWriter indexWriter) {
+        super(indexWriter);
+    }
 
     @Override
     public SearchResult search(ExecutionContext executionContext, Query query) throws TechnicalException {

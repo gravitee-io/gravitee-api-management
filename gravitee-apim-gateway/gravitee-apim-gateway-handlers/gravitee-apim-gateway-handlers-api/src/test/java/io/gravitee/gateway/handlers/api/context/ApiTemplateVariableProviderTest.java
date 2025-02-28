@@ -113,7 +113,7 @@ class ApiTemplateVariableProviderTest {
                 assertThat(e)
                     .isInstanceOf(ExpressionEvaluationException.class)
                     .hasCauseInstanceOf(SpelEvaluationException.class)
-                    .hasStackTraceContaining("EL1007E: Property or field 'prop2' cannot be found on null");
+                    .hasStackTraceContaining("EL1012E: Cannot index into a null value");
 
                 return true;
             });

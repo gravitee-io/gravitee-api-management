@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
+import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -119,6 +120,10 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         FIELD_HAS_HEALTH_CHECK,
         FIELD_DEFINITION_VERSION,
     };
+
+    public ApiDocumentSearcher(IndexWriter indexWriter) {
+        super(indexWriter);
+    }
 
     private BooleanQuery.Builder buildApiQuery(ExecutionContext executionContext, Optional<Query> filterQuery) {
         BooleanQuery.Builder apiQuery = new BooleanQuery.Builder()

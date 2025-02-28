@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.service.impl.search.lucene.searcher.ApiDocume
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.in;
 import static org.mockito.Mockito.mock;
 
 import inmemory.ApiCrudServiceInMemory;
@@ -62,16 +63,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
@@ -79,7 +83,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
  * @author Guillaume Cusnieux (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { SearchEngineServiceTest.TestConfig.class }, loader = AnnotationConfigContextLoader.class)
 public class SearchEngineServiceTest {
 
@@ -629,7 +633,7 @@ public class SearchEngineServiceTest {
         assertThat(matches.getHits()).isZero();
     }
 
-    @Before
+    @BeforeEach
     public void initIndexer() {
         // TODO: Remove this hack and use @BeforeAll when move to junit 5.x
         if (!isIndexed) {
@@ -720,18 +724,18 @@ public class SearchEngineServiceTest {
         }
 
         @Bean
-        public ApiDocumentSearcher apiDocumentSearcher() {
-            return new ApiDocumentSearcher();
+        public ApiDocumentSearcher apiDocumentSearcher(IndexWriter indexWriter) {
+            return new ApiDocumentSearcher(indexWriter);
         }
 
         @Bean
-        public PageDocumentSearcher pageDocumentSearcher() {
-            return new PageDocumentSearcher();
+        public PageDocumentSearcher pageDocumentSearcher(IndexWriter indexWriter) {
+            return new PageDocumentSearcher(indexWriter);
         }
 
         @Bean
-        public UserDocumentSearcher userDocumentSearcher() {
-            return new UserDocumentSearcher();
+        public UserDocumentSearcher userDocumentSearcher(IndexWriter indexWriter) {
+            return new UserDocumentSearcher(indexWriter);
         }
 
         @Bean
@@ -745,8 +749,12 @@ public class SearchEngineServiceTest {
         }
 
         @Bean
-        public Collection<DocumentSearcher> searchers() {
-            return Arrays.asList(new ApiDocumentSearcher(), new PageDocumentSearcher(), new UserDocumentSearcher());
+        public Collection<DocumentSearcher> searchers(
+            ApiDocumentSearcher apiDocumentSearcher,
+            PageDocumentSearcher pageDocumentSearcher,
+            UserDocumentSearcher userDocumentSearcher
+        ) {
+            return Arrays.asList(apiDocumentSearcher, pageDocumentSearcher, userDocumentSearcher);
         }
 
         @Bean
