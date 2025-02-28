@@ -139,7 +139,7 @@
         <!-- !! Transitive dependency !! need to remove when swagger parser will include a version higher than 1.7.12 -->
         <rhino.version>1.7.15</rhino.version>
         <swagger-core.version>2.2.22</swagger-core.version>
-        <swagger-jaxrs2.version>2.2.22</swagger-jaxrs2.version>
+        <swagger-jaxrs2.version>2.2.28</swagger-jaxrs2.version>
         <swagger-parser.version>2.1.22</swagger-parser.version>
         <wiremock.version>3.8.0</wiremock.version>
         <wsdl4j.version>1.6.3</wsdl4j.version>
