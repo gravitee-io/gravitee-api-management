@@ -75,6 +75,7 @@ public class Audit {
         TOKEN,
         USER_FIELD,
         NOTIFICATION_TEMPLATE,
+        SHARED_POLICY_GROUP,
     }
 
     private String id;
