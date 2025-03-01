@@ -49,10 +49,12 @@
         <dependency>
             <groupId>com.bazaarvoice.jolt</groupId>
             <artifactId>jolt-core</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.bazaarvoice.jolt</groupId>
             <artifactId>json-utils</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Spring dependencies -->
