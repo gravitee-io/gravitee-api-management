@@ -280,7 +280,7 @@ const apisRoutes: Routes = [
             page: 'management-api-documentation',
           },
           permissions: {
-            anyOf: ['api-documentation-c'],
+            anyOf: ['api-documentation-c', 'api-documentation-r'],
           },
         },
       },
