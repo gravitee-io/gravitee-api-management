@@ -1,0 +1,27 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Repository - OpenSearch" type="JUnit" factoryName="JUnit" folderName="Repository">
+    <classpathModifications>
+      <entry exclude="true" path="$PROJECT_DIR$/gravitee-apim-repository/gravitee-apim-repository-test/target/test-classes" />
+    </classpathModifications>
+    <module name="gravitee-apim-repository-elasticsearch" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <option name="ALTERNATIVE_JRE_PATH" value="21" />
+    <option name="PACKAGE_NAME" value="io.gravitee.repository.elasticsearch" />
+    <option name="MAIN_CLASS_NAME" value="" />
+    <option name="METHOD_NAME" value="" />
+    <option name="TEST_OBJECT" value="package" />
+    <envs>
+      <env name="opensearch.version" value="2" />
+      <env name="search.type" value="opensearch" />
+    </envs>
+    <dir value="$PROJECT_DIR$/gravitee-apim-repository/gravitee-apim-repository-mongodb/target/test-classes/io/gravitee/repository" />
+    <patterns>
+      <pattern testClass="io\.gravitee\.repository\..*RepositoryTest" />
+    </patterns>
+    <method v="2">
+      <option name="Make" enabled="true" />
+      <option name="Maven.BeforeRunTask" enabled="true" file="$PROJECT_DIR$/gravitee-apim-repository/gravitee-apim-repository-elasticsearch/pom.xml" goal="clean install -U -DskipTests=true -Dskip.validation" />
+      <option name="Maven.BeforeRunTask" enabled="true" file="$PROJECT_DIR$/gravitee-apim-repository/gravitee-apim-repository-elasticsearch/pom.xml" goal="test " />
+    </method>
+  </configuration>
+</component>
