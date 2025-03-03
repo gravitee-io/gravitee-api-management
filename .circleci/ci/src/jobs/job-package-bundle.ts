@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
-import { OpenJdkNodeExecutor } from '../executors';
+import { commands, Config, executors, Job, reusable } from '@circleci/circleci-config-sdk';
 import { orbs } from '../orbs';
 import { config } from '../config';
 import { ReusedCommand } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Reusable';
@@ -37,7 +36,7 @@ export class PackageBundleJob {
 
     const parsedGraviteeioVersion = parse(graviteeioVersion);
 
-    return new Job('job-package-bundle', OpenJdkNodeExecutor.create(), [
+    return new Job('job-package-bundle', new executors.DockerExecutor(`${config.executor.openjdk.image}:17.0.8-node`, 'medium'), [
       new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
         'secret-url': config.secrets.artifactoryUser,
         'var-name': 'ARTIFACTORY_USERNAME',
