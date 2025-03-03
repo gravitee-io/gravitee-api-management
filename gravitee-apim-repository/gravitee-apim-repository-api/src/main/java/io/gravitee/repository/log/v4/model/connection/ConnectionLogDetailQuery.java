@@ -17,10 +17,17 @@ package io.gravitee.repository.log.v4.model.connection;
 
 import lombok.Builder;
 import lombok.Data;
+import java.util.Set;
 
 @Builder
 @Data
 public class ConnectionLogDetailQuery {
+
+    @Builder.Default
+    private int size = 20;
+
+    @Builder.Default
+    private int page = 1;
 
     private Filter filter;
 
@@ -28,7 +35,8 @@ public class ConnectionLogDetailQuery {
     @Builder
     public static class Filter {
 
-        private String apiId;
-        private final String requestId;
+        private Set<String> apiIds;
+        private Set<String> requestIds;
+
     }
 }

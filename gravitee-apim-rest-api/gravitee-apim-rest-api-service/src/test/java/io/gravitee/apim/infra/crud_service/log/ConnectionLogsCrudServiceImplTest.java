@@ -80,7 +80,7 @@ public class ConnectionLogsCrudServiceImplTest {
                 .isEqualTo(
                     ConnectionLogDetailQuery
                         .builder()
-                        .filter(ConnectionLogDetailQuery.Filter.builder().apiId("apiId").requestId("requestId").build())
+                        .filter(ConnectionLogDetailQuery.Filter.builder().apiIds(Set.of("apiId")).requestIds(Set.of("requestId")).build())
                         .build()
                 );
         }
