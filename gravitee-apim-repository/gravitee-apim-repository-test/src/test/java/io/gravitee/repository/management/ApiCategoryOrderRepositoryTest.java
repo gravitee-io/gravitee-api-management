@@ -122,6 +122,13 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
     }
 
     @Test
+    public void shouldDeleteWithEmptyCategoryList() throws Exception {
+        var apiCategoryOrder = ApiCategoryOrder.builder().apiId("api-4").categoryId("category-4").order(0).build();
+        apiCategoryOrderRepository.create(apiCategoryOrder);
+        apiCategoryOrderRepository.delete("api-4", List.of());
+    }
+
+    @Test
     public void shouldNotUpdateUnknownApiCategoryOrder() {
         var unknownCategory = ApiCategoryOrder.builder().categoryId("unknown").apiId("unknown").order(0).build();
         Exception exception = catchException(() -> apiCategoryOrderRepository.update(unknownCategory));

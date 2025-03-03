@@ -113,13 +113,19 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
     public void delete(String apiId, Collection<String> categoriesIds) throws TechnicalException {
         LOGGER.debug("JdbcApiCategoryRepository.delete({}, {})", apiId, categoriesIds);
         try {
-            jdbcTemplate.update(
-                "delete from " + this.tableName + " where api_id = ? and category_id in ( " + getOrm().buildInClause(categoriesIds) + " ) ",
-                (PreparedStatement ps) -> {
-                    ps.setString(1, apiId);
-                    getOrm().setArguments(ps, categoriesIds, 2);
-                }
-            );
+            if (!categoriesIds.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " +
+                    this.tableName +
+                    " where api_id = ? and category_id in ( " +
+                    getOrm().buildInClause(categoriesIds) +
+                    " ) ",
+                    (PreparedStatement ps) -> {
+                        ps.setString(1, apiId);
+                        getOrm().setArguments(ps, categoriesIds, 2);
+                    }
+                );
+            }
         } catch (Exception e) {
             LOGGER.error("Failed to delete api category order", e);
             throw new TechnicalException("Failed to delete api category order", e);
