@@ -11,7 +11,7 @@
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="package" />
     <envs>
-      <env name="elasticsearch.version" value="7.17.8" />
+      <env name="elasticsearch.version" value="8.17.2" />
     </envs>
     <dir value="$PROJECT_DIR$/gravitee-apim-repository/gravitee-apim-repository-mongodb/target/test-classes/io/gravitee/repository" />
     <patterns>

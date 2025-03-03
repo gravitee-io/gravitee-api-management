@@ -59,7 +59,7 @@ services:
       - storage
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.6.2}
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.17.2}
     container_name: gio_apim_elasticsearch
     restart: always
     volumes:
