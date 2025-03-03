@@ -32,7 +32,7 @@
 
     <properties>
         <gravitee-reporter-common.version>1.4.1</gravitee-reporter-common.version>
-        <gravitee-common-elasticsearch.version>6.1.0</gravitee-common-elasticsearch.version>
+        <gravitee-common-elasticsearch.version>6.2.0</gravitee-common-elasticsearch.version>
         <opensearch-testcontainers.version>2.1.2</opensearch-testcontainers.version>
     </properties>
 
