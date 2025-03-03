@@ -61,7 +61,7 @@ export class ResponseStatusComponent implements OnInit {
       )
       .subscribe({
         next: (res): void => {
-          this.chartInput = Object.entries(res.data).map(([key, value]) => ({
+          this.chartInput = Object.entries(res.data ?? {}).map(([key, value]) => ({
             name: key,
             values: value,
           }));
