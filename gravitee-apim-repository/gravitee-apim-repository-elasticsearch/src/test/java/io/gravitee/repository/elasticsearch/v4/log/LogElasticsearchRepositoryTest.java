@@ -701,7 +701,10 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
         void should_return_empty_result() {
             var result = logV4Repository.searchConnectionLogDetail(
                 queryContext,
-                ConnectionLogDetailQuery.builder().filter(ConnectionLogDetailQuery.Filter.builder().apiId("notExisting").build()).build()
+                ConnectionLogDetailQuery
+                    .builder()
+                    .filter(ConnectionLogDetailQuery.Filter.builder().apiIds(Set.of("notExisting")).build())
+                    .build()
             );
             assertThat(result).isEmpty();
         }
@@ -715,8 +718,8 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                     .filter(
                         ConnectionLogDetailQuery.Filter
                             .builder()
-                            .apiId("f1608475-dd77-4603-a084-75dd775603e9")
-                            .requestId("26c61cfc-a4cc-4272-861c-fca4cc2272ab")
+                            .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
+                            .requestIds(Set.of("26c61cfc-a4cc-4272-861c-fca4cc2272ab"))
                             .build()
                     )
                     .build()

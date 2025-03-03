@@ -28,6 +28,9 @@ public class SearchConnectionLogDetailQueryAdapter {
     public static String adapt(ConnectionLogDetailQuery query) {
         var jsonContent = new HashMap<String, Object>();
 
+        jsonContent.put("from", (query.getPage() - 1) * query.getSize());
+        jsonContent.put("size", query.getSize());
+
         var esQuery = buildElasticQuery(query.getFilter());
         if (esQuery != null) {
             jsonContent.put("query", esQuery);
@@ -41,16 +44,46 @@ public class SearchConnectionLogDetailQueryAdapter {
             return null;
         }
 
-        var terms = new ArrayList<JsonObject>();
-        if (filter.getApiId() != null) {
-            terms.add(JsonObject.of("term", JsonObject.of("api-id", filter.getApiId())));
-        }
-        if (filter.getRequestId() != null) {
-            terms.add(JsonObject.of("term", JsonObject.of("request-id", filter.getRequestId())));
-        }
-        if (!terms.isEmpty()) {
-            return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(terms.toArray())));
+        var mustFilterList = new ArrayList<JsonObject>();
+
+        addApisFilter(filter, mustFilterList);
+
+        addRequestIdsFilter(filter, mustFilterList);
+
+        if (!mustFilterList.isEmpty()) {
+            return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(mustFilterList.toArray())));
         }
         return null;
+
+        }
+    private static void addApisFilter(ConnectionLogDetailQuery.Filter filter, ArrayList<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getApiIds())) {
+            mustFilterList.add(buildV2AndV4Terms("api", "api-id", filter.getApiIds()));
+        }
+        }
+    private static void addRequestIdsFilter(ConnectionLogDetailQuery.Filter filter, ArrayList<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getRequestIds())) {
+            mustFilterList.add(buildV2AndV4Terms("_id", "request-id", filter.getRequestIds()));
+        }
+    }
+
+    private static JsonObject buildV2AndV4Terms(String v2Field, String v4Field, Collection<?> value) {
+        var terms = new ArrayList<JsonObject>();
+        terms.add(JsonObject.of("terms", JsonObject.of(v2Field, value.toArray())));
+        terms.add(JsonObject.of("terms", JsonObject.of(v4Field, value.toArray())));
+        return buildShould(terms);
+    }
+
+    private static JsonObject buildV2AndV4Matches(String v2Field, String v4Field, Collection<?> value) {
+        var matches = new ArrayList<JsonObject>();
+        value.forEach(v -> {
+            matches.add(JsonObject.of("match", JsonObject.of(v2Field, v)));
+            matches.add(JsonObject.of("match", JsonObject.of(v4Field, v)));
+        });
+        return buildShould(matches);
+    }
+
+    private static JsonObject buildShould(List<JsonObject> terms) {
+        return JsonObject.of("bool", JsonObject.of("should", JsonArray.of(terms.toArray())));
     }
 }

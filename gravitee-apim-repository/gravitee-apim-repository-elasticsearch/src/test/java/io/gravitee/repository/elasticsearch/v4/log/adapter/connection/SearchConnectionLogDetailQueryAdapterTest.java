@@ -19,6 +19,7 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static net.javacrumbs.jsonunit.core.Option.IGNORING_ARRAY_ORDER;
 
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetailQuery;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -31,10 +32,14 @@ class SearchConnectionLogDetailQueryAdapterTest {
     void should_build_query_without_filter(ConnectionLogDetailQuery.Filter filter) {
         var result = SearchConnectionLogDetailQueryAdapter.adapt(ConnectionLogDetailQuery.builder().filter(filter).build());
 
-        assertThatJson(result).isEqualTo("""
+        assertThatJson(result)
+            .isEqualTo(
+                """
                              {
+                             "size":20,"from":0
                              }
-                             """);
+                             """
+            );
     }
 
     @ParameterizedTest
@@ -52,17 +57,29 @@ class SearchConnectionLogDetailQueryAdapterTest {
     private static Stream<Arguments> getFilters() {
         return Stream.of(
             Arguments.of(
-                ConnectionLogDetailQuery.Filter.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build(),
+                ConnectionLogDetailQuery.Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).build(),
                 """
                              {
+                                "from": 0,
+                                "size": 20,
                                  "query": {
                                      "bool": {
                                          "must": [
-                                             {
-                                                 "term": {
-                                                     "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
-                                                 }
-                                             }
+                                            {
+                                                "bool": {
+                                                    "should": [
+                                                        {
+                                                            "terms": {
+                                                                "api": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
+                                                            }
+                                                        }, {
+                                                            "terms": {
+                                                                "api-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            }
                                          ]
                                      }
                                  }
@@ -70,18 +87,30 @@ class SearchConnectionLogDetailQueryAdapterTest {
                              """
             ),
             Arguments.of(
-                ConnectionLogDetailQuery.Filter.builder().requestId("f1608475-dd77-4603-a084-75dd775603e9").build(),
+                ConnectionLogDetailQuery.Filter.builder().requestIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).build(),
                 """
                              {
+                                "from": 0,
+                                "size": 20,
                                  "query": {
                                      "bool": {
                                          "must": [
-                                             {
-                                                 "term": {
-                                                     "request-id": "f1608475-dd77-4603-a084-75dd775603e9"
-                                                 }
-                                             }
-                                         ]
+                                            {
+                                                "bool": {
+                                                    "should": [
+                                                        {
+                                                            "terms": {
+                                                                "_id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
+                                                            }
+                                                        }, {
+                                                            "terms": {
+                                                                "request-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        ]
                                      }
                                  }
                               }
@@ -90,24 +119,46 @@ class SearchConnectionLogDetailQueryAdapterTest {
             Arguments.of(
                 ConnectionLogDetailQuery.Filter
                     .builder()
-                    .requestId("f1608475-dd77-4603-a084-75dd775603e9")
-                    .apiId("f1608475-dd77-4603-a084-75dd775603e5")
+                    .requestIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
+                    .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e5"))
                     .build(),
                 """
                                    {
-                                       "query": {
+                                    "from": 0,
+                                    "size": 20,
+                                     "query": {
                                            "bool": {
                                                "must": [
-                                                   {
-                                                       "term": {
-                                                           "request-id": "f1608475-dd77-4603-a084-75dd775603e9"
-                                                       }
-                                                   },
-                                                   {
-                                                       "term": {
-                                                           "api-id": "f1608475-dd77-4603-a084-75dd775603e5"
-                                                       }
-                                                   }
+                                                    {
+                                                        "bool": {
+                                                            "should": [
+                                                                {
+                                                                    "terms": {
+                                                                        "_id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
+                                                                    }
+                                                                }, {
+                                                                    "terms": {
+                                                                        "request-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
+                                                                    }
+                                                                }
+                                                            ]
+                                                        }
+                                                    },
+                                                    {
+                                                        "bool": {
+                                                            "should": [
+                                                                {
+                                                                    "terms": {
+                                                                        "api": [ "f1608475-dd77-4603-a084-75dd775603e5" ]
+                                                                    }
+                                                                }, {
+                                                                    "terms": {
+                                                                        "api-id": [ "f1608475-dd77-4603-a084-75dd775603e5" ]
+                                                                    }
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
                                                ]
                                            }
                                        }
