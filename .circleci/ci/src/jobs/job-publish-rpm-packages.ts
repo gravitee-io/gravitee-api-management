@@ -19,22 +19,35 @@ import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/C
 import { UbuntuExecutor } from '../executors';
 import { keeper } from '../orbs/keeper';
 import { config } from '../config';
+import { parse } from '../utils';
 
 export class PublishRpmPackagesJob {
   private static jobName = 'job-publish-rpm-packages';
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
-    dynamicConfig.importOrb(keeper);
+    const parsedGraviteeioVersion = parse(environment.graviteeioVersion);
 
-    const steps: Command[] = [
-      new reusable.ReusedCommand(keeper.commands['env-export'], {
-        'secret-url': config.secrets.graviteePackageCloudToken,
-        'var-name': 'GIO_PACKAGECLOUD_TOKEN',
-      }),
-      new commands.Run({
-        name: 'Building and publishing RPMs',
-        command: this.getBuildingAndPublishingRPMsCmd(environment),
-      }),
-    ];
+    let steps: Command[];
+
+    if (parsedGraviteeioVersion.qualifier.full && parsedGraviteeioVersion.qualifier.full.length > 0) {
+      steps = [
+        new commands.Run({
+          name: 'Publishing RPMs is not supported for prerelease version',
+          command: 'echo "Publishing RPMs is not supported for prerelease version"',
+        }),
+      ];
+    } else {
+      dynamicConfig.importOrb(keeper);
+      steps = [
+        new reusable.ReusedCommand(keeper.commands['env-export'], {
+          'secret-url': config.secrets.graviteePackageCloudToken,
+          'var-name': 'GIO_PACKAGECLOUD_TOKEN',
+        }),
+        new commands.Run({
+          name: 'Building and publishing RPMs',
+          command: this.getBuildingAndPublishingRPMsCmd(environment),
+        }),
+      ];
+    }
 
     return new Job(PublishRpmPackagesJob.jobName, UbuntuExecutor.create(), steps);
   }
