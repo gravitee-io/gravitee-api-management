@@ -39,6 +39,11 @@ public class NoOpAnalyticsRepositoryConfiguration {
     }
 
     @Bean
+    public io.gravitee.repository.log.v4.api.AnalyticsRepository v4AnalyticsRepository() {
+        return new io.gravitee.repository.noop.log.v4.NoOpAnalyticsRepository();
+    }
+
+    @Bean
     public HealthCheckRepository healthCheckRepository() {
         return new NoOpHealthCheckRepository();
     }

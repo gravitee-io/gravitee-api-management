@@ -67,7 +67,8 @@ public class AnalyticsServiceImplTest {
         when(analyticsRepository.query(any(QueryContext.class), any())).thenReturn(null);
         StatsAnalytics execute = cut.execute(EXECUTION_CONTEXT, new StatsQuery());
 
-        assertNull(execute);
+        assertNotNull(execute);
+        assertNull(execute.getCount());
         verify(analyticsRepository, times(1)).query(any(QueryContext.class), any());
     }
 
@@ -92,7 +93,8 @@ public class AnalyticsServiceImplTest {
         when(analyticsRepository.query(any(QueryContext.class), any())).thenReturn(null);
         HitsAnalytics execute = cut.execute(EXECUTION_CONTEXT, new CountQuery());
 
-        assertNull(execute);
+        assertNotNull(execute);
+        assert (execute.getHits() == 0);
         verify(analyticsRepository, times(1)).query(any(QueryContext.class), any());
     }
 
@@ -117,7 +119,8 @@ public class AnalyticsServiceImplTest {
         when(analyticsRepository.query(any(QueryContext.class), any())).thenReturn(null);
         HistogramAnalytics execute = cut.execute(EXECUTION_CONTEXT, new DateHistogramQuery());
 
-        assertNull(execute);
+        assertNotNull(execute);
+        assertNull(execute.getValues());
         verify(analyticsRepository, times(1)).query(any(QueryContext.class), any());
     }
 
@@ -142,7 +145,8 @@ public class AnalyticsServiceImplTest {
         when(analyticsRepository.query(any(QueryContext.class), any())).thenReturn(null);
         TopHitsAnalytics execute = cut.execute(EXECUTION_CONTEXT, new GroupByQuery());
 
-        assertNull(execute);
+        assertNotNull(execute);
+        assertNull(execute.getValues());
         verify(analyticsRepository, times(1)).query(any(QueryContext.class), any());
     }
 
