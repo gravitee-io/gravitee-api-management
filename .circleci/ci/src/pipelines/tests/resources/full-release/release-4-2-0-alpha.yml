@@ -494,18 +494,9 @@ jobs:
       docker_layer_caching: false
     resource_class: medium
     steps:
-      - keeper/env-export:
-          secret-url: keeper://8CG6HxY5gYsl-85eJKuIoA/field/password
-          var-name: GIO_PACKAGECLOUD_TOKEN
       - run:
-          name: Building and publishing RPMs
-          command: |-
-            export GIT_GRAVITEE_PACKAGES_REPO=$(mktemp -d)
-            git clone git@github.com:gravitee-io/packages.git ${GIT_GRAVITEE_PACKAGES_REPO}
-
-            cd ${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x
-            ./build.sh -v 4.2.0-alpha.1
-            docker run --rm -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x:/packages" -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} digitalocean/packagecloud push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
+          name: Publishing RPMs is not supported for prerelease version
+          command: echo "Publishing RPMs is not supported for prerelease version"
   job-release-notes-apim:
     docker:
       - image: cimg/node:20.11.1
