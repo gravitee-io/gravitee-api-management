@@ -59,7 +59,7 @@ export class PackageBundleJob {
       }),
       new commands.Run({
         name: 'Building package bundle',
-        command: `yarn zx --quiet --experimental ci-steps/package-bundles.mjs --version=${parsedGraviteeioVersion.full}`,
+        command: `npx zx --quiet --experimental ci-steps/package-bundles.mjs --version=${parsedGraviteeioVersion.full}`,
         working_directory: './release',
         environment: {
           ARTIFACTORY_REPO_URL: PackageBundleJob.ARTIFACTORY_REPO_URL,

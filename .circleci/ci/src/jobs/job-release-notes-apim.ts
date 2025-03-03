@@ -69,7 +69,7 @@ git config --global user.email "\${GIT_USER_EMAIL}"`,
       }),
       new commands.Run({
         name: 'Open a PR to create release notes into docs repository',
-        command: `yarn zx --quiet ci-steps/generate-changelog.mjs --version=${environment.graviteeioVersion}`,
+        command: `npx zx --quiet ci-steps/generate-changelog.mjs --version=${environment.graviteeioVersion}`,
         working_directory: './release',
       }),
     ];
