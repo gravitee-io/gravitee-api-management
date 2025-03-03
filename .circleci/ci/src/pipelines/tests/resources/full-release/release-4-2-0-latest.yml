@@ -358,7 +358,7 @@ jobs:
           working_directory: ./release
       - run:
           name: Building package bundle
-          command: npx zx --quiet --experimental ci-steps/package-bundles.mjs --version=4.2.0
+          command: yarn zx --quiet --experimental ci-steps/package-bundles.mjs --version=4.2.0
           working_directory: ./release
           environment:
             ARTIFACTORY_REPO_URL: https://odbxikk7vo-artifactory.services.clever-cloud.com/external-dependencies-n-gravitee-all
@@ -545,7 +545,7 @@ jobs:
           working_directory: ./release
       - run:
           name: Open a PR to create release notes into docs repository
-          command: npx zx --quiet ci-steps/generate-changelog.mjs --version=4.2.0
+          command: yarn zx --quiet ci-steps/generate-changelog.mjs --version=4.2.0
           working_directory: ./release
       - run:
           name: Get RELEASE_NOTES_PR_URL
