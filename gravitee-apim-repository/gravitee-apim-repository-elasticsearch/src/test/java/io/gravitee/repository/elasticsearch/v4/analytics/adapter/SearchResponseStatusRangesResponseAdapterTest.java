@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesQueryAdapter.ENTRYPOINT_ID_AGG;
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesQueryAdapter.STATUS_RANGES;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -54,17 +54,19 @@ class SearchResponseStatusRangesResponseAdapterTest {
 
     @ParameterizedTest
     @MethodSource("provideSearchData")
-    void should_build_search_requests_count_response(String[] entrypoints) {
+    void should_build_search_requests_count_response(String[] statusRanges) {
         final SearchResponse searchResponse = new SearchResponse();
         final Aggregation aggregation = new Aggregation();
-        searchResponse.setAggregations(Map.of(ENTRYPOINT_ID_AGG, aggregation));
+        searchResponse.setAggregations(Map.of(STATUS_RANGES, aggregation));
 
-        aggregation.setBuckets(Arrays.stream(entrypoints).map(this::provideBucket).toList());
+        aggregation.setBuckets(Arrays.stream(statusRanges).map(this::provideBucket).toList());
 
         assertThat(SearchResponseStatusRangesResponseAdapter.adapt(searchResponse))
-            .hasValueSatisfying(topHits ->
-                assertThat(topHits.getStatusRangesCountByEntrypoint().keySet()).containsExactlyInAnyOrder(entrypoints)
-            );
+            .hasValueSatisfying(response -> {
+                assertThat(response.getStatusRangesCountByEntrypoint().keySet()).containsExactly("all");
+
+                assertThat(response.getStatusRangesCountByEntrypoint().get("all").keySet()).containsExactlyInAnyOrder(statusRanges);
+            });
     }
 
     private JsonNode provideBucket(String entrypoint) {

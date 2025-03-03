@@ -15,14 +15,11 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesQueryAdapter.ENTRYPOINT_ID_AGG;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesQueryAdapter.STATUS_RANGES;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -38,44 +35,21 @@ public class SearchResponseStatusRangesResponseAdapter {
         if (aggregations == null || aggregations.isEmpty()) {
             return Optional.empty();
         }
-        final var entrypointsAggregation = aggregations.get(ENTRYPOINT_ID_AGG);
-        if (entrypointsAggregation == null) {
+        final var statusRangesAggregation = aggregations.get(STATUS_RANGES);
+        if (statusRangesAggregation == null) {
             return Optional.empty();
         }
 
         final Map<String, Long> totalRange = new HashMap<>();
-        final Map<String, Map<String, Long>> result = entrypointsAggregation
+
+        final Map<String, Long> result = statusRangesAggregation
             .getBuckets()
             .stream()
-            .collect(
-                Collectors.toMap(
-                    jsonNode -> jsonNode.get("key").asText(),
-                    jsonNode -> {
-                        var statusRanges = processStatusRanges(jsonNode.get(STATUS_RANGES));
-                        statusRanges.forEach((key, value) -> totalRange.merge(key, value, Long::sum));
-                        return statusRanges;
-                    }
-                )
-            );
-        return Optional.of(ResponseStatusRangesAggregate.builder().statusRangesCountByEntrypoint(result).ranges(totalRange).build());
-    }
+            .collect(Collectors.toMap(jsonNode -> jsonNode.get("key").asText(), jsonNode -> jsonNode.get("doc_count").asLong()));
+        result.forEach((key, value) -> totalRange.merge(key, value, Long::sum));
 
-    private static Map<String, Long> processStatusRanges(JsonNode jsonNode) {
-        if (jsonNode == null) {
-            return Collections.emptyMap();
-        }
-
-        final var buckets = jsonNode.get("buckets");
-        if (buckets == null || buckets.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        final var result = new HashMap<String, Long>();
-        for (final var bucket : buckets) {
-            final var count = bucket.get("doc_count").asLong();
-            result.put(bucket.get("key").asText(), count);
-        }
-
-        return result;
+        return Optional.of(
+            ResponseStatusRangesAggregate.builder().statusRangesCountByEntrypoint(Map.of("all", result)).ranges(totalRange).build()
+        );
     }
 }
