@@ -37,7 +37,7 @@
         <liquibase-slf4j.version>4.0.0</liquibase-slf4j.version>
         <mariaDB.version>2.7.12</mariaDB.version>
         <mssql-jdbc.version>9.4.1.jre16</mssql-jdbc.version>
-        <mysql-connector-j.version>8.3.0</mysql-connector-j.version>
+        <mysql-connector-j.version>8.4.0</mysql-connector-j.version>
         <postgresql.version>42.4.4</postgresql.version>
 
         <!-- Plugin configuration -->
