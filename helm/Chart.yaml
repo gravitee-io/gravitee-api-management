@@ -30,3 +30,5 @@ annotations:
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
   artifacthub.io/changes: |
+    - kind: fixed
+      description: 'bump elastisearch version to 8.17.2'
