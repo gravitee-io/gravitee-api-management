@@ -27,8 +27,8 @@ ADD ./distribution ${GRAVITEEIO_HOME}/
 
 RUN apk update && \
     apk add --update --no-cache wget && \
-    wget https://repo1.maven.org/maven2/org/mongodb/mongodb-crypt/1.8.0/mongodb-crypt-1.8.0.jar -P ${GRAVITEEIO_HOME}/plugins/ext/repository-mongodb && \
-    wget https://repo1.maven.org/maven2/net/java/dev/jna/jna/5.14.0/jna-5.14.0.jar -P ${GRAVITEEIO_HOME}/plugins/ext/repository-mongodb && \
+    wget https://repo1.maven.org/maven2/org/mongodb/mongodb-crypt/5.3.1/mongodb-crypt-5.3.1.jar -P ${GRAVITEEIO_HOME}/plugins/ext/repository-mongodb && \
+    wget https://repo1.maven.org/maven2/net/java/dev/jna/jna/5.16.0/jna-5.16.0.jar -P ${GRAVITEEIO_HOME}/plugins/ext/repository-mongodb && \
     apk del wget
 
 RUN chgrp -R graviteeio ${GRAVITEEIO_HOME} && \
