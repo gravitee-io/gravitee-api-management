@@ -135,7 +135,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                     .build()
             );
 
-            return response != null ? convert(response, query) : null;
+            return response != null ? convert(response, query) : new StatsAnalytics();
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);
             throw new AnalyticsCalculateException("Unable to calculate analytics");
@@ -156,7 +156,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                     .build()
             );
 
-            return response != null ? convert(response) : null;
+            return response != null ? convert(response) : new HitsAnalytics();
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);
             throw new AnalyticsCalculateException("Unable to calculate analytics");
@@ -183,7 +183,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             }
 
             DateHistogramResponse response = analyticsRepository.query(executionContext.getQueryContext(), queryBuilder.build());
-            return response != null ? convert(executionContext, response) : null;
+            return response != null ? convert(executionContext, response) : new HistogramAnalytics();
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);
             throw new AnalyticsCalculateException("Unable to calculate analytics");
@@ -217,7 +217,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             }
 
             GroupByResponse response = analyticsRepository.query(executionContext.getQueryContext(), queryBuilder.build());
-            return response != null ? convert(executionContext, response) : null;
+            return response != null ? convert(executionContext, response) : new TopHitsAnalytics();
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);
             throw new AnalyticsCalculateException("Unable to calculate analytics");
