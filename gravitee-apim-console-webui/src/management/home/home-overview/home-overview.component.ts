@@ -141,7 +141,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
             ranges: '100:199;200:299;300:399;400:499;500:599',
           }),
         ),
-        tap((data) => (this.apiResponseStatus = data)),
+        tap((data) => (this.apiResponseStatus = data || {})),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.changeDetectorRef.markForCheck());
@@ -171,7 +171,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
       .pipe(
         tap(() => (this.topApis = undefined)),
         switchMap((val) => this.statsService.getGroupBy({ field: 'api', interval: val.interval, from: val.from, to: val.to })),
-        tap((data) => (this.topApis = data)),
+        tap((data) => (this.topApis = data || {})),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.changeDetectorRef.markForCheck());
@@ -198,7 +198,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
       .pipe(
         tap(() => (this.requestStats = undefined)),
         switchMap((val) => this.statsService.getStats({ field: 'response-time', interval: val.interval, from: val.from, to: val.to })),
-        tap((data) => (this.requestStats = data)),
+        tap((data) => (this.requestStats = data || new RequestStats())),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.changeDetectorRef.markForCheck());
