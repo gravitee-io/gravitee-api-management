@@ -132,6 +132,13 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
         Assert.assertEquals(nbBeforeDeletion - 1, nbAfterDeletion);
     }
 
+    @Test
+    public void shouldDeleteWithEmptyCategoryList() throws Exception {
+        var apiCategoryOrder = ApiCategoryOrder.builder().apiId("api-4").categoryId("category-4").order(0).build();
+        apiCategoryOrderRepository.create(apiCategoryOrder);
+        apiCategoryOrderRepository.delete("api-4", List.of());
+    }
+
     @Test(expected = IllegalStateException.class)
     public void shouldNotUpdateUnknownApiCategoryOrder() throws Exception {
         var unknownCategory = ApiCategoryOrder.builder().categoryId("unknown").apiId("unknown").order(0).build();
