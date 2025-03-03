@@ -28,7 +28,7 @@ volumes:
 
 services:
   consul-server:
-    image: hashicorp/consul:1.11.4
+    image: hashicorp/consul:1.20.4
     container_name: consul-server
     restart: always
     volumes:
