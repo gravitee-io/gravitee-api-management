@@ -441,10 +441,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@faker-js/faker@npm:6.2.0":
-  version: 6.2.0
-  resolution: "@faker-js/faker@npm:6.2.0"
-  checksum: 10c0/884ffdbe5488ca02386487a8fcf259007abbeb65553709a86a63adfe898f101fe5fa75cebfbe6b70c5d478c629dbdb3c4ab27ea1b92bf14ee803e07fa338c53e
+"@faker-js/faker@npm:6.3.1":
+  version: 6.3.1
+  resolution: "@faker-js/faker@npm:6.3.1"
+  checksum: 10c0/83e18c4269cc4201a87ee38640dadc47af64b5f1eb96514eeab17f21d0a9fb86728e16a94707c26e7dfe25f96d651a6647613ecd1dc2c07b5d85606b51ac6150
   languageName: node
   linkType: hard
 
@@ -2849,7 +2849,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "gravitee-apim-e2e@workspace:."
   dependencies:
-    "@faker-js/faker": "npm:6.2.0"
+    "@faker-js/faker": "npm:6.3.1"
     "@gravitee/fixtures": "link:lib/fixtures"
     "@gravitee/management-v2-webclient-sdk": "link:lib/management-v2-webclient-sdk"
     "@gravitee/management-webclient-sdk": "link:lib/management-webclient-sdk"
