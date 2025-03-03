@@ -148,7 +148,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
             ranges: '100:199;200:299;300:399;400:499;500:599',
           }),
         ),
-        tap((data) => (this.apiResponseStatus = data)),
+        tap((data) => (this.apiResponseStatus = data || {})),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.changeDetectorRef.markForCheck());
