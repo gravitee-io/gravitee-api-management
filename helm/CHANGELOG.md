@@ -7,6 +7,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 ### 4.8.0
 
 - bump elastisearch version to 8.17.2
+- bump elastisearch helm release to 19.21.2
 
 ### 4.7.0
 
