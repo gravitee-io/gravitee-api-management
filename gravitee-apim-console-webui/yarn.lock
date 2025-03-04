@@ -15227,7 +15227,7 @@ __metadata:
     eslint-plugin-import: "npm:2.29.1"
     eslint-plugin-rxjs: "npm:^5.0.3"
     eslint-plugin-storybook: "npm:0.8.0"
-    highcharts: "npm:9.2.2"
+    highcharts: "npm:9.3.3"
     highcharts-angular: "npm:3.0.0"
     highlight.js: "npm:10.7.3"
     html-loader: "npm:5.1.0"
@@ -15426,10 +15426,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"highcharts@npm:9.2.2":
-  version: 9.2.2
-  resolution: "highcharts@npm:9.2.2"
-  checksum: 10c0/87e0c567ee9faf0a1512486deab57b6db38b03585347015a9a7ac503e357581a1b475f9d6613a5e77c45689b9cc710ba2ddf8ce6eebbcb3b84be5693f7d90c77
+"highcharts@npm:9.3.3":
+  version: 9.3.3
+  resolution: "highcharts@npm:9.3.3"
+  checksum: 10c0/971219d08c782d77bb7eee03ce9f4f6ad2c9ab711e8bfb3cd64de588fd0ffa8126bc165a5b55ecc1729f355172c7c2ba8bf815e2ea10916dc9e13d89303d488a
   languageName: node
   linkType: hard
 
