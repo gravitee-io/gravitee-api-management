@@ -98,7 +98,7 @@
     "@types/angular-material": "1.1.78",
     "@types/angular-mocks": "1.7.4",
     "@types/angular-sanitize": "1.8.4",
-    "@types/diff": "5.0.9",
+    "@types/diff": "5.2.3",
     "@types/jest": "29.5.12",
     "@types/jquery": "3.5.32",
     "@types/lodash": "4.17.16",
