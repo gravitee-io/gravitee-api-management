@@ -15228,7 +15228,7 @@ __metadata:
     eslint-plugin-rxjs: "npm:^5.0.3"
     eslint-plugin-storybook: "npm:0.8.0"
     highcharts: "npm:9.3.3"
-    highcharts-angular: "npm:3.0.0"
+    highcharts-angular: "npm:3.1.2"
     highlight.js: "npm:10.7.3"
     html-loader: "npm:5.1.0"
     jdenticon: "npm:2.2.0"
@@ -15413,16 +15413,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"highcharts-angular@npm:3.0.0":
-  version: 3.0.0
-  resolution: "highcharts-angular@npm:3.0.0"
+"highcharts-angular@npm:3.1.2":
+  version: 3.1.2
+  resolution: "highcharts-angular@npm:3.1.2"
   dependencies:
     tslib: "npm:^2.0.0"
   peerDependencies:
-    "@angular/common": ">=9.0.0"
-    "@angular/core": ">=9.0.0"
-    highcharts: ">=6.0.0"
-  checksum: 10c0/f9e339e39ce0aa28510ab02be7d9dc6832fb0160edbad3ac076760fff6c35dc7a5510b6f37483d49590cd6950182af8297d6e8df83db9f713eeb25354805101b
+    "@angular/common": ">=11.0.0"
+    "@angular/core": ">=11.0.0"
+    highcharts: ">=9.0.0"
+  checksum: 10c0/0f5e1b11ca33500c52016b1eba208bf5a00eb9f5d6b918b221c3540311588fa888abdc531e1a46fff33d3f6f87e2cd5f315fa0c36b14c383017d939eb4d732fe
   languageName: node
   linkType: hard
 
