@@ -100,7 +100,7 @@
     "@types/angular-sanitize": "1.8.4",
     "@types/diff": "5.0.9",
     "@types/jest": "29.5.12",
-    "@types/jquery": "3.5.29",
+    "@types/jquery": "3.5.32",
     "@types/lodash": "4.14.202",
     "@types/node": "16.10.9",
     "@types/swagger-ui": "3.52.4",

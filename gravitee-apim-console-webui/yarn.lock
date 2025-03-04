@@ -8938,12 +8938,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jquery@npm:3.5.29":
-  version: 3.5.29
-  resolution: "@types/jquery@npm:3.5.29"
+"@types/jquery@npm:3.5.32":
+  version: 3.5.32
+  resolution: "@types/jquery@npm:3.5.32"
   dependencies:
     "@types/sizzle": "npm:*"
-  checksum: 10c0/17409b551956c54d641264895790b9e63a2179bacdabe2a87d5f8f2baebe2f16625d111b17b1441cdffbf9e059e683bb25bf04ba6ea56b36e39ea50cc77f5b8c
+  checksum: 10c0/4a17ad6819b89026c21323656ab01b0b263f9d470910a87c8740920ff98319d503c7352b85b50134a39724ecbfccabc73aa4c741dfdd460cf8bbe714f9259054
   languageName: node
   linkType: hard
 
@@ -15182,7 +15182,7 @@ __metadata:
     "@types/angular-sanitize": "npm:1.8.4"
     "@types/diff": "npm:5.0.9"
     "@types/jest": "npm:29.5.12"
-    "@types/jquery": "npm:3.5.29"
+    "@types/jquery": "npm:3.5.32"
     "@types/lodash": "npm:4.14.202"
     "@types/node": "npm:16.10.9"
     "@types/swagger-ui": "npm:3.52.4"
