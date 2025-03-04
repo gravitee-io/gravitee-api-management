@@ -1,7 +1,9 @@
 #!/usr/bin/env zx
 
 import xml2json from 'xml2json';
+import { syncProcessCwd } from 'zx';
 
+syncProcessCwd(); // restores legacy v7 behavior
 console.log(chalk.magenta(`######################################`));
 console.log(chalk.magenta(`# 📦 Prepare APIM package bundles 📦 #`));
 console.log(chalk.magenta(`######################################`));
