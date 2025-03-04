@@ -78,6 +78,9 @@ public class SearchApplicationLogsParam {
     @Parameter(name = "responseTimeRanges", description = "Filter by ranges of request response times")
     private List<ResponseTimeRange> responseTimeRanges;
 
+    @Parameter(name = "bodyText", description = "Filter by text in request or response body")
+    private String bodyText;
+
     public void validate() {
         if (from >= to) {
             throw new BadRequestException("'from' query parameter value must not be greater than 'to'");
