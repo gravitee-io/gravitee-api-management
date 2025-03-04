@@ -24,6 +24,7 @@ import { PortalThemeHarness } from './portal-theme.harness';
 import { PortalSettingsModule } from '../../portal-settings.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { ThemePortalNext } from '../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('PortalThemeComponent', () => {
   let component: PortalThemeComponent;
@@ -35,7 +36,13 @@ describe('PortalThemeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, PortalSettingsModule, GioTestingModule],
+      imports: [PortalSettingsModule, GioTestingModule, NoopAnimationsModule],
+      providers: [
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: ['environment-theme-u'],
+        },
+      ],
     }).compileComponents();
     httpTestingController = TestBed.inject(HttpTestingController);
 
@@ -107,7 +114,8 @@ describe('PortalThemeComponent', () => {
     await componentHarness.reset();
     expect(await componentHarness.getPrimaryColor()).toStrictEqual(currentTheme.definition.color.primary);
 
-    await componentHarness.setPrimaryColor('primaryColor');
+    await componentHarness.setPrimaryColor('#ffffff');
+    expect(await componentHarness.isSubmitInvalid()).toEqual(false);
     await componentHarness.submit();
 
     const updateThemeReq = httpTestingController.expectOne({
@@ -121,7 +129,7 @@ describe('PortalThemeComponent', () => {
           cardBackground: '#0E0E0E',
           error: '#FB7061',
           pageBackground: '#06070C',
-          primary: 'primaryColor',
+          primary: '#ffffff',
           secondary: '#A49ABA',
           tertiary: '#C6909E',
         },
@@ -137,12 +145,19 @@ describe('PortalThemeComponent', () => {
       type: 'PORTAL_NEXT',
     });
 
-    expect(await componentHarness.getPrimaryColor()).toStrictEqual('primaryColor');
+    expect(await componentHarness.getPrimaryColor()).toStrictEqual('#ffffff');
+  });
+
+  it('should not allow publish form with invalid values', async () => {
+    expect(component).toBeTruthy();
+
+    await componentHarness.setPrimaryColor('primaryColor');
+    expect(await componentHarness.isSubmitInvalid()).toEqual(true);
   });
 
   it('should not be able to save', async () => {
     expect(await componentHarness.isSubmitInvalid()).toBeTruthy();
-    await componentHarness.setPrimaryColor('primaryColor');
+    await componentHarness.setPrimaryColor('#ffffff');
     expect(await componentHarness.isSubmitInvalid()).toBeFalsy();
     await componentHarness.setPrimaryColor(currentTheme.definition.color.primary);
     expect(await componentHarness.isSubmitInvalid()).toBeTruthy();
