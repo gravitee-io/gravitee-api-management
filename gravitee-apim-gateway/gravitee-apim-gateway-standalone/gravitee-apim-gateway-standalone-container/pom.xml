@@ -171,6 +171,11 @@
             <artifactId>gravitee-resource-content-provider-api</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-schema-registry-provider-api</artifactId>
+        </dependency>
+
         <!-- Jackson-->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -259,6 +264,11 @@
         </dependency>
 
         <!-- Kafka -->
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
