@@ -69,6 +69,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
     private static final String API_ID = "f1608475-dd77-4603-a084-75dd775603e9";
     private static final String APIV2_1 = "e2c0ecd5-893a-458d-80ec-d5893ab58d12";
     private static final String APIV2_2 = "4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1";
+    private static final String API_ID_SSE = "43276d60-7058-4588-8023-52bf1154f903";
 
     @Autowired
     private AnalyticsElasticsearchRepository cut;
@@ -328,19 +329,15 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             var result = cut.searchResponseStatusOvertime(
                 new QueryContext("org#1", "env#1"),
-                ResponseStatusOverTimeQuery.builder().apiIds(List.of(API_ID)).from(from).to(to).interval(interval).build()
+                ResponseStatusOverTimeQuery.builder().apiIds(List.of(API_ID, API_ID_SSE)).from(from).to(to).interval(interval).build()
             );
 
             var nbBuckets = Duration.between(from, to).dividedBy(interval) + 1;
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(result.getStatusCount()).containsOnlyKeys("200", "202", "404");
                 softly.assertThat(result.getStatusCount().get("200")).hasSize((int) nbBuckets).contains(1L, atIndex(28));
-                softly
-                    .assertThat(result.getStatusCount().get("202"))
-                    .hasSize((int) nbBuckets)
-                    .contains(1L, atIndex(28))
-                    .contains(1L, atIndex(61));
-                softly.assertThat(result.getStatusCount().get("404")).hasSize((int) nbBuckets).contains(7L, atIndex(61));
+                softly.assertThat(result.getStatusCount().get("202")).hasSize((int) nbBuckets).contains(1L, atIndex(61));
+                softly.assertThat(result.getStatusCount().get("404")).hasSize((int) nbBuckets).contains(2L, atIndex(61));
             });
         }
 
@@ -367,12 +364,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(result.getStatusCount()).containsOnlyKeys("200", "202", "404", "401");
                 softly.assertThat(result.getStatusCount().get("200")).hasSize((int) nbBuckets).contains(1L, atIndex(28));
-                softly
-                    .assertThat(result.getStatusCount().get("202"))
-                    .hasSize((int) nbBuckets)
-                    .contains(1L, atIndex(28))
-                    .contains(1L, atIndex(61));
-                softly.assertThat(result.getStatusCount().get("404")).hasSize((int) nbBuckets).contains(7L, atIndex(61));
+                softly.assertThat(result.getStatusCount().get("202")).hasSize((int) nbBuckets).contains(1L, atIndex(61));
+                softly.assertThat(result.getStatusCount().get("404")).hasSize((int) nbBuckets).contains(2L, atIndex(61));
             });
         }
     }
@@ -390,7 +383,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             var result = cut.searchTopHitsApi(
                 new QueryContext("org#1", "env#1"),
-                new TopHitsQueryCriteria(List.of(API_ID), yesterdayAtStartOfTheDayEpochMilli, yesterdayAtEndOfTheDayEpochMilli)
+                new TopHitsQueryCriteria(List.of(API_ID, API_ID_SSE), yesterdayAtStartOfTheDayEpochMilli, yesterdayAtEndOfTheDayEpochMilli)
             );
 
             assertThat(result)
@@ -427,7 +420,10 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_empty_top_hits_count_for_empty_ids_list() {
-            var result = cut.searchTopHitsApi(new QueryContext("org#1", "env#1"), new TopHitsQueryCriteria(List.of(API_ID), FROM, TO));
+            var result = cut.searchTopHitsApi(
+                new QueryContext("org#1", "env#1"),
+                new TopHitsQueryCriteria(List.of(API_ID, API_ID_SSE), FROM, TO)
+            );
 
             assertThat(result).isNotNull().get().extracting(TopHitsAggregate::getTopHitsCounts).isEqualTo(Map.of());
         }
@@ -451,7 +447,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             var result = cut.searchRequestResponseTimes(
                 new QueryContext("org#1", "env#1"),
-                new RequestResponseTimeQueryCriteria(List.of(API_ID), from, to, EnumSet.of(V4))
+                new RequestResponseTimeQueryCriteria(List.of(API_ID, API_ID_SSE), from, to, EnumSet.of(V4))
             );
 
             SoftAssertions.assertSoftly(softly -> {
@@ -471,7 +467,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             var result = cut.searchRequestResponseTimes(
                 new QueryContext("org#1", "env#1"),
-                new RequestResponseTimeQueryCriteria(List.of(API_ID, APIV2_1, APIV2_2), from, to, EnumSet.of(V4, V2))
+                new RequestResponseTimeQueryCriteria(List.of(API_ID, APIV2_1, APIV2_2, API_ID_SSE), from, to, EnumSet.of(V4, V2))
             );
 
             SoftAssertions.assertSoftly(softly -> {
@@ -489,7 +485,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var to = 1729078801566L;
             var result = cut.searchRequestResponseTimes(
                 new QueryContext("org#1", "env#1"),
-                new RequestResponseTimeQueryCriteria(List.of(API_ID), from, to, EnumSet.of(V4))
+                new RequestResponseTimeQueryCriteria(List.of(API_ID, API_ID_SSE), from, to, EnumSet.of(V4))
             );
 
             SoftAssertions.assertSoftly(softly -> {
@@ -516,7 +512,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             var result = cut.searchTopApps(
                 new QueryContext("org#1", "env#1"),
-                new TopHitsQueryCriteria(List.of(V4_API_ID), yesterdayAtStartOfTheDayEpochMilli, yesterdayAtEndOfTheDayEpochMilli)
+                new TopHitsQueryCriteria(
+                    List.of(V4_API_ID, API_ID_SSE),
+                    yesterdayAtStartOfTheDayEpochMilli,
+                    yesterdayAtEndOfTheDayEpochMilli
+                )
             );
 
             assertThat(result)
@@ -585,7 +585,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         void should_return_top_failed_apis() {
             var result = cut.searchTopFailedApis(
                 new QueryContext("org#1", "env#1"),
-                new TopFailedQueryCriteria(List.of(V4_API_ID), FROM, TO)
+                new TopFailedQueryCriteria(List.of(V4_API_ID, API_ID_SSE), FROM, TO)
             );
 
             assertThat(result)
@@ -613,7 +613,10 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_empty_top_failed_apis_for_empty_ids_list() {
-            var result = cut.searchTopFailedApis(new QueryContext("org#1", "env#1"), new TopFailedQueryCriteria(List.of(API_ID), FROM, TO));
+            var result = cut.searchTopFailedApis(
+                new QueryContext("org#1", "env#1"),
+                new TopFailedQueryCriteria(List.of(API_ID, API_ID_SSE), FROM, TO)
+            );
 
             assertThat(result).isNotNull().get().extracting(TopFailedAggregate::failedApis).isEqualTo(Map.of());
         }

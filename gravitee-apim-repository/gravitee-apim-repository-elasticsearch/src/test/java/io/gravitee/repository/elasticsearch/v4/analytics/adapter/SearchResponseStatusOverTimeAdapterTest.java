@@ -17,6 +17,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.elasticsearch.version.Version;
@@ -25,6 +26,7 @@ import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import lombok.SneakyThrows;
@@ -47,7 +49,13 @@ class SearchResponseStatusOverTimeAdapterTest {
         @Test
         void adapt_query_for_ElasticSearch() {
             // Given
-            ResponseStatusOverTimeQuery query = new ResponseStatusOverTimeQuery(List.of(API_ID), FROM, TO, INTERVAL);
+            ResponseStatusOverTimeQuery query = new ResponseStatusOverTimeQuery(
+                List.of(API_ID),
+                FROM,
+                TO,
+                INTERVAL,
+                EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2)
+            );
             ElasticsearchInfo esInfo = anElasticsearchInfo();
 
             // When
@@ -72,7 +80,7 @@ class SearchResponseStatusOverTimeAdapterTest {
                                    "query": {
                                      "bool": {
                                        "filter": [
-                                         {"bool":{"minimum_should_match":1,"should":[{"terms":{"api-id":["my-api-id"]}},{"terms":{"api":["my-api-id"]}}]}},
+                                         {"bool":{"minimum_should_match":1,"should":[{"bool":{"must":[{"terms":{"api-id":["my-api-id"]}},{"terms":{"entrypoint-id":["http-post","http-get","http-proxy"]}}]}},{"terms":{"api":["my-api-id"]}}]}},
                                          {
                                            "range": {
                                              "@timestamp": {
@@ -92,9 +100,68 @@ class SearchResponseStatusOverTimeAdapterTest {
         }
 
         @Test
+        void adapt_query_for_ElasticSearch_V4_only() {
+            // Given
+            ResponseStatusOverTimeQuery query = new ResponseStatusOverTimeQuery(
+                List.of(API_ID),
+                FROM,
+                TO,
+                INTERVAL,
+                EnumSet.of(DefinitionVersion.V4)
+            );
+            ElasticsearchInfo esInfo = anElasticsearchInfo();
+
+            // When
+            var result = cut.adaptQuery(query, esInfo);
+
+            // Then
+            assertThatJson(result)
+                .isEqualTo(
+                    """
+                                        {
+                                           "aggregations": {
+                                             "by_date": {
+                                               "aggregations": { "by_status": { "terms": { "field": "status" } } },
+                                               "date_histogram": {
+                                                 "extended_bounds": { "max": 1697969730000, "min": 1697883330000 },
+                                                 "field": "@timestamp",
+                                                 "fixed_interval": "600000ms",
+                                                 "min_doc_count": 0
+                                               }
+                                             }
+                                           },
+                                           "query": {
+                                             "bool": {
+                                               "filter": [
+                                                 {"bool":{"minimum_should_match":1,"should":[{"bool":{"must":[{"terms":{"api-id":["my-api-id"]}},{"terms":{"entrypoint-id":["http-post","http-get","http-proxy"]}}]}}]}},
+                                                 {
+                                                   "range": {
+                                                     "@timestamp": {
+                                                       "from": 1697882730000,
+                                                       "include_lower": true,
+                                                       "include_upper": true,
+                                                       "to": 1697970330000
+                                                     }
+                                                   }
+                                                 }
+                                               ]
+                                             }
+                                           },
+                                           "size": 0
+                                         }"""
+                );
+        }
+
+        @Test
         void adapt_query_for_OpenSearch() {
             // Given
-            ResponseStatusOverTimeQuery query = new ResponseStatusOverTimeQuery(List.of(API_ID), FROM, TO, INTERVAL);
+            ResponseStatusOverTimeQuery query = new ResponseStatusOverTimeQuery(
+                List.of(API_ID),
+                FROM,
+                TO,
+                INTERVAL,
+                EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2)
+            );
             ElasticsearchInfo esInfo = anOpenSearchInfo();
 
             // When
@@ -119,7 +186,7 @@ class SearchResponseStatusOverTimeAdapterTest {
                                    "query": {
                                      "bool": {
                                        "filter": [
-                                         {"bool":{"minimum_should_match":1,"should":[{"terms":{"api-id":["my-api-id"]}},{"terms":{"api":["my-api-id"]}}]}},
+                                         {"bool":{"minimum_should_match":1,"should":[{"bool":{"must":[{"terms":{"api-id":["my-api-id"]}},{"terms":{"entrypoint-id":["http-post","http-get","http-proxy"]}}]}},{"terms":{"api":["my-api-id"]}}]}},
                                          {
                                            "range": {
                                              "@timestamp": {

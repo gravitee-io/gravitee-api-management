@@ -116,9 +116,10 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         var adapter = new SearchResponseStatusRangesAdapter();
 
-        return this.client.getFieldTypes(indices, ENTRYPOINT_ID_FIELD)
+        return client
+            .getFieldTypes(indices, ENTRYPOINT_ID_FIELD)
             .map(types -> types.stream().allMatch(KEYWORD::equals))
-            .flatMap(isEntrypointIdKeyword -> this.client.search(indices, null, adapter.adaptQuery(query, isEntrypointIdKeyword)))
+            .flatMap(isEntrypointIdKeyword -> client.search(indices, null, adapter.adaptQuery(query, isEntrypointIdKeyword)))
             .map(adapter::adaptResponse)
             .blockingGet();
     }
