@@ -97,7 +97,7 @@
     "jest-junit": "16.0.0",
     "jest-preset-angular": "14.5.0",
     "license-check-and-add": "4.0.5",
-    "prettier": "3.2.5",
+    "prettier": "3.5.3",
     "prettier-eslint": "16.3.0",
     "storybook": "8.5.0",
     "stylelint": "16.2.1",
