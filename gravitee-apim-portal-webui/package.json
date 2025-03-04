@@ -86,7 +86,7 @@
     "@babel/preset-env": "7.26.9",
     "@messageformat/core": "3.4.0",
     "@ngneat/spectator": "14.0.0",
-    "@types/jest": "28.1.8",
+    "@types/jest": "29.5.14",
     "@types/js-yaml": "4.0.5",
     "@types/node": "20.14.8",
     "@typescript-eslint/eslint-plugin": "6.13.1",

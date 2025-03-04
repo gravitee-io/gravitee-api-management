@@ -22,6 +22,6 @@ const valuesToAccountFor = [];
 module.exports = {
   getCacheKey: createCacheKeyFunction(filesToAccountFor, valuesToAccountFor),
   process(src, filename) {
-    return `module.exports = ${JSON.stringify({ src, filename })};`;
+    return { code: `module.exports = ${JSON.stringify({ src, filename })};` };
   },
 };
