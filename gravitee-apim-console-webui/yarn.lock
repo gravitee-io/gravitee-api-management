@@ -15242,7 +15242,7 @@ __metadata:
     license-check-and-add: "npm:4.0.5"
     lodash: "npm:4.17.21"
     marked: "npm:10.0.0"
-    marked-highlight: "npm:2.1.1"
+    marked-highlight: "npm:2.2.1"
     md-color-picker: "npm:0.2.6"
     md-steppers: "npm:0.4.1"
     moment: "npm:2.30.1"
@@ -18114,12 +18114,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked-highlight@npm:2.1.1":
-  version: 2.1.1
-  resolution: "marked-highlight@npm:2.1.1"
+"marked-highlight@npm:2.2.1":
+  version: 2.2.1
+  resolution: "marked-highlight@npm:2.2.1"
   peerDependencies:
-    marked: ">=4 <13"
-  checksum: 10c0/8f169411695a19150f8f8cb4ca91f2e7e5b057c2f160a797889600c0cb6d8776d4a5c0be5ca4c9e0a03c494a65a777a7fb8f322f747debc100016ca86eb3aeaa
+    marked: ">=4 <16"
+  checksum: 10c0/cc3240750e05a184576a991b3b23e5a84c90356d70b850a51f08a2144e2febce7332f957813d42645698ef24356d37c42825bb178a417d4ae9c8cc5ca37c6b45
   languageName: node
   linkType: hard
 
