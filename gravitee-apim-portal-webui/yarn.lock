@@ -3820,7 +3820,7 @@ __metadata:
     "@types/swagger-ui": "npm:3.52.4"
     "@typescript-eslint/eslint-plugin": "npm:6.13.1"
     "@typescript-eslint/parser": "npm:6.13.1"
-    "@webcomponents/webcomponentsjs": "npm:2.6.0"
+    "@webcomponents/webcomponentsjs": "npm:2.8.0"
     angular-oauth2-oidc: "npm:13.0.1"
     asciidoctor: "npm:3.0.4"
     asciidoctor-highlight.js: "npm:0.4.0"
@@ -6975,10 +6975,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@webcomponents/webcomponentsjs@npm:2.6.0":
-  version: 2.6.0
-  resolution: "@webcomponents/webcomponentsjs@npm:2.6.0"
-  checksum: 10c0/af81bd987fc44c115465391b98cdcba99d143c773cc4a4603d13f342b91c2407075c07fb4c7eaab219a8d541b0ff7fa50caa47f9dae36a311340d563efd41735
+"@webcomponents/webcomponentsjs@npm:2.8.0":
+  version: 2.8.0
+  resolution: "@webcomponents/webcomponentsjs@npm:2.8.0"
+  checksum: 10c0/f3634dea123572ce86d22e86a863771f805edc535b9656256d855412d4800dd2d219eeee3e40f003885e008f8fc80a4a8dcc15e0bade3246ac25639e48c34294
   languageName: node
   linkType: hard
 
