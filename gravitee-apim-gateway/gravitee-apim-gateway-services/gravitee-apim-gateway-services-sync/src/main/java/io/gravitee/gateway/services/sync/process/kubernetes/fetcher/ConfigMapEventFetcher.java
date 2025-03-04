@@ -169,13 +169,10 @@ public class ConfigMapEventFetcher {
                     apiId = apiDefinition.getId();
                     definitionVersion = apiDefinition.getDefinitionVersion();
                 } else if (definitionVersion == DefinitionVersion.V4) {
-                    io.gravitee.definition.model.v4.Api apiDefinition = objectMapper.readValue(
-                        definition,
-                        io.gravitee.definition.model.v4.Api.class
-                    );
-                    apiId = apiDefinition.getId();
-                    apiType = apiDefinition.getType();
-                    definitionVersion = apiDefinition.getDefinitionVersion();
+                    Map<String, Object> apiDefinition = objectMapper.readValue(definition, Map.class);
+                    apiId = (String) apiDefinition.get("id");
+                    apiType = ApiType.fromLabel((String) apiDefinition.get("type"));
+                    definitionVersion = DefinitionVersion.valueOfLabel((String) apiDefinition.get("definitionVersion"));
                 } else {
                     return Maybe.error(new RuntimeException("ApiDefinitionVersion is missing for this configmap: " + definition));
                 }
