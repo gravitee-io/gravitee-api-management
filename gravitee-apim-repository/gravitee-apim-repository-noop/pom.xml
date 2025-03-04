@@ -30,6 +30,11 @@
 
     <name>Gravitee.io APIM - Repository - NoOp</name>
 
+    <properties>
+        <!-- Property used by the publication job in CI-->
+        <publish-folder-path>graviteeio-apim/plugins/repositories</publish-folder-path>
+    </properties>
+
     <dependencies>
         <!-- Gravitee.io dependencies -->
         <dependency>

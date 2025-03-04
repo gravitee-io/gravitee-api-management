@@ -51,7 +51,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <finalName>gravitee-apim-gateway-standalone-${project.version}</finalName>
+                            <finalName>gravitee-apim-gateway-${project.version}</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
                             <descriptors>
                                 <descriptor>src/main/assembly/plugin-assembly-standalone.xml</descriptor>

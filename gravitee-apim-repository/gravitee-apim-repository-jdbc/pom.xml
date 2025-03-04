@@ -42,6 +42,9 @@
 
         <!-- Plugin configuration -->
         <default-database.jdbcType>postgresql</default-database.jdbcType>
+
+        <!-- Property used by the publication job in CI-->
+        <publish-folder-path>graviteeio-apim/plugins/repositories</publish-folder-path>
     </properties>
 
     <dependencies>

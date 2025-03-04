@@ -30,6 +30,11 @@
     <name>Gravitee.io APIM - Plugin - Endpoint TCP proxy</name>
     <description>Endpoint that allows exposing TCP API</description>
 
+    <properties>
+        <!-- Property used by the publication job in CI-->
+        <publish-folder-path>graviteeio-apim/plugins/endpoints</publish-folder-path>
+    </properties>
+
 
     <dependencies>
         <!-- Gravitee dependencies -->

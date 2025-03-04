@@ -16,7 +16,13 @@
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { NodeLtsExecutor } from '../../executors';
-import { BuildUiImageCommand, InstallYarnCommand, NotifyOnFailureCommand, WebuiInstallCommand } from '../../commands';
+import {
+  BuildUiImageCommand,
+  InstallYarnCommand,
+  NotifyOnFailureCommand,
+  WebuiInstallCommand,
+  WebuiPublishOnDownloadWebsiteCommand,
+} from '../../commands';
 import { CircleCIEnvironment } from '../../pipelines';
 import { computeApimVersion } from '../../utils';
 import { config } from '../../config';
@@ -24,7 +30,12 @@ import { config } from '../../config';
 export class ConsoleWebuiBuildJob {
   private static jobName = 'job-console-webui-build';
 
-  public static create(dynamicConfig: Config, environment: CircleCIEnvironment, buildDockerImage: boolean): Job {
+  public static create(
+    dynamicConfig: Config,
+    environment: CircleCIEnvironment,
+    buildDockerImage: boolean,
+    publishOnDownloadWebsite: boolean,
+  ): Job {
     const installYarnCmd = InstallYarnCommand.get();
     dynamicConfig.addReusableCommand(installYarnCmd);
 
@@ -41,10 +52,10 @@ export class ConsoleWebuiBuildJob {
       new commands.workspace.Attach({ at: '.' }),
       new commands.SetupRemoteDocker({ version: config.docker.version }),
       new reusable.ReusedCommand(installYarnCmd),
-      new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': `${config.dockerImages.console.project}` }),
+      new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': `${config.components.console.project}` }),
       new commands.Run({
         name: 'Update Build version',
-        command: `sed -i 's/"version": ".*"/"version": "${apimVersion}"/' ${config.dockerImages.console.project}/build.json`,
+        command: `sed -i 's/"version": ".*"/"version": "${apimVersion}"/' ${config.components.console.project}/build.json`,
       }),
       new commands.Run({
         name: 'Build',
@@ -52,7 +63,7 @@ export class ConsoleWebuiBuildJob {
         environment: {
           NODE_OPTIONS: '--max_old_space_size=4086',
         },
-        working_directory: `${config.dockerImages.console.project}`,
+        working_directory: `${config.components.console.project}`,
       }),
     ];
     if (buildDockerImage) {
@@ -61,16 +72,33 @@ export class ConsoleWebuiBuildJob {
 
       steps.push(
         new reusable.ReusedCommand(buildUiImageCommand, {
-          'docker-image-name': `${config.dockerImages.console.image}`,
-          'apim-ui-project': `${config.dockerImages.console.project}`,
+          'docker-image-name': `${config.components.console.image}`,
+          'apim-ui-project': `${config.components.console.project}`,
         }),
       );
     }
+
+    if (publishOnDownloadWebsite) {
+      const webuiPublishDownloadWebsiteCommand = WebuiPublishOnDownloadWebsiteCommand.get(
+        dynamicConfig,
+        environment.graviteeioVersion,
+        environment.isDryRun,
+      );
+      dynamicConfig.addReusableCommand(webuiPublishDownloadWebsiteCommand);
+
+      steps.push(
+        new reusable.ReusedCommand(webuiPublishDownloadWebsiteCommand, {
+          'apim-ui-project': `${config.components.console.project}`,
+          'apim-ui-publish-folder-path': `${config.components.console.publishFolderPath}`,
+        }),
+      );
+    }
+
     steps.push(
       new reusable.ReusedCommand(notifyOnFailureCommand),
       new commands.workspace.Persist({
         root: '.',
-        paths: [`${config.dockerImages.console.project}/dist`],
+        paths: [`${config.components.console.project}/dist`],
       }),
     );
 

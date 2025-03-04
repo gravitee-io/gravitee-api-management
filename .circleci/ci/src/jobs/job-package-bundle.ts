@@ -14,90 +14,52 @@
  * limitations under the License.
  */
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
-import { OpenJdkNodeExecutor } from '../executors';
-import { orbs } from '../orbs';
-import { config } from '../config';
-import { ReusedCommand } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Reusable';
-import { keeper } from '../orbs/keeper';
-import { awsCli } from '../orbs/aws-cli';
-import { awsS3 } from '../orbs/aws-s3';
-import { GraviteeioVersion, parse } from '../utils';
-import { InstallYarnCommand } from '../commands';
+import { BaseExecutor } from '../executors';
+import { parse } from '../utils';
+import { SyncFolderToS3Command } from '../commands';
 
 export class PackageBundleJob {
-  private static readonly ARTIFACTORY_REPO_URL = `${config.artifactoryUrl}/external-dependencies-n-gravitee-all`;
-
   public static create(dynamicConfig: Config, graviteeioVersion: string, isDryRun: boolean) {
-    dynamicConfig.importOrb(keeper);
-    dynamicConfig.importOrb(awsS3);
-    dynamicConfig.importOrb(awsCli);
-
-    const installYarnCmd = InstallYarnCommand.get();
-    dynamicConfig.addReusableCommand(installYarnCmd);
-
     const parsedGraviteeioVersion = parse(graviteeioVersion);
 
-    return new Job('job-package-bundle', OpenJdkNodeExecutor.create(), [
-      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-        'secret-url': config.secrets.artifactoryUser,
-        'var-name': 'ARTIFACTORY_USERNAME',
-      }),
-      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-        'secret-url': config.secrets.artifactoryApiKey,
-        'var-name': 'ARTIFACTORY_PASSWORD',
-      }),
-      new commands.Checkout(),
+    const syncFolderToS3Cmd = SyncFolderToS3Command.get(dynamicConfig, parsedGraviteeioVersion, isDryRun);
+    dynamicConfig.addReusableCommand(syncFolderToS3Cmd);
+
+    const graviteeFullDistrib = `graviteeio-full-${graviteeioVersion}`;
+    const publishFolderPath = `graviteeio-apim/distributions`;
+    const zipName = `${graviteeFullDistrib}.zip`;
+    const fullDistributionDir = `./folder_to_sync/${publishFolderPath}/${graviteeFullDistrib}`;
+
+    return new Job('job-package-bundle', BaseExecutor.create('small'), [
       new commands.workspace.Attach({ at: '.' }),
       new commands.Run({
-        name: `Checkout tag ${parsedGraviteeioVersion.full}`,
-        command: `git checkout ${parsedGraviteeioVersion.full}`,
+        name: 'Building full-distribution bundle',
+        command: `mkdir -p ${fullDistributionDir}
+# Console
+cp -r gravitee-apim-console-webui/dist ${fullDistributionDir}/graviteeio-apim-console-ui-${graviteeioVersion}
+
+# Portal
+cp -r gravitee-apim-portal-webui/dist ${fullDistributionDir}/graviteeio-apim-portal-ui-${graviteeioVersion}
+
+# Rest API
+cp -r gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ${fullDistributionDir}/graviteeio-apim-rest-api-${graviteeioVersion}
+
+# Gateway
+cp -r gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ${fullDistributionDir}/graviteeio-apim-gateway-${graviteeioVersion}
+
+cd ./folder_to_sync/${publishFolderPath}
+zip -q -r ${zipName} ${graviteeFullDistrib}
+
+md5sum ${zipName} > ${zipName}.md5
+sha512sum ${zipName} > ${zipName}.sha512sum
+sha1sum ${zipName} > ${zipName}.sha1
+
+rm -rf ${graviteeFullDistrib}
+`,
       }),
-      new reusable.ReusedCommand(installYarnCmd),
-      new commands.Run({
-        name: 'Install dependencies',
-        command: 'yarn',
-        working_directory: './release',
+      new reusable.ReusedCommand(syncFolderToS3Cmd, {
+        'folder-to-sync': 'folder_to_sync',
       }),
-      new commands.Run({
-        name: 'Building package bundle',
-        command: `yarn zx --quiet --experimental ci-steps/package-bundles.mjs --version=${parsedGraviteeioVersion.full}`,
-        working_directory: './release',
-        environment: {
-          ARTIFACTORY_REPO_URL: PackageBundleJob.ARTIFACTORY_REPO_URL,
-        },
-      }),
-      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-        'secret-url': config.secrets.awsAccessKeyId,
-        'var-name': 'AWS_ACCESS_KEY_ID',
-      }),
-      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-        'secret-url': config.secrets.awsSecretAccessKey,
-        'var-name': 'AWS_SECRET_ACCESS_KEY',
-      }),
-      new reusable.ReusedCommand(orbs.awsCli.commands.setup, {
-        region: 'cloudfront',
-        version: `${config.awsCliVersion}`,
-      }),
-      PackageBundleJob.getSyncCommand(parsedGraviteeioVersion, isDryRun),
     ]);
-  }
-
-  private static getSyncCommand(graviteeioVersion: GraviteeioVersion, isDryRun: boolean): ReusedCommand {
-    const targetFolder =
-      graviteeioVersion.qualifier.full && graviteeioVersion.qualifier.full.length > 0
-        ? '/pre-releases/graviteeio-apim'
-        : '/graviteeio-apim';
-
-    let to = '';
-    if (isDryRun) {
-      to = `s3://gravitee-dry-releases-downloads${targetFolder}`;
-    } else {
-      to = `s3://gravitee-releases-downloads${targetFolder}`;
-    }
-    return new reusable.ReusedCommand(orbs.awsS3.commands.sync, {
-      arguments: '--endpoint-url https://cellar-c2.services.clever-cloud.com --acl public-read',
-      from: `./release/.tmp/${graviteeioVersion.full}/dist`,
-      to: `${to}`,
-    });
   }
 }

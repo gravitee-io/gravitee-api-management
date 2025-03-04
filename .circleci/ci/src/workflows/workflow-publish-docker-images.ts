@@ -29,10 +29,10 @@ export class PublishDockerImagesWorkflow {
     const buildBackendImagesJob = BuildBackendImagesJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(buildBackendImagesJob);
 
-    const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, true);
+    const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, true, false);
     dynamicConfig.addJob(consoleWebuiBuildJob);
 
-    const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, true);
+    const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, true, false);
     dynamicConfig.addJob(portalWebuiBuildJob);
 
     const publishPrEnvUrlsJob = PublishPrEnvUrlsJob.create(dynamicConfig);

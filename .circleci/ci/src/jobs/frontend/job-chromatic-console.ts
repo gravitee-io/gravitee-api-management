@@ -40,7 +40,7 @@ export class ChromaticConsoleJob {
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(installYarnCommand),
-      new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': config.dockerImages.console.project }),
+      new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': config.components.console.project }),
       new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
         'secret-url': config.secrets.githubApiToken,
         'var-name': 'GITHUB_TOKEN',

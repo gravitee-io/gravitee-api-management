@@ -35,11 +35,11 @@ export class StorybookConsoleJob {
     const steps: Command[] = [
       new commands.Checkout(),
       new reusable.ReusedCommand(installYarnCmd),
-      new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': config.dockerImages.console.project }),
+      new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': config.components.console.project }),
       new commands.Run({
         name: 'Build',
         command: 'yarn build-storybook',
-        working_directory: config.dockerImages.console.project,
+        working_directory: config.components.console.project,
         environment: {
           NODE_OPTIONS: '--max_old_space_size=8192',
         },
