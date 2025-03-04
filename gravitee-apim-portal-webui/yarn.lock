@@ -3840,7 +3840,7 @@ __metadata:
     jest: "npm:29.7.0"
     jest-junit: "npm:16.0.0"
     js-yaml: "npm:4.1.0"
-    license-check-and-add: "npm:4.0.3"
+    license-check-and-add: "npm:4.0.5"
     marked: "npm:12.0.2"
     marked-alert: "npm:2.1.2"
     marked-emoji: "npm:1.4.3"
@@ -13668,9 +13668,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"license-check-and-add@npm:4.0.3":
-  version: 4.0.3
-  resolution: "license-check-and-add@npm:4.0.3"
+"license-check-and-add@npm:4.0.5":
+  version: 4.0.5
+  resolution: "license-check-and-add@npm:4.0.5"
   dependencies:
     fs-extra: "npm:^8.1.0"
     gitignore-to-glob: "npm:^0.3.0"
@@ -13679,7 +13679,7 @@ __metadata:
     yargs: "npm:^13.3.0"
   bin:
     license-check-and-add: dist/src/cli.js
-  checksum: 10c0/72ab27a1460ce881404e2fff6f06d6c43ea8279032cf36379563c93ff035505276375e9fd968340ebd6a674b3e977187b0e81ab55cb3094a3a163cb57764e44d
+  checksum: 10c0/c8f63edae94b31cf3ab7aa89e6ef7a703005bd4b9edd9990a12b92b96e4645df84a61bd6c8e6f232cd63862f130774f5fbf47a7a8ac4baaa5b84ea9e2172ad71
   languageName: node
   linkType: hard
 
