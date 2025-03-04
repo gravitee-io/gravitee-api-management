@@ -11566,7 +11566,7 @@ __metadata:
     marked-alert: "npm:2.1.2"
     marked-emoji: "npm:1.4.3"
     marked-extended-tables: "npm:1.1.1"
-    marked-gfm-heading-id: "npm:3.1.3"
+    marked-gfm-heading-id: "npm:3.2.0"
     marked-highlight: "npm:2.1.1"
     ngx-infinite-scroll: "npm:18.0.0"
     prettier: "npm:3.5.3"
@@ -14256,14 +14256,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked-gfm-heading-id@npm:3.1.3":
-  version: 3.1.3
-  resolution: "marked-gfm-heading-id@npm:3.1.3"
+"marked-gfm-heading-id@npm:3.2.0":
+  version: 3.2.0
+  resolution: "marked-gfm-heading-id@npm:3.2.0"
   dependencies:
     github-slugger: "npm:^2.0.0"
   peerDependencies:
     marked: ">=4 <13"
-  checksum: 10c0/675ea0847eb35b37f0b0b79270a511954afbca2a94b2b2d3b1dfd04f13e4bd18e8989dd1e4e82b407b2166e06d9af6aaf83ef2ba46b4c1fc665a06c83dd31469
+  checksum: 10c0/aba170f042049248047db4c1202c9cf3434858ca8e15b1b0d42905a6086135e98ac5edc8437c48c1206402cdb1f0fd0fbdcad410792a7d7150bec6095108b365
   languageName: node
   linkType: hard
 
