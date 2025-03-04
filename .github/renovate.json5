@@ -1,10 +1,8 @@
 {
-    "extends": ["config:js-app", "schedule:earlyMondays"],
-    "prConcurrentLimit": 5,
-    "rebaseWhen": "conflicted",
-    "commitMessageTopic": "{{depName}}",
+    "extends": ["github>gravitee-io/renovate-config","config:js-app", "schedule:earlyMondays"],
     "packageRules": [
         {
+            // Group all angular related packages updates together
             "packagePatterns": [
                 "^@angular/*",
                 "^@angular-builders/*",
@@ -24,14 +22,17 @@
             "enabled": false
         },
         {
+            // Group all eslint related packages updates together
             "packagePatterns": ["^@typescript-eslint/*", "^eslint*", "^@angular-eslint/*"],
             "groupName": "eslint"
         },
         {
+            // Group all Jest related packages updates together
             "packagePatterns": ["@types/jest", "^jest*", "ts-jest", "jest-preset-angular"],
             "groupName": "jest"
         },
         {
+            // Group all Storybook packages updates together
             "packagePatterns": ["^@storybook/*"],
             "groupName": "storybook"
         },
@@ -40,44 +41,21 @@
             "separateMinorPatch": true
         },
         {
+            // Disable major upgrades for TypeScript, RxJS and tslib as they are linked to the Angular version
             "packageNames": ["typescript", "rxjs", "tslib"],
             "updateTypes": ["major"],
             "enabled": false
         },
         {
+            // Disable minor upgrades for TypeScript it is linked to the Angular version
             "packageNames": ["typescript"],
             "updateTypes": ["minor"],
             "enabled": false
         },
         {
-            "matchDepTypes": ["devDependencies"],
-            "matchUpdateTypes": ["patch", "minor"],
-            "excludePackagePatterns": ["typescript", "@angular*"],
-            "groupName": "devDependencies (non-major)",
-            "groupSlug": "devdependencies-non-major"
-        },
-        {
-            "matchPackageNames": ["@gravitee/ui-components"],
+            // Update Gravitee NPM packages at any time
+            "matchPackageNames": ["^@gravitee/*"],
             "schedule": ["at any time"]
-        },
-        {
-            "matchDatasources": ["orb"],
-            "matchUpdateTypes": ["patch", "minor"],
-            "automerge": true,
-            "automergeType": "branch",
-            "semanticCommitType": "ci"
-        },
-        {
-            "matchDepTypes": ["provided", "test", "build", "import", "parent"],
-            "matchUpdateTypes": ["patch", "minor"],
-            "automerge": true,
-            "automergeType": "branch",
-            "semanticCommitType": "chore"
-        },
-        {
-            "matchDepTypes": ["provided", "test", "build", "import", "parent"],
-            "matchUpdateTypes": ["major"],
-            "semanticCommitType": "chore"
         }
     ]
 }
