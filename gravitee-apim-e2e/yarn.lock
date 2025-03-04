@@ -979,12 +979,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jsonwebtoken@npm:8.5.8":
-  version: 8.5.8
-  resolution: "@types/jsonwebtoken@npm:8.5.8"
+"@types/jsonwebtoken@npm:8.5.9":
+  version: 8.5.9
+  resolution: "@types/jsonwebtoken@npm:8.5.9"
   dependencies:
     "@types/node": "npm:*"
-  checksum: 10c0/78b614aa06cb83e6751680448b78daac36bc8f24f7f52b7922e01295ff4b6c2917973e9a359de4219fcc274813f3ae1edc864771dab6cb1de5b68ff8d3d5d611
+  checksum: 10c0/4374b0f1b5641d1dd8847fa6f50bd34ec215f3244ea045556d2caa74ed559b2571502db73526bb8fbff038a60ff7e6bf56ffa79679c0b03539b55fda32617a23
   languageName: node
   linkType: hard
 
@@ -2857,7 +2857,7 @@ __metadata:
     "@gravitee/utils": "link:lib/utils"
     "@jest/create-cache-key-function": "npm:28.0.1"
     "@types/jest": "npm:27.4.1"
-    "@types/jsonwebtoken": "npm:8.5.8"
+    "@types/jsonwebtoken": "npm:8.5.9"
     "@types/node": "npm:16.10.9"
     "@types/node-fetch": "npm:2.6.1"
     ansi-regex: "npm:6.0.1"
