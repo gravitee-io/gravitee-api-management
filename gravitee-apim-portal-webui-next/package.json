@@ -100,7 +100,7 @@
     "prettier": "3.5.3",
     "prettier-eslint": "16.3.0",
     "storybook": "8.5.0",
-    "stylelint": "16.2.1",
+    "stylelint": "16.15.0",
     "stylelint-config-idiomatic-order": "10.0.0",
     "stylelint-config-prettier-scss": "1.0.0",
     "stylelint-config-standard-scss": "13.0.0",
