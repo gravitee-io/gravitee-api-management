@@ -15250,7 +15250,7 @@ __metadata:
     ng-file-upload: "npm:12.2.13"
     ngclipboard: "npm:2.0.0"
     ngx-file-helpers: "npm:12.0.0"
-    ngx-markdown: "npm:17.1.1"
+    ngx-markdown: "npm:17.2.1"
     oidc-client-ts: "npm:2.4.1"
     prettier: "npm:3.5.3"
     prismjs: "npm:1.29.0"
@@ -19027,9 +19027,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ngx-markdown@npm:17.1.1":
-  version: 17.1.1
-  resolution: "ngx-markdown@npm:17.1.1"
+"ngx-markdown@npm:17.2.1":
+  version: 17.2.1
+  resolution: "ngx-markdown@npm:17.2.1"
   dependencies:
     clipboard: "npm:^2.0.11"
     emoji-toolkit: "npm:^8.0.0"
@@ -19041,7 +19041,7 @@ __metadata:
     "@angular/common": ^17.0.0
     "@angular/core": ^17.0.0
     "@angular/platform-browser": ^17.0.0
-    marked: ^9.0.0
+    marked: ">= 9.0.0 < 13.0.0"
     rxjs: ^6.5.3 || ^7.4.0
     zone.js: ~0.14.0
   dependenciesMeta:
@@ -19055,7 +19055,7 @@ __metadata:
       optional: true
     prismjs:
       optional: true
-  checksum: 10c0/6600faaf5a3ec96d07234603d53bd65b0c2068574e41b5a613c789ef1f2b396c1089be1a0b749ce7760b39feffe504397d970f216b4d6ec6dd740a4683f9a00c
+  checksum: 10c0/5200b37103e599c8fd2d9d9660a62f6840ce47e22ec4dd849218f8de53876661c6d49b8274ffa5d756dee039051395a4bf94f194fb9c14bf6c9f78f1e204ef54
   languageName: node
   linkType: hard
 
