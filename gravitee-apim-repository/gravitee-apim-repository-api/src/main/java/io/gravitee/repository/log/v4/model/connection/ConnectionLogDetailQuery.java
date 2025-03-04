@@ -15,9 +15,11 @@
  */
 package io.gravitee.repository.log.v4.model.connection;
 
+import io.gravitee.common.http.HttpMethod;
+import java.util.List;
+import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
-import java.util.Set;
 
 @Builder
 @Data
@@ -31,12 +33,19 @@ public class ConnectionLogDetailQuery {
 
     private Filter filter;
 
+    private List<String> projectionFields;
+
     @Data
     @Builder
     public static class Filter {
 
+        private Long from;
+        private Long to;
         private Set<String> apiIds;
         private Set<String> requestIds;
-
+        private String bodyText;
+        private Set<HttpMethod> methods;
+        private Set<Integer> statuses;
+        private String uri;
     }
 }
