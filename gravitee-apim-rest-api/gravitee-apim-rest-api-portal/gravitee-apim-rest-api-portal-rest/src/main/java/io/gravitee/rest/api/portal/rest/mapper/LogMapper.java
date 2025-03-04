@@ -135,6 +135,7 @@ public class LogMapper {
             .transactionIds(searchLogsParam.getTransactionIds())
             .uri(searchLogsParam.getPath())
             .responseTimeRanges(convertResponseTimeRanges(searchLogsParam.getResponseTimeRanges()))
+            .bodyText(searchLogsParam.getBodyText())
             .build();
     }
 
