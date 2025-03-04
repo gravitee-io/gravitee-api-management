@@ -2098,10 +2098,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dotenv@npm:16.0.0":
-  version: 16.0.0
-  resolution: "dotenv@npm:16.0.0"
-  checksum: 10c0/50c211ad5b0047d0e2ac10fcc5722979923a7dca6246569ccb41532f3e48b752d8ad5204a7f4c19e371276a4cd2c8beef5e79522fa6a3cc6856597944017f638
+"dotenv@npm:16.4.7":
+  version: 16.4.7
+  resolution: "dotenv@npm:16.4.7"
+  checksum: 10c0/be9f597e36a8daf834452daa1f4cc30e5375a5968f98f46d89b16b983c567398a330580c88395069a77473943c06b877d1ca25b4afafcdd6d4adb549e8293462
   languageName: node
   linkType: hard
 
@@ -2863,7 +2863,7 @@ __metadata:
     "@types/node": "npm:20.14.8"
     "@types/node-fetch": "npm:2.6.1"
     cypress: "npm:13.9.0"
-    dotenv: "npm:16.0.0"
+    dotenv: "npm:16.4.7"
     har-validator: "npm:5.1.5"
     jest: "npm:27.5.1"
     jest-junit: "npm:16.0.0"
