@@ -33,5 +33,6 @@ public record SearchLogsFilters(
     Set<String> requestIds,
     Set<String> transactionIds,
     List<Range> responseTimeRanges,
-    String uri
+    String uri,
+    String bodyText
 ) {}
