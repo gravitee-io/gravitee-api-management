@@ -63,7 +63,7 @@
     "ngx-translate-messageformat-compiler": "6.5.1",
     "redoc": "2.4.0",
     "resize-observer-polyfill": "1.5.1",
-    "rxjs": "6.5.5",
+    "rxjs": "6.6.7",
     "swagger-ui": "5.19.0",
     "tslib": "2.3.1",
     "url": "0.11.0",
