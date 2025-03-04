@@ -1519,10 +1519,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/k6@npm:0.42.0":
-  version: 0.42.0
-  resolution: "@types/k6@npm:0.42.0"
-  checksum: 10c0/4088ef95a39d8ff35eb891787e2c0c20e081eff142038f7fe25f5e2fab3aafc6667fe5472c064704e3e8513527b93ba625671c6eebb72b8be9c9909ee9db3fd0
+"@types/k6@npm:0.57.1":
+  version: 0.57.1
+  resolution: "@types/k6@npm:0.57.1"
+  checksum: 10c0/4deea4f2f7c251dcf39b033001809ad174236b15ba9a59302caa69453f82d346f74209d6446b7674da7cc2ccaa5937469c2afb1a84fd1f5d9cebe0532ad21be3
   languageName: node
   linkType: hard
 
@@ -2745,7 +2745,7 @@ __metadata:
     "@babel/plugin-proposal-object-rest-spread": "npm:7.20.7"
     "@babel/preset-env": "npm:7.20.2"
     "@babel/preset-typescript": "npm:7.18.6"
-    "@types/k6": "npm:0.42.0"
+    "@types/k6": "npm:0.57.1"
     "@types/node": "npm:18.15.3"
     "@types/webpack": "npm:5.28.0"
     babel-loader: "npm:9.1.2"
