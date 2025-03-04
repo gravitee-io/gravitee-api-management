@@ -4553,7 +4553,7 @@ __metadata:
     marked-gfm-heading-id: "npm:3.2.0"
     marked-highlight: "npm:2.2.1"
     ng-packagr: "npm:17.0.2"
-    ngx-cookie-service: "npm:17.0.0"
+    ngx-cookie-service: "npm:17.1.0"
     ngx-translate-messageformat-compiler: "npm:6.5.1"
     path: "npm:0.12.7"
     prettier: "npm:3.5.3"
@@ -15343,15 +15343,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ngx-cookie-service@npm:17.0.0":
-  version: 17.0.0
-  resolution: "ngx-cookie-service@npm:17.0.0"
+"ngx-cookie-service@npm:17.1.0":
+  version: 17.1.0
+  resolution: "ngx-cookie-service@npm:17.1.0"
   dependencies:
     tslib: "npm:^2.6.2"
   peerDependencies:
     "@angular/common": ^17.0.0
     "@angular/core": ^17.0.0
-  checksum: 10c0/d001db0d98584d02075d2b02a5af1f0ef0367fc3be12e8984959587b2a9a7b16276f0124a8968eed075df3c8c00dcb93908fa36ca599bf1d8632aae069b26d25
+  checksum: 10c0/0e95491f95c829f55139aefa9338d04077a3bd37fd458640f17c0e651576e2ae7896a0b9aad4fd45797bc3c2adc426bfd1435bc72c80ee8e6e200890238d006b
   languageName: node
   linkType: hard
 
