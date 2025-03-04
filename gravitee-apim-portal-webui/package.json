@@ -61,7 +61,7 @@
     "marked-highlight": "2.2.1",
     "ngx-cookie-service": "17.1.0",
     "ngx-translate-messageformat-compiler": "6.5.1",
-    "redoc": "2.1.5",
+    "redoc": "2.4.0",
     "resize-observer-polyfill": "1.5.1",
     "rxjs": "6.5.5",
     "swagger-ui": "5.19.0",
