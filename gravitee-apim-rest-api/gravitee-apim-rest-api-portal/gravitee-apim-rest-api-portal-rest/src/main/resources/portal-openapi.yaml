@@ -3610,6 +3610,9 @@ components:
                 description: List of filters for response time ranges
                 items:
                   $ref: "#/components/schemas/ResponseTimeRange"
+              bodyText:
+                type: string
+                description: Filter for text in either the request or response body
           required:
             - to
             - from
