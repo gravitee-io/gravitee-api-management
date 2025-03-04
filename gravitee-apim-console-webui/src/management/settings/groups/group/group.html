@@ -112,71 +112,72 @@
         </div>
       </div>
     </div>
+    <div permission permission-only="'environment-group-u'">
+      <h2>Associations</h2>
+      <div class="gv-form-content" layout="column">
+        <div layout="column" style="margin-bottom: 10px">
+          <md-checkbox
+            ng-model="$ctrl.apiByDefault"
+            ng-click="$event.stopPropagation()"
+            aria-label="Associate to every new API"
+            class="md-primary md-align-top-left"
+            flex
+          >
+            Associate automatically to every new API
+          </md-checkbox>
+          <md-checkbox
+            ng-model="$ctrl.applicationByDefault"
+            aria-label="Associate to every new application"
+            class="md-primary md-align-top-left"
+            flex
+          >
+            Associate automatically to every new application
+          </md-checkbox>
+        </div>
+        <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.updateMode">
+          <md-button aria-label="Associate to existing APIs" ng-click="$ctrl.associateToApis()" class="md-actions md-raised md-primary">
+            Associate to existing APIs
+          </md-button>
 
-    <h2>Associations</h2>
-    <div class="gv-form-content" layout="column">
-      <div layout="column" style="margin-bottom: 10px">
-        <md-checkbox
-          ng-model="$ctrl.apiByDefault"
-          ng-click="$event.stopPropagation()"
-          aria-label="Associate to every new API"
-          class="md-primary md-align-top-left"
-          flex
-        >
-          Associate automatically to every new API
-        </md-checkbox>
-        <md-checkbox
-          ng-model="$ctrl.applicationByDefault"
-          aria-label="Associate to every new application"
-          class="md-primary md-align-top-left"
-          flex
-        >
-          Associate automatically to every new application
-        </md-checkbox>
+          <md-button
+            aria-label="Associate to existing applications"
+            ng-click="$ctrl.associateToApplications()"
+            class="md-actions md-raised md-primary"
+          >
+            Associate to existing applications
+          </md-button>
+        </div>
       </div>
-      <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.updateMode">
-        <md-button aria-label="Associate to existing APIs" ng-click="$ctrl.associateToApis()" class="md-actions md-raised md-primary">
-          Associate to existing APIs
-        </md-button>
 
-        <md-button
-          aria-label="Associate to existing applications"
-          ng-click="$ctrl.associateToApplications()"
-          class="md-actions md-raised md-primary"
-        >
-          Associate to existing applications
-        </md-button>
-      </div>
-    </div>
+      <h2>Actions</h2>
+      <div class="gv-form-content" layout="column">
+        <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.canSave()">
+          <md-button
+            ng-if="$ctrl.updateMode"
+            class="md-raised md-primary"
+            type="submit"
+            ng-disabled="formGroup.$invalid || formGroup.$pristine"
+            permission
+            permission-only="['environment-group-u']"
+          >
+            Update
+          </md-button>
 
-    <h2>Actions</h2>
-    <div class="gv-form-content" layout="column">
-      <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.canSave()">
-        <md-button
-          ng-if="$ctrl.updateMode"
-          class="md-raised md-primary"
-          type="submit"
-          ng-disabled="formGroup.$invalid || formGroup.$pristine"
-          permission
-          permission-only="['environment-group-u']"
-        >
-          Update
-        </md-button>
+          <md-button
+            ng-if="!$ctrl.updateMode"
+            class="md-raised md-primary"
+            type="submit"
+            ng-disabled="formGroup.$invalid || formGroup.$pristine"
+            permission
+            permission-only="['environment-group-c']"
+          >
+            Create
+          </md-button>
 
-        <md-button
-          ng-if="!$ctrl.updateMode"
-          class="md-raised md-primary"
-          type="submit"
-          ng-disabled="formGroup.$invalid || formGroup.$pristine"
-          permission
-          permission-only="['environment-group-c']"
-        >
-          Create
-        </md-button>
-
-        <md-button class="md-raised" type="button" ng-click="$ctrl.reset()" ng-disabled="formGroup.$invalid || formGroup.$pristine">
-          Reset
-        </md-button>
+          <md-button class="md-raised" type="button" ng-click="$ctrl.reset()" ng-disabled="formGroup.$invalid || formGroup.$pristine">
+            Reset
+          </md-button>
+        </div>
       </div>
     </div>
   </form>
