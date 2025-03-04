@@ -23,7 +23,11 @@ import { NotificationService } from './notification.service';
   providedIn: 'root',
 })
 export class SubscribeGuardService {
-  constructor(private currentUserService: CurrentUserService, private router: Router, private notificationService: NotificationService) {}
+  constructor(
+    private currentUserService: CurrentUserService,
+    private router: Router,
+    private notificationService: NotificationService,
+  ) {}
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
     const user = this.currentUserService.get().getValue();

@@ -142,9 +142,12 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
           this.userPicture = this.currentUser._links ? this.currentUser._links.avatar : null;
         });
         this.loadNotifications();
-        this.interval = setInterval(() => {
-          this.loadNotifications();
-        }, this.configurationService.get('scheduler.notificationsInSeconds') * 1000);
+        this.interval = setInterval(
+          () => {
+            this.loadNotifications();
+          },
+          this.configurationService.get('scheduler.notificationsInSeconds') * 1000,
+        );
       } else {
         this.userPicture = null;
         clearInterval(this.interval);

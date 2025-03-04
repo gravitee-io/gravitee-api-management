@@ -211,7 +211,7 @@ export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
             application: `${subscription.application?.name} (${subscription.application?.primaryOwner?.displayName})`,
             createdAt: subscription.createdAt,
             endAt: subscription.endingAt,
-            securityType: subscription.plan.mode === 'PUSH' ? 'PUSH' : subscription.plan?.security?.type ?? 'UNKNOWN',
+            securityType: subscription.plan.mode === 'PUSH' ? 'PUSH' : (subscription.plan?.security?.type ?? 'UNKNOWN'),
             isSharedApiKey: subscription.plan?.security?.type === 'API_KEY' && subscription.application?.apiKeyMode === 'SHARED',
             plan: subscription.plan?.name,
             processedAt: subscription.processedAt,

@@ -152,9 +152,9 @@ export class ApiAnalyticsMessageComponent {
           .filter((entrypoint) => !apiEntrypointsId.includes(entrypoint.id))
           .filter((entrypoint) =>
             [
-              ...Object.keys(!requestsCount.isLoading ? requestsCount.countsByEntrypoint ?? {} : {}),
-              ...Object.keys(!averageConnectionDuration.isLoading ? averageConnectionDuration.averagesByEntrypoint ?? {} : {}),
-              ...Object.keys(!averageMessagesPerRequest.isLoading ? averageMessagesPerRequest.averagesByEntrypoint ?? {} : {}),
+              ...Object.keys(!requestsCount.isLoading ? (requestsCount.countsByEntrypoint ?? {}) : {}),
+              ...Object.keys(!averageConnectionDuration.isLoading ? (averageConnectionDuration.averagesByEntrypoint ?? {}) : {}),
+              ...Object.keys(!averageMessagesPerRequest.isLoading ? (averageMessagesPerRequest.averagesByEntrypoint ?? {}) : {}),
             ].includes(entrypoint.id),
           )
           .map((entrypoint) => ({ ...entrypoint, isNotConfigured: true }));

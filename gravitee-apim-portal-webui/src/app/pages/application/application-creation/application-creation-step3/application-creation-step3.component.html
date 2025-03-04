@@ -82,7 +82,7 @@
 
           <div class="actions">
             <gv-button *ngIf="requireClientId" link (:gv-button:click)="goToStep2()">
-              {{ 'applicationCreation.subscription.disabledPlans' | translate : { count: disabledPlans } }}
+              {{ 'applicationCreation.subscription.disabledPlans' | translate: { count: disabledPlans } }}
             </gv-button>
             <div *ngIf="!requireClientId"></div>
             <gv-button [disabled]="canAddPlan || requireClientId || !generalConditionsAccepted" (:gv-button:click)="addPlan()">
@@ -117,7 +117,7 @@
           [items]="this.subscribeList"
           (input)="this.onRequestChange()"
           rowheight="75px"
-          emptymessage="{{ 'applicationCreation.subscription.description' | translate : { count: 0 } }}"
+          emptymessage="{{ 'applicationCreation.subscription.description' | translate: { count: 0 } }}"
           [options]="subscriptionListOptions"
         ></gv-table>
       </div>

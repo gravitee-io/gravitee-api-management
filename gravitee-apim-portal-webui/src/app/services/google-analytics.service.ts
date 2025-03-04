@@ -35,7 +35,11 @@ export class GoogleAnalyticsService {
   private readonly scriptGtagId = 'Gtag_ID';
   private trackingId: string;
 
-  constructor(private configurationService: ConfigurationService, private cookieService: CookieService, private router: Router) {
+  constructor(
+    private configurationService: ConfigurationService,
+    private cookieService: CookieService,
+    private router: Router,
+  ) {
     this.isGAEnabled = new BehaviorSubject<boolean>(undefined);
     this.isGALoaded = new BehaviorSubject<boolean>(undefined);
     this.router.events.subscribe(event => {

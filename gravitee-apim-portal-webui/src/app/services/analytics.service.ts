@@ -101,7 +101,10 @@ export class AnalyticsService {
     { value: '507', label: '507 - INSUFFICIENT STORAGE' },
   ];
 
-  constructor(private translateService: TranslateService, private route: ActivatedRoute) {
+  constructor(
+    private translateService: TranslateService,
+    private route: ActivatedRoute,
+  ) {
     translateService
       .get([
         'analytics.timeframes.minutes',

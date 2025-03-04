@@ -18,7 +18,7 @@
 <div class="page__content">
   <div class="main">
     <h1 *ngIf="currentUser" class="title">
-      {{ 'dashboard.welcome' | translate : { username: currentUser.first_name || currentUser.display_name } }}
+      {{ 'dashboard.welcome' | translate: { username: currentUser.first_name || currentUser.display_name } }}
     </h1>
 
     <section *ngIf="empty">

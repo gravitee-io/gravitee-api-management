@@ -28,7 +28,10 @@ export class DocumentationComponent implements OnInit {
   fragment: string;
   pageBaseUrl: string = '/documentation/root';
 
-  constructor(private portalService: PortalService, private activeRoute: ActivatedRoute) {}
+  constructor(
+    private portalService: PortalService,
+    private activeRoute: ActivatedRoute,
+  ) {}
 
   ngOnInit() {
     this.fragment = this.activeRoute.snapshot.fragment;

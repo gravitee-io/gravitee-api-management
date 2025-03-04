@@ -196,7 +196,7 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
             createdAt: subscription.created_at,
             endAt: subscription.ending_at,
             planName: planMetadata['name'] ?? subscription.plan,
-            securityType: planMetadata['planMode'] === 'PUSH' ? 'PUSH' : planMetadata['securityType'] ?? 'UNKNOWN',
+            securityType: planMetadata['planMode'] === 'PUSH' ? 'PUSH' : (planMetadata['securityType'] ?? 'UNKNOWN'),
             isSharedApiKey: application.api_key_mode === 'SHARED' && planMetadata['securityType'] === PlanSecurityType.API_KEY,
             processedAt: subscription.processed_at,
             startingAt: subscription.starting_at,

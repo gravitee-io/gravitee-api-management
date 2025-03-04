@@ -27,7 +27,10 @@ export class ApiDocumentationComponent implements OnInit {
 
   pageBaseUrl: string;
 
-  constructor(private apiService: ApiService, private route: ActivatedRoute) {}
+  constructor(
+    private apiService: ApiService,
+    private route: ActivatedRoute,
+  ) {}
 
   ngOnInit() {
     this.route.params.subscribe(params => {

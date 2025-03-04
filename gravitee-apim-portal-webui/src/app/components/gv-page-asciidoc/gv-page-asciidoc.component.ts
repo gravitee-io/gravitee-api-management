@@ -29,7 +29,10 @@ export class GvPageAsciiDocComponent implements OnInit {
   page: Page;
   pageContent: string;
 
-  constructor(private readonly pageService: PageService, private readonly sanitizer: DomSanitizer) {}
+  constructor(
+    private readonly pageService: PageService,
+    private readonly sanitizer: DomSanitizer,
+  ) {}
 
   ngOnInit() {
     this.page = this.pageService.getCurrentPage();

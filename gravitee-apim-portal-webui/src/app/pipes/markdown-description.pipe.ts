@@ -24,7 +24,11 @@ import { ConfigurationService } from '../services/configuration.service';
   name: 'markdownDescription',
 })
 export class MarkdownDescriptionPipe implements PipeTransform {
-  constructor(private configService: ConfigurationService, private markdown: MarkdownService, private sanitizer: DomSanitizer) {}
+  constructor(
+    private configService: ConfigurationService,
+    private markdown: MarkdownService,
+    private sanitizer: DomSanitizer,
+  ) {}
 
   transform(api: Api): Api {
     return api?.description
