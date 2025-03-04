@@ -567,12 +567,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jest/create-cache-key-function@npm:28.0.1":
-  version: 28.0.1
-  resolution: "@jest/create-cache-key-function@npm:28.0.1"
+"@jest/create-cache-key-function@npm:28.1.3":
+  version: 28.1.3
+  resolution: "@jest/create-cache-key-function@npm:28.1.3"
   dependencies:
-    "@jest/types": "npm:^28.0.1"
-  checksum: 10c0/2b740c7d78fc00cd18fa30fab3484703fafc7cc5b8d8d40391f3948f1bb794a3df75b06c6236f42c3ecd18b5eb9df44ec5390ec7c9bb5f3ace9301550fdfc5b9
+    "@jest/types": "npm:^28.1.3"
+  checksum: 10c0/1ba57b7098fbb9a6d5318f4765ae094b0572bb39e43b6b5f29caa44617cb4466800968921e25ba99755aadff4fed8b883822a15c9d923502e5e37cdeb566b113
   languageName: node
   linkType: hard
 
@@ -731,7 +731,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jest/types@npm:^28.0.1":
+"@jest/types@npm:^28.1.3":
   version: 28.1.3
   resolution: "@jest/types@npm:28.1.3"
   dependencies:
@@ -2855,7 +2855,7 @@ __metadata:
     "@gravitee/management-webclient-sdk": "link:lib/management-webclient-sdk"
     "@gravitee/portal-webclient-sdk": "link:lib/portal-webclient-sdk"
     "@gravitee/utils": "link:lib/utils"
-    "@jest/create-cache-key-function": "npm:28.0.1"
+    "@jest/create-cache-key-function": "npm:28.1.3"
     "@types/jest": "npm:27.4.1"
     "@types/jsonwebtoken": "npm:8.5.9"
     "@types/node": "npm:16.10.9"
