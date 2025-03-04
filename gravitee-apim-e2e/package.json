@@ -48,8 +48,7 @@
         "node-fetch": "2.7.0",
         "prettier": "3.5.3",
         "ts-jest": "29.2.6",
-        "typescript": "4.5.5",
-        "zx": "7.1.1"
+        "typescript": "4.5.5"
     },
     "dependencies": {
         "@faker-js/faker": "6.3.1",
