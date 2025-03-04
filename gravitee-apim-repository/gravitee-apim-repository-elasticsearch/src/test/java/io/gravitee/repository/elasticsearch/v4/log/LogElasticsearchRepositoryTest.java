@@ -766,6 +766,137 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
     }
 
     @Nested
+    class SearchConnectionLogDetailsV2AndV4 {
+
+        @Test
+        void should_return_empty_result() {
+            var result = logV4Repository.searchConnectionLogDetails(
+                queryContext,
+                ConnectionLogDetailQuery
+                    .builder()
+                    .filter(ConnectionLogDetailQuery.Filter.builder().apiIds(Set.of("notExisting")).build())
+                    .build()
+            );
+            assertThat(result.data()).isEmpty();
+        }
+
+        @Test
+        void should_return_result_for_v4_api() {
+            var result = logV4Repository.searchConnectionLogDetails(
+                queryContext,
+                ConnectionLogDetailQuery
+                    .builder()
+                    .filter(
+                        ConnectionLogDetailQuery.Filter
+                            .builder()
+                            .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
+                            .methods(Set.of(HttpMethod.DELETE, HttpMethod.POST))
+                            .build()
+                    )
+                    .build()
+            );
+            assertThat(result.total()).isEqualTo(3L);
+            var connectionLogDetail = result.data().getFirst();
+            assertThat(connectionLogDetail)
+                .hasFieldOrPropertyWithValue("apiId", "f1608475-dd77-4603-a084-75dd775603e9")
+                .hasFieldOrPropertyWithValue("requestId", "26c61cfc-a4cc-4272-861c-fca4cc2272ab")
+                .hasFieldOrPropertyWithValue("timestamp", today + "T06:55:39.245Z")
+                .hasFieldOrPropertyWithValue("clientIdentifier", "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
+                .hasFieldOrPropertyWithValue("requestEnded", true);
+            assertThat(connectionLogDetail.getEntrypointRequest())
+                .hasFieldOrPropertyWithValue("method", "POST")
+                .hasFieldOrPropertyWithValue("uri", "/jgi-message-logs-kafka/")
+                .extracting(ConnectionLogDetail.Request::getHeaders, as(InstanceOfAssertFactories.map(String.class, List.class)))
+                .containsEntry("Accept", List.of("application/json, */*;q=0.5"))
+                .containsEntry("X-Request-ID", List.of("41b21c20b0ffba8f15871e5be2913766"));
+            assertThat(connectionLogDetail.getEndpointRequest())
+                .hasFieldOrPropertyWithValue("method", "POST")
+                .hasFieldOrPropertyWithValue("uri", "")
+                .extracting(ConnectionLogDetail.Request::getHeaders, as(InstanceOfAssertFactories.map(String.class, List.class)))
+                .containsEntry("Accept", List.of("application/json, */*;q=0.5"))
+                .containsEntry("X-Request-ID", List.of("41b21c20b0ffba8f15871e5be2913766"));
+            assertThat(connectionLogDetail.getEntrypointResponse())
+                .hasFieldOrPropertyWithValue("status", 200)
+                .extracting(ConnectionLogDetail.Response::getHeaders, as(InstanceOfAssertFactories.map(String.class, List.class)))
+                .containsAllEntriesOf(
+                    Map.of(
+                        "X-Gravitee-Client-Identifier",
+                        List.of("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"),
+                        "X-Gravitee-Transaction-Id",
+                        List.of("26c61cfc-a4cc-4272-861c-fca4cc2272ab"),
+                        "X-Gravitee-Request-Id",
+                        List.of("26c61cfc-a4cc-4272-861c-fca4cc2272ab")
+                    )
+                );
+            assertThat(connectionLogDetail.getEndpointResponse())
+                .hasFieldOrPropertyWithValue("status", 200)
+                .extracting(ConnectionLogDetail.Response::getHeaders, as(InstanceOfAssertFactories.map(String.class, List.class)))
+                .isEmpty();
+        }
+
+        @Test
+        void should_return_result_querying_v2_and_v4_api_logs() {
+            var result = logV4Repository.searchConnectionLogDetails(
+                queryContext,
+                ConnectionLogDetailQuery
+                    .builder()
+                    .filter(
+                        ConnectionLogDetailQuery.Filter
+                            .builder()
+                            .methods(Set.of(HttpMethod.DELETE, HttpMethod.POST))
+                            .bodyText("API Key")
+                            .build()
+                    )
+                    .build()
+            );
+            assertThat(result.total()).isEqualTo(7L);
+
+            // Oldest and found in the v2 API index
+            assertThat(result.data().get(6))
+                .extracting(ConnectionLogDetail::getRequestId)
+                .isEqualTo("29381bce-df59-47b2-b81b-cedf59c7b23b");
+
+            // Newest and found in the v4 API index
+            var mostRecentConnectionLogDetail = result.data().getFirst();
+            assertThat(mostRecentConnectionLogDetail)
+                .hasFieldOrPropertyWithValue("apiId", "f1608475-dd77-4603-a084-75dd775603e9")
+                .hasFieldOrPropertyWithValue("requestId", "26c61cfc-a4cc-4272-861c-fca4cc2272ab")
+                .hasFieldOrPropertyWithValue("timestamp", today + "T06:55:39.245Z")
+                .hasFieldOrPropertyWithValue("clientIdentifier", "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
+                .hasFieldOrPropertyWithValue("requestEnded", true);
+            assertThat(mostRecentConnectionLogDetail.getEntrypointRequest())
+                .hasFieldOrPropertyWithValue("method", "POST")
+                .hasFieldOrPropertyWithValue("uri", "/jgi-message-logs-kafka/")
+                .extracting(ConnectionLogDetail.Request::getHeaders, as(InstanceOfAssertFactories.map(String.class, List.class)))
+                .containsEntry("Accept", List.of("application/json, */*;q=0.5"))
+                .containsEntry("X-Request-ID", List.of("41b21c20b0ffba8f15871e5be2913766"));
+            assertThat(mostRecentConnectionLogDetail.getEndpointRequest())
+                .hasFieldOrPropertyWithValue("method", "POST")
+                .hasFieldOrPropertyWithValue("uri", "")
+                .extracting(ConnectionLogDetail.Request::getHeaders, as(InstanceOfAssertFactories.map(String.class, List.class)))
+                .containsEntry("Accept", List.of("application/json, */*;q=0.5"))
+                .containsEntry("X-Request-ID", List.of("41b21c20b0ffba8f15871e5be2913766"));
+            assertThat(mostRecentConnectionLogDetail.getEntrypointResponse())
+                .hasFieldOrPropertyWithValue("status", 200)
+                .extracting(ConnectionLogDetail.Response::getHeaders, as(InstanceOfAssertFactories.map(String.class, List.class)))
+                .containsAllEntriesOf(
+                    Map.of(
+                        "X-Gravitee-Client-Identifier",
+                        List.of("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"),
+                        "X-Gravitee-Transaction-Id",
+                        List.of("26c61cfc-a4cc-4272-861c-fca4cc2272ab"),
+                        "X-Gravitee-Request-Id",
+                        List.of("26c61cfc-a4cc-4272-861c-fca4cc2272ab")
+                    )
+                );
+            assertThat(mostRecentConnectionLogDetail.getEndpointResponse())
+                .hasFieldOrPropertyWithValue("status", 200)
+                .extracting(ConnectionLogDetail.Response::getHeaders, as(InstanceOfAssertFactories.map(String.class, List.class)))
+                .isEmpty();
+        }
+    }
+
+    @Nested
     class SearchAggregateMessageLog {
 
         @Test
