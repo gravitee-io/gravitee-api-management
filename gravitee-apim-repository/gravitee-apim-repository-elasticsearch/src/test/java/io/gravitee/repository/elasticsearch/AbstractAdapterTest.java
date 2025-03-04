@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.elasticsearch.model.SearchHit;
 import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.elasticsearch.model.TotalHits;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,8 +41,12 @@ public abstract class AbstractAdapterTest {
         final ObjectMapper objectMapper = new ObjectMapper();
         final JsonNode jsonNode = objectMapper.readTree(loadFile("/hits/" + fileName));
 
+        searchHit.setIndex("gravitee-v4-log");
+        searchHit.setId("log-id");
         searchHit.setSource(jsonNode);
         searchHits.setHits(List.of(searchHit));
+        searchHits.setTotal(new TotalHits(1L));
+
         searchResponse.setSearchHits(searchHits);
         return searchResponse;
     }
