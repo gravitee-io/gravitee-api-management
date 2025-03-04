@@ -195,25 +195,25 @@ describe('ApplicationLogService', () => {
       req.flush(logsResponse);
     });
 
-    // TODO: Fix test when backend can handle searching text in response body
-    // it('should return logs list with specified message text', done => {
-    //   const logsResponse: LogsResponse = fakeLogsResponse();
-    //   const currentDateInMilliseconds = Date.now();
-    //   const yesterdayInMilliseconds = currentDateInMilliseconds - 86400000;
-    //   const messageText = 'find me';
-    //   service.search(APP_ID,1, 10, { messageText }).subscribe(response => {
-    //     expect(response).toMatchObject(logsResponse);
-    //     done();
-    //   });
-    //
-    //   const req = httpTestingController.expectOne(
-    //     `${TESTING_BASE_URL}/applications/${APP_ID}/logs/_search?page=1&size=10&order=DESC&field=@timestamp` +
-    //       `&query=body:*${messageText}*`,
-    //   );
-    //   expect(req.request.method).toEqual('POST');
-    //
-    //   req.flush(logsResponse);
-    // });
+    it('should return logs list with specified message text', done => {
+      const logsResponse: LogsResponse = fakeLogsResponse();
+      const currentDateInMilliseconds = Date.now();
+      const yesterdayInMilliseconds = currentDateInMilliseconds - 86400000;
+      const messageText = 'find me';
+      service.search(APP_ID, 1, 10, { messageText }).subscribe(response => {
+        expect(response).toMatchObject(logsResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${APP_ID}/logs/_search?page=1&size=10`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body).toEqual({
+        from: yesterdayInMilliseconds,
+        to: currentDateInMilliseconds,
+        bodyText: messageText,
+      });
+      req.flush(logsResponse);
+    });
 
     it('should return logs list with specified path', done => {
       const logsResponse: LogsResponse = fakeLogsResponse();
