@@ -15252,7 +15252,7 @@ __metadata:
     rxjs: "npm:7.8.2"
     storybook: "npm:7.6.17"
     swagger-ui: "npm:5.20.0"
-    tinycolor2: "npm:1.4.2"
+    tinycolor2: "npm:1.6.0"
     typescript: "npm:5.5.4"
     unicode: "npm:11.0.1"
     v-accordion: "npm:1.6.0"
@@ -23144,17 +23144,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tinycolor2@npm:*":
+"tinycolor2@npm:*, tinycolor2@npm:1.6.0":
   version: 1.6.0
   resolution: "tinycolor2@npm:1.6.0"
   checksum: 10c0/9aa79a36ba2c2a87cb221453465cabacd04b9e35f9694373e846fdc78b1c768110f81e581ea41440106c0f24d9a023891d0887e8075885e790ac40eb0e74a5c1
-  languageName: node
-  linkType: hard
-
-"tinycolor2@npm:1.4.2":
-  version: 1.4.2
-  resolution: "tinycolor2@npm:1.4.2"
-  checksum: 10c0/822798610a7469d0caf1d202bed2d6836ceae87cfc7fd37012eaa0168a9a8fbd8cf47c572a21d48c612a9a3801b0af820a47b34bd58bbba04254b7fac8351ebd
   languageName: node
   linkType: hard
 
