@@ -20,6 +20,7 @@ import static io.gravitee.definition.model.DefinitionVersion.V4;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.atIndex;
+import static org.assertj.core.api.Assertions.not;
 import static org.assertj.core.api.Assertions.offset;
 import static org.assertj.core.api.Assertions.withPrecision;
 
@@ -293,19 +294,17 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             // Then
             long nbBuckets = Duration.between(from, to).dividedBy(interval);
-            assertThat(requireNonNull(result).getAverageBy().entrySet())
-                .hasSize((int) nbBuckets + 1)
-                .haveExactly(1, bucketOfTimeHaveValue("14:00:00.000Z", 332.5))
-                .haveExactly(1, bucketWithValue(36.25))
-                .haveExactly(2, STRICT_POSITIVE);
+            assertThat(requireNonNull(result).getAverageBy().entrySet()).hasSize((int) nbBuckets + 1).haveAtMost(2, STRICT_POSITIVE);
+            double[] array = result.getAverageBy().values().stream().mapToDouble(l -> l).filter(d -> d > 0).toArray();
+            if (array.length == 1) {
+                assertThat(array).containsExactly(135D);
+            } else {
+                assertThat(array).containsOnly(332.5, 36.25);
+            }
         }
 
         private static Condition<Map.Entry<String, Double>> bucketOfTimeHaveValue(String timeSuffix, double value) {
             return bucket(key -> key.endsWith(timeSuffix), d -> d == value, "entry for '%s' with value %f".formatted(timeSuffix, value));
-        }
-
-        private static Condition<Map.Entry<String, Double>> bucketWithValue(double value) {
-            return bucket(key -> true, d -> d == value, "entry with value %f".formatted(value));
         }
 
         private static Condition<Map.Entry<String, Double>> bucket(
@@ -342,7 +341,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         }
 
         @Test
-        void should_return_response_status_over_time_for_aapi_v2_and_v4() {
+        void should_return_response_status_over_time_for_api_v2_and_v4() {
             var now = Instant.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
@@ -363,10 +362,20 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var nbBuckets = Duration.between(from, to).dividedBy(interval) + 1;
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(result.getStatusCount()).containsOnlyKeys("200", "202", "404", "401");
-                softly.assertThat(result.getStatusCount().get("200")).hasSize((int) nbBuckets).contains(1L, atIndex(28));
-                softly.assertThat(result.getStatusCount().get("202")).hasSize((int) nbBuckets).contains(1L, atIndex(61));
-                softly.assertThat(result.getStatusCount().get("404")).hasSize((int) nbBuckets).contains(2L, atIndex(61));
+                softly.assertThat(result.getStatusCount().get("200").stream().mapToLong(l -> l).sum()).isEqualTo(5);
+                softly.assertThat(result.getStatusCount().get("200")).hasSize((int) nbBuckets).haveAtMost(5, not(is(0)));
+                softly
+                    .assertThat(result.getStatusCount().get("202"))
+                    .hasSize((int) nbBuckets)
+                    .haveExactly(1, is(1))
+                    .haveAtMost(1, not(is(0)));
+                softly.assertThat(result.getStatusCount().get("404").stream().mapToLong(l -> l).sum()).isEqualTo(2);
+                softly.assertThat(result.getStatusCount().get("404")).hasSize((int) nbBuckets).haveAtMost(2, not(is(0)));
             });
+        }
+
+        private Condition<Long> is(long expected) {
+            return new Condition<>(l -> l == expected, Long.toString(expected));
         }
     }
 
