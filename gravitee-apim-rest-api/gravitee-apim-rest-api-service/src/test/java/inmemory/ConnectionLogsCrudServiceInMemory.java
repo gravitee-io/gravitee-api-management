@@ -16,6 +16,7 @@
 package inmemory;
 
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -26,6 +27,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.springframework.util.CollectionUtils;
 
 public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudService, InMemoryAlternative<Object> {
@@ -65,17 +67,51 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
         SearchLogsFilters logsFilters,
         Pageable pageable
     ) {
-        var predicate = getBaseConnectionLogPredicate(logsFilters.toBuilder().applicationIds(Set.of(applicationId)).build());
-
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
+
+        var connectionLogFilterBuilder = logsFilters.toBuilder().applicationIds(Set.of(applicationId));
+
+        var connectionLogDetailTotal = 0;
+        var executeConnectionLogDetail = logsFilters.bodyText() != null && !logsFilters.bodyText().isBlank();
+
+        if (executeConnectionLogDetail) {
+            var connectionLogDetailPredicate = getConnectionLogDetailsPredicate(logsFilters);
+            var connectionLogDetailResults = connectionLogDetails
+                .storage()
+                .stream()
+                .filter(connectionLogDetailPredicate)
+                .sorted(Comparator.comparing(ConnectionLogDetail::getTimestamp).reversed())
+                .toList();
+
+            if (connectionLogDetailResults.isEmpty()) {
+                return new SearchLogsResponse<>(0, new ArrayList<>());
+            }
+
+            connectionLogDetailTotal = connectionLogDetailResults.size();
+
+            var connectionLogDetailResultPage = connectionLogDetailResults.size() <= pageSize
+                ? connectionLogDetailResults
+                : connectionLogDetailResults.subList((pageNumber - 1) * pageSize, pageNumber * pageSize);
+
+            connectionLogFilterBuilder.requestIds(
+                connectionLogDetailResultPage.stream().map(ConnectionLogDetail::getRequestId).collect(Collectors.toSet())
+            );
+        }
+
+        var connectionLogPredicate = getBaseConnectionLogPredicate(connectionLogFilterBuilder.build());
 
         var matches = connectionLogs
             .storage()
             .stream()
-            .filter(predicate)
+            .filter(connectionLogPredicate)
             .sorted(Comparator.comparing(BaseConnectionLog::getTimestamp).reversed())
             .toList();
+
+        if (executeConnectionLogDetail) {
+            var total = matches.size() == pageSize ? connectionLogDetailTotal : matches.size();
+            return new SearchLogsResponse<>(total, matches);
+        }
 
         var page = matches.size() <= pageSize ? matches : matches.subList((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
@@ -172,6 +208,72 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
                             (range.from() == null || range.from() <= connectionLog.getGatewayResponseTime())
                         )
                 );
+        }
+
+        return predicate;
+    }
+
+    private static Predicate<ConnectionLogDetail> getConnectionLogDetailsPredicate(SearchLogsFilters logsFilters) {
+        Predicate<ConnectionLogDetail> predicate = _ignored -> true;
+
+        if (logsFilters.apiIds() != null && !logsFilters.apiIds().isEmpty()) {
+            predicate = predicate.and(connectionLog -> logsFilters.apiIds().contains(connectionLog.getApiId()));
+        }
+
+        if (null != logsFilters.from()) {
+            predicate = predicate.and(connectionLog -> Instant.parse(connectionLog.getTimestamp()).toEpochMilli() >= logsFilters.from());
+        }
+
+        if (null != logsFilters.to()) {
+            predicate = predicate.and(connectionLog -> Instant.parse(connectionLog.getTimestamp()).toEpochMilli() <= logsFilters.to());
+        }
+
+        if (!CollectionUtils.isEmpty(logsFilters.methods())) {
+            predicate =
+                predicate.and(connectionLog ->
+                    connectionLog.getEntrypointRequest() != null &&
+                    logsFilters.methods().contains(HttpMethod.valueOf(connectionLog.getEntrypointRequest().getMethod()))
+                );
+        }
+
+        if (!CollectionUtils.isEmpty(logsFilters.statuses())) {
+            predicate =
+                predicate.and(connectionLog ->
+                    connectionLog.getEntrypointResponse() != null &&
+                    logsFilters.statuses().contains(connectionLog.getEntrypointResponse().getStatus())
+                );
+        }
+
+        if (null != logsFilters.bodyText() && !logsFilters.bodyText().isBlank()) {
+            predicate =
+                predicate.and(connectionLogDetail -> {
+                    if (
+                        connectionLogDetail.getEntrypointRequest() != null &&
+                        connectionLogDetail.getEntrypointRequest().getBody() != null &&
+                        connectionLogDetail.getEntrypointRequest().getBody().contains(logsFilters.bodyText())
+                    ) {
+                        return true;
+                    }
+                    if (
+                        connectionLogDetail.getEntrypointResponse() != null &&
+                        connectionLogDetail.getEntrypointResponse().getBody() != null &&
+                        connectionLogDetail.getEntrypointResponse().getBody().contains(logsFilters.bodyText())
+                    ) {
+                        return true;
+                    }
+                    if (
+                        connectionLogDetail.getEndpointRequest() != null &&
+                        connectionLogDetail.getEndpointRequest().getBody() != null &&
+                        connectionLogDetail.getEndpointRequest().getBody().contains(logsFilters.bodyText())
+                    ) {
+                        return true;
+                    }
+                    return (
+                        connectionLogDetail.getEndpointResponse() != null &&
+                        connectionLogDetail.getEndpointResponse().getBody() != null &&
+                        connectionLogDetail.getEndpointResponse().getBody().contains(logsFilters.bodyText())
+                    );
+                });
         }
 
         return predicate;
