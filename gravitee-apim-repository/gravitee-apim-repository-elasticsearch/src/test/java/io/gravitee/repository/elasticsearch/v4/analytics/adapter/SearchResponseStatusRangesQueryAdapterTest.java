@@ -27,55 +27,48 @@ class SearchResponseStatusRangesQueryAdapterTest {
 
     @Test
     void should_build_query() {
-        var result = SearchResponseStatusRangesQueryAdapter.adapt(ResponseStatusRangesQuery.builder().apiId("api-id").build(), true);
+        var result = SearchResponseStatusRangesQueryAdapter.adapt(ResponseStatusRangesQuery.builder().apiId("api-id").build());
 
         assertThatJson(result)
             .isEqualTo(
                 """
-                            {
-                              "size": 0,
-                              "query": {
-                                "term": {
-                                  "api-id": "api-id"
-                                }
-                              },
-                              "aggs": {
-                                "entrypoint_id_agg": {
-                                  "terms": {
-                                    "field": "entrypoint-id"
-                                  },
-                                  "aggs": {
-                                    "status_ranges": {
-                                      "range": {
-                                        "field": "status",
-                                        "ranges": [
-                                          {
-                                            "from": 100.0,
-                                            "to": 200.0
-                                          },
-                                          {
-                                            "from": 200.0,
-                                            "to": 300.0
-                                          },
-                                          {
-                                            "from": 300.0,
-                                            "to": 400.0
-                                          },
-                                          {
-                                            "from": 400.0,
-                                            "to": 500.0
-                                          },
-                                          {
-                                            "from": 500.0,
-                                            "to": 600.0
-                                          }
-                                        ]
-                                      }
-                                    }
-                                  }
-                                }
-                              }
-                            }
+                           {
+                                 "size": 0,
+                                 "query": {
+                                     "term": {
+                                         "api-id": "api-id"
+                                     }
+                                 },
+                                 "aggs": {
+                                     "status_ranges": {
+                                         "range": {
+                                             "field": "status",
+                                             "ranges": [
+                                                 {
+                                                     "from": 100.0,
+                                                     "to": 200.0
+                                                 },
+                                                 {
+                                                     "from": 200.0,
+                                                     "to": 300.0
+                                                 },
+                                                 {
+                                                     "from": 300.0,
+                                                     "to": 400.0
+                                                 },
+                                                 {
+                                                     "from": 400.0,
+                                                     "to": 500.0
+                                                 },
+                                                 {
+                                                     "from": 500.0,
+                                                     "to": 600.0
+                                                 }
+                                             ]
+                                         }
+                                     }
+                                 }
+                             }
                         """
             );
     }

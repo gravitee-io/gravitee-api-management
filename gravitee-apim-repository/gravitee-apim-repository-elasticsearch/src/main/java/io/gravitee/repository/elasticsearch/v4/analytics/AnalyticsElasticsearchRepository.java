@@ -88,11 +88,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         ResponseStatusRangesQuery query
     ) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
-        return this.client.getFieldTypes(index, ENTRYPOINT_ID_FIELD)
-            .map(types -> types.stream().allMatch(KEYWORD::equals))
-            .flatMap(isEntrypointIdKeyword ->
-                this.client.search(index, null, SearchResponseStatusRangesQueryAdapter.adapt(query, isEntrypointIdKeyword))
-            )
+        return this.client.search(index, null, SearchResponseStatusRangesQueryAdapter.adapt(query))
             .map(SearchResponseStatusRangesResponseAdapter::adapt)
             .blockingGet();
     }

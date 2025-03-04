@@ -26,42 +26,33 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SearchResponseStatusRangesQueryAdapter {
 
-    public static final String ENTRYPOINT_ID_AGG = "entrypoint_id_agg";
     public static final String FIELD = "field";
     public static final String STATUS_RANGES = "status_ranges";
 
-    public static String adapt(ResponseStatusRangesQuery query, boolean isEntrypointIdKeyword) {
+    public static String adapt(ResponseStatusRangesQuery query) {
         var jsonContent = new HashMap<String, Object>();
         var esQuery = buildElasticQuery(Optional.ofNullable(query).orElse(ResponseStatusRangesQuery.builder().build()));
         jsonContent.put("size", 0);
         jsonContent.put("query", esQuery);
-        jsonContent.put("aggs", buildResponseCountPerStatusCodeRangePerEntrypointAggregation(isEntrypointIdKeyword));
+        jsonContent.put("aggs", buildResponseCountPerStatusCodeRangePerEntrypointAggregation());
         return new JsonObject(jsonContent).encode();
     }
 
-    private static JsonObject buildResponseCountPerStatusCodeRangePerEntrypointAggregation(boolean isEntrypointIdKeyword) {
+    private static JsonObject buildResponseCountPerStatusCodeRangePerEntrypointAggregation() {
         return JsonObject.of(
-            ENTRYPOINT_ID_AGG,
+            STATUS_RANGES,
             JsonObject.of(
-                "terms",
-                JsonObject.of(FIELD, isEntrypointIdKeyword ? "entrypoint-id" : "entrypoint-id.keyword"),
-                "aggs",
+                "range",
                 JsonObject.of(
-                    STATUS_RANGES,
-                    JsonObject.of(
-                        "range",
-                        JsonObject.of(
-                            FIELD,
-                            "status",
-                            "ranges",
-                            JsonArray.of(
-                                JsonObject.of("from", 100.0, "to", 200.0),
-                                JsonObject.of("from", 200.0, "to", 300.0),
-                                JsonObject.of("from", 300.0, "to", 400.0),
-                                JsonObject.of("from", 400.0, "to", 500.0),
-                                JsonObject.of("from", 500.0, "to", 600.0)
-                            )
-                        )
+                    FIELD,
+                    "status",
+                    "ranges",
+                    JsonArray.of(
+                        JsonObject.of("from", 100.0, "to", 200.0),
+                        JsonObject.of("from", 200.0, "to", 300.0),
+                        JsonObject.of("from", 300.0, "to", 400.0),
+                        JsonObject.of("from", 400.0, "to", 500.0),
+                        JsonObject.of("from", 500.0, "to", 600.0)
                     )
                 )
             )
