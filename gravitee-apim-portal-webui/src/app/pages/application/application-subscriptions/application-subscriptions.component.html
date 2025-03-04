@@ -55,7 +55,7 @@
           <div class="application-subscriptions__shared-key-info__row">
             <div class="application-subscriptions__shared-key-info__row__cell">
               <h5 class="title">{{ 'application.shared-key.info.created_at' | translate }}</h5>
-              {{ sharedAPIKey.created_at | localizedDate : 'shortDate' : '--' }}
+              {{ sharedAPIKey.created_at | localizedDate: 'shortDate' : '--' }}
             </div>
             <div class="application-subscriptions__shared-key-info__row__cell" *ngIf="sharedAPIKey.expire_at">
               <h5 class="title">{{ 'application.shared-key.info.end_at' | translate }}</h5>
@@ -162,11 +162,11 @@
       <div class="page__box-content">
         <div class="page__box-row">
           <span>{{ 'application.subscriptions.processed_at' | translate }}</span>
-          {{ selectedSubscription.processed_at | localizedDate : 'shortDate' : '--' }}
+          {{ selectedSubscription.processed_at | localizedDate: 'shortDate' : '--' }}
         </div>
         <div class="page__box-row">
           <span>{{ 'application.subscriptions.start_at' | translate }}</span>
-          {{ selectedSubscription.start_at | localizedDate : 'shortDate' : '--' }}
+          {{ selectedSubscription.start_at | localizedDate: 'shortDate' : '--' }}
         </div>
         <div *ngIf="selectedSubscription.end_at" class="page__box-row">
           <span>{{ 'application.subscriptions.end_at' | translate }}</span>
@@ -242,7 +242,7 @@
           </div>
           <div class="page__box-row">
             <span>{{ 'application.subscriptions.apiKey.ended_at' | translate }}</span
-            >{{ endAt(apiKey) | localizedDate : 'longDate' }}
+            >{{ endAt(apiKey) | localizedDate: 'longDate' }}
           </div>
         </div>
       </div>

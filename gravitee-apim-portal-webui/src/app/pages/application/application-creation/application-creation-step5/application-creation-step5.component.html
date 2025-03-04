@@ -69,7 +69,7 @@
     <div class="step-grid-column" *ngIf="currentStep === 5 && this.subscribeList.length > 0">
       <gv-table
         [items]="this.subscribeList"
-        title="{{ 'applicationCreation.validation.subscriptionTitle' | translate : { count: this.subscribeList.length } }}"
+        title="{{ 'applicationCreation.validation.subscriptionTitle' | translate: { count: this.subscribeList.length } }}"
         [options]="validationListOptions"
       ></gv-table>
     </div>
@@ -94,7 +94,7 @@
       </ul>
     </div>
     <gv-button link outlined [routerLink]="['/applications/', createdApplication.id]">{{
-      'applicationCreation.validation.confirm' | translate : { name: createdApplication.name }
+      'applicationCreation.validation.confirm' | translate: { name: createdApplication.name }
     }}</gv-button>
   </div>
 

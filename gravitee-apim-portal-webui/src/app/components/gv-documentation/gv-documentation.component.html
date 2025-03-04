@@ -48,7 +48,7 @@
     <gv-message class="message-empty">
       <gv-icon shape="home:library"></gv-icon>
       <div *ngIf="!!pageNotFoundMessage; else defaultMessage">
-        <div class="title" [innerHTML]="pageNotFoundMessage | safe : 'html'"></div>
+        <div class="title" [innerHTML]="pageNotFoundMessage | safe: 'html'"></div>
       </div>
       <ng-template #defaultMessage>
         <div class="title">{{ 'gv-documentation.empty' | translate }}</div>

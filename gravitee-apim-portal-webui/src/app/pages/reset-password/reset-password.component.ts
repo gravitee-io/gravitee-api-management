@@ -32,7 +32,10 @@ export class ResetPasswordComponent implements OnInit {
   isSubmitted: boolean;
   resetPasswordForm: ResetPasswordFormType;
 
-  constructor(private usersService: UsersService, private reCaptchaService: ReCaptchaService) {
+  constructor(
+    private usersService: UsersService,
+    private reCaptchaService: ReCaptchaService,
+  ) {
     this.isSubmitted = false;
   }
 

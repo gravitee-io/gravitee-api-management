@@ -27,7 +27,10 @@ import { GoogleAnalyticsService } from '../../services/google-analytics.service'
   styleUrls: ['./gv-cookie-consent.component.css'],
 })
 export class GvCookieConsentComponent {
-  constructor(private googleAnalyticsService: GoogleAnalyticsService, private cookieService: CookieService) {}
+  constructor(
+    private googleAnalyticsService: GoogleAnalyticsService,
+    private cookieService: CookieService,
+  ) {}
 
   _disableGA() {
     this.googleAnalyticsService.disableGA();

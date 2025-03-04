@@ -33,7 +33,10 @@ export class ReCaptchaService {
   private reCaptchaToken: string;
   private display = false;
 
-  constructor(private configurationService: ConfigurationService, private router: Router) {
+  constructor(
+    private configurationService: ConfigurationService,
+    private router: Router,
+  ) {
     this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(() => {
       // Hide recaptcha badge by default (let each component decide whether it should display the recaptcha badge or not).
       this.hideBadge();

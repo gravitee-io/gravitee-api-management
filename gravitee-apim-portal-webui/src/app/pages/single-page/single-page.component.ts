@@ -26,7 +26,11 @@ import { Page, PortalService } from '../../../../projects/portal-webclient-sdk/s
 export class SinglePageComponent implements OnInit {
   singlePage: Page;
 
-  constructor(private route: ActivatedRoute, private router: Router, private portalService: PortalService) {}
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private portalService: PortalService,
+  ) {}
 
   ngOnInit() {
     this.route.params.subscribe(params => {

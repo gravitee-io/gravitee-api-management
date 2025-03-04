@@ -29,7 +29,11 @@ export class CategoriesComponent implements OnInit {
   empty: boolean;
   emptyIcon: any;
 
-  constructor(private portalService: PortalService, private router: Router, private activatedRoute: ActivatedRoute) {}
+  constructor(
+    private portalService: PortalService,
+    private router: Router,
+    private activatedRoute: ActivatedRoute,
+  ) {}
 
   ngOnInit() {
     this.empty = false;

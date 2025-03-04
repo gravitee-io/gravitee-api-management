@@ -25,7 +25,10 @@ import { ConfigurationService } from './configuration.service';
 export class CurrentUserService {
   private readonly currentUserSource: BehaviorSubject<User>;
 
-  constructor(private http: HttpClient, private configurationService: ConfigurationService) {
+  constructor(
+    private http: HttpClient,
+    private configurationService: ConfigurationService,
+  ) {
     this.currentUserSource = new BehaviorSubject<User>(null);
   }
 

@@ -31,7 +31,11 @@ export class GvSearchApiComponent implements OnInit {
   options: any;
   private _selected: boolean;
 
-  constructor(public router: Router, public activatedRoute: ActivatedRoute, private apiService: ApiService) {
+  constructor(
+    public router: Router,
+    public activatedRoute: ActivatedRoute,
+    private apiService: ApiService,
+  ) {
     this._selected = false;
   }
 

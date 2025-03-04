@@ -38,7 +38,10 @@ export class RegistrationComponent implements OnInit {
   // boolean used to display the form only once the FormGroup is completed using the CustomUserFields.
   canDisplayForm = false;
 
-  constructor(private usersService: UsersService, private reCaptchaService: ReCaptchaService) {
+  constructor(
+    private usersService: UsersService,
+    private reCaptchaService: ReCaptchaService,
+  ) {
     this.isSubmitted = false;
   }
 

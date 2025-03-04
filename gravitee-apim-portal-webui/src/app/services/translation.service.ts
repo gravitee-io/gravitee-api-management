@@ -24,7 +24,10 @@ import { environment } from '../../environments/environment';
   providedIn: 'root',
 })
 export class TranslationService {
-  constructor(private translateService: TranslateService, private titleService: Title) {}
+  constructor(
+    private translateService: TranslateService,
+    private titleService: Title,
+  ) {}
 
   load() {
     return new Promise(resolve => {

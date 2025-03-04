@@ -29,7 +29,11 @@ export class GvSelectDashboardComponent implements OnInit {
   dashboardsSelect: Array<any>;
   dashboard: Dashboard;
 
-  constructor(public route: ActivatedRoute, public router: Router, public analyticsService: AnalyticsService) {}
+  constructor(
+    public route: ActivatedRoute,
+    public router: Router,
+    public analyticsService: AnalyticsService,
+  ) {}
 
   ngOnInit() {
     if (this.route.firstChild && this.route.firstChild.firstChild && this.route.firstChild.firstChild.firstChild) {

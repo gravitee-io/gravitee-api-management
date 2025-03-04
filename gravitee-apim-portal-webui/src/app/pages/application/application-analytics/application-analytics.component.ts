@@ -42,7 +42,10 @@ export class ApplicationAnalyticsComponent implements OnInit, OnDestroy {
   @ViewChild(GvAnalyticsDashboardComponent)
   dashboardComponent: GvAnalyticsDashboardComponent;
 
-  constructor(private route: ActivatedRoute, private translateService: TranslateService) {}
+  constructor(
+    private route: ActivatedRoute,
+    private translateService: TranslateService,
+  ) {}
 
   ngOnInit() {
     this.application = this.route.snapshot.data.application;

@@ -36,7 +36,11 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
 
   @Input() fragment: string;
 
-  constructor(private cd: ChangeDetectorRef, private notificationService: NotificationService, private pageService: PageService) {}
+  constructor(
+    private cd: ChangeDetectorRef,
+    private notificationService: NotificationService,
+    private pageService: PageService,
+  ) {}
 
   /**
    * Redoc script is automatically loaded. See `angular.json` scripts section.

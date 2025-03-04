@@ -27,7 +27,10 @@ import { NgControl, NgControlStatus } from '@angular/forms';
 export class GvFormControlDirective extends NgControlStatus implements AfterViewInit {
   private control: NgControl;
 
-  constructor(control: NgControl, private elementRef: ElementRef) {
+  constructor(
+    control: NgControl,
+    private elementRef: ElementRef,
+  ) {
     super(control);
     this.control = control;
   }
