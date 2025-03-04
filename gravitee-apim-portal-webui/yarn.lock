@@ -4542,7 +4542,7 @@ __metadata:
     prettier: "npm:3.5.3"
     redoc: "npm:2.4.0"
     resize-observer-polyfill: "npm:1.5.1"
-    rxjs: "npm:6.5.5"
+    rxjs: "npm:6.6.7"
     swagger-ui: "npm:5.19.0"
     ts-node: "npm:8.10.2"
     tslib: "npm:2.3.1"
@@ -17779,12 +17779,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:6.5.5":
-  version: 6.5.5
-  resolution: "rxjs@npm:6.5.5"
+"rxjs@npm:6.6.7":
+  version: 6.6.7
+  resolution: "rxjs@npm:6.6.7"
   dependencies:
     tslib: "npm:^1.9.0"
-  checksum: 10c0/0b2f83892734c65b1682ddfc2616155a615d4b7f67e993cb459dbaaeedaad7878d5014dc0abb7a0da50b4c01ec8d3c1bca05bbb36260523dd18b7a7181a56bb5
+  checksum: 10c0/e556a13a9aa89395e5c9d825eabcfa325568d9c9990af720f3f29f04a888a3b854f25845c2b55875d875381abcae2d8100af9cacdc57576e7ed6be030a01d2fe
   languageName: node
   linkType: hard
 
