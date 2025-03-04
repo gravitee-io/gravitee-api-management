@@ -8587,12 +8587,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/angular-material@npm:1.1.77":
-  version: 1.1.77
-  resolution: "@types/angular-material@npm:1.1.77"
+"@types/angular-material@npm:1.1.78":
+  version: 1.1.78
+  resolution: "@types/angular-material@npm:1.1.78"
   dependencies:
     "@types/angular": "npm:*"
-  checksum: 10c0/f90adeb00e65ac416f15beb31c9c48ed8c7050daf9ab71852fbc4705efae64cbcd6f273ce8f9bac249be38f803614a177a11a7b4532d1d5ed6887c7f74163c91
+  checksum: 10c0/208b9f7e87feb55b26929ebb8bdbd2e6864bc0958dba6fa62bc17f523442de07049e34d9860bd72f47b8c232d02d3eebfc8571ed8b7fa14e7b56fd05b12fe8dc
   languageName: node
   linkType: hard
 
@@ -15177,7 +15177,7 @@ __metadata:
     "@toast-ui/editor": "npm:3.2.2"
     "@toast-ui/editor-plugin-code-syntax-highlight": "npm:3.1.0"
     "@types/angular": "npm:1.8.9"
-    "@types/angular-material": "npm:1.1.77"
+    "@types/angular-material": "npm:1.1.78"
     "@types/angular-mocks": "npm:1.7.4"
     "@types/angular-sanitize": "npm:1.8.4"
     "@types/diff": "npm:5.0.9"

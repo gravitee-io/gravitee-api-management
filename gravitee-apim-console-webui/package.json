@@ -95,7 +95,7 @@
     "@storybook/addon-essentials": "7.6.17",
     "@storybook/angular": "7.6.17",
     "@types/angular": "1.8.9",
-    "@types/angular-material": "1.1.77",
+    "@types/angular-material": "1.1.78",
     "@types/angular-mocks": "1.7.4",
     "@types/angular-sanitize": "1.8.4",
     "@types/diff": "5.0.9",
