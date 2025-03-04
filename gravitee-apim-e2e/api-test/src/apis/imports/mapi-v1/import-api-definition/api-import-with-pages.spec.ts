@@ -149,11 +149,14 @@ describe('API - Imports with pages', () => {
       ${undefined}             | ${true}  | ${2}      | ${generatedRootFolderId}
       ${generatedRootFolderId} | ${false} | ${1}      | ${generatedFolderId}
       ${generatedFolderId}     | ${false} | ${1}      | ${generatedPageId}
-    `('should get root pages when parent is $parent', async ({ parent, root, pagesSize, expectedId }) => {
-      const pages = await succeed(apisResourceAsAdminUser.getApiPagesRaw({ envId, orgId, api: generatedApiId, parent, root }));
-      expect(pages).toHaveLength(pagesSize);
-      expect(pages[pagesSize - 1].id).toStrictEqual(expectedId);
-    });
+    `(
+      'should get root pages when parent is $parent',
+      async ({ parent, root, pagesSize, expectedId }: { parent?: string; root: boolean; pagesSize: number; expectedId: string }) => {
+        const pages = await succeed(apisResourceAsAdminUser.getApiPagesRaw({ envId, orgId, api: generatedApiId, parent, root }));
+        expect(pages).toHaveLength(pagesSize);
+        expect(pages[pagesSize - 1].id).toStrictEqual(expectedId);
+      },
+    );
 
     test('should get API page from generated page ID', async () => {
       const page = await succeed(apisResourceAsAdminUser.getApiPageRaw({ envId, orgId, api: generatedApiId, page: generatedPageId }));

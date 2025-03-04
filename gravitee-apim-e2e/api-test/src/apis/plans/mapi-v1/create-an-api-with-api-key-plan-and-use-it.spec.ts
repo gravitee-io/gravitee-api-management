@@ -142,7 +142,7 @@ describe('Create an API with API-Key plan and use it', () => {
       ${'no X-Gravitee-Api-Key header'}    | ${{}}
       ${'empty X-Gravitee-Api-Key header'} | ${{ 'X-Gravitee-Api-Key': '' }}
       ${'wrong X-Gravitee-Api-Key header'} | ${{ 'X-Gravitee-Api-Key': 'wrong key' }}
-    `('Gateway call with $case', ({ headers }) => {
+    `('Gateway call with $case', ({ headers }: { headers: Record<string, string> }) => {
       test('Should return 401 unauthorized', async () => {
         await fetchGatewayUnauthorized({ contextPath: createdApi.context_path, headers });
       });
@@ -173,7 +173,7 @@ describe('Create an API with API-Key plan and use it', () => {
       ${'no api-key query param'}    | ${{}}
       ${'empty api-key query param'} | ${{ 'api-key': '' }}
       ${'wrong api-key query param'} | ${{ 'api-key': 'wrong key' }}
-    `('Gateway call with $case', ({ queryParams }) => {
+    `('Gateway call with $case', ({ queryParams }: { queryParams: Record<string, string> }) => {
       test('Should return 401 unauthorized', async () => {
         await fetchGatewayUnauthorized({ contextPath: `${createdApi.context_path}?${new URLSearchParams(queryParams)}` });
       });

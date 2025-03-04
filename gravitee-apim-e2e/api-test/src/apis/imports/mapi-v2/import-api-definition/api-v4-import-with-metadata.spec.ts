@@ -130,15 +130,18 @@ describe('API - V4 - Import - Gravitee Definition - With metadata', () => {
       ${importedSecondApiWithApimTeamFn} | ${apimTeamMetadata}    | ${'secondApiWithApimTeam'}
       ${importedApiWithAmTeamFn}         | ${amTeamMetadata}      | ${'apiWithAmTeam'}
       ${importedApiWithCockpitTeamFn}    | ${cockpitTeamMetadata} | ${'apiWithCockpitTeam'}
-    `('should get API metadata $name', async ({ apiIdFn, expectedMetadata, name }) => {
-      const apiId = apiIdFn();
-      const metadata = await succeed(v1ApisResourceAsApiPublisher.getApiMetadatasRaw({ orgId, envId, api: apiId }));
-      expect(metadata).toBeTruthy();
-      // A metadata with same key has been created for environment with 'Cockpit-value' as value, meaning this value is used as default value at api level
-      expectedMetadata.defaultValue = 'Cockpit-default';
+    `(
+      'should get API metadata $name',
+      async ({ apiIdFn, expectedMetadata, name }: { apiIdFn: () => any; expectedMetadata: Record<string, string>; name: string }) => {
+        const apiId = apiIdFn();
+        const metadata = await succeed(v1ApisResourceAsApiPublisher.getApiMetadatasRaw({ orgId, envId, api: apiId }));
+        expect(metadata).toBeTruthy();
+        // A metadata with same key has been created for environment with 'Cockpit-value' as value, meaning this value is used as default value at api level
+        expectedMetadata.defaultValue = 'Cockpit-default';
 
-      expect(metadata).toContainEqual({ apiId, ...expectedMetadata });
-    });
+        expect(metadata).toContainEqual({ apiId, ...expectedMetadata });
+      },
+    );
 
     test('should get API email metadata with value and name overwritten', async () => {
       const apiId = importedApiWithGlobalEmailMetadata.id;

@@ -64,7 +64,7 @@ describe('API - Rating', () => {
       user          | apisResource
       ${'ADMIN'}    | ${apisResourceAsAdmin}
       ${'API_USER'} | ${apisResourceAsApiUser}
-    `('As $user user', ({ apisResource }) => {
+    `('As $user user', ({ apisResource }: { apisResource: APIsApi }) => {
       test('Create API rating should throw 503 error', async () => {
         await fail(
           apisResource.createApiRating({

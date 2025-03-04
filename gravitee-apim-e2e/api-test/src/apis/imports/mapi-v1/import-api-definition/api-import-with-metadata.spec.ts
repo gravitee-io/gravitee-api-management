@@ -99,11 +99,14 @@ describe('API - Imports with metadata', () => {
     ${secondExpectedApiId} | ${secondApiMetadata}
     ${thirdExpectedApiId}  | ${thirdExpectedMetadata}
     ${fourthExpectedApiId} | ${fourthExpectedMetadata}
-  `('should get API metadata for the API $expectedApiId', async ({ expectedApiId, expectedMetadata }) => {
-    const metadata = await succeed(apisResourceAsAdminUser.getApiMetadatasRaw({ orgId, envId, api: expectedApiId }));
-    expect(metadata).toBeTruthy();
-    expect(metadata).toContainEqual({ apiId: expectedApiId, ...expectedMetadata });
-  });
+  `(
+    'should get API metadata for the API $expectedApiId',
+    async ({ expectedApiId, expectedMetadata }: { expectedApiId: string; expectedMetadata: Record<string, string> }) => {
+      const metadata = await succeed(apisResourceAsAdminUser.getApiMetadatasRaw({ orgId, envId, api: expectedApiId }));
+      expect(metadata).toBeTruthy();
+      expect(metadata).toContainEqual({ apiId: expectedApiId, ...expectedMetadata });
+    },
+  );
 
   afterAll(async () => {
     const deletedApis = [firstExpectedApiId, secondExpectedApiId, thirdExpectedApiId, fourthExpectedApiId].map(
