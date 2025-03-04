@@ -144,7 +144,7 @@
         <swagger-core.version>2.2.28</swagger-core.version>
         <swagger-jaxrs2.version>2.2.28</swagger-jaxrs2.version>
         <swagger-parser.version>2.1.25</swagger-parser.version>
-        <wiremock.version>3.12.0</wiremock.version>
+        <wiremock.version>3.12.1</wiremock.version>
         <wsdl4j.version>1.6.3</wsdl4j.version>
         <xmlbeans.version>5.3.0</xmlbeans.version>
 
