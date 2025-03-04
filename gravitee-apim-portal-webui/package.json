@@ -84,7 +84,7 @@
     "@angular/compiler-cli": "17.0.5",
     "@angular/language-service": "17.0.5",
     "@babel/preset-env": "7.16.11",
-    "@messageformat/core": "3.3.0",
+    "@messageformat/core": "3.4.0",
     "@ngneat/spectator": "14.0.0",
     "@types/jest": "28.1.8",
     "@types/js-yaml": "4.0.5",
