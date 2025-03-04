@@ -71,7 +71,7 @@ export class ApplicationLogService {
       requestIds: params.requestId ? [params.requestId] : undefined,
       transactionIds: params.transactionId ? [params.transactionId] : undefined,
       statuses: params.statuses,
-      messageText: params.messageText,
+      bodyText: params.messageText,
       path: params.path,
       responseTimeRanges: params.responseTimeRanges,
     });
