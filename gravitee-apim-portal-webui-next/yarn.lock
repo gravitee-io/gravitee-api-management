@@ -2490,16 +2490,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@chromatic-com/storybook@npm:1.2.26":
-  version: 1.2.26
-  resolution: "@chromatic-com/storybook@npm:1.2.26"
+"@chromatic-com/storybook@npm:1.9.0":
+  version: 1.9.0
+  resolution: "@chromatic-com/storybook@npm:1.9.0"
   dependencies:
-    chromatic: "npm:^11.3.0"
+    chromatic: "npm:^11.4.0"
     filesize: "npm:^10.0.12"
     jsonfile: "npm:^6.1.0"
     react-confetti: "npm:^6.1.0"
     strip-ansi: "npm:^7.1.0"
-  checksum: 10c0/b7743f57bb7ee60ed364bd11ec8bcb16deb0f7ee9c696ce7886e5fe0d99092fac12e6ac807afc96b962c3ecadf92b8c487d57933542259507675eae55e96aacb
+  checksum: 10c0/c4b0fbfcb3394c2814e445471b1528179c2144d70d4a13c9a70545c2f2052c6366f73893b16e1490e658d43d905fc726bbb78d7c126c839a3c7ee3d8f3ad21c2
   languageName: node
   linkType: hard
 
@@ -8336,9 +8336,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chromatic@npm:^11.3.0":
-  version: 11.3.0
-  resolution: "chromatic@npm:11.3.0"
+"chromatic@npm:^11.4.0":
+  version: 11.27.0
+  resolution: "chromatic@npm:11.27.0"
   peerDependencies:
     "@chromatic-com/cypress": ^0.*.* || ^1.0.0
     "@chromatic-com/playwright": ^0.*.* || ^1.0.0
@@ -8351,7 +8351,7 @@ __metadata:
     chroma: dist/bin.js
     chromatic: dist/bin.js
     chromatic-cli: dist/bin.js
-  checksum: 10c0/e977ef43a43ebb0250ec8fc46f5751c8cb9b798f75fcf9ec52485c1127caf9d6cef0346a9dd1660a8967faf1a7cde579571a0ac130cfaf475d6f22e4929003b6
+  checksum: 10c0/500c1a522a48b3ef9188d63693b2602128b4cd7b2b96e5cb5412cdc0e3b7ac2a33c30d8f55f7662de4111e1c7c70bcb970e86782700e02580881400bdd10419b
   languageName: node
   linkType: hard
 
@@ -11492,7 +11492,7 @@ __metadata:
     "@angular/router": "npm:18.2.13"
     "@asciidoctor/core": "npm:3.0.4"
     "@asyncapi/web-component": "npm:2.5.1"
-    "@chromatic-com/storybook": "npm:1.2.26"
+    "@chromatic-com/storybook": "npm:1.9.0"
     "@emoji-mart/data": "npm:1.2.1"
     "@storybook/addon-essentials": "npm:8.5.0"
     "@storybook/addon-interactions": "npm:8.5.0"
