@@ -19,6 +19,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.elasticsearch.model.TotalHits;
 import io.gravitee.elasticsearch.utils.Type;
+import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
@@ -56,7 +57,7 @@ public class LogElasticsearchRepository extends AbstractElasticsearchRepository 
         ConnectionLogQuery query,
         List<DefinitionVersion> definitionVersions
     ) {
-        var indexes = getQueryIndexesFromDefinitionVersions(queryContext, definitionVersions);
+        var indexes = getQueryIndexesFromDefinitionVersions(Type.REQUEST, Type.V4_METRICS, queryContext, definitionVersions);
 
         return this.client.search(indexes, null, SearchConnectionLogQueryAdapter.adapt(query))
             .map(SearchConnectionLogResponseAdapter::adapt)
@@ -69,6 +70,20 @@ public class LogElasticsearchRepository extends AbstractElasticsearchRepository 
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_LOG, clusters);
 
         return this.client.search(index, null, SearchConnectionLogDetailQueryAdapter.adapt(query))
+            .map(SearchConnectionLogDetailResponseAdapter::adaptFirst)
+            .blockingGet();
+    }
+
+    @Override
+    public LogResponse<ConnectionLogDetail> searchConnectionLogDetails(QueryContext queryContext, ConnectionLogDetailQuery query) {
+        var indexes = getQueryIndexesFromDefinitionVersions(
+            Type.LOG,
+            Type.V4_LOG,
+            queryContext,
+            List.of(DefinitionVersion.V2, DefinitionVersion.V4)
+        );
+
+        return this.client.search(indexes, null, SearchConnectionLogDetailQueryAdapter.adapt(query))
             .map(SearchConnectionLogDetailResponseAdapter::adapt)
             .blockingGet();
     }
@@ -139,12 +154,17 @@ public class LogElasticsearchRepository extends AbstractElasticsearchRepository 
             .blockingGet();
     }
 
-    private String getQueryIndexesFromDefinitionVersions(QueryContext queryContext, List<DefinitionVersion> definitionVersions) {
+    private String getQueryIndexesFromDefinitionVersions(
+        Type v2Index,
+        Type v4Index,
+        QueryContext queryContext,
+        List<DefinitionVersion> definitionVersions
+    ) {
         var isDefinitionVersionsNullOrEmpty = definitionVersions == null || definitionVersions.isEmpty();
 
         var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
-        var indexV2Request = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
-        var indexV4Metrics = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV2Request = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), v2Index, clusters);
+        var indexV4Metrics = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), v4Index, clusters);
 
         var indexes = new ArrayList<String>();
 
