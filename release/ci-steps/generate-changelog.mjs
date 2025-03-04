@@ -1,6 +1,9 @@
+import { syncProcessCwd } from 'zx';
 import { computeVersion, extractVersion } from '../helpers/version-helper.mjs';
 import { getJiraIssuesOfVersion, getJiraVersion } from '../helpers/jira-helper.mjs';
 import { ChangelogSections, ComponentTypes, getTicketsFor } from '../helpers/changelog-helper.mjs';
+
+syncProcessCwd(); // restores legacy v7 behavior
 
 console.log(chalk.magenta(`#############################################`));
 console.log(chalk.magenta(`# 📰 Open APIM docs PR for new Release Note #`));
