@@ -17,7 +17,7 @@
     "@angular/router": "18.2.0",
     "@angular/upgrade": "18.2.0",
     "@asciidoctor/core": "3.0.4",
-    "@asyncapi/web-component": "2.5.1",
+    "@asyncapi/web-component": "2.6.1",
     "@danielmoncada/angular-datetime-picker": "17.0.0",
     "@danielmoncada/angular-datetime-picker-moment-adapter": "4.0.0",
     "@fontsource/libre-franklin": "4.5.11",
