@@ -40,7 +40,7 @@
         "@types/node": "20.14.8",
         "@types/node-fetch": "2.6.1",
         "cypress": "13.9.0",
-        "dotenv": "16.0.0",
+        "dotenv": "16.4.7",
         "har-validator": "5.1.5",
         "jest": "27.5.1",
         "jest-junit": "16.0.0",
