@@ -421,13 +421,14 @@ public enum Key {
     CLOUD_HOSTED_ENABLED("cloud-hosted.enabled", "false", Set.of(SYSTEM)),
 
     EXTERNAL_AUTH_ENABLED("auth.external.enabled", "false", Set.of(SYSTEM)),
-    EXTERNAL_AUTH_ACCOUNT_DELETION_ENABLED("auth.external.allowAccountDeletion", "true", Set.of(SYSTEM));
+    EXTERNAL_AUTH_ACCOUNT_DELETION_ENABLED("auth.external.allowAccountDeletion", "true", Set.of(SYSTEM)),
+    CONSOLE_USER_GROUP_REQUIRED_ENABLED("console.userGroup.required.enabled", "false", Set.of(SYSTEM, ORGANIZATION));
 
-    String key;
+    final String key;
     String defaultValue;
     Class<?> type;
     boolean isOverridable = true;
-    Set<KeyScope> scopes;
+    final Set<KeyScope> scopes;
     boolean isHiddenForTrial = false;
 
     Key(String key, Set<KeyScope> scopes) {
