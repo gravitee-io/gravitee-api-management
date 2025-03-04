@@ -8,6 +8,7 @@
     "resolveJsonModule": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
     "paths": {
       "@fakers/*": ["ui-test/fixtures/fakers/*"],
       "@keys/*": ["ui-test/fixtures/keys/*"],

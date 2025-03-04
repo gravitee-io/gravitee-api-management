@@ -47,7 +47,7 @@ describe('API Management Application tests', function () {
       ${'api_user'}    | ${managementApplicationsApiAsApiUser}
       ${'app_user'}    | ${managementApplicationsApiAsAppUser}
       ${'simple_user'} | ${managementApplicationsApiAsSimpleUser}
-    `('As $user user', ({ applicationResource }) => {
+    `('As $user user', ({ applicationResource }: { applicationResource: ApplicationsApi }) => {
       test('should create an application', async () => {
         application = await created(
           applicationResource.createApplicationRaw({

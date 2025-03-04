@@ -45,7 +45,7 @@ describe('Portal application tests', () => {
       ${'api_user'}    | ${portalApplicationApiAsApiUser}
       ${'app_user'}    | ${portalApplicationApiAsAppUser}
       ${'simple_user'} | ${portalApplicationApiAsSimpleUser}
-    `('As $user user', ({ applicationResource }) => {
+    `('As $user user', ({ applicationResource }: { applicationResource: ApplicationApi }) => {
       test('should create an application', async () => {
         application = await created(
           applicationResource.createApplicationRaw({

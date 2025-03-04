@@ -1220,15 +1220,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:20.14.8":
-  version: 20.14.8
-  resolution: "@types/node@npm:20.14.8"
-  dependencies:
-    undici-types: "npm:~5.26.4"
-  checksum: 10c0/06d4643fa3b179b41fe19f9c75c240278ca1f7a313b3b837bc36ea119499c7ad77f06bbe72694ac04aa91ec77fe747baa09b889f4c435450c1724a26bd55f160
-  languageName: node
-  linkType: hard
-
 "@types/sinonjs__fake-timers@npm:8.1.1":
   version: 8.1.1
   resolution: "@types/sinonjs__fake-timers@npm:8.1.1"
@@ -2956,7 +2947,6 @@ __metadata:
     "@jest/create-cache-key-function": "npm:28.1.3"
     "@types/jest": "npm:29.5.14"
     "@types/jsonwebtoken": "npm:8.5.9"
-    "@types/node": "npm:20.14.8"
     "@types/node-fetch": "npm:2.6.12"
     cypress: "npm:13.9.0"
     dotenv: "npm:16.4.7"

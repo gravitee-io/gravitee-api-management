@@ -344,39 +344,52 @@ describe('API - V4 - Import - Gravitee Definition - With pages', () => {
         ${getRootFolderIdFn} | ${false} | ${1}       | ${getFolderIdFn}      | ${'folder'}
         ${getFolderIdFn}     | ${false} | ${2}       | ${getFirstChildIdFn}  | ${'firstChildPage'}
         ${getFolderIdFn}     | ${false} | ${2}       | ${getSecondChildIdFn} | ${'secondChildPage'}
-      `('should get list of pages with correct data for $name', async ({ parentIdFn, root, pagesCount, expectedIdFn }) => {
-        const pagesResponse = await succeed(
-          v1ApiPagesResourceAsApiPublisher.getApiPagesRaw({
-            orgId,
-            envId,
-            api: importedApi.id,
-            parent: parentIdFn == undefined ? undefined : parentIdFn(),
-            root,
-          }),
-        );
-        const expectedId = expectedIdFn === undefined ? undefined : expectedIdFn();
-        expect(pagesResponse).toHaveLength(pagesCount);
-        if (root) {
-          // By default, one page is here a system folder
-          expect(pagesResponse.filter((p) => p.type === 'SYSTEM_FOLDER')).toHaveLength(1);
-          const rootResult = pagesResponse.find((p) => p.type === 'ROOT');
-          expect(rootResult.name).toStrictEqual(rootFolder.name);
-          expect(rootResult.id).toStrictEqual(expectedId);
-        } else if (expectedId === folderRecalculatedId) {
-          expect(pagesResponse).toHaveLength(1);
-          expect(pagesResponse[0].parentId).toStrictEqual(parentIdFn());
-          expect(pagesResponse[0].type).toEqual('FOLDER');
-          expect(pagesResponse[0].id).toStrictEqual(expectedId);
-        } else {
-          expect(pagesResponse).toHaveLength(2);
-          const firstChildResponsePage = pagesResponse.find((p) => p.id === firstChildRecalculatedId);
-          const secondChildResponsePage = pagesResponse.find((p) => p.id === secondChildRecalculatedId);
-          expect(firstChildResponsePage.parentId).toStrictEqual(parentIdFn());
-          expect(firstChildResponsePage.type).toEqual('MARKDOWN');
-          expect(secondChildResponsePage.parentId).toStrictEqual(parentIdFn());
-          expect(secondChildResponsePage.type).toEqual('MARKDOWN');
-        }
-      });
+      `(
+        'should get list of pages with correct data for $name',
+        async ({
+          parentIdFn,
+          root,
+          pagesCount,
+          expectedIdFn,
+        }: {
+          parentIdFn?: () => string;
+          root: boolean;
+          pagesCount: number;
+          expectedIdFn: () => string;
+        }) => {
+          const pagesResponse = await succeed(
+            v1ApiPagesResourceAsApiPublisher.getApiPagesRaw({
+              orgId,
+              envId,
+              api: importedApi.id,
+              parent: parentIdFn == undefined ? undefined : parentIdFn(),
+              root,
+            }),
+          );
+          const expectedId = expectedIdFn === undefined ? undefined : expectedIdFn();
+          expect(pagesResponse).toHaveLength(pagesCount);
+          if (root) {
+            // By default, one page is here a system folder
+            expect(pagesResponse.filter((p) => p.type === 'SYSTEM_FOLDER')).toHaveLength(1);
+            const rootResult = pagesResponse.find((p) => p.type === 'ROOT');
+            expect(rootResult.name).toStrictEqual(rootFolder.name);
+            expect(rootResult.id).toStrictEqual(expectedId);
+          } else if (expectedId === folderRecalculatedId) {
+            expect(pagesResponse).toHaveLength(1);
+            expect(pagesResponse[0].parentId).toStrictEqual(parentIdFn());
+            expect(pagesResponse[0].type).toEqual('FOLDER');
+            expect(pagesResponse[0].id).toStrictEqual(expectedId);
+          } else {
+            expect(pagesResponse).toHaveLength(2);
+            const firstChildResponsePage = pagesResponse.find((p) => p.id === firstChildRecalculatedId);
+            const secondChildResponsePage = pagesResponse.find((p) => p.id === secondChildRecalculatedId);
+            expect(firstChildResponsePage.parentId).toStrictEqual(parentIdFn());
+            expect(firstChildResponsePage.type).toEqual('MARKDOWN');
+            expect(secondChildResponsePage.parentId).toStrictEqual(parentIdFn());
+            expect(secondChildResponsePage.type).toEqual('MARKDOWN');
+          }
+        },
+      );
 
       afterAll(async () => {
         await noContent(
