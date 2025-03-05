@@ -18,7 +18,7 @@ import { OpenJdkExecutor } from '../executors';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { computeImagesTag, isSupportBranchOrMaster } from '../utils';
 import { CircleCIEnvironment } from '../pipelines';
-import { CreateDockerContextCommand, DockerAzureLoginCommand, DockerAzureLogoutCommand } from '../commands';
+import { CreateDockerContextCommand, DockerLoginCommand, DockerAzureLogoutCommand } from '../commands';
 import { orbs } from '../orbs';
 import { config } from '../config';
 
@@ -29,8 +29,8 @@ export class BuildBackendImagesJob {
     const createDockerContextCmd = CreateDockerContextCommand.get();
     dynamicConfig.addReusableCommand(createDockerContextCmd);
 
-    const dockerAzureLoginCmd = DockerAzureLoginCommand.get(dynamicConfig, environment, false);
-    dynamicConfig.addReusableCommand(dockerAzureLoginCmd);
+    const dockerLoginCmd = DockerLoginCommand.get(dynamicConfig, environment, false);
+    dynamicConfig.addReusableCommand(dockerLoginCmd);
 
     const dockerAzureLogoutCmd = DockerAzureLogoutCommand.get();
     dynamicConfig.addReusableCommand(dockerAzureLogoutCmd);
@@ -40,7 +40,7 @@ export class BuildBackendImagesJob {
       new commands.workspace.Attach({ at: '.' }),
       new commands.SetupRemoteDocker({ version: config.docker.version }),
       new reusable.ReusedCommand(createDockerContextCmd),
-      new reusable.ReusedCommand(dockerAzureLoginCmd),
+      new reusable.ReusedCommand(dockerLoginCmd),
       new commands.Run({
         name: 'Build rest api and gateway docker images',
         command: `docker buildx build --push --platform=linux/arm64,linux/amd64 -f gravitee-apim-rest-api/docker/Dockerfile \\
