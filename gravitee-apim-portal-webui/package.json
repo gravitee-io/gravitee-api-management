@@ -86,7 +86,7 @@
     "@messageformat/core": "3.4.0",
     "@ngneat/spectator": "14.0.0",
     "@types/jest": "29.5.14",
-    "@types/js-yaml": "4.0.5",
+    "@types/js-yaml": "4.0.9",
     "@types/node": "20.17.23",
     "@typescript-eslint/eslint-plugin": "6.13.1",
     "@typescript-eslint/parser": "6.13.1",

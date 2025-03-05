@@ -17,9 +17,9 @@ import angular from 'angular';
 
 import { AfterViewInit, Component, ElementRef, Input, OnChanges, ViewChild } from '@angular/core';
 import SwaggerUI from 'swagger-ui';
-import * as YAML from 'js-yaml';
+import * as yaml from 'js-yaml';
 
-const yamlSchema = YAML.Schema.create(YAML.JSON_SCHEMA, []);
+const yamlSchema = yaml.DEFAULT_SCHEMA.extend([]);
 
 const loadContent = (spec: string) => {
   let contentAsJson = {};
@@ -27,7 +27,7 @@ const loadContent = (spec: string) => {
     try {
       contentAsJson = angular.fromJson(spec);
     } catch (e) {
-      contentAsJson = YAML.safeLoad(spec, { schema: yamlSchema });
+      contentAsJson = yaml.load(spec, { schema: yamlSchema });
     }
   }
   return contentAsJson;

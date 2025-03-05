@@ -15,14 +15,14 @@
  */
 import angular, { IController } from 'angular';
 
-import * as jsyaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import { ActivatedRoute } from '@angular/router';
 import { isNaN } from 'lodash';
 import SwaggerUI from 'swagger-ui';
 
 import UserService from '../../../services/user.service';
 
-const yamlSchema = jsyaml.Schema.create(jsyaml.JSON_SCHEMA, []);
+const yamlSchema = yaml.DEFAULT_SCHEMA.extend([]);
 
 const DisableTryItOutPlugin = function () {
   return {
@@ -61,7 +61,7 @@ class PageSwaggerComponentController implements IController {
     try {
       contentAsJson = angular.fromJson(this.pageContent);
     } catch (e) {
-      contentAsJson = jsyaml.safeLoad(this.pageContent, { schema: yamlSchema });
+      contentAsJson = yaml.load(this.pageContent, { schema: yamlSchema });
     }
     return contentAsJson;
   }
