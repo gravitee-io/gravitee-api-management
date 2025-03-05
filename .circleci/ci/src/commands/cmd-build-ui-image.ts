@@ -37,7 +37,7 @@ export class BuildUiImageCommand {
     const createDockerContextCommand = CreateDockerContextCommand.get();
     dynamicConfig.addReusableCommand(createDockerContextCommand);
 
-    const dockerAzureLoginCommand = DockerAzureLoginCommand.get(dynamicConfig);
+    const dockerAzureLoginCommand = DockerAzureLoginCommand.get(dynamicConfig, environment, false);
     dynamicConfig.addReusableCommand(dockerAzureLoginCommand);
 
     const dockerAzureLogoutCommand = DockerAzureLogoutCommand.get();
