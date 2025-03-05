@@ -24,7 +24,6 @@
 
 // Not encapsulated because used when encapsulation is .mat
 @import 'components/contextual/contextual-doc.component';
-@import 'management/application/creation/steps/application-creation';
 @import 'management/submenu';
 
 // Try to encapsulate all scss with .bootstrap class
@@ -39,7 +38,6 @@
   @import 'components/dashboard/widget/widget';
   @import 'components/alerts/dashboard/alerts-dashboard';
   @import 'components/alerts/alert/alert';
-  @import 'components/dialog/apiKeyMode/api-key-mode-choice.dialog';
 
   @import 'management/api/api';
   @import 'management/analytics';

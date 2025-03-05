@@ -38,8 +38,6 @@ import { ApplicationSubscriptionComponent } from './details/subscriptions/applic
 import { ApplicationAnalyticsComponent } from './details/analytics/application-analytics.component';
 import { ApplicationLogsComponent } from './details/logs/application-logs.component';
 import { ApplicationLogComponent } from './details/logs/application-log.component';
-import { ApplicationCreationComponent } from './creation/steps/application-creation.component';
-import { ApplicationSubscribeComponent } from './details/subscribe/application-subscribe.component';
 import { ApplicationNotificationModule } from './details/notification/application-notification.module';
 import { ApplicationsRoutingModule } from './applications-routing.module';
 import { ApplicationSubscriptionListModule } from './details/subscriptions/list/application-subscription-list.module';
@@ -84,8 +82,6 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     ApplicationAnalyticsComponent,
     ApplicationLogsComponent,
     ApplicationLogComponent,
-    ApplicationCreationComponent,
-    ApplicationSubscribeComponent,
   ],
 })
 export class ApplicationsModule {}
