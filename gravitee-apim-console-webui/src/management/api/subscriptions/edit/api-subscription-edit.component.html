@@ -269,4 +269,8 @@
       </mat-card-actions>
     </ng-container>
   </mat-card>
+
+  @if (subscription?.plan?.mode === 'PUSH' && !!subscription?.consumerConfiguration) {
+    <api-subscription-edit-push-config [consumerConfiguration]="subscription.consumerConfiguration"></api-subscription-edit-push-config>
+  }
 </div>
