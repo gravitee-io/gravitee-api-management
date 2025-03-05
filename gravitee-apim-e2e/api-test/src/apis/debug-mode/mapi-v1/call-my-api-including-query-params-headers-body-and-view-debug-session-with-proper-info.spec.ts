@@ -27,7 +27,7 @@ import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src
 import { teardownApisAndApplications } from '@gravitee/utils/management';
 import { DebugApiEntity, DebugApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/DebugApiEntity';
 import { describeIfV3, succeed } from '@lib/jest-utils';
-import { delayWhen, from, Observable, switchMap, tap, timer, map, retryWhen, Subscription } from 'rxjs';
+import { from, Observable, switchMap, map, retry, Subscription } from 'rxjs';
 import { EventEntity } from '@gravitee/management-webclient-sdk/src/lib/models/EventEntity';
 
 const orgId = 'DEFAULT';
@@ -322,14 +322,7 @@ describe('Call my API (incl. query params, Headers and body) and view debug sess
           return value;
         }),
         // Retry pipe operators if error is thrown
-        retryWhen((errors) =>
-          errors.pipe(
-            // log error message
-            tap((value) => console.info(`Fail to get SUCCESS event`, value)),
-            // restart in 1 seconds
-            delayWhen((value) => timer(1000)),
-          ),
-        ),
+        retry({ delay: 1000 }),
       );
     };
   });
