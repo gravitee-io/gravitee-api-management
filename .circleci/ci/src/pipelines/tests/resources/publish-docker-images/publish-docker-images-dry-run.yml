@@ -72,7 +72,7 @@ commands:
           command: |-
             docker context create tls-env
             docker buildx create tls-env --use
-  cmd-docker-azure-login:
+  cmd-docker-login:
     steps:
       - keeper/env-export:
           secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
@@ -128,7 +128,7 @@ commands:
         description: the name of the UI project to build
     steps:
       - cmd-create-docker-context
-      - cmd-docker-azure-login
+      - cmd-docker-login
       - run:
           name: Build UI docker image
           command: |-
@@ -198,7 +198,7 @@ jobs:
       - setup_remote_docker:
           version: default
       - cmd-create-docker-context
-      - cmd-docker-azure-login
+      - cmd-docker-login
       - run:
           name: Build rest api and gateway docker images
           command: |-

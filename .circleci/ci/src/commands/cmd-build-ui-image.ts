@@ -17,8 +17,8 @@ import { commands, Config, parameters, reusable } from '@circleci/circleci-confi
 import { computeImagesTag, isSupportBranchOrMaster } from '../utils';
 import { CircleCIEnvironment } from '../pipelines';
 import { CreateDockerContextCommand } from './cmd-create-docker-context';
-import { DockerAzureLoginCommand } from './cmd-docker-azure-login';
 import { DockerAzureLogoutCommand } from './cmd-docker-azure-logout';
+import { DockerLoginCommand } from './index';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { orbs } from '../orbs';
 import { config } from '../config';
@@ -37,15 +37,15 @@ export class BuildUiImageCommand {
     const createDockerContextCommand = CreateDockerContextCommand.get();
     dynamicConfig.addReusableCommand(createDockerContextCommand);
 
-    const dockerAzureLoginCommand = DockerAzureLoginCommand.get(dynamicConfig, environment, false);
-    dynamicConfig.addReusableCommand(dockerAzureLoginCommand);
+    const dockerLoginCommand = DockerLoginCommand.get(dynamicConfig, environment, false);
+    dynamicConfig.addReusableCommand(dockerLoginCommand);
 
     const dockerAzureLogoutCommand = DockerAzureLogoutCommand.get();
     dynamicConfig.addReusableCommand(dockerAzureLogoutCommand);
 
     const steps: Command[] = [
       new reusable.ReusedCommand(createDockerContextCommand),
-      new reusable.ReusedCommand(dockerAzureLoginCommand),
+      new reusable.ReusedCommand(dockerLoginCommand),
       new commands.Run({
         name: 'Build UI docker image',
         command: `docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \\
