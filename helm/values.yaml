@@ -1647,11 +1647,6 @@ gateway:
 
 portal:
   enabled: true
-  configuration:
-    # This files section aim to overwrite configuration file computed by helm chart rules by theses provided here.
-    files:
-      config_json:
-      config_next_json:
   name: portal
   replicaCount: 1
   image:
@@ -1829,10 +1824,6 @@ portal:
 
 ui:
   enabled: true
-  configuration:
-    # This files section aim to overwrite configuration file computed by helm chart rules by theses provided here.
-    files:
-      constants_json:
   name: ui
   companyName: Gravitee.io
   title: Management UI
