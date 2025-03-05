@@ -84,7 +84,7 @@ commands:
           name: Login to Azure Container Registry
           command: echo $DOCKER_REGISTRY_PASSWORD | docker login --username $DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
     description: Login to Azure Container Registry
-  cmd-docker-azure-logout:
+  cmd-docker-logout:
     steps:
       - run:
           name: Logout from Azure Container Registry
@@ -136,7 +136,7 @@ commands:
             -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-branch-name-latest \
             .
           working_directory: << parameters.apim-ui-project >>
-      - cmd-docker-azure-logout
+      - cmd-docker-logout
 jobs:
   job-setup:
     docker:
@@ -209,7 +209,7 @@ jobs:
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f gravitee-apim-gateway/docker/Dockerfile \
             -t graviteeio.azurecr.io/apim-gateway:apim-1234-branch-name-latest \
             gateway-docker-context
-      - cmd-docker-azure-logout
+      - cmd-docker-logout
   job-console-webui-build:
     docker:
       - image: cimg/node:20.11.1
