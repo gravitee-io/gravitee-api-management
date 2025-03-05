@@ -35,6 +35,7 @@ export class PortalWebuiBuildJob {
     environment: CircleCIEnvironment,
     buildDockerImage: boolean,
     publishOnDownloadWebsite: boolean,
+    isProd: boolean,
   ): Job {
     const installYarnCmd = InstallYarnCommand.get();
     dynamicConfig.addReusableCommand(installYarnCmd);
@@ -80,7 +81,7 @@ export class PortalWebuiBuildJob {
       }),
     ];
     if (buildDockerImage) {
-      const buildUiImageCommand = BuildUiImageCommand.get(dynamicConfig, environment);
+      const buildUiImageCommand = BuildUiImageCommand.get(dynamicConfig, environment, isProd);
       dynamicConfig.addReusableCommand(buildUiImageCommand);
 
       steps.push(

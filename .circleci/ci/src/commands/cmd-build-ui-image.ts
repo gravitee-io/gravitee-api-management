@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { commands, Config, parameters, reusable } from '@circleci/circleci-config-sdk';
-import { computeImagesTag, isSupportBranchOrMaster } from '../utils';
+import { computeImagesTag, GraviteeioVersion, isBlank, isSupportBranchOrMaster, parse } from '../utils';
 import { CircleCIEnvironment } from '../pipelines';
 import { CreateDockerContextCommand } from './cmd-create-docker-context';
 import { DockerLogoutCommand } from './cmd-docker-logout';
@@ -31,31 +31,31 @@ export class BuildUiImageCommand {
     new parameters.CustomParameter('apim-ui-project', 'string', '', 'the name of the UI project to build'),
   ]);
 
-  public static get(dynamicConfig: Config, environment: CircleCIEnvironment): reusable.ReusableCommand {
-    const tag = computeImagesTag(environment.branch);
-
+  public static get(dynamicConfig: Config, environment: CircleCIEnvironment, isProd: boolean): reusable.ReusableCommand {
     const createDockerContextCommand = CreateDockerContextCommand.get();
     dynamicConfig.addReusableCommand(createDockerContextCommand);
 
-    const dockerLoginCommand = DockerLoginCommand.get(dynamicConfig, environment, false);
+    const dockerLoginCommand = DockerLoginCommand.get(dynamicConfig, environment, isProd);
     dynamicConfig.addReusableCommand(dockerLoginCommand);
 
-    const dockerLogoutCommand = DockerLogoutCommand.get(environment, false);
+    const dockerLogoutCommand = DockerLogoutCommand.get(environment, isProd);
     dynamicConfig.addReusableCommand(dockerLogoutCommand);
+
+    const parsedGraviteeioVersion = parse(environment.graviteeioVersion);
+
+    const dockerTags: string[] = this.dockerTagsArgument(environment, parsedGraviteeioVersion, isProd);
 
     const steps: Command[] = [
       new reusable.ReusedCommand(createDockerContextCommand),
       new reusable.ReusedCommand(dockerLoginCommand),
       new commands.Run({
         name: 'Build UI docker image',
-        command: `docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \\
--t graviteeio.azurecr.io/<< parameters.docker-image-name >>:${tag} \\
-.`,
+        command: `${this.dockerBuildCommand(environment, dockerTags, isProd)}`,
         working_directory: '<< parameters.apim-ui-project >>',
       }),
     ];
 
-    if (isSupportBranchOrMaster(environment.branch)) {
+    if (isProd || isSupportBranchOrMaster(environment.branch)) {
       dynamicConfig.importOrb(orbs.keeper).importOrb(orbs.aquasec);
       steps.push(
         new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
@@ -85,11 +85,11 @@ export class BuildUiImageCommand {
         new reusable.ReusedCommand(orbs.aquasec.commands['install_billy']),
         new reusable.ReusedCommand(orbs.aquasec.commands['pull_aqua_scanner_image']),
         new reusable.ReusedCommand(orbs.aquasec.commands['register_artifact'], {
-          artifact_to_register: `graviteeio.azurecr.io/<< parameters.docker-image-name >>:${tag}`,
+          artifact_to_register: `${dockerTags[0]}`,
           debug: true,
         }),
         new reusable.ReusedCommand(orbs.aquasec.commands['scan_docker_image'], {
-          docker_image_to_scan: `graviteeio.azurecr.io/<< parameters.docker-image-name >>:${tag}`,
+          docker_image_to_scan: `${dockerTags[0]}`,
           scanner_url: config.aqua.scannerUrl,
         }),
       );
@@ -98,5 +98,53 @@ export class BuildUiImageCommand {
     steps.push(new reusable.ReusedCommand(dockerLogoutCommand));
 
     return new reusable.ReusableCommand(BuildUiImageCommand.commandName, steps, BuildUiImageCommand.customParametersList);
+  }
+
+  private static dockerBuildCommand(environment: CircleCIEnvironment, dockerTags: string[], isProd: boolean) {
+    let command = 'docker buildx build';
+
+    // Only publish if not dry run or not prod
+    if (!isProd || !environment.isDryRun) {
+      command += ' --push';
+    }
+
+    command += ` --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \\\n`;
+
+    if (isProd) {
+      command += ` --quiet`;
+    }
+
+    command += `${dockerTags.map((t) => `-t ${t}`).join(' ')} \\\n`;
+    command += `.`;
+
+    return command;
+  }
+
+  private static dockerTagsArgument(environment: CircleCIEnvironment, graviteeioVersion: GraviteeioVersion, isProd: boolean): string[] {
+    const tags: string[] = [];
+    if (isProd) {
+      const stub = `graviteeio/<< parameters.docker-image-name >>:`;
+
+      // Default tag
+      tags.push(stub + graviteeioVersion.full);
+
+      if (isBlank(graviteeioVersion.qualifier.full)) {
+        // Only major and minor for one tag if no qualifier
+        tags.push(stub + graviteeioVersion.version.major + '.' + graviteeioVersion.version.minor);
+
+        if (environment.dockerTagAsLatest) {
+          // Add two tags: major and 'latest'
+          tags.push(stub + graviteeioVersion.version.major);
+          tags.push(stub + 'latest');
+        }
+      } else {
+        // Include qualifier name after full version
+        tags.push(stub + graviteeioVersion.version.full + '-' + graviteeioVersion.qualifier.name);
+      }
+    } else {
+      const tag = computeImagesTag(environment.branch);
+      tags.push(`graviteeio.azurecr.io/<< parameters.docker-image-name >>:${tag}`);
+    }
+    return tags;
   }
 }
