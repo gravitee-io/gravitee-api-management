@@ -83,7 +83,7 @@ commands:
           name: Login to Azure Container Registry
           command: echo $DOCKER_REGISTRY_PASSWORD | docker login --username $DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
     description: Login to Azure Container Registry
-  cmd-docker-azure-logout:
+  cmd-docker-logout:
     steps:
       - run:
           name: Logout from Azure Container Registry
@@ -161,7 +161,7 @@ commands:
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest
           scanner_url: https://82fb8f75da.cloud.aquasec.com
-      - cmd-docker-azure-logout
+      - cmd-docker-logout
 jobs:
   job-setup:
     docker:
@@ -266,7 +266,7 @@ jobs:
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio.azurecr.io/apim-gateway:4.1.x-latest
           scanner_url: https://82fb8f75da.cloud.aquasec.com
-      - cmd-docker-azure-logout
+      - cmd-docker-logout
   job-console-webui-build:
     docker:
       - image: cimg/node:20.11.1

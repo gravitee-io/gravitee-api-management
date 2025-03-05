@@ -102,7 +102,7 @@ commands:
           name: Login to Azure Container Registry
           command: echo $DOCKER_REGISTRY_PASSWORD | docker login --username $DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
     description: Login to Azure Container Registry
-  cmd-docker-azure-logout:
+  cmd-docker-logout:
     steps:
       - run:
           name: Logout from Azure Container Registry
@@ -273,7 +273,7 @@ jobs:
                 APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=master-latest APIM_CLIENT_REGISTRY=graviteeio.azurecr.io APIM_CLIENT_TAG=<< parameters.apim_client_tag >> yarn test:api:<< parameters.database >>
               fi
             fi
-      - cmd-docker-azure-logout
+      - cmd-docker-logout
       - cmd-notify-on-failure
       - store_test_results:
           path: ./gravitee-apim-e2e/.tmp/e2e-test-report.xml

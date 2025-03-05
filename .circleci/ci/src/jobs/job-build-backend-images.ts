@@ -18,7 +18,7 @@ import { OpenJdkExecutor } from '../executors';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { computeImagesTag, isSupportBranchOrMaster } from '../utils';
 import { CircleCIEnvironment } from '../pipelines';
-import { CreateDockerContextCommand, DockerLoginCommand, DockerAzureLogoutCommand } from '../commands';
+import { CreateDockerContextCommand, DockerLoginCommand, DockerLogoutCommand } from '../commands';
 import { orbs } from '../orbs';
 import { config } from '../config';
 
@@ -32,8 +32,8 @@ export class BuildBackendImagesJob {
     const dockerLoginCmd = DockerLoginCommand.get(dynamicConfig, environment, false);
     dynamicConfig.addReusableCommand(dockerLoginCmd);
 
-    const dockerAzureLogoutCmd = DockerAzureLogoutCommand.get(environment, false);
-    dynamicConfig.addReusableCommand(dockerAzureLogoutCmd);
+    const dockerLogoutCmd = DockerLogoutCommand.get(environment, false);
+    dynamicConfig.addReusableCommand(dockerLogoutCmd);
 
     const steps: Command[] = [
       new commands.Checkout(),
@@ -102,7 +102,7 @@ gateway-docker-context`,
       );
     }
 
-    steps.push(new reusable.ReusedCommand(dockerAzureLogoutCmd));
+    steps.push(new reusable.ReusedCommand(dockerLogoutCmd));
 
     return new Job('job-build-images', OpenJdkExecutor.create(), steps); // TODO check if we can use cimg/base:stable executor
   }
