@@ -169,6 +169,10 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
             predicate = predicate.and(connectionLog -> logsFilters.apiIds().contains(connectionLog.getApiId()));
         }
 
+        if (logsFilters.requestIds() != null && !logsFilters.requestIds().isEmpty()) {
+            predicate = predicate.and(connectionLog -> logsFilters.requestIds().contains(connectionLog.getRequestId()));
+        }
+
         if (null != logsFilters.from()) {
             predicate = predicate.and(connectionLog -> Instant.parse(connectionLog.getTimestamp()).toEpochMilli() >= logsFilters.from());
         }
