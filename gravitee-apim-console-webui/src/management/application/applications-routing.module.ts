@@ -30,7 +30,7 @@ import { ApplicationGeneralTransferOwnershipComponent } from './details/user-gro
 import { ApplicationGeneralComponent } from './details/general/application-general.component';
 import { ApplicationNotificationComponent } from './details/notification/application-notification.component';
 import { ApplicationSubscriptionListComponent } from './details/subscriptions/list/application-subscription-list.component';
-import { ApplicationCreationComponent } from './creation-ng/application-creation.component';
+import { ApplicationCreationComponent } from './creation/application-creation.component';
 import { ApplicationSubscriptionComponent } from './details/subscriptions/subscription/application-subscription.component';
 import { ApplicationSharedApiKeysComponent } from './details/subscriptions/shared-api-keys/application-shared-api-keys.component';
 
