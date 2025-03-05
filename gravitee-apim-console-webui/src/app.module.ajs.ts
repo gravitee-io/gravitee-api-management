@@ -66,7 +66,6 @@ import ApplicationService from './services/application.service';
 import ApplicationTypesService from './services/applicationTypes.service';
 
 import ApplicationHeaderComponent from './management/application/details/header/application-header.component';
-import ApplicationSubscriptionComponentAjs from './management/application/details/subscriptions/application-subscription.component.ajs';
 import ApplicationAnalyticsController from './management/application/details/analytics/application-analytics.controller';
 import ApplicationAnalyticsComponentAjs from './management/application/details/analytics/application-analytics.component.ajs';
 import ApplicationLogsController from './management/application/details/logs/application-logs.controller';
@@ -527,7 +526,6 @@ graviteeManagementModule.component('apiKeys', ApiKeysComponent);
 graviteeManagementModule.controller('ApiKeysController', ApiKeysController);
 
 graviteeManagementModule.component('applicationHeader', ApplicationHeaderComponent);
-graviteeManagementModule.component('applicationSubscription', ApplicationSubscriptionComponentAjs);
 graviteeManagementModule.component('applicationAnalytics', ApplicationAnalyticsComponentAjs);
 graviteeManagementModule.component('applicationLogs', ApplicationLogsComponentAjs);
 graviteeManagementModule.component('applicationLog', ApplicationLogComponentAjs);
