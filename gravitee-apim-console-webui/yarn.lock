@@ -11245,12 +11245,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chromatic@npm:10.9.6":
-  version: 10.9.6
-  resolution: "chromatic@npm:10.9.6"
+"chromatic@npm:11.27.0":
+  version: 11.27.0
+  resolution: "chromatic@npm:11.27.0"
   peerDependencies:
-    "@chromatic-com/cypress": ^0.5.2 || ^1.0.0
-    "@chromatic-com/playwright": ^0.5.2 || ^1.0.0
+    "@chromatic-com/cypress": ^0.*.* || ^1.0.0
+    "@chromatic-com/playwright": ^0.*.* || ^1.0.0
   peerDependenciesMeta:
     "@chromatic-com/cypress":
       optional: true
@@ -11260,7 +11260,7 @@ __metadata:
     chroma: dist/bin.js
     chromatic: dist/bin.js
     chromatic-cli: dist/bin.js
-  checksum: 10c0/73fc169cc23ae2ff45259d533c0129fda2cdcb1bc6269987b51fc79c01ed85b205fc46099768e522725b83ed343433a42572f8d95a30c04a51d0df9ccac67f7b
+  checksum: 10c0/500c1a522a48b3ef9188d63693b2602128b4cd7b2b96e5cb5412cdc0e3b7ac2a33c30d8f55f7662de4111e1c7c70bcb970e86782700e02580881400bdd10419b
   languageName: node
   linkType: hard
 
@@ -15206,7 +15206,7 @@ __metadata:
     angular-ui-validate: "npm:1.2.3"
     asciidoctor: "npm:3.0.4"
     asciidoctor-highlight.js: "npm:0.4.0"
-    chromatic: "npm:10.9.6"
+    chromatic: "npm:11.27.0"
     codemirror: "npm:5.65.18"
     codemirror-asciidoc: "npm:1.0.4"
     diff: "npm:3.5.0"
