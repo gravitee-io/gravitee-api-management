@@ -15260,7 +15260,6 @@ __metadata:
     swagger-ui: "npm:5.20.0"
     tinycolor2: "npm:1.6.0"
     typescript: "npm:5.5.4"
-    unicode: "npm:11.0.1"
     v-accordion: "npm:1.6.0"
     zone.js: "npm:0.14.10"
   languageName: unknown
@@ -23696,13 +23695,6 @@ __metadata:
   version: 2.1.0
   resolution: "unicode-property-aliases-ecmascript@npm:2.1.0"
   checksum: 10c0/50ded3f8c963c7785e48c510a3b7c6bc4e08a579551489aa0349680a35b1ceceec122e33b2b6c1b579d0be2250f34bb163ac35f5f8695fe10bbc67fb757f0af8
-  languageName: node
-  linkType: hard
-
-"unicode@npm:11.0.1":
-  version: 11.0.1
-  resolution: "unicode@npm:11.0.1"
-  checksum: 10c0/35d80768f79ea99fdef9e3fdf740de1f541e781e8f59ef9e333316fc8318040480377fdd9d771bbd6fcea2383049a60b353a25427f4d48ac82555927a4a42c86
   languageName: node
   linkType: hard
 
