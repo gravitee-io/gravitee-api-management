@@ -25,10 +25,6 @@ data:
   use-gzip: "true"
   gzip-level: "5"
   gzip-types: "*"
-  {{- if .Values.portal.configuration.files.config_json }}
-  config.json: |-
-    {{- .Values.portal.configuration.files.config_json | nindent 4 }}
-  {{- else }}
   config.json: |
     {
       {{- if .Values.portal.baseURL }}
@@ -47,11 +43,6 @@ data:
         }
       }
     }
-  {{- end }}
-  {{- if .Values.portal.configuration.files.config_next_json }}
-  config-next.json: |-
-    {{- .Values.portal.configuration.files.config_next_json | nindent 4 }}
-  {{- else }}
   config-next.json: |
     {
       {{- if .Values.portal.enforceEnvironmentId }}
@@ -63,5 +54,4 @@ data:
       "baseURL": "{{ .Values.api.ingress.portal.scheme }}://{{ index .Values.api.ingress.portal.hosts 0 }}{{ .Values.api.ingress.portal.path }}"
       {{- end }}
     }
-  {{- end -}}
 {{- end -}}
