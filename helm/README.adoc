@@ -168,6 +168,191 @@ The usual workaround is to use environment variable to overwrite / complete the 
 The counterpart is that you may have some duplication between api and gateway configuration, like mongo or elastic URL and credentials.
 
 
+==== Migration to the internal configuration file
+
+From an existing deployment, you can extract the current application configuration file `gravitee.yml` for both `api` and `gateway`:
+
+[source,bash]
+----
+kubectl get configmap \
+  -l 'app.kubernetes.io/component=api' \
+  --no-headers \
+  -o json | jq --raw-output '.items[0] | .data."gravitee.yml"' > api-management_gravitee.yml
+kubectl get configmap \
+  -l 'app.kubernetes.io/component=gateway' \
+  --no-headers \
+  -o json | jq --raw-output '.items[0] | .data."gravitee.yml"' > gateway_gravitee.yml
+----
+
+If you enable `api.logging.debug` and/or `gateway.logging.debug` then you can also export the `logback.xml` configuration file:
+
+[source,bash]
+----
+kubectl get configmap \
+  -l 'app.kubernetes.io/component=api' \
+  --no-headers \
+  -o json | jq --raw-output '.items[0] | .data."logback.xml"' > api-management_logback.xml
+kubectl get configmap \
+  -l 'app.kubernetes.io/component=gateway' \
+  --no-headers \
+  -o json | jq --raw-output '.items[0] | .data."logback.xml"' > gateway_logback.xml
+----
+
+**Cleanup:**
+
+After you had exported the application configuration and copy paste them into their dedicate section on the helm values.yaml.
+You will have some unneeded duplication between previous configuration that was part of the helm definition, and the same configuration inside application configuration.
+
+Let's take the mongo database configuration as en example (not the embedded `mongodb` provided as helm dependency to deploy a mongodb instance a side of APIM):
+Initially you may have this configuration in your helm values:
+
+[source,yaml]
+----
+mongo:
+  uri: mongodb://graviteeio-apim-mongodb-url:27017/gravitee-api-management?replicaset=rs0&connectTimeoutMS=30000
+----
+
+After using application configuration embedded, you could remove the initial `mongo` attribute because the one from application configuration will be used.
+
+[source,yaml]
+----
+api:
+  config:
+    graviteeYml:
+      management:
+        type: mongodb
+        mongodb:
+          sslEnabled: false
+          socketKeepAlive: false
+          uri: mongodb://graviteeio-apim-mongodb-url:27017/gravitee-api-management?replicaset=rs0&connectTimeoutMS=30000
+
+gateway:
+  config:
+    graviteeYml:
+      management:
+        type: mongodb
+        mongodb:
+          sslEnabled: false
+          socketKeepAlive: false
+          uri: mongodb://graviteeio-apim-mongodb-url:27017/gravitee-api-management?replicaset=rs0&connectTimeoutMS=30000
+----
+
+Tips: you can use yaml https://helm.sh/docs/chart_template_guide/yaml_techniques/#yaml-anchors[alias/anchor] to manage duplication.
+
+To remove all part of the application configuration initially defined on helm values level, here is an `yq` command that will remove them.
+This list is provided as example and is not exhaustive. Its mainly depends on your configuration.
+
+[source,bash]
+----
+yq eval 'del(.installation)
+        | del(.graviteeRepoAuth)
+        | del(.inMemoryAuth)
+        | del(.installation)
+        | del(.graviteeRepoAuth)
+        | del(.inMemoryAuth)
+        | del(.jwtSecret)
+        | del(.adminAccountEnable)
+        | del(.adminPasswordBcrypt)
+        | del(.adminEmail)
+        | del(.adminFirstName)
+        | del(.adminLastName)
+        | del(.extraInMemoryUsers)
+        | del(.ldap)
+        | del(.security)
+        | del(.oidcAuth)
+        | del(.smtp)
+        | del(.notifiers)
+        | del(.mongo)
+        | del(.jdbc.url)
+        | del(.jdbc.username)
+        | del(.jdbc.password)
+        | del(.jdbc.liquibase)
+        | del(.jdbc.schema)
+        | del(.jdbc.pool)
+        | del(.es)
+        | del(.alerts)
+        | del(.management)
+        | del(.ratelimit)
+        | del(.api.logging)
+        | del(.api.configuration)
+        | del(.api.services)
+        | del(.api.http)
+        | del(.api.user)
+        | del(.api.supportEnabled)
+        | del(.api.ratingEnabled)
+        | del(.api.newsletterEnabled)
+        | del(.api.gateway)
+        | del(.api.analytics)
+        | del(.gateway.http)
+        | del(.gateway.logging)
+        | del(.gateway.reloadOnConfigChange)
+        | del(.gateway.ssl.clientAuth)
+        | del(.gateway.websocket)
+        | del(.gateway.ratelimit)
+        | del(.gateway.management)
+        | del(.gateway.bridge.tcpKeepAlive)
+        | del(.gateway.bridge.tcpKeepAlive)
+        | del(.gateway.sync)
+        | del(.gateway.heartbeat)
+        | del(.gateway.gracefulShutdown)
+        | del(.gateway.classloader)
+        | del(.gateway.apiKey)
+        | del(.gateway.dictionaries)
+        ' -i values.yaml
+----
+
+==== Configuration tips with yaml alias/anchors
+
+The configuration file can use some redundencies configuration like the mongo or elastic configuration and some URLs.
+To simplify it, we can create a dedicated section to create yaml alias and then use it during configuration.
+
+Here is an exemple:
+
+[source,yaml]
+----
+# To avoid duplication, you can set here some Yaml Anchor (https://helm.sh/docs/chart_template_guide/yaml_techniques/#yaml-anchors)
+# This alias section is only here to define these anchors, they are not part of the templating computation.
+alias:
+  apim_version: &apim_version 4.8.1
+  mongo_config: &mongo_config
+    type: mongodb
+    mongodb:
+      sslEnabled: false
+      socketKeepAlive: false
+      uri: secret://kubernetes/mongo-url:mongo_url
+  host_management_base: &host_management_base apim.playground.gravitee.dev
+  host_gateway_base: &host_gateway_base gateway.playground.gravitee.dev
+  url_base: &url_base https://apim.playground.gravitee.dev
+  url_console: &url_console https://apim.playground.gravitee.dev/console
+  url_management: &url_management https://apim.playground.gravitee.dev/management
+
+api:
+  image:
+    tag: *apim_version
+  config:
+    graviteeYml:
+      management:
+        *mongo_config
+      http:
+        management:
+          *mongo_config
+        ratelimit:
+          *mongo_config
+  ingress:
+    management:
+      hosts:
+        - *host_management_base
+    portal:
+      hosts:
+        - *host_management_base
+portal:
+  image:
+    tag: *apim_version
+  ingress:
+    hosts:
+      - *host_management_base
+----
+
 ==== Shared Configuration
 
 To configure common features such as:

@@ -1,0 +1,1642 @@
+# Default values for gravitee.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+common:
+  labels: {}
+  annotations: {}
+
+# -- Array of extra K8s manifests to deploy
+extraObjects: []
+  #- apiVersion: v1
+  #  kind: Secret
+  #  metadata:
+  #    name: gravitee-license
+  #    namespace: graviteeio
+  #  type: Opaque
+  #  data:
+  #    license.key: myLicenceInBase64==
+
+# Create NetworkPolicy objects
+# https://kubernetes.io/docs/concepts/services-networking/network-policies/
+networkPolicy:
+#  podSelector:
+#    matchExpressions:
+#      - key: app.kubernetes.io/component
+#        operator: In
+#        values: [ "gateway", "api", "ui", "portal" ]
+#  policyTypes:
+#    - Egress
+#  egress:
+#    - to:
+#        - ipBlock:
+#            cidr: 0.0.0.0/0
+#            except:
+#              - 169.254.169.254/32
+
+apim:
+  name: apim
+  # Whether this chart should self-manage its service account, role, and associated role binding.
+  managedServiceAccount: true
+
+  # Custom service account override that the pod will use
+  # if customer provides a dedicated SA for any component, that will have the priority
+  serviceAccount: ""
+
+  roleRules:
+    - apiGroups:
+        - ""
+      resources:
+        - configmaps
+        - secrets
+      verbs:
+        - get
+        - list
+        - watch
+  # Whether you want to run the APIM in DB less mode. If ste to true, it will disable both UIs and also Management API components
+  # Only Gateway will be deployed to the cluster in DB less mode
+  dbLess: false
+
+  kubernetes:
+    projection:
+      enabled: false
+      expirationSeconds: 2592000
+      audience: vault
+
+chaos:
+  enabled: false
+
+jdbc:
+  # the URL to download the driver
+  driver: https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.22/mysql-connector-java-8.0.22.jar
+
+# Configuration to download the gravitee-apim-repository-redis plugin if rate-limit is configured to use Redis
+redis:
+  # By default, the Helm will create init containers for downloading and mounting the Redis plugin as an init container.
+  # Set to false if you're looking to manage Redis plugin by yourself
+  download: true
+#  repositoryVersion: 3.3.0
+
+mongodb:
+  enabled: false
+  architecture: replicaset
+  fullnameOverride: "graviteeio-apim-mongodb-replicaset"
+  replicaSetName: rs0
+  podAffinityPreset: soft
+  image:
+    repository: bitnami/mongodb
+    tag: 6.0.13
+  auth:
+    enabled: false
+  resources:
+    limits:
+      cpu: 1
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  persistence:
+    enabled: true
+    # storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
+
+elasticsearch:
+  enabled: false
+  name: "elasticsearch"
+  fullnameOverride: "graviteeio-apim-elasticsearch"
+  image:
+    repository: "bitnami/elasticsearch"
+    tag: "8.17.4"
+  master:
+    replicaCount: 2
+    persistence:
+      size: 4Gi
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1024Mi
+      requests:
+        cpu: 25m
+        memory: 256Mi
+  coordinating:
+    replicaCount: 2
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1024Mi
+      requests:
+        cpu: 25m
+        memory: 256Mi
+  data:
+    replicaCount: 2
+    heapSize: 512m
+    resources:
+      limits:
+        cpu: 1
+        memory: 2048Mi
+      requests:
+        cpu: 50m
+        memory: 1024Mi
+    persistence:
+      size: 20Gi
+
+# Support for Gravitee.io Cockpit (cockpit.gravitee.io)
+cockpit:
+  enabled: false
+  keystore:
+    value: "base64 encoded value of the keystore provided by Cockpit (required)"
+    password:
+  #  value: "keystores password provided by Cockpit"
+  #  valueFrom:
+  #    secretKeyRef:
+  #    configMapKeyRef:
+  #truststore:
+  #  value: base64 encoded value of the truststore provided by Cockpit (optional)
+  #  password:
+  #    value: "truststore password provided by Cockpit"
+  #    valueFrom:
+  #      secretKeyRef:
+  #      configMapKeyRef:
+  url: https://cockpit.gravitee.io
+  controller: https://cockpit-controller.gravitee.io
+  ssl:
+    verifyHostname: true
+
+# Support for Gravitee.io Cloud (cloud.gravitee.io)
+cloud:
+  enabled: false
+  url: https://cloud.gravitee.io
+  connector:
+    ws:
+      endpoints:
+        - https://cloud-controller.gravitee.io
+      ssl:
+        verifyHost: true
+        keystore:
+          type: pkcs12
+          path: /opt/graviteeio-management-api/cloud/keystore.p12
+          password:
+          #  value: "keystores password provided by Cockpit"
+          #  valueFrom:
+          #    secretKeyRef:
+          #    configMapKeyRef:
+        truststore:
+          type: pkcs12
+          path: /opt/graviteeio-management-api/cloud/truststore.p12
+          password:
+          #  value: "truststore password provided by Cockpit"
+          #  valueFrom:
+          #    secretKeyRef:
+          #    configMapKeyRef:
+
+cluster:
+  plugins:
+    - https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-7.9.1.zip
+    - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-7.9.1.zip
+
+api:
+  enabled: true
+  upgrader: false
+  name: api
+  # This config section aim to overwrite configuration file computed by helm chart rules by theses provided here.
+  config:
+    ############################################################################################################
+    # This file is the general configuration of Gravitee.IO Management API:
+    # You can have the official full example here:
+    # https://github.com/gravitee-io/gravitee-api-management/blob/master/gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/src/main/resources/config/gravitee.yml
+    #
+    # Please have a look to https://documentation.gravitee.io/ for more options and fine-grained granularity
+    #
+    # INFO:
+    # * By default it is empty for backward compatibility - if you define the configuration file it will
+    #   overwrite the computed one by helm chart regarding other values.
+    # * Defining environment variable still overwrite definition on configuration files.
+    ############################################################################################################
+    graviteeYml:
+      management:
+        type: mongodb
+        mongodb:
+          sslEnabled: false
+          socketKeepAlive: false
+#          uri: mongodb://graviteeio-apim-mongodb-replicaset-headless:27017/gravitee?replicaset=rs0&connectTimeoutMS=30000
+
+      # Secret Manager configuration
+      secrets:
+        kubernetes:
+          enabled: true
+
+      installation:
+        type: standalone
+        api:
+          url: https://apim.example.com/
+          proxyPath:
+            management: /management
+            portal: /portal
+        standalone:
+          console:
+            url: https://apim.example.com/console
+          portal:
+            url: https://apim.example.com/
+      console:
+        ui:
+          url: https://apim.example.com/console
+        api:
+          url: https://apim.example.com/management
+
+      services:
+        core:
+          http:
+            enabled: true
+            port: 18083
+            host: localhost
+            authentication:
+              type: basic
+              users:
+                admin: adminadmin
+        metrics:
+          enabled: false
+          prometheus:
+            enabled: true
+      httpClient:
+        timeout: 10000
+      http:
+        api:
+          entrypoint: /
+          management:
+            entrypoint: ${http.api.entrypoint}management
+          portal:
+            entrypoint: ${http.api.entrypoint}portal
+
+      analytics:
+        type: elasticsearch
+        elasticsearch:
+          endpoints:
+            - http://graviteeio-apim-elasticsearch-ingest-hl:9200
+          index_mode: daily
+          index: gravitee
+
+      security:
+        trustAll: false
+        providers:
+          - type: gravitee
+          - type: memory
+            # password encoding/hashing algorithm. One of:
+            # - bcrypt : passwords are hashed with bcrypt
+            # - none : passwords are not hashed/encrypted
+            # default value is bcrypt
+            password-encoding-algo: bcrypt
+            allow-email-in-search-results: false
+            users:
+              - user:
+                username: admin
+                password: $2a$10$Ihk05VSds5rUSgMdsMVi9OKMIx2yUvMz7y9VP3rJmQeizZLrhLMyq
+                roles: ORGANIZATION:ADMIN, ENVIRONMENT:ADMIN
+                email:
+                firstName:
+                lastName:
+              - user:
+                username: user
+                # Password value: password
+                password: $2a$10$9kjw/SH9gucCId3Lnt6EmuFreUAcXSZgpvAYuW2ISv7hSOhHRH1AO
+                roles: ORGANIZATION:USER, ENVIRONMENT:USER
+                # Useful to receive notifications
+                #email:
+                #firstName:
+                #lastName:
+              - user:
+                username: api1
+                # Password value: api1
+                password: $2a$10$iXdXO4wAYdhx2LOwijsp7.PsoAZQ05zEdHxbriIYCbtyo.y32LTji
+                # You can declare multiple roles using comma separator
+                roles: ORGANIZATION:USER, ENVIRONMENT:API_PUBLISHER
+                #email:
+                #firstName:
+                #lastName:
+              - user:
+                username: application1
+                # Password value: application1
+                password: $2a$10$2gtKPYRB9zaVaPcn5RBx/.3T.7SeZoDGs9GKqbo9G64fKyXFR1He.
+                roles: ORGANIZATION:USER, ENVIRONMENT:USER
+                #email:
+                #firstName:
+                #lastName:
+
+      # SMTP configuration used to send mails
+      email:
+        enabled: true
+
+      # SMTP configuration used to send notifications / alerts
+      notifiers:
+        email:
+          enabled: true
+          host: ${email.host}
+          subject: "${email.subject}"
+          port: ${email.port}
+          from: ${email.from}
+          username: ${email.username}
+          password: ${email.password}
+          starttls.enabled: false
+
+      # Mail templates
+      templates:
+        path: ${gravitee.home}/templates
+
+      jwt:
+        secret: myJWT4Gr4v1t33_S3cr3t
+
+      swagger:
+        # Default scheme used when creating an API from a Swagger descriptor if there is no scheme specified.
+        scheme: https
+
+      user:
+        login:
+          # Create a default application when user connects to the portal for the very first time (default true)
+          defaultApplication: true
+
+        creation:
+          # Allows to register new users from portal (default false)
+          #enabled: true
+          token:
+          #expire-after: 86400
+        anonymize-on-delete:
+          enabled: false
+
+      # The portal URL used in emails
+      portalURL: https://apim.example.com
+
+      # Allows to create support ticket (default value: false)
+      support:
+        enabled: true
+
+      # Allows to rate an API (default value: false)
+      rating:
+        enabled: true
+
+      # Set the Subscribe to newsletter feature (default value: true)
+      newsletter:
+        enabled: true
+
+      gateway:
+        unknown-expire-after: 604800
+
+      # Integration controller
+      integration:
+        enabled: false
+
+      # Alert Engine communication
+
+      alerts:
+        alert-engine-connector-ws:
+          enabled: false
+      # APIs specific configuration
+      # External Authentication
+      # Cloud connector
+
+    # Hazelcast config is used related to federation feature.
+    hazelcastClusterXml:
+    hazelcastCacheXml:
+    logbackXml: |-
+      <?xml version="1.0" encoding="UTF-8"?>
+      <configuration>
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+          <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+          </encoder>
+        </appender>
+      
+        <logger name="io.gravitee" level="INFO" />
+        <logger name="org.eclipse.jetty" level="INFO" />
+        
+        <root level="WARN">
+          <appender-ref ref="STDOUT" />
+        </root>
+      </configuration>
+
+  restartPolicy: OnFailure
+  # If you provide your own gravitee.yml by using a volumeMount, reloadOnConfigChange is disabled.
+  reloadOnConfigChange: true
+  deployment:
+    # Annotations to apply to the deployment
+    annotations: {}
+    # additionals labels
+    labels: {}
+    affinity: {}
+    hostAliases: []
+    #- ip: "127.0.0.1"
+    #  hostnames:
+    #  - "foo.local"
+    #  - "bar.local"
+    nodeSelector: {}
+    tolerations: []
+    envFrom: []
+    # - configMapRef:
+    #     name: config-secret
+    # SecurityContext holds pod-level security attributes and common container settings.
+    # Field values of container.securityContext take precedence over field values of PodSecurityContext.
+    podSecurityContext:
+      #fsGroup: 1001
+      #runAsUser: 1001
+      #runAsNonRoot: true
+    # SecurityContext defines the security options the container should be run with.
+    # If set, the fields of SecurityContext override the equivalent fields of PodSecurityContext
+    securityContext:
+      runAsUser: 1001
+      runAsNonRoot: true
+
+    # Dedicated Service account provided for this component
+    serviceAccount: ""
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxUnavailable: 1
+    topologySpreadConstraints: []
+    # revisionHistoryLimit: 10
+
+    livenessProbe:
+      enabled: true
+      tcpSocket:
+        port: http
+      initialDelaySeconds: 30
+      periodSeconds: 30
+      failureThreshold: 3
+
+    customLivenessProbe: {}
+
+    readinessProbe:
+      enabled: true
+      tcpSocket:
+        port: http
+      initialDelaySeconds: 30
+      periodSeconds: 30
+      failureThreshold: 3
+
+    customReadinessProbe: {}
+
+    startupProbe:
+      enabled: true
+      tcpSocket:
+        port: http
+      failureThreshold: 30
+      periodSeconds: 10
+
+    customStartupProbe: {}
+
+  pdb:
+    enabled: false
+    minAvailable: ""
+    maxUnavailable: "50%"
+
+  podAnnotations: {}
+    # iam.amazonaws.com/role: es-cluster
+
+  # How long to wait for APIM Management API pods to stop gracefully
+  terminationGracePeriod: 30
+
+  # This is the PriorityClass settings as defined in
+  # https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#priorityclass
+  priorityClassName: ""
+
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+  replicaCount: 1
+  image:
+    repository: graviteeio/apim-management-api
+    # tag: 3.0.2
+    pullPolicy: Always
+    # pullSecrets: gravitee_secrets
+  env: []
+  #   - name: ENV_VARIABLE
+  #     value: ENV_VARIABLE_VALUE
+  #   - name: ENV_VARIABLE_WITH_FROM
+  #     valueFrom:
+  #       configMapKeyRef:
+  #         name: special-config
+  #         key: SPECIAL_LEVEL
+  additionalPlugins:
+#    - https://path_to_plugin
+  ssl:
+    enabled: false
+  service:
+    type: ClusterIP
+    # externalTrafficPolicy is used only when configuring type "NodePort" or "LoadBalancer"
+    externalTrafficPolicy: Cluster
+    externalPort: 83
+    internalPort: 8083
+    # used only if the type of your service is "NodePort" and must be in the range 30000-32767
+    # if not set a random port will be used in that range
+    # nodePort: 30083
+    internalPortName: http
+#    appProtocol: http
+  # annotations:
+  autoscaling:
+    # When api.autoscaling.enabled is true, a HorizontalPodAutoscaler is created
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 3
+    # warning: these two target utilization will be overwritten if api.autoscaling.metrics is defined.
+    targetAverageUtilization: 50
+    targetMemoryAverageUtilization: 80
+    # here you can add specific annotations to this HPA
+#    annotations:
+    # If default CPU and Memory utilisation is not enough, you can here overwrite the metrics with your settings
+    # @see: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+#    metrics:
+    # Optionnaly you can also add behavior
+    # @see: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#configurable-scaling-behavior
+#    behavior:
+  ingress:
+    management:
+      enabled: true
+      scheme: https # should be https or http
+      pathType: Prefix
+      path: /management
+      ingressClassName: ""
+      # Used to create an Ingress record.
+      hosts:
+        - apim.example.com
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        #nginx.ingress.kubernetes.io/configuration-snippet: "etag on;\nproxy_pass_header ETag;\nproxy_pass_header if-match;\n"
+        # kubernetes.io/tls-acme: "true"
+      # tls:
+        # Secrets must be manually created in the namespace.
+      #  - hosts:
+      #      - apim.example.com
+      #    secretName: api-custom-cert
+    portal:
+      enabled: true
+      scheme: https # should be https or http
+      pathType: Prefix
+      path: /portal
+      ingressClassName: ""
+      # Used to create an Ingress record.
+      hosts:
+        - apim.example.com
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        # kubernetes.io/tls-acme: "true"
+      # tls:
+        # Secrets must be manually created in the namespace.
+      #  - hosts:
+      #      - apim.example.com
+      #    secretName: api-custom-cert
+    automation:
+      enabled: false
+      path: /automation
+      pathType: Prefix
+      hosts:
+        - apim.example.com
+      tls:
+        - hosts:
+            - apim.example.com
+          secretName: apim.example.com
+      annotations:
+        kubernetes.io/ingress.class: nginx
+  resources:
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    limits:
+      cpu: 500m
+      memory: 1024Mi
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    #  lifecycle:
+    #    postStart: '[ "/bin/sh", "-c", "echo Post starting Gravitee Management API" ]'
+    #    preStop: '[ "/bin/sh", "-c", "echo Pre stopping Gravitee Management API" ]'
+    ## Additional gravitee API volume mounts
+    # Defines additional volume mounts.
+    # extraVolumeMounts: |
+    # - name: extra-volume
+    #   mountPath: /mnt/volume
+    #   readOnly: true
+  # If you want to use your own gravitee.yml you have to provide your configmap or secret in extraVolume part.
+  # the name of the volume MUST be "config".
+  # In this case, values configuration related to gravitee.yaml defined in this file will be ignored
+  #extraVolumes: |
+  #  - name: config
+  #    configMap:
+  #      name: gravitee-config-configmap-name
+  #  - name: config
+  #    secret:
+  #      secretName: gravitee-config-secret-name
+
+  federation:
+    enabled: false
+    port: 8072
+    ingress:
+      enabled: true
+      ingressClassName: ""
+      path: /integration-controller(/.*)?
+      pathType: Prefix
+#      hosts:
+#        - apim.example.com
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        nginx.ingress.kubernetes.io/proxy-read-timeout: 3600                                                                                                                                              │
+        nginx.ingress.kubernetes.io/proxy-send-timeout: 3600
+        nginx.ingress.kubernetes.io/rewrite-target: /$1
+#      tls:
+#        - hosts:
+#            - apim.example.com
+#          secretName: api-custom-cert
+    service:
+      externalPort: 72
+
+gateway:
+  enabled: true
+  # This config section aim to overwrite configuration file computed by helm chart rules by theses provided here.
+  config:
+    ############################################################################################################
+    # This file is the general configuration of Gravitee.IO Gateway:
+    # You can have the official full example here:
+    # https://github.com/gravitee-io/gravitee-api-management/blob/master/gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/src/main/resources/config/gravitee.yml
+    #
+    # Please have a look to https://documentation.gravitee.io/ for more options and fine-grained granularity
+    #
+    # INFO:
+    # * By default it is empty for backward compatibility - if you define the configuration file it will
+    #   overwrite the computed one by helm chart regarding other values.
+    # * Defining environment variable still overwrite definition on configuration files.
+    ############################################################################################################
+    graviteeYml:
+      # Secret Manager configuration
+      secrets:
+        kubernetes:
+          enabled: true
+
+      # Gateway HTTP server
+      http:
+        port: 8082
+        host: 0.0.0.0
+        #  idleTimeout: 0
+        #  tcpKeepAlive: true
+        #  compressionSupported: false
+        #  instances: 0
+        requestTimeout: 30000
+        requestTimeoutGraceDelay: 30
+        maxHeaderSize: 8192
+        maxChunkSize: 8192
+        maxInitialLineLength: 4096
+        maxFormAttributeSize: 2048
+        alpn: true
+        websocket:
+          enabled: false
+      management:
+        type: mongodb
+        mongodb:
+          sslEnabled: false
+          socketKeepAlive: false
+      #   uri: mongodb://graviteeio-apim-mongodb-replicaset-headless:27017/gravitee?replicaset=rs0&connectTimeoutMS=30000
+
+
+      ratelimit:
+        type: mongodb
+        mongodb:
+          sslEnabled: false
+          socketKeepAlive: false
+      #   uri: mongodb://graviteeio-apim-mongodb-replicaset-headless:27017/gravitee?replicaset=rs0&connectTimeoutMS=30000
+
+      # Sharding tags configuration
+      # Allows to define inclusion/exclusion sharding tags to only deploy a part of APIs. To exclude just prefix the tag with '!'.
+      tags:
+
+      # Multi-tenant configuration
+      # Allow only a single-value
+      tenant:
+
+      # Reporters configuration (used to store reporting monitoring data, request metrics, healthchecks and others...
+      # All reporters are enabled by default. To stop one of them, you have to add the property 'enabled: false'
+      reporters:
+        # Elasticsearch reporter
+        elasticsearch:
+          endpoints:
+            - http://graviteeio-apim-elasticsearch-ingest-hl:9200
+          index_mode: daily
+          pipeline:
+            plugins:
+              ingest: geoip, user_agent
+          index: gravitee
+          settings:
+            number_of_replicas: 1
+            number_of_shards: 1
+            refresh_interval: 5s
+          bulk:
+            actions: 1000           # Number of requests action before flush
+            flush_interval: 5       # Flush interval in seconds
+
+      services:
+        core:
+          http:
+            enabled: true
+            port: 18082
+            host: 0.0.0.0
+            authentication:
+              type: basic
+              users:
+                admin: adminadmin
+            secured: false
+
+        sync:
+          enabled: true
+
+        # Service used to store and cache api-keys from the management repository to avoid direct repository communication
+        # while serving requests.
+        apikeyscache:
+          delay: 10000
+          unit: MILLISECONDS
+          threads: 3 # Threads core size used to retrieve api-keys from repository.
+
+        # Local registry service.
+        # This registry is used to load API Definition with json format from the file system. By doing so, you do not need
+        # to configure your API using the web console or the rest API (but you need to know and understand the json descriptor
+        # format to make it work....)
+        local:
+          enabled: false
+          path: ${gravitee.home}/apis # The path to API descriptors
+
+        # Gateway monitoring service.
+        # This service retrieves metrics like os / process / jvm metrics and send them to an underlying reporting service.
+        monitoring:
+          delay: 5000
+          unit: MILLISECONDS
+
+        # Endpoint healthcheck service.
+        healthcheck:
+          threads: 3 # Threads core size used to check endpoint availability
+
+        heartbeat:
+          delay: 5000
+          enabled: true
+          unit: MILLISECONDS
+        metrics:
+          enabled: false
+          prometheus:
+            enabled: true
+      policy:
+        api-key:
+          header: X-Gravitee-Api-Key
+          param: api-key
+
+      # Alert Engine communication
+      alerts:
+        alert-engine-connector-ws:
+          enabled: false
+
+      # APIs specific configuration
+      api:
+
+      gracefulShutdown:
+        delay: 0
+        unit: MILLISECONDS
+
+      # Secret Manager configuration
+
+      # Old class loader behavior, false by default
+      classloader:
+        legacy:
+          enabled: false
+
+    logbackXml: |-
+      <?xml version="1.0" encoding="UTF-8"?>
+      <configuration>
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+          <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] [%X{api}] %-5level %logger{36} - %msg%n</pattern>
+          </encoder>
+        </appender>
+        <appender name="async-console" class="ch.qos.logback.classic.AsyncAppender">
+          <appender-ref ref="STDOUT"/>
+        </appender>
+        <logger name="io.gravitee" level="INFO"/>
+        <logger name="org.reflections" level="WARN"/>
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.eclipse.jetty" level="WARN"/>
+        <root level="INFO">
+          <appender-ref ref="async-console"/>
+        </root>
+      </configuration>
+
+  # if enabled, required annotation will be added to allow the gateway to act as a runtime for the GKO
+  # ingress controller (service should be set to type LoadBalancer in order to get the full feature set)
+  ingressController:
+    enabled: false # this is the default
+    ingressClassName: graviteeio # this is the default
+  # if enabled, the gateway will run without any database meaning that kubernetes sync should be enabled
+  # to retrieve api definitions from config maps
+  dbLess: false
+  type: Deployment
+  name: gateway
+  # you can pass a list of bot http and tcp servers in here so the gateway will use this setting to setup its internal servers
+#  servers:
+#    - type: http # tcp
+#      port: 8082
+#      #idleTimeout: 0
+#      #tcpKeepAlive: true
+#      #compressionSupported: false
+#      maxHeaderSize: 8192
+#      maxChunkSize: 8192
+#      maxInitialLineLength: 4096
+#      maxFormAttributeSize: 2048
+#      instances: 0
+#      requestTimeout: 0 (in v4 mode, default is 30_000 ms)
+#      # The following is only used in v4 engine. It represents the maximum delay to let the response's platform flows execute properly in case of error during the previous phases.
+#      # It's configures a timeout from the max between (requestTimeout - api elapsed time) and requestTimeoutGraceDelay.
+#      requestTimeoutGraceDelay: 30
+#      secured: false
+#      alpn: false
+#      ssl:
+#        clientAuth: none # Supports none, request, required
+#        tlsProtocols: TLSv1.2, TLSv1.3
+#        tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+#        keystore:
+#          type: jks # Supports jks, pem, pkcs12, self-signed
+#          path: ${gravitee.home}/security/keystore.jks # A path is required if certificate's type is jks or pkcs12
+#          password: secret
+#          watch: true # Watch for any updates on the keystore and reload it. Default is true.
+#          # The following is for type 'pem', report to 'secrets' section for other secret-provider plugins.
+#          # This method is now the preferred way for kubernetes: /namespace/secrets/my-tls-secret
+#          secret: secret://kubernetes/my-tls-secret
+#        truststore:
+#          type: jks # Supports jks, pem, pkcs12, pem-folder (for the latter watch supports added/updated/removed files)
+#          path: ${gravitee.home}/security/truststore.jks
+#          password: secret
+#          watch: true # Watch for any updates on the keystore and reload it. Default is true.
+#        sni: false
+#        openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
+#      websocket:
+#        enabled: false
+#        subProtocols: v10.stomp, v11.stomp, v12.stomp
+#        perMessageWebSocketCompressionSupported: true
+#        perFrameWebSocketCompressionSupported: true
+#        maxWebSocketFrameSize: 65536
+#        maxWebSocketMessageSize: 262144 # 4 full frames worth of data
+#      haproxy: # Support for https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt
+#        proxyProtocol: false
+#        proxyProtocolTimeout: 10000
+#          # in the case of having multiple servers configured, this can be used for mapping the ports
+#      service:
+#        type: ClusterIP
+#        externalPort: 82
+#        # used only if the type of your service is "NodePort" and must be in the range 30000-32767
+#        # if not set a random port will be used in that range
+#        nodePort: 30082
+#        internalPortName: http
+#        appProtocol: http
+#      ingress:
+#        enabled: true
+#        pathType: Prefix
+#        path: /
+#        ingressClassName: ""
+#        # Used to create an Ingress record.
+#        # Multiple hostnames supported
+#        # - hosts:
+#        #     - chart-example.local
+#        #     - chart-example2.local
+#        hosts:
+#          - apim.example.com
+#        annotations:
+#          kubernetes.io/ingress.class: nginx
+#          nginx.ingress.kubernetes.io/ssl-redirect: "false"
+#          # nginx.ingress.kubernetes.io/configuration-snippet: "etag on;\nproxy_pass_header ETag;\nproxy_set_header if-match \"\";\n"
+#          # kubernetes.io/tls-acme: "true"
+##        tls:
+##          # Secrets must be manually created in the namespace.
+##          - hosts:
+##            - apim.example.com
+##            secretName: api-custom-cert
+
+# # Gateway Kafka server
+#  kafka:
+#    enabled: false
+#
+#    routingMode: host # default is host. Only host is supported for now.
+#    # Routing Host Mode
+#    routingHostMode:
+#      brokerPrefix: broker-          # default is broker-
+#      domainSeparator: -             # Used to separate broker's name from api & defaultDomain. Default is '-'
+#
+#      # The default domain where the Kafka APIs are exposed. ex: `myapi` will be exposed as `myapi.mycompany.org`
+#      defaultDomain: mycompany.org   # Should set according to the public wildcard DNS/Certificate. Default is empty
+#      defaultPort:   9092            # Default public port for Kafka APIs. Default is 9092
+#
+#      # With the upper default configuration, the Gravitee Kafka gateway yields bootstrap and broker domains to be as follows:
+#      bootstrapDomainPattern: {apiHost}.mycompany.org
+#      brokerDomainPattern: broker-{brokerId}-{apiHost}.mycompany.org
+#      # Where:
+#      # {apiHost}  is a placeholder that will be replaced when the API is deployed, by the API Host Prefix.
+#      # {brokerId} is a placeholder that stands for the broker id
+#
+#      # It can be overridden to fit your DNS configuration.
+#      # Doing so requires BOTH patterns to be set, as well as 'defaultPort'. Please note that 'defaultDomain', 'brokerPrefix' and 'domainSeparator' are not used in that case, hence optional.
+#      # Example:
+#      #   defaultPort: 9092
+#      #   bootstrapDomainPattern: bootstrap-{apiHost}.mycompany.org
+#      #   brokerDomainPattern: {apiHost}-broker{brokerId}.mycompany.org
+#      #
+#      #   This configuration yields domains that must target the Gravitee Kafka gateway:
+#      #      bootstrap-myapi.mycompany.org
+#      #      myapi-broker0.mycompany.org
+#      #      myapi-broker1.mycompany.org
+#      #      ...
+#
+#    # Kafka probe
+#    probe:
+#      # When protocol is tcp, the probe only checks the kafka port is listening by attempting a basic TCP connection (default).
+#      # When protocol is kafka, the probe uses a kafka client library to connect to one of the kafka API deployed on this gateway instance.
+#      protocol: tcp
+#      # When using kafka protocol, you must provide the kafka properties with the connection info.
+#      properties:
+#        bootstrap.servers: bootstrap-myapi.mycompany.org:9092
+#        sasl.mechanism: PLAIN
+#        security.protocol: SASL_SSL
+#        sasl.jaas.config: >-
+#            org.apache.kafka.common.security.plain.PlainLoginModule required
+#            username="username"
+#            password="********";
+#
+#    # API-Key plan security configuration
+#    apiKey:
+#      securityMechanisms: PLAIN, SCRAM-SHA-256, SCRAM-SHA-512
+#
+#    # Kafka Network settings
+#    port: 9092
+#    host: 0.0.0.0
+#    idleTimeout: 0
+#    tcpKeepAlive: true
+#    instances: 0
+#    requestTimeout: 35_000 # default is 35_000 ms
+#    # Forced to `true` when routingMode is `host`
+#    secured: true
+#    ssl:
+#      # Forced to `true` when routingMode is `host`
+#      sni: true
+#      clientAuth: none # Supports none, request, required
+#      tlsProtocols: TLSv1.2, TLSv1.3
+#      tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+#      keystore:
+#        type: jks # Supports jks, pem, pkcs12, self-signed
+#        path: ${gravitee.home}/security/keystore.jks # A path is required if certificate's type is jks or pkcs12
+#        certificates: # Certificates are required if keystore's type is pem
+#          - cert: ${gravitee.home}/security/mycompany.org.pem
+#            key: ${gravitee.home}/security/mycompany.org.key
+#          - cert: ${gravitee.home}/security/mycompany.com.pem
+#            key: ${gravitee.home}/security/mycompany.com.key
+#        password: secret
+#        watch: true # Watch for any updates on the keystore and reload it. Default is true.
+#        defaultAlias: # Optional. Useful to target a particular key-pair when the keystore contains more than one.
+#        # The following is for type 'pem', report to 'secrets' section for other secret-provider plugins.
+#        # This method is now the preferred way for kubernetes: /namespace/secrets/my-tls-secret
+#        secret: secret://kubernetes/my-tls-secret
+#      truststore:
+#        type: jks # Supports jks, pem, pkcs12, pem-folder (for the latter watch supports added/updated/removed files)
+#        path: ${gravitee.home}/security/truststore.jks
+#        password: secret
+#        watch: true # Watch for any updates on the keystore/pem and reload it. Default is true.
+#      openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
+
+  deployment:
+    # Annotations to apply to the deployment
+    annotations: {}
+    # additionals labels
+    labels: {}
+    affinity: {}
+    hostAliases: []
+    #- ip: "127.0.0.1"
+    #  hostnames:
+    #  - "foo.local"
+    #  - "bar.local"
+    nodeSelector: {}
+    tolerations: []
+    envFrom: []
+    # - configMapRef:
+    #     name: config-secret
+    # SecurityContext holds pod-level security attributes and common container settings.
+    # Field values of container.securityContext take precedence over field values of PodSecurityContext.
+    podSecurityContext:
+     #fsGroup: 1001
+     #runAsUser: 1001
+     #runAsNonRoot: true
+    # SecurityContext defines the security options the container should be run with.
+    # If set, the fields of SecurityContext override the equivalent fields of PodSecurityContext
+    securityContext:
+      runAsUser: 1001
+      runAsNonRoot: true
+
+    # Dedicated Service account provided for this component
+    serviceAccount: ""
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxUnavailable: 1
+    topologySpreadConstraints: []
+    # revisionHistoryLimit: 10
+
+    startupProbe:
+      enabled: true
+
+    # set startupProbe.enabled: false to define your own StartupProbe
+    customStartupProbe: {}
+    #  tcpSocket:
+    #    port: http
+    #  failureThreshold: 30
+    #  periodSeconds: 10
+
+    livenessProbe:
+      enabled: true
+
+    # set livenessProbe.enabled: false to define your own livenessProbe
+    customLivenessProbe: {}
+    #  tcpSocket:
+    #    port: http
+    #  initialDelaySeconds: 30
+    #  periodSeconds: 30
+    #  failureThreshold: 3
+
+    readinessProbe:
+      enabled: true
+
+    # set readinessProbe.enabled: false to define your own readinessProbe
+    customReadinessProbe: {}
+    #  tcpSocket:
+    #    port: http
+    #  initialDelaySeconds: 10
+    #  periodSeconds: 30
+    #  failureThreshold: 3
+
+  pdb:
+    enabled: false
+    minAvailable: ""
+    maxUnavailable: "50%"
+
+  podAnnotations: {}
+    # iam.amazonaws.com/role: es-cluster
+
+  # How long to wait for APIM Gateway pods to stop gracefully
+  terminationGracePeriod: 30
+
+  # This is the PriorityClass settings as defined in
+  # https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#priorityclass
+  priorityClassName: ""
+
+  additionalPlugins:
+#    - https://path_to_plugin
+
+
+  ssl:
+    enabled: false
+  replicaCount: 1
+
+  services:
+    core:
+      http:
+        enabled: true
+        port: 18082
+        host: 0.0.0.0
+        authentication:
+          type: basic
+          password: adminadmin
+        secured: false
+        ssl:
+          keystore:
+            type: "PKCS12"
+            path: "/p12/keystore"
+            #password:
+      ingress:
+        enabled: false
+        ingressClassName: ""
+        pathType: Prefix
+        path: /_(.*)
+        hosts:
+          - apim.example.com
+        annotations: {}
+#            kubernetes.io/ingress.class: nginx
+#            nginx.ingress.kubernetes.io/rewrite-target: /_$1
+      service:
+#       If you choose to enable this service, you'll need to expose the technical api
+#       on an accessible host outside of the pod: api.http.services.core.http.host
+        enabled: false
+#         type: ClusterIP
+#         externalPort: 18082
+#         appProtocol: http
+    kafka:
+      enabled: true # Activated if `gateway.kafka.enabled` are also be enabled
+      service:
+        externalPort: 9092
+        internalPort: 9092
+    bridge:
+      enabled: false
+      ssl:
+        enabled: false
+      service:
+        externalPort: 92
+        internalPort: 18092
+      #  appProtocol: http
+      ingress:
+        enabled: false
+        ingressClassName: ""
+        pathType: Prefix
+        path: /_bridge
+      #   # Used to create an Ingress record.
+        hosts:
+          - apim.example.com
+        annotations: {}
+      #     kubernetes.io/ingress.class: nginx
+      #     nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      #     nginx.ingress.kubernetes.io/enable-rewrite-log: "true"
+      #     kubernetes.io/app-root: /gateway
+      #     kubernetes.io/rewrite-target: /gateway
+      #     nginx.ingress.kubernetes.io/configuration-snippet: "etag on;\nproxy_pass_header ETag;\nproxy_set_header if-match \"\";\n"
+      #     kubernetes.io/tls-acme: "true"
+      #  tls:
+          # Secrets must be manually created in the namespace.
+      #    - secretName: chart-example-tls
+      #      hosts:
+      #        - chart-example.local
+    metrics:
+      enabled: false
+      prometheus:
+        enabled: true
+
+  image:
+    repository: graviteeio/apim-gateway
+    # tag: 3.0.2
+    pullPolicy: Always
+    # pullSecrets: gravitee_secrets
+  env: []
+  #   - name: ENV_VARIABLE
+  #     value: ENV_VARIABLE_VALUE
+  #   - name: ENV_VARIABLE_WITH_FROM
+  #     valueFrom:
+  #       configMapKeyRef:
+  #         name: special-config
+  #         key: SPECIAL_LEVEL
+  service:
+    type: ClusterIP
+    # externalTrafficPolicy is used only when configuring type "NodePort" or "LoadBalancer"
+    externalTrafficPolicy: Cluster
+    externalPort: 82
+    # used only if the type of your service is "NodePort" and must be in the range 30000-32767
+    # if not set a random port will be used in that range
+    # nodePort: 30082
+    internalPort: 8082
+    internalPortName: http
+#    annotations:
+#      loadbalancer.openstack.org/proxy-protocol: true
+#    appProtocol: http
+  # annotations:
+  autoscaling:
+    # When gateway.autoscaling.enabled is true, a HorizontalPodAutoscaler is created
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 3
+    # warning: these two target utilization will be overwritten if gateway.autoscaling.metrics is defined.
+    targetAverageUtilization: 50
+    targetMemoryAverageUtilization: 80
+    # here you can add specific annotations to this HPA
+#    annotations:
+    # If default CPU and Memory utilisation is not enough, you can here overwrite the metrics with your settings
+    # @see: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+#    metrics:
+    # Optionnaly you can also add behavior
+    # @see: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#configurable-scaling-behavior
+#    behavior:
+  ingress:
+    enabled: true
+    pathType: Prefix
+    path: /
+    ingressClassName: ""
+    # Used to create an Ingress record.
+    # Multiple hostnames supported
+    # - hosts:
+    #     - chart-example.local
+    #     - chart-example2.local
+    hosts:
+      - apim.example.com
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      # nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      # nginx.ingress.kubernetes.io/configuration-snippet: "etag on;\nproxy_pass_header ETag;\nproxy_set_header if-match \"\";\n"
+      # kubernetes.io/tls-acme: "true"
+    #tls:
+      # Secrets must be manually created in the namespace.
+    #  - hosts:
+    #      - apim.example.com
+    #    secretName: api-custom-cert
+  resources:
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    #  lifecycle:
+    #    postStart: '[ "/bin/sh", "-c", "echo Post starting Gravitee Gateway" ]'
+    #    preStop: '[ "/bin/sh", "-c", "echo Pre stopping Gravitee Gateway" ]'
+    ## Additional gravitee gateway volume mounts
+    # Defines additional volume mounts.
+  #extraVolumeMounts: |
+  #  - name: extra-volume
+  #    mountPath: /mnt/volume
+  #    readOnly: true
+  #
+
+portal:
+  enabled: true
+  name: portal
+  replicaCount: 1
+  image:
+    repository: graviteeio/apim-portal-ui
+    # tag: 3.0.2
+    pullPolicy: Always
+    # pullSecrets: gravitee_secrets
+
+  lifecycle:
+    preStop: "['sh','-c', 'sleep 5 && /usr/sbin/nginx -s quit']"
+  deployment:
+    # Annotations to apply to the deployment
+    annotations: {}
+    # additionals labels
+    labels: {}
+    affinity: {}
+    hostAliases: []
+    #- ip: "127.0.0.1"
+    #  hostnames:
+    #  - "foo.local"
+    #  - "bar.local"
+    nodeSelector: {}
+    tolerations: []
+    envFrom: []
+    # - configMapRef:
+    #     name: config-secret
+    # SecurityContext holds pod-level security attributes and common container settings.
+    # Field values of container.securityContext take precedence over field values of PodSecurityContext.
+    podSecurityContext:
+      #fsGroup: 1001
+      #runAsUser: 1001
+      #runAsNonRoot: true
+    # SecurityContext defines the security options the container should be run with.
+    # If set, the fields of SecurityContext override the equivalent fields of PodSecurityContext
+    securityContext:
+      runAsUser: 101
+      runAsGroup: 101
+      runAsNonRoot: true
+    # Dedicated Service account provided for this component
+    serviceAccount: ""
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxUnavailable: 1
+    topologySpreadConstraints: []
+    # revisionHistoryLimit: 10
+
+    livenessProbe:
+      enabled: true
+      httpGet:
+        path: /
+        port: http
+      initialDelaySeconds: 10
+      periodSeconds: 30
+      failureThreshold: 3
+
+    customLivenessProbe: {}
+
+    readinessProbe:
+      enabled: true
+      httpGet:
+        path: /
+        port: http
+      initialDelaySeconds: 10
+      periodSeconds: 30
+      failureThreshold: 3
+
+    customReadinessProbe: {}
+
+    startupProbe:
+      enabled: false
+
+    customStartupProbe: {}
+
+  pdb:
+    enabled: false
+    minAvailable: ""
+    maxUnavailable: "50%"
+
+  podAnnotations: {}
+    # iam.amazonaws.com/role: es-cluster
+
+  # How long to wait for APIM Portal pods to stop gracefully
+  terminationGracePeriod: 30
+
+  # This is the PriorityClass settings as defined in
+  # https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#priorityclass
+  priorityClassName: ""
+
+  env: []
+  #   - name: ENV_VARIABLE
+  #     value: ENV_VARIABLE_VALUE
+  #   - name: ENV_VARIABLE_WITH_FROM
+  #     valueFrom:
+  #       configMapKeyRef:
+  #         name: special-config
+  #         key: SPECIAL_LEVEL
+  autoscaling:
+    # When portal.autoscaling.enabled is true, a HorizontalPodAutoscaler is created
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 3
+    # warning: these two target utilization will be overwritten if portal.autoscaling.metrics is defined.
+    targetAverageUtilization: 50
+    targetMemoryAverageUtilization: 80
+    # here you can add specific annotations to this HPA
+#    annotations:
+    # If default CPU and Memory utilisation is not enough, you can here overwrite the metrics with your settings
+    # @see: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+#    metrics:
+    # Optionnaly you can also add behavior
+    # @see: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#configurable-scaling-behavior
+#    behavior:
+  service:
+    name: nginx
+    type: ClusterIP
+    # externalTrafficPolicy is used only when configuring type "NodePort" or "LoadBalancer"
+    externalTrafficPolicy: Cluster
+    externalPort: 8003
+    internalPort: 8080
+    # used only if the type of your service is "NodePort" and must be in the range 30000-32767
+    # if not set a random port will be used in that range
+    # nodePort: 30003
+    internalPortName: http
+#    appProtocol: http
+  # annotations:
+  ingress:
+    enabled: true
+    pathType: Prefix
+    path: /
+    ingressClassName: ""
+    # Used to create an Ingress record.
+    hosts:
+      - apim.example.com
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/rewrite-target: /
+    #tls:
+      # Secrets must be manually created in the namespace.
+    #  - hosts:
+    #      - apim.example.com
+    #    secretName: api-custom-cert
+  resources:
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    #  lifecycle:
+    #    postStart: '[ "/bin/sh", "-c", "echo Post starting Gravitee Portal" ]'
+    #    preStop: '[ "/bin/sh", "-c", "echo Pre stopping Gravitee Portal" ]'
+    ## Additional gravitee ui volume mounts
+    # Defines additional volume mounts.
+    # extraVolumeMounts: |
+    # - name: extra-volume
+    #   mountPath: /mnt/volume
+    #   readOnly: true
+  defaultPortal: "classic" # set value to "next" to use the new portal by default
+
+  # If you want to use your own config.json you have to provide your configmap or secret in extraVolume part.
+  # the name of the volume MUST be "config".
+  # In this case, values configuration related to config.json defined in this file will be ignored
+  #extraVolumes: |
+  #  - name: config
+  #    configMap:
+  #      name: gravitee-config-configmap-name
+  #  - name: config
+  #    secret:
+  #      secretName: gravitee-config-secret-name
+
+ui:
+  enabled: true
+  name: ui
+  companyName: Gravitee.io
+  title: Management UI
+  managementTitle: API Management
+  documentationLink: https://documentation.gravitee.io/
+  scheduler:
+    tasks: 10
+  theme:
+    name: "default"
+    logo: "assets/gravitee_logo_solaris.png"
+    loader: "assets/gravitee_logo_anim.gif"
+  portal:
+    apikeyHeader: "X-Gravitee-Api-Key"
+    userCreation:
+      enabled: false
+    support:
+      enabled: true
+    rating:
+      enabled: false
+    analytics:
+      enabled: false
+      trackingId: ""
+  replicaCount: 1
+  image:
+    repository: graviteeio/apim-management-ui
+    # tag: 3.0.2
+    pullPolicy: Always
+    # pullSecrets: gravitee_secrets
+
+  lifecycle:
+    preStop: "['sh','-c', 'sleep 5 && /usr/sbin/nginx -s quit']"
+  deployment:
+    # Annotations to apply to the deployment
+    annotations: {}
+    # additionals labels
+    labels: {}
+    affinity: {}
+    hostAliases: []
+    #- ip: "127.0.0.1"
+    #  hostnames:
+    #  - "foo.local"
+    #  - "bar.local"
+    nodeSelector: {}
+    tolerations: []
+    envFrom: []
+    # - configMapRef:
+    #     name: config-secret
+    # SecurityContext holds pod-level security attributes and common container settings.
+    # Field values of container.securityContext take precedence over field values of PodSecurityContext.
+    podSecurityContext:
+      #fsGroup: 1001
+      #runAsUser: 1001
+      #runAsNonRoot: true
+    # SecurityContext defines the security options the container should be run with.
+    # If set, the fields of SecurityContext override the equivalent fields of PodSecurityContext
+    securityContext:
+      runAsUser: 101
+      runAsGroup: 101
+      runAsNonRoot: true
+    # Dedicated Service account provided for this component
+    serviceAccount: ""
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxUnavailable: 1
+    topologySpreadConstraints: []
+    # revisionHistoryLimit: 10
+
+    livenessProbe:
+      enabled: true
+      httpGet:
+        path: /
+        port: http
+      initialDelaySeconds: 10
+      periodSeconds: 30
+      failureThreshold: 3
+
+    customLivenessProbe: {}
+
+    readinessProbe:
+      enabled: true
+      httpGet:
+        path: /
+        port: http
+      initialDelaySeconds: 10
+      periodSeconds: 30
+      failureThreshold: 3
+
+    customReadinessProbe: {}
+
+    startupProbe:
+      enabled: false
+
+    customStartupProbe: { }
+
+  pdb:
+    enabled: false
+    minAvailable: ""
+    maxUnavailable: "50%"
+
+  podAnnotations: {}
+    # iam.amazonaws.com/role: es-cluster
+
+  # How long to wait for APIM Console pods to stop gracefully
+  terminationGracePeriod: 30
+
+  # This is the PriorityClass settings as defined in
+  # https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#priorityclass
+  priorityClassName: ""
+
+  env: []
+  #   - name: ENV_VARIABLE
+  #     value: ENV_VARIABLE_VALUE
+  #   - name: ENV_VARIABLE_WITH_FROM
+  #     valueFrom:
+  #       configMapKeyRef:
+  #         name: special-config
+  #         key: SPECIAL_LEVEL
+  autoscaling:
+    # When ui.autoscaling.enabled is true, a HorizontalPodAutoscaler is created
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 3
+    # warning: these two target utilization will be overwritten if ui.autoscaling.metrics is defined.
+    targetAverageUtilization: 50
+    targetMemoryAverageUtilization: 80
+    # here you can add specific annotations to this HPA
+#    annotations:
+    # If default CPU and Memory utilisation is not enough, you can here overwrite the metrics with your settings
+    # @see: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+#    metrics:
+    # Optionnaly you can also add behavior
+    # @see: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#configurable-scaling-behavior
+#    behavior:
+  service:
+    name: nginx
+    type: ClusterIP
+    # externalTrafficPolicy is used only when configuring type "NodePort" or "LoadBalancer"
+    externalTrafficPolicy: Cluster
+    externalPort: 8002
+    internalPort: 8080
+    # used only if the type of your service is "NodePort" and must be in the range 30000-32767
+    # if not set a random port will be used in that range
+    # nodePort: 30002
+    internalPortName: http
+#    appProtocol: http
+  # annotations:
+  ingress:
+    enabled: true
+    pathType: Prefix
+    path: /console(/.*)?
+    ingressClassName: ""
+    # Used to create an Ingress record.
+    hosts:
+      - apim.example.com
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/rewrite-target: /$1
+    # tls:
+      # Secrets must be manually created in the namespace.
+    #  - hosts:
+    #      - apim.example.com
+    #    secretName: api-custom-cert
+  resources:
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    #  lifecycle:
+    #    postStart: '[ "/bin/sh", "-c", "echo Post starting Gravitee UI" ]'
+    #    preStop: '[ "/bin/sh", "-c", "echo Pre stopping Gravitee UI" ]'
+    ## Additional gravitee ui volume mounts
+    # Defines additional volume mounts.
+    # extraVolumeMounts: |
+    # - name: extra-volume
+    #   mountPath: /mnt/volume
+    #   readOnly: true
+  # If you want to use your own constants.json you have to provide your configmap or secret in extraVolume part.
+  # the name of the volume MUST be "config".
+  # In this case, values configuration related to constants.json defined in this file will be ignored
+  #extraVolumes: |
+  #  - name: config
+  #    configMap:
+  #      name: gravitee-config-configmap-name
+  #  - name: config
+  #    secret:
+  #      secretName: gravitee-config-secret-name
+
+# Enabling openshift support will update ingresses annotations for not containing "kubernetes.io/ingress.class" which
+# has to be removed to ensure OpenShift is creating a Route from the Ingress
+openshift:
+  enabled: false
+
+initContainers:
+  image: alpine:latest
+  imagePullPolicy: Always
+  securityContext:
+    runAsUser: 1001
+    runAsNonRoot: true
+  env: []
+
+# For enterprise plugin only, you will need a license
+license:
+  name: licensekey-apim
+#  key: <put here your license.key file encoded in base64>
