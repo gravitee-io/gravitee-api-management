@@ -18,11 +18,17 @@ version: '3.8'
 
 services:
   jest-e2e:
-    image: cimg/node:16.10.0
+    image: cimg/node:20.18.3
     working_dir: /test
     volumes:
       - ./:/test
-    command: yarn test:api:ci
+    entrypoint: /bin/bash -c "/bin/bash -c \"$${@}\""
+    command: |
+      /bin/bash -c "
+        set -e
+        sudo corepack enable
+        yarn test:api:ci
+      "
     environment:
       - MANAGEMENT_BASE_URL=http://management_api:8083/management
       - MANAGEMENT_V2_BASE_URL=http://management_api:8083/management/v2
