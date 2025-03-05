@@ -4492,7 +4492,7 @@ __metadata:
     "@gravitee/ui-components": "npm:4.3.0"
     "@highcharts/map-collection": "npm:2.0.0"
     "@messageformat/core": "npm:3.4.0"
-    "@ngneat/spectator": "npm:14.0.0"
+    "@ngneat/spectator": "npm:19.4.1"
     "@ngx-translate/core": "npm:14.0.0"
     "@ngx-translate/http-loader": "npm:7.0.0"
     "@types/jest": "npm:29.5.14"
@@ -5234,19 +5234,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ngneat/spectator@npm:14.0.0":
-  version: 14.0.0
-  resolution: "@ngneat/spectator@npm:14.0.0"
+"@ngneat/spectator@npm:19.4.1":
+  version: 19.4.1
+  resolution: "@ngneat/spectator@npm:19.4.1"
   dependencies:
     "@testing-library/dom": "npm:^8.11.0"
-    jquery: "npm:3.6.0"
+    jquery: "npm:^3.7.1"
     replace-in-file: "npm:6.2.0"
-    tslib: "npm:^2.1.0"
+    tslib: "npm:^2.6.2"
   peerDependencies:
-    "@angular/animations": ">= 15.1.0"
-    "@angular/common": ">= 15.1.0"
-    "@angular/router": ">= 15.1.0"
-  checksum: 10c0/f189cb20febf0c56576151477019dcc4a2a4292f47dd6ae4358da67a9ba02550f5c1d23891337ec351c64f2a59c6e73398ee32e1aeb9bd7a831eba0ccfd86811
+    "@angular/animations": ">= 18.0.0"
+    "@angular/common": ">= 18.0.0"
+    "@angular/router": ">= 18.0.0"
+  checksum: 10c0/c98460f443e1dca8b85b08ad10889a4cca2092b45b8d3d01412b1d7de9eca0fdf0719405c07b74b251d0c89fedb6599938e6dae817e271c14de2d63a876392ef
   languageName: node
   linkType: hard
 
@@ -13943,10 +13943,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jquery@npm:3.6.0":
-  version: 3.6.0
-  resolution: "jquery@npm:3.6.0"
-  checksum: 10c0/45a63f8376a8918087c0277b2394dd382fcacff765c41ccbb5009a9336f8c971bf41c6a0519062edc1dff6333d96959c3a3ec55c95eb6c94d5372253d6cbf82f
+"jquery@npm:^3.7.1":
+  version: 3.7.1
+  resolution: "jquery@npm:3.7.1"
+  checksum: 10c0/808cfbfb758438560224bf26e17fcd5afc7419170230c810dd11f5c1792e2263e2970cca8d659eb84fcd9acc301edb6d310096e450277d54be4f57071b0c82d9
   languageName: node
   linkType: hard
 
