@@ -9,6 +9,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - bump elastisearch version to 8.17.2
 - bump elastisearch helm release to 19.21.2
 - bump mongodb helm release to 13.18.5
+- add capabilities to push application configuration files directly
 
 ### 4.7.0
 

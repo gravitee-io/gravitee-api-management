@@ -36,3 +36,5 @@ annotations:
       description: 'bump elastisearch helm release to 19.21.2'
     - kind: fixed
       description: 'bump mongodb helm release to 13.18.5'
+    - kind: feat
+      description: 'add capabilities to push application configuration files directly'
