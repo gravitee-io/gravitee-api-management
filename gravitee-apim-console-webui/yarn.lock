@@ -4707,9 +4707,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/ui-particles-angular@npm:13.9.1":
-  version: 13.9.1
-  resolution: "@gravitee/ui-particles-angular@npm:13.9.1"
+"@gravitee/ui-particles-angular@npm:13.9.1-fix-angular19-c65ab98":
+  version: 13.9.1-fix-angular19-c65ab98
+  resolution: "@gravitee/ui-particles-angular@npm:13.9.1-fix-angular19-c65ab98"
   dependencies:
     "@fontsource/fira-mono": "npm:4.5.0"
     "@fontsource/golos-ui": "npm:^4.5.1"
@@ -4737,7 +4737,7 @@ __metadata:
       optional: true
     prismjs:
       optional: true
-  checksum: 10c0/40594e1c6cfd9ae1a1bfbfe3ec194e51bfe7c92d507b57a8a59ea90e536d07de927b903941625384c1a959231be305f9e2b1ec14604f9817d14a70e6a6376b3e
+  checksum: 10c0/d6432dee4f133dc7c46f68efad23403b9e3d9b11715a6d46a73407511c1d1b5ac140f4e549a586c6b0e66c5eda12652192b035c690b1ea9ed95c6a4f035fac9d
   languageName: node
   linkType: hard
 
@@ -15166,7 +15166,7 @@ __metadata:
     "@fontsource/libre-franklin": "npm:4.5.11"
     "@gravitee/ui-analytics": "npm:13.9.1"
     "@gravitee/ui-components": "npm:4.3.0"
-    "@gravitee/ui-particles-angular": "npm:13.9.1"
+    "@gravitee/ui-particles-angular": "npm:13.9.1-fix-angular19-c65ab98"
     "@gravitee/ui-policy-studio-angular": "npm:13.9.1"
     "@gravitee/ui-schematics": "npm:13.9.1"
     "@highcharts/map-collection": "npm:1.1.4"
