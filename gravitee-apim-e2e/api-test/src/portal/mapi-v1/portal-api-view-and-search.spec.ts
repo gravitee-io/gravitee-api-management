@@ -27,7 +27,7 @@ import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/mo
 import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
 import { CategoryEntity } from '@gravitee/management-webclient-sdk/src/lib/models/CategoryEntity';
 import { Visibility } from '../../../../lib/management-v2-webclient-sdk/src/lib';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -59,7 +59,7 @@ describe('Portal - View and search APIs', () => {
   let apiWithCategory: ApiEntity;
   let privateApiWithCategory: ApiEntity;
   let createdCategory: CategoryEntity;
-  const cat1 = `cat-${faker.datatype.uuid()}`;
+  const cat1 = `cat-${faker.string.uuid()}`;
 
   beforeAll(async () => {
     // create all APIs needed for testing

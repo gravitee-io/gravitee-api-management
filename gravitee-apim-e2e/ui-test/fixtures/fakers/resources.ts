@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 
 export class ResourceFakers {
   static oauth2AmResource(securityDomain: string, clientId: string, clientSecret: string, attributes?: any): any {
     return {
       type: 'oauth2-am-resource',
-      name: `${faker.random.word()}-resource`,
+      name: `${faker.lorem.word()}-resource`,
       configuration: {
         useSystemProxy: false,
         version: 'V3_X',

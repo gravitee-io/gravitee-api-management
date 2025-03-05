@@ -24,7 +24,7 @@ import { am_createDomain, am_deleteDomain, am_enableDomain } from '@commands/am_
 import { am_getApiToken } from '@commands/am_management/am_token-management-commands';
 import { AM_ADMIN_USER } from '@fakers/users/am_users';
 import { Application } from '@model/applications';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { requestGateway } from 'ui-test/support/common/http.commands';
 
 context('Create and test JWT policy', () => {
@@ -32,7 +32,7 @@ context('Create and test JWT policy', () => {
   let rs256Api: ApiImport;
   let noAuthPropApi: ApiImport;
   let jwksApi: ApiImport;
-  const secret = faker.random.alpha({ count: 32 });
+  const secret = faker.string.alpha({ length: 32 });
   let am_domainHrid: string;
   let am_jwksTestApplication: Application;
   let am_apiToken: string;
@@ -86,8 +86,8 @@ context('Create and test JWT policy', () => {
       });
 
     cy.log('-----  Create an application for JWKS test in AM  -----');
-    const am_domainName = `${faker.random.word()}${faker.datatype.number()}-Domain`.toLowerCase();
-    const am_jwksApplicationName = `noScope-application_${faker.datatype.number()}`;
+    const am_domainName = `${faker.lorem.word()}${faker.number.int()}-Domain`.toLowerCase();
+    const am_jwksApplicationName = `noScope-application_${faker.number.int()}`;
 
     am_getApiToken(AM_ADMIN_USER)
       .then((response) => (am_apiToken = response.body.access_token))

@@ -27,8 +27,8 @@ import {
   UpdateApi,
 } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
-import { afterAll, beforeAll, beforeEach, expect, test } from '@jest/globals';
-import faker from '@faker-js/faker';
+import { beforeEach, expect, test } from '@jest/globals';
+import { faker } from '@faker-js/faker';
 
 describe('API - V4 - Rollback', () => {
   describe('Rollback API to eventId', () => {

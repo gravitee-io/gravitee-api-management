@@ -21,25 +21,25 @@ import { PolicyFakers } from '@fakers/policies';
 import { ResourceFakers } from '@fakers/resources';
 import { Step } from '@model/plan';
 import { ApiImport } from '@model/api-imports';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 
 export class ApiFakers {
   static version() {
-    const major = faker.datatype.number({ min: 1, max: 5 });
-    const minor = faker.datatype.number({ min: 1, max: 10 });
-    const patch = faker.datatype.number({ min: 1, max: 30 });
+    const major = faker.number.int({ min: 1, max: 5 });
+    const minor = faker.number.int({ min: 1, max: 10 });
+    const patch = faker.number.int({ min: 1, max: 30 });
     return `${major}.${minor}.${patch}`;
   }
 
   static apiRating(): number {
-    return faker.datatype.number({ min: 1, max: 5 });
+    return faker.number.int({ min: 1, max: 5 });
   }
 
   static api(attributes?: Partial<Api>): Api {
     const name = faker.commerce.productName();
     return <Api>{
       ...attributes,
-      contextPath: `/${faker.random.word()}-${faker.datatype.uuid()}-${Math.floor(Date.now() / 1000)}`,
+      contextPath: `/${faker.lorem.word()}-${faker.string.uuid()}-${Math.floor(Date.now() / 1000)}`,
       name,
       description: faker.lorem.words(10),
       version: ApiFakers.version(),
@@ -52,7 +52,7 @@ export class ApiFakers {
     return <ApiDefinition>{
       ...attributes,
       proxy: {
-        context_path: `/${faker.random.word()}-${faker.datatype.uuid()}-${Math.floor(Date.now() / 1000)}`,
+        context_path: `/${faker.lorem.word()}-${faker.string.uuid()}-${Math.floor(Date.now() / 1000)}`,
         endpoints: [
           {
             name: 'default',

@@ -25,7 +25,7 @@ import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/mode
 import { APIPagesApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPagesApi';
 import { PagesFaker } from '@gravitee/fixtures/management/PagesFaker';
 import { forManagement } from '@gravitee/utils/configuration';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

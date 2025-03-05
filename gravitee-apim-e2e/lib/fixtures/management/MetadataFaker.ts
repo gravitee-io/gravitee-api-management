@@ -13,14 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import faker from '@faker-js/faker';
-import { PlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';
-import { PlanValidationType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanValidationType';
-import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
-import { PlanType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanType';
-import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
-import { NewPlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewPlanEntity';
-import { Plan } from '@gravitee/management-webclient-sdk/src/lib/models/Plan';
+import { faker } from '@faker-js/faker';
 import { MetadataFormat, NewMetadataEntity } from '@gravitee/management-webclient-sdk/src/lib/models';
 
 export class MetadataFaker {

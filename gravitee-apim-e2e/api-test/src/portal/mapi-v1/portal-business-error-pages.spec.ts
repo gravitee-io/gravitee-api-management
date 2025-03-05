@@ -26,7 +26,7 @@ import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models/Rol
 import { SearchableUser } from '@gravitee/management-webclient-sdk/src/lib/models/SearchableUser';
 import { PagesFaker } from '@gravitee/fixtures/management/PagesFaker';
 import { fail } from '@lib/jest-utils';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -173,7 +173,7 @@ describe('Portal: Business Error - pages', () => {
 
   describe('404', () => {
     test('should not find the page', async () => {
-      const pageId = faker.datatype.uuid();
+      const pageId = faker.string.uuid();
       await fail(
         portalPortalApiAsAnonymous.getPageByPageIdRaw({
           pageId,

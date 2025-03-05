@@ -30,7 +30,7 @@ import { UsersFaker } from '@gravitee/fixtures/management/UsersFaker';
 import { RoleFaker } from '@gravitee/fixtures/management/RoleFaker';
 import { MAPIV2MembersFaker } from '@gravitee/fixtures/management/MAPIV2MembersFaker';
 import { ImagesUtils } from '@gravitee/utils/images';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 
 const envId = 'DEFAULT';
 const orgId = 'DEFAULT';
@@ -56,7 +56,7 @@ describe('API - V4 - Import - Gravitee Definition - With everything', () => {
       });
 
       // members
-      const roleName = `IMPORT_TEST_ROLE-${faker.datatype.uuid()}`;
+      const roleName = `IMPORT_TEST_ROLE-${faker.string.uuid()}`;
       let memberToImport: UserEntity;
       let customRole: RoleEntity;
 
@@ -66,7 +66,7 @@ describe('API - V4 - Import - Gravitee Definition - With everything', () => {
       // pages
       const pageToImport = MAPIV2PagesFaker.page();
       const generalConditionsPageToImport = MAPIV2PagesFaker.page({
-        id: `general-condition-id-${faker.datatype.uuid()}`,
+        id: `general-condition-id-${faker.string.uuid()}`,
         published: true,
       });
       let importedPage: PageEntity;

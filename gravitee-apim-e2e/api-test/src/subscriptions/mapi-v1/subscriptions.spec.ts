@@ -40,7 +40,7 @@ import { ApiApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApiApi';
 import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
 import { succeed } from '@lib/jest-utils';
 import { GetSubscriptionByIdIncludeEnum, SubscriptionApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/SubscriptionApi';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { Subscription } from '@gravitee/portal-webclient-sdk/src/lib/models/Subscription';
 import { APISubscriptionsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APISubscriptionsApi';
 import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';

@@ -20,7 +20,7 @@ import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi
 import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { fail, succeed } from '@lib/jest-utils';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -71,7 +71,7 @@ describe('API - Rating', () => {
             envId,
             orgId,
             api: createdApi.id,
-            newRatingEntity: { rate: faker.datatype.number({ min: 1, max: 5 }).toString() },
+            newRatingEntity: { rate: faker.number.int({ min: 1, max: 5 }).toString() },
           }),
           503,
         );
@@ -104,7 +104,7 @@ describe('API - Rating', () => {
       ${'API_USER'} | ${apisResourceAsApiUser}
     `('As $user user', ({ apisResource }: { apisResource: APIsApi }) => {
       test('Create API rating should succeed', async () => {
-        let rate = faker.datatype.number({ min: 1, max: 5 });
+        let rate = faker.number.int({ min: 1, max: 5 });
         let createdRating = await succeed(
           apisResource.createApiRatingRaw({
             envId,
@@ -117,7 +117,7 @@ describe('API - Rating', () => {
       });
 
       test('Create API rating once again should throw 400 error', async () => {
-        let rate = faker.datatype.number({ min: 1, max: 5 });
+        let rate = faker.number.int({ min: 1, max: 5 });
         await fail(
           apisResource.createApiRating({
             envId,

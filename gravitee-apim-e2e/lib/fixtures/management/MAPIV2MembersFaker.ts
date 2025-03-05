@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { Member } from '@gravitee/management-v2-webclient-sdk/src/lib';
 
 export class MAPIV2MembersFaker {
   static member(attributes?: Partial<Member>): Member {
-    const displayName = `${faker.name.firstName()} ${faker.name.lastName()}`;
+    const displayName = `${faker.person.firstName()} ${faker.person.lastName()}`;
 
     return {
       displayName,

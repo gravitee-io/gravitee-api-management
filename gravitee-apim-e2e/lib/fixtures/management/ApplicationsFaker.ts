@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NewApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewApiEntity';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { NewApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewApplicationEntity';
 
 export class ApplicationsFaker {

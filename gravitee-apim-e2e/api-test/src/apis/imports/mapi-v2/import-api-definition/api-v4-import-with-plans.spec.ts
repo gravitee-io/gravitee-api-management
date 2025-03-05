@@ -19,7 +19,7 @@ import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { created, noContent, succeed } from '@lib/jest-utils';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 
 const envId = 'DEFAULT';
 
@@ -155,7 +155,7 @@ describe('API - V4 - Import - Gravitee Definition - With plans', () => {
               addHeaders: [
                 {
                   name: 'x-dummy-header',
-                  value: faker.random.word(),
+                  value: faker.lorem.word(),
                 },
               ],
               scope: 'REQUEST',

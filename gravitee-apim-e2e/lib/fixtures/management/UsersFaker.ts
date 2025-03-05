@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { NewPreRegisterUserEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewPreRegisterUserEntity';
 import { RegisterUserInput } from '@gravitee/portal-webclient-sdk/src/lib/models/RegisterUserInput';
 
 export class UsersFaker {
   static newNewPreRegisterUserEntity(attributes?: Partial<NewPreRegisterUserEntity>): NewPreRegisterUserEntity {
-    const firstname = faker.name.firstName();
-    const lastname = faker.name.lastName();
-    const email = faker.internet.email(firstname, lastname);
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+    const email = faker.internet.email({ firstName, lastName });
 
     return {
-      firstname,
-      lastname,
+      firstname: firstName,
+      lastname: lastName,
       email,
       source: 'gravitee',
       sourceId: email,

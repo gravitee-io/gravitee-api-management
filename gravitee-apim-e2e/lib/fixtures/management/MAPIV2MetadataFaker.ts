@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { Metadata, MetadataFormat } from '@gravitee/management-v2-webclient-sdk/src/lib';
 
 export class MAPIV2MetadataFaker {

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import {
   PlanValidation,
   PlanSecurityType,
@@ -85,7 +85,7 @@ export class MAPIV2PlansFaker {
             addHeaders: [
               {
                 name: 'x-header-added-by-plan-flow',
-                value: faker.random.word(),
+                value: faker.lorem.word(),
               },
             ],
             // scope : "REQUEST",

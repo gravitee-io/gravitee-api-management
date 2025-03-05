@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import faker from '@faker-js/faker';
-
+import { faker } from '@faker-js/faker';
 import {
   am_createApplication,
   am_deleteApplication,
@@ -42,10 +41,10 @@ context('Testing OAuth2 policy', () => {
   let noScopeToken: string;
   let tokenWithScope: string;
   let expiredToken: string;
-  const am_domainName = `${faker.random.word()}${faker.datatype.number()}-Domain`.toLowerCase();
-  const am_noScopeApplicationName = `noScope-application_${faker.datatype.number()}`;
-  const am_expiredTokenApplicationName = `expiredToken-application_${faker.datatype.number()}`;
-  const am_oneScopeApplicationName = `oneScope-application_${faker.datatype.number()}`;
+  const am_domainName = `${faker.lorem.word()}${faker.number.int()}-Domain`.toLowerCase();
+  const am_noScopeApplicationName = `noScope-application_${faker.number.int()}`;
+  const am_expiredTokenApplicationName = `expiredToken-application_${faker.number.int()}`;
+  const am_oneScopeApplicationName = `oneScope-application_${faker.number.int()}`;
   let am_noScopeApplication: Application;
   let am_oneScopeApplication: Application;
   let am_expiredTokenApplication: Application;

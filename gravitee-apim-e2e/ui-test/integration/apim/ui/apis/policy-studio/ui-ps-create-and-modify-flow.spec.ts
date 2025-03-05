@@ -17,10 +17,10 @@ import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
 import { HttpListener, MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { ApiType, ApiV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
+import PolicyStudio from 'ui-test/support/PageObjects/Apis/PolicyStudio';
+import { faker } from '@faker-js/faker';
 
 const envId = 'DEFAULT';
-import PolicyStudio from 'ui-test/support/PageObjects/Apis/PolicyStudio';
-import faker from '@faker-js/faker';
 
 describe('Create and modify a flow in Policy Studio', () => {
   let v4api: ApiV4;

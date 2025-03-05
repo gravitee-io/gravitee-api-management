@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { test } from '@jest/globals';
-import { AsyncFn } from '@jest/types/build/Circus';
+import { Circus } from '@jest/types';
 
 function runTest(handler) {
   return new Promise((resolve, reject) => {
@@ -30,7 +30,7 @@ function runTest(handler) {
 
 export function flakyRunner(retries = 3, delayMs = 1000) {
   return {
-    async test(description: string, handler: AsyncFn) {
+    async test(description: string, handler: Circus.AsyncFn) {
       test(description, async () => {
         let latestError;
         for (let tries = 0; tries < retries; tries++) {

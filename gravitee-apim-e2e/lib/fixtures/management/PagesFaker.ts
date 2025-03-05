@@ -15,7 +15,7 @@
  */
 import { PageEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PageEntity';
 import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { NewPageEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewPageEntity';
 import { PageType } from '@gravitee/management-webclient-sdk/src/lib/models/PageType';
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, expect } from '@jest/globals';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { find } from 'lodash';
 import {
   ADMIN_USER,
@@ -56,7 +56,7 @@ describe('Applications - Searching - Paged', () => {
   beforeAll(async () => {
     const createdAppsAsAppUser = [1, 2, 3]
       .map((num) => ({
-        name: `${faker.random.word()}-${faker.datatype.uuid()}`,
+        name: `${faker.lorem.word()}-${faker.string.uuid()}`,
         description: `Application ${num} for "Applications searching scenario"`,
       }))
       .map(
@@ -73,7 +73,7 @@ describe('Applications - Searching - Paged', () => {
     [createdGroup] = await Promise.all(
       [
         {
-          name: `${faker.random.word()}-${faker.datatype.uuid()}`,
+          name: `${faker.lorem.word()}-${faker.string.uuid()}`,
         },
       ].map(
         async (newGroupEntity) =>
@@ -87,7 +87,7 @@ describe('Applications - Searching - Paged', () => {
 
     const createdAppsAsApiUser = [4, 5]
       .map((num) => ({
-        name: `${faker.random.word()}-${faker.datatype.uuid()}`,
+        name: `${faker.lorem.word()}-${faker.string.uuid()}`,
         description: `Application ${num} for "Applications searching scenario"`,
         groups: [createdGroup.id],
       }))

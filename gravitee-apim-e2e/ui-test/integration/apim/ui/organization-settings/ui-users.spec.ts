@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ADMIN_USER } from '@fakers/users/users';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 
 describe('Users', () => {
   beforeEach(() => {
@@ -23,9 +23,9 @@ describe('Users', () => {
   });
 
   it('should create a new user', () => {
-    const firstName = faker.name.firstName();
-    const lastName = faker.name.lastName();
-    const email = faker.internet.email(firstName, lastName);
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+    const email = faker.internet.email({ firstName, lastName });
 
     cy.getByDataTestId('add-user').click();
     cy.contains('Pre-register a user');
@@ -66,7 +66,7 @@ describe('Users', () => {
 
   it('should create a new service account user', () => {
     const serviceAccountName = faker.commerce.productName();
-    const email = faker.internet.email(serviceAccountName);
+    const email = faker.internet.email({ firstName: serviceAccountName });
 
     cy.getByDataTestId('add-user').click();
     cy.contains('Pre-register a user');

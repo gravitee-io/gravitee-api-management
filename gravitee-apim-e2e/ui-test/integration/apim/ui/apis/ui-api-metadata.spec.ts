@@ -18,7 +18,7 @@ import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { ApiEntity, PlanStatus } from '../../../../../lib/management-webclient-sdk/src/lib/models';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 
 const envId = 'DEFAULT';
 
@@ -221,8 +221,8 @@ describe('API metadata screen', () => {
   });
 
   describe('Global metadata inside API documentation', () => {
-    const globalMetadataName: string = `${faker.random.word()} ${faker.random.word()}`;
-    const globalMetadataValue: string = `${faker.random.word()}`;
+    const globalMetadataName: string = `${faker.lorem.word()} ${faker.lorem.word()}`;
+    const globalMetadataValue: string = `${faker.lorem.word()}`;
     let globalMetadataKey: string;
 
     before(() => {

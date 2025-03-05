@@ -20,7 +20,7 @@ import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
 import { created, fail, noContent, succeed } from '@lib/jest-utils';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 
 const envId = 'DEFAULT';
 

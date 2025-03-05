@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import {
   ApiType,
   ApiV4,
@@ -39,9 +39,9 @@ export type TcpListener = { type: 'TCP' } & GeneratedTcpListener;
 
 export class MAPIV2ApisFaker {
   static version() {
-    const major = faker.datatype.number({ min: 1, max: 5 });
-    const minor = faker.datatype.number({ min: 1, max: 10 });
-    const patch = faker.datatype.number({ min: 1, max: 30 });
+    const major = faker.number.int({ min: 1, max: 5 });
+    const minor = faker.number.int({ min: 1, max: 10 });
+    const patch = faker.number.int({ min: 1, max: 30 });
     return `${major}.${minor}.${patch}`;
   }
 
@@ -224,7 +224,7 @@ export class MAPIV2ApisFaker {
   static newHttpListener(attributes?: Partial<HttpListener>): HttpListener {
     return {
       type: 'HTTP',
-      paths: [{ path: `/${faker.random.word()}-${faker.datatype.uuid()}-${Math.floor(Date.now() / 1000)}` }],
+      paths: [{ path: `/${faker.lorem.word()}-${faker.string.uuid()}-${Math.floor(Date.now() / 1000)}` }],
       pathMappings: [],
       entrypoints: [{ type: 'http-proxy' }],
       ...attributes,
@@ -269,7 +269,7 @@ export class MAPIV2ApisFaker {
 
   static newFlow(attributes?: Partial<FlowV4>): FlowV4 {
     return {
-      name: `${faker.random.word()} flow`,
+      name: `${faker.lorem.word()} flow`,
       enabled: true,
       selectors: [
         {
@@ -290,7 +290,7 @@ export class MAPIV2ApisFaker {
             addHeaders: [
               {
                 name: 'x-header-added-by-common-flow',
-                value: faker.random.word(),
+                value: faker.lorem.word(),
               },
             ],
           },

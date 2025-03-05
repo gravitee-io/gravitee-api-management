@@ -6,7 +6,8 @@
     "types": ["./types", "cypress", "node", "node-fetch", "jsonwebtoken"],
     "baseUrl": ".",
     "resolveJsonModule": true,
-    "moduleResolution": "node",
+    "module": "Node16",
+    "moduleResolution": "Node16",
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "paths": {
