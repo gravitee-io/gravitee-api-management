@@ -65,14 +65,6 @@ import ApiPrimaryOwnerModeService from './services/apiPrimaryOwnerMode.service';
 import ApplicationService from './services/application.service';
 import ApplicationTypesService from './services/applicationTypes.service';
 
-import ApplicationCreationComponentAjs from './management/application/creation/steps/application-creation.component.ajs';
-import ApplicationCreationController from './management/application/creation/steps/application-creation.controller';
-import ApplicationCreationStep1Component from './management/application/creation/steps/application-creation-step1.component';
-import ApplicationCreationStep2Component from './management/application/creation/steps/application-creation-step2.component';
-import ApplicationCreationStep2Controller from './management/application/creation/steps/application-creation-step2.controller';
-import ApplicationCreationStep3Component from './management/application/creation/steps/application-creation-step3.component';
-import ApplicationCreationStep4Component from './management/application/creation/steps/application-creation-step4.component';
-
 import ApplicationHeaderComponent from './management/application/details/header/application-header.component';
 import ApplicationSubscriptionComponentAjs from './management/application/details/subscriptions/application-subscription.component.ajs';
 import ApplicationAnalyticsController from './management/application/details/analytics/application-analytics.controller';
@@ -218,10 +210,6 @@ import QuickTimeRangeController from './components/alerts/quick-time-range/quick
 // User-Autocomplete
 import UserAutocompleteComponent from './components/user-autocomplete/user-autocomplete.component';
 import UserAutocompleteController from './components/user-autocomplete/user-autocomplete.controller';
-
-import ApplicationSubscribeComponentAjs from './management/application/details/subscribe/application-subscribe.component.ajs';
-import ApplicationSubscribeController from './management/application/details/subscribe/application-subscribe.controller';
-import ApiKeyModeChoiceDialogController from './components/dialog/apiKeyMode/api-key-mode-choice-dialog.controller';
 
 import DialogQueryFilterInformationController from './management/settings/analytics/dashboard/query-filter-information.dialog.controller';
 
@@ -537,18 +525,6 @@ graviteeManagementModule.controller('DashboardTimeframeController', DashboardTim
 // API subscriptions
 graviteeManagementModule.component('apiKeys', ApiKeysComponent);
 graviteeManagementModule.controller('ApiKeysController', ApiKeysController);
-
-graviteeManagementModule.component('applicationSubscribe', ApplicationSubscribeComponentAjs);
-graviteeManagementModule.controller('ApplicationSubscribeController', ApplicationSubscribeController);
-graviteeManagementModule.controller('ApiKeyModeChoiceDialogController', ApiKeyModeChoiceDialogController);
-
-graviteeManagementModule.component('createApplication', ApplicationCreationComponentAjs);
-graviteeManagementModule.controller('ApplicationCreationController', ApplicationCreationController);
-graviteeManagementModule.component('applicationCreationStep1', ApplicationCreationStep1Component);
-graviteeManagementModule.component('applicationCreationStep2', ApplicationCreationStep2Component);
-graviteeManagementModule.controller('ApplicationCreationStep2Controller', ApplicationCreationStep2Controller);
-graviteeManagementModule.component('applicationCreationStep3', ApplicationCreationStep3Component);
-graviteeManagementModule.component('applicationCreationStep4', ApplicationCreationStep4Component);
 
 graviteeManagementModule.component('applicationHeader', ApplicationHeaderComponent);
 graviteeManagementModule.component('applicationSubscription', ApplicationSubscriptionComponentAjs);

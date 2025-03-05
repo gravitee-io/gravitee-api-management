@@ -24,8 +24,6 @@ import { ApplicationSubscriptionComponent as ApplicationSubscriptionComponentAjs
 import { ApplicationAnalyticsComponent } from './details/analytics/application-analytics.component';
 import { ApplicationLogsComponent } from './details/logs/application-logs.component';
 import { ApplicationLogComponent } from './details/logs/application-log.component';
-import { ApplicationCreationComponent as ApplicationCreationAjsComponent } from './creation/steps/application-creation.component';
-import { ApplicationSubscribeComponent } from './details/subscribe/application-subscribe.component';
 import { ApplicationGeneralMembersComponent } from './details/user-group-access/members/application-general-members.component';
 import { ApplicationGeneralGroupsComponent } from './details/user-group-access/groups/application-general-groups.component';
 import { ApplicationGeneralTransferOwnershipComponent } from './details/user-group-access/transfer-ownership/application-general-transfer-ownership.component';
@@ -50,19 +48,6 @@ const applicationRoutes: Routes = [
       },
       docs: {
         page: 'management-applications',
-      },
-    },
-  },
-  {
-    path: 'create-old',
-    component: ApplicationCreationAjsComponent,
-    canActivate: [PermissionGuard.checkRouteDataPermissions],
-    data: {
-      permissions: {
-        anyOf: ['environment-application-c'],
-      },
-      docs: {
-        page: 'management-create-application',
       },
     },
   },
@@ -115,15 +100,6 @@ const applicationRoutes: Routes = [
       {
         path: 'shared-api-keys',
         component: ApplicationSharedApiKeysComponent,
-        data: {
-          permissions: {
-            anyOf: ['application-subscription-r'],
-          },
-        },
-      },
-      {
-        path: 'subscriptions/subscribe',
-        component: ApplicationSubscribeComponent,
         data: {
           permissions: {
             anyOf: ['application-subscription-r'],
