@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { SubscriptionConsumerConfiguration } from '../../../../../entities/management-api-v2';
 import { MatIcon } from '@angular/material/icon';
-import { GioClipboardModule } from '@gravitee/ui-particles-angular';
+import { GIO_DIALOG_WIDTH, GioClipboardModule } from '@gravitee/ui-particles-angular';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { tap } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+import {
+  ApiSubscriptionEditPushConfigDialogComponent,
+  ApiSubscriptionEditPushConfigDialogData,
+  ApiSubscriptionEditPushConfigDialogResult,
+} from '../api-subscription-edit-push-config-dialog/api-subscription-edit-push-config-dialog.component';
+import { SubscriptionConsumerConfiguration } from '../../../../../entities/management-api-v2';
+import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 type PushConfigVM = {
   channel: string;
@@ -31,13 +41,26 @@ type PushConfigVM = {
   selector: 'api-subscription-edit-push-config',
   templateUrl: './api-subscription-edit-push-config.component.html',
   styleUrls: ['./api-subscription-edit-push-config.component.scss'],
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatIcon, GioClipboardModule],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatIcon, GioClipboardModule, MatDialogModule],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ApiSubscriptionEditPushConfigComponent {
+export class ApiSubscriptionEditPushConfigComponent implements OnInit {
+  private readonly matDialog = inject(MatDialog);
+  private destroyRef = inject(DestroyRef);
+  private readonly permissionService = inject(GioPermissionService);
+
   @Input()
   consumerConfiguration!: SubscriptionConsumerConfiguration;
+
+  @Output()
+  consumerConfigurationChange = new EventEmitter<Partial<SubscriptionConsumerConfiguration>>();
+
+  canEdit = false;
+
+  ngOnInit() {
+    this.canEdit = this.permissionService.hasAnyMatching(['api-subscription-u']);
+  }
 
   get pushConfig(): PushConfigVM {
     return {
@@ -47,5 +70,33 @@ export class ApiSubscriptionEditPushConfigComponent {
     };
   }
 
-  openConsumerConfigurationDialog() {}
+  openConsumerConfigurationDialog() {
+    this.matDialog
+      .open<
+        ApiSubscriptionEditPushConfigDialogComponent,
+        ApiSubscriptionEditPushConfigDialogData,
+        ApiSubscriptionEditPushConfigDialogResult
+      >(ApiSubscriptionEditPushConfigDialogComponent, {
+        data: {
+          readonly: !this.canEdit,
+          consumerConfiguration: this.consumerConfiguration,
+        },
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        role: 'dialog',
+        id: 'api-subscription-edit-push-config-dialog',
+      })
+      .afterClosed()
+      .pipe(
+        tap((result) => {
+          if (result) {
+            this.consumerConfigurationChange.emit({
+              channel: result.channel,
+              entrypointConfiguration: result.entrypointConfiguration,
+            });
+          }
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
 }
