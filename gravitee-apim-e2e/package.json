@@ -47,6 +47,7 @@
         "license-check-and-add": "4.0.5",
         "node-fetch": "2.7.0",
         "prettier": "3.5.3",
+        "rxjs": "7.8.2",
         "ts-jest": "29.2.6",
         "typescript": "4.5.5"
     },
@@ -56,8 +57,7 @@
         "@gravitee/management-v2-webclient-sdk": "link:lib/management-v2-webclient-sdk",
         "@gravitee/management-webclient-sdk": "link:lib/management-webclient-sdk",
         "@gravitee/portal-webclient-sdk": "link:lib/portal-webclient-sdk",
-        "@gravitee/utils": "link:lib/utils",
-        "rxjs": "7.8.2"
+        "@gravitee/utils": "link:lib/utils"
     },
     "packageManager": "yarn@4.1.1"
 }
