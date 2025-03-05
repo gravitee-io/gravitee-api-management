@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Application } from '@model/applications';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 
 export class ApplicationFakers {
   static application(attributes?: Partial<Application>): Application {

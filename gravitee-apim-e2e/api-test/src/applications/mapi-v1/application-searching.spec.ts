@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, expect } from '@jest/globals';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import {
   ADMIN_USER,
@@ -42,7 +42,7 @@ describe('Applications - Searching', () => {
   beforeAll(async () => {
     const createdAppsAsAppUser = [1, 2, 3]
       .map((num) => ({
-        name: `${faker.random.word()}-${faker.datatype.uuid()}`,
+        name: `${faker.lorem.word()}-${faker.string.uuid()}`,
         description: `Application ${num} for "Applications searching scenario"`,
       }))
       .map(
@@ -58,7 +58,7 @@ describe('Applications - Searching', () => {
 
     const createdAppsAsApiUser = [4]
       .map((num) => ({
-        name: `${faker.random.word()}-${faker.datatype.uuid()}`,
+        name: `${faker.lorem.word()}-${faker.string.uuid()}`,
         description: `Application ${num} for "Applications searching scenario"`,
       }))
       .map(

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 import { Group } from '@model/groups';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 
 export class GroupFakers {
   static group(attributes?: Partial<Group>): Group {
-    const name = faker.name.jobArea();
+    const name = faker.person.jobArea();
 
     return {
       name,

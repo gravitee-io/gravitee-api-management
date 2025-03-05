@@ -20,7 +20,7 @@ import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { PlanSecurityType, PlanStatus, PlanValidationType, ReviewAction } from '@gravitee/management-webclient-sdk/src/lib/models';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { ApplicationEntity } from '@model/applications';
-import faker, { Faker } from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { ApiImport } from '@model/api-imports';
 
 const orgId = 'DEFAULT';
@@ -158,8 +158,8 @@ describe('Task screen', () => {
 
     describe('User registration', () => {
       const email = faker.internet.email();
-      const firstname = faker.name.firstName();
-      const lastname = faker.name.lastName();
+      const firstname = faker.person.firstName();
+      const lastname = faker.person.lastName();
       let userId: string;
 
       before(() => {

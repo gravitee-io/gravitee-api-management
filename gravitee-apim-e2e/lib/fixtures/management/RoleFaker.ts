@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { NewRoleEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewRoleEntity';
 import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models/RoleScope';
 

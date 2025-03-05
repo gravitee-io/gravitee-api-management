@@ -16,7 +16,7 @@
 import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import ApiDetails from 'ui-test/support/PageObjects/Apis/ApiDetails';
 import { Api } from '@model/apis';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
@@ -32,7 +32,7 @@ describe('API Info Page functionality', () => {
   let v4infoApi: ApiV4;
   const apiDetails = new ApiDetails();
   const apiName = faker.commerce.productName();
-  const apiVersion = faker.datatype.number();
+  const apiVersion = faker.number.int();
   const apiDescription = faker.lorem.words(10);
   const apiFileName = `${apiName.replace(/ /g, '-')}-${apiVersion}`;
   const path = require('path');

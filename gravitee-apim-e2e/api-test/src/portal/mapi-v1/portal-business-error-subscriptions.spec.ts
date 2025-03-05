@@ -36,7 +36,7 @@ import { ApiKeyEntity } from '@gravitee/management-webclient-sdk/src/lib/models/
 import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
 import { PlanValidationType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanValidationType';
 import { SubscriptionStatus } from '@gravitee/management-webclient-sdk/src/lib/models/SubscriptionStatus';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
 
 const orgId = 'DEFAULT';

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { PageType, Visibility } from '@gravitee/management-webclient-sdk/src/lib/models';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { Page } from '@gravitee/management-v2-webclient-sdk/src/lib';
 
 export class MAPIV2PagesFaker {

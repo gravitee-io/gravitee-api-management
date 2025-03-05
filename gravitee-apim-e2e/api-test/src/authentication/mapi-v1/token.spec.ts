@@ -21,7 +21,7 @@ import { UsersApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/
 import type { NewRoleEntity, TokenEntity, UserEntity } from '../../../../lib/management-webclient-sdk/src/lib/models';
 import { beforeAll, describe, expect } from '@jest/globals';
 import { created, noContent, succeed } from '@lib/jest-utils';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -68,7 +68,7 @@ describe('User tokens crud tests', () => {
         managementUserTokensResourceAsApiUser.createTokenRaw({
           orgId,
           envId,
-          newTokenEntity: { name: `an awesome token ${faker.datatype.uuid()}` },
+          newTokenEntity: { name: `an awesome token ${faker.string.uuid()}` },
           userId: apiUser.id,
         }),
       );
@@ -107,7 +107,7 @@ describe('User tokens crud tests', () => {
         managementUserTokensResourceAsApiUser.createTokenRaw({
           orgId,
           envId,
-          newTokenEntity: { name: `an awesome token ${faker.datatype.uuid()}` },
+          newTokenEntity: { name: `an awesome token ${faker.string.uuid()}` },
           userId: apiUser.id,
         }),
       );
@@ -158,7 +158,7 @@ describe('User tokens crud tests', () => {
         managementUserTokensResourceAsApiUser.createTokenRaw({
           orgId,
           envId,
-          newTokenEntity: { name: `an awesome token ${faker.datatype.uuid()}` },
+          newTokenEntity: { name: `an awesome token ${faker.string.uuid()}` },
           userId: apiUser.id,
         }),
       );
@@ -172,7 +172,7 @@ describe('User tokens crud tests', () => {
 
   function getNewRoleEntity(permissions: { [key: string]: Array<string> }): NewRoleEntity {
     return {
-      name: `CREATED_TOKEN_ROLE_${faker.datatype.uuid()}`,
+      name: `CREATED_TOKEN_ROLE_${faker.string.uuid()}`,
       description: faker.lorem.sentence(),
       scope: 'ORGANIZATION',
       _default: false,

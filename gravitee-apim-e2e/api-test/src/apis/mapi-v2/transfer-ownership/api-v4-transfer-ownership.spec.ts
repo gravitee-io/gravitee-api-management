@@ -14,22 +14,8 @@
  * limitations under the License.
  */
 import { test, describe, expect, afterAll } from '@jest/globals';
-import {
-  APIMembersApi,
-  ApiResponse,
-  APIsApi,
-  Api,
-  ApiV4,
-  HttpListener,
-  MembersResponse,
-} from '@gravitee/management-v2-webclient-sdk/src/lib';
-import {
-  API_USER,
-  forManagementAsAdminUser,
-  forManagementV2,
-  forManagementV2AsAdminUser,
-  forManagementV2AsApiUser,
-} from '@gravitee/utils/configuration';
+import { APIMembersApi, APIsApi, Api, MembersResponse } from '@gravitee/management-v2-webclient-sdk/src/lib';
+import { API_USER, forManagementAsAdminUser, forManagementV2AsAdminUser, forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { created, fail, forbidden, noContent, succeed } from '@lib/jest-utils';
 import { UsersFaker } from '@gravitee/fixtures/management/UsersFaker';
@@ -37,7 +23,6 @@ import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersA
 import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models';
 import { RoleFaker } from '@gravitee/fixtures/management/RoleFaker';
 import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
-import { UserRegistrationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UserRegistrationApi';
 import { GroupsFaker } from '@gravitee/fixtures/management/GroupsFaker';
 import { GroupsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/GroupsApi';
 import { GroupMembershipsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/GroupMembershipsApi';

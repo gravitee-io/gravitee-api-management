@@ -21,7 +21,7 @@ import { created, noContent, succeed } from '@lib/jest-utils';
 import { MAPIV2PagesFaker } from '@gravitee/fixtures/management/MAPIV2PagesFaker';
 import { APIPagesApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPagesApi';
 import { PageEntity } from '@gravitee/management-webclient-sdk/src/lib/models';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { MAPIV2MediaFaker } from '@gravitee/fixtures/management/MAPIV2MediaFaker';
 import { ImagesUtils } from '@gravitee/utils/images';
 
@@ -96,11 +96,11 @@ describe('API - V4 - Import - Gravitee Definition - With pages', () => {
     });
 
     describe('Create v4 API with one page with an ID', () => {
-      const fixedApiId = faker.datatype.uuid();
+      const fixedApiId = faker.string.uuid();
       let importedApi: ApiV4;
       let importedPage: PageEntity;
       const page = MAPIV2PagesFaker.page({
-        id: faker.datatype.uuid(),
+        id: faker.string.uuid(),
       });
 
       test('should import v4 API with one page without id', async () => {
@@ -163,11 +163,11 @@ describe('API - V4 - Import - Gravitee Definition - With pages', () => {
     });
 
     describe('Create v4 API with one page with a media', () => {
-      const fixedApiId = faker.datatype.uuid();
+      const fixedApiId = faker.string.uuid();
       let importedApi: ApiV4;
       let importedPage: PageEntity;
       const page = MAPIV2PagesFaker.page({
-        id: faker.datatype.uuid(),
+        id: faker.string.uuid(),
         name: 'A page with a media',
         type: 'MARKDOWN',
         content:
@@ -269,21 +269,21 @@ describe('API - V4 - Import - Gravitee Definition - With pages', () => {
        *   |_secondChildPage
        */
       const rootFolder = MAPIV2PagesFaker.page({
-        id: faker.datatype.uuid(),
+        id: faker.string.uuid(),
         type: 'ROOT',
       });
       const folder = MAPIV2PagesFaker.page({
-        id: faker.datatype.uuid(),
+        id: faker.string.uuid(),
         parentId: rootFolder.id,
         type: 'FOLDER',
         content: undefined,
       });
       const firstChildPage = MAPIV2PagesFaker.page({
-        id: faker.datatype.uuid(),
+        id: faker.string.uuid(),
         parentId: folder.id,
       });
       const secondChildPage = MAPIV2PagesFaker.page({
-        id: faker.datatype.uuid(),
+        id: faker.string.uuid(),
         parentId: folder.id,
       });
 

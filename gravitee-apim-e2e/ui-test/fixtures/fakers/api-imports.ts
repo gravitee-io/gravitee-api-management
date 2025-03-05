@@ -27,7 +27,7 @@ import { ApiFakers } from './apis';
 import { ApiUser } from '@model/users';
 import { Role } from '@model/roles';
 import { PlanSecurityType, PlanStatus, PlanType, PlanValidation } from '@model/plan';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 
 export class ApiImportFakers {
   static api(attributes?: Partial<ApiImport>): ApiImport {
@@ -138,13 +138,13 @@ export class ApiImportFakers {
   }
 
   static user(attributes?: Partial<ApiUser>): ApiUser {
-    const firstname = faker.name.firstName();
-    const lastname = faker.name.lastName();
-    const email = faker.internet.email(firstname, lastname);
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+    const email = faker.internet.email({ firstName, lastName });
 
     return {
-      firstname,
-      lastname,
+      firstname: firstName,
+      lastname: lastName,
       email,
       source: 'gravitee',
       sourceId: email,

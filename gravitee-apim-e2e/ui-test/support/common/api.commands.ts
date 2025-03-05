@@ -28,7 +28,7 @@ import { closePlan, createPlan, publishPlan } from '@commands/management/api-pla
 import { ApiImportFakers } from '@fakers/api-imports';
 import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
 import { ApiImport, ImportSwaggerDescriptorEntity } from '@model/api-imports';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { Api } from '@model/apis';
 
 declare global {
@@ -98,7 +98,7 @@ Cypress.Commands.add('createAndStartApiFromSwagger', (swaggerImport: string, att
     if (response.status !== 201) return response;
     let api: ApiImport = response.body;
     const fakePlan = ApiImportFakers.plan();
-    const name = `swagger_${faker.datatype.number()}`;
+    const name = `swagger_${faker.number.int()}`;
     api.name = name;
     api.proxy.virtual_hosts = [{ path: `/${name}` }];
     api.proxy.groups[0].endpoints.forEach((_value, index) => {

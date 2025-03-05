@@ -15,7 +15,7 @@
  */
 import { ADMIN_USER } from '@fakers/users/users';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models';
 import { ApiImport } from '@model/api-imports';
 

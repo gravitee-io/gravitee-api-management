@@ -19,7 +19,7 @@ import { Visibility, VisibilityToJSON } from '@gravitee/management-webclient-sdk
 import { LoadBalancerTypeEnum } from '@gravitee/management-webclient-sdk/src/lib/models/LoadBalancer';
 import { Proxy, ProxyToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/Proxy';
 import { NewApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewApiEntity';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { NewRatingEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewRatingEntity';
 import { RatingInput } from '@gravitee/portal-webclient-sdk/src/lib/models/RatingInput';
 import { PrimaryOwnerEntity, PrimaryOwnerEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/PrimaryOwnerEntity';
@@ -62,14 +62,14 @@ export enum ApiMetadataFormat {
 
 export class ApisFaker {
   static version() {
-    const major = faker.datatype.number({ min: 1, max: 5 });
-    const minor = faker.datatype.number({ min: 1, max: 10 });
-    const patch = faker.datatype.number({ min: 1, max: 30 });
+    const major = faker.number.int({ min: 1, max: 5 });
+    const minor = faker.number.int({ min: 1, max: 10 });
+    const patch = faker.number.int({ min: 1, max: 30 });
     return `${major}.${minor}.${patch}`;
   }
 
   static uniqueWord() {
-    return `${faker.random.word()}-${faker.datatype.uuid()}`;
+    return `${faker.lorem.word()}-${faker.string.uuid()}`;
   }
 
   static apiImport(attributes?: Partial<ApiImportEntity>): ApiImportEntity {
@@ -125,7 +125,7 @@ export class ApisFaker {
     const description = faker.lorem.words(10);
 
     return {
-      contextPath: `/${faker.random.word()}-${faker.datatype.uuid()}-${Math.floor(Date.now() / 1000)}`,
+      contextPath: `/${faker.lorem.word()}-${faker.string.uuid()}-${Math.floor(Date.now() / 1000)}`,
       name,
       description,
       version,
@@ -177,17 +177,17 @@ export class ApisFaker {
 
   static newRating(): NewRatingEntity {
     return {
-      title: faker.random.word(),
+      title: faker.lorem.word(),
       comment: `${faker.lorem.words(10)}`,
-      rate: `${faker.datatype.number({ min: 1, max: 5, precision: 1 })}`,
+      rate: `${faker.number.int({ min: 1, max: 5 })}`,
     };
   }
 
   static newRatingInput(): RatingInput {
     return {
-      title: faker.random.word(),
+      title: faker.lorem.word(),
       comment: `${faker.lorem.words(10)}`,
-      value: faker.datatype.number({ min: 1, max: 5, precision: 1 }),
+      value: faker.number.int({ min: 1, max: 5 }),
     };
   }
 }

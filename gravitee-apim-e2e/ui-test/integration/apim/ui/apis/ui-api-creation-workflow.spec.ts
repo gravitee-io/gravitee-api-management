@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { ADMIN_USER } from '@fakers/users/users';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 
 describe('API creation workflow', () => {
-  const apiVersion = `${faker.datatype.number({ min: 1, max: 9 })}.${faker.datatype.number({ min: 1, max: 9 })}`;
+  const apiVersion = `${faker.number.int({ min: 1, max: 9 })}.${faker.number.int({ min: 1, max: 9 })}`;
   const apiPath = `${faker.commerce.productName().replace(/ /g, '_')}`;
   const apiName = faker.commerce.productName();
   let apiId: string;

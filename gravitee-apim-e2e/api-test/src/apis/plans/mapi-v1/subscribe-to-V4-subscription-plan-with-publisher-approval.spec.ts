@@ -26,7 +26,7 @@ import { Subscription, SubscriptionStatusEnum } from '@gravitee/portal-webclient
 import { APISubscriptionsApi } from '@gravitee/management-v2-webclient-sdk/src/lib/apis/APISubscriptionsApi';
 import { teardownV4ApisAndApplications } from '@gravitee/utils/management';
 import { verifyWiremockRequest } from '@gravitee/utils/wiremock';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { sleep } from '@gravitee/utils/apim-http';
 import { describeIfV4EmulationEngine } from '@lib/jest-utils';
 import { Api, APIPlansApi, APIsApi, Plan, PlanMode, PlanValidation } from '@gravitee/management-v2-webclient-sdk/src/lib';
@@ -109,7 +109,7 @@ describeIfV4EmulationEngine('V4 subscription plan subscription and approval work
   };
 
   describe('Subscribe to manually validated subscription plan', () => {
-    let callbackUrl = `/${faker.random.word()}`;
+    let callbackUrl = `/${faker.lorem.word()}`;
 
     beforeAll(async () => {
       await setupApiAndPlan(PlanValidationType.MANUAL);
@@ -167,7 +167,7 @@ describeIfV4EmulationEngine('V4 subscription plan subscription and approval work
 
     describe('Consumer updates subscription configuration', () => {
       test('Consumer should update subscription configuration', async () => {
-        callbackUrl = `/${faker.random.word()}`;
+        callbackUrl = `/${faker.lorem.word()}`;
 
         await portalSubscriptionResource.updateSubscription({
           subscriptionId: subscription.id,
@@ -222,7 +222,7 @@ describeIfV4EmulationEngine('V4 subscription plan subscription and approval work
   });
 
   describe('Subscribe to automatically validated subscription plan', () => {
-    let callbackUrl = `/${faker.random.word()}`;
+    let callbackUrl = `/${faker.lorem.word()}`;
 
     beforeAll(async () => {
       await setupApiAndPlan(PlanValidationType.AUTO);

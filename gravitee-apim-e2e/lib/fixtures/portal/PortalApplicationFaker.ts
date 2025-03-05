@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { ApplicationInput } from '@gravitee/portal-webclient-sdk/src/lib/models/ApplicationInput';
 
 export class PortalApplicationFaker {
@@ -26,7 +26,7 @@ export class PortalApplicationFaker {
       settings: {
         app: {
           type: 'test',
-          client_id: faker.random.alphaNumeric(10),
+          client_id: faker.string.alphanumeric(10),
         },
       },
       ...attributes,

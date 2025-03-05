@@ -21,7 +21,7 @@ import { PagesFaker } from '@gravitee/fixtures/management/PagesFaker';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { succeed } from '@lib/jest-utils';
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
