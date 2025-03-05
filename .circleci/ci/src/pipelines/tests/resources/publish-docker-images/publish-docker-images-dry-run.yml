@@ -76,13 +76,13 @@ commands:
     steps:
       - keeper/env-export:
           secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
-          var-name: AZURE_DOCKER_REGISTRY_USERNAME
+          var-name: DOCKER_REGISTRY_USERNAME
       - keeper/env-export:
           secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
-          var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+          var-name: DOCKER_REGISTRY_PASSWORD
       - run:
           name: Login to Azure Container Registry
-          command: echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
+          command: echo $DOCKER_REGISTRY_PASSWORD | docker login --username $DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
     description: Login to Azure Container Registry
   cmd-docker-azure-logout:
     steps:
