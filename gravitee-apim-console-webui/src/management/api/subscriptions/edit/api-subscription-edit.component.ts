@@ -609,4 +609,30 @@ export class ApiSubscriptionEditComponent implements OnInit {
       takeUntil(this.unsubscribe$),
     );
   }
+
+  onConsumerConfigurationChange(consumerConfigurationToUpdate: Partial<SubscriptionConsumerConfiguration>) {
+    this.apiSubscriptionService
+      .getById(this.apiId, this.subscription.id)
+      .pipe(
+        switchMap((subscription) =>
+          this.apiSubscriptionService.update(this.apiId, this.subscription.id, {
+            ...subscription,
+            consumerConfiguration: {
+              ...subscription.consumerConfiguration,
+              ...consumerConfigurationToUpdate,
+            },
+          }),
+        ),
+        tap(() => {
+          this.snackBarService.success('Consumer configuration updated.');
+          this.ngOnInit();
+        }),
+        catchError((err) => {
+          this.snackBarService.error(err.error?.message || 'An error occurred while updating consumer configuration.');
+          return EMPTY;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+  }
 }

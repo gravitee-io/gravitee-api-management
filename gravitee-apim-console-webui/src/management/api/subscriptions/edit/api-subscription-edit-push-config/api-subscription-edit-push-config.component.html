@@ -23,7 +23,11 @@
     <div class="api-subscription-edit-push-config__headerRightBtn">
       <button mat-stroked-button (click)="openConsumerConfigurationDialog()">
         <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
-        Edit
+        @if (canEdit) {
+          Edit
+        } @else {
+          View
+        }
       </button>
     </div>
   </mat-card-header>
