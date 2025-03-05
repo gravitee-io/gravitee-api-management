@@ -25,6 +25,10 @@ data:
   use-gzip: "true"
   gzip-level: "5"
   gzip-types: "*"
+  {{- if .Values.ui.configuration.files.constants_json }}
+  constants.json: |-
+    {{- .Values.ui.configuration.files.constants_json | nindent 4 }}
+  {{- else }}
   constants.json: |
     {
       {{- if .Values.ui.baseURL }}
@@ -78,4 +82,5 @@ data:
       "defaultPortal": "{{ .Values.portal.defaultPortal }}"
       {{- end }}
     }
+  {{- end -}}
 {{- end -}}
