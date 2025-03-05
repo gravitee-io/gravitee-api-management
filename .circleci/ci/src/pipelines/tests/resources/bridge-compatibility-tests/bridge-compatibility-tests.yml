@@ -90,7 +90,7 @@ commands:
           key: << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
           paths:
             - ./<< parameters.apim-ui-project >>/node_modules
-  cmd-docker-azure-login:
+  cmd-docker-login:
     steps:
       - keeper/env-export:
           secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
@@ -247,7 +247,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      - cmd-docker-azure-login
+      - cmd-docker-login
       - keeper/env-export:
           secret-url: keeper://w8WBpALVCgYdxtV5pVrQsw/custom_field/base64
           var-name: GRAVITEE_LICENSE

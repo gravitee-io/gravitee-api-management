@@ -15,7 +15,7 @@
  */
 export * from './cmd-build-ui-image';
 export * from './cmd-create-docker-context';
-export * from './cmd-docker-azure-login';
+export * from './cmd-docker-login';
 export * from './cmd-docker-azure-logout';
 export * from './cmd-install-yarn';
 export * from './cmd-notify-on-failure';
