@@ -20,8 +20,8 @@ import { config } from '../config';
 import { CircleCIEnvironment } from '../pipelines';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 
-export class DockerAzureLoginCommand {
-  private static commandName = 'cmd-docker-azure-login';
+export class DockerLoginCommand {
+  private static commandName = 'cmd-docker-login';
 
   public static get(dynamicConfig: Config, environment: CircleCIEnvironment, isProd: boolean): ReusableCommand {
     dynamicConfig.importOrb(orbs.keeper);
@@ -56,6 +56,6 @@ export class DockerAzureLoginCommand {
         }),
       );
     }
-    return new reusable.ReusableCommand(DockerAzureLoginCommand.commandName, steps, undefined, `Login to ${dockerRegistryName}`);
+    return new reusable.ReusableCommand(DockerLoginCommand.commandName, steps, undefined, `Login to ${dockerRegistryName}`);
   }
 }

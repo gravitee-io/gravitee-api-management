@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
-import { DockerAzureLoginCommand, DockerAzureLogoutCommand, InstallYarnCommand, NotifyOnFailureCommand } from '../../commands';
+import { DockerLoginCommand, DockerAzureLogoutCommand, InstallYarnCommand, NotifyOnFailureCommand } from '../../commands';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { computeImagesTag } from '../../utils';
 import { CircleCIEnvironment } from '../../pipelines';
@@ -26,11 +26,11 @@ export class E2ECypressJob {
   private static jobName = `job-e2e-cypress`;
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     const installYarnCmd = InstallYarnCommand.get();
-    const dockerAzureLoginCmd = DockerAzureLoginCommand.get(dynamicConfig, environment, false);
+    const dockerLoginCmd = DockerLoginCommand.get(dynamicConfig, environment, false);
     const dockerAzureLogoutCmd = DockerAzureLogoutCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(installYarnCmd);
-    dynamicConfig.addReusableCommand(dockerAzureLoginCmd);
+    dynamicConfig.addReusableCommand(dockerLoginCmd);
     dynamicConfig.addReusableCommand(dockerAzureLogoutCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
 
@@ -39,7 +39,7 @@ export class E2ECypressJob {
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
-      new reusable.ReusedCommand(dockerAzureLoginCmd),
+      new reusable.ReusedCommand(dockerLoginCmd),
       new reusable.ReusedCommand(keeper.commands['env-export'], {
         'secret-url': config.secrets.cypressCloudKey,
         'var-name': 'CYPRESS_CLOUD_KEY',
