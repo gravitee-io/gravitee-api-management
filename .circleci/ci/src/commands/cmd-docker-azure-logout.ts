@@ -15,20 +15,29 @@
  */
 import { ReusableCommand } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Reusable';
 import { commands, reusable } from '@circleci/circleci-config-sdk';
+import { CircleCIEnvironment } from '../pipelines';
 
 export class DockerAzureLogoutCommand {
   private static commandName = 'cmd-docker-azure-logout';
-  public static get(): ReusableCommand {
-    return new reusable.ReusableCommand(
-      DockerAzureLogoutCommand.commandName,
-      [
+  public static get(environment: CircleCIEnvironment, isProd: boolean): ReusableCommand {
+    const steps = [];
+
+    if (isProd && !environment.isDryRun) {
+      steps.push(
         new commands.Run({
-          name: 'Logout from Azure Container Registry',
-          command: 'docker logout graviteeio.azurecr.io',
+          name: `Logout from Docker Hub`,
+          command: `docker logout`,
         }),
-      ],
-      undefined,
-      'Logout from Azure Container Registry',
-    );
+      );
+    } else if (!isProd) {
+      steps.push(
+        new commands.Run({
+          name: `Logout from Azure Container Registry`,
+          command: `docker logout graviteeio.azurecr.io`,
+        }),
+      );
+    }
+
+    return new reusable.ReusableCommand(DockerAzureLogoutCommand.commandName, steps, undefined, 'Logout from Azure Container Registry');
   }
 }
