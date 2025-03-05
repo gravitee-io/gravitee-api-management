@@ -9060,12 +9060,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:20.14.8":
-  version: 20.14.8
-  resolution: "@types/node@npm:20.14.8"
+"@types/node@npm:20.17.23":
+  version: 20.17.23
+  resolution: "@types/node@npm:20.17.23"
   dependencies:
-    undici-types: "npm:~5.26.4"
-  checksum: 10c0/06d4643fa3b179b41fe19f9c75c240278ca1f7a313b3b837bc36ea119499c7ad77f06bbe72694ac04aa91ec77fe747baa09b889f4c435450c1724a26bd55f160
+    undici-types: "npm:~6.19.2"
+  checksum: 10c0/4f7da7383ee8516b2e580d772a196fd76487670bd9d32a296621c5df63b077cc7d06c2a0040885b3e4a28c1751f9ad3d5ed55cff15d50b707e3d454993bfe33a
   languageName: node
   linkType: hard
 
@@ -15179,7 +15179,7 @@ __metadata:
     "@types/jest": "npm:29.5.14"
     "@types/jquery": "npm:3.5.32"
     "@types/lodash": "npm:4.17.16"
-    "@types/node": "npm:20.14.8"
+    "@types/node": "npm:20.17.23"
     "@types/swagger-ui": "npm:3.52.4"
     "@typescript-eslint/eslint-plugin": "npm:7.0.2"
     "@typescript-eslint/parser": "npm:7.0.2"
