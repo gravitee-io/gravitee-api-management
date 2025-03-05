@@ -39,10 +39,10 @@ export class RunE2ETestsWorkflow {
     const buildBackendImagesJob = BuildBackendImagesJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(buildBackendImagesJob);
 
-    const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, true, false);
+    const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, true, false, false);
     dynamicConfig.addJob(consoleWebuiBuildJob);
 
-    const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, true, false);
+    const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, true, false, false);
     dynamicConfig.addJob(portalWebuiBuildJob);
 
     const e2eGenerateSdkJob = E2EGenerateSDKJob.create(dynamicConfig);
