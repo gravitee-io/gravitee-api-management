@@ -138,5 +138,10 @@
   },
   "alert" : {
     "enabled" : true
+  },
+  "userGroup": {
+    "required": {
+      "enabled": true
+    }
   }
 }

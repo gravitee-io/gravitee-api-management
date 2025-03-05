@@ -15,7 +15,7 @@
  */
 
 import { CommonModule } from '@angular/common';
-import { Component, ChangeDetectionStrategy, DestroyRef, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { map, tap } from 'rxjs/operators';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -30,6 +30,8 @@ import { ApplicationTypesService } from '../../../services-ngx/application-types
 import { ApplicationService } from '../../../services-ngx/application.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { toDictionary } from '../../../util/gio-form-header.util';
+import { ConsoleSettings } from '../../../entities/consoleSettings';
+import { ConsoleSettingsService } from '../../../services-ngx/console-settings.service';
 
 const TYPES_INFOS = {
   SIMPLE: {
@@ -67,9 +69,10 @@ const TYPES_INFOS = {
   styleUrls: ['./application-creation.component.scss'],
   templateUrl: './application-creation.component.html',
 })
-export class ApplicationCreationComponent {
+export class ApplicationCreationComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private isCreating = false;
+  private consoleSettings: ConsoleSettings = {};
 
   public applicationFormGroup = new FormGroup<ApplicationForm>({
     name: new FormControl(undefined, Validators.required),
@@ -84,6 +87,7 @@ export class ApplicationCreationComponent {
     oauthGrantTypes: new FormControl(),
     oauthRedirectUris: new FormControl([]),
     additionalClientMetadata: new FormControl([]),
+    groups: new FormControl([]),
   });
 
   public applicationTypes$ = this.applicationTypesService.getEnabledApplicationTypes().pipe(
@@ -111,7 +115,12 @@ export class ApplicationCreationComponent {
     private readonly snackBarService: SnackBarService,
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
+    private readonly settingsService: ConsoleSettingsService,
   ) {}
+
+  ngOnInit(): void {
+    this.setUserGroupRequiredValidator();
+  }
 
   onSubmit() {
     if (this.applicationFormGroup.invalid || this.isCreating === true) {
@@ -125,6 +134,7 @@ export class ApplicationCreationComponent {
         name: applicationPayload.name,
         description: applicationPayload.description,
         domain: applicationPayload.domain,
+        groups: applicationPayload.groups,
         settings: {
           ...(applicationPayload.type === 'SIMPLE'
             ? {
@@ -157,5 +167,16 @@ export class ApplicationCreationComponent {
           this.isCreating = false;
         },
       });
+  }
+
+  private setUserGroupRequiredValidator() {
+    this.settingsService.get().subscribe({
+      next: (response) => {
+        this.consoleSettings = response;
+        if (this.consoleSettings.userGroup.required.enabled) {
+          this.applicationFormGroup.get('groups').setValidators(Validators.required);
+        }
+      },
+    });
   }
 }

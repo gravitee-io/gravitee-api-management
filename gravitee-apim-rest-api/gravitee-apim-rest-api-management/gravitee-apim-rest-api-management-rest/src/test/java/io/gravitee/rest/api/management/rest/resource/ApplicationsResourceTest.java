@@ -18,7 +18,10 @@ package io.gravitee.rest.api.management.rest.resource;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
@@ -38,6 +41,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.junit.Test;
 
 /**
@@ -79,6 +83,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         NewApplicationEntity newApplicationEntity = new NewApplicationEntity();
         newApplicationEntity.setName("My beautiful application");
         newApplicationEntity.setDescription("my description");
+        newApplicationEntity.setGroups(Set.of("group1", "group2"));
 
         ApplicationEntity createdApplication = new ApplicationEntity();
         createdApplication.setId("my-beautiful-application");
@@ -128,13 +133,12 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         var responseContent = response.readEntity(ApplicationListItemPagedResult.class);
-        var pagedApplicationsResult = (ApplicationListItemPagedResult) responseContent;
-        assertEquals(0, pagedApplicationsResult.getPage().getCurrent());
-        assertEquals(20, pagedApplicationsResult.getPage().getPerPage());
-        assertEquals(3, pagedApplicationsResult.getPage().getSize());
-        assertEquals(1, pagedApplicationsResult.getPage().getTotalPages());
-        assertEquals(3, pagedApplicationsResult.getPage().getTotalElements());
-        Collection<ApplicationListItem> resultApplications = pagedApplicationsResult.getData();
+        assertEquals(0, responseContent.getPage().getCurrent());
+        assertEquals(20, responseContent.getPage().getPerPage());
+        assertEquals(3, responseContent.getPage().getSize());
+        assertEquals(1, responseContent.getPage().getTotalPages());
+        assertEquals(3, responseContent.getPage().getTotalElements());
+        Collection<ApplicationListItem> resultApplications = responseContent.getData();
         assertEquals(2, resultApplications.stream().filter(app -> app.getId().equals("app2")).findFirst().get().getGroups().size());
     }
 
@@ -153,11 +157,10 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         var responseContent = response.readEntity(ApplicationListItemPagedResult.class);
-        var pagedApplicationsResult = (ApplicationListItemPagedResult) responseContent;
-        assertEquals(2, pagedApplicationsResult.getPage().getCurrent());
-        assertEquals(3, pagedApplicationsResult.getPage().getPerPage());
-        assertEquals(1, pagedApplicationsResult.getPage().getSize());
-        assertEquals(3, pagedApplicationsResult.getPage().getTotalPages());
-        assertEquals(7, pagedApplicationsResult.getPage().getTotalElements());
+        assertEquals(2, responseContent.getPage().getCurrent());
+        assertEquals(3, responseContent.getPage().getPerPage());
+        assertEquals(1, responseContent.getPage().getSize());
+        assertEquals(3, responseContent.getPage().getTotalPages());
+        assertEquals(7, responseContent.getPage().getTotalElements());
     }
 }
