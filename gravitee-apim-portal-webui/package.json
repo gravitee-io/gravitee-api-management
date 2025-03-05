@@ -66,7 +66,6 @@
     "rxjs": "6.6.7",
     "swagger-ui": "5.20.0",
     "tslib": "2.3.1",
-    "url": "0.11.0",
     "zone.js": "0.14.2"
   },
   "engines": {
@@ -106,7 +105,8 @@
     "path": "0.12.7",
     "prettier": "3.5.3",
     "ts-node": "8.10.2",
-    "typescript": "5.2.2"
+    "typescript": "5.2.2",
+    "url": "0.11.4"
   },
   "scarfSettings": {
     "enabled": false
