@@ -29,7 +29,7 @@ export class BuildBackendImagesJob {
     const createDockerContextCmd = CreateDockerContextCommand.get();
     dynamicConfig.addReusableCommand(createDockerContextCmd);
 
-    const dockerAzureLoginCmd = DockerAzureLoginCommand.get(dynamicConfig);
+    const dockerAzureLoginCmd = DockerAzureLoginCommand.get(dynamicConfig, environment, false);
     dynamicConfig.addReusableCommand(dockerAzureLoginCmd);
 
     const dockerAzureLogoutCmd = DockerAzureLogoutCommand.get();

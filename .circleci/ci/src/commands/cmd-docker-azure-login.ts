@@ -17,32 +17,45 @@ import { commands, Config, reusable } from '@circleci/circleci-config-sdk';
 import { ReusableCommand } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Reusable';
 import { orbs } from '../orbs';
 import { config } from '../config';
+import { CircleCIEnvironment } from '../pipelines';
+import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 
 export class DockerAzureLoginCommand {
   private static commandName = 'cmd-docker-azure-login';
 
-  public static get(dynamicConfig: Config): ReusableCommand {
+  public static get(dynamicConfig: Config, environment: CircleCIEnvironment, isProd: boolean): ReusableCommand {
     dynamicConfig.importOrb(orbs.keeper);
 
-    return new reusable.ReusableCommand(
-      DockerAzureLoginCommand.commandName,
-      [
-        new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-          'secret-url': config.secrets.azureRegistryUsername,
-          'var-name': 'AZURE_DOCKER_REGISTRY_USERNAME',
-        }),
-        new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-          'secret-url': config.secrets.azureRegistryPassword,
-          'var-name': 'AZURE_DOCKER_REGISTRY_PASSWORD',
-        }),
+    const dockerRegistryUsernameSecretUrl = isProd ? config.secrets.dockerhubBotUserName : config.secrets.azureRegistryUsername;
+    const dockerRegistryPasswordSecretUrl = isProd ? config.secrets.dockerhubBotUserToken : config.secrets.azureRegistryPassword;
+    const dockerRegistryName = isProd ? 'Docker Hub' : 'Azure Container Registry';
+    const dockerRegistry = isProd ? '' : 'graviteeio.azurecr.io';
+
+    const steps: Command[] = [
+      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+        'secret-url': dockerRegistryUsernameSecretUrl,
+        'var-name': 'DOCKER_REGISTRY_USERNAME',
+      }),
+      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+        'secret-url': dockerRegistryPasswordSecretUrl,
+        'var-name': 'DOCKER_REGISTRY_PASSWORD',
+      }),
+    ];
+    if (isProd && environment.isDryRun) {
+      steps.push(
         new commands.Run({
-          name: 'Login to Azure Container Registry',
-          command:
-            'echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io',
+          name: `No login to ${dockerRegistryName} - Dry-Run`,
+          command: `echo "DRY RUN Mode. Build only"`,
         }),
-      ],
-      undefined,
-      'Login to Azure Container Registry',
-    );
+      );
+    } else {
+      steps.push(
+        new commands.Run({
+          name: `Login to ${dockerRegistryName}`,
+          command: `echo $DOCKER_REGISTRY_PASSWORD | docker login --username $DOCKER_REGISTRY_USERNAME --password-stdin ${dockerRegistry}`,
+        }),
+      );
+    }
+    return new reusable.ReusableCommand(DockerAzureLoginCommand.commandName, steps, undefined, `Login to ${dockerRegistryName}`);
   }
 }

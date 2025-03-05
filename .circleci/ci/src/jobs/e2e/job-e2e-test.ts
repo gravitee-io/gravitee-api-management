@@ -34,7 +34,7 @@ export class E2ETestJob {
     dynamicConfig.importOrb(orbs.keeper);
 
     const installYarnCmd = InstallYarnCommand.get();
-    const dockerAzureLoginCmd = DockerAzureLoginCommand.get(dynamicConfig);
+    const dockerAzureLoginCmd = DockerAzureLoginCommand.get(dynamicConfig, environment, false);
     const dockerAzureLogoutCmd = DockerAzureLogoutCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(installYarnCmd);
