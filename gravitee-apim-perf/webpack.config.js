@@ -6,7 +6,7 @@ const glob = require('glob');
 module.exports = {
   mode: 'production',
   entry: glob
-    .sync('./src/**/*test*.ts', { realpath: false })
+    .sync('./src/**/*test*.ts', { realpath: false, dotRelative: true })
     // Transform the entries to keep the tree structure of our tests
     .reduce((acc, value) => {
       const key = `${path.dirname(value)}/${path.parse(value).name}`.replace('./', '');
@@ -45,6 +45,7 @@ module.exports = {
   devtool: 'source-map',
   stats: {
     colors: true,
+    errorDetails: true,
   },
   plugins: [
     new CleanWebpackPlugin(),
