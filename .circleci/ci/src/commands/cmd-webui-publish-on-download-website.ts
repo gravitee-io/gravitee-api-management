@@ -42,7 +42,7 @@ export class WebuiPublishOnDownloadWebsiteCommand {
       [
         new commands.Run({
           name: 'Prepare zip to upload',
-          command: `cp dist << parameters.apim-ui-project >>-${graviteeioVersion}
+          command: `cp -r dist << parameters.apim-ui-project >>-${graviteeioVersion}
 zip -r << parameters.apim-ui-project >>-${graviteeioVersion}.zip << parameters.apim-ui-project >>-${graviteeioVersion}
 
 mkdir -p folder_to_sync/<< parameters.apim-ui-publish-folder-path >>
@@ -57,7 +57,7 @@ sha1sum << parameters.apim-ui-project >>-${graviteeioVersion}.zip > << parameter
         }),
 
         new reusable.ReusedCommand(syncFolderToS3Cmd, {
-          'folder-to-sync': './folder_to_sync',
+          'folder-to-sync': '<< parameters.apim-ui-project >>/folder_to_sync',
         }),
       ],
       WebuiPublishOnDownloadWebsiteCommand.customParametersList,
