@@ -1,4 +1,4 @@
-{{- if and (and (.Values.api.enabled) (not .Values.apim.dbLess)) (or (not (include "api.externalConfig" .)) (.Values.api.logging.debug)) -}}
+{{- if and (and (.Values.api.enabled) (not .Values.apim.dbLess)) (or (not (include "api.externalConfig" .)) (.Values.api.logging.debug) (.Values.api.configuration.files.gravitee_yml) (.Values.api.configuration.files.logback_xml)) -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -22,7 +22,10 @@ metadata:
     {{- end }}
     {{- end }}
 data:
-{{- if not (include "api.externalConfig" .)}}
+{{- if .Values.api.configuration.files.gravitee_yml }}
+  gravitee.yml: |-
+    {{- toYaml .Values.api.configuration.files.gravitee_yml | nindent 4 }}
+{{- else if not (include "api.externalConfig" .) }}
   gravitee.yml: |
     {{- if .Values.api.ssl.enabled }}
     jetty:
@@ -575,6 +578,10 @@ data:
     {{- end }}
 
     {{- if .Values.api.federation.enabled }}
+      {{- if .Values.api.configuration.files.hazelcast_cluster_xml }}
+  hazelcast-cluster.xml: |-
+        {{- .Values.api.configuration.files.hazelcast_cluster_xml | nindent 4 }}
+      {{- else }}
   hazelcast-cluster.xml: |-
     <?xml version="1.0" encoding="UTF-8"?>
     <hazelcast xmlns="http://www.hazelcast.com/schema/config"
@@ -613,6 +620,11 @@ data:
             </join>
         </network>
     </hazelcast>
+    {{- end }}
+    {{- if .Values.api.configuration.files.hazelcast_cache_xml }}
+  hazelcast-cache.xml: |-
+        {{- .Values.api.configuration.files.hazelcast_cache_xml | nindent 4 }}
+    {{- else }}
   hazelcast-cache.xml: |-
     <?xml version="1.0" encoding="UTF-8"?>
     <hazelcast xmlns="http://www.hazelcast.com/schema/config"
@@ -651,8 +663,12 @@ data:
         </network>
     </hazelcast>
     {{- end }}
+    {{- end }}
 
-    {{- if .Values.api.logging.debug }}
+  {{- if .Values.api.configuration.files.logback_xml }}
+  logback.xml: |-
+      {{- .Values.api.configuration.files.logback_xml | nindent 4 }}
+  {{- else if .Values.api.logging.debug }}
   logback.xml: |
     <?xml version="1.0" encoding="UTF-8"?>
     <!--

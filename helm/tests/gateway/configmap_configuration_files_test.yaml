@@ -1,0 +1,112 @@
+suite: Test Management API default configmap
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Backward compatible - gravitee.yml is compute from helm values
+    set:
+      mongo:
+        sslEnabled: true
+        uri: mongodb://mongo-mongodb-replicaset:27017/gravitee
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            # Gateway HTTP server
+            http:
+              port: 8082
+              host: 0.0.0.0
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            management:
+              type: mongodb
+              mongodb:
+                sslEnabled: true
+                socketKeepAlive: false
+                uri: mongodb://mongo-mongodb-replicaset:27017/gravitee
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            ratelimit:
+              type: mongodb
+              mongodb:
+                sslEnabled: true
+                socketKeepAlive: false
+                uri: mongodb://mongo-mongodb-replicaset:27017/gravitee
+
+
+  - it: Raw copy gravitee.yml from helm values
+    set:
+      gateway:
+        configuration:
+          files:
+            gravitee_yml:
+              ratelimit:
+                type: redis
+    asserts:
+      - equal:
+          path: data["gravitee.yml"]
+          value: |-
+            ratelimit:
+              type: redis
+
+  - it: Backward compatible - logback.xml is compute from helm values
+    set:
+      gateway:
+        logging:
+          debug: true
+          file:
+            enabled: true
+    asserts:
+      - matchRegex:
+          path: data["logback.xml"]
+          pattern: |
+            <appender-ref ref="async-file" />
+
+  - it: Raw copy logback.xml from helm values at gateway level
+    set:
+      gateway:
+        logging:
+          debug: true
+        configuration:
+          files:
+            logback_xml: |-
+              <?xml version="1.0" encoding="UTF-8"?>
+              <configuration>
+                <root level="WARN">
+                  <appender-ref ref="STDOUT" />
+                </root>
+              </configuration>
+    asserts:
+      - equal:
+          path: data["logback.xml"]
+          value: |-
+            <?xml version="1.0" encoding="UTF-8"?>
+            <configuration>
+              <root level="WARN">
+                <appender-ref ref="STDOUT" />
+              </root>
+            </configuration>
+
+  - it: Raw copy logback.xml from helm values at gateway level also if logging.debug is false
+    set:
+      gateway:
+        configuration:
+          files:
+            logback_xml: |-
+              <?xml version="1.0" encoding="UTF-8"?>
+              <configuration>
+                <root level="WARN">
+                  <appender-ref ref="STDOUT" />
+                </root>
+              </configuration>
+    asserts:
+      - equal:
+          path: data["logback.xml"]
+          value: |-
+            <?xml version="1.0" encoding="UTF-8"?>
+            <configuration>
+              <root level="WARN">
+                <appender-ref ref="STDOUT" />
+              </root>
+            </configuration>

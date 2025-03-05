@@ -1,0 +1,41 @@
+suite: Test Management API default configmap
+templates:
+  - "ui/ui-configmap.yaml"
+
+tests:
+  - it: Backward compatible - constants.json is compute from helm values
+    set:
+      ui:
+        baseURL: https://my.portal.gravitee-test.dev
+    asserts:
+      - matchRegex:
+          path: data["constants.json"]
+          pattern: |
+            "baseURL": "https://my.portal.gravitee-test.dev",
+
+  - it: Raw copy constants.json from helm values
+    set:
+      ui:
+        configuration:
+          files:
+            constants_json: |-
+              {
+                "baseURL": "https://my.custom.portal.gravitee-test.dev",
+                "management": {
+                  "title": "Gravitee powered API Management"
+                }
+              }
+    asserts:
+      - matchRegex:
+          path: data["constants.json"]
+          pattern: |
+            "baseURL": "https://my.custom.portal.gravitee-test.dev",
+      - equal:
+          path: data["constants.json"]
+          value: |-
+            {
+              "baseURL": "https://my.custom.portal.gravitee-test.dev",
+              "management": {
+                "title": "Gravitee powered API Management"
+              }
+            }
