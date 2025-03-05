@@ -607,25 +607,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@asyncapi/protobuf-schema-parser@npm:^3.4.1":
-  version: 3.4.1
-  resolution: "@asyncapi/protobuf-schema-parser@npm:3.4.1"
+"@asyncapi/protobuf-schema-parser@npm:^3.5.1":
+  version: 3.5.1
+  resolution: "@asyncapi/protobuf-schema-parser@npm:3.5.1"
   dependencies:
     "@asyncapi/parser": "npm:^3.4.0"
     "@types/protocol-buffers-schema": "npm:^3.4.3"
     protobufjs: "npm:^7.4.0"
-  checksum: 10c0/fe5aec2c8c144a1bb31e3d581cf373b9b67ed68475ca5311aedb9f4bec21d4702a19a35a5df6133f350dfc21991c83577d08958569b288deb3e5794f327e2f46
+  checksum: 10c0/3d25c7974d3c734841e619ab31f198e2301a591f025b49cd3ba4fab4e3b684fa6bf3ae63740d1c519e12cd8258193789412b74891b698a39a101d0513726b3c1
   languageName: node
   linkType: hard
 
-"@asyncapi/react-component@npm:^2.6.1":
-  version: 2.6.1
-  resolution: "@asyncapi/react-component@npm:2.6.1"
+"@asyncapi/react-component@npm:^2.6.3":
+  version: 2.6.3
+  resolution: "@asyncapi/react-component@npm:2.6.3"
   dependencies:
     "@asyncapi/avro-schema-parser": "npm:^3.0.24"
     "@asyncapi/openapi-schema-parser": "npm:^3.0.24"
     "@asyncapi/parser": "npm:^3.3.0"
-    "@asyncapi/protobuf-schema-parser": "npm:^3.4.1"
+    "@asyncapi/protobuf-schema-parser": "npm:^3.5.1"
     highlight.js: "npm:^10.7.2"
     isomorphic-dompurify: "npm:^2.14.0"
     marked: "npm:^4.0.14"
@@ -635,7 +635,7 @@ __metadata:
   peerDependencies:
     react: ">=18.0.0"
     react-dom: ">=18.0.0"
-  checksum: 10c0/543911e74eb35e8072a94372c978266fa00199f5880ca9a413fd22fc5e051af8ae07af58ce497dd626c9dcab771b8ccca49df2e413fd4cb13e1fe5a681c48906
+  checksum: 10c0/974ca6b16258870864d03bf5cc73e61b330b4d7d210ccd2d31efb976eb2e6ca6509a5ffd2776ef23b03abf7e0044217dda581285a82f2713d1dbbc3950af775d
   languageName: node
   linkType: hard
 
@@ -648,15 +648,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@asyncapi/web-component@npm:2.6.1":
-  version: 2.6.1
-  resolution: "@asyncapi/web-component@npm:2.6.1"
+"@asyncapi/web-component@npm:2.6.3":
+  version: 2.6.3
+  resolution: "@asyncapi/web-component@npm:2.6.3"
   dependencies:
-    "@asyncapi/react-component": "npm:^2.6.1"
+    "@asyncapi/react-component": "npm:^2.6.3"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     web-react-components: "npm:^1.4.2"
-  checksum: 10c0/a3a77d4ee6db3bc9e6b88eee73ab05d9d0e2885589ce00dd5cd7f71c92828109e6d37ff985bf9515e8a0ae895ada3e94addc4cf9fd96d5377646d5456843f1f3
+  checksum: 10c0/e8de2caf5d15ba9eae2e353342fcd08b501b2c3029ccf743a5226c1ad4a7a2c2e27a6fa06db46ebb4f218b940f998212af1bfe202b23beddf05cd15100eaabda
   languageName: node
   linkType: hard
 
@@ -4484,7 +4484,7 @@ __metadata:
     "@angular/platform-browser-dynamic": "npm:17.0.5"
     "@angular/router": "npm:17.0.5"
     "@asciidoctor/core": "npm:3.0.4"
-    "@asyncapi/web-component": "npm:2.6.1"
+    "@asyncapi/web-component": "npm:2.6.3"
     "@babel/preset-env": "npm:7.26.9"
     "@emoji-mart/data": "npm:1.2.1"
     "@fontsource/ibm-plex-sans": "npm:4.5.13"
