@@ -27,7 +27,7 @@ export class E2ECypressJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     const installYarnCmd = InstallYarnCommand.get();
     const dockerLoginCmd = DockerLoginCommand.get(dynamicConfig, environment, false);
-    const dockerAzureLogoutCmd = DockerAzureLogoutCommand.get();
+    const dockerAzureLogoutCmd = DockerAzureLogoutCommand.get(environment, false);
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(installYarnCmd);
     dynamicConfig.addReusableCommand(dockerLoginCmd);

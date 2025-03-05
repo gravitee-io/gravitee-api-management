@@ -32,7 +32,7 @@ export class BuildBackendImagesJob {
     const dockerLoginCmd = DockerLoginCommand.get(dynamicConfig, environment, false);
     dynamicConfig.addReusableCommand(dockerLoginCmd);
 
-    const dockerAzureLogoutCmd = DockerAzureLogoutCommand.get();
+    const dockerAzureLogoutCmd = DockerAzureLogoutCommand.get(environment, false);
     dynamicConfig.addReusableCommand(dockerAzureLogoutCmd);
 
     const steps: Command[] = [
@@ -102,7 +102,7 @@ gateway-docker-context`,
       );
     }
 
-    steps.push(new reusable.ReusedCommand(DockerAzureLogoutCommand.get()));
+    steps.push(new reusable.ReusedCommand(dockerAzureLogoutCmd));
 
     return new Job('job-build-images', OpenJdkExecutor.create(), steps); // TODO check if we can use cimg/base:stable executor
   }
