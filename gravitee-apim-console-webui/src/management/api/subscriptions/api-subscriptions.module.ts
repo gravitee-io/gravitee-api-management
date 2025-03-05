@@ -57,6 +57,7 @@ import { ApiPortalSubscriptionExpireApiKeyDialogComponent } from './components/d
 
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { ApiSubscriptionEditPushConfigComponent } from './edit/api-subscription-edit-push-config/api-subscription-edit-push-config.component';
 
 @NgModule({
   declarations: [
@@ -107,6 +108,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     GioPermissionModule,
     GioTableWrapperModule,
     GioBannerModule,
+    ApiSubscriptionEditPushConfigComponent,
   ],
   providers: [DatePipe],
 })
