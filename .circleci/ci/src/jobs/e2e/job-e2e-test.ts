@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { commands, Config, Job, parameters, reusable } from '@circleci/circleci-config-sdk';
-import { DockerLoginCommand, DockerAzureLogoutCommand, InstallYarnCommand, NotifyOnFailureCommand } from '../../commands';
+import { DockerLoginCommand, DockerLogoutCommand, InstallYarnCommand, NotifyOnFailureCommand } from '../../commands';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { computeImagesTag } from '../../utils';
 import { CircleCIEnvironment } from '../../pipelines';
@@ -35,11 +35,11 @@ export class E2ETestJob {
 
     const installYarnCmd = InstallYarnCommand.get();
     const dockerLoginCmd = DockerLoginCommand.get(dynamicConfig, environment, false);
-    const dockerAzureLogoutCmd = DockerAzureLogoutCommand.get(environment, false);
+    const dockerLogoutCmd = DockerLogoutCommand.get(environment, false);
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(installYarnCmd);
     dynamicConfig.addReusableCommand(dockerLoginCmd);
-    dynamicConfig.addReusableCommand(dockerAzureLogoutCmd);
+    dynamicConfig.addReusableCommand(dockerLogoutCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
 
     const dockerImageTag = computeImagesTag(environment.branch);
@@ -74,7 +74,7 @@ else
   fi
 fi`,
       }),
-      new reusable.ReusedCommand(dockerAzureLogoutCmd),
+      new reusable.ReusedCommand(dockerLogoutCmd),
 
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new commands.StoreTestResults({

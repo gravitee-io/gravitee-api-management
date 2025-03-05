@@ -17,8 +17,8 @@ import { ReusableCommand } from '@circleci/circleci-config-sdk/dist/src/lib/Comp
 import { commands, reusable } from '@circleci/circleci-config-sdk';
 import { CircleCIEnvironment } from '../pipelines';
 
-export class DockerAzureLogoutCommand {
-  private static commandName = 'cmd-docker-azure-logout';
+export class DockerLogoutCommand {
+  private static commandName = 'cmd-docker-logout';
   public static get(environment: CircleCIEnvironment, isProd: boolean): ReusableCommand {
     const steps = [];
 
@@ -38,6 +38,6 @@ export class DockerAzureLogoutCommand {
       );
     }
 
-    return new reusable.ReusableCommand(DockerAzureLogoutCommand.commandName, steps, undefined, 'Logout from Azure Container Registry');
+    return new reusable.ReusableCommand(DockerLogoutCommand.commandName, steps, undefined, 'Logout from Azure Container Registry');
   }
 }

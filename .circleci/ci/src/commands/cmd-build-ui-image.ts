@@ -17,7 +17,7 @@ import { commands, Config, parameters, reusable } from '@circleci/circleci-confi
 import { computeImagesTag, isSupportBranchOrMaster } from '../utils';
 import { CircleCIEnvironment } from '../pipelines';
 import { CreateDockerContextCommand } from './cmd-create-docker-context';
-import { DockerAzureLogoutCommand } from './cmd-docker-azure-logout';
+import { DockerLogoutCommand } from './cmd-docker-logout';
 import { DockerLoginCommand } from './index';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { orbs } from '../orbs';
@@ -40,8 +40,8 @@ export class BuildUiImageCommand {
     const dockerLoginCommand = DockerLoginCommand.get(dynamicConfig, environment, false);
     dynamicConfig.addReusableCommand(dockerLoginCommand);
 
-    const dockerAzureLogoutCommand = DockerAzureLogoutCommand.get(environment, false);
-    dynamicConfig.addReusableCommand(dockerAzureLogoutCommand);
+    const dockerLogoutCommand = DockerLogoutCommand.get(environment, false);
+    dynamicConfig.addReusableCommand(dockerLogoutCommand);
 
     const steps: Command[] = [
       new reusable.ReusedCommand(createDockerContextCommand),
@@ -95,7 +95,7 @@ export class BuildUiImageCommand {
       );
     }
 
-    steps.push(new reusable.ReusedCommand(dockerAzureLogoutCommand));
+    steps.push(new reusable.ReusedCommand(dockerLogoutCommand));
 
     return new reusable.ReusableCommand(BuildUiImageCommand.commandName, steps, BuildUiImageCommand.customParametersList);
   }
