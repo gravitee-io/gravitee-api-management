@@ -13,29 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-declare namespace Cypress {
-  interface Chainable {
-    /**
-     * Custom command to type into a gv text input
-     */
-    gvType(selector: string, value: string): Chainable<Element>;
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      /**
+       * Custom command to type into a gv text input
+       */
+      gvType(selector: string, value: string): Chainable<Element>;
 
-    /**
-     * Custom command to select DOM element by data-testid attribute.
-     * @example cy.getByDataTestId('greeting')
-     */
-    getByDataTestId(selector: string, options?: Partial<Loggable & Timeoutable & Withinable & Shadow>): Chainable<Element>;
+      /**
+       * Custom command to select DOM element by data-testid attribute.
+       * @example cy.getByDataTestId('greeting')
+       */
+      getByDataTestId(selector: string, options?: Partial<Loggable & Timeoutable & Withinable & Shadow>): Chainable<Element>;
 
-    /**
-     * Custom command to setup authentication token/cookie to visit directly some pages instead of
-     * going to the login page first
-     *
-     * @param username Username to use for authentication
-     * @param password Password to use for authentication
-     */
-    loginInAPIM(username: string, password: string): Chainable<Element>;
+      /**
+       * Custom command to setup authentication token/cookie to visit directly some pages instead of
+       * going to the login page first
+       *
+       * @param username Username to use for authentication
+       * @param password Password to use for authentication
+       */
+      loginInAPIM(username: string, password: string): Chainable<Element>;
 
-    focusOnDialog(): Chainable<Element>;
+      focusOnDialog(): Chainable<Element>;
+    }
   }
 }
 
