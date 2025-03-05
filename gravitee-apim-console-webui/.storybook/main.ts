@@ -11,11 +11,7 @@ const config: StorybookConfig = {
 
   stories: ['../src/**/*.stories.@(ts|mdx)'],
   addons: ['@storybook/addon-essentials'],
-  features: {
-    previewCsfV3: true,
-    storyStoreV7: true,
-    postcss: false,
-  },
+  features: {},
   webpackFinal: async (config) => {
     config.optimization.minimize = false;
     return config;
