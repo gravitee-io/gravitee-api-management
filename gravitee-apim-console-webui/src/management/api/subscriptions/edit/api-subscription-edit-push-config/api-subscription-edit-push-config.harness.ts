@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class ApiSubscriptionEditPushConfigHarness extends ComponentHarness {
   static readonly hostSelector = 'api-subscription-edit-push-config';
@@ -22,5 +23,10 @@ export class ApiSubscriptionEditPushConfigHarness extends ComponentHarness {
     const host = await this.host();
 
     return host.text();
+  }
+
+  async clickEditButton(): Promise<void> {
+    const button = await this.locatorFor(MatButtonHarness.with({ text: /Edit/ }))();
+    await button.click();
   }
 }

@@ -30,6 +30,8 @@ import { ActivatedRoute } from '@angular/router';
 
 import { ApiSubscriptionEditComponent } from './api-subscription-edit.component';
 import { ApiSubscriptionEditHarness } from './api-subscription-edit.harness';
+import { ApiSubscriptionEditPushConfigHarness } from './api-subscription-edit-push-config/api-subscription-edit-push-config.harness';
+import { ApiSubscriptionEditPushConfigDialogHarness } from './api-subscription-edit-push-config-dialog/api-subscription-edit-push-config-dialog.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiSubscriptionsModule } from '../api-subscriptions.module';
@@ -81,6 +83,7 @@ const BASIC_SUBSCRIPTION = (apiKeyMode: BaseApplication['apiKeyMode'] = 'UNSPECI
 describe('ApiSubscriptionEditComponent', () => {
   let fixture: ComponentFixture<ApiSubscriptionEditComponent>;
   let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   const fakeSnackBarService = {
@@ -1216,6 +1219,66 @@ describe('ApiSubscriptionEditComponent', () => {
     });
   });
 
+  describe('PUSH plan subscription', () => {
+    const SUBSCRIPTION = fakeSubscription({
+      id: SUBSCRIPTION_ID,
+      plan: fakeBasePlan({ id: PLAN_ID, mode: 'PUSH', security: undefined }),
+      consumerConfiguration: {
+        entrypointId: 'webhook',
+        channel: 'myChannel',
+        entrypointConfiguration: {
+          // Simplified object
+          callbackUrl: 'https://webhook.site/296b8f8b-fbbe-4516-a016-c44da934b5e0',
+        },
+      },
+    });
+
+    it('should update consumer subscription configuration', async () => {
+      await initComponent({
+        subscription: SUBSCRIPTION,
+      });
+      expectApiKeyListGet();
+
+      const apiSubscriptionEditPushConfigCard = await loader.getHarness(ApiSubscriptionEditPushConfigHarness);
+      expect(await apiSubscriptionEditPushConfigCard.getContentText()).toContain(
+        'https://webhook.site/296b8f8b-fbbe-4516-a016-c44da934b5e0',
+      );
+      expect(await apiSubscriptionEditPushConfigCard.getContentText()).toContain('myChannel');
+
+      await apiSubscriptionEditPushConfigCard.clickEditButton();
+
+      const apiSubscriptionEditPushConfigDialog = await rootLoader.getHarness(ApiSubscriptionEditPushConfigDialogHarness);
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints/${SUBSCRIPTION.consumerConfiguration.entrypointId}/subscription-schema`,
+          method: 'GET',
+        })
+        .flush({ type: 'object', properties: { callbackUrl: { type: 'string' } } });
+
+      expect(await apiSubscriptionEditPushConfigDialog.getChannelValue()).toEqual('myChannel');
+
+      await apiSubscriptionEditPushConfigDialog.setChannelInput('newChannel');
+      await apiSubscriptionEditPushConfigDialog.save();
+
+      expectApiSubscriptionGet(SUBSCRIPTION, '');
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${SUBSCRIPTION.id}`,
+        method: 'PUT',
+      });
+      expect(JSON.stringify(req.request.body)).toEqual(
+        JSON.stringify({
+          ...SUBSCRIPTION,
+          consumerConfiguration: {
+            ...SUBSCRIPTION.consumerConfiguration,
+            channel: 'newChannel',
+          },
+        }),
+      );
+    });
+  });
+
   async function initComponent(params?: {
     subscription?: Subscription;
     api?: GenericApi;
@@ -1249,13 +1312,14 @@ describe('ApiSubscriptionEditComponent', () => {
     expectApiGet(api);
 
     loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     fixture.detectChanges();
   }
 
-  function expectApiSubscriptionGet(subscription: Subscription): void {
+  function expectApiSubscriptionGet(subscription: Subscription, expands = 'plan,application,subscribedBy'): void {
     httpTestingController
       .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${subscription.id}?expands=plan,application,subscribedBy`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${subscription.id}?expands=${expands}`,
         method: 'GET',
       })
       .flush(subscription);
