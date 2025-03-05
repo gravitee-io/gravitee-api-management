@@ -43,7 +43,7 @@
     "@angular/platform-browser-dynamic": "18.2.13",
     "@angular/router": "18.2.13",
     "@asciidoctor/core": "3.0.4",
-    "@asyncapi/web-component": "2.6.1",
+    "@asyncapi/web-component": "2.6.3",
     "@emoji-mart/data": "1.2.1",
     "@types/swagger-ui": "3.52.4",
     "asciidoctor": "3.0.4",
