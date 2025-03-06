@@ -36,6 +36,7 @@
 		<openapi-generator.version>6.6.0</openapi-generator.version>
 		<openapi.modelPackage>io.gravitee.rest.api.management.v2.rest.model</openapi.modelPackage>
 		<jackson-databind-nullable-version>0.2.6</jackson-databind-nullable-version>
+		<jaxb-runtime.version>4.0.5</jaxb-runtime.version>
 	</properties>
 
 	<dependencies>
@@ -152,7 +153,7 @@
 		<dependency>
 			<groupId>org.glassfish.jaxb</groupId>
 			<artifactId>jaxb-runtime</artifactId>
-			<version>2.3.9</version>
+			<version>${jaxb-runtime.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
