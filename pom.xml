@@ -119,6 +119,7 @@
         <jaxb-api.version>2.4.0-b180830.0359</jaxb-api.version>
         <jcstress.version>0.15</jcstress.version>
         <jmh.version>1.37</jmh.version>
+        <jna.version>5.14.0</jna.version>
         <jolt.version>0.1.8</jolt.version>
         <jsonassert.version>1.5.3</jsonassert.version>
         <json-patch.version>1.13</json-patch.version>
@@ -130,6 +131,7 @@
         <lucene.version>9.11.1</lucene.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <mapstruct.version>1.6.0.Beta2</mapstruct.version>
+        <mongodb-crypt.version>1.8.0</mongodb-crypt.version>
         <netty-tcnative-boringssl-static.version>2.0.65.Final</netty-tcnative-boringssl-static.version>
         <nimbus-jose-jwt.version>9.40</nimbus-jose-jwt.version>
         <owasp-java-html-sanitizer.version>20240325.1</owasp-java-html-sanitizer.version>
@@ -150,7 +152,7 @@
 
         <!-- Plugins version -->
         <maven-clean-plugin.version>3.4.0</maven-clean-plugin.version>
-        <maven-dependency-plugin.version>3.6.1</maven-dependency-plugin.version>
+        <maven-dependency-plugin.version>3.8.1</maven-dependency-plugin.version>
         <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
         <maven-remote-resources-plugin.version>3.2.0</maven-remote-resources-plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
