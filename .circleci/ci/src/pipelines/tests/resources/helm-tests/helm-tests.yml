@@ -81,5 +81,5 @@ workflows:
                 - v3.15.1
 orbs:
   helm: circleci/helm@3.0.0
-  keeper: gravitee-io/keeper@0.6.3
+  keeper: gravitee-io/keeper@0.7.0
   slack: circleci/slack@4.12.5

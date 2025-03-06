@@ -102,6 +102,6 @@ workflows:
           requires:
             - Setup
 orbs:
-  keeper: gravitee-io/keeper@0.6.3
+  keeper: gravitee-io/keeper@0.7.0
   aws-s3: circleci/aws-s3@4.1.0
   aws-cli: circleci/aws-cli@5.1.2
