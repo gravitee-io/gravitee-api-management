@@ -300,7 +300,7 @@ workflows:
           apim-ui-project: gravitee-apim-console-webui
           resource_class: xlarge
       - job-console-webui-build:
-          name: Build APIM Console and publish image
+          name: Build APIM Console
           context:
             - cicd-orchestrator
       - job-console-webui-build-storybook:
@@ -325,7 +325,7 @@ workflows:
           name: Validate workflow status
           requires:
             - Lint & test APIM Console
-            - Build APIM Console and publish image
+            - Build APIM Console
 orbs:
   keeper: gravitee-io/keeper@0.7.0
   aquasec: gravitee-io/aquasec@1.0.4

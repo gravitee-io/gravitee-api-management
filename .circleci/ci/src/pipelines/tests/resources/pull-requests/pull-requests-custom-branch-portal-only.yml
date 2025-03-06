@@ -244,7 +244,7 @@ workflows:
           apim-ui-project: gravitee-apim-portal-webui
           resource_class: large
       - job-portal-webui-build:
-          name: Build APIM Portal and publish image
+          name: Build APIM Portal
           context:
             - cicd-orchestrator
       - job-sonarcloud-analysis:
@@ -268,7 +268,7 @@ workflows:
           requires:
             - Lint & test APIM Portal
             - Lint & test APIM Portal Next
-            - Build APIM Portal and publish image
+            - Build APIM Portal
 orbs:
   keeper: gravitee-io/keeper@0.7.0
   aquasec: gravitee-io/aquasec@1.0.4

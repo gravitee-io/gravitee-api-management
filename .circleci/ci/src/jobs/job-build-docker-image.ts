@@ -16,22 +16,22 @@
 import { commands, Config, parameters, reusable } from '@circleci/circleci-config-sdk';
 import { computeImagesTag, GraviteeioVersion, isBlank, isSupportBranchOrMaster, parse } from '../utils';
 import { CircleCIEnvironment } from '../pipelines';
-import { CreateDockerContextCommand } from './cmd-create-docker-context';
-import { DockerLogoutCommand } from './cmd-docker-logout';
-import { DockerLoginCommand } from './index';
+import { DockerLoginCommand, DockerLogoutCommand, CreateDockerContextCommand } from '../commands';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { orbs } from '../orbs';
 import { config } from '../config';
+import { BaseExecutor } from '../executors';
 
-export class BuildUiImageCommand {
-  private static commandName = 'cmd-build-ui-image';
+export class BuildDockerImageJob {
+  private static jobName = 'job-build-docker-image';
 
   private static customParametersList = new parameters.CustomParametersList([
+    new parameters.CustomParameter('apim-project', 'string', '', 'the name of the project to build'),
+    new parameters.CustomParameter('docker-context', 'string', '', 'the name of context folder for docker build'),
     new parameters.CustomParameter('docker-image-name', 'string', '', 'the name of the image'),
-    new parameters.CustomParameter('apim-ui-project', 'string', '', 'the name of the UI project to build'),
   ]);
 
-  public static get(dynamicConfig: Config, environment: CircleCIEnvironment, isProd: boolean): reusable.ReusableCommand {
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment, isProd: boolean): reusable.ParameterizedJob {
     const createDockerContextCommand = CreateDockerContextCommand.get();
     dynamicConfig.addReusableCommand(createDockerContextCommand);
 
@@ -46,12 +46,15 @@ export class BuildUiImageCommand {
     const dockerTags: string[] = this.dockerTagsArgument(environment, parsedGraviteeioVersion, isProd);
 
     const steps: Command[] = [
+      new commands.Checkout(),
+      new commands.workspace.Attach({ at: '.' }),
+      new commands.SetupRemoteDocker({ version: config.docker.version }),
       new reusable.ReusedCommand(createDockerContextCommand),
       new reusable.ReusedCommand(dockerLoginCommand),
       new commands.Run({
-        name: 'Build UI docker image',
+        name: 'Build docker image for << parameters.apim-project >>',
         command: `${this.dockerBuildCommand(environment, dockerTags, isProd)}`,
-        working_directory: '<< parameters.apim-ui-project >>',
+        working_directory: '<< parameters.apim-project >>',
       }),
     ];
 
@@ -97,7 +100,12 @@ export class BuildUiImageCommand {
 
     steps.push(new reusable.ReusedCommand(dockerLogoutCommand));
 
-    return new reusable.ReusableCommand(BuildUiImageCommand.commandName, steps, BuildUiImageCommand.customParametersList);
+    return new reusable.ParameterizedJob(
+      BuildDockerImageJob.jobName,
+      BaseExecutor.create(),
+      BuildDockerImageJob.customParametersList,
+      steps,
+    );
   }
 
   private static dockerBuildCommand(environment: CircleCIEnvironment, dockerTags: string[], isProd: boolean) {
@@ -108,14 +116,14 @@ export class BuildUiImageCommand {
       command += ' --push';
     }
 
-    command += ` --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \\\n`;
-
     if (isProd) {
       command += ` --quiet`;
     }
 
+    command += ` --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \\\n`;
+
     command += `${dockerTags.map((t) => `-t ${t}`).join(' ')} \\\n`;
-    command += `.`;
+    command += `<< parameters.docker-context >>`;
 
     return command;
   }
