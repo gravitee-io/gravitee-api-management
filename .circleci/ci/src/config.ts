@@ -73,7 +73,7 @@ const executor = {
   },
   sonar: {
     image: 'sonarsource/sonar-scanner-cli',
-    version: '5.0.1',
+    version: '11.2',
   },
   ubuntu: {
     version: '2204',
@@ -104,7 +104,7 @@ const orbs = {
   github: '1.0.5',
   gravitee: 'dev:4.5.0',
   helm: '3.0.0',
-  keeper: '0.6.3',
+  keeper: '0.7.0',
   slack: '4.12.5',
 };
 

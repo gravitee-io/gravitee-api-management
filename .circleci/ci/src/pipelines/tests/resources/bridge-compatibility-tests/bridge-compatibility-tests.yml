@@ -331,5 +331,5 @@ workflows:
                 - graviteeio@4.4
                 - graviteeio@4.4.2
 orbs:
-  keeper: gravitee-io/keeper@0.6.3
+  keeper: gravitee-io/keeper@0.7.0
   slack: circleci/slack@4.12.5
