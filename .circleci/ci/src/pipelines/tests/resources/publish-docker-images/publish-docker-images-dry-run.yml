@@ -367,6 +367,6 @@ workflows:
             - Build APIM Console and publish image
             - Build APIM Portal and publish image
 orbs:
-  keeper: gravitee-io/keeper@0.6.3
+  keeper: gravitee-io/keeper@0.7.0
   slack: circleci/slack@4.12.5
   gh: circleci/github-cli@1.0.5
