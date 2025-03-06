@@ -1167,6 +1167,40 @@
                         </execution>
                     </executions>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>${maven-dependency-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>copy</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>copy</goal>
+                            </goals>
+                            <configuration>
+                                <artifactItems>
+                                    <artifactItem>
+                                        <groupId>org.mongodb</groupId>
+                                        <artifactId>mongodb-crypt</artifactId>
+                                        <version>${mongodb-crypt.version}</version>
+                                        <outputDirectory>
+                                            ${project.build.directory}/distribution/plugins/ext/repository-mongodb
+                                        </outputDirectory>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>net.java.dev.jna</groupId>
+                                        <artifactId>jna</artifactId>
+                                        <version>${jna.version}</version>
+                                        <outputDirectory>
+                                            ${project.build.directory}/distribution/plugins/ext/repository-mongodb
+                                        </outputDirectory>
+                                    </artifactItem>
+                                </artifactItems>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
