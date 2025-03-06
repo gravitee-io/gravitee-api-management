@@ -18,15 +18,15 @@ import { generateBuildRpmAndDockerImagesConfig } from '../pipeline-build-rpm-and
 
 describe('Build RPM & Docker images workflow tests', () => {
   it.each`
-    graviteeioVersion  | isDryRun | dockerTagAsLatest | expectedFileName
-    ${'4.1.0-alpha.1'} | ${true}  | ${false}          | ${'build-rpm-and-docker-images-prerelease-dry-run.yml'}
-    ${'4.1.0-alpha.1'} | ${false} | ${false}          | ${'build-rpm-and-docker-images-prerelease-no-dry-run.yml'}
-    ${'4.1.0'}         | ${true}  | ${false}          | ${'build-rpm-and-docker-images-release-dry-run.yml'}
-    ${'4.1.0'}         | ${false} | ${false}          | ${'build-rpm-and-docker-images-release-no-dry-run.yml'}
-    ${'4.1.0'}         | ${false} | ${true}           | ${'build-rpm-and-docker-images-release-no-dry-run-as-latest.yml'}
+    graviteeioVersion  | isDryRun | dockerTagAsLatest | apimVersionPath                                           | expectedFileName
+    ${'4.2.0-alpha.1'} | ${true}  | ${false}          | ${'./src/pipelines/tests/resources/common/pom-alpha.xml'} | ${'build-rpm-and-docker-images-prerelease-dry-run.yml'}
+    ${'4.2.0-alpha.1'} | ${false} | ${false}          | ${'./src/pipelines/tests/resources/common/pom-alpha.xml'} | ${'build-rpm-and-docker-images-prerelease-no-dry-run.yml'}
+    ${'4.2.0'}         | ${true}  | ${false}          | ${'./src/pipelines/tests/resources/common/pom.xml'}       | ${'build-rpm-and-docker-images-release-dry-run.yml'}
+    ${'4.2.0'}         | ${false} | ${false}          | ${'./src/pipelines/tests/resources/common/pom.xml'}       | ${'build-rpm-and-docker-images-release-no-dry-run.yml'}
+    ${'4.2.0'}         | ${false} | ${true}           | ${'./src/pipelines/tests/resources/common/pom.xml'}       | ${'build-rpm-and-docker-images-release-no-dry-run-as-latest.yml'}
   `(
     'should build RPM & Docker images with $graviteeioVersion and dry run as $isDryRun',
-    ({ graviteeioVersion, isDryRun, dockerTagAsLatest, expectedFileName }) => {
+    ({ graviteeioVersion, isDryRun, dockerTagAsLatest, apimVersionPath, expectedFileName }) => {
       const result = generateBuildRpmAndDockerImagesConfig({
         action: 'build_rpm_&_docker_images',
         baseBranch: 'master',
@@ -38,7 +38,7 @@ describe('Build RPM & Docker images workflow tests', () => {
         graviteeioVersion,
         isDryRun,
         dockerTagAsLatest,
-        apimVersionPath: '',
+        apimVersionPath,
       });
 
       const expected = fs.readFileSync(`./src/pipelines/tests/resources/build-rpm-and-docker-images/${expectedFileName}`, 'utf-8');

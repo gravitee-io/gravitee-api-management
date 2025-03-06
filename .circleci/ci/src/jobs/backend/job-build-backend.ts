@@ -37,9 +37,7 @@ export class BuildBackendJob {
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: jobName }),
       new commands.Run({
         name: 'Build project',
-        command: `mvn -s ${config.maven.settingsFile} clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C -Dbundle=dev -DwithJavadoc
-mkdir -p ./rest-api-docker-context/distribution && cp -r ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./rest-api-docker-context/.
-mkdir -p ./gateway-docker-context/distribution && cp -r ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./gateway-docker-context/.`,
+        command: `mvn -s ${config.maven.settingsFile} clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C -Dbundle=dev -DwithJavadoc`,
         environment: {
           BUILD_ID: environment.buildId,
           BUILD_NUMBER: environment.buildNum,
@@ -57,8 +55,8 @@ mkdir -p ./gateway-docker-context/distribution && cp -r ./gravitee-apim-gateway/
         root: './',
         paths: [
           './gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*',
-          './rest-api-docker-context',
-          './gateway-docker-context',
+          './gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution',
+          './gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution',
         ],
       }),
     ];

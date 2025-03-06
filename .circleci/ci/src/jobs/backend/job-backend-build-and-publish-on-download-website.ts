@@ -24,7 +24,7 @@ import { parse } from '../../utils';
 export class BackendBuildAndPublishOnDownloadWebsiteJob {
   private static jobName = 'job-backend-build-and-publish-on-download-website';
 
-  public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment, publishOnDownloadWebsite: boolean): Job {
     const restoreMavenJobCacheCommand = RestoreMavenJobCacheCommand.get(environment);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCommand);
 
@@ -33,9 +33,6 @@ export class BackendBuildAndPublishOnDownloadWebsiteJob {
 
     const saveMavenJobCacheCommand = SaveMavenJobCacheCommand.get();
     dynamicConfig.addReusableCommand(saveMavenJobCacheCommand);
-
-    const syncFolderToS3Cmd = SyncFolderToS3Command.get(dynamicConfig, parse(environment.graviteeioVersion), environment.isDryRun);
-    dynamicConfig.addReusableCommand(syncFolderToS3Cmd);
 
     const steps: Command[] = [
       new commands.Checkout(),
@@ -57,18 +54,24 @@ sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml`,
         },
       }),
       new reusable.ReusedCommand(saveMavenJobCacheCommand, { jobName: BackendBuildAndPublishOnDownloadWebsiteJob.jobName }),
-      /**
-       * In order to upload repositories, endpoints and entrypoints embedded in APIM mono-repository, we browse for all ZIP files in the project and check if they have a "publish folder path" property in pom.xml.
-       * Because we don't want to publish EVERY plugins (we don't want, apim-services or rest-api-idp-memory for instance), we only rely on this publish-folder-path maven property to determine if a ZIP has to be published or not.
-       * Each plugins is uploaded into a folder based on its name.
-       * Example:
-       *   gravitee-apim-repository-mongodb-x.x.x.zip is published into graviteeio-apim/plugins/repositories/gravitee-apim-repository-mongodb
-       *
-       *
-       */
-      new commands.Run({
-        name: 'Prepare plugin zip to upload',
-        command: `workingDir=$(pwd)
+    ];
+    if (publishOnDownloadWebsite) {
+      const syncFolderToS3Cmd = SyncFolderToS3Command.get(dynamicConfig, parse(environment.graviteeioVersion), environment.isDryRun);
+      dynamicConfig.addReusableCommand(syncFolderToS3Cmd);
+
+      steps.push(
+        /**
+         * In order to upload repositories, endpoints and entrypoints embedded in APIM mono-repository, we browse for all ZIP files in the project and check if they have a "publish folder path" property in pom.xml.
+         * Because we don't want to publish EVERY plugins (we don't want, apim-services or rest-api-idp-memory for instance), we only rely on this publish-folder-path maven property to determine if a ZIP has to be published or not.
+         * Each plugins is uploaded into a folder based on its name.
+         * Example:
+         *   gravitee-apim-repository-mongodb-x.x.x.zip is published into graviteeio-apim/plugins/repositories/gravitee-apim-repository-mongodb
+         *
+         *
+         */
+        new commands.Run({
+          name: 'Prepare plugin zip to upload',
+          command: `workingDir=$(pwd)
 for pathToArtefactFile in $(find . -path '*target/gravitee-apim*.zip'); do
   # Extract folder of the artefact to publish
   # e.g. ./gravitee-apim-repository/gravitee-apim-repository-mongodb/target/gravitee-apim-repository-mongodb-4.4.21.zip => ./gravitee-apim-repository/gravitee-apim-repository-mongodb
@@ -102,22 +105,25 @@ for pathToArtefactFile in $(find . -path '*target/gravitee-apim*.zip'); do
     cd $workingDir
   fi
 done`,
-      }),
-      BackendBuildAndPublishOnDownloadWebsiteJob.buildSyncCommand(
-        'management-api',
-        `gravitee-apim-rest-api-${environment.graviteeioVersion}.zip`,
-        './gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target',
-        config.components.managementApi.publishFolderPath,
-      ),
-      BackendBuildAndPublishOnDownloadWebsiteJob.buildSyncCommand(
-        'gateway',
-        `gravitee-apim-gateway-${environment.graviteeioVersion}.zip`,
-        './gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/gravitee-apim-gateway-standalone-distribution-zip/target',
-        config.components.gateway.publishFolderPath,
-      ),
-      new reusable.ReusedCommand(syncFolderToS3Cmd, {
-        'folder-to-sync': 'folder_to_sync',
-      }),
+        }),
+        BackendBuildAndPublishOnDownloadWebsiteJob.buildSyncCommand(
+          'management-api',
+          `gravitee-apim-rest-api-${environment.graviteeioVersion}.zip`,
+          './gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target',
+          config.components.managementApi.publishFolderPath,
+        ),
+        BackendBuildAndPublishOnDownloadWebsiteJob.buildSyncCommand(
+          'gateway',
+          `gravitee-apim-gateway-${environment.graviteeioVersion}.zip`,
+          './gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/gravitee-apim-gateway-standalone-distribution-zip/target',
+          config.components.gateway.publishFolderPath,
+        ),
+        new reusable.ReusedCommand(syncFolderToS3Cmd, {
+          'folder-to-sync': 'folder_to_sync',
+        }),
+      );
+    }
+    steps.push(
       new commands.workspace.Persist({
         root: '.',
         paths: [
@@ -125,7 +131,7 @@ done`,
           './gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution',
         ],
       }),
-    ];
+    );
     return new Job(BackendBuildAndPublishOnDownloadWebsiteJob.jobName, OpenJdkExecutor.create('large'), steps);
   }
 

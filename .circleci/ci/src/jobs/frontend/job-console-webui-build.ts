@@ -16,13 +16,7 @@
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { NodeLtsExecutor } from '../../executors';
-import {
-  BuildUiImageCommand,
-  InstallYarnCommand,
-  NotifyOnFailureCommand,
-  WebuiInstallCommand,
-  WebuiPublishOnDownloadWebsiteCommand,
-} from '../../commands';
+import { InstallYarnCommand, NotifyOnFailureCommand, WebuiInstallCommand, WebuiPublishOnDownloadWebsiteCommand } from '../../commands';
 import { CircleCIEnvironment } from '../../pipelines';
 import { computeApimVersion } from '../../utils';
 import { config } from '../../config';
@@ -30,13 +24,7 @@ import { config } from '../../config';
 export class ConsoleWebuiBuildJob {
   private static jobName = 'job-console-webui-build';
 
-  public static create(
-    dynamicConfig: Config,
-    environment: CircleCIEnvironment,
-    buildDockerImage: boolean,
-    publishOnDownloadWebsite: boolean,
-    isProd: boolean,
-  ): Job {
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment, publishOnDownloadWebsite: boolean): Job {
     const installYarnCmd = InstallYarnCommand.get();
     dynamicConfig.addReusableCommand(installYarnCmd);
 
@@ -67,17 +55,6 @@ export class ConsoleWebuiBuildJob {
         working_directory: `${config.components.console.project}`,
       }),
     ];
-    if (buildDockerImage) {
-      const buildUiImageCommand = BuildUiImageCommand.get(dynamicConfig, environment, isProd);
-      dynamicConfig.addReusableCommand(buildUiImageCommand);
-
-      steps.push(
-        new reusable.ReusedCommand(buildUiImageCommand, {
-          'docker-image-name': `${config.components.console.image}`,
-          'apim-ui-project': `${config.components.console.project}`,
-        }),
-      );
-    }
 
     if (publishOnDownloadWebsite) {
       const webuiPublishDownloadWebsiteCommand = WebuiPublishOnDownloadWebsiteCommand.get(

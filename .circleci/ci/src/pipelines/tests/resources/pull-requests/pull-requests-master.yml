@@ -115,53 +115,6 @@ commands:
           name: Logout from Azure Container Registry
           command: docker logout graviteeio.azurecr.io
     description: Logout from Azure Container Registry
-  cmd-build-ui-image:
-    parameters:
-      docker-image-name:
-        type: string
-        default: ""
-        description: the name of the image
-      apim-ui-project:
-        type: string
-        default: ""
-        description: the name of the UI project to build
-    steps:
-      - cmd-create-docker-context
-      - cmd-docker-login
-      - run:
-          name: Build UI docker image
-          command: |-
-            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
-            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest \
-            .
-          working_directory: << parameters.apim-ui-project >>
-      - keeper/env-export:
-          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
-          var-name: AQUA_KEY
-      - keeper/env-export:
-          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/Secret
-          var-name: AQUA_SECRET
-      - keeper/env-export:
-          secret-url: keeper://LYg-wdlM5UDzSqFFH6Kyig/field/login
-          var-name: AQUA_USERNAME
-      - keeper/env-export:
-          secret-url: keeper://LYg-wdlM5UDzSqFFH6Kyig/field/password
-          var-name: AQUA_PASSWORD
-      - keeper/env-export:
-          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/ScannerToken
-          var-name: SCANNER_TOKEN
-      - keeper/env-export:
-          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-          var-name: GITHUB_TOKEN
-      - aquasec/install_billy
-      - aquasec/pull_aqua_scanner_image
-      - aquasec/register_artifact:
-          artifact_to_register: graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest
-          debug: true
-      - aquasec/scan_docker_image:
-          docker_image_to_scan: graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest
-          scanner_url: https://82fb8f75da.cloud.aquasec.com
-      - cmd-docker-logout
 jobs:
   job-test-apim-charts:
     parameters:
@@ -242,10 +195,7 @@ jobs:
           jobName: job-build
       - run:
           name: Build project
-          command: |-
-            mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C -Dbundle=dev -DwithJavadoc
-            mkdir -p ./rest-api-docker-context/distribution && cp -r ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./rest-api-docker-context/.
-            mkdir -p ./gateway-docker-context/distribution && cp -r ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./gateway-docker-context/.
+          command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C -Dbundle=dev -DwithJavadoc
           environment:
             BUILD_ID: "1234"
             BUILD_NUMBER: "1234"
@@ -262,8 +212,8 @@ jobs:
           root: ./
           paths:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
-            - ./rest-api-docker-context
-            - ./gateway-docker-context
+            - ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution
+            - ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
   job-test-definition:
     docker:
       - image: cimg/openjdk:21.0.5
@@ -571,9 +521,6 @@ jobs:
           environment:
             NODE_OPTIONS: --max_old_space_size=4086
           working_directory: gravitee-apim-console-webui
-      - cmd-build-ui-image:
-          docker-image-name: apim-management-ui
-          apim-ui-project: gravitee-apim-console-webui
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
@@ -651,6 +598,65 @@ jobs:
 
             gh pr edit --body "$CLEAN_BODY$PR_BODY_STORYBOOK_SECTION"
       - cmd-notify-on-failure
+  job-build-docker-image:
+    parameters:
+      apim-project:
+        type: string
+        default: ""
+        description: the name of the project to build
+      docker-context:
+        type: string
+        default: ""
+        description: the name of context folder for docker build
+      docker-image-name:
+        type: string
+        default: ""
+        description: the name of the image
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-create-docker-context
+      - cmd-docker-login
+      - run:
+          name: Build docker image for << parameters.apim-project >>
+          command: |-
+            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest \
+            << parameters.docker-context >>
+          working_directory: << parameters.apim-project >>
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
+          var-name: AQUA_KEY
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/Secret
+          var-name: AQUA_SECRET
+      - keeper/env-export:
+          secret-url: keeper://LYg-wdlM5UDzSqFFH6Kyig/field/login
+          var-name: AQUA_USERNAME
+      - keeper/env-export:
+          secret-url: keeper://LYg-wdlM5UDzSqFFH6Kyig/field/password
+          var-name: AQUA_PASSWORD
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/ScannerToken
+          var-name: SCANNER_TOKEN
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: GITHUB_TOKEN
+      - aquasec/install_billy
+      - aquasec/pull_aqua_scanner_image
+      - aquasec/register_artifact:
+          artifact_to_register: graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest
+          debug: true
+      - aquasec/scan_docker_image:
+          docker_image_to_scan: graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest
+          scanner_url: https://82fb8f75da.cloud.aquasec.com
+      - cmd-docker-logout
   job-portal-webui-build:
     docker:
       - image: cimg/node:20.11.1
@@ -684,69 +690,11 @@ jobs:
           environment:
             NODE_OPTIONS: --max_old_space_size=4086
           working_directory: gravitee-apim-portal-webui-next
-      - cmd-build-ui-image:
-          docker-image-name: apim-portal-ui
-          apim-ui-project: gravitee-apim-portal-webui
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
           paths:
             - gravitee-apim-portal-webui/dist
-  job-build-images:
-    docker:
-      - image: cimg/openjdk:21.0.5
-    resource_class: medium
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - setup_remote_docker:
-          version: default
-      - cmd-create-docker-context
-      - cmd-docker-login
-      - run:
-          name: Build rest api and gateway docker images
-          command: |-
-            docker buildx build --push --platform=linux/arm64,linux/amd64 -f gravitee-apim-rest-api/docker/Dockerfile \
-            -t graviteeio.azurecr.io/apim-management-api:master-latest \
-            rest-api-docker-context
-
-            docker buildx build --push --platform=linux/arm64,linux/amd64 -f gravitee-apim-gateway/docker/Dockerfile \
-            -t graviteeio.azurecr.io/apim-gateway:master-latest \
-            gateway-docker-context
-      - keeper/env-export:
-          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
-          var-name: AQUA_KEY
-      - keeper/env-export:
-          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/Secret
-          var-name: AQUA_SECRET
-      - keeper/env-export:
-          secret-url: keeper://LYg-wdlM5UDzSqFFH6Kyig/field/login
-          var-name: AQUA_USERNAME
-      - keeper/env-export:
-          secret-url: keeper://LYg-wdlM5UDzSqFFH6Kyig/field/password
-          var-name: AQUA_PASSWORD
-      - keeper/env-export:
-          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/ScannerToken
-          var-name: SCANNER_TOKEN
-      - keeper/env-export:
-          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-          var-name: GITHUB_TOKEN
-      - aquasec/install_billy
-      - aquasec/pull_aqua_scanner_image
-      - aquasec/register_artifact:
-          artifact_to_register: graviteeio.azurecr.io/apim-management-api:master-latest
-          debug: true
-      - aquasec/register_artifact:
-          artifact_to_register: graviteeio.azurecr.io/apim-gateway:master-latest
-          debug: true
-      - aquasec/scan_docker_image:
-          docker_image_to_scan: graviteeio.azurecr.io/apim-management-api:master-latest
-          scanner_url: https://82fb8f75da.cloud.aquasec.com
-      - aquasec/scan_docker_image:
-          docker_image_to_scan: graviteeio.azurecr.io/apim-gateway:master-latest
-          scanner_url: https://82fb8f75da.cloud.aquasec.com
-      - cmd-docker-logout
   job-e2e-generate-sdk:
     docker:
       - image: cimg/openjdk:21.0.5-node
@@ -1186,9 +1134,18 @@ workflows:
           apim-ui-project: gravitee-apim-console-webui
           resource_class: xlarge
       - job-console-webui-build:
-          name: Build APIM Console and publish image
+          name: Build APIM Console
           context:
             - cicd-orchestrator
+      - job-build-docker-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Console docker image
+          requires:
+            - Build APIM Console
+          apim-project: gravitee-apim-console-webui
+          docker-context: .
+          docker-image-name: apim-management-ui
       - job-console-webui-build-storybook:
           name: Build Console Storybook
           context:
@@ -1219,9 +1176,18 @@ workflows:
           apim-ui-project: gravitee-apim-portal-webui
           resource_class: large
       - job-portal-webui-build:
-          name: Build APIM Portal and publish image
+          name: Build APIM Portal
           context:
             - cicd-orchestrator
+      - job-build-docker-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Portal docker image
+          requires:
+            - Build APIM Portal
+          apim-project: gravitee-apim-portal-webui
+          docker-context: .
+          docker-image-name: apim-portal-ui
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-portal-webui
           context:
@@ -1238,12 +1204,24 @@ workflows:
             - Lint & test APIM Portal Next
           working_directory: gravitee-apim-portal-webui-next
           cache_type: frontend
-      - job-build-images:
-          name: Build and push rest api and gateway images
+      - job-build-docker-image:
           context:
             - cicd-orchestrator
+          name: Build APIM Management API docker image
           requires:
             - Build backend
+          apim-project: gravitee-apim-rest-api
+          docker-context: gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
+          docker-image-name: apim-management-api
+      - job-build-docker-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Gateway docker image
+          requires:
+            - Build backend
+          apim-project: gravitee-apim-gateway
+          docker-context: gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
+          docker-image-name: apim-gateway
       - job-e2e-generate-sdk:
           context:
             - cicd-orchestrator
@@ -1268,7 +1246,8 @@ workflows:
           name: E2E - << matrix.execution_mode >> - << matrix.database >>
           requires:
             - Lint & Build APIM e2e
-            - Build and push rest api and gateway images
+            - Build APIM Management API docker image
+            - Build APIM Gateway docker image
           matrix:
             parameters:
               execution_mode:
@@ -1284,9 +1263,10 @@ workflows:
           name: Run Cypress UI tests
           requires:
             - Lint & Build APIM e2e
-            - Build and push rest api and gateway images
-            - Build APIM Console and publish image
-            - Build APIM Portal and publish image
+            - Build APIM Management API docker image
+            - Build APIM Gateway docker image
+            - Build APIM Console docker image
+            - Build APIM Portal docker image
       - job-community-build:
           name: Check build as Community user
           context:
@@ -1297,9 +1277,10 @@ workflows:
             - keeper-orb-publishing
           name: Trigger SaaS Docker images creation
           requires:
-            - Build and push rest api and gateway images
-            - Build APIM Console and publish image
-            - Build APIM Portal and publish image
+            - Build APIM Management API docker image
+            - Build APIM Gateway docker image
+            - Build APIM Console docker image
+            - Build APIM Portal docker image
       - job-release-helm:
           name: Publish Helm chart (internal repo)
           context:
@@ -1336,9 +1317,10 @@ workflows:
             - Test plugins
             - Test repository
             - Test rest-api
-            - Build and push rest api and gateway images
-            - Build APIM Console and publish image
-            - Build APIM Portal and publish image
+            - Build APIM Management API docker image
+            - Build APIM Gateway docker image
+            - Build APIM Console docker image
+            - Build APIM Portal docker image
 orbs:
   keeper: gravitee-io/keeper@0.6.3
   aquasec: gravitee-io/aquasec@1.0.4

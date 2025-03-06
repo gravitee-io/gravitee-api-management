@@ -65,31 +65,6 @@ commands:
           branch_pattern: master,[0-9]+\.[0-9]+\.x
           event: fail
           template: basic_fail_1
-  cmd-create-docker-context:
-    steps:
-      - run:
-          name: Create docker context for buildx
-          command: |-
-            docker context create tls-env
-            docker buildx create tls-env --use
-  cmd-docker-login:
-    steps:
-      - keeper/env-export:
-          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
-          var-name: DOCKER_REGISTRY_USERNAME
-      - keeper/env-export:
-          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
-          var-name: DOCKER_REGISTRY_PASSWORD
-      - run:
-          name: Login to Azure Container Registry
-          command: echo $DOCKER_REGISTRY_PASSWORD | docker login --username $DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
-    description: Login to Azure Container Registry
-  cmd-docker-logout:
-    steps:
-      - run:
-          name: Logout from Azure Container Registry
-          command: docker logout graviteeio.azurecr.io
-    description: Logout from Azure Container Registry
   cmd-install-yarn:
     steps:
       - run:
@@ -116,27 +91,31 @@ commands:
           key: << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
           paths:
             - ./<< parameters.apim-ui-project >>/node_modules
-  cmd-build-ui-image:
-    parameters:
-      docker-image-name:
-        type: string
-        default: ""
-        description: the name of the image
-      apim-ui-project:
-        type: string
-        default: ""
-        description: the name of the UI project to build
+  cmd-create-docker-context:
     steps:
-      - cmd-create-docker-context
-      - cmd-docker-login
       - run:
-          name: Build UI docker image
+          name: Create docker context for buildx
           command: |-
-            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
-            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-xxx-test-latest \
-            .
-          working_directory: << parameters.apim-ui-project >>
-      - cmd-docker-logout
+            docker context create tls-env
+            docker buildx create tls-env --use
+  cmd-docker-login:
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
+          var-name: DOCKER_REGISTRY_USERNAME
+      - keeper/env-export:
+          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
+          var-name: DOCKER_REGISTRY_PASSWORD
+      - run:
+          name: Login to Azure Container Registry
+          command: echo $DOCKER_REGISTRY_PASSWORD | docker login --username $DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
+    description: Login to Azure Container Registry
+  cmd-docker-logout:
+    steps:
+      - run:
+          name: Logout from Azure Container Registry
+          command: docker logout graviteeio.azurecr.io
+    description: Logout from Azure Container Registry
 jobs:
   job-setup:
     docker:
@@ -165,10 +144,7 @@ jobs:
           jobName: job-build
       - run:
           name: Build project
-          command: |-
-            mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C -Dbundle=dev -DwithJavadoc
-            mkdir -p ./rest-api-docker-context/distribution && cp -r ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./rest-api-docker-context/.
-            mkdir -p ./gateway-docker-context/distribution && cp -r ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./gateway-docker-context/.
+          command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C -Dbundle=dev -DwithJavadoc
           environment:
             BUILD_ID: "1234"
             BUILD_NUMBER: "1234"
@@ -185,31 +161,8 @@ jobs:
           root: ./
           paths:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
-            - ./rest-api-docker-context
-            - ./gateway-docker-context
-  job-build-images:
-    docker:
-      - image: cimg/openjdk:21.0.5
-    resource_class: medium
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - setup_remote_docker:
-          version: default
-      - cmd-create-docker-context
-      - cmd-docker-login
-      - run:
-          name: Build rest api and gateway docker images
-          command: |-
-            docker buildx build --push --platform=linux/arm64,linux/amd64 -f gravitee-apim-rest-api/docker/Dockerfile \
-            -t graviteeio.azurecr.io/apim-management-api:apim-xxx-test-latest \
-            rest-api-docker-context
-
-            docker buildx build --push --platform=linux/arm64,linux/amd64 -f gravitee-apim-gateway/docker/Dockerfile \
-            -t graviteeio.azurecr.io/apim-gateway:apim-xxx-test-latest \
-            gateway-docker-context
-      - cmd-docker-logout
+            - ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution
+            - ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
   job-console-webui-build:
     docker:
       - image: cimg/node:20.11.1
@@ -232,9 +185,6 @@ jobs:
           environment:
             NODE_OPTIONS: --max_old_space_size=4086
           working_directory: gravitee-apim-console-webui
-      - cmd-build-ui-image:
-          docker-image-name: apim-management-ui
-          apim-ui-project: gravitee-apim-console-webui
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
@@ -273,14 +223,44 @@ jobs:
           environment:
             NODE_OPTIONS: --max_old_space_size=4086
           working_directory: gravitee-apim-portal-webui-next
-      - cmd-build-ui-image:
-          docker-image-name: apim-portal-ui
-          apim-ui-project: gravitee-apim-portal-webui
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
           paths:
             - gravitee-apim-portal-webui/dist
+  job-build-docker-image:
+    parameters:
+      apim-project:
+        type: string
+        default: ""
+        description: the name of the project to build
+      docker-context:
+        type: string
+        default: ""
+        description: the name of context folder for docker build
+      docker-image-name:
+        type: string
+        default: ""
+        description: the name of the image
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-create-docker-context
+      - cmd-docker-login
+      - run:
+          name: Build docker image for << parameters.apim-project >>
+          command: |-
+            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-xxx-test-latest \
+            << parameters.docker-context >>
+          working_directory: << parameters.apim-project >>
+      - cmd-docker-logout
   job-e2e-generate-sdk:
     docker:
       - image: cimg/openjdk:21.0.5-node
@@ -428,12 +408,24 @@ workflows:
           requires:
             - Setup
           name: Build backend
-      - job-build-images:
+      - job-build-docker-image:
           context:
             - cicd-orchestrator
+          name: Build APIM Management API docker image
           requires:
             - Build backend
-          name: Build and push rest api and gateway images
+          apim-project: gravitee-apim-rest-api
+          docker-context: gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
+          docker-image-name: apim-management-api
+      - job-build-docker-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Gateway docker image
+          requires:
+            - Build backend
+          apim-project: gravitee-apim-gateway
+          docker-context: gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
+          docker-image-name: apim-gateway
       - job-e2e-generate-sdk:
           context:
             - cicd-orchestrator
@@ -451,20 +443,39 @@ workflows:
             - cicd-orchestrator
           requires:
             - Setup
-          name: Build APIM Console and publish image
+          name: Build APIM Console
+      - job-build-docker-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Console docker image
+          requires:
+            - Build APIM Console
+          apim-project: gravitee-apim-console-webui
+          docker-context: .
+          docker-image-name: apim-management-ui
       - job-portal-webui-build:
           context:
             - cicd-orchestrator
           requires:
             - Setup
-          name: Build APIM Portal and publish image
+          name: Build APIM Portal
+      - job-build-docker-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Portal docker image
+          requires:
+            - Build APIM Portal
+          apim-project: gravitee-apim-portal-webui
+          docker-context: .
+          docker-image-name: apim-portal-ui
       - job-e2e-test:
           context:
             - cicd-orchestrator
           name: E2E - << matrix.execution_mode >> - << matrix.database >>
           requires:
             - Lint & Build APIM e2e
-            - Build and push rest api and gateway images
+            - Build APIM Management API docker image
+            - Build APIM Gateway docker image
           matrix:
             parameters:
               execution_mode:
@@ -480,9 +491,10 @@ workflows:
           name: Run Cypress UI tests
           requires:
             - Lint & Build APIM e2e
-            - Build and push rest api and gateway images
-            - Build APIM Console and publish image
-            - Build APIM Portal and publish image
+            - Build APIM Management API docker image
+            - Build APIM Gateway docker image
+            - Build APIM Console docker image
+            - Build APIM Portal docker image
 orbs:
   keeper: gravitee-io/keeper@0.6.3
   slack: circleci/slack@4.12.5

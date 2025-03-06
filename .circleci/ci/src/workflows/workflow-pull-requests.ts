@@ -20,7 +20,6 @@ import { isE2EBranch, isSupportBranchOrMaster } from '../utils';
 import { config } from '../config';
 import { BaseExecutor } from '../executors';
 import {
-  BuildBackendImagesJob,
   BuildBackendJob,
   ChromaticConsoleJob,
   CommunityBuildBackendJob,
@@ -48,6 +47,7 @@ import {
   PortalWebuiBuildJob,
   WebuiLintTestJob,
   TriggerSaasDockerImagesJob,
+  BuildDockerImageJob,
 } from '../jobs';
 import { orbs } from '../orbs';
 
@@ -283,7 +283,7 @@ export class PullRequestsWorkflow {
       const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig);
       dynamicConfig.addJob(webuiLintTestJob);
 
-      const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, shouldBuildDockerImages, false, false);
+      const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, false);
       dynamicConfig.addJob(consoleWebuiBuildJob);
 
       const storybookConsoleJob = StorybookConsoleJob.create(dynamicConfig);
@@ -303,10 +303,30 @@ export class PullRequestsWorkflow {
           resource_class: 'xlarge',
         }),
         new workflow.WorkflowJob(consoleWebuiBuildJob, {
-          name: 'Build APIM Console and publish image',
+          name: 'Build APIM Console',
           context: config.jobContext,
         }),
+      );
+      requires.push('Lint & test APIM Console', 'Build APIM Console');
 
+      if (shouldBuildDockerImages) {
+        const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, false);
+        dynamicConfig.addJob(buildDockerImageJob);
+
+        jobs.push(
+          new workflow.WorkflowJob(buildDockerImageJob, {
+            context: config.jobContext,
+            name: `Build APIM Console docker image`,
+            requires: ['Build APIM Console'],
+            'apim-project': config.components.console.project,
+            'docker-context': '.',
+            'docker-image-name': config.components.console.image,
+          }),
+        );
+        requires.push('Build APIM Console docker image');
+      }
+
+      jobs.push(
         new workflow.WorkflowJob(storybookConsoleJob, {
           name: 'Build Console Storybook',
           context: config.jobContext,
@@ -324,15 +344,13 @@ export class PullRequestsWorkflow {
           cache_type: 'frontend',
         }),
       );
-
-      requires.push('Lint & test APIM Console', 'Build APIM Console and publish image');
     }
 
     if (!filterJobs || shouldBuildPortal(environment.changedFiles)) {
       const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig);
       dynamicConfig.addJob(webuiLintTestJob);
 
-      const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, shouldBuildDockerImages, false, false);
+      const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, false);
       dynamicConfig.addJob(portalWebuiBuildJob);
 
       const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
@@ -351,9 +369,30 @@ export class PullRequestsWorkflow {
           resource_class: 'large',
         }),
         new workflow.WorkflowJob(portalWebuiBuildJob, {
-          name: 'Build APIM Portal and publish image',
+          name: 'Build APIM Portal',
           context: config.jobContext,
         }),
+      );
+      requires.push('Lint & test APIM Portal', 'Lint & test APIM Portal Next', 'Build APIM Portal');
+
+      if (shouldBuildDockerImages) {
+        const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, false);
+        dynamicConfig.addJob(buildDockerImageJob);
+
+        jobs.push(
+          new workflow.WorkflowJob(buildDockerImageJob, {
+            context: config.jobContext,
+            name: `Build APIM Portal docker image`,
+            requires: ['Build APIM Portal'],
+            'apim-project': config.components.portal.project,
+            'docker-context': '.',
+            'docker-image-name': config.components.portal.image,
+          }),
+        );
+        requires.push('Build APIM Portal docker image');
+      }
+
+      jobs.push(
         new workflow.WorkflowJob(sonarCloudAnalysisJob, {
           name: 'Sonar - gravitee-apim-portal-webui',
           context: config.jobContext,
@@ -369,8 +408,6 @@ export class PullRequestsWorkflow {
           cache_type: 'frontend',
         }),
       );
-
-      requires.push('Lint & test APIM Portal', 'Lint & test APIM Portal Next', 'Build APIM Portal and publish image');
     }
 
     // compute check-workflow job
@@ -389,8 +426,8 @@ export class PullRequestsWorkflow {
   }
 
   private static getE2EJobs(dynamicConfig: Config, environment: CircleCIEnvironment): workflow.WorkflowJob[] {
-    const buildImagesJob = BuildBackendImagesJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(buildImagesJob);
+    const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, false);
+    dynamicConfig.addJob(buildDockerImageJob);
 
     const e2eGenerateSdkJob = E2EGenerateSDKJob.create(dynamicConfig);
     dynamicConfig.addJob(e2eGenerateSdkJob);
@@ -408,11 +445,23 @@ export class PullRequestsWorkflow {
     dynamicConfig.addJob(perfLintBuildJob);
 
     return [
-      new workflow.WorkflowJob(buildImagesJob, {
-        name: 'Build and push rest api and gateway images',
+      new workflow.WorkflowJob(buildDockerImageJob, {
         context: config.jobContext,
+        name: `Build APIM Management API docker image`,
         requires: ['Build backend'],
+        'apim-project': config.components.managementApi.project,
+        'docker-context': 'gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target',
+        'docker-image-name': config.components.managementApi.image,
       }),
+      new workflow.WorkflowJob(buildDockerImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Gateway docker image`,
+        requires: ['Build backend'],
+        'apim-project': config.components.gateway.project,
+        'docker-context': 'gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target',
+        'docker-image-name': config.components.gateway.image,
+      }),
+
       new workflow.WorkflowJob(e2eGenerateSdkJob, {
         context: config.jobContext,
         name: 'Generate e2e tests SDK',
@@ -431,7 +480,7 @@ export class PullRequestsWorkflow {
       new workflow.WorkflowJob(e2eTestJob, {
         context: config.jobContext,
         name: 'E2E - << matrix.execution_mode >> - << matrix.database >>',
-        requires: ['Lint & Build APIM e2e', 'Build and push rest api and gateway images'],
+        requires: ['Lint & Build APIM e2e', 'Build APIM Management API docker image', 'Build APIM Gateway docker image'],
         matrix: {
           execution_mode: ['v3', 'v4-emulation-engine'],
           database: ['mongo', 'jdbc', 'bridge'],
@@ -442,9 +491,10 @@ export class PullRequestsWorkflow {
         name: 'Run Cypress UI tests',
         requires: [
           'Lint & Build APIM e2e',
-          'Build and push rest api and gateway images',
-          'Build APIM Console and publish image',
-          'Build APIM Portal and publish image',
+          'Build APIM Management API docker image',
+          'Build APIM Gateway docker image',
+          'Build APIM Console docker image',
+          'Build APIM Portal docker image',
         ],
       }),
     ];
@@ -482,9 +532,10 @@ export class PullRequestsWorkflow {
         context: [...config.jobContext, 'keeper-orb-publishing'],
         name: 'Trigger SaaS Docker images creation',
         requires: [
-          'Build and push rest api and gateway images',
-          'Build APIM Console and publish image',
-          'Build APIM Portal and publish image',
+          'Build APIM Management API docker image',
+          'Build APIM Gateway docker image',
+          'Build APIM Console docker image',
+          'Build APIM Portal docker image',
         ],
       }),
       new workflow.WorkflowJob(releaseHelmDryRunJob, {
@@ -511,9 +562,10 @@ export class PullRequestsWorkflow {
           'Test plugins',
           'Test repository',
           'Test rest-api',
-          'Build and push rest api and gateway images',
-          'Build APIM Console and publish image',
-          'Build APIM Portal and publish image',
+          'Build APIM Management API docker image',
+          'Build APIM Gateway docker image',
+          'Build APIM Console docker image',
+          'Build APIM Portal docker image',
         ],
       }),
     ];

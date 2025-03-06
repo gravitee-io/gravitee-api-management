@@ -26,6 +26,82 @@ parameters:
     default: /home/circleci/project/pom.xml
     description: Path to pom.xml with APIM version
 commands:
+  cmd-install-yarn:
+    steps:
+      - run:
+          name: Yarn Set Version Stable
+          command: yarn set version 4.1.1
+  cmd-webui-install:
+    parameters:
+      apim-ui-project:
+        type: string
+        default: ""
+        description: the name of the UI project to build
+    steps:
+      - restore_cache:
+          name: Restore Yarn cache
+          keys:
+            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
+            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}
+      - run:
+          name: Install dependencies
+          command: yarn
+          working_directory: << parameters.apim-ui-project >>
+      - save_cache:
+          name: Save Yarn cache
+          key: << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
+          paths:
+            - ./<< parameters.apim-ui-project >>/node_modules
+  cmd-notify-on-failure:
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+          var-name: SLACK_ACCESS_TOKEN
+      - slack/notify:
+          channel: C02JENTV2AX
+          branch_pattern: master,[0-9]+\.[0-9]+\.x
+          event: fail
+          template: basic_fail_1
+  cmd-restore-maven-job-cache:
+    parameters:
+      jobName:
+        type: string
+        default: ""
+        description: The job name
+    steps:
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v11-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - gravitee-api-management-v11-<< parameters.jobName >>-{{ .Branch }}
+    description: Restore Maven cache for a dedicated job
+  cmd-prepare-gpg:
+    steps:
+      - keeper/install
+      - run:
+          command: |-
+            ksm secret notation keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/armor_format_pub_key > pub.key
+            gpg --import pub.key
+
+            ksm secret notation keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/armor_format_private_key > private.key
+            # Need --batch to be able to import private key
+            gpg --import --batch private.key
+    description: Prepare GPG command
+  cmd-save-maven-job-cache:
+    parameters:
+      jobName:
+        type: string
+        default: ""
+        description: The job name
+    steps:
+      - run:
+          name: Exclude all APIM artefacts from cache.
+          command: rm -rf ~/.m2/repository/io/gravitee/apim
+      - save_cache:
+          key: gravitee-api-management-v11-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+          paths:
+            - ~/.m2
+          when: always
+    description: Save Maven cache for a dedicated job
   cmd-create-docker-context:
     steps:
       - run:
@@ -33,31 +109,167 @@ commands:
           command: |-
             docker context create tls-env
             docker buildx create tls-env --use
+  cmd-docker-login:
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://cooU9UoXIk8Kj0hsP2rkBw/field/login
+          var-name: DOCKER_REGISTRY_USERNAME
+      - keeper/env-export:
+          secret-url: keeper://cooU9UoXIk8Kj0hsP2rkBw/field/password
+          var-name: DOCKER_REGISTRY_PASSWORD
+      - run:
+          name: Login to Docker Hub
+          command: "echo $DOCKER_REGISTRY_PASSWORD | docker login --username $DOCKER_REGISTRY_USERNAME --password-stdin "
+    description: Login to Docker Hub
+  cmd-docker-logout:
+    steps:
+      - run:
+          name: Logout from Docker Hub
+          command: docker logout
+    description: Logout from Docker Hub
 jobs:
-  job-publish-prod-docker-images:
+  job-setup:
+    docker:
+      - image: cimg/base:stable
+    resource_class: small
+    steps:
+      - checkout
+      - keeper/env-export:
+          secret-url: keeper://7CgijuGiFDSLynRJt1Dm9w/custom_field/xml
+          var-name: MAVEN_SETTINGS
+      - run:
+          command: "echo $MAVEN_SETTINGS > .gravitee.settings.xml "
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .gravitee.settings.xml
+  job-console-webui-build:
+    docker:
+      - image: cimg/node:20.11.1
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-install-yarn
+      - cmd-webui-install:
+          apim-ui-project: gravitee-apim-console-webui
+      - run:
+          name: Update Build version
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-console-webui/build.json"
+      - run:
+          name: Build
+          command: yarn build:prod
+          environment:
+            NODE_OPTIONS: --max_old_space_size=4086
+          working_directory: gravitee-apim-console-webui
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-console-webui/dist
+  job-portal-webui-build:
+    docker:
+      - image: cimg/node:20.11.1
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-install-yarn
+      - cmd-webui-install:
+          apim-ui-project: gravitee-apim-portal-webui
+      - run:
+          name: Update Build version
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui/build.json"
+      - run:
+          name: Build
+          command: yarn build:prod
+          environment:
+            NODE_OPTIONS: --max_old_space_size=4086
+          working_directory: gravitee-apim-portal-webui
+      - cmd-webui-install:
+          apim-ui-project: gravitee-apim-portal-webui-next
+      - run:
+          name: Update Build version
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui-next/build.json"
+      - run:
+          name: Build
+          command: yarn build:prod
+          environment:
+            NODE_OPTIONS: --max_old_space_size=4086
+          working_directory: gravitee-apim-portal-webui-next
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-portal-webui/dist
+  job-backend-build-and-publish-on-download-website:
+    docker:
+      - image: cimg/openjdk:21.0.5
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-backend-build-and-publish-on-download-website
+      - run:
+          name: Remove `-SNAPSHOT` from versions
+          command: |-
+            mvn -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
+            sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
+      - cmd-prepare-gpg
+      - run:
+          name: Maven build APIM backend
+          command: mvn --settings .gravitee.settings.xml -B -U -P all-modules,gio-release,bundle-default clean verify -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress
+          environment:
+            BUILD_ID: "1234"
+            BUILD_NUMBER: "1234"
+            GIT_COMMIT: 784ff35ca
+      - cmd-save-maven-job-cache:
+          jobName: job-backend-build-and-publish-on-download-website
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution
+            - ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
+  job-build-docker-image:
+    parameters:
+      apim-project:
+        type: string
+        default: ""
+        description: the name of the project to build
+      docker-context:
+        type: string
+        default: ""
+        description: the name of context folder for docker build
+      docker-image-name:
+        type: string
+        default: ""
+        description: the name of the image
     docker:
       - image: cimg/base:stable
     resource_class: medium
     steps:
+      - checkout
+      - attach_workspace:
+          at: .
       - setup_remote_docker:
           version: default
-      - checkout
-      - keeper/env-export:
-          secret-url: keeper://cooU9UoXIk8Kj0hsP2rkBw/field/login
-          var-name: DOCKERHUB_BOT_USER_NAME
-      - keeper/env-export:
-          secret-url: keeper://cooU9UoXIk8Kj0hsP2rkBw/field/password
-          var-name: DOCKERHUB_BOT_USER_TOKEN
       - cmd-create-docker-context
+      - cmd-docker-login
       - run:
-          name: Build & Publish Gravitee.io APIM Docker images
+          name: Build docker image for << parameters.apim-project >>
           command: |-
-            docker login --username="${DOCKERHUB_BOT_USER_NAME}" -p="${DOCKERHUB_BOT_USER_TOKEN}"
-            docker buildx build --push --platform=linux/arm64,linux/amd64 --build-arg GRAVITEEIO_VERSION=4.1.0 --build-arg GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions --quiet -t graviteeio/apim-gateway:4.1.0 -t graviteeio/apim-gateway:4.1 -t graviteeio/apim-gateway:4 -t graviteeio/apim-gateway:latest  -f ./gravitee-apim-gateway/docker/Dockerfile-from-download ./gravitee-apim-gateway/docker
-            docker buildx build --push --platform=linux/arm64,linux/amd64 --build-arg GRAVITEEIO_VERSION=4.1.0 --build-arg GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions --quiet -t graviteeio/apim-management-api:4.1.0 -t graviteeio/apim-management-api:4.1 -t graviteeio/apim-management-api:4 -t graviteeio/apim-management-api:latest  -f ./gravitee-apim-rest-api/docker/Dockerfile-from-download ./gravitee-apim-rest-api/docker
-            docker buildx build --push --platform=linux/arm64,linux/amd64 --build-arg GRAVITEEIO_VERSION=4.1.0 --build-arg GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions --quiet -t graviteeio/apim-management-ui:4.1.0 -t graviteeio/apim-management-ui:4.1 -t graviteeio/apim-management-ui:4 -t graviteeio/apim-management-ui:latest  -f ./gravitee-apim-console-webui/docker/Dockerfile-from-download ./gravitee-apim-console-webui/docker
-            docker buildx build --push --platform=linux/arm64,linux/amd64 --build-arg GRAVITEEIO_VERSION=4.1.0 --build-arg GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions --quiet -t graviteeio/apim-portal-ui:4.1.0 -t graviteeio/apim-portal-ui:4.1 -t graviteeio/apim-portal-ui:4 -t graviteeio/apim-portal-ui:latest  -f ./gravitee-apim-portal-webui/docker/Dockerfile-from-download ./gravitee-apim-portal-webui/docker
-            docker logout
+            docker buildx build --push --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
+            -t graviteeio/<< parameters.docker-image-name >>:4.2.0 -t graviteeio/<< parameters.docker-image-name >>:4.2 -t graviteeio/<< parameters.docker-image-name >>:4 -t graviteeio/<< parameters.docker-image-name >>:latest \
+            << parameters.docker-context >>
+          working_directory: << parameters.apim-project >>
       - keeper/env-export:
           secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
           var-name: AQUA_KEY
@@ -79,29 +291,12 @@ jobs:
       - aquasec/install_billy
       - aquasec/pull_aqua_scanner_image
       - aquasec/register_artifact:
-          artifact_to_register: graviteeio/apim-gateway:4.1.0
+          artifact_to_register: graviteeio/<< parameters.docker-image-name >>:4.2.0
           debug: true
       - aquasec/scan_docker_image:
-          docker_image_to_scan: graviteeio/apim-gateway:4.1.0
+          docker_image_to_scan: graviteeio/<< parameters.docker-image-name >>:4.2.0
           scanner_url: https://82fb8f75da.cloud.aquasec.com
-      - aquasec/register_artifact:
-          artifact_to_register: graviteeio/apim-management-api:4.1.0
-          debug: true
-      - aquasec/scan_docker_image:
-          docker_image_to_scan: graviteeio/apim-management-api:4.1.0
-          scanner_url: https://82fb8f75da.cloud.aquasec.com
-      - aquasec/register_artifact:
-          artifact_to_register: graviteeio/apim-management-ui:4.1.0
-          debug: true
-      - aquasec/scan_docker_image:
-          docker_image_to_scan: graviteeio/apim-management-ui:4.1.0
-          scanner_url: https://82fb8f75da.cloud.aquasec.com
-      - aquasec/register_artifact:
-          artifact_to_register: graviteeio/apim-portal-ui:4.1.0
-          debug: true
-      - aquasec/scan_docker_image:
-          docker_image_to_scan: graviteeio/apim-portal-ui:4.1.0
-          scanner_url: https://82fb8f75da.cloud.aquasec.com
+      - cmd-docker-logout
   job-publish-rpm-packages:
     machine:
       image: ubuntu-2204:current
@@ -118,19 +313,74 @@ jobs:
             git clone git@github.com:gravitee-io/packages.git ${GIT_GRAVITEE_PACKAGES_REPO}
 
             cd ${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x
-            ./build.sh -v 4.1.0
+            ./build.sh -v 4.2.0
             docker run --rm -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x:/packages" -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} digitalocean/packagecloud push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
 workflows:
   build-rpm-&-docker-images:
     jobs:
-      - job-publish-prod-docker-images:
+      - job-setup:
           context:
             - cicd-orchestrator
-          name: Build and push docker images for APIM 4.1.0
+          name: Setup
+      - job-portal-webui-build:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Portal
+          requires:
+            - Setup
+      - job-build-docker-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Portal docker image for APIM 4.2.0
+          requires:
+            - Build APIM Portal
+          apim-project: gravitee-apim-portal-webui
+          docker-context: .
+          docker-image-name: apim-portal-ui
+      - job-console-webui-build:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Console
+          requires:
+            - Setup
+      - job-build-docker-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Console docker image for APIM 4.2.0
+          requires:
+            - Build APIM Console
+          apim-project: gravitee-apim-console-webui
+          docker-context: .
+          docker-image-name: apim-management-ui
+      - job-backend-build-and-publish-on-download-website:
+          context:
+            - cicd-orchestrator
+          name: Backend build
+          requires:
+            - Setup
+      - job-build-docker-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Management API docker image for APIM 4.2.0
+          requires:
+            - Backend build
+          apim-project: gravitee-apim-rest-api
+          docker-context: gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
+          docker-image-name: apim-management-api
+      - job-build-docker-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Gateway docker image for APIM 4.2.0
+          requires:
+            - Backend build
+          apim-project: gravitee-apim-gateway
+          docker-context: gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
+          docker-image-name: apim-gateway
       - job-publish-rpm-packages:
           context:
             - cicd-orchestrator
-          name: Build and push RPM packages for APIM 4.1.0
+          name: Build and push RPM packages for APIM 4.2.0
 orbs:
   keeper: gravitee-io/keeper@0.6.3
+  slack: circleci/slack@4.12.5
   aquasec: gravitee-io/aquasec@1.0.4
