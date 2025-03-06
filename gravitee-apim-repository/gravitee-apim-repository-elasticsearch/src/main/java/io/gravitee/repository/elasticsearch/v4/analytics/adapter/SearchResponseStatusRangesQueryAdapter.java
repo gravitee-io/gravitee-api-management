@@ -33,6 +33,7 @@ public class SearchResponseStatusRangesQueryAdapter {
     public static final String ENTRYPOINT_ID_AGG = "entrypoint_id_agg";
     public static final String FIELD = "field";
     public static final String STATUS_RANGES = "status_ranges";
+    public static final String ALL_APIS_STATUS_RANGES = "all_apis_status_ranges";
 
     public static String adapt(ResponseStatusQueryCriteria query, boolean isEntrypointIdKeyword) {
         var jsonContent = new HashMap<String, Object>();
@@ -66,6 +67,22 @@ public class SearchResponseStatusRangesQueryAdapter {
                                 JsonObject.of("from", 500.0, "to", 600.0)
                             )
                         )
+                    )
+                )
+            ),
+            ALL_APIS_STATUS_RANGES,
+            JsonObject.of(
+                "range",
+                JsonObject.of(
+                    FIELD,
+                    "status",
+                    "ranges",
+                    JsonArray.of(
+                        JsonObject.of("from", 100.0, "to", 200.0),
+                        JsonObject.of("from", 200.0, "to", 300.0),
+                        JsonObject.of("from", 300.0, "to", 400.0),
+                        JsonObject.of("from", 400.0, "to", 500.0),
+                        JsonObject.of("from", 500.0, "to", 600.0)
                     )
                 )
             )

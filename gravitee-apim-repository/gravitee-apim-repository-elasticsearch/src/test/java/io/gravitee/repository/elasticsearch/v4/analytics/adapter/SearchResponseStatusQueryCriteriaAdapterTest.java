@@ -99,6 +99,33 @@ class SearchResponseStatusQueryCriteriaAdapterTest {
                       }
                     }
                   }
+                },
+                "all_apis_status_ranges": {
+                  "range": {
+                    "field": "status",
+                    "ranges": [
+                      {
+                        "from": 100.0,
+                        "to": 200.0
+                      },
+                      {
+                        "from": 200.0,
+                        "to": 300.0
+                      },
+                      {
+                        "from": 300.0,
+                        "to": 400.0
+                      },
+                      {
+                        "from": 400.0,
+                        "to": 500.0
+                      },
+                      {
+                        "from": 500.0,
+                        "to": 600.0
+                      }
+                    ]
+                  }
                 }
               }
             }
@@ -163,7 +190,34 @@ class SearchResponseStatusQueryCriteriaAdapterTest {
                                 }
                             }
                         }
-                    }
+                    },
+                    "all_apis_status_ranges": {
+                        "range": {
+                          "field": "status",
+                          "ranges": [
+                            {
+                              "from": 100.0,
+                              "to": 200.0
+                            },
+                            {
+                              "from": 200.0,
+                              "to": 300.0
+                            },
+                            {
+                              "from": 300.0,
+                              "to": 400.0
+                            },
+                            {
+                              "from": 400.0,
+                              "to": 500.0
+                            },
+                            {
+                              "from": 500.0,
+                              "to": 600.0
+                            }
+                          ]
+                        }
+                      }
                 }
             }
             """;
@@ -199,6 +253,33 @@ class SearchResponseStatusQueryCriteriaAdapterTest {
                         ]
                       }
                     }
+                  }
+                },
+                "all_apis_status_ranges": {
+                  "range": {
+                    "field": "status",
+                    "ranges": [
+                      {
+                        "from": 100.0,
+                        "to": 200.0
+                      },
+                      {
+                        "from": 200.0,
+                        "to": 300.0
+                      },
+                      {
+                        "from": 300.0,
+                        "to": 400.0
+                      },
+                      {
+                        "from": 400.0,
+                        "to": 500.0
+                      },
+                      {
+                        "from": 500.0,
+                        "to": 600.0
+                      }
+                    ]
                   }
                 }
               }
