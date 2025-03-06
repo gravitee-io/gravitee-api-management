@@ -15,29 +15,93 @@
  */
 import { Config, Workflow, workflow } from '@circleci/circleci-config-sdk';
 import { CircleCIEnvironment } from '../pipelines';
-import { PublishProdDockerImagesJob, PublishRpmPackagesJob } from '../jobs';
+import {
+  BackendBuildAndPublishOnDownloadWebsiteJob,
+  BuildDockerImageJob,
+  ConsoleWebuiBuildJob,
+  PortalWebuiBuildJob,
+  PublishRpmPackagesJob,
+  SetupJob,
+} from '../jobs';
 import { config } from '../config';
 
 export class BuildRpmAndDockerImagesWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
-    const publishProdDockerImagesJob = PublishProdDockerImagesJob.create(dynamicConfig, environment);
+    const setupJob = SetupJob.create(dynamicConfig);
+    dynamicConfig.addJob(setupJob);
+    const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, false);
+    dynamicConfig.addJob(consoleWebuiBuildJob);
+    const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, false);
+    dynamicConfig.addJob(portalWebuiBuildJob);
+    const backendBuildJob = BackendBuildAndPublishOnDownloadWebsiteJob.create(dynamicConfig, environment, false);
+    dynamicConfig.addJob(backendBuildJob);
+    const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, true);
+    dynamicConfig.addJob(buildDockerImageJob);
+
     const publishRpmPackagesJob = PublishRpmPackagesJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(publishProdDockerImagesJob);
     dynamicConfig.addJob(publishRpmPackagesJob);
 
-    let publishProdDockerImagesJobName = `Build and push docker images for APIM ${environment.graviteeioVersion}`;
     let publishRpmPackagesJobName = `Build and push RPM packages for APIM ${environment.graviteeioVersion}`;
 
     if (environment.isDryRun) {
-      publishProdDockerImagesJobName += ' - Dry Run';
       publishRpmPackagesJobName += ' - Dry Run';
     }
 
     const jobs = [
-      new workflow.WorkflowJob(publishProdDockerImagesJob, {
+      new workflow.WorkflowJob(setupJob, { context: config.jobContext, name: 'Setup' }),
+      // APIM Portal
+      new workflow.WorkflowJob(portalWebuiBuildJob, {
         context: config.jobContext,
-        name: publishProdDockerImagesJobName,
+        name: 'Build APIM Portal',
+        requires: ['Setup'],
       }),
+      new workflow.WorkflowJob(buildDockerImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Portal docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+        requires: ['Build APIM Portal'],
+        'apim-project': config.components.portal.project,
+        'docker-context': '.',
+        'docker-image-name': config.components.portal.image,
+      }),
+
+      // APIM Console
+      new workflow.WorkflowJob(consoleWebuiBuildJob, {
+        context: config.jobContext,
+        name: 'Build APIM Console',
+        requires: ['Setup'],
+      }),
+      new workflow.WorkflowJob(buildDockerImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Console docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+        requires: ['Build APIM Console'],
+        'apim-project': config.components.console.project,
+        'docker-context': '.',
+        'docker-image-name': config.components.console.image,
+      }),
+
+      // APIM Backend
+      new workflow.WorkflowJob(backendBuildJob, {
+        context: config.jobContext,
+        name: 'Backend build',
+        requires: ['Setup'],
+      }),
+      new workflow.WorkflowJob(buildDockerImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Management API docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+        requires: ['Backend build'],
+        'apim-project': config.components.managementApi.project,
+        'docker-context': 'gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target',
+        'docker-image-name': config.components.managementApi.image,
+      }),
+      new workflow.WorkflowJob(buildDockerImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Gateway docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+        requires: ['Backend build'],
+        'apim-project': config.components.gateway.project,
+        'docker-context': 'gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target',
+        'docker-image-name': config.components.gateway.image,
+      }),
+
       new workflow.WorkflowJob(publishRpmPackagesJob, {
         context: config.jobContext,
         name: publishRpmPackagesJobName,

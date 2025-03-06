@@ -20,24 +20,29 @@ import { CircleCIEnvironment } from '../pipelines';
 export class DockerLogoutCommand {
   private static commandName = 'cmd-docker-logout';
   public static get(environment: CircleCIEnvironment, isProd: boolean): ReusableCommand {
+    const dockerRegistryName = isProd ? 'Docker Hub' : 'Azure Container Registry';
+    const dockerRegistry = isProd ? '' : ' graviteeio.azurecr.io';
+
     const steps = [];
 
-    if (isProd && !environment.isDryRun) {
+    let name = '';
+    if (isProd && environment.isDryRun) {
+      name = `No logout from ${dockerRegistryName} - Dry-Run`;
       steps.push(
         new commands.Run({
-          name: `Logout from Docker Hub`,
-          command: `docker logout`,
+          name,
+          command: `echo "DRY RUN Mode. Build only"`,
         }),
       );
-    } else if (!isProd) {
+    } else {
+      name = `Logout from ${dockerRegistryName}`;
       steps.push(
         new commands.Run({
-          name: `Logout from Azure Container Registry`,
-          command: `docker logout graviteeio.azurecr.io`,
+          name,
+          command: `docker logout${dockerRegistry}`,
         }),
       );
     }
-
-    return new reusable.ReusableCommand(DockerLogoutCommand.commandName, steps, undefined, 'Logout from Azure Container Registry');
+    return new reusable.ReusableCommand(DockerLogoutCommand.commandName, steps, undefined, name);
   }
 }
