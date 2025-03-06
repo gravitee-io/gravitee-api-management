@@ -31,16 +31,6 @@
 	<name>Gravitee.io APIM - Repository - MongoDB</name>
 
 	<properties>
-        <!--
-            According to https://docs.spring.io/spring-data/mongodb/docs/current/reference/html/#compatibility.matrix
-            and https://www.mongodb.com/docs/drivers/java/sync/current/compatibility/
-            spring data 4.3.x is compatible with mongo driver 4.11.x & 5.x and up to mongo server 4.4.x to 7.x
-            But "You can use newer server versions unless your application uses functionality that is affected by changes in the MongoDB server"
-            Meaning that we can use mongo server 6.0.x if we use basic functionalities.
-        -->
-        <mongo.version>5.3.1</mongo.version>
-        <jna.version>5.16.0</jna.version>
-
         <!-- Property used by the publication job in CI-->
         <publish-folder-path>graviteeio-apim/plugins/repositories</publish-folder-path>
     </properties>
@@ -111,7 +101,6 @@
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-crypt</artifactId>
-            <version>${mongo.version}</version>
             <!-- /!\ Force provided scope. mongodb-crypt.jar and jna.jar should be provided via /plugin/ext/repository-mongodb -->
             <scope>provided</scope>
         </dependency>
@@ -119,7 +108,6 @@
         <dependency>
             <groupId>net.java.dev.jna</groupId>
             <artifactId>jna</artifactId>
-            <version>${jna.version}</version>
             <!-- /!\ Force provided scope. mongodb-crypt.jar and jna.jar should be provided via /plugin/ext/repository-mongodb -->
             <scope>provided</scope>
         </dependency>

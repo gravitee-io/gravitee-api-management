@@ -119,6 +119,7 @@
         <jaxb-api.version>2.4.0-b180830.0359</jaxb-api.version>
         <jcstress.version>0.16</jcstress.version>
         <jmh.version>1.37</jmh.version>
+        <jna.version>5.16.0</jna.version>
         <jolt.version>0.1.8</jolt.version>
         <jsonassert.version>1.5.3</jsonassert.version>
         <json-patch.version>1.13</json-patch.version>
@@ -132,6 +133,7 @@
         <mapstruct.version>1.6.3</mapstruct.version>
         <netty-tcnative-boringssl-static.version>2.0.70.Final</netty-tcnative-boringssl-static.version>
         <nimbus-jose-jwt.version>9.48</nimbus-jose-jwt.version>
+        <mongo.version>5.3.1</mongo.version>
         <owasp-java-html-sanitizer.version>20240325.1</owasp-java-html-sanitizer.version>
         <reactor-adapter.version>3.5.2</reactor-adapter.version>
         <reactor-core.version>3.7.3</reactor-core.version>
