@@ -276,6 +276,6 @@ workflows:
           requires:
             - Test rest-api
 orbs:
-  keeper: gravitee-io/keeper@0.6.3
+  keeper: gravitee-io/keeper@0.7.0
   aquasec: gravitee-io/aquasec@1.0.4
   slack: circleci/slack@4.12.5

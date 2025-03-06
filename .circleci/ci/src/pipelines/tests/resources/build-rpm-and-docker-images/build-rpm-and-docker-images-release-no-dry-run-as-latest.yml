@@ -132,5 +132,5 @@ workflows:
             - cicd-orchestrator
           name: Build and push RPM packages for APIM 4.1.0
 orbs:
-  keeper: gravitee-io/keeper@0.6.3
+  keeper: gravitee-io/keeper@0.7.0
   aquasec: gravitee-io/aquasec@1.0.4
