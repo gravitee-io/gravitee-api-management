@@ -67,7 +67,7 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
     }
 
     @Override
-    public SearchResult search(ExecutionContext executionContext, Query query) throws TechnicalException {
+    public SearchResult search(ExecutionContext executionContext, Query<?> query) throws TechnicalException {
         QueryParser parser = new MultiFieldQueryParser(
             new String[] {
                 FIELD_DISPLAYNAME,
@@ -159,18 +159,18 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
 
             logger.debug("Found {} total matching documents", topDocs.totalHits);
             for (ScoreDoc doc : collectedDocs) {
-                String reference = searcher.doc(doc.doc).get(fieldReference);
+                String reference = searcher.storedFields().document(doc.doc).get(fieldReference);
                 results.add(reference);
             }
 
-            return new SearchResult(results, topDocs.totalHits.value);
+            return new SearchResult(results, topDocs.totalHits.value());
         } catch (IOException ioe) {
             logger.error("An error occurs while getting documents from search result", ioe);
             throw new TechnicalException("An error occurs while getting documents from search result", ioe);
         }
     }
 
-    private boolean isUserIdFormat(io.gravitee.rest.api.service.search.query.Query query) {
+    private boolean isUserIdFormat(io.gravitee.rest.api.service.search.query.Query<?> query) {
         try {
             UUID.fromString(query.getQuery());
             return true;
