@@ -106,16 +106,18 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
         }
 
         if (user.getDisplayName() != null) {
-            TextField displayName = new TextField(FIELD_DISPLAYNAME, toLowerCaseAndStripAccents(user.getDisplayName()), Field.Store.NO);
-            displayName.setTokenStream(
+            TextField displayName = new TextField(
+                FIELD_DISPLAYNAME,
                 userFieldAnalyzer().tokenStream(FIELD_DISPLAYNAME, toLowerCaseAndStripAccents(user.getDisplayName()))
             );
             doc.add(displayName);
 
             if (!StringUtils.isEmpty(user.getLastname()) && !StringUtils.isEmpty(user.getFirstname())) {
                 String lastnameFirstname = toLowerCaseAndStripAccents(String.format("%s %s", user.getLastname(), user.getFirstname()));
-                TextField lastnameFirstnameTextField = new TextField(FIELD_LASTNAME_FIRSTNAME, lastnameFirstname, Field.Store.NO);
-                lastnameFirstnameTextField.setTokenStream(userFieldAnalyzer().tokenStream(FIELD_LASTNAME_FIRSTNAME, lastnameFirstname));
+                TextField lastnameFirstnameTextField = new TextField(
+                    FIELD_LASTNAME_FIRSTNAME,
+                    userFieldAnalyzer().tokenStream(FIELD_LASTNAME_FIRSTNAME, lastnameFirstname)
+                );
                 doc.add(lastnameFirstnameTextField);
 
                 SortedDocValuesField lastnameFirstnameSortedField = new SortedDocValuesField(

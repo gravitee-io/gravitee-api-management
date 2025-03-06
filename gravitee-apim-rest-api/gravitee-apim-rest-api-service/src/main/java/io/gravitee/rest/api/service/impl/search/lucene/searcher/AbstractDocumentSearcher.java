@@ -84,10 +84,13 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
 
             if (pageable != null) {
                 //TODO: How to find the accurate numhits ?
-                TopScoreDocCollector collector = TopScoreDocCollector.create(1000, 1000);
-                searcher.search(query, collector);
+                var collectorManager = new TopScoreDocCollectorManager(1000, null, 1000);
+                searcher.search(query, collectorManager);
 
-                topDocs = collector.topDocs((pageable.getPageNumber() - 1) * pageable.getPageSize(), pageable.getPageSize());
+                topDocs =
+                    collectorManager
+                        .newCollector()
+                        .topDocs((pageable.getPageNumber() - 1) * pageable.getPageSize(), pageable.getPageSize());
             } else if (sort != null) {
                 topDocs = searcher.search(query, Integer.MAX_VALUE, convert(sort));
             } else {
@@ -98,11 +101,11 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
 
             logger.debug("Found {} total matching documents", topDocs.totalHits);
             for (ScoreDoc doc : topDocs.scoreDocs) {
-                String reference = searcher.doc(doc.doc).get(fieldReference);
+                String reference = searcher.storedFields().document(doc.doc).get(fieldReference);
                 results.add(reference);
             }
 
-            return new SearchResult(results, topDocs.totalHits.value);
+            return new SearchResult(results, topDocs.totalHits.value());
         } catch (IOException ioe) {
             logger.error("An error occurs while getting documents from search result", ioe);
             throw new TechnicalException("An error occurs while getting documents from search result", ioe);

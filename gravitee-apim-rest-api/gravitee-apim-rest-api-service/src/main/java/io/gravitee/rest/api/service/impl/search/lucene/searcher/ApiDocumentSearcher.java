@@ -232,7 +232,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             List<BooleanClause> clauses = ((BooleanQuery) query).clauses();
             result = clauses.size();
             for (BooleanClause clause : clauses) {
-                result += getClauseCount(clause.getQuery());
+                result += getClauseCount(clause.query());
             }
         } else if (query instanceof BoostQuery) {
             result += getClauseCount(((BoostQuery) query).getQuery());
@@ -285,7 +285,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             Set<String> rest = appendExplicitFilters(query.getQuery(), mainQuery, restQuery);
             BooleanQuery build = restQuery.build();
             if (!build.clauses().isEmpty()) {
-                mainQuery.add(build, build.clauses().getFirst().getOccur());
+                mainQuery.add(build, build.clauses().getFirst().occur());
             }
             if (!CollectionUtils.isEmpty(rest)) {
                 return String.join(" ", rest);
@@ -321,7 +321,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         BooleanClause clause
     ) {
         Set<String> rest = new HashSet<>();
-        BooleanClause.Occur currentOccur = clause != null ? clause.getOccur() : BooleanClause.Occur.FILTER;
+        BooleanClause.Occur currentOccur = clause != null ? clause.occur() : BooleanClause.Occur.FILTER;
         if (query instanceof TermQuery) {
             appendTermFilters((TermQuery) query, mainQuery, restQuery, clause, rest, currentOccur);
         } else if (query instanceof BooleanQuery) {
@@ -358,7 +358,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         if (!clauses.isEmpty()) {
             BooleanQuery.Builder subQuery = new BooleanQuery.Builder();
             for (BooleanClause _clause : clauses) {
-                Query innerQuery = _clause.getQuery();
+                Query innerQuery = _clause.query();
                 Set<String> innerRest = appendExplicitFilters(innerQuery, subQuery, restQuery, _clause);
                 if (innerRest == null) {
                     return true;
@@ -383,7 +383,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         if (Arrays.stream(AUTHORIZED_EXPLICIT_FILTER).anyMatch(field -> field.equals(term.field()))) {
             mainQuery.add(buildQueryFilter(term), currentOccur);
         } else if (clause != null) {
-            restQuery.add(buildApiFields(term.text()), clause.getOccur());
+            restQuery.add(buildApiFields(term.text()), clause.occur());
         } else {
             rest.add(term.text());
         }
