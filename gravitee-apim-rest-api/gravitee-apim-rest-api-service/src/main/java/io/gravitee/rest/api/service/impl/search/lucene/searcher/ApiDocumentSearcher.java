@@ -293,7 +293,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
                 return "";
             }
         } catch (ParseException e) {
-            logger.error("Unable to parse query", e);
+            logger.debug("Unable to parse query", e);
             return query.getQuery();
         }
     }
