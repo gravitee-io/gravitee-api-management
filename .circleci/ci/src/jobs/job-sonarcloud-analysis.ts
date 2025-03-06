@@ -48,10 +48,6 @@ export class SonarCloudAnalysisJob {
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
 
     const steps: Command[] = [
-      new commands.Run({
-        name: 'Add SSH tool',
-        command: 'apk add --no-cache openssh',
-      }),
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new commands.cache.Restore({

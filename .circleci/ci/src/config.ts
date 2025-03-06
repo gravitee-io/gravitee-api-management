@@ -73,7 +73,7 @@ const executor = {
   },
   sonar: {
     image: 'sonarsource/sonar-scanner-cli',
-    version: '5.0.1',
+    version: '11.2',
   },
   ubuntu: {
     version: '2204',
