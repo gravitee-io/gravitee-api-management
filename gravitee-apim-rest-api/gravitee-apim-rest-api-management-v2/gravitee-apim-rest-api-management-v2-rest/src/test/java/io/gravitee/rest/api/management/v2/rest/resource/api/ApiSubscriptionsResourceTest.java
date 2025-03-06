@@ -49,7 +49,6 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
-import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.ws.rs.client.Entity;
@@ -85,9 +84,6 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
     @Autowired
     protected ApiKeyService apiKeyService;
-
-    @Autowired
-    protected UserService userService;
 
     @Autowired
     AcceptSubscriptionUseCase acceptSubscriptionUseCase;
@@ -132,12 +128,10 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         public void should_create_subscription() {
             final CreateSubscription createSubscription = SubscriptionFixtures
                 .aCreateSubscription()
-                .toBuilder()
                 .applicationId(APPLICATION)
                 .planId(PLAN)
                 .customApiKey(null)
-                .apiKeyMode(ApiKeyMode.EXCLUSIVE)
-                .build();
+                .apiKeyMode(ApiKeyMode.EXCLUSIVE);
 
             when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), any()))
                 .thenReturn(
@@ -148,13 +142,13 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(CREATED_201)
                 .asEntity(Subscription.class)
-                .satisfies(subscription -> {
+                .satisfies(subscription ->
                     SoftAssertions.assertSoftly(soft -> {
                         soft.assertThat(subscription.getId()).isEqualTo(SUBSCRIPTION);
                         soft.assertThat(subscription.getPlan()).extracting(BasePlan::getId).isEqualTo(PLAN);
                         soft.assertThat(subscription.getApplication()).extracting(BaseApplication::getId).isEqualTo(APPLICATION);
-                    });
-                });
+                    })
+                );
 
             verify(subscriptionService)
                 .create(
@@ -193,11 +187,9 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         public void should_return_400_if_custom_api_key_not_enabled() {
             final CreateSubscription createSubscription = SubscriptionFixtures
                 .aCreateSubscription()
-                .toBuilder()
                 .applicationId(APPLICATION)
                 .planId(PLAN)
-                .customApiKey("custom")
-                .build();
+                .customApiKey("custom");
 
             when(
                 parameterService.findAsBoolean(
@@ -221,11 +213,9 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         public void should_create_subscription_with_custom_api_key() {
             final CreateSubscription createSubscription = SubscriptionFixtures
                 .aCreateSubscription()
-                .toBuilder()
                 .applicationId(APPLICATION)
                 .planId(PLAN)
-                .customApiKey("custom")
-                .build();
+                .customApiKey("custom");
 
             when(
                 parameterService.findAsBoolean(
@@ -258,11 +248,9 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         public void should_create_subscription_with_custom_api_key_and_auto_process_it_if_pending() {
             final CreateSubscription createSubscription = SubscriptionFixtures
                 .aCreateSubscription()
-                .toBuilder()
                 .applicationId(APPLICATION)
                 .planId(PLAN)
-                .customApiKey(null)
-                .build();
+                .customApiKey(null);
 
             doReturn(
                 SubscriptionFixtures
@@ -294,13 +282,13 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(CREATED_201)
                 .asEntity(Subscription.class)
-                .satisfies(subscription -> {
+                .satisfies(subscription ->
                     SoftAssertions.assertSoftly(soft -> {
                         soft.assertThat(subscription.getId()).isEqualTo(SUBSCRIPTION);
                         soft.assertThat(subscription.getPlan()).extracting(BasePlan::getId).isEqualTo(PLAN);
                         soft.assertThat(subscription.getApplication()).extracting(BaseApplication::getId).isEqualTo(APPLICATION);
-                    });
-                });
+                    })
+                );
         }
     }
 
@@ -334,13 +322,13 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(Subscription.class)
-                .satisfies(subscription -> {
+                .satisfies(subscription ->
                     SoftAssertions.assertSoftly(soft -> {
                         soft.assertThat(subscription.getId()).isEqualTo(SUBSCRIPTION);
                         soft.assertThat(subscription.getPlan()).extracting(BasePlan::getId).isEqualTo(PLAN);
                         soft.assertThat(subscription.getApplication()).extracting(BaseApplication::getId).isEqualTo(APPLICATION);
-                    });
-                });
+                    })
+                );
 
             var captor = ArgumentCaptor.forClass(AcceptSubscriptionUseCase.Input.class);
             verify(acceptSubscriptionUseCase).execute(captor.capture());
@@ -407,14 +395,14 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(Subscription.class)
-                .satisfies(subscription -> {
+                .satisfies(subscription ->
                     SoftAssertions.assertSoftly(soft -> {
                         soft.assertThat(subscription.getId()).isEqualTo(SUBSCRIPTION);
                         soft
                             .assertThat(subscription.getStatus())
                             .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.SubscriptionStatus.REJECTED);
-                    });
-                });
+                    })
+                );
 
             var captor = ArgumentCaptor.forClass(RejectSubscriptionUseCase.Input.class);
             verify(rejectSubscriptionUseCase).execute(captor.capture());

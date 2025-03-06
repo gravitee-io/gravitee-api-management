@@ -18,21 +18,17 @@ package fixtures;
 import io.gravitee.rest.api.management.v2.rest.model.Resource;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
-@SuppressWarnings("ALL")
 public class ResourceFixtures {
 
     private ResourceFixtures() {}
 
-    private static final Resource.ResourceBuilder BASE_RESOURCE = Resource
-        .builder()
-        .name("role-name")
-        .type("resource-type")
-        .enabled(true)
-        .configuration(new LinkedHashMap<>(Map.of("key", "value")));
+    private static final Supplier<Resource> BASE_RESOURCE = () ->
+        new Resource().name("role-name").type("resource-type").enabled(true).configuration(new LinkedHashMap<>(Map.of("key", "value")));
 
     public static Resource aResource() {
-        return BASE_RESOURCE.build();
+        return BASE_RESOURCE.get();
     }
 
     public static io.gravitee.definition.model.plugins.resources.Resource aResourceEntityV2() {

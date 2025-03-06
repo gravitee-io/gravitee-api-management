@@ -176,9 +176,7 @@ class ApisResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(ACCEPTED_202)
                 .asEntity(VerifyApiHostsResponse.class)
-                .isEqualTo(
-                    VerifyApiHostsResponse.builder().ok(false).reason("At least one host is required for the TCP listener.").build()
-                );
+                .isEqualTo(new VerifyApiHostsResponse().ok(false).reason("At least one host is required for the TCP listener."));
         }
 
         @Test
@@ -196,11 +194,9 @@ class ApisResourceTest extends AbstractResourceTest {
                 .hasStatus(ACCEPTED_202)
                 .asEntity(VerifyApiHostsResponse.class)
                 .isEqualTo(
-                    VerifyApiHostsResponse
-                        .builder()
+                    new VerifyApiHostsResponse()
                         .ok(false)
                         .reason("Duplicated hosts detected: 'tcp.example.com, tcp-2.example.com'. Please ensure each host is unique.")
-                        .build()
                 );
         }
 
@@ -218,9 +214,7 @@ class ApisResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(ACCEPTED_202)
                 .asEntity(VerifyApiHostsResponse.class)
-                .isEqualTo(
-                    VerifyApiHostsResponse.builder().ok(false).reason("Hosts [foo.example.com, bar.example.com] already exists").build()
-                );
+                .isEqualTo(new VerifyApiHostsResponse().ok(false).reason("Hosts [foo.example.com, bar.example.com] already exists"));
         }
 
         @Test
@@ -237,7 +231,7 @@ class ApisResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(ACCEPTED_202)
                 .asEntity(VerifyApiHostsResponse.class)
-                .isEqualTo(VerifyApiHostsResponse.builder().ok(true).build());
+                .isEqualTo(new VerifyApiHostsResponse().ok(true));
         }
     }
 
@@ -271,7 +265,7 @@ class ApisResourceTest extends AbstractResourceTest {
             )
                 .thenReturn(false);
 
-            final Response response = target.request().post(Entity.json(CreateApiV4.builder().build()));
+            final Response response = target.request().post(Entity.json(new CreateApiV4()));
 
             assertThat(response)
                 .hasStatus(FORBIDDEN_403)
@@ -293,23 +287,19 @@ class ApisResourceTest extends AbstractResourceTest {
                 .request()
                 .post(
                     Entity.json(
-                        CreateApiV4
-                            .builder()
-                            .name("")
-                            .apiVersion("v1")
+                        new CreateApiV4()
                             .type(ApiType.PROXY)
                             .listeners(
                                 List.of(
                                     new Listener(
-                                        HttpListener
-                                            .builder()
-                                            .paths(List.of(PathV4.builder().path("/path").build()))
-                                            .entrypoints(List.of(Entrypoint.builder().type("sse").build()))
-                                            .build()
+                                        (HttpListener) new HttpListener()
+                                            .paths(List.of(new PathV4().path("/path")))
+                                            .entrypoints(List.of(new Entrypoint().type("sse")))
                                     )
                                 )
                             )
-                            .build()
+                            .apiVersion("v1")
+                            .name("")
                     )
                 );
 
@@ -320,7 +310,7 @@ class ApisResourceTest extends AbstractResourceTest {
         public void should_return_400_when_an_api_without_listeners() {
             final Response response = target
                 .request()
-                .post(Entity.json(CreateApiV4.builder().name("no-listeners").apiVersion("v1").type(ApiType.PROXY).build()));
+                .post(Entity.json(new CreateApiV4().type(ApiType.PROXY).name("no-listeners").apiVersion("v1")));
 
             assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
         }
@@ -329,7 +319,7 @@ class ApisResourceTest extends AbstractResourceTest {
         public void should_return_400_when_native_api_has_multiple_flows() {
             doThrow(new NativeApiWithMultipleFlowsException()).when(createApiDomainService).create(any(), any(), any(), any(), any());
 
-            var newApi = aValidNativeV4Api().toBuilder().flows(List.of(FlowV4.builder().build(), FlowV4.builder().build())).build();
+            var newApi = aValidNativeV4Api().flows(List.of(new FlowV4(), new FlowV4()));
 
             final Response response = target.request().post(Entity.json(newApi));
 
@@ -342,23 +332,19 @@ class ApisResourceTest extends AbstractResourceTest {
                 .request()
                 .post(
                     Entity.json(
-                        CreateApiV4
-                            .builder()
-                            .name("no-endpoints")
-                            .apiVersion("v1")
-                            .type(ApiType.PROXY)
+                        new CreateApiV4()
                             .listeners(
                                 List.of(
                                     new Listener(
-                                        HttpListener
-                                            .builder()
-                                            .paths(List.of(PathV4.builder().path("/path").build()))
-                                            .entrypoints(List.of(Entrypoint.builder().type("sse").build()))
-                                            .build()
+                                        (HttpListener) new HttpListener()
+                                            .paths(List.of(new PathV4().path("/path")))
+                                            .entrypoints(List.of(new Entrypoint().type("sse")))
                                     )
                                 )
                             )
-                            .build()
+                            .type(ApiType.PROXY)
+                            .name("no-endpoints")
+                            .apiVersion("v1")
                     )
                 );
 
@@ -385,7 +371,7 @@ class ApisResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(CREATED_201)
                 .asEntity(ApiV4.class)
-                .satisfies(api -> {
+                .satisfies(api ->
                     SoftAssertions.assertSoftly(soft -> {
                         soft.assertThat(api.getId()).isEqualTo("api-id");
                         soft.assertThat(api.getAnalytics()).isEqualTo(newApi.getAnalytics());
@@ -400,8 +386,8 @@ class ApisResourceTest extends AbstractResourceTest {
                         soft.assertThat(api.getName()).isEqualTo(newApi.getName());
                         soft.assertThat(api.getTags()).containsExactlyElementsOf(newApi.getTags());
                         soft.assertThat(api.getType()).isEqualTo(newApi.getType());
-                    });
-                });
+                    })
+                );
         }
 
         @Test
@@ -424,7 +410,7 @@ class ApisResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(CREATED_201)
                 .asEntity(ApiV4.class)
-                .satisfies(api -> {
+                .satisfies(api ->
                     SoftAssertions.assertSoftly(soft -> {
                         soft.assertThat(api.getId()).isEqualTo("api-id");
                         soft.assertThat(api.getAnalytics()).isEqualTo(newApi.getAnalytics());
@@ -439,8 +425,8 @@ class ApisResourceTest extends AbstractResourceTest {
                         soft.assertThat(api.getName()).isEqualTo(newApi.getName());
                         soft.assertThat(api.getTags()).containsExactlyElementsOf(newApi.getTags());
                         soft.assertThat(api.getType()).isEqualTo(newApi.getType());
-                    });
-                });
+                    })
+                );
         }
 
         @Test
@@ -457,7 +443,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 });
 
             var newApi = aValidNativeV4Api();
-            var kafkaListenerWithoutPort = (KafkaListener) newApi.getListeners().get(0).getKafkaListener().toBuilder().port(null).build();
+            var kafkaListenerWithoutPort = newApi.getListeners().getFirst().getKafkaListener().port(null);
             newApi.setListeners(List.of(new Listener(kafkaListenerWithoutPort)));
 
             final Response response = target.request().post(Entity.json(newApi));
@@ -465,47 +451,37 @@ class ApisResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(CREATED_201)
                 .asEntity(ApiV4.class)
-                .satisfies(api -> {
+                .satisfies(api ->
                     SoftAssertions.assertSoftly(soft -> {
                         soft.assertThat(api.getId()).isEqualTo("api-id");
                         soft.assertThat(api.getListeners()).isEqualTo(newApi.getListeners());
-                    });
-                });
+                    })
+                );
         }
 
         private static CreateApiV4 aValidV4Api() {
-            return CreateApiV4
-                .builder()
-                .name("my api")
-                .description("api description")
-                .definitionVersion(DefinitionVersion.V4)
-                .groups(List.of("group1"))
-                .apiVersion("v1")
-                .analytics(Analytics.builder().enabled(true).build())
+            return (CreateApiV4) new CreateApiV4()
+                .analytics(new Analytics().enabled(true))
                 .type(ApiType.PROXY)
                 .tags(Set.of("tag1"))
                 .listeners(
                     List.of(
                         new Listener(
-                            HttpListener
-                                .builder()
+                            (HttpListener) new HttpListener()
+                                .paths(List.of(new PathV4().path("/path").overrideAccess(false)))
                                 .type(ListenerType.HTTP)
-                                .paths(List.of(PathV4.builder().path("/path").overrideAccess(false).build()))
-                                .entrypoints(List.of(Entrypoint.builder().type("sse").qos(Qos.AUTO).build()))
-                                .build()
+                                .entrypoints(List.of(new Entrypoint().type("sse").qos(Qos.AUTO)))
                         )
                     )
                 )
                 .endpointGroups(
                     List.of(
-                        EndpointGroupV4
-                            .builder()
+                        new EndpointGroupV4()
                             .name("default-group")
                             .type("http")
                             .endpoints(
                                 List.of(
-                                    EndpointV4
-                                        .builder()
+                                    new EndpointV4()
                                         .name("default")
                                         .type("kafka")
                                         .weight(1)
@@ -524,73 +500,61 @@ class ApisResourceTest extends AbstractResourceTest {
                                                 )
                                             )
                                         )
-                                        .build()
                                 )
                             )
-                            .build()
                     )
                 )
-                .flowExecution(FlowExecution.builder().mode(FlowMode.BEST_MATCH).matchRequired(true).build())
+                .flowExecution(new FlowExecution().mode(FlowMode.BEST_MATCH).matchRequired(true))
                 .flows(
                     List.of(
-                        FlowV4
-                            .builder()
+                        new FlowV4()
                             .name("flowName")
                             .enabled(true)
                             .tags(Set.of("tag1"))
-                            .request(List.of(StepV4.builder().enabled(true).policy("my-policy").condition("my-condition").build()))
+                            .request(List.of(new StepV4().enabled(true).policy("my-policy").condition("my-condition")))
                             .selectors(
                                 List.of(
                                     new Selector(
-                                        HttpSelector
-                                            .builder()
-                                            .type(BaseSelector.TypeEnum.HTTP)
+                                        (HttpSelector) new HttpSelector()
                                             .path("/test")
                                             .methods(Set.of(HttpMethod.GET, HttpMethod.POST))
                                             .pathOperator(Operator.STARTS_WITH)
-                                            .build()
+                                            .type(BaseSelector.TypeEnum.HTTP)
                                     )
                                 )
                             )
-                            .build()
                     )
                 )
-                .build();
-        }
-
-        private static CreateApiV4 aValidNativeV4Api() {
-            return CreateApiV4
-                .builder()
                 .name("my api")
                 .description("api description")
                 .definitionVersion(DefinitionVersion.V4)
                 .groups(List.of("group1"))
-                .apiVersion("v1")
+                .apiVersion("v1");
+        }
+
+        private static CreateApiV4 aValidNativeV4Api() {
+            return (CreateApiV4) new CreateApiV4()
                 .type(ApiType.NATIVE)
                 .tags(Set.of("tag1"))
                 .listeners(
                     List.of(
                         new Listener(
-                            KafkaListener
-                                .builder()
-                                .type(ListenerType.KAFKA)
+                            (KafkaListener) new KafkaListener()
                                 .host("host")
                                 .port(4000)
-                                .entrypoints(List.of(Entrypoint.builder().type("mock").qos(Qos.AUTO).build()))
-                                .build()
+                                .type(ListenerType.KAFKA)
+                                .entrypoints(List.of(new Entrypoint().type("mock").qos(Qos.AUTO)))
                         )
                     )
                 )
                 .endpointGroups(
                     List.of(
-                        EndpointGroupV4
-                            .builder()
+                        new EndpointGroupV4()
                             .name("default-group")
                             .type("http")
                             .endpoints(
                                 List.of(
-                                    EndpointV4
-                                        .builder()
+                                    new EndpointV4()
                                         .name("default")
                                         .type("kafka")
                                         .weight(1)
@@ -609,24 +573,24 @@ class ApisResourceTest extends AbstractResourceTest {
                                                 )
                                             )
                                         )
-                                        .build()
                                 )
                             )
-                            .build()
                     )
                 )
                 .flows(
                     List.of(
-                        FlowV4
-                            .builder()
+                        new FlowV4()
                             .name("flowName")
                             .enabled(true)
                             .tags(Set.of("tag1"))
-                            .connect(List.of(StepV4.builder().enabled(true).policy("my-policy").condition("my-condition").build()))
-                            .build()
+                            .connect(List.of(new StepV4().enabled(true).policy("my-policy").condition("my-condition")))
                     )
                 )
-                .build();
+                .name("my api")
+                .description("api description")
+                .definitionVersion(DefinitionVersion.V4)
+                .groups(List.of("group1"))
+                .apiVersion("v1");
         }
     }
 

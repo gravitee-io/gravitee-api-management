@@ -46,14 +46,7 @@ public class ApiMapperTest {
     void shouldMapToUpdateApiEntityV4() {
         var updateApi = ApiFixtures.anUpdateApiV4();
         updateApi.failover(
-            FailoverV4
-                .builder()
-                .enabled(true)
-                .perSubscription(false)
-                .maxFailures(3)
-                .openStateDuration(11000L)
-                .slowCallDuration(500L)
-                .build()
+            new FailoverV4().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000L).slowCallDuration(500L)
         );
 
         var updateApiEntity = apiMapper.map(updateApi, "api-id");

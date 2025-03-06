@@ -463,9 +463,9 @@ public class ApiResource extends AbstractResource {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         try {
             apiLicenseService.checkLicense(executionContext, apiId);
-            return Response.ok(VerifyApiDeploymentResponse.builder().ok(true).build()).build();
+            return Response.ok(new VerifyApiDeploymentResponse().ok(true)).build();
         } catch (ForbiddenFeatureException | InvalidLicenseException | TechnicalManagementException e) {
-            return Response.ok(VerifyApiDeploymentResponse.builder().ok(false).reason(e.getMessage()).build()).build();
+            return Response.ok(new VerifyApiDeploymentResponse().ok(false).reason(e.getMessage())).build();
         }
     }
 

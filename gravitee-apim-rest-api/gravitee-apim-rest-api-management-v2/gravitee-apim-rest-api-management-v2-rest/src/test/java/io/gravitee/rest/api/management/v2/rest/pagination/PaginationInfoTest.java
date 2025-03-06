@@ -37,9 +37,7 @@ public class PaginationInfoTest {
 
         Assertions
             .assertThat(pagination)
-            .isEqualTo(
-                Pagination.builder().page(page).perPage(perPage).totalCount(total).pageItemsCount(pageItemsCount).pageCount(4).build()
-            );
+            .isEqualTo(new Pagination().page(page).perPage(perPage).totalCount(total).pageItemsCount(pageItemsCount).pageCount(4));
     }
 
     @Test

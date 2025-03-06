@@ -423,9 +423,9 @@ public class ApisResource extends AbstractResource {
                 )
             );
 
-            return Response.accepted(VerifyApiPathsResponse.builder().ok(true).build()).build();
+            return Response.accepted(new VerifyApiPathsResponse().ok(true)).build();
         } catch (InvalidPathsException e) {
-            return Response.accepted(VerifyApiPathsResponse.builder().ok(false).reason(e.getMessage()).build()).build();
+            return Response.accepted(new VerifyApiPathsResponse().ok(false).reason(e.getMessage())).build();
         }
     }
 
@@ -445,9 +445,9 @@ public class ApisResource extends AbstractResource {
                     verifyPayload.getHosts()
                 )
             );
-            return Response.accepted(VerifyApiHostsResponse.builder().ok(true).build()).build();
+            return Response.accepted(new VerifyApiHostsResponse().ok(true)).build();
         } catch (Exception e) {
-            return Response.accepted(VerifyApiHostsResponse.builder().ok(false).reason(e.getMessage()).build()).build();
+            return Response.accepted(new VerifyApiHostsResponse().ok(false).reason(e.getMessage())).build();
         }
     }
 }

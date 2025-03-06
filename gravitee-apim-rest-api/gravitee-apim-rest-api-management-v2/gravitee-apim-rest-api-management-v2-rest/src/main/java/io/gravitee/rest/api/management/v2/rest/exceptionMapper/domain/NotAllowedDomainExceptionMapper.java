@@ -32,6 +32,6 @@ public class NotAllowedDomainExceptionMapper extends AbstractDomainExceptionMapp
     }
 
     private Error toError(NotAllowedDomainException notAllowedException) {
-        return Error.builder().httpStatus(Response.Status.FORBIDDEN.getStatusCode()).message(notAllowedException.getMessage()).build();
+        return new Error().httpStatus(Response.Status.FORBIDDEN.getStatusCode()).message(notAllowedException.getMessage());
     }
 }

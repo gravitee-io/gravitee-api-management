@@ -70,11 +70,9 @@ public class CategoryApisResource extends AbstractResource {
         return Response
             .ok()
             .entity(
-                CategoryApisResponse
-                    .builder()
+                new CategoryApisResponse()
                     .data(paginationData)
                     .pagination(PaginationInfo.computePaginationInfo(output.results().size(), paginationData.size(), paginationParam))
-                    .build()
             )
             .build();
     }

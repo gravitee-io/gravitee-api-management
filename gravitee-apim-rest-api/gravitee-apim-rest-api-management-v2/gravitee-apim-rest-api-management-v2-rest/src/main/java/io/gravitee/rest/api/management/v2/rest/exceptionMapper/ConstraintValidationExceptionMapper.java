@@ -38,12 +38,7 @@ public class ConstraintValidationExceptionMapper extends AbstractExceptionMapper
     }
 
     private Object validationError(ConstraintViolationException cve) {
-        return Error
-            .builder()
-            .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
-            .message("Validation error")
-            .details(buildDetails(cve))
-            .build();
+        return new Error().httpStatus(Response.Status.BAD_REQUEST.getStatusCode()).message("Validation error").details(buildDetails(cve));
     }
 
     private List<ErrorDetailsInner> buildDetails(ConstraintViolationException exception) {
@@ -52,13 +47,11 @@ public class ConstraintValidationExceptionMapper extends AbstractExceptionMapper
             .stream()
             .map(constraintViolation -> {
                 String errorLocation = constraintViolation.getPropertyPath().toString();
-                return ErrorDetailsInner
-                    .builder()
+                return new ErrorDetailsInner()
                     .message(constraintViolation.getMessage())
                     // getPropertyPath returns a location in the form of "methodName.methodParameter.fieldNameOfTheParameter.[...]". We are not interested by the method name and parameter, so we remove them.
                     .location(errorLocation.substring(StringUtils.ordinalIndexOf(errorLocation, ".", 2) + 1))
-                    .invalidValue(JsonNullable.of(constraintViolation.getInvalidValue()))
-                    .build();
+                    .invalidValue(JsonNullable.of(constraintViolation.getInvalidValue()));
             })
             .collect(Collectors.toList());
     }

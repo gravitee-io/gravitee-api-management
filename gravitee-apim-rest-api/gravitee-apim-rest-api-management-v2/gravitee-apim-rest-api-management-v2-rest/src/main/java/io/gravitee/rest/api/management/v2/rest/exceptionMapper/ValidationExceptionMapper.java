@@ -40,7 +40,7 @@ public class ValidationExceptionMapper extends AbstractExceptionMapper<AbstractV
     }
 
     private Error validationError(AbstractValidationException ve) {
-        return Error.builder().httpStatus(ve.getHttpStatusCode()).message(ve.getMessage()).details(buildDetails(ve)).build();
+        return new Error().httpStatus(ve.getHttpStatusCode()).message(ve.getMessage()).details(buildDetails(ve));
     }
 
     private List<ErrorDetailsInner> buildDetails(AbstractValidationException exception) {
@@ -49,12 +49,10 @@ public class ValidationExceptionMapper extends AbstractExceptionMapper<AbstractV
             .entrySet()
             .stream()
             .map(entry ->
-                ErrorDetailsInner
-                    .builder()
+                new ErrorDetailsInner()
                     .message(exception.getDetailMessage())
                     .invalidValue(JsonNullable.of(entry.getKey()))
                     .location(entry.getValue())
-                    .build()
             )
             .collect(Collectors.toList());
     }

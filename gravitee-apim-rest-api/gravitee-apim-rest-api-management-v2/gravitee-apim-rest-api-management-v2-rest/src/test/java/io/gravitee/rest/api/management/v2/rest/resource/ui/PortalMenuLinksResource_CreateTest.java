@@ -76,12 +76,10 @@ public class PortalMenuLinksResource_CreateTest extends AbstractResourceTest {
     @Test
     void should_create_portal_menu_link_with_default_visibility() {
         // When
-        var portalMenuLinkToCreate = CreatePortalMenuLink
-            .builder()
+        var portalMenuLinkToCreate = new CreatePortalMenuLink()
             .name("new menu link")
             .target("http://newTarget")
-            .type(CreatePortalMenuLink.TypeEnum.EXTERNAL)
-            .build();
+            .type(CreatePortalMenuLink.TypeEnum.EXTERNAL);
         final Response response = rootTarget().request().post(json(portalMenuLinkToCreate));
 
         // Then
@@ -102,13 +100,11 @@ public class PortalMenuLinksResource_CreateTest extends AbstractResourceTest {
     @Test
     void should_create_portal_menu_link_with_public_visibility() {
         // When
-        var portalMenuLinkToCreate = CreatePortalMenuLink
-            .builder()
+        var portalMenuLinkToCreate = new CreatePortalMenuLink()
             .name("new menu link")
             .target("http://newTarget")
             .type(CreatePortalMenuLink.TypeEnum.EXTERNAL)
-            .visibility(CreatePortalMenuLink.VisibilityEnum.PUBLIC)
-            .build();
+            .visibility(CreatePortalMenuLink.VisibilityEnum.PUBLIC);
         final Response response = rootTarget().request().post(json(portalMenuLinkToCreate));
 
         // Then
@@ -139,7 +135,7 @@ public class PortalMenuLinksResource_CreateTest extends AbstractResourceTest {
             .asError()
             .hasHttpStatus(BAD_REQUEST_400)
             .hasMessage("Validation error");
-        assertThat(portalMenuLinkCrudServiceInMemory.storage()).hasSize(0);
+        assertThat(portalMenuLinkCrudServiceInMemory.storage()).isEmpty();
     }
 
     @Test
@@ -154,7 +150,7 @@ public class PortalMenuLinksResource_CreateTest extends AbstractResourceTest {
             .asError()
             .hasHttpStatus(BAD_REQUEST_400)
             .hasMessage("Validation error");
-        assertThat(portalMenuLinkCrudServiceInMemory.storage()).hasSize(0);
+        assertThat(portalMenuLinkCrudServiceInMemory.storage()).isEmpty();
     }
 
     @Test
@@ -169,7 +165,7 @@ public class PortalMenuLinksResource_CreateTest extends AbstractResourceTest {
             .asError()
             .hasHttpStatus(BAD_REQUEST_400)
             .hasMessage("Validation error");
-        assertThat(portalMenuLinkCrudServiceInMemory.storage()).hasSize(0);
+        assertThat(portalMenuLinkCrudServiceInMemory.storage()).isEmpty();
     }
 
     @Test
@@ -195,6 +191,6 @@ public class PortalMenuLinksResource_CreateTest extends AbstractResourceTest {
             .asError()
             .hasHttpStatus(FORBIDDEN_403)
             .hasMessage("You do not have sufficient rights to access this resource");
-        assertThat(portalMenuLinkCrudServiceInMemory.storage()).hasSize(0);
+        assertThat(portalMenuLinkCrudServiceInMemory.storage()).isEmpty();
     }
 }

@@ -62,12 +62,10 @@ public class ApiEventsResource extends AbstractResource {
 
         var output = searchEventsUseCase.execute(input);
 
-        return EventsResponse
-            .builder()
+        return new EventsResponse()
             .data(ApiEventMapper.INSTANCE.map(output.data()))
             .pagination(computePaginationInfo(output.total(), output.data().size(), paginationParam))
-            .links(computePaginationLinks(output.total(), paginationParam))
-            .build();
+            .links(computePaginationLinks(output.total(), paginationParam));
     }
 
     @NotNull

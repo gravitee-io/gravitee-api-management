@@ -33,6 +33,7 @@ public interface EntrypointMapper {
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
     io.gravitee.definition.model.v4.nativeapi.NativeEntrypoint mapToNativeV4(Entrypoint entrypoint);
 
+    @Mapping(target = "qos", expression = "java(null)")
     @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
     Entrypoint mapFromNativeV4(io.gravitee.definition.model.v4.nativeapi.NativeEntrypoint entrypoint);
 }

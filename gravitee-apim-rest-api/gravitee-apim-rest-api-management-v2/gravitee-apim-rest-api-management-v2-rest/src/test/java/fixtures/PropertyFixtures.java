@@ -17,21 +17,17 @@ package fixtures;
 
 import io.gravitee.definition.model.Properties;
 import io.gravitee.rest.api.management.v2.rest.model.Property;
+import java.util.function.Supplier;
 
-@SuppressWarnings("ALL")
 public class PropertyFixtures {
 
     private PropertyFixtures() {}
 
-    private static final Property.PropertyBuilder BASE_PROPERTY = Property
-        .builder()
-        .dynamic(false)
-        .encrypted(false)
-        .key("prop-key")
-        .value("prop-value");
+    private static final Supplier<Property> BASE_PROPERTY = () ->
+        new Property().dynamic(false).encrypted(false).key("prop-key").value("prop-value");
 
     public static Property aProperty() {
-        return BASE_PROPERTY.build();
+        return BASE_PROPERTY.get();
     }
 
     public static Properties aModelPropertiesV2() {

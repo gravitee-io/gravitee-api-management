@@ -75,7 +75,7 @@ public class EnvironmentScoringRulesetsResource extends AbstractResource {
     public ScoringRulesetsResponse listRulesets() {
         var executionContext = GraviteeContext.getExecutionContext();
         var result = getEnvironmentRulesetsUseCase.execute(new GetEnvironmentRulesetsUseCase.Input(executionContext.getEnvironmentId()));
-        return ScoringRulesetsResponse.builder().data(result.reports().stream().map(ScoringRulesetMapper.INSTANCE::map).toList()).build();
+        return new ScoringRulesetsResponse().data(result.reports().stream().map(ScoringRulesetMapper.INSTANCE::map).toList());
     }
 
     @Path("{rulesetId}")

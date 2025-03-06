@@ -67,7 +67,11 @@ public class TrustStoreMapperTest {
 
     @Test
     void shouldMapToJKSTrustStoreV2() {
-        var jksTrustStore = JKSTrustStore.builder().type(TrustStoreType.JKS).path("path").content("content").password("password").build();
+        var jksTrustStore = (JKSTrustStore) new JKSTrustStore()
+            .path("path")
+            .content("content")
+            .password("password")
+            .type(TrustStoreType.JKS);
 
         var jksTrustStoreEntityV2 = trustStoreMapper.mapToV2(new TrustStore(jksTrustStore));
         assertThat(jksTrustStoreEntityV2).isNotNull();
@@ -84,13 +88,11 @@ public class TrustStoreMapperTest {
 
     @Test
     void shouldMapToPKCS12TrustStoreV2() {
-        var pkcs12TrustStore = PKCS12TrustStore
-            .builder()
-            .type(TrustStoreType.PKCS12)
+        var pkcs12TrustStore = (PKCS12TrustStore) new PKCS12TrustStore()
             .path("path")
             .content("content")
             .password("password")
-            .build();
+            .type(TrustStoreType.PKCS12);
 
         var pkcs12TrustStoreEntityV2 = trustStoreMapper.mapToV2(new TrustStore(pkcs12TrustStore));
         assertThat(pkcs12TrustStoreEntityV2).isNotNull();
@@ -107,7 +109,7 @@ public class TrustStoreMapperTest {
 
     @Test
     void shouldMapToPEMTrustStoreV2() {
-        var pemTrustStore = PEMTrustStore.builder().type(TrustStoreType.PEM).path("path").content("content").build();
+        var pemTrustStore = (PEMTrustStore) new PEMTrustStore().path("path").content("content").type(TrustStoreType.PEM);
 
         var pemTrustStoreEntityV2 = trustStoreMapper.mapToV2(new TrustStore(pemTrustStore));
         assertThat(pemTrustStoreEntityV2).isNotNull();
@@ -122,7 +124,7 @@ public class TrustStoreMapperTest {
 
     @Test
     void shouldMapToNoneTrustStoreV2() {
-        var noneTrustStore = NoneTrustStore.builder().type(TrustStoreType.NONE).build();
+        var noneTrustStore = (NoneTrustStore) new NoneTrustStore().type(TrustStoreType.NONE);
 
         var noneTrustStoreEntityV2 = trustStoreMapper.mapToV2(new TrustStore(noneTrustStore));
         assertThat(noneTrustStoreEntityV2).isNotNull();

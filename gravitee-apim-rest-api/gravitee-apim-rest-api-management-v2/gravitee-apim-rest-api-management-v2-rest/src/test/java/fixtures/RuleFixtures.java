@@ -19,22 +19,22 @@ import io.gravitee.rest.api.management.v2.rest.model.HttpMethod;
 import io.gravitee.rest.api.management.v2.rest.model.Rule;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.function.Supplier;
 
-@SuppressWarnings("ALL")
 public class RuleFixtures {
 
     private RuleFixtures() {}
 
-    private static final Rule.RuleBuilder BASE_RULE = Rule
-        .builder()
-        .description("description")
-        .enabled(true)
-        .methods(List.of(HttpMethod.GET, HttpMethod.POST))
-        .operation("policy-name")
-        .configuration(new LinkedHashMap<>());
+    private static final Supplier<Rule> BASE_RULE = () ->
+        new Rule()
+            .description("description")
+            .enabled(true)
+            .methods(List.of(HttpMethod.GET, HttpMethod.POST))
+            .operation("policy-name")
+            .configuration(new LinkedHashMap<>());
 
     public static Rule oneRule() {
-        return BASE_RULE.build();
+        return BASE_RULE.get();
     }
 
     public static io.gravitee.definition.model.Rule oneModelRule() {

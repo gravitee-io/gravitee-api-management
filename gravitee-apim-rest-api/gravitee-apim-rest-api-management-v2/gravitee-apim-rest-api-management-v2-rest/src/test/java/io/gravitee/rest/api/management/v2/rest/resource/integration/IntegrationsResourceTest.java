@@ -124,12 +124,10 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
         @Test
         public void should_create_integration() {
             //Given
-            var createIntegration = CreateIntegration
-                .builder()
+            var createIntegration = new CreateIntegration()
                 .name(INTEGRATION_NAME)
                 .description(INTEGRATION_DESCRIPTION)
-                .provider(INTEGRATION_PROVIDER)
-                .build();
+                .provider(INTEGRATION_PROVIDER);
 
             //When
             Response response = target.request().post(Entity.json(createIntegration));
@@ -140,24 +138,20 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.CREATED_201)
                 .asEntity(Integration.class)
                 .isEqualTo(
-                    Integration
-                        .builder()
+                    new Integration()
                         .id(INTEGRATION_ID)
                         .name(INTEGRATION_NAME)
                         .description(INTEGRATION_DESCRIPTION)
                         .provider(INTEGRATION_PROVIDER)
-                        .build()
                 );
         }
 
         @Test
         public void should_throw_bad_request_when_name_is_missing() {
             //Given
-            CreateIntegration createIntegration = CreateIntegration
-                .builder()
+            CreateIntegration createIntegration = new CreateIntegration()
                 .description(INTEGRATION_DESCRIPTION)
-                .provider(INTEGRATION_PROVIDER)
-                .build();
+                .provider(INTEGRATION_PROVIDER);
 
             //When
             Response response = target.request().post(Entity.json(createIntegration));
@@ -178,7 +172,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
         @Test
         public void should_return_403_when_incorrect_permission() {
             //Given
-            CreateIntegration createIntegration = new CreateIntegration().toBuilder().name("Barbicha").build();
+            CreateIntegration createIntegration = new CreateIntegration().name("Barbicha");
             when(
                 permissionService.hasPermission(
                     eq(GraviteeContext.getExecutionContext()),
@@ -231,7 +225,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(IntegrationsResponse.class)
                 .extracting(IntegrationsResponse::getPagination)
-                .isEqualTo(Pagination.builder().page(1).perPage(5).pageItemsCount(5).pageCount(3).totalCount(15L).build());
+                .isEqualTo(new Pagination().page(1).perPage(5).pageItemsCount(5).pageCount(3).totalCount(15L));
         }
 
         @Test
@@ -244,7 +238,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(IntegrationsResponse.class)
                 .extracting(IntegrationsResponse::getPagination)
-                .isEqualTo(Pagination.builder().page(2).perPage(2).pageItemsCount(2).pageCount(8).totalCount(15L).build());
+                .isEqualTo(new Pagination().page(2).perPage(2).pageItemsCount(2).pageCount(8).totalCount(15L));
         }
 
         @Test
@@ -257,7 +251,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(IntegrationsResponse.class)
                 .extracting(IntegrationsResponse::getPagination)
-                .isEqualTo(Pagination.builder().page(1).perPage(10).pageItemsCount(10).pageCount(2).totalCount(15L).build());
+                .isEqualTo(new Pagination().page(1).perPage(10).pageItemsCount(10).pageCount(2).totalCount(15L));
         }
 
         @Test
@@ -288,16 +282,14 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                 .extracting(IntegrationsResponse::getData)
                 .extracting(integrations -> integrations.get(0))
                 .isEqualTo(
-                    Integration
-                        .builder()
+                    new Integration()
                         .id(INTEGRATION_ID)
                         .name(name)
                         .description(description)
                         .provider(provider)
                         .agentStatus(Integration.AgentStatusEnum.CONNECTED)
-                        .primaryOwner(PrimaryOwner.builder().id("UnitTests").email("jane.doe@gravitee.io").displayName("Jane Doe").build())
+                        .primaryOwner(new PrimaryOwner().id("UnitTests").email("jane.doe@gravitee.io").displayName("Jane Doe"))
                         .groups(List.of())
-                        .build()
                 );
         }
 
@@ -310,14 +302,12 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                 .asEntity(ApiLogsResponse.class)
                 .extracting(ApiLogsResponse::getLinks)
                 .isEqualTo(
-                    Links
-                        .builder()
+                    new Links()
                         .self(target.queryParam("page", 2).queryParam("perPage", 5).getUri().toString())
                         .first(target.queryParam("page", 1).queryParam("perPage", 5).getUri().toString())
                         .last(target.queryParam("page", 3).queryParam("perPage", 5).getUri().toString())
                         .previous(target.queryParam("page", 1).queryParam("perPage", 5).getUri().toString())
                         .next(target.queryParam("page", 3).queryParam("perPage", 5).getUri().toString())
-                        .build()
                 );
         }
 

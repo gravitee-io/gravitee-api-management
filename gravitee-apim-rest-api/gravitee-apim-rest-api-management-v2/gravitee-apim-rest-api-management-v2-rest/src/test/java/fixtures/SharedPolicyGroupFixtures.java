@@ -21,29 +21,24 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.CreateSharedPolicyGroup;
 import io.gravitee.rest.api.management.v2.rest.model.FlowPhase;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateSharedPolicyGroup;
+import java.util.function.Supplier;
 
-@SuppressWarnings("ALL")
 public class SharedPolicyGroupFixtures {
 
     private SharedPolicyGroupFixtures() {}
 
-    private static final CreateSharedPolicyGroup.CreateSharedPolicyGroupBuilder CREATE_BASE = CreateSharedPolicyGroup
-        .builder()
-        .name("My Shared Policy Group")
-        .apiType(ApiType.PROXY)
-        .phase(FlowPhase.REQUEST);
+    private static final Supplier<CreateSharedPolicyGroup> CREATE_BASE = () ->
+        new CreateSharedPolicyGroup().name("My Shared Policy Group").apiType(ApiType.PROXY).phase(FlowPhase.REQUEST);
 
     public static CreateSharedPolicyGroup aCreateSharedPolicyGroup() {
-        return CREATE_BASE.build();
+        return CREATE_BASE.get();
     }
 
-    private static final UpdateSharedPolicyGroup.UpdateSharedPolicyGroupBuilder UPDATE_BASE = UpdateSharedPolicyGroup
-        .builder()
-        .name("My Shared Policy Group updated")
-        .description("My Shared Policy Group description updated");
+    private static final Supplier<UpdateSharedPolicyGroup> UPDATE_BASE = () ->
+        new UpdateSharedPolicyGroup().name("My Shared Policy Group updated").description("My Shared Policy Group description updated");
 
     public static UpdateSharedPolicyGroup aUpdateSharedPolicyGroup() {
-        return UPDATE_BASE.build();
+        return UPDATE_BASE.get();
     }
 
     private static final SharedPolicyGroupCRD.SharedPolicyGroupCRDBuilder CRD_BASE = SharedPolicyGroupCRD

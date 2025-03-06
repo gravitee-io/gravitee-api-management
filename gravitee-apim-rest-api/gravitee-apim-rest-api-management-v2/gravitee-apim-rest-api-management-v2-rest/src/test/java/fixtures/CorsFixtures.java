@@ -17,29 +17,29 @@ package fixtures;
 
 import io.gravitee.rest.api.management.v2.rest.model.Cors;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@SuppressWarnings("ALL")
 public class CorsFixtures {
 
     private CorsFixtures() {}
 
-    private static final Cors.CorsBuilder BASE_CORS = Cors
-        .builder()
-        .allowCredentials(true)
-        .allowHeaders(Set.of("header1", "header2"))
-        .allowMethods(Set.of("method1", "method2"))
-        .allowOrigin(Set.of("origin1", "origin2"))
-        .enabled(true)
-        .exposeHeaders(Set.of("exposeHeader1", "exposeHeader2"))
-        .maxAge(10)
-        .runPolicies(true);
+    private static final Supplier<Cors> BASE_CORS = () ->
+        new Cors()
+            .allowCredentials(true)
+            .allowHeaders(Set.of("header1", "header2"))
+            .allowMethods(Set.of("method1", "method2"))
+            .allowOrigin(Set.of("origin1", "origin2"))
+            .enabled(true)
+            .exposeHeaders(Set.of("exposeHeader1", "exposeHeader2"))
+            .maxAge(10)
+            .runPolicies(true);
 
     public static Cors aCors() {
-        return BASE_CORS.build();
+        return BASE_CORS.get();
     }
 
     public static io.gravitee.definition.model.Cors aModelCors() {

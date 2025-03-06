@@ -496,28 +496,24 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
             .hasStatus(OK_200)
             .asEntity(ApisResponse.class)
             .extracting(ApisResponse::getData)
-            .satisfies(list -> {
+            .satisfies(list ->
                 assertThat(list)
                     .extracting(Api::getApiFederated)
                     .isEqualTo(
                         List.of(
-                            ApiFederated
-                                .builder()
+                            new ApiFederated()
                                 .id("api-id")
                                 .name("api-name")
                                 .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.FEDERATED)
                                 .originContext(
-                                    IntegrationOriginContext
-                                        .builder()
-                                        .origin(BaseOriginContext.OriginEnum.INTEGRATION)
+                                    new IntegrationOriginContext()
                                         .integrationId("integration-id")
-                                        .build()
+                                        .origin(BaseOriginContext.OriginEnum.INTEGRATION)
                                 )
                                 .disableMembershipNotifications(false)
                                 .responseTemplates(Collections.emptyMap())
                                 .links(
-                                    ApiLinks
-                                        .builder()
+                                    new ApiLinks()
                                         .pictureUrl(
                                             rootTarget()
                                                 .getUriBuilder()
@@ -530,12 +526,10 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                                                 .replacePath("/environments/" + ENVIRONMENT + "/apis/api-id/background")
                                                 .toTemplate()
                                         )
-                                        .build()
                                 )
-                                .build()
                         )
-                    );
-            });
+                    )
+            );
     }
 
     @Test

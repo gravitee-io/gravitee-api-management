@@ -17,7 +17,6 @@ package fixtures;
 
 import io.gravitee.apim.core.metadata.model.Metadata;
 
-@SuppressWarnings("rawtypes")
 public class MetadataFixtures {
 
     private MetadataFixtures() {}
@@ -58,13 +57,11 @@ public class MetadataFixtures {
         Object defaultValue,
         io.gravitee.rest.api.management.v2.rest.model.MetadataFormat format
     ) {
-        return io.gravitee.rest.api.management.v2.rest.model.Metadata
-            .builder()
+        return new io.gravitee.rest.api.management.v2.rest.model.Metadata()
             .key(key)
             .name(name)
             .value(value != null ? value.toString() : null)
             .defaultValue(defaultValue != null ? defaultValue.toString() : null)
-            .format(format)
-            .build();
+            .format(format);
     }
 }

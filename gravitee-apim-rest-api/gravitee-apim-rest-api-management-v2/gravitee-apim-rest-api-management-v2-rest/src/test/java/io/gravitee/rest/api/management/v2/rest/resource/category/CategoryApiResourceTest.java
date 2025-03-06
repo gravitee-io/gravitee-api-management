@@ -125,7 +125,7 @@ public class CategoryApiResourceTest extends AbstractResourceTest {
             )
                 .thenReturn(false);
 
-            final Response response = rootTarget().request().post(Entity.json(UpdateCategoryApi.builder().order(99).build()));
+            final Response response = rootTarget().request().post(Entity.json(new UpdateCategoryApi().order(99)));
 
             MAPIAssertions
                 .assertThat(response)
@@ -149,7 +149,7 @@ public class CategoryApiResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_400_if_order_not_specified() {
-            final Response response = rootTarget().request().post(Entity.json(UpdateCategoryApi.builder().build()));
+            final Response response = rootTarget().request().post(Entity.json(new UpdateCategoryApi()));
 
             MAPIAssertions
                 .assertThat(response)
@@ -161,7 +161,7 @@ public class CategoryApiResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_404_if_category_not_found() {
-            final Response response = rootTarget().request().post(Entity.json(UpdateCategoryApi.builder().order(99).build()));
+            final Response response = rootTarget().request().post(Entity.json(new UpdateCategoryApi().order(99)));
 
             MAPIAssertions
                 .assertThat(response)
@@ -175,7 +175,7 @@ public class CategoryApiResourceTest extends AbstractResourceTest {
         public void should_return_404_if_api_not_found() {
             categoryQueryServiceInMemory.initWith(List.of(Category.builder().id(CAT_ID).build()));
 
-            final Response response = rootTarget().request().post(Entity.json(UpdateCategoryApi.builder().order(99).build()));
+            final Response response = rootTarget().request().post(Entity.json(new UpdateCategoryApi().order(99)));
 
             MAPIAssertions
                 .assertThat(response)
@@ -190,7 +190,7 @@ public class CategoryApiResourceTest extends AbstractResourceTest {
             categoryQueryServiceInMemory.initWith(List.of(Category.builder().id(CAT_ID).build()));
             apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).definitionVersion(DefinitionVersion.V4).build()));
 
-            final Response response = rootTarget().request().post(Entity.json(UpdateCategoryApi.builder().order(99).build()));
+            final Response response = rootTarget().request().post(Entity.json(new UpdateCategoryApi().order(99)));
 
             MAPIAssertions
                 .assertThat(response)
@@ -209,7 +209,7 @@ public class CategoryApiResourceTest extends AbstractResourceTest {
             categoryApiCrudServiceInMemory.initWith(List.of(apiCategoryOrder));
             updateCategoryApiDomainServiceInMemory.initWith(categoryApiCrudServiceInMemory.storage());
 
-            final Response response = rootTarget().request().post(Entity.json(UpdateCategoryApi.builder().order(99).build()));
+            final Response response = rootTarget().request().post(Entity.json(new UpdateCategoryApi().order(99)));
 
             MAPIAssertions.assertThat(response).hasStatus(OK_200).asEntity(CategoryApi.class).isNotNull();
         }

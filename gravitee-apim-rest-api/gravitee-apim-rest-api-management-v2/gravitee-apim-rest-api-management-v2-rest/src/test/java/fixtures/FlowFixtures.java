@@ -18,6 +18,7 @@ package fixtures;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.management.v2.rest.model.BaseSelector;
+import io.gravitee.rest.api.management.v2.rest.model.ChannelSelector;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV2;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.model.Operator;
@@ -29,21 +30,18 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@SuppressWarnings("ALL")
 public class FlowFixtures {
 
     private FlowFixtures() {}
 
-    private static final io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.ChannelSelectorBuilder BASE_CHANNEL_SELECTOR_V4 =
-        io.gravitee.rest.api.management.v2.rest.model.ChannelSelector
-            .builder()
-            .channel("channel")
-            .type(BaseSelector.TypeEnum.CHANNEL)
+    private static final Supplier<ChannelSelector> BASE_CHANNEL_SELECTOR_V4 = () ->
+        (io.gravitee.rest.api.management.v2.rest.model.ChannelSelector) new io.gravitee.rest.api.management.v2.rest.model.ChannelSelector()
             .entrypoints(Set.of("entrypoint1", "entrypoint2"))
             .operations(
                 Set.of(
@@ -51,67 +49,69 @@ public class FlowFixtures {
                     io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.OperationsEnum.PUBLISH
                 )
             )
-            .channelOperator(io.gravitee.rest.api.management.v2.rest.model.Operator.EQUALS);
+            .channelOperator(io.gravitee.rest.api.management.v2.rest.model.Operator.EQUALS)
+            .channel("channel")
+            .type(BaseSelector.TypeEnum.CHANNEL);
 
-    private static final StepV4.StepV4Builder BASE_STEP_V4 = StepV4
-        .builder()
-        .name("step")
-        .description("description")
-        .enabled(true)
-        .policy("policy")
-        .condition("{#context.attribute['condition'] == true}")
-        .messageCondition("{#context.attribute['messageCondition'] == true}")
-        .configuration(new LinkedHashMap<>(Map.of("nice", "config")));
+    private static final Supplier<StepV4> BASE_STEP_V4 = () ->
+        new StepV4()
+            .name("step")
+            .description("description")
+            .enabled(true)
+            .policy("policy")
+            .condition("{#context.attribute['condition'] == true}")
+            .messageCondition("{#context.attribute['messageCondition'] == true}")
+            .configuration(new LinkedHashMap<>(Map.of("nice", "config")));
 
-    private static final FlowV4.FlowV4Builder BASE_FLOW_HTTP_V4 = FlowV4
-        .builder()
-        .name("Flow")
-        .enabled(true)
-        .selectors(List.of(new Selector(BASE_CHANNEL_SELECTOR_V4.build())))
-        .request(List.of(BASE_STEP_V4.name("step_request").build()))
-        .publish(List.of(BASE_STEP_V4.name("step_publish").build()))
-        .response(List.of(BASE_STEP_V4.name("step_response").build()))
-        .subscribe(List.of(BASE_STEP_V4.name("step_subscribe").build()))
-        .tags(Set.of("tag1", "tag2"));
+    private static final Supplier<FlowV4> BASE_FLOW_HTTP_V4 = () ->
+        new FlowV4()
+            .name("Flow")
+            .enabled(true)
+            .selectors(List.of(new Selector(BASE_CHANNEL_SELECTOR_V4.get())))
+            .request(List.of(BASE_STEP_V4.get().name("step_request")))
+            .publish(List.of(BASE_STEP_V4.get().name("step_publish")))
+            .response(List.of(BASE_STEP_V4.get().name("step_response")))
+            .subscribe(List.of(BASE_STEP_V4.get().name("step_subscribe")))
+            .tags(Set.of("tag1", "tag2"));
 
-    private static final FlowV4.FlowV4Builder BASE_FLOW_NATIVE_V4 = FlowV4
-        .builder()
-        .name("Flow")
-        .enabled(true)
-        .connect(List.of(BASE_STEP_V4.name("step_connect").build()))
-        .publish(List.of(BASE_STEP_V4.name("step_publish").build()))
-        .interact(List.of(BASE_STEP_V4.name("step_interact").build()))
-        .subscribe(List.of(BASE_STEP_V4.name("step_subscribe").build()))
-        .tags(Set.of("tag1", "tag2"));
+    private static final Supplier<FlowV4> BASE_FLOW_NATIVE_V4 = () ->
+        new FlowV4()
+            .name("Flow")
+            .enabled(true)
+            .connect(List.of(BASE_STEP_V4.get().name("step_connect")))
+            .publish(List.of(BASE_STEP_V4.get().name("step_publish")))
+            .interact(List.of(BASE_STEP_V4.get().name("step_interact")))
+            .subscribe(List.of(BASE_STEP_V4.get().name("step_subscribe")))
+            .tags(Set.of("tag1", "tag2"));
 
-    private static final StepV2.StepV2Builder BASE_STEP_V2 = StepV2
-        .builder()
-        .name("step")
-        .description("description")
-        .enabled(true)
-        .policy("policy")
-        .condition("{#context.attribute['condition'] == true}")
-        .configuration(new LinkedHashMap<>(Map.of("nice", "config")));
+    private static final Supplier<StepV2> BASE_STEP_V2 = () ->
+        new StepV2()
+            .name("step")
+            .description("description")
+            .enabled(true)
+            .policy("policy")
+            .condition("{#context.attribute['condition'] == true}")
+            .configuration(new LinkedHashMap<>(Map.of("nice", "config")));
 
-    private static final FlowV2.FlowV2Builder BASE_FLOW_V2 = FlowV2
-        .builder()
-        .name("Flow")
-        .enabled(true)
-        .pathOperator(PathOperator.builder().operator(Operator.EQUALS).path("/path").build())
-        .condition("{#context.attribute['condition'] == true}")
-        .pre(List.of(BASE_STEP_V2.name("step_pre").build()))
-        .post(List.of(BASE_STEP_V2.name("step_pot").build()));
+    private static final Supplier<FlowV2> BASE_FLOW_V2 = () ->
+        new FlowV2()
+            .name("Flow")
+            .enabled(true)
+            .pathOperator(new PathOperator().operator(Operator.EQUALS).path("/path"))
+            .condition("{#context.attribute['condition'] == true}")
+            .pre(List.of(BASE_STEP_V2.get().name("step_pre")))
+            .post(List.of(BASE_STEP_V2.get().name("step_pot")));
 
     public static FlowV4 aFlowHttpV4() {
-        return BASE_FLOW_HTTP_V4.build();
+        return BASE_FLOW_HTTP_V4.get();
     }
 
     public static FlowV4 aFlowNativeV4() {
-        return BASE_FLOW_NATIVE_V4.build();
+        return BASE_FLOW_NATIVE_V4.get();
     }
 
     public static FlowV2 aFlowV2() {
-        return BASE_FLOW_V2.build();
+        return BASE_FLOW_V2.get();
     }
 
     public static Flow aModelFlowHttpV4() {

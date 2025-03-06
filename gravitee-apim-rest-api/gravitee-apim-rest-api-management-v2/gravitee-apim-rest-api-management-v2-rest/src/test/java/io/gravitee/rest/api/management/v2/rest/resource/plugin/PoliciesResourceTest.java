@@ -18,7 +18,9 @@ package io.gravitee.rest.api.management.v2.rest.resource.plugin;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 import inmemory.PolicyPluginQueryServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
@@ -118,15 +120,13 @@ public class PoliciesResourceTest extends AbstractResourceTest {
 
         assertThat(policyPlugins)
             .containsExactlyInAnyOrder(
-                PolicyPlugin.builder().id("policy-2").name("policy-2").deployed(false).build(),
-                PolicyPlugin
-                    .builder()
+                new PolicyPlugin().id("policy-2").name("policy-2").deployed(false),
+                new PolicyPlugin()
                     .id("policy-3")
                     .name("policy-3")
                     .deployed(true)
                     .flowPhaseCompatibility(
-                        PolicyPluginAllOfFlowPhaseCompatibility
-                            .builder()
+                        new PolicyPluginAllOfFlowPhaseCompatibility()
                             .HTTP_PROXY(
                                 Set.of(
                                     io.gravitee.rest.api.management.v2.rest.model.FlowPhase.REQUEST,
@@ -141,10 +141,8 @@ public class PoliciesResourceTest extends AbstractResourceTest {
                                     io.gravitee.rest.api.management.v2.rest.model.FlowPhase.PUBLISH
                                 )
                             )
-                            .build()
-                    )
-                    .build(),
-                PolicyPlugin.builder().id("policy-1").name("policy-1").deployed(false).build()
+                    ),
+                new PolicyPlugin().id("policy-1").name("policy-1").deployed(false)
             );
     }
 

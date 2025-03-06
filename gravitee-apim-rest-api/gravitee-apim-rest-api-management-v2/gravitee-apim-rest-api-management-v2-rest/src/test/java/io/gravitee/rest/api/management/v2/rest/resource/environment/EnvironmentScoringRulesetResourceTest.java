@@ -115,8 +115,7 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(ScoringRuleset.class)
                 .isEqualTo(
-                    ScoringRuleset
-                        .builder()
+                    new ScoringRuleset()
                         .id("ruleset-id")
                         .name("ruleset-name")
                         .description("ruleset-description")
@@ -125,7 +124,6 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
                         .referenceType(ScoringRulesetReferenceType.ENVIRONMENT)
                         .payload("payload-ruleset-id")
                         .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
-                        .build()
                 );
         }
 
@@ -147,11 +145,7 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
         void should_update_a_ruleset() {
             // Given
             scoringRulesetCrudService.initWith(List.of(ScoringRulesetFixture.aRuleset().withReferenceId(ENVIRONMENT)));
-            UpdateScoringRuleset updateScoringPayload = UpdateScoringRuleset
-                .builder()
-                .name("updated-name")
-                .description("updated-description")
-                .build();
+            UpdateScoringRuleset updateScoringPayload = new UpdateScoringRuleset().name("updated-name").description("updated-description");
             TimeProvider.overrideClock(Clock.fixed(INSTANT_NOW, ZoneId.systemDefault()));
             //When
             var response = rootTarget.path("ruleset-id").request().put(Entity.json(updateScoringPayload));
@@ -161,8 +155,7 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(ScoringRuleset.class)
                 .isEqualTo(
-                    ScoringRuleset
-                        .builder()
+                    new ScoringRuleset()
                         .id("ruleset-id")
                         .name("updated-name")
                         .description("updated-description")
@@ -172,7 +165,6 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
                         .referenceType(ScoringRulesetReferenceType.ENVIRONMENT)
                         .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
                         .updatedAt(INSTANT_NOW.atOffset(ZoneOffset.UTC))
-                        .build()
                 );
         }
 
@@ -180,8 +172,9 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
         void should_return_400_when_missing_name_to_update() {
             // Given
             scoringRulesetCrudService.initWith(List.of(ScoringRulesetFixture.aRuleset().withReferenceId(ENVIRONMENT)));
-            UpdateScoringRuleset updateScoringPayload = UpdateScoringRuleset.builder().description("updated-description").build();
-            //When
+            UpdateScoringRuleset updateScoringPayload = new UpdateScoringRuleset().description("updated-description");
+
+            // When
             var response = rootTarget.path("ruleset-id").request().put(Entity.json(updateScoringPayload));
 
             //Then
@@ -192,8 +185,9 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
         void should_return_400_when_missing_body() {
             // Given
             scoringRulesetCrudService.initWith(List.of(ScoringRulesetFixture.aRuleset("ruleset-id").withReferenceId(ENVIRONMENT)));
-            UpdateScoringRuleset updateScoringPayload = UpdateScoringRuleset.builder().build();
-            //When
+            UpdateScoringRuleset updateScoringPayload = new UpdateScoringRuleset();
+
+            // When
             var response = rootTarget.path("ruleset-id").request().put(Entity.json(updateScoringPayload));
 
             //Then

@@ -61,7 +61,7 @@ public class KeyStoreMapperTest {
 
     @Test
     void shouldMapToJKSKeyStoreV2() {
-        var jksKeyStore = JKSKeyStore.builder().type(KeyStoreType.JKS).path("path").content("content").password("password").build();
+        var jksKeyStore = (JKSKeyStore) new JKSKeyStore().path("path").content("content").password("password").type(KeyStoreType.JKS);
 
         var jksKeyStoreEntityV2 = keyStoreMapper.mapToV2(new KeyStore(jksKeyStore));
         assertThat(jksKeyStoreEntityV2).isNotNull();
@@ -77,13 +77,11 @@ public class KeyStoreMapperTest {
 
     @Test
     void shouldMapToPKCS12KeyStoreV2() {
-        var pkcs12KeyStore = PKCS12KeyStore
-            .builder()
-            .type(KeyStoreType.PKCS12)
+        var pkcs12KeyStore = (PKCS12KeyStore) new PKCS12KeyStore()
             .path("path")
             .content("content")
             .password("password")
-            .build();
+            .type(KeyStoreType.PKCS12);
 
         var pkcs12KeyStoreEntityV2 = keyStoreMapper.mapToV2(new KeyStore(pkcs12KeyStore));
         assertThat(pkcs12KeyStoreEntityV2).isNotNull();
@@ -100,14 +98,12 @@ public class KeyStoreMapperTest {
 
     @Test
     void shouldMapToPEMKeyStoreV2() {
-        var pemKeyStore = PEMKeyStore
-            .builder()
-            .type(KeyStoreType.PEM)
+        var pemKeyStore = (PEMKeyStore) new PEMKeyStore()
             .keyPath("path")
             .keyContent("content")
             .certPath("cert-path")
             .certContent("cert-content")
-            .build();
+            .type(KeyStoreType.PEM);
 
         var pemKeyStoreEntityV2 = keyStoreMapper.mapToV2(new KeyStore(pemKeyStore));
         assertThat(pemKeyStoreEntityV2).isNotNull();
@@ -126,7 +122,7 @@ public class KeyStoreMapperTest {
 
     @Test
     void shouldMapToNoneKeyStoreV2() {
-        var noneKeyStore = NoneKeyStore.builder().type(KeyStoreType.NONE).build();
+        var noneKeyStore = (NoneKeyStore) new NoneKeyStore().type(KeyStoreType.NONE);
 
         var noneKeyStoreEntityV2 = keyStoreMapper.mapToV2(new KeyStore(noneKeyStore));
         assertThat(noneKeyStoreEntityV2).isNotNull();

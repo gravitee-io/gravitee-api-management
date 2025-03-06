@@ -60,7 +60,7 @@ public class ServiceMapperTest {
 
     @Test
     void shouldMapEmptyApiServicesV2ToNull() {
-        var apiServicesV2 = ServiceFixture.anApiServicesV2().toBuilder().dynamicProperty(null).healthCheck(null).build();
+        var apiServicesV2 = ServiceFixture.anApiServicesV2().dynamicProperty(null).healthCheck(null);
 
         var services = serviceMapper.map(apiServicesV2);
         assertThat(services).isNotNull();
@@ -83,7 +83,7 @@ public class ServiceMapperTest {
 
     @Test
     void shouldMapEmptyEndpointGroupServicesV2ToNull() {
-        var endpointGroupServicesV2ServicesV2 = ServiceFixture.anEndpointGroupServicesV2().toBuilder().discovery(null).build();
+        var endpointGroupServicesV2ServicesV2 = ServiceFixture.anEndpointGroupServicesV2().discovery(null);
 
         var services = serviceMapper.map(endpointGroupServicesV2ServicesV2);
         assertThat(services).isNotNull();

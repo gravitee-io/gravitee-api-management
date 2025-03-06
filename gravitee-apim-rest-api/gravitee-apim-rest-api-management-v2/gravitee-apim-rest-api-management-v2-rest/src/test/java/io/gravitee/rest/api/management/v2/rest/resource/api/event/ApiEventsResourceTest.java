@@ -132,8 +132,7 @@ class ApiEventsResourceTest extends ApiResourceTest {
                 .extracting(EventsResponse::getData)
                 .isEqualTo(
                     List.of(
-                        Event
-                            .builder()
+                        new Event()
                             .id("event-id")
                             .environmentIds(List.of(ENVIRONMENT))
                             .initiator(new BaseUser().id("user-id").displayName("John Doe"))
@@ -141,7 +140,6 @@ class ApiEventsResourceTest extends ApiResourceTest {
                             .createdAt(OffsetDateTime.parse("2020-02-01T20:22:02.00Z"))
                             .payload("event-payload")
                             .properties(Map.of("API_ID", API, "USER", "user-id"))
-                            .build()
                     )
                 );
         }
@@ -230,7 +228,7 @@ class ApiEventsResourceTest extends ApiResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(EventsResponse.class)
                 .extracting(EventsResponse::getPagination)
-                .isEqualTo(Pagination.builder().page(2).perPage(pageSize).pageCount(4).pageItemsCount(pageSize).totalCount(total).build());
+                .isEqualTo(new Pagination().page(2).perPage(pageSize).pageCount(4).pageItemsCount(pageSize).totalCount(total));
         }
 
         @Test
@@ -256,14 +254,12 @@ class ApiEventsResourceTest extends ApiResourceTest {
                 .asEntity(EventsResponse.class)
                 .extracting(EventsResponse::getLinks)
                 .isEqualTo(
-                    Links
-                        .builder()
+                    new Links()
                         .self(target.queryParam("page", page).queryParam("perPage", pageSize).getUri().toString())
                         .first(target.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
                         .last(target.queryParam("page", 4).queryParam("perPage", pageSize).getUri().toString())
                         .previous(target.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
                         .next(target.queryParam("page", 3).queryParam("perPage", pageSize).getUri().toString())
-                        .build()
                 );
         }
 

@@ -246,12 +246,10 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
 
         var updateApiFederated = ApiFixtures
             .anUpdateApiFederated()
-            .toBuilder()
             .name(updatedName)
             .description(updatedDescription)
             .apiVersion(updatedVersion)
-            .lifecycleState(updatedLifecycle)
-            .build();
+            .lifecycleState(updatedLifecycle);
 
         final Response response = rootTarget(API).request().put(Entity.json(updateApiFederated));
 
@@ -303,13 +301,11 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
 
         var updateApiV4 = ApiFixtures
             .anUpdateApiV4()
-            .toBuilder()
             .type(ApiType.NATIVE)
             .name(updatedName)
             .description(updatedDescription)
             .apiVersion(updatedVersion)
-            .lifecycleState(updatedLifecycle)
-            .build();
+            .lifecycleState(updatedLifecycle);
 
         final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
 

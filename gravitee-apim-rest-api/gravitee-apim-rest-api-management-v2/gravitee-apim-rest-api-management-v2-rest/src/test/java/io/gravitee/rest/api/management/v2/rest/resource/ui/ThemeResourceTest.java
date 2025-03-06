@@ -104,7 +104,7 @@ public class ThemeResourceTest extends AbstractResourceTest {
                 )
             )
                 .thenReturn(false);
-            final Response response = rootTarget().request().put(Entity.json(UpdateThemePortal.builder().id(THEME_ID).build()));
+            final Response response = rootTarget().request().put(Entity.json(new UpdateThemePortal().id(THEME_ID)));
 
             MAPIAssertions
                 .assertThat(response)
@@ -116,7 +116,7 @@ public class ThemeResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_not_update_if_path_theme_id_does_not_match_body() {
-            final Response response = rootTarget().request().put(Entity.json(UpdateThemePortal.builder().id("another-id").build()));
+            final Response response = rootTarget().request().put(Entity.json(new UpdateThemePortal().id("another-id")));
 
             MAPIAssertions
                 .assertThat(response)
@@ -128,7 +128,7 @@ public class ThemeResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_not_update_non_existing_theme() {
-            final Response response = rootTarget().request().put(Entity.json(UpdateThemePortal.builder().id(THEME_ID).build()));
+            final Response response = rootTarget().request().put(Entity.json(new UpdateThemePortal().id(THEME_ID)));
             MAPIAssertions
                 .assertThat(response)
                 .hasStatus(NOT_FOUND_404)
@@ -142,7 +142,7 @@ public class ThemeResourceTest extends AbstractResourceTest {
             themeQueryService.initWith(List.of(aPortalTheme().toBuilder().referenceId("another-env").build()));
             themeCrudService.initWith(List.of(aPortalTheme().toBuilder().referenceId("another-env").build()));
 
-            final Response response = rootTarget().request().put(Entity.json(UpdateThemePortal.builder().id(THEME_ID).build()));
+            final Response response = rootTarget().request().put(Entity.json(new UpdateThemePortal().id(THEME_ID)));
             MAPIAssertions
                 .assertThat(response)
                 .hasStatus(NOT_FOUND_404)
@@ -156,29 +156,23 @@ public class ThemeResourceTest extends AbstractResourceTest {
             themeQueryService.initWith(List.of(aPortalTheme()));
             themeCrudService.initWith(List.of(aPortalTheme()));
 
-            var updateTheme = UpdateThemePortal
-                .builder()
+            var updateTheme = (UpdateThemePortal) new UpdateThemePortal()
+                .backgroundImage("background image")
+                .definition(
+                    new PortalDefinition()
+                        .data(
+                            List.of(
+                                new PortalComponentDefinition()
+                                    .name("title")
+                                    .css(List.of(new PortalCssDefinition().name("background").value("#000")))
+                            )
+                        )
+                )
                 .id(THEME_ID)
                 .name("new name")
                 .enabled(false)
-                .backgroundImage("background image")
                 .logo("background image")
-                .optionalLogo("background image")
-                .definition(
-                    PortalDefinition
-                        .builder()
-                        .data(
-                            List.of(
-                                PortalComponentDefinition
-                                    .builder()
-                                    .name("title")
-                                    .css(List.of(PortalCssDefinition.builder().name("background").value("#000").build()))
-                                    .build()
-                            )
-                        )
-                        .build()
-                )
-                .build();
+                .optionalLogo("background image");
 
             final Response response = rootTarget().request().put(Entity.json(updateTheme));
 
@@ -203,22 +197,18 @@ public class ThemeResourceTest extends AbstractResourceTest {
             themeQueryService.initWith(List.of(aPortalNextTheme()));
             themeCrudService.initWith(List.of(aPortalNextTheme()));
 
-            var updateTheme = UpdateThemePortalNext
-                .builder()
+            var updateTheme = (UpdateThemePortalNext) new UpdateThemePortalNext()
+                .definition(
+                    new PortalNextDefinition()
+                        .color(new PortalNextDefinitionColor().primary("#666").secondary("#444"))
+                        .font(new PortalNextDefinitionFont().fontFamily("Comic Sans"))
+                        .customCss("a new style")
+                )
                 .id(THEME_ID)
                 .name("new name")
                 .enabled(false)
-                .logo("background image")
                 .optionalLogo("background image")
-                .definition(
-                    PortalNextDefinition
-                        .builder()
-                        .color(PortalNextDefinitionColor.builder().primary("#666").secondary("#444").build())
-                        .font(PortalNextDefinitionFont.builder().fontFamily("Comic Sans").build())
-                        .customCss("a new style")
-                        .build()
-                )
-                .build();
+                .logo("background image");
 
             final Response response = rootTarget().request().put(Entity.json(updateTheme));
 
@@ -245,22 +235,18 @@ public class ThemeResourceTest extends AbstractResourceTest {
             themeQueryService.initWith(List.of(disabledTheme, currentThemeEnabled));
             themeCrudService.initWith(List.of(disabledTheme, currentThemeEnabled));
 
-            var updateTheme = UpdateThemePortalNext
-                .builder()
+            var updateTheme = (UpdateThemePortalNext) new UpdateThemePortalNext()
+                .definition(
+                    new PortalNextDefinition()
+                        .color(new PortalNextDefinitionColor().primary("#666").secondary("#444"))
+                        .font(new PortalNextDefinitionFont().fontFamily("Comic Sans"))
+                        .customCss("a new style")
+                )
                 .id(THEME_ID)
                 .name("new name")
                 .enabled(true)
                 .logo("background image")
-                .optionalLogo("background image")
-                .definition(
-                    PortalNextDefinition
-                        .builder()
-                        .color(PortalNextDefinitionColor.builder().primary("#666").secondary("#444").build())
-                        .font(PortalNextDefinitionFont.builder().fontFamily("Comic Sans").build())
-                        .customCss("a new style")
-                        .build()
-                )
-                .build();
+                .optionalLogo("background image");
 
             final Response response = rootTarget().request().put(Entity.json(updateTheme));
 

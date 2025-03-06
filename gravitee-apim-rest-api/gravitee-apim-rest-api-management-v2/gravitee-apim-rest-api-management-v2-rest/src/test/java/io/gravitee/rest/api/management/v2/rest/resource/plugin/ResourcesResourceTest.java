@@ -27,18 +27,12 @@ import inmemory.ResourcePluginQueryServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
-import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.ResourcePlugin;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
-import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -141,18 +135,16 @@ public class ResourcesResourceTest extends AbstractResourceTest {
 
         assertThat(resourcePlugins)
             .containsExactly(
-                ResourcePlugin.builder().id("resource-1").name("resource-1").deployed(false).build(),
-                ResourcePlugin
-                    .builder()
+                new ResourcePlugin().id("resource-1").name("resource-1").deployed(false),
+                new ResourcePlugin()
                     .id("resource-2")
                     .name("resource-2")
                     .description("description")
                     .category("category")
                     .icon("icon")
                     .version("1.0")
-                    .deployed(false)
-                    .build(),
-                ResourcePlugin.builder().id("resource-3").name("resource-3").deployed(true).build()
+                    .deployed(false),
+                new ResourcePlugin().id("resource-3").name("resource-3").deployed(true)
             );
     }
 

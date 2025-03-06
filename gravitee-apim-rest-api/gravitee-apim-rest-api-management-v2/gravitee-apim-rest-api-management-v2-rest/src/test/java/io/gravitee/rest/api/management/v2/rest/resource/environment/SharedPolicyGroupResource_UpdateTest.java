@@ -117,13 +117,11 @@ public class SharedPolicyGroupResource_UpdateTest extends AbstractResourceTest {
                     .hasSize(1)
                     .containsAll(
                         List.of(
-                            StepV4
-                                .builder()
+                            new StepV4()
                                 .policy("policyId")
                                 .name("Step name")
                                 .enabled(true)
                                 .configuration(Map.ofEntries(Map.entry("key", "value")))
-                                .build()
                         )
                     );
             })

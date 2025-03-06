@@ -86,7 +86,7 @@ class EnvironmentScoringFunctionsResourceTest extends AbstractResourceTest {
         @Test
         void should_create_function() {
             // Given
-            var request = ImportScoringFunction.builder().name("function-name.js").payload("function-payload").build();
+            var request = new ImportScoringFunction().name("function-name.js").payload("function-payload");
 
             // When
             target.request().post(json(request));
@@ -101,7 +101,7 @@ class EnvironmentScoringFunctionsResourceTest extends AbstractResourceTest {
         void should_set_location_header_with_created_function_url() {
             // Given
             UuidString.overrideGenerator(() -> "generated-id");
-            var request = ImportScoringFunction.builder().name("function-name.js").payload("function-payload").build();
+            var request = new ImportScoringFunction().name("function-name.js").payload("function-payload");
 
             // When
             Response response = target.request().post(json(request));
@@ -120,7 +120,7 @@ class EnvironmentScoringFunctionsResourceTest extends AbstractResourceTest {
                     ScoringFunctionFixture.aFunction().toBuilder().id("function1").name("function-name.js").referenceId(ENVIRONMENT).build()
                 )
             );
-            var request2 = ImportScoringFunction.builder().name("function-name.js").payload("function-payload2").build();
+            var request2 = new ImportScoringFunction().name("function-name.js").payload("function-payload2");
 
             // When
             Response response = target.request().post(json(request2));
@@ -157,22 +157,18 @@ class EnvironmentScoringFunctionsResourceTest extends AbstractResourceTest {
                 .extracting(ScoringFunctionsResponse::getData)
                 .asInstanceOf(InstanceOfAssertFactories.LIST)
                 .containsExactly(
-                    io.gravitee.rest.api.management.v2.rest.model.ScoringFunction
-                        .builder()
+                    new io.gravitee.rest.api.management.v2.rest.model.ScoringFunction()
+                        .name("function-name")
+                        .payload("function-payload")
+                        .referenceId(ENVIRONMENT)
+                        .referenceType(io.gravitee.rest.api.management.v2.rest.model.ScoringFunctionReferenceType.ENVIRONMENT)
+                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC)),
+                    new io.gravitee.rest.api.management.v2.rest.model.ScoringFunction()
                         .name("function-name")
                         .payload("function-payload")
                         .referenceId(ENVIRONMENT)
                         .referenceType(io.gravitee.rest.api.management.v2.rest.model.ScoringFunctionReferenceType.ENVIRONMENT)
                         .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
-                        .build(),
-                    io.gravitee.rest.api.management.v2.rest.model.ScoringFunction
-                        .builder()
-                        .name("function-name")
-                        .payload("function-payload")
-                        .referenceId(ENVIRONMENT)
-                        .referenceType(io.gravitee.rest.api.management.v2.rest.model.ScoringFunctionReferenceType.ENVIRONMENT)
-                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
-                        .build()
                 );
         }
     }

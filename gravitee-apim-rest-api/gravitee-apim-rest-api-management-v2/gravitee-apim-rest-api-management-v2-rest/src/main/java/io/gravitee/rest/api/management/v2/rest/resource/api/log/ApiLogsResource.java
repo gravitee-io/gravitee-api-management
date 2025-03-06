@@ -70,12 +70,10 @@ public class ApiLogsResource extends AbstractResource {
 
         var response = searchConnectionLogsUsecase.execute(GraviteeContext.getExecutionContext(), request);
 
-        return ApiLogsResponse
-            .builder()
+        return new ApiLogsResponse()
             .data(ApiLogsMapper.INSTANCE.mapToList(response.data()))
             .pagination(computePaginationInfo(response.total(), response.data().size(), paginationParam))
-            .links(computePaginationLinks(response.total(), paginationParam))
-            .build();
+            .links(computePaginationLinks(response.total(), paginationParam));
     }
 
     @Path("/{requestId}/messages")
@@ -94,12 +92,10 @@ public class ApiLogsResource extends AbstractResource {
 
         var response = searchMessageLogsUsecase.execute(GraviteeContext.getExecutionContext(), request);
 
-        return ApiMessageLogsResponse
-            .builder()
+        return new ApiMessageLogsResponse()
             .data(ApiMessageLogsMapper.INSTANCE.mapToList(response.data()))
             .pagination(computePaginationInfo(response.total(), response.data().size(), paginationParam))
-            .links(computePaginationLinks(response.total(), paginationParam))
-            .build();
+            .links(computePaginationLinks(response.total(), paginationParam));
     }
 
     @Path("/{requestId}")

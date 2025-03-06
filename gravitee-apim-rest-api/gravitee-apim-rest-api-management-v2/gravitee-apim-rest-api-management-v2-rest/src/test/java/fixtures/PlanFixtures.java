@@ -33,6 +33,7 @@ import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -42,126 +43,125 @@ public class PlanFixtures {
 
     private PlanFixtures() {}
 
-    private static final UpdateGenericPlanSecurity.UpdateGenericPlanSecurityBuilder<?, ?> BASE_UPDATE_PLAN_SECURITY =
-        UpdateGenericPlanSecurity.builder().configuration("{\"nice\": \"config\"}");
+    private static final Supplier<UpdateGenericPlanSecurity> BASE_UPDATE_PLAN_SECURITY = () ->
+        new UpdateGenericPlanSecurity().configuration("{\"nice\": \"config\"}");
 
-    private static final io.gravitee.rest.api.management.v2.rest.model.PlanSecurity.PlanSecurityBuilder<?, ?> BASE_PLAN_SECURITY =
-        io.gravitee.rest.api.management.v2.rest.model.PlanSecurity
-            .builder()
+    private static final Supplier<io.gravitee.rest.api.management.v2.rest.model.PlanSecurity> BASE_PLAN_SECURITY = () ->
+        new io.gravitee.rest.api.management.v2.rest.model.PlanSecurity()
             .type(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.API_KEY)
             .configuration("{\"nice\": \"config\"}");
 
-    private static final CreatePlanV4.CreatePlanV4Builder BASE_CREATE_PLAN_HTTP_V4 = CreatePlanV4
-        .builder()
-        .name("My plan")
-        .description("Description")
-        .order(1)
-        .characteristics(List.of("characteristic1", "characteristic2"))
-        .commentRequired(true)
-        .commentMessage("Comment message")
-        .crossId("my-plan-crossId")
-        .generalConditions("General conditions")
-        .tags(List.of("tag1", "tag2"))
-        .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
-        .validation(PlanValidation.AUTO)
-        .selectionRule("{#request.attribute['selectionRule'] != null}")
-        .security(BASE_PLAN_SECURITY.build())
-        .flows(List.of(FlowFixtures.aFlowHttpV4()));
+    private static final Supplier<CreatePlanV4> BASE_CREATE_PLAN_HTTP_V4 = () ->
+        (CreatePlanV4) new CreatePlanV4()
+            .flows(List.of(FlowFixtures.aFlowHttpV4()))
+            .name("My plan")
+            .description("Description")
+            .order(1)
+            .characteristics(List.of("characteristic1", "characteristic2"))
+            .commentRequired(true)
+            .commentMessage("Comment message")
+            .crossId("my-plan-crossId")
+            .generalConditions("General conditions")
+            .tags(List.of("tag1", "tag2"))
+            .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+            .validation(PlanValidation.AUTO)
+            .selectionRule("{#request.attribute['selectionRule'] != null}")
+            .security(BASE_PLAN_SECURITY.get());
 
-    private static final CreatePlanV4.CreatePlanV4Builder BASE_CREATE_PLAN_NATIVE_V4 = CreatePlanV4
-        .builder()
-        .name("My plan")
-        .description("Description")
-        .order(1)
-        .characteristics(List.of("characteristic1", "characteristic2"))
-        .commentRequired(true)
-        .commentMessage("Comment message")
-        .crossId("my-plan-crossId")
-        .generalConditions("General conditions")
-        .tags(List.of("tag1", "tag2"))
-        .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
-        .validation(PlanValidation.AUTO)
-        .selectionRule("{#request.attribute['selectionRule'] != null}")
-        .security(BASE_PLAN_SECURITY.build())
-        .flows(List.of(FlowFixtures.aFlowNativeV4()));
+    private static final Supplier<CreatePlanV4> BASE_CREATE_PLAN_NATIVE_V4 = () ->
+        (CreatePlanV4) new CreatePlanV4()
+            .flows(List.of(FlowFixtures.aFlowNativeV4()))
+            .name("My plan")
+            .description("Description")
+            .order(1)
+            .characteristics(List.of("characteristic1", "characteristic2"))
+            .commentRequired(true)
+            .commentMessage("Comment message")
+            .crossId("my-plan-crossId")
+            .generalConditions("General conditions")
+            .tags(List.of("tag1", "tag2"))
+            .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+            .validation(PlanValidation.AUTO)
+            .selectionRule("{#request.attribute['selectionRule'] != null}")
+            .security(BASE_PLAN_SECURITY.get());
 
-    private static final CreatePlanV2.CreatePlanV2Builder BASE_CREATE_PLAN_V2 = CreatePlanV2
-        .builder()
-        .name("My plan")
-        .description("Description")
-        .order(1)
-        .characteristics(List.of("characteristic1", "characteristic2"))
-        .commentMessage("Comment message")
-        .crossId("my-plan-crossId")
-        .generalConditions("General conditions")
-        .tags(List.of("tag1", "tag2"))
-        .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
-        .validation(PlanValidation.AUTO)
-        .selectionRule("{#request.attribute['selectionRule'] != null}")
-        .security(BASE_PLAN_SECURITY.build())
-        .flows(List.of(FlowFixtures.aFlowV2()));
+    private static final Supplier<CreatePlanV2> BASE_CREATE_PLAN_V2 = () ->
+        (CreatePlanV2) new CreatePlanV2()
+            .flows(List.of(FlowFixtures.aFlowV2()))
+            .name("My plan")
+            .description("Description")
+            .order(1)
+            .characteristics(List.of("characteristic1", "characteristic2"))
+            .commentMessage("Comment message")
+            .crossId("my-plan-crossId")
+            .generalConditions("General conditions")
+            .tags(List.of("tag1", "tag2"))
+            .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+            .validation(PlanValidation.AUTO)
+            .selectionRule("{#request.attribute['selectionRule'] != null}")
+            .security(BASE_PLAN_SECURITY.get());
 
-    private static final UpdatePlanV4.UpdatePlanV4Builder BASE_UPDATE_PLAN_V4 = UpdatePlanV4
-        .builder()
-        .name("My plan")
-        .description("Description")
-        .order(1)
-        .characteristics(List.of("characteristic1", "characteristic2"))
-        .commentMessage("Comment message")
-        .crossId("my-plan-crossId")
-        .generalConditions("General conditions")
-        .tags(List.of("tag1", "tag2"))
-        .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
-        .validation(PlanValidation.AUTO)
-        .selectionRule("{#request.attribute['selectionRule'] != null}")
-        .security(BASE_UPDATE_PLAN_SECURITY.build())
-        .flows(List.of(FlowFixtures.aFlowHttpV4()));
+    private static final Supplier<UpdatePlanV4> BASE_UPDATE_PLAN_V4 = () ->
+        (UpdatePlanV4) new UpdatePlanV4()
+            .flows(List.of(FlowFixtures.aFlowHttpV4()))
+            .tags(List.of("tag1", "tag2"))
+            .selectionRule("{#request.attribute['selectionRule'] != null}")
+            .name("My plan")
+            .description("Description")
+            .order(1)
+            .characteristics(List.of("characteristic1", "characteristic2"))
+            .commentMessage("Comment message")
+            .crossId("my-plan-crossId")
+            .generalConditions("General conditions")
+            .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+            .validation(PlanValidation.AUTO)
+            .security(BASE_UPDATE_PLAN_SECURITY.get());
 
-    private static final UpdatePlanV4.UpdatePlanV4Builder BASE_UPDATE_NATIVE_PLAN_V4 = UpdatePlanV4
-        .builder()
-        .name("My plan")
-        .description("Description")
-        .order(1)
-        .characteristics(List.of("characteristic1", "characteristic2"))
-        .commentMessage("Comment message")
-        .crossId("my-plan-crossId")
-        .generalConditions("General conditions")
-        .tags(List.of("tag1", "tag2"))
-        .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
-        .validation(PlanValidation.AUTO)
-        .selectionRule("{#request.attribute['selectionRule'] != null}")
-        .security(BASE_UPDATE_PLAN_SECURITY.build())
-        .flows(List.of(FlowFixtures.aFlowNativeV4()));
+    private static final Supplier<UpdatePlanV4> BASE_UPDATE_NATIVE_PLAN_V4 = () ->
+        (UpdatePlanV4) new UpdatePlanV4()
+            .flows(List.of(FlowFixtures.aFlowNativeV4()))
+            .tags(List.of("tag1", "tag2"))
+            .selectionRule("{#request.attribute['selectionRule'] != null}")
+            .name("My plan")
+            .description("Description")
+            .order(1)
+            .characteristics(List.of("characteristic1", "characteristic2"))
+            .commentMessage("Comment message")
+            .crossId("my-plan-crossId")
+            .generalConditions("General conditions")
+            .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+            .validation(PlanValidation.AUTO)
+            .security(BASE_UPDATE_PLAN_SECURITY.get());
 
-    private static final UpdatePlanFederated.UpdatePlanFederatedBuilder BASE_UPDATE_PLAN_FEDERATED = UpdatePlanFederated
-        .builder()
-        .name("My plan")
-        .description("Description")
-        .order(1)
-        .characteristics(List.of("characteristic1", "characteristic2"))
-        .commentMessage("Comment message")
-        .crossId("my-plan-crossId")
-        .generalConditions("General conditions")
-        .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
-        .validation(PlanValidation.AUTO)
-        .commentRequired(false)
-        .security(BASE_UPDATE_PLAN_SECURITY.build());
+    private static final Supplier<UpdatePlanFederated> BASE_UPDATE_PLAN_FEDERATED = () ->
+        (UpdatePlanFederated) new UpdatePlanFederated()
+            .name("My plan")
+            .description("Description")
+            .order(1)
+            .characteristics(List.of("characteristic1", "characteristic2"))
+            .commentMessage("Comment message")
+            .crossId("my-plan-crossId")
+            .generalConditions("General conditions")
+            .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+            .validation(PlanValidation.AUTO)
+            .commentRequired(false)
+            .security(BASE_UPDATE_PLAN_SECURITY.get());
 
-    private static final UpdatePlanV2.UpdatePlanV2Builder BASE_UPDATE_PLAN_V2 = UpdatePlanV2
-        .builder()
-        .name("My plan")
-        .description("Description")
-        .order(1)
-        .characteristics(List.of("characteristic1", "characteristic2"))
-        .commentMessage("Comment message")
-        .crossId("my-plan-crossId")
-        .generalConditions("General conditions")
-        .tags(List.of("tag1", "tag2"))
-        .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
-        .validation(PlanValidation.AUTO)
-        .selectionRule("{#request.attribute['selectionRule'] != null}")
-        .security(BASE_UPDATE_PLAN_SECURITY.build())
-        .flows(List.of(FlowFixtures.aFlowV2()));
+    private static final Supplier<UpdatePlanV2> BASE_UPDATE_PLAN_V2 = () ->
+        (UpdatePlanV2) new UpdatePlanV2()
+            .flows(List.of(FlowFixtures.aFlowV2()))
+            .tags(List.of("tag1", "tag2"))
+            .selectionRule("{#request.attribute['selectionRule'] != null}")
+            .name("My plan")
+            .description("Description")
+            .order(1)
+            .characteristics(List.of("characteristic1", "characteristic2"))
+            .commentMessage("Comment message")
+            .crossId("my-plan-crossId")
+            .generalConditions("General conditions")
+            .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+            .validation(PlanValidation.AUTO)
+            .security(BASE_UPDATE_PLAN_SECURITY.get());
 
     private static final io.gravitee.rest.api.model.PlanEntity.PlanEntityBuilder BASE_PLAN_ENTITY_V2 = io.gravitee.rest.api.model.PlanEntity
         .builder()
@@ -186,31 +186,31 @@ public class PlanFixtures {
         .flows(List.of(FlowFixtures.aModelFlowV2()));
 
     public static CreatePlanV4 aCreatePlanHttpV4() {
-        return BASE_CREATE_PLAN_HTTP_V4.build();
+        return BASE_CREATE_PLAN_HTTP_V4.get();
     }
 
     public static CreatePlanV4 aCreatePlanNativeV4() {
-        return BASE_CREATE_PLAN_NATIVE_V4.build();
+        return BASE_CREATE_PLAN_NATIVE_V4.get();
     }
 
     public static CreatePlanV2 aCreatePlanV2() {
-        return BASE_CREATE_PLAN_V2.build();
+        return BASE_CREATE_PLAN_V2.get();
     }
 
     public static UpdatePlanV4 anUpdatePlanV4() {
-        return BASE_UPDATE_PLAN_V4.build();
+        return BASE_UPDATE_PLAN_V4.get();
     }
 
     public static UpdatePlanV4 anUpdatePlanNativeV4() {
-        return BASE_UPDATE_NATIVE_PLAN_V4.build();
+        return BASE_UPDATE_NATIVE_PLAN_V4.get();
     }
 
     public static UpdatePlanV2 anUpdatePlanV2() {
-        return BASE_UPDATE_PLAN_V2.build();
+        return BASE_UPDATE_PLAN_V2.get();
     }
 
     public static UpdatePlanFederated anUpdatePlanFederated() {
-        return BASE_UPDATE_PLAN_FEDERATED.build();
+        return BASE_UPDATE_PLAN_FEDERATED.get();
     }
 
     public static PlanEntity aPlanEntityV4() {

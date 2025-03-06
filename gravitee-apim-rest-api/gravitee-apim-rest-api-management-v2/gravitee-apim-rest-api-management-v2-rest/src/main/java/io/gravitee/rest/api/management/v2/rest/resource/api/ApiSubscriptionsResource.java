@@ -294,7 +294,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             apiId,
             verifySubscriptionSubscription.getApplicationId()
         );
-        return Response.ok(VerifySubscriptionResponse.builder().ok(canCreate).build()).build();
+        return Response.ok(new VerifySubscriptionResponse().ok(canCreate)).build();
     }
 
     private Page<SubscriptionEntity> getSubscriptionEntityPage(
@@ -314,14 +314,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             .apiKey(apiKey)
             .build();
 
-        final Page<SubscriptionEntity> subscriptionPage = subscriptionService.search(
-            executionContext,
-            subscriptionQuery,
-            paginationParam.toPageable(),
-            false,
-            false
-        );
-        return subscriptionPage;
+        return subscriptionService.search(executionContext, subscriptionQuery, paginationParam.toPageable(), false, false);
     }
 
     @GET
