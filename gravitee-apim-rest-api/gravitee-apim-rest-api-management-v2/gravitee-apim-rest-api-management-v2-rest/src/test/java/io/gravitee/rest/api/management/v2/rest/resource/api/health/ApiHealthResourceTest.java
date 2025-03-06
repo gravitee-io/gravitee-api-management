@@ -35,9 +35,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiHealthAvailabilityRespon
 import io.gravitee.rest.api.management.v2.rest.model.ApiHealthAverageResponseTimeOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiHealthAverageResponseTimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiHealthLogsResponse;
-import io.gravitee.rest.api.management.v2.rest.model.HealthCheckLogRequest;
 import io.gravitee.rest.api.management.v2.rest.model.HealthCheckLogStep;
-import io.gravitee.rest.api.management.v2.rest.model.IntegrationsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
@@ -48,7 +46,6 @@ import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -203,14 +200,7 @@ class ApiHealthResourceTest extends ApiResourceTest {
                 .asEntity(ApiHealthAverageResponseTimeOvertimeResponse.class)
                 .satisfies(r -> {
                     assertThat(r.getTimeRange())
-                        .isEqualTo(
-                            AnalyticTimeRange
-                                .builder()
-                                .to(TO.toEpochMilli())
-                                .from(FROM.toEpochMilli())
-                                .interval(INTERVAL.toMillis())
-                                .build()
-                        );
+                        .isEqualTo(new AnalyticTimeRange().to(TO.toEpochMilli()).from(FROM.toEpochMilli()).interval(INTERVAL.toMillis()));
                     assertThat(r.getData()).isEqualTo(List.of(3L));
                 });
         }
@@ -448,7 +438,7 @@ class ApiHealthResourceTest extends ApiResourceTest {
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(ApiHealthLogsResponse.class)
                 .extracting(ApiHealthLogsResponse::getPagination)
-                .isEqualTo(Pagination.builder().page(1).perPage(10).pageItemsCount(1).pageCount(1).totalCount(1L).build());
+                .isEqualTo(new Pagination().page(1).perPage(10).pageItemsCount(1).pageCount(1).totalCount(1L));
         }
 
         @Test
@@ -506,14 +496,12 @@ class ApiHealthResourceTest extends ApiResourceTest {
                 .asEntity(ApiHealthLogsResponse.class)
                 .extracting(ApiHealthLogsResponse::getLinks)
                 .isEqualTo(
-                    Links
-                        .builder()
+                    new Links()
                         .self(target.queryParam("page", 2).queryParam("perPage", 5).getUri().toString())
                         .first(target.queryParam("page", 1).queryParam("perPage", 5).getUri().toString())
                         .last(target.queryParam("page", 3).queryParam("perPage", 5).getUri().toString())
                         .previous(target.queryParam("page", 1).queryParam("perPage", 5).getUri().toString())
                         .next(target.queryParam("page", 3).queryParam("perPage", 5).getUri().toString())
-                        .build()
                 );
         }
 
@@ -534,9 +522,8 @@ class ApiHealthResourceTest extends ApiResourceTest {
                 .extracting(ApiHealthLogsResponse::getData, ApiHealthLogsResponse::getPagination, ApiHealthLogsResponse::getLinks)
                 .contains(
                     List.of(),
-                    Pagination.builder().build(),
-                    Links
-                        .builder()
+                    new Pagination(),
+                    new Links()
                         .self(
                             healthCheckLogsTarget
                                 .queryParam("from", FROM.toEpochMilli())
@@ -544,7 +531,6 @@ class ApiHealthResourceTest extends ApiResourceTest {
                                 .getUri()
                                 .toString()
                         )
-                        .build()
                 );
         }
     }

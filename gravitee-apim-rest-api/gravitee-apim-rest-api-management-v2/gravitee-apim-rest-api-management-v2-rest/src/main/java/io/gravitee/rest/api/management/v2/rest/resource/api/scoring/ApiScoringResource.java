@@ -50,7 +50,7 @@ public class ApiScoringResource extends AbstractResource {
         scoreApiRequestUseCase
             .execute(new ScoreApiRequestUseCase.Input(apiId, getAuditInfo()))
             .subscribe(
-                () -> response.resume(Response.accepted(ApiScoringTriggerResponse.builder().status(ScoringStatus.PENDING).build()).build()),
+                () -> response.resume(Response.accepted(new ApiScoringTriggerResponse().status(ScoringStatus.PENDING)).build()),
                 response::resume
             );
     }

@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import java.time.OffsetDateTime;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -37,71 +38,65 @@ public class SubscriptionFixtures {
 
     private SubscriptionFixtures() {}
 
-    private static final CreateSubscription.CreateSubscriptionBuilder BASE_CREATE_SUBSCRIPTION = CreateSubscription
-        .builder()
-        .planId("my-plan")
-        .applicationId("my-application")
-        .customApiKey("custom")
-        .consumerConfiguration(
-            SubscriptionConsumerConfiguration
-                .builder()
-                .entrypointConfiguration("{\"nice\": \"config\"}")
-                .entrypointId("entrypoint-id")
-                .channel("channel")
-                .build()
-        )
-        .metadata(Map.of("meta1", "value1", "meta2", "value2"));
+    private static final Supplier<CreateSubscription> BASE_CREATE_SUBSCRIPTION = () ->
+        new CreateSubscription()
+            .planId("my-plan")
+            .applicationId("my-application")
+            .customApiKey("custom")
+            .consumerConfiguration(
+                new SubscriptionConsumerConfiguration()
+                    .entrypointConfiguration("{\"nice\": \"config\"}")
+                    .entrypointId("entrypoint-id")
+                    .channel("channel")
+            )
+            .metadata(Map.of("meta1", "value1", "meta2", "value2"));
 
-    private static final UpdateSubscription.UpdateSubscriptionBuilder BASE_UPDATE_SUBSCRIPTION = UpdateSubscription
-        .builder()
-        .startingAt(OffsetDateTime.now())
-        .endingAt(OffsetDateTime.now())
-        .consumerConfiguration(
-            SubscriptionConsumerConfiguration
-                .builder()
-                .entrypointConfiguration("{\"nice\": \"config\"}")
-                .entrypointId("entrypoint-id")
-                .channel("channel")
-                .build()
-        )
-        .metadata(Map.of("meta1", "value1", "meta2", "value2"));
+    private static final Supplier<UpdateSubscription> BASE_UPDATE_SUBSCRIPTION = () ->
+        new UpdateSubscription()
+            .startingAt(OffsetDateTime.now())
+            .endingAt(OffsetDateTime.now())
+            .consumerConfiguration(
+                new SubscriptionConsumerConfiguration()
+                    .entrypointConfiguration("{\"nice\": \"config\"}")
+                    .entrypointId("entrypoint-id")
+                    .channel("channel")
+            )
+            .metadata(Map.of("meta1", "value1", "meta2", "value2"));
 
     public static CreateSubscription aCreateSubscription() {
-        return BASE_CREATE_SUBSCRIPTION.build();
+        return BASE_CREATE_SUBSCRIPTION.get();
     }
 
     public static UpdateSubscription anUpdateSubscription() {
-        return BASE_UPDATE_SUBSCRIPTION.build();
+        return BASE_UPDATE_SUBSCRIPTION.get();
     }
 
     public static VerifySubscription aVerifySubscription() {
-        return VerifySubscription.builder().applicationId("my-application").apiKey("custom").build();
+        return new VerifySubscription().applicationId("my-application").apiKey("custom");
     }
 
     public static AcceptSubscription anAcceptSubscription() {
-        return AcceptSubscription
-            .builder()
+        return new AcceptSubscription()
             .customApiKey("custom")
             .reason("reason")
             .startingAt(OffsetDateTime.now())
-            .endingAt(OffsetDateTime.now())
-            .build();
+            .endingAt(OffsetDateTime.now());
     }
 
     public static RejectSubscription aRejectSubscription() {
-        return RejectSubscription.builder().reason("reason").build();
+        return new RejectSubscription().reason("reason");
     }
 
     public static TransferSubscription aTransferSubscription() {
-        return TransferSubscription.builder().planId("other-plan").build();
+        return new TransferSubscription().planId("other-plan");
     }
 
     public static UpdateApiKey anUpdateApiKey() {
-        return UpdateApiKey.builder().expireAt(OffsetDateTime.now()).build();
+        return new UpdateApiKey().expireAt(OffsetDateTime.now());
     }
 
     public static RenewApiKey aRenewApiKey() {
-        return RenewApiKey.builder().customApiKey("custom").build();
+        return new RenewApiKey().customApiKey("custom");
     }
 
     public static SubscriptionEntity aSubscriptionEntity() {

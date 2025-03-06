@@ -87,13 +87,11 @@ public class PortalMenuLinkResource_UpdateTest extends AbstractResourceTest {
         portalMenuLinkCrudServiceInMemory.initWith(List.of(portalMenuLink));
 
         // When
-        var portalMenuLinkToUpdate = UpdatePortalMenuLink
-            .builder()
+        var portalMenuLinkToUpdate = new UpdatePortalMenuLink()
             .name("new menu link")
             .target("http://newTarget")
             .visibility(UpdatePortalMenuLink.VisibilityEnum.PUBLIC)
-            .order(100)
-            .build();
+            .order(100);
         final Response response = rootTarget().request().put(json(portalMenuLinkToUpdate));
 
         // Then

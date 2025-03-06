@@ -33,7 +33,7 @@
 	<name>Gravitee.io APIM - Management API - Management - v2 - Rest API</name>
 
 	<properties>
-		<openapi-generator.version>6.6.0</openapi-generator.version>
+		<openapi-generator.version>7.2.0</openapi-generator.version>
 		<openapi.modelPackage>io.gravitee.rest.api.management.v2.rest.model</openapi.modelPackage>
 		<jackson-databind-nullable-version>0.2.6</jackson-databind-nullable-version>
 		<jaxb-runtime.version>4.0.5</jaxb-runtime.version>
@@ -223,12 +223,12 @@
 					<generateModelTests>false</generateModelTests>
 					<generateModelDocumentation>false</generateModelDocumentation>
 					<generateSupportingFiles>true</generateSupportingFiles>
+                    <generateBuilders>true</generateBuilders>
 					<supportingFilesToGenerate>JSON.java,RFC3339DateFormat.java,AbstractOpenApiSchema.java,ApiException.java</supportingFilesToGenerate>
 					<reservedWordsMappings>configuration=configuration</reservedWordsMappings>
 					<configOptions>
 						<dateLibrary>java8</dateLibrary>
 						<useBeanValidation>true</useBeanValidation>
-						<additionalModelTypeAnnotations>@lombok.experimental.SuperBuilder(toBuilder = true)</additionalModelTypeAnnotations>
 					</configOptions>
 					<typeMappings>
 						<typeMapping>BigDecimal=Number</typeMapping>

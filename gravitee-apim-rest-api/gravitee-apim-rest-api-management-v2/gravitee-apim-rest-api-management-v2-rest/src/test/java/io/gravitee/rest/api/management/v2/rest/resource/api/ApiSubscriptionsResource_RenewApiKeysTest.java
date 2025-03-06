@@ -173,9 +173,7 @@ public class ApiSubscriptionsResource_RenewApiKeysTest extends AbstractApiSubscr
             .thenReturn(ApplicationFixtures.anApplicationEntity());
         when(apiKeyService.renew(GraviteeContext.getExecutionContext(), subscriptionEntity, customApiKey)).thenReturn(apiKeyEntity);
 
-        final Response response = rootTarget()
-            .request()
-            .post(Entity.json(SubscriptionFixtures.aRenewApiKey().toBuilder().customApiKey(customApiKey).build()));
+        final Response response = rootTarget().request().post(Entity.json(SubscriptionFixtures.aRenewApiKey().customApiKey(customApiKey)));
         assertEquals(OK_200, response.getStatus());
 
         var apiKey = response.readEntity(ApiKey.class);

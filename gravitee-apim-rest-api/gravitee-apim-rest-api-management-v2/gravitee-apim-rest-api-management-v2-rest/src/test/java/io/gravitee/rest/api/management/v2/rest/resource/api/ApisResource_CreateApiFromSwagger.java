@@ -110,7 +110,7 @@ public class ApisResource_CreateApiFromSwagger extends AbstractResourceTest {
         var response = rootTarget().request().post(null);
 
         // Then
-        assertThat(FORBIDDEN_403).isEqualTo(response.getStatus());
+        assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
     }
 
     @Test
@@ -137,11 +137,11 @@ public class ApisResource_CreateApiFromSwagger extends AbstractResourceTest {
         // When
         var response = rootTarget()
             .request()
-            .post(Entity.json(ImportSwaggerDescriptor.builder().payload(Resources.toString(resource, Charsets.UTF_8)).build()));
+            .post(Entity.json(new ImportSwaggerDescriptor().payload(Resources.toString(resource, Charsets.UTF_8))));
 
         // Then
         var error = response.readEntity(Error.class);
-        assertThat(BAD_REQUEST_400).isEqualTo((int) error.getHttpStatus());
-        assertThat("Cannot import API with invalid paths (Invalid paths)").isEqualTo(error.getMessage());
+        assertThat(error.getHttpStatus()).isEqualTo(BAD_REQUEST_400);
+        assertThat(error.getMessage()).isEqualTo("Cannot import API with invalid paths (Invalid paths)");
     }
 }

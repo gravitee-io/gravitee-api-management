@@ -201,7 +201,7 @@ public class ApiSubscriptionsResource_UpdateApiKeyTest extends AbstractApiSubscr
         when(apiKeyService.findById(GraviteeContext.getExecutionContext(), API_KEY_ID)).thenReturn(apiKeyEntity);
         when(apiKeyService.update(any(), any())).thenAnswer(i -> i.getArgument(1));
 
-        final UpdateApiKey updateApiKey = UpdateApiKey.builder().expireAt(null).build();
+        final UpdateApiKey updateApiKey = new UpdateApiKey().expireAt(null);
         final Response response = rootTarget().request().put(Entity.json(updateApiKey));
 
         assertEquals(OK_200, response.getStatus());

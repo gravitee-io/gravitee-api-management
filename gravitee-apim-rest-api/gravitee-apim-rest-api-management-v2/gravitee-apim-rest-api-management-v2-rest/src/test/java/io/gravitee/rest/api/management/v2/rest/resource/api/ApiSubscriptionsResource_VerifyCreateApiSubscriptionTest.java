@@ -76,9 +76,7 @@ public class ApiSubscriptionsResource_VerifyCreateApiSubscriptionTest extends Ab
 
     @Test
     public void should_return_400_when_invalid_api_key_pattern() {
-        final Response response = rootTarget()
-            .request()
-            .post(Entity.json(SubscriptionFixtures.aVerifySubscription().toBuilder().apiKey("###").build()));
+        final Response response = rootTarget().request().post(Entity.json(SubscriptionFixtures.aVerifySubscription().apiKey("###")));
         assertEquals(BAD_REQUEST_400, response.getStatus());
 
         var error = response.readEntity(Error.class);
@@ -88,9 +86,7 @@ public class ApiSubscriptionsResource_VerifyCreateApiSubscriptionTest extends Ab
 
     @Test
     public void should_return_400_when_missing_api_key() {
-        final Response response = rootTarget()
-            .request()
-            .post(Entity.json(SubscriptionFixtures.aVerifySubscription().toBuilder().apiKey(null).build()));
+        final Response response = rootTarget().request().post(Entity.json(SubscriptionFixtures.aVerifySubscription().apiKey(null)));
         assertEquals(BAD_REQUEST_400, response.getStatus());
 
         var error = response.readEntity(Error.class);
@@ -100,9 +96,7 @@ public class ApiSubscriptionsResource_VerifyCreateApiSubscriptionTest extends Ab
 
     @Test
     public void should_return_400_when_missing_application() {
-        final Response response = rootTarget()
-            .request()
-            .post(Entity.json(SubscriptionFixtures.aVerifySubscription().toBuilder().applicationId(null).build()));
+        final Response response = rootTarget().request().post(Entity.json(SubscriptionFixtures.aVerifySubscription().applicationId(null)));
         assertEquals(BAD_REQUEST_400, response.getStatus());
 
         var error = response.readEntity(Error.class);
@@ -116,10 +110,8 @@ public class ApiSubscriptionsResource_VerifyCreateApiSubscriptionTest extends Ab
 
         final VerifySubscription verifySubscription = SubscriptionFixtures
             .aVerifySubscription()
-            .toBuilder()
             .applicationId(APPLICATION)
-            .apiKey("apiKey")
-            .build();
+            .apiKey("apiKey");
         final Response response = rootTarget().request().post(Entity.json(verifySubscription));
         assertEquals(OK_200, response.getStatus());
 
@@ -133,10 +125,8 @@ public class ApiSubscriptionsResource_VerifyCreateApiSubscriptionTest extends Ab
 
         final VerifySubscription verifySubscription = SubscriptionFixtures
             .aVerifySubscription()
-            .toBuilder()
             .applicationId(APPLICATION)
-            .apiKey("apiKey")
-            .build();
+            .apiKey("apiKey");
         final Response response = rootTarget().request().post(Entity.json(verifySubscription));
         assertEquals(OK_200, response.getStatus());
 

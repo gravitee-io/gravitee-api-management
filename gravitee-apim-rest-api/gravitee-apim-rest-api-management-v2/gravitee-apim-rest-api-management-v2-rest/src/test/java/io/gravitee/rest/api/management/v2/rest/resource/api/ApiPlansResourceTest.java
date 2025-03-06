@@ -178,12 +178,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(PlansResponse.class)
                 .isEqualTo(
-                    PlansResponse
-                        .builder()
-                        .pagination(Pagination.builder().build())
-                        .data(List.of())
-                        .links(Links.builder().self(target.getUri().toString()).build())
-                        .build()
+                    new PlansResponse().pagination(new Pagination()).data(List.of()).links(new Links().self(target.getUri().toString()))
                 );
         }
 
@@ -202,9 +197,8 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(PlansResponse.class)
                 .isEqualTo(
-                    PlansResponse
-                        .builder()
-                        .pagination(Pagination.builder().page(1).perPage(10).pageItemsCount(2).totalCount(2L).pageCount(1).build())
+                    new PlansResponse()
+                        .pagination(new Pagination().page(1).perPage(10).pageItemsCount(2).totalCount(2L).pageCount(1))
                         .data(
                             Stream
                                 .of(plan3, plan1)
@@ -216,8 +210,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                                 })
                                 .toList()
                         )
-                        .links(Links.builder().self(target.getUri().toString()).build())
-                        .build()
+                        .links(new Links().self(target.getUri().toString()))
                 );
         }
 
@@ -236,9 +229,8 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(PlansResponse.class)
                 .isEqualTo(
-                    PlansResponse
-                        .builder()
-                        .pagination(Pagination.builder().page(1).perPage(10).pageItemsCount(2).totalCount(2L).pageCount(1).build())
+                    new PlansResponse()
+                        .pagination(new Pagination().page(1).perPage(10).pageItemsCount(2).totalCount(2L).pageCount(1))
                         .data(
                             Stream
                                 .of(plan2, plan1)
@@ -250,8 +242,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                                 })
                                 .toList()
                         )
-                        .links(Links.builder().self(target.getUri().toString()).build())
-                        .build()
+                        .links(new Links().self(target.getUri().toString()))
                 );
         }
 
@@ -300,9 +291,8 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(PlansResponse.class)
                 .isEqualTo(
-                    PlansResponse
-                        .builder()
-                        .pagination(Pagination.builder().page(1).perPage(1).pageItemsCount(1).totalCount(2L).pageCount(2).build())
+                    new PlansResponse()
+                        .pagination(new Pagination().page(1).perPage(1).pageItemsCount(1).totalCount(2L).pageCount(2))
                         .data(
                             Stream
                                 .of(plan1)
@@ -315,15 +305,12 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                                 .toList()
                         )
                         .links(
-                            Links
-                                .builder()
+                            new Links()
                                 .self(target.getUri().toString())
                                 .first(target.queryParam("page", 1).getUri().toString())
                                 .last(target.queryParam("page", 2).getUri().toString())
                                 .next(target.queryParam("page", 2).getUri().toString())
-                                .build()
                         )
-                        .build()
                 );
         }
 
@@ -367,9 +354,8 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(PlansResponse.class)
                 .isEqualTo(
-                    PlansResponse
-                        .builder()
-                        .pagination(Pagination.builder().page(1).perPage(10).pageItemsCount(2).totalCount(2L).pageCount(1).build())
+                    new PlansResponse()
+                        .pagination(new Pagination().page(1).perPage(10).pageItemsCount(2).totalCount(2L).pageCount(1))
                         .data(
                             Stream
                                 .of(plan1, plan3)
@@ -381,8 +367,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                                 })
                                 .toList()
                         )
-                        .links(Links.builder().self(target.getUri().toString()).build())
-                        .build()
+                        .links(new Links().self(target.getUri().toString()))
                 );
         }
 
@@ -478,9 +463,8 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(PlansResponse.class)
                 .isEqualTo(
-                    PlansResponse
-                        .builder()
-                        .pagination(Pagination.builder().page(1).perPage(10).pageItemsCount(2).totalCount(2L).pageCount(1).build())
+                    new PlansResponse()
+                        .pagination(new Pagination().page(1).perPage(10).pageItemsCount(2).totalCount(2L).pageCount(1))
                         .data(
                             Stream
                                 .of(plan3, plan4)
@@ -492,8 +476,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                                 })
                                 .toList()
                         )
-                        .links(Links.builder().self(target.getUri().toString()).build())
-                        .build()
+                        .links(new Links().self(target.getUri().toString()))
                 );
         }
     }
@@ -545,8 +528,8 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .hasStatus(CREATED_201)
                 .asEntity(PlanV4.class)
                 .isEqualTo(
-                    PlanV4
-                        .builder()
+                    new PlanV4()
+                        .flows(createPlanV4.getFlows())
                         .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4)
                         .id(planId)
                         .crossId(createPlanV4.getCrossId())
@@ -560,14 +543,12 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                         .validation(createPlanV4.getValidation())
                         .mode(PlanMode.STANDARD)
                         .status(io.gravitee.rest.api.management.v2.rest.model.PlanStatus.STAGING)
-                        .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY).configuration(Map.of("nice", "config")).build())
+                        .security(new PlanSecurity().type(PlanSecurityType.API_KEY).configuration(Map.of("nice", "config")))
                         .selectionRule(createPlanV4.getSelectionRule())
                         .characteristics(createPlanV4.getCharacteristics())
                         .excludedGroups(createPlanV4.getExcludedGroups())
                         .tags(List.of("tag1", "tag2"))
                         .type(io.gravitee.rest.api.management.v2.rest.model.PlanType.API)
-                        .flows(createPlanV4.getFlows())
-                        .build()
                 );
         }
 
@@ -589,8 +570,8 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .hasStatus(CREATED_201)
                 .asEntity(PlanV4.class)
                 .isEqualTo(
-                    PlanV4
-                        .builder()
+                    new PlanV4()
+                        .flows(createPlanV4.getFlows())
                         .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4)
                         .id(planId)
                         .crossId(createPlanV4.getCrossId())
@@ -604,14 +585,12 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                         .validation(createPlanV4.getValidation())
                         .mode(PlanMode.STANDARD)
                         .status(io.gravitee.rest.api.management.v2.rest.model.PlanStatus.STAGING)
-                        .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY).configuration(Map.of("nice", "config")).build())
+                        .security(new PlanSecurity().type(PlanSecurityType.API_KEY).configuration(Map.of("nice", "config")))
                         .selectionRule(createPlanV4.getSelectionRule())
                         .characteristics(createPlanV4.getCharacteristics())
                         .excludedGroups(createPlanV4.getExcludedGroups())
                         .tags(List.of("tag1", "tag2"))
                         .type(io.gravitee.rest.api.management.v2.rest.model.PlanType.API)
-                        .flows(createPlanV4.getFlows())
-                        .build()
                 );
         }
 
@@ -624,15 +603,15 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                     return new PlanWithFlows(plan.setPlanId(planId), invocation.getArgument(1));
                 });
 
-            final CreatePlanV4 createPlanV4 = PlanFixtures.aCreatePlanHttpV4().toBuilder().flows(null).build();
+            final CreatePlanV4 createPlanV4 = PlanFixtures.aCreatePlanHttpV4().flows(null);
             final Response response = target.request().post(Entity.json(createPlanV4));
 
             assertThat(response)
                 .hasStatus(CREATED_201)
                 .asEntity(PlanV4.class)
                 .isEqualTo(
-                    PlanV4
-                        .builder()
+                    new PlanV4()
+                        .flows(Collections.emptyList())
                         .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4)
                         .id(planId)
                         .crossId(createPlanV4.getCrossId())
@@ -646,14 +625,12 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                         .validation(createPlanV4.getValidation())
                         .mode(PlanMode.STANDARD)
                         .status(io.gravitee.rest.api.management.v2.rest.model.PlanStatus.STAGING)
-                        .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY).configuration(Map.of("nice", "config")).build())
+                        .security(new PlanSecurity().type(PlanSecurityType.API_KEY).configuration(Map.of("nice", "config")))
                         .selectionRule(createPlanV4.getSelectionRule())
                         .characteristics(createPlanV4.getCharacteristics())
                         .excludedGroups(createPlanV4.getExcludedGroups())
                         .tags(List.of("tag1", "tag2"))
                         .type(io.gravitee.rest.api.management.v2.rest.model.PlanType.API)
-                        .flows(Collections.emptyList())
-                        .build()
                 );
         }
 
@@ -680,19 +657,17 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .hasStatus(CREATED_201)
                 .asEntity(PlanV2.class)
                 .isEqualTo(
-                    PlanV2
-                        .builder()
+                    new PlanV2()
+                        .paths(Map.of())
+                        .flows(createPlanV2.getFlows())
                         .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V2)
                         .id("new-id")
                         .apiId(API)
                         .name(createPlanV2.getName())
                         .type(io.gravitee.rest.api.management.v2.rest.model.PlanType.API)
-                        .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY).build())
+                        .security(new PlanSecurity().type(PlanSecurityType.API_KEY))
                         .order(0)
                         .commentRequired(false)
-                        .flows(createPlanV2.getFlows())
-                        .paths(Map.of())
-                        .build()
                 );
         }
     }
@@ -773,10 +748,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
             final Response response = target.request().get();
 
-            assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(PlanV2.class)
-                .isEqualTo(PlanMapper.INSTANCE.map(planEntity).toBuilder().paths(Map.of()).build());
+            assertThat(response).hasStatus(OK_200).asEntity(PlanV2.class).isEqualTo(PlanMapper.INSTANCE.map(planEntity).paths(Map.of()));
         }
     }
 
@@ -866,8 +838,8 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(PlanV4.class)
                 .isEqualTo(
-                    PlanV4
-                        .builder()
+                    new PlanV4()
+                        .flows(updatePlanV4.getFlows())
                         .id(PLAN)
                         .apiId(API)
                         .status(io.gravitee.rest.api.management.v2.rest.model.PlanStatus.PUBLISHED)
@@ -883,13 +855,11 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                         .characteristics(updatePlanV4.getCharacteristics())
                         .order(updatePlanV4.getOrder())
                         .excludedGroups(updatePlanV4.getExcludedGroups())
-                        .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS).configuration(Map.of("nice", "config")).build())
+                        .security(new PlanSecurity().type(PlanSecurityType.KEY_LESS).configuration(Map.of("nice", "config")))
                         .commentRequired(false)
                         .commentMessage(updatePlanV4.getCommentMessage())
                         .tags(updatePlanV4.getTags())
                         .selectionRule(updatePlanV4.getSelectionRule())
-                        .flows(updatePlanV4.getFlows())
-                        .build()
                 );
         }
 
@@ -917,8 +887,8 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(PlanV4.class)
                 .isEqualTo(
-                    PlanV4
-                        .builder()
+                    new PlanV4()
+                        .flows(updatePlanV4.getFlows())
                         .id(PLAN)
                         .apiId(API)
                         .status(io.gravitee.rest.api.management.v2.rest.model.PlanStatus.PUBLISHED)
@@ -934,13 +904,11 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                         .characteristics(updatePlanV4.getCharacteristics())
                         .order(updatePlanV4.getOrder())
                         .excludedGroups(updatePlanV4.getExcludedGroups())
-                        .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS).configuration(Map.of("nice", "config")).build())
+                        .security(new PlanSecurity().type(PlanSecurityType.KEY_LESS).configuration(Map.of("nice", "config")))
                         .commentRequired(false)
                         .commentMessage(updatePlanV4.getCommentMessage())
                         .tags(updatePlanV4.getTags())
                         .selectionRule(updatePlanV4.getSelectionRule())
-                        .flows(updatePlanV4.getFlows())
-                        .build()
                 );
         }
 
@@ -991,8 +959,9 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(PlanV2.class)
                 .isEqualTo(
-                    PlanV2
-                        .builder()
+                    new PlanV2()
+                        .flows(updatePlanV2.getFlows())
+                        .paths(Map.of())
                         .id(PLAN)
                         .definitionVersion(DefinitionVersion.V2)
                         .name(updatePlanV2.getName())
@@ -1003,14 +972,11 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                         .characteristics(updatePlanV2.getCharacteristics())
                         .order(updatePlanV2.getOrder())
                         .excludedGroups(updatePlanV2.getExcludedGroups())
-                        .security(PlanSecurity.builder().build())
+                        .security(new PlanSecurity())
                         .commentRequired(false)
                         .commentMessage(updatePlanV2.getCommentMessage())
                         .tags(updatePlanV2.getTags())
                         .selectionRule(updatePlanV2.getSelectionRule())
-                        .flows(updatePlanV2.getFlows())
-                        .paths(Map.of())
-                        .build()
                 );
         }
 

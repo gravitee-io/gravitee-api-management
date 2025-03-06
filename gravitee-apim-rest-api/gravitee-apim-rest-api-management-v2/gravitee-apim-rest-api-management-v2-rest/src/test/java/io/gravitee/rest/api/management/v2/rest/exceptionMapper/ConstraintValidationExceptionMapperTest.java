@@ -29,6 +29,7 @@ import org.hibernate.validator.internal.engine.ConstraintViolationImpl;
 import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openapitools.jackson.nullable.JsonNullable;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -96,7 +97,7 @@ class ConstraintValidationExceptionMapperTest {
                                 .filter(detail -> "path1".equals(detail.getLocation()))
                                 .findFirst()
                                 .get();
-                            assertThat(firstDetail.getInvalidValue()).isEqualTo(List.of());
+                            assertThat(firstDetail.getInvalidValue()).isEqualTo(JsonNullable.of(List.of()));
                             assertThat(firstDetail.getMessage()).isEqualTo("Size must be between 1 and 2147483647");
                             assertThat(firstDetail.getLocation()).isEqualTo("path1");
 
@@ -105,7 +106,7 @@ class ConstraintValidationExceptionMapperTest {
                                 .filter(detail -> "path2".equals(detail.getLocation()))
                                 .findFirst()
                                 .get();
-                            assertThat(secondDetail.getInvalidValue()).isEqualTo("InvalidValue");
+                            assertThat(secondDetail.getInvalidValue()).isEqualTo(JsonNullable.of("InvalidValue"));
                             assertThat(secondDetail.getMessage()).isEqualTo("This value is not allowed");
                             assertThat(secondDetail.getLocation()).isEqualTo("path2");
                         });

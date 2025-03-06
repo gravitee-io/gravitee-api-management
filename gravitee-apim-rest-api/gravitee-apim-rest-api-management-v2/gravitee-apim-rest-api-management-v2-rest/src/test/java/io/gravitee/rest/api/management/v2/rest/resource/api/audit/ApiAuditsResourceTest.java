@@ -128,8 +128,7 @@ class ApiAuditsResourceTest extends ApiResourceTest {
                 .extracting(AuditsResponse::getData)
                 .isEqualTo(
                     List.of(
-                        Audit
-                            .builder()
+                        new Audit()
                             .id("audit-id")
                             .reference(new AuditReference().id(API).type(AuditReference.TypeEnum.API).name("my-api-name"))
                             .organizationId(ORGANIZATION)
@@ -140,7 +139,6 @@ class ApiAuditsResourceTest extends ApiResourceTest {
                             .properties(List.of(new AuditPropertiesInner().key("API").value(API).name("my-api-name")))
                             .patch("""
                         [{ "op": "add", "path": "/hello", "value": ["world"] }]""")
-                            .build()
                     )
                 );
         }
@@ -264,7 +262,7 @@ class ApiAuditsResourceTest extends ApiResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(AuditsResponse.class)
                 .extracting(AuditsResponse::getPagination)
-                .isEqualTo(Pagination.builder().page(2).perPage(pageSize).pageCount(4).pageItemsCount(pageSize).totalCount(total).build());
+                .isEqualTo(new Pagination().page(2).perPage(pageSize).pageCount(4).pageItemsCount(pageSize).totalCount(total));
         }
 
         @Test
@@ -298,14 +296,12 @@ class ApiAuditsResourceTest extends ApiResourceTest {
                 .asEntity(AuditsResponse.class)
                 .extracting(AuditsResponse::getLinks)
                 .isEqualTo(
-                    Links
-                        .builder()
+                    new Links()
                         .self(target.queryParam("page", page).queryParam("perPage", pageSize).getUri().toString())
                         .first(target.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
                         .last(target.queryParam("page", 4).queryParam("perPage", pageSize).getUri().toString())
                         .previous(target.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
                         .next(target.queryParam("page", 3).queryParam("perPage", pageSize).getUri().toString())
-                        .build()
                 );
         }
 

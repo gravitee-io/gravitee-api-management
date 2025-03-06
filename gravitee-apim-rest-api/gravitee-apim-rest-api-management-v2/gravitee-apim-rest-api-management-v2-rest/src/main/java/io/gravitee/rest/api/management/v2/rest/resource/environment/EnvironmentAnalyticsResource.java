@@ -84,7 +84,7 @@ public class EnvironmentAnalyticsResource {
             .execute(input)
             .responseStatusRanges()
             .map(EnvironmentAnalyticsMapper.INSTANCE::map)
-            .orElse(EnvironmentAnalyticsResponseStatusRangesResponse.builder().ranges(Map.of()).build());
+            .orElse(new EnvironmentAnalyticsResponseStatusRangesResponse().ranges(Map.of()));
     }
 
     @Path("/top-hits")
@@ -97,7 +97,7 @@ public class EnvironmentAnalyticsResource {
         var topHitsApis = searchEnvironmentTopHitsApisCountUseCase.execute(input).topHitsApis();
 
         if (topHitsApis == null) {
-            return EnvironmentAnalyticsTopHitsApisResponse.builder().build();
+            return new EnvironmentAnalyticsTopHitsApisResponse();
         }
 
         return EnvironmentAnalyticsMapper.INSTANCE.map(topHitsApis);
@@ -114,7 +114,7 @@ public class EnvironmentAnalyticsResource {
             .execute(input)
             .requestResponseTime()
             .map(EnvironmentAnalyticsMapper.INSTANCE::map)
-            .orElse(EnvironmentAnalyticsRequestResponseTimeResponse.builder().build());
+            .orElse(new EnvironmentAnalyticsRequestResponseTimeResponse());
     }
 
     @Path("/response-time-over-time")
@@ -175,7 +175,7 @@ public class EnvironmentAnalyticsResource {
         var topHitsApps = searchEnvironmentTopAppsByRequestCountUseCase.execute(input).topHitsApps();
 
         if (topHitsApps == null) {
-            return EnvironmentAnalyticsTopAppsByRequestCountResponse.builder().build();
+            return new EnvironmentAnalyticsTopAppsByRequestCountResponse();
         }
 
         return EnvironmentAnalyticsMapper.INSTANCE.map(topHitsApps);
@@ -192,7 +192,7 @@ public class EnvironmentAnalyticsResource {
         var topFailedApis = searchEnvironmentTopFailedApisUseCase.execute(input).topFailedApis();
 
         if (topFailedApis == null) {
-            return EnvironmentAnalyticsTopFailedApisResponse.builder().build();
+            return new EnvironmentAnalyticsTopFailedApisResponse();
         }
 
         return EnvironmentAnalyticsMapper.INSTANCE.map(topFailedApis);

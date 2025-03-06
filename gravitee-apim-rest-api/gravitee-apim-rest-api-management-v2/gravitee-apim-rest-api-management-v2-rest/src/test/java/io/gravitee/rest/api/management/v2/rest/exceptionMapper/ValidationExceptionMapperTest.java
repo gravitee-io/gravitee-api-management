@@ -25,6 +25,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openapitools.jackson.nullable.JsonNullable;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -56,19 +57,17 @@ class ValidationExceptionMapperTest {
                         .satisfies(listErrorDetails -> {
                             final ErrorDetailsInner firstDetail = listErrorDetails
                                 .stream()
-                                .filter(detail -> "key1".equals(detail.getInvalidValue()))
+                                .filter(detail -> JsonNullable.of("key1").equals(detail.getInvalidValue()))
                                 .findFirst()
                                 .get();
-                            assertThat(firstDetail.getInvalidValue()).isEqualTo("key1");
                             assertThat(firstDetail.getMessage()).isEqualTo("fake detail message");
                             assertThat(firstDetail.getLocation()).isEqualTo("value1");
 
                             final ErrorDetailsInner secondDetail = listErrorDetails
                                 .stream()
-                                .filter(detail -> "key2".equals(detail.getInvalidValue()))
+                                .filter(detail -> JsonNullable.of("key2").equals(detail.getInvalidValue()))
                                 .findFirst()
                                 .get();
-                            assertThat(secondDetail.getInvalidValue()).isEqualTo("key2");
                             assertThat(secondDetail.getMessage()).isEqualTo("fake detail message");
                             assertThat(secondDetail.getLocation()).isEqualTo("value2");
                         });

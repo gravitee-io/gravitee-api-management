@@ -93,11 +93,11 @@ public class ApiPagesResource extends AbstractResource {
     public Response getApiPages(@PathParam("apiId") String apiId, @QueryParam("parentId") String parentId) {
         final var mapper = Mappers.getMapper(PageMapper.class);
         var result = apiGetDocumentationPagesUsecase.execute(new ApiGetDocumentationPagesUseCase.Input(apiId, parentId));
-        var response = ApiDocumentationPagesResponse.builder().pages(mapper.mapPageList(result.pages()));
+        var response = new ApiDocumentationPagesResponse().pages(mapper.mapPageList(result.pages()));
         if (!StringUtils.isEmpty(parentId)) {
             response.breadcrumb(mapper.map(result.breadcrumbList()));
         }
-        return Response.ok(response.build()).build();
+        return Response.ok(response).build();
     }
 
     @POST

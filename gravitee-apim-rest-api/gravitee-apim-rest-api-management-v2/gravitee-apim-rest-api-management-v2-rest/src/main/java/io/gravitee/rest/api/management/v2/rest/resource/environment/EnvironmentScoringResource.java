@@ -70,12 +70,10 @@ public class EnvironmentScoringResource extends AbstractResource {
 
         var page = result.reports();
         var totalElements = page.getTotalElements();
-        return EnvironmentApisScoringResponse
-            .builder()
+        return new EnvironmentApisScoringResponse()
             .data(page.getContent().stream().map(r -> ScoringReportMapper.INSTANCE.map(r, uriInfo)).toList())
             .pagination(PaginationInfo.computePaginationInfo(totalElements, Math.toIntExact(page.getPageElements()), paginationParam))
-            .links(computePaginationLinks(totalElements, paginationParam))
-            .build();
+            .links(computePaginationLinks(totalElements, paginationParam));
     }
 
     @Path("overview")

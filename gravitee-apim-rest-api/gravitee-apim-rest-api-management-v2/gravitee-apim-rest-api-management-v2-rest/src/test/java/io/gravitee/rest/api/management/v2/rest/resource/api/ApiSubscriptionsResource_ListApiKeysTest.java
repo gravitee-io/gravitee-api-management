@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
+import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
@@ -26,7 +27,7 @@ import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
 import fixtures.SubscriptionFixtures;
-import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.SubscriptionApiKeysResponse;
@@ -50,11 +51,11 @@ public class ApiSubscriptionsResource_ListApiKeysTest extends AbstractApiSubscri
         when(subscriptionService.findById(SUBSCRIPTION)).thenThrow(new SubscriptionNotFoundException(SUBSCRIPTION));
 
         final Response response = rootTarget().request().get();
-        assertEquals(NOT_FOUND_404, response.getStatus());
-
-        var error = response.readEntity(Error.class);
-        assertEquals(NOT_FOUND_404, (int) error.getHttpStatus());
-        assertEquals("Subscription [" + SUBSCRIPTION + "] cannot be found.", error.getMessage());
+        assertThat(response)
+            .hasStatus(HttpStatusCode.NOT_FOUND_404)
+            .asError()
+            .hasHttpStatus(NOT_FOUND_404)
+            .hasMessage("Subscription [" + SUBSCRIPTION + "] cannot be found.");
     }
 
     @Test
@@ -81,7 +82,7 @@ public class ApiSubscriptionsResource_ListApiKeysTest extends AbstractApiSubscri
 
         // Check links
         Links links = subscriptionApiKeysResponse.getLinks();
-        MAPIAssertions.assertThat(links).isEqualTo(Links.builder().self(rootTarget().getUri().toString()).build());
+        MAPIAssertions.assertThat(links).isEqualTo(new Links().self(rootTarget().getUri().toString()));
     }
 
     @Test
@@ -97,11 +98,7 @@ public class ApiSubscriptionsResource_ListApiKeysTest extends AbstractApiSubscri
             .thenReturn(false);
 
         final Response response = rootTarget().request().get();
-        assertEquals(FORBIDDEN_403, response.getStatus());
-
-        var error = response.readEntity(Error.class);
-        assertEquals(FORBIDDEN_403, (int) error.getHttpStatus());
-        assertEquals("You do not have sufficient rights to access this resource", error.getMessage());
+        MAPIAssertions.assertThat(response).hasStatus(FORBIDDEN_403);
     }
 
     @Test

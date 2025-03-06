@@ -58,8 +58,7 @@ public interface IntegrationMapper {
     AsyncJobStatus map(AsyncJob.Status source);
 
     static IngestionPreviewResponse mapper(DiscoveryUseCase.Output preview) {
-        return IngestionPreviewResponse
-            .builder()
+        return new IngestionPreviewResponse()
             .totalCount(preview.apis().size())
             .newCount(preview.apis().stream().filter(api -> api.state() == NEW).count())
             .updateCount(preview.apis().stream().filter(api -> api.state() == UPDATE).count())
@@ -79,7 +78,6 @@ public interface IntegrationMapper {
                             )
                     )
                     .toList()
-            )
-            .build();
+            );
     }
 }

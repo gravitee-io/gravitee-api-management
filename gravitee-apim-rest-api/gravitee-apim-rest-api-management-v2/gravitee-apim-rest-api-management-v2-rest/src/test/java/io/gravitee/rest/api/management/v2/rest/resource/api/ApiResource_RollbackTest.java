@@ -111,6 +111,6 @@ class ApiResource_RollbackTest extends ApiResourceTest {
     }
 
     private ApiRollback aRollbackPayload(String eventId) {
-        return ApiRollback.builder().eventId(eventId).build();
+        return new ApiRollback().eventId(eventId);
     }
 }

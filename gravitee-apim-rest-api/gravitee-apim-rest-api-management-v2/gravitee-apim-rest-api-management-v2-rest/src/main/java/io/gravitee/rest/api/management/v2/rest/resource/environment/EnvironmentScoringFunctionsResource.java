@@ -70,7 +70,7 @@ public class EnvironmentScoringFunctionsResource extends AbstractResource {
     public ScoringFunctionsResponse listFunctions() {
         var executionContext = GraviteeContext.getExecutionContext();
         var result = getEnvironmentFunctionsUseCase.execute(new GetEnvironmentFunctionsUseCase.Input(executionContext.getEnvironmentId()));
-        return ScoringFunctionsResponse.builder().data(result.reports().stream().map(ScoringFunctionMapper.INSTANCE::map).toList()).build();
+        return new ScoringFunctionsResponse().data(result.reports().stream().map(ScoringFunctionMapper.INSTANCE::map).toList());
     }
 
     @Path("{functionName}")

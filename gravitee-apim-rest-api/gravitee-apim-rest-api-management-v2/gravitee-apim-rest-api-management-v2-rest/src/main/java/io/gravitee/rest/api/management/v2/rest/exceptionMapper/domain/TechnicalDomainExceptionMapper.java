@@ -32,6 +32,6 @@ public class TechnicalDomainExceptionMapper extends AbstractDomainExceptionMappe
     }
 
     private Error technicalDomainError(TechnicalDomainException tde) {
-        return Error.builder().httpStatus(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).message(tde.getMessage()).build();
+        return new Error().httpStatus(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).message(tde.getMessage());
     }
 }

@@ -121,21 +121,19 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_400_when_role_is_primary_owner() {
-            var newMembership = AddMember.builder().roleName("PRIMARY_OWNER").build();
+            var newMembership = new AddMember().roleName("PRIMARY_OWNER");
             final Response response = target.request().post(Entity.json(newMembership));
             assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasMessage("An API must always have only one PRIMARY_OWNER !");
         }
 
         @Test
         public void should_create_an_api_member() {
-            var newMembership = AddMember.builder().roleName("OWNER").userId("userId").build();
+            var newMembership = new AddMember().roleName("OWNER").userId("userId");
             final Response response = target.request().post(Entity.json(newMembership));
             assertThat(response)
                 .hasStatus(CREATED_201)
                 .asEntity(Member.class)
-                .isEqualTo(
-                    Member.builder().id("userId").displayName("John Doe").roles(List.of(Role.builder().name("OWNER").build())).build()
-                );
+                .isEqualTo(new Member().id("userId").displayName("John Doe").roles(List.of(new Role().name("OWNER"))));
         }
     }
 
@@ -177,12 +175,10 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(MembersResponse.class)
                 .isEqualTo(
-                    MembersResponse
-                        .builder()
-                        .pagination(Pagination.builder().page(1).pageCount(1).perPage(10).totalCount(1L).pageItemsCount(1).build())
+                    new MembersResponse()
+                        .pagination(new Pagination().page(1).pageCount(1).perPage(10).totalCount(1L).pageItemsCount(1))
                         .data(Stream.of(member).map(MemberMapper.INSTANCE::map).toList())
-                        .links(Links.builder().self(target.getUri().toString()).build())
-                        .build()
+                        .links(new Links().self(target.getUri().toString()))
                 );
         }
 
@@ -244,20 +240,16 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(MembersResponse.class)
                 .isEqualTo(
-                    MembersResponse
-                        .builder()
-                        .pagination(Pagination.builder().page(1).pageCount(2).perPage(2).totalCount(4L).pageItemsCount(2).build())
+                    new MembersResponse()
+                        .pagination(new Pagination().page(1).pageCount(2).perPage(2).totalCount(4L).pageItemsCount(2))
                         .data(Stream.of(member1, member2).map(MemberMapper.INSTANCE::map).toList())
                         .links(
-                            Links
-                                .builder()
+                            new Links()
                                 .self(paginatedTarget.getUri().toString())
                                 .first(paginatedTarget.getUri().toString())
                                 .last(target.queryParam("page", 2).queryParam("perPage", 2).getUri().toString())
                                 .next(target.queryParam("page", 2).queryParam("perPage", 2).getUri().toString())
-                                .build()
                         )
-                        .build()
                 );
         }
     }
@@ -336,7 +328,7 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_400_when_editing_with_role_primary_owner() {
-            var newMembership = UpdateMember.builder().roleName("PRIMARY_OWNER").build();
+            var newMembership = new UpdateMember().roleName("PRIMARY_OWNER");
 
             final Response response = target.request().put(Entity.json(newMembership));
 
@@ -345,16 +337,14 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_edit_a_membership() {
-            var newMembership = UpdateMember.builder().roleName("OWNER").build();
+            var newMembership = new UpdateMember().roleName("OWNER");
 
             final Response response = target.request().put(Entity.json(newMembership));
 
             assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(Member.class)
-                .isEqualTo(
-                    Member.builder().id(MEMBER_ID).displayName("John Doe").roles(List.of(Role.builder().name("OWNER").build())).build()
-                );
+                .isEqualTo(new Member().id(MEMBER_ID).displayName("John Doe").roles(List.of(new Role().name("OWNER"))));
         }
     }
 }

@@ -71,12 +71,10 @@ public class PortalMenuLinksResource extends AbstractResource {
 
         return Response
             .ok(
-                PortalMenuLinksResponse
-                    .builder()
+                new PortalMenuLinksResponse()
                     .data(mapper.map(portalMenuLinksSubset))
                     .pagination(PaginationInfo.computePaginationInfo(portalMenuLinks.size(), portalMenuLinksSubset.size(), paginationParam))
                     .links(computePaginationLinks(portalMenuLinks.size(), paginationParam))
-                    .build()
             )
             .build();
     }

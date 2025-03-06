@@ -80,14 +80,12 @@ public class ThemesResource extends AbstractResource {
             .result();
         return Response
             .ok(
-                ThemesResponse
-                    .builder()
+                new ThemesResponse()
                     .data(ThemeMapper.INSTANCE.map(result.getContent()))
                     .pagination(
                         PaginationInfo.computePaginationInfo(result.getTotalElements(), (int) result.getPageElements(), paginationParam)
                     )
                     .links(computePaginationLinks(result.getTotalElements(), paginationParam))
-                    .build()
             )
             .build();
     }

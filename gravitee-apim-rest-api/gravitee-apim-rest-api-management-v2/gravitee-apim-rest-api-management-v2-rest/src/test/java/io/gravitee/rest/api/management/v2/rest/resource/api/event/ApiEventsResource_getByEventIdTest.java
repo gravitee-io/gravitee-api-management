@@ -16,7 +16,10 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api.event;
 
 import static assertions.MAPIAssertions.assertThat;
-import static io.gravitee.common.http.HttpStatusCode.*;
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.EventFixtures;
@@ -118,8 +121,7 @@ class ApiEventsResource_getByEventIdTest extends ApiResourceTest {
             .hasStatus(OK_200)
             .asEntity(Event.class)
             .isEqualTo(
-                Event
-                    .builder()
+                new Event()
                     .id("2")
                     .environmentIds(List.of(ENVIRONMENT))
                     .initiator(new BaseUser().id("user-id").displayName("John Doe"))
@@ -127,7 +129,6 @@ class ApiEventsResource_getByEventIdTest extends ApiResourceTest {
                     .createdAt(OffsetDateTime.parse("2020-02-02T20:00:00.00Z"))
                     .payload("event-payload")
                     .properties(Map.of("API_ID", API, "USER", "user-id"))
-                    .build()
             );
     }
 

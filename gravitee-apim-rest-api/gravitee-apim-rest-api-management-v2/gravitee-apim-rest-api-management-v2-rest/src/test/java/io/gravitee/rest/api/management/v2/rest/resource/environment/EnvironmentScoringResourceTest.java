@@ -114,8 +114,7 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
                     assertThat(result.getData())
                         .hasSize(1)
                         .containsOnly(
-                            EnvironmentApiScore
-                                .builder()
+                            new EnvironmentApiScore()
                                 .id("api1")
                                 .name("api-name")
                                 .pictureUrl(apisTarget.path("api1").path("picture").queryParam("hash", "1697969730000").getUri().toString())
@@ -124,10 +123,9 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
                                 .warnings(1)
                                 .infos(1)
                                 .hints(1)
-                                .build()
                         );
                     assertThat(result.getPagination())
-                        .isEqualTo(Pagination.builder().page(1).perPage(10).pageItemsCount(1).pageCount(1).totalCount(1L).build());
+                        .isEqualTo(new Pagination().page(1).perPage(10).pageItemsCount(1).pageCount(1).totalCount(1L));
                 });
         }
 
@@ -151,14 +149,12 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
                 .asEntity(EnvironmentApisScoringResponse.class)
                 .extracting(EnvironmentApisScoringResponse::getPagination)
                 .isEqualTo(
-                    Pagination
-                        .builder()
+                    new Pagination()
                         .page(pageNumber)
                         .perPage(pageSize)
                         .pageItemsCount(pageSize)
                         .pageCount(3)
                         .totalCount((long) expectedTotal)
-                        .build()
                 );
         }
 
@@ -182,14 +178,12 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
                 .asEntity(EnvironmentApisScoringResponse.class)
                 .extracting(EnvironmentApisScoringResponse::getLinks)
                 .isEqualTo(
-                    Links
-                        .builder()
+                    new Links()
                         .self(scoringApisTarget.queryParam("page", page).queryParam("perPage", pageSize).getUri().toString())
                         .first(scoringApisTarget.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
                         .last(scoringApisTarget.queryParam("page", 4).queryParam("perPage", pageSize).getUri().toString())
                         .previous(scoringApisTarget.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
                         .next(scoringApisTarget.queryParam("page", 3).queryParam("perPage", pageSize).getUri().toString())
-                        .build()
                 );
         }
     }
@@ -215,9 +209,7 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(EnvironmentScoringOverview.class)
-                .isEqualTo(
-                    EnvironmentScoringOverview.builder().id(ENVIRONMENT).score(0.84).errors(3).warnings(3).infos(3).hints(3).build()
-                );
+                .isEqualTo(new EnvironmentScoringOverview().id(ENVIRONMENT).score(0.84).errors(3).warnings(3).infos(3).hints(3));
         }
     }
 

@@ -185,10 +185,6 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
     }
 
     private DuplicateApiOptions aDuplicateApiOptions() {
-        return DuplicateApiOptions
-            .builder()
-            .contextPath("/duplicate")
-            .filteredFields(Set.of(DuplicateApiOptions.FilteredFieldsEnum.GROUPS))
-            .build();
+        return new DuplicateApiOptions().contextPath("/duplicate").filteredFields(Set.of(DuplicateApiOptions.FilteredFieldsEnum.GROUPS));
     }
 }

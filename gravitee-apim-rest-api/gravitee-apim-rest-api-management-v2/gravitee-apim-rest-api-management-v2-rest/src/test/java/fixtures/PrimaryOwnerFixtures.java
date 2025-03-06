@@ -18,21 +18,21 @@ package fixtures;
 import io.gravitee.rest.api.management.v2.rest.model.MembershipMemberType;
 import io.gravitee.rest.api.management.v2.rest.model.PrimaryOwner;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import java.util.function.Supplier;
 
-@SuppressWarnings("ALL")
 public class PrimaryOwnerFixtures {
 
     private PrimaryOwnerFixtures() {}
 
-    private static final PrimaryOwner.PrimaryOwnerBuilder BASE_PRIMARY_OWNER = PrimaryOwner
-        .builder()
-        .id("primary-owner-id")
-        .displayName("primary-owner-displayName")
-        .email("primary-owner@email.com")
-        .type(MembershipMemberType.USER);
+    private static final Supplier<PrimaryOwner> BASE_PRIMARY_OWNER = () ->
+        new PrimaryOwner()
+            .id("primary-owner-id")
+            .displayName("primary-owner-displayName")
+            .email("primary-owner@email.com")
+            .type(MembershipMemberType.USER);
 
     public static PrimaryOwner aPrimaryOwner() {
-        return BASE_PRIMARY_OWNER.build();
+        return BASE_PRIMARY_OWNER.get();
     }
 
     public static PrimaryOwnerEntity aPrimaryOwnerEntity() {

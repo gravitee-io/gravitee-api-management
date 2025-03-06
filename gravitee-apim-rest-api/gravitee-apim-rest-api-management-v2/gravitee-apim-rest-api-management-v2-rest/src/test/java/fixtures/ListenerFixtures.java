@@ -22,60 +22,60 @@ import io.gravitee.rest.api.management.v2.rest.model.PathV4;
 import io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener;
 import io.gravitee.rest.api.management.v2.rest.model.TcpListener;
 import java.util.List;
+import java.util.function.Supplier;
 
-@SuppressWarnings("ALL")
 public class ListenerFixtures {
 
     private ListenerFixtures() {}
 
-    private static final PathV4.PathV4Builder BASE_PATH_V4 = PathV4.builder().host("my.fake.host").path("/test").overrideAccess(true);
+    private static final Supplier<PathV4> BASE_PATH_V4 = () -> new PathV4().host("my.fake.host").path("/test").overrideAccess(true);
 
-    private static final HttpListener.HttpListenerBuilder BASE_HTTP_LISTENER = HttpListener
-        .builder()
-        // BaseListener
-        .type(ListenerType.HTTP)
-        .entrypoints(List.of(EntrypointFixtures.anEntrypointHttpV4()))
-        .servers(List.of("my-server1", "my-server2"))
-        // HttpListener specific
-        .paths(List.of(BASE_PATH_V4.build()))
-        .pathMappings(List.of("/test"))
-        .cors(CorsFixtures.aCors());
+    private static final Supplier<HttpListener> BASE_HTTP_LISTENER = () ->
+        (HttpListener) new HttpListener()
+            // HttpListener specific
+            .paths(List.of(BASE_PATH_V4.get()))
+            .pathMappings(List.of("/test"))
+            .cors(CorsFixtures.aCors())
+            // BaseListener
+            .type(ListenerType.HTTP)
+            .entrypoints(List.of(EntrypointFixtures.anEntrypointHttpV4()))
+            .servers(List.of("my-server1", "my-server2"));
 
-    private static final SubscriptionListener.SubscriptionListenerBuilder BASE_SUBSCRIPTION_LISTENER = SubscriptionListener
-        .builder()
-        // BaseListener
-        .type(ListenerType.SUBSCRIPTION)
-        .entrypoints(List.of(EntrypointFixtures.anEntrypointHttpV4()))
-        .servers(List.of("my-server1", "my-server2"));
+    private static final Supplier<SubscriptionListener> BASE_SUBSCRIPTION_LISTENER = () ->
+        (SubscriptionListener) new SubscriptionListener()
+            // BaseListener
+            .type(ListenerType.SUBSCRIPTION)
+            .entrypoints(List.of(EntrypointFixtures.anEntrypointHttpV4()))
+            .servers(List.of("my-server1", "my-server2"));
 
-    private static final TcpListener.TcpListenerBuilder BASE_TCP_LISTENER = TcpListener
-        .builder()
-        // BaseListener
-        .type(ListenerType.TCP)
-        .entrypoints(List.of(EntrypointFixtures.anEntrypointHttpV4()))
-        .servers(List.of("my-server1", "my-server2"));
+    private static final Supplier<TcpListener> BASE_TCP_LISTENER = () ->
+        (TcpListener) new TcpListener()
+            // BaseListener
+            .type(ListenerType.TCP)
+            .entrypoints(List.of(EntrypointFixtures.anEntrypointHttpV4()))
+            .servers(List.of("my-server1", "my-server2"));
 
-    private static final KafkaListener.KafkaListenerBuilder BASE_KAFKA_LISTENER = KafkaListener
-        .builder()
-        // BaseListener
-        .type(ListenerType.KAFKA)
-        .entrypoints(List.of(EntrypointFixtures.anEntrypointNativeV4()))
-        .servers(List.of("my-server1", "my-server2"));
+    private static final Supplier<KafkaListener> BASE_KAFKA_LISTENER = () ->
+        (KafkaListener) new KafkaListener()
+            // BaseListener
+            .type(ListenerType.KAFKA)
+            .entrypoints(List.of(EntrypointFixtures.anEntrypointNativeV4()))
+            .servers(List.of("my-server1", "my-server2"));
 
     public static HttpListener aHttpListener() {
-        return BASE_HTTP_LISTENER.build();
+        return BASE_HTTP_LISTENER.get();
     }
 
     public static SubscriptionListener aSubscriptionListener() {
-        return BASE_SUBSCRIPTION_LISTENER.build();
+        return BASE_SUBSCRIPTION_LISTENER.get();
     }
 
     public static TcpListener aTcpListener() {
-        return BASE_TCP_LISTENER.build();
+        return BASE_TCP_LISTENER.get();
     }
 
     public static KafkaListener aKafkaListener() {
-        return BASE_KAFKA_LISTENER.build();
+        return BASE_KAFKA_LISTENER.get();
     }
 
     public static io.gravitee.definition.model.v4.listener.http.HttpListener aModelHttpListener() {

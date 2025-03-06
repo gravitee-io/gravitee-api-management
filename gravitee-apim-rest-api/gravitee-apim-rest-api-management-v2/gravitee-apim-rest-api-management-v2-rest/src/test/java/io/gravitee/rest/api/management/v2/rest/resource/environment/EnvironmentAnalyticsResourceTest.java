@@ -131,10 +131,8 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsResponseStatusRangesResponse.class)
                 .isEqualTo(
-                    EnvironmentAnalyticsResponseStatusRangesResponse
-                        .builder()
+                    new EnvironmentAnalyticsResponseStatusRangesResponse()
                         .ranges(Map.of("100.0-200.0", 1, "200.0-300.0", 17, "300.0-400.0", 0, "400.0-500.0", 0, "500.0-600.0", 0))
-                        .build()
                 );
         }
     }
@@ -178,16 +176,14 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsTopHitsApisResponse.class)
                 .isEqualTo(
-                    EnvironmentAnalyticsTopHitsApisResponse
-                        .builder()
+                    new EnvironmentAnalyticsTopHitsApisResponse()
                         .data(
                             List.of(
-                                TopHitApi.builder().id(topHitApi2Id).name("Top Hit API 2").count(13L).definitionVersion("V4").build(),
-                                TopHitApi.builder().id(topHitApi1Id).name("Top Hit API 1").count(7L).definitionVersion("V4").build(),
-                                TopHitApi.builder().id(topHitApi3Id).name("Top Hit API legacy v2").count(6L).definitionVersion("V2").build()
+                                new TopHitApi().id(topHitApi2Id).name("Top Hit API 2").count(13L).definitionVersion("V4"),
+                                new TopHitApi().id(topHitApi1Id).name("Top Hit API 1").count(7L).definitionVersion("V4"),
+                                new TopHitApi().id(topHitApi3Id).name("Top Hit API legacy v2").count(6L).definitionVersion("V2")
                             )
                         )
-                        .build()
                 );
         }
 
@@ -203,7 +199,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsTopHitsApisResponse.class)
-                .isEqualTo(EnvironmentAnalyticsTopHitsApisResponse.builder().data(List.of()).build());
+                .isEqualTo(new EnvironmentAnalyticsTopHitsApisResponse().data(List.of()));
         }
     }
 
@@ -240,14 +236,12 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsRequestResponseTimeResponse.class)
                 .isEqualTo(
-                    EnvironmentAnalyticsRequestResponseTimeResponse
-                        .builder()
+                    new EnvironmentAnalyticsRequestResponseTimeResponse()
                         .requestsPerSecond(3.7)
                         .requestsTotal(25600)
                         .responseMinTime(32.5)
                         .responseMaxTime(1220.87)
                         .responseAvgTime(159.2)
-                        .build()
                 );
         }
     }
@@ -285,8 +279,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_200_with_valid_request_response_time_analytics() {
-            //Given
-            var topHitApi1Id = "my-api";
+            // Given
             var api1 = ApiFixtures.aProxyApiV4().toBuilder().id("api-1").build();
             var api2 = ApiFixtures.aProxyApiV4().toBuilder().id("api-2").build();
 
@@ -295,19 +288,17 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
             analyticsQueryService.averageAggregate.put("1970-01-01T00:00:00", 1.2D);
             analyticsQueryService.averageAggregate.put("1970-01-01T00:30:00", 1.6D);
 
-            //When
-
+            // When
             Response response = target.queryParam("from", FROM).queryParam("to", TO).request().get();
 
+            // Then
             assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsOverPeriodResponse.class)
                 .isEqualTo(
-                    EnvironmentAnalyticsOverPeriodResponse
-                        .builder()
-                        .timeRange(AnalyticTimeRange.builder().from(FROM).to(TO).interval(1000L).build())
+                    new EnvironmentAnalyticsOverPeriodResponse()
+                        .timeRange(new AnalyticTimeRange().from(FROM).to(TO).interval(1000L))
                         .data(List.of(1L, 2L))
-                        .build()
                 );
         }
     }
@@ -322,7 +313,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_200_with_valid_request_response_time_analytics() {
-            //Given
+            // Given
             var api1 = ApiFixtures.aProxyApiV4().toBuilder().id("api-1").build();
             var api2 = ApiFixtures.aProxyApiV4().toBuilder().id("api-2").build();
 
@@ -336,19 +327,17 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                     .data(Map.of("200", List.of(0L, 0L, 0L, 1L, 4L, 0L, 0L)))
                     .build();
 
-            //When
-
+            // When
             Response response = target.queryParam("from", FROM).queryParam("to", TO).request().get();
 
+            // Then
             assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsResponseStatusOvertimeResponse.class)
                 .isEqualTo(
-                    EnvironmentAnalyticsResponseStatusOvertimeResponse
-                        .builder()
-                        .timeRange(AnalyticTimeRange.builder().from(FROM).to(TO).interval(1000L).build())
+                    new EnvironmentAnalyticsResponseStatusOvertimeResponse()
+                        .timeRange(new AnalyticTimeRange().from(FROM).to(TO).interval(1000L))
                         .data(Map.of("200", List.of(0L, 0L, 0L, 1L, 4L, 0L, 0L)))
-                        .build()
                 );
         }
     }
@@ -363,7 +352,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_200_with_valid_top_apps_by_request_count() {
-            //Given
+            // Given
             var topHitApp1 = BaseApplicationEntity
                 .builder()
                 .id("top-hit-app-id-1")
@@ -393,22 +382,21 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                     )
                     .build();
 
-            //When
+            // When
             Response response = target.queryParam("from", FROM).queryParam("to", TO).request().get();
 
+            // Then
             assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsTopAppsByRequestCountResponse.class)
                 .isEqualTo(
-                    EnvironmentAnalyticsTopAppsByRequestCountResponse
-                        .builder()
+                    new EnvironmentAnalyticsTopAppsByRequestCountResponse()
                         .data(
                             List.of(
-                                TopApp.builder().id("top-hit-app-id-2").name("Top Hit App 2").count(13L).build(),
-                                TopApp.builder().id("top-hit-app-id-1").name("Top Hit App 1").count(7L).build()
+                                new TopApp().id("top-hit-app-id-2").name("Top Hit App 2").count(13L),
+                                new TopApp().id("top-hit-app-id-1").name("Top Hit App 1").count(7L)
                             )
                         )
-                        .build()
                 );
         }
 
@@ -423,7 +411,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsTopAppsByRequestCountResponse.class)
-                .isEqualTo(EnvironmentAnalyticsTopAppsByRequestCountResponse.builder().data(List.of()).build());
+                .isEqualTo(new EnvironmentAnalyticsTopAppsByRequestCountResponse().data(List.of()));
         }
     }
 
@@ -466,52 +454,46 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsTopFailedApisResponse.class)
                 .isEqualTo(
-                    EnvironmentAnalyticsTopFailedApisResponse
-                        .builder()
+                    new EnvironmentAnalyticsTopFailedApisResponse()
                         .data(
                             List.of(
-                                io.gravitee.rest.api.management.v2.rest.model.TopFailedApis
-                                    .builder()
+                                new io.gravitee.rest.api.management.v2.rest.model.TopFailedApis()
                                     .id(apiId2)
                                     .name("API 2")
                                     .definitionVersion("V4")
                                     .failedCalls(13L)
-                                    .failedCallsRatio(0.2)
-                                    .build(),
-                                io.gravitee.rest.api.management.v2.rest.model.TopFailedApis
-                                    .builder()
+                                    .failedCallsRatio(0.2),
+                                new io.gravitee.rest.api.management.v2.rest.model.TopFailedApis()
                                     .id(apiId1)
                                     .name("API 1")
                                     .definitionVersion("V4")
                                     .failedCalls(7L)
-                                    .failedCallsRatio(0.1)
-                                    .build(),
-                                io.gravitee.rest.api.management.v2.rest.model.TopFailedApis
-                                    .builder()
+                                    .failedCallsRatio(0.1),
+                                new io.gravitee.rest.api.management.v2.rest.model.TopFailedApis()
                                     .id(apiId3)
                                     .name("API 3")
                                     .definitionVersion("V2")
                                     .failedCalls(3L)
                                     .failedCallsRatio(0.3)
-                                    .build()
                             )
                         )
-                        .build()
                 );
         }
 
         @Test
         void should_return_200_with_empty_list_if_no_apis_found() {
+            // Given
             apiQueryService.initWith(List.of());
             analyticsQueryService.topFailedApis = TopFailedApis.builder().data(List.of()).build();
 
-            //When
+            // When
             Response response = target.queryParam("from", FROM).queryParam("to", TO).request().get();
 
+            // Then
             assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsTopFailedApisResponse.class)
-                .isEqualTo(EnvironmentAnalyticsTopFailedApisResponse.builder().data(List.of()).build());
+                .isEqualTo(new EnvironmentAnalyticsTopFailedApisResponse().data(List.of()));
         }
     }
 }

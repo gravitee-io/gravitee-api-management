@@ -150,10 +150,7 @@ public class IntegrationResource extends AbstractResource {
 
         startIngestIntegrationApisUseCase
             .execute(new StartIngestIntegrationApisUseCase.Input(integrationId, apisIngest.getApiIds(), audit))
-            .subscribe(
-                status -> response.resume(IntegrationIngestionResponse.builder().status(AsyncJobStatus.PENDING).build()),
-                response::resume
-            );
+            .subscribe(status -> response.resume(new IntegrationIngestionResponse().status(AsyncJobStatus.PENDING)), response::resume);
     }
 
     @GET

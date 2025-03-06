@@ -20,30 +20,28 @@ import io.gravitee.rest.api.management.v2.rest.model.Entrypoint;
 import io.gravitee.rest.api.management.v2.rest.model.Qos;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
-@SuppressWarnings("ALL")
 public class EntrypointFixtures {
 
     private EntrypointFixtures() {}
 
-    private static final Entrypoint.EntrypointBuilder BASE_ENTRYPOINT_HTTP_V4 = Entrypoint
-        .builder()
-        .type("Entrypoint type")
-        .qos(Qos.AT_LEAST_ONCE)
-        .dlq(new Dlq().endpoint("my-endpoint"))
-        .configuration(new LinkedHashMap<>(Map.of("nice", "configuration")));
+    private static final Supplier<Entrypoint> BASE_ENTRYPOINT_HTTP_V4 = () ->
+        new Entrypoint()
+            .type("Entrypoint type")
+            .qos(Qos.AT_LEAST_ONCE)
+            .dlq(new Dlq().endpoint("my-endpoint"))
+            .configuration(new LinkedHashMap<>(Map.of("nice", "configuration")));
 
-    private static final Entrypoint.EntrypointBuilder BASE_ENTRYPOINT_NATIVE_V4 = Entrypoint
-        .builder()
-        .type("Entrypoint type")
-        .configuration(new LinkedHashMap<>(Map.of("nice", "configuration")));
+    private static final Supplier<Entrypoint> BASE_ENTRYPOINT_NATIVE_V4 = () ->
+        new Entrypoint().type("Entrypoint type").configuration(new LinkedHashMap<>(Map.of("nice", "configuration")));
 
     public static Entrypoint anEntrypointHttpV4() {
-        return BASE_ENTRYPOINT_HTTP_V4.build();
+        return BASE_ENTRYPOINT_HTTP_V4.get();
     }
 
     public static Entrypoint anEntrypointNativeV4() {
-        return BASE_ENTRYPOINT_NATIVE_V4.build();
+        return BASE_ENTRYPOINT_NATIVE_V4.get();
     }
 
     public static io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint aModelEntrypointHttpV4() {

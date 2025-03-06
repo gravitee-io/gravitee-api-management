@@ -24,7 +24,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AsyncJobFixture;
 import fixtures.core.model.IntegrationApiFixtures;
@@ -175,16 +174,14 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(Integration.class)
                 .isEqualTo(
-                    Integration
-                        .builder()
+                    new Integration()
                         .id(INTEGRATION_ID)
                         .name(integration.getName())
                         .description(integration.getDescription())
                         .provider(integration.getProvider())
                         .agentStatus(Integration.AgentStatusEnum.CONNECTED)
-                        .primaryOwner(PrimaryOwner.builder().id("UnitTests").email("jane.doe@gravitee.io").displayName("Jane Doe").build())
+                        .primaryOwner(new PrimaryOwner().id("UnitTests").email("jane.doe@gravitee.io").displayName("Jane Doe"))
                         .groups(List.of())
-                        .build()
                 );
         }
 
@@ -202,23 +199,17 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(Integration.class)
                 .isEqualTo(
-                    Integration
-                        .builder()
+                    new Integration()
                         .id(INTEGRATION_ID)
                         .name(integration.getName())
                         .description(integration.getDescription())
                         .provider(integration.getProvider())
                         .agentStatus(Integration.AgentStatusEnum.CONNECTED)
-                        .primaryOwner(PrimaryOwner.builder().id("UnitTests").email("jane.doe@gravitee.io").displayName("Jane Doe").build())
+                        .primaryOwner(new PrimaryOwner().id("UnitTests").email("jane.doe@gravitee.io").displayName("Jane Doe"))
                         .pendingJob(
-                            io.gravitee.rest.api.management.v2.rest.model.IngestionJob
-                                .builder()
-                                .id(job.getId())
-                                .status(AsyncJobStatus.PENDING)
-                                .build()
+                            new io.gravitee.rest.api.management.v2.rest.model.IngestionJob().id(job.getId()).status(AsyncJobStatus.PENDING)
                         )
                         .groups(List.of())
-                        .build()
                 );
         }
 
@@ -302,7 +293,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(IntegrationIngestionResponse.class)
-                .isEqualTo(IntegrationIngestionResponse.builder().status(AsyncJobStatus.PENDING).build());
+                .isEqualTo(new IntegrationIngestionResponse().status(AsyncJobStatus.PENDING));
         }
     }
 
@@ -317,11 +308,9 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             var integration = List.of(IntegrationFixture.anIntegration());
             integrationCrudServiceInMemory.initWith(integration);
 
-            var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration
-                .builder()
+            var updateIntegration = new io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration()
                 .name(updatedName)
-                .description(updatedDescription)
-                .build();
+                .description(updatedDescription);
 
             //When
             Response response = target.request().put(Entity.json(updateIntegration));
@@ -331,13 +320,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(Integration.class)
                 .isEqualTo(
-                    Integration
-                        .builder()
-                        .id(INTEGRATION_ID)
-                        .name(updatedName)
-                        .description(updatedDescription)
-                        .provider(INTEGRATION_PROVIDER)
-                        .build()
+                    new Integration().id(INTEGRATION_ID).name(updatedName).description(updatedDescription).provider(INTEGRATION_PROVIDER)
                 );
         }
 
@@ -351,12 +334,10 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             integrationCrudServiceInMemory.initWith(integration);
             givenExistingGroup(List.of(Group.builder().id(groupId).name("group-name").build()));
 
-            var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration
-                .builder()
+            var updateIntegration = new io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration()
                 .name(updatedName)
                 .description(updatedDescription)
-                .groups(List.of(groupId))
-                .build();
+                .groups(List.of(groupId));
 
             //When
             Response response = target.request().put(Entity.json(updateIntegration));
@@ -366,14 +347,12 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(Integration.class)
                 .isEqualTo(
-                    Integration
-                        .builder()
+                    new Integration()
                         .id(INTEGRATION_ID)
                         .name(updatedName)
                         .description(updatedDescription)
                         .provider(INTEGRATION_PROVIDER)
                         .groups(List.of(groupId))
-                        .build()
                 );
         }
 
@@ -383,11 +362,9 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             var updatedName = "updated-name";
             var updatedDescription = "updated-description";
 
-            var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration
-                .builder()
+            var updateIntegration = new io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration()
                 .name(updatedName)
-                .description(updatedDescription)
-                .build();
+                .description(updatedDescription);
 
             //When
             Response response = target.request().put(Entity.json(updateIntegration));
@@ -408,7 +385,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             )
                 .thenReturn(false);
 
-            var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration.builder().build();
+            var updateIntegration = new io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration();
 
             Response response = target.request().put(Entity.json(updateIntegration));
 
@@ -419,10 +396,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         public void should_return_400_when_missing_name_to_update() {
             var updatedDescription = "updated-description";
 
-            var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration
-                .builder()
-                .description(updatedDescription)
-                .build();
+            var updateIntegration = new io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration().description(updatedDescription);
 
             Response response = target.request().put(Entity.json(updateIntegration));
 
@@ -431,7 +405,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_400_when_missing_body() {
-            var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration.builder().build();
+            var updateIntegration = new io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration();
 
             Response response = target.request().put(Entity.json(updateIntegration));
 
@@ -451,7 +425,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
 
             //Then
             assertThat(response).hasStatus(HttpStatusCode.NO_CONTENT_204);
-            assertThat(integrationCrudServiceInMemory.storage().size()).isEqualTo(0);
+            assertThat(integrationCrudServiceInMemory.storage()).isEmpty();
         }
 
         @Test
@@ -505,7 +479,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .hasStatus(200)
                 .asEntity(IngestedApisResponse.class)
                 .extracting(IngestedApisResponse::getPagination)
-                .isEqualTo(Pagination.builder().page(1).perPage(10).pageItemsCount(10).pageCount(2).totalCount(15L).build());
+                .isEqualTo(new Pagination().page(1).perPage(10).pageItemsCount(10).pageCount(2).totalCount(15L));
         }
 
         @Test
@@ -516,7 +490,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .hasStatus(200)
                 .asEntity(IngestedApisResponse.class)
                 .extracting(IngestedApisResponse::getPagination)
-                .isEqualTo(Pagination.builder().page(2).perPage(10).pageItemsCount(10).pageCount(2).totalCount(15L).build());
+                .isEqualTo(new Pagination().page(2).perPage(10).pageItemsCount(10).pageCount(2).totalCount(15L));
         }
 
         @Test
@@ -535,7 +509,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .hasStatus(200)
                 .asEntity(IngestedApisResponse.class)
                 .extracting(IngestedApisResponse::getData)
-                .extracting(ingestedApis -> ingestedApis.get(0))
+                .extracting(List::getFirst)
                 .extracting(IngestedApi::getName)
                 .isEqualTo(recentlyUpdatedApi.getName());
         }
@@ -550,14 +524,12 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .asEntity(IngestedApisResponse.class)
                 .extracting(IngestedApisResponse::getLinks)
                 .isEqualTo(
-                    Links
-                        .builder()
+                    new Links()
                         .self(webtarget.queryParam("page", 2).queryParam("perPage", 5).getUri().toString())
                         .first(webtarget.queryParam("page", 1).queryParam("perPage", 5).getUri().toString())
                         .last(webtarget.queryParam("page", 3).queryParam("perPage", 5).getUri().toString())
                         .previous(webtarget.queryParam("page", 1).queryParam("perPage", 5).getUri().toString())
                         .next(webtarget.queryParam("page", 3).queryParam("perPage", 5).getUri().toString())
-                        .build()
                 );
         }
 
@@ -699,21 +671,17 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(IngestionPreviewResponse.class)
                 .isEqualTo(
-                    IngestionPreviewResponse
-                        .builder()
+                    new IngestionPreviewResponse()
                         .totalCount(1)
                         .newCount(1)
                         .updateCount(0)
-                        .apis(List.of(IngestionPreviewResponseApisInner.builder().id("asset-id").name("An alien API").state(NEW).build()))
-                        .build()
+                        .apis(List.of(new IngestionPreviewResponseApisInner().id("asset-id").name("An alien API").state(NEW)))
                 );
         }
     }
 
     @Nested
     class GetPermissions {
-
-        private static final TypeReference<Map<String, char[]>> apiType = new TypeReference<>() {};
 
         @BeforeEach
         void setUp() {

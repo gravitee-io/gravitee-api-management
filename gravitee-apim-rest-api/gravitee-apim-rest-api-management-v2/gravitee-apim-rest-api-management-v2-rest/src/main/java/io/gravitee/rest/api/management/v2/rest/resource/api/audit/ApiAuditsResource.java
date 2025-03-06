@@ -62,12 +62,10 @@ public class ApiAuditsResource extends AbstractResource {
 
         var output = searchApiAuditUseCase.execute(input);
 
-        return AuditsResponse
-            .builder()
+        return new AuditsResponse()
             .data(ApiAuditMapper.INSTANCE.map(output.data(), output.metadata()))
             .pagination(computePaginationInfo(output.total(), output.data().size(), paginationParam))
-            .links(computePaginationLinks(output.total(), paginationParam))
-            .build();
+            .links(computePaginationLinks(output.total(), paginationParam));
     }
 
     @GET
@@ -75,7 +73,7 @@ public class ApiAuditsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_AUDIT, acls = { RolePermissionAction.READ }) })
     public AuditEventsResponse listAllApiAuditEvent() {
-        return AuditEventsResponse.builder().data(auditEventQueryService.listAllApiAuditEvents()).build();
+        return new AuditEventsResponse().data(auditEventQueryService.listAllApiAuditEvents());
     }
 
     @NotNull

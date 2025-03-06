@@ -116,7 +116,7 @@ public class ApiScoringResourceTest extends ApiResourceTest {
                 .assertThat(response)
                 .hasStatus(ACCEPTED_202)
                 .asEntity(ApiScoringTriggerResponse.class)
-                .isEqualTo(ApiScoringTriggerResponse.builder().status(ScoringStatus.PENDING).build());
+                .isEqualTo(new ApiScoringTriggerResponse().status(ScoringStatus.PENDING));
         }
     }
 
@@ -143,45 +143,32 @@ public class ApiScoringResourceTest extends ApiResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(ApiScoring.class)
                 .isEqualTo(
-                    ApiScoring
-                        .builder()
-                        .summary(ApiScoringSummary.builder().score(0.9).all(1).errors(0).hints(0).infos(0).warnings(1).build())
+                    new ApiScoring()
+                        .summary(new ApiScoringSummary().score(0.9).all(1).errors(0).hints(0).infos(0).warnings(1))
                         .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
                         .assets(
                             List.of(
-                                ApiScoringAsset
-                                    .builder()
+                                new ApiScoringAsset()
                                     .name("parent")
                                     .type(ApiScoringAssetType.SWAGGER)
                                     .diagnostics(
                                         List.of(
-                                            ApiScoringDiagnostic
-                                                .builder()
+                                            new ApiScoringDiagnostic()
                                                 .severity(ApiScoringSeverity.WARN)
                                                 .range(
-                                                    ApiScoringDiagnosticRange
-                                                        .builder()
-                                                        .start(ApiScoringPosition.builder().line(17).character(12).build())
-                                                        .end(ApiScoringPosition.builder().line(38).character(25).build())
-                                                        .build()
+                                                    new ApiScoringDiagnosticRange()
+                                                        .start(new ApiScoringPosition().line(17).character(12))
+                                                        .end(new ApiScoringPosition().line(38).character(25))
                                                 )
                                                 .rule("operation-operationId")
                                                 .message("Operation must have \"operationId\".")
                                                 .path("paths./echo.options")
-                                                .build()
                                         )
                                     )
-                                    .errors(List.of())
-                                    .build(),
-                                ApiScoringAsset
-                                    .builder()
-                                    .type(ApiScoringAssetType.GRAVITEE_DEFINITION)
-                                    .diagnostics(List.of())
-                                    .errors(List.of())
-                                    .build()
+                                    .errors(List.of()),
+                                new ApiScoringAsset().type(ApiScoringAssetType.GRAVITEE_DEFINITION).diagnostics(List.of()).errors(List.of())
                             )
                         )
-                        .build()
                 );
         }
 
@@ -198,30 +185,22 @@ public class ApiScoringResourceTest extends ApiResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(ApiScoring.class)
                 .isEqualTo(
-                    ApiScoring
-                        .builder()
-                        .summary(ApiScoringSummary.builder().score(0.9).all(1).errors(0).hints(0).infos(0).warnings(1).build())
+                    new ApiScoring()
+                        .summary(new ApiScoringSummary().score(0.9).all(1).errors(0).hints(0).infos(0).warnings(1))
                         .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
                         .assets(
                             List.of(
-                                ApiScoringAsset
-                                    .builder()
+                                new ApiScoringAsset()
                                     .name("parent")
                                     .type(ApiScoringAssetType.SWAGGER)
                                     .diagnostics(List.of())
                                     .errors(
                                         List.of(
-                                            ApiScoringError
-                                                .builder()
-                                                .code("some-error-code")
-                                                .path(List.of("path", "to", "the", "property"))
-                                                .build()
+                                            new ApiScoringError().code("some-error-code").path(List.of("path", "to", "the", "property"))
                                         )
                                     )
-                                    .build()
                             )
                         )
-                        .build()
                 );
         }
     }

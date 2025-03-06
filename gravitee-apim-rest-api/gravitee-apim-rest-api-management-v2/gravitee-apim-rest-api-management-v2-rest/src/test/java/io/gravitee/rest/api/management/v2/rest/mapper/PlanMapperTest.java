@@ -29,6 +29,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV4;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import java.util.HashSet;
@@ -148,7 +149,7 @@ public class PlanMapperTest {
 
     @Test
     void should_map_CreatePlanV4_to_core_Plan_with_default_values() {
-        final var createPlanV4 = PlanFixtures.aCreatePlanHttpV4().toBuilder().validation(null).mode(null).flows(null).build();
+        final var createPlanV4 = (CreatePlanV4) PlanFixtures.aCreatePlanHttpV4().mode(null).flows(null).validation(null);
         final var plan = planMapper.map(createPlanV4, Api.builder().type(ApiType.PROXY).build());
 
         Assertions.assertNull(plan.getId());
@@ -209,10 +210,8 @@ public class PlanMapperTest {
         final var createPlanV2 = PlanFixtures.aCreatePlanV2();
         // PlanSecurityType is a common enum containing MTLS plan. Such security type is not supported by V2, so it is ignored during mapping
         createPlanV2.security(
-            io.gravitee.rest.api.management.v2.rest.model.PlanSecurity
-                .builder()
+            new io.gravitee.rest.api.management.v2.rest.model.PlanSecurity()
                 .type(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.MTLS)
-                .build()
         );
         final var createPlanEntity = planMapper.map(createPlanV2);
 
@@ -345,7 +344,7 @@ public class PlanMapperTest {
 
     @Test
     void should_map_CreatePlanV4_to_core_native_Plan_with_default_values() {
-        final var createPlanV4 = PlanFixtures.aCreatePlanNativeV4().toBuilder().validation(null).mode(null).flows(null).build();
+        final var createPlanV4 = (CreatePlanV4) PlanFixtures.aCreatePlanNativeV4().mode(null).flows(null).validation(null);
         final var plan = planMapper.map(createPlanV4, Api.builder().type(ApiType.NATIVE).build());
 
         Assertions.assertNull(plan.getId());
