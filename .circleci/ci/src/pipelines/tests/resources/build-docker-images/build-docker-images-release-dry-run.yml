@@ -358,6 +358,6 @@ workflows:
           docker-context: gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
           docker-image-name: apim-gateway
 orbs:
-  keeper: gravitee-io/keeper@0.6.3
+  keeper: gravitee-io/keeper@0.7.0
   slack: circleci/slack@4.12.5
   aquasec: gravitee-io/aquasec@1.0.5

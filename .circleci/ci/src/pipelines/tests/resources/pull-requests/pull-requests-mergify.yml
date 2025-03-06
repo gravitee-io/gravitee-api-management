@@ -236,12 +236,9 @@ jobs:
           - backend
           - frontend
     docker:
-      - image: sonarsource/sonar-scanner-cli:5.0.1
+      - image: sonarsource/sonar-scanner-cli:11.2
     resource_class: large
     steps:
-      - run:
-          name: Add SSH tool
-          command: apk add --no-cache openssh
       - checkout
       - attach_workspace:
           at: .
@@ -813,7 +810,7 @@ workflows:
             - Lint & test APIM Portal Next
             - Build APIM Portal
 orbs:
-  keeper: gravitee-io/keeper@0.6.3
+  keeper: gravitee-io/keeper@0.7.0
   aquasec: gravitee-io/aquasec@1.0.5
   helm: circleci/helm@3.0.0
   slack: circleci/slack@4.12.5

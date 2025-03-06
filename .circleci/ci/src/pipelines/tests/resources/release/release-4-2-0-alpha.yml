@@ -452,7 +452,7 @@ workflows:
             - Build APIM Console and publish on download website
             - Build APIM Portal and publish on download website
 orbs:
-  keeper: gravitee-io/keeper@0.6.3
+  keeper: gravitee-io/keeper@0.7.0
   slack: circleci/slack@4.12.5
   aws-s3: circleci/aws-s3@4.1.0
   aws-cli: circleci/aws-cli@5.1.2
