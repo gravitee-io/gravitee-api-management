@@ -15,7 +15,6 @@
  */
 import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
 import {
-  BuildBackendImagesJob,
   BuildBackendJob,
   E2ECypressJob,
   E2EGenerateSDKJob,
@@ -24,6 +23,7 @@ import {
   ConsoleWebuiBuildJob,
   PortalWebuiBuildJob,
   SetupJob,
+  BuildDockerImageJob,
 } from '../jobs';
 import { config } from '../config';
 import { CircleCIEnvironment } from '../pipelines';
@@ -36,14 +36,14 @@ export class RunE2ETestsWorkflow {
     const buildBackendJob = BuildBackendJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(buildBackendJob);
 
-    const buildBackendImagesJob = BuildBackendImagesJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(buildBackendImagesJob);
-
-    const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, true, false, false);
+    const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, false);
     dynamicConfig.addJob(consoleWebuiBuildJob);
 
-    const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, true, false, false);
+    const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, false);
     dynamicConfig.addJob(portalWebuiBuildJob);
+
+    const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, false);
+    dynamicConfig.addJob(buildDockerImageJob);
 
     const e2eGenerateSdkJob = E2EGenerateSDKJob.create(dynamicConfig);
     dynamicConfig.addJob(e2eGenerateSdkJob);
@@ -60,10 +60,21 @@ export class RunE2ETestsWorkflow {
     const jobs = [
       new workflow.WorkflowJob(setupJob, { context: config.jobContext, name: 'Setup' }),
       new workflow.WorkflowJob(buildBackendJob, { context: config.jobContext, requires: ['Setup'], name: 'Build backend' }),
-      new workflow.WorkflowJob(buildBackendImagesJob, {
+      new workflow.WorkflowJob(buildDockerImageJob, {
         context: config.jobContext,
+        name: `Build APIM Management API docker image`,
         requires: ['Build backend'],
-        name: 'Build and push rest api and gateway images',
+        'apim-project': config.components.managementApi.project,
+        'docker-context': 'gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target',
+        'docker-image-name': config.components.managementApi.image,
+      }),
+      new workflow.WorkflowJob(buildDockerImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Gateway docker image`,
+        requires: ['Build backend'],
+        'apim-project': config.components.gateway.project,
+        'docker-context': 'gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target',
+        'docker-image-name': config.components.gateway.image,
       }),
       new workflow.WorkflowJob(e2eGenerateSdkJob, {
         context: config.jobContext,
@@ -78,17 +89,35 @@ export class RunE2ETestsWorkflow {
       new workflow.WorkflowJob(consoleWebuiBuildJob, {
         context: config.jobContext,
         requires: ['Setup'],
-        name: 'Build APIM Console and publish image',
+        name: 'Build APIM Console',
       }),
+      new workflow.WorkflowJob(buildDockerImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Console docker image`,
+        requires: ['Build APIM Console'],
+        'apim-project': config.components.console.project,
+        'docker-context': '.',
+        'docker-image-name': config.components.console.image,
+      }),
+
       new workflow.WorkflowJob(portalWebuiBuildJob, {
         context: config.jobContext,
         requires: ['Setup'],
-        name: 'Build APIM Portal and publish image',
+        name: 'Build APIM Portal',
       }),
+      new workflow.WorkflowJob(buildDockerImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Portal docker image`,
+        requires: ['Build APIM Portal'],
+        'apim-project': config.components.portal.project,
+        'docker-context': '.',
+        'docker-image-name': config.components.portal.image,
+      }),
+
       new workflow.WorkflowJob(e2eTestJob, {
         context: config.jobContext,
         name: 'E2E - << matrix.execution_mode >> - << matrix.database >>',
-        requires: ['Lint & Build APIM e2e', 'Build and push rest api and gateway images'],
+        requires: ['Lint & Build APIM e2e', 'Build APIM Management API docker image', 'Build APIM Gateway docker image'],
         matrix: {
           execution_mode: ['v3', 'v4-emulation-engine'],
           database: ['mongo', 'jdbc', 'bridge'],
@@ -99,9 +128,10 @@ export class RunE2ETestsWorkflow {
         name: 'Run Cypress UI tests',
         requires: [
           'Lint & Build APIM e2e',
-          'Build and push rest api and gateway images',
-          'Build APIM Console and publish image',
-          'Build APIM Portal and publish image',
+          'Build APIM Management API docker image',
+          'Build APIM Gateway docker image',
+          'Build APIM Console docker image',
+          'Build APIM Portal docker image',
         ],
       }),
     ];

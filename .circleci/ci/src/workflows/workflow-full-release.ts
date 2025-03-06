@@ -15,12 +15,15 @@
  */
 import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
 import {
+  BackendBuildAndPublishOnDownloadWebsiteJob,
+  BuildDockerImageJob,
   ConsoleWebuiBuildJob,
+  NexusStagingJob,
   PackageBundleJob,
   PortalWebuiBuildJob,
-  PublishProdDockerImagesJob,
   PublishRpmPackagesJob,
   ReleaseCommitAndPrepareNextVersionJob,
+  ReleaseHelmJob,
   ReleaseNotesApimJob,
   SetupJob,
   SlackAnnouncementJob,
@@ -28,8 +31,6 @@ import {
 } from '../jobs';
 import { CircleCIEnvironment } from '../pipelines';
 import { config } from '../config';
-import { BackendBuildAndPublishOnDownloadWebsiteJob, NexusStagingJob } from '../jobs/backend';
-import { ReleaseHelmJob } from '../jobs/helm';
 
 export class FullReleaseWorkflow {
   private static workflowName = 'full_release';
@@ -41,13 +42,16 @@ export class FullReleaseWorkflow {
     const slackAnnouncementJob = SlackAnnouncementJob.create(dynamicConfig);
     dynamicConfig.addJob(slackAnnouncementJob);
 
-    const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, false, true, true);
+    const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, true);
     dynamicConfig.addJob(consoleWebuiBuildJob);
 
-    const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, false, true, true);
+    const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, true);
     dynamicConfig.addJob(portalWebuiBuildJob);
 
-    const backendBuildAndPublishOnDownloadWebsiteJob = BackendBuildAndPublishOnDownloadWebsiteJob.create(dynamicConfig, environment);
+    const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, true);
+    dynamicConfig.addJob(buildDockerImageJob);
+
+    const backendBuildAndPublishOnDownloadWebsiteJob = BackendBuildAndPublishOnDownloadWebsiteJob.create(dynamicConfig, environment, true);
     dynamicConfig.addJob(backendBuildAndPublishOnDownloadWebsiteJob);
 
     const releaseCommitAndPrepareNextVersionJob = ReleaseCommitAndPrepareNextVersionJob.create(dynamicConfig, environment);
@@ -58,9 +62,6 @@ export class FullReleaseWorkflow {
 
     const releaseHelmJob = ReleaseHelmJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(releaseHelmJob);
-
-    const publishProdDockerImagesJob = PublishProdDockerImagesJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(publishProdDockerImagesJob);
 
     const publishRpmPackagesJob = PublishRpmPackagesJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(publishRpmPackagesJob);
@@ -89,6 +90,14 @@ export class FullReleaseWorkflow {
         name: 'Build APIM Portal and publish on download website',
         requires: ['Setup'],
       }),
+      new workflow.WorkflowJob(buildDockerImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Portal docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+        requires: ['Build APIM Portal and publish on download website'],
+        'apim-project': config.components.portal.project,
+        'docker-context': '.',
+        'docker-image-name': config.components.portal.image,
+      }),
 
       // APIM Console
       new workflow.WorkflowJob(consoleWebuiBuildJob, {
@@ -96,12 +105,36 @@ export class FullReleaseWorkflow {
         name: 'Build APIM Console and publish on download website',
         requires: ['Setup'],
       }),
+      new workflow.WorkflowJob(buildDockerImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Console docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+        requires: ['Build APIM Console and publish on download website'],
+        'apim-project': config.components.console.project,
+        'docker-context': '.',
+        'docker-image-name': config.components.console.image,
+      }),
 
       // APIM Backend
       new workflow.WorkflowJob(backendBuildAndPublishOnDownloadWebsiteJob, {
         context: config.jobContext,
         name: 'Backend build and publish on download website',
         requires: ['Setup'],
+      }),
+      new workflow.WorkflowJob(buildDockerImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Management API docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+        requires: ['Backend build and publish on download website'],
+        'apim-project': config.components.managementApi.project,
+        'docker-context': 'gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target',
+        'docker-image-name': config.components.managementApi.image,
+      }),
+      new workflow.WorkflowJob(buildDockerImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Gateway docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+        requires: ['Backend build and publish on download website'],
+        'apim-project': config.components.gateway.project,
+        'docker-context': 'gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target',
+        'docker-image-name': config.components.gateway.image,
       }),
 
       // Commit and set next version
@@ -122,24 +155,10 @@ export class FullReleaseWorkflow {
         requires: ['Commit and prepare next version'],
       }),
 
-      // Publish Docker images
-      new workflow.WorkflowJob(publishProdDockerImagesJob, {
-        context: config.jobContext,
-        name: `Build and push docker images for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
-        requires: ['Package bundle'],
-      }),
-
       // Publish RPM Packages
       new workflow.WorkflowJob(publishRpmPackagesJob, {
         context: config.jobContext,
         name: `Build and push RPM packages for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
-        requires: ['Package bundle'],
-      }),
-
-      // Nexus staging
-      new workflow.WorkflowJob(nexusStagingJob, {
-        context: config.jobContext,
-        name: 'Nexus staging',
         requires: ['Package bundle'],
       }),
 
@@ -148,10 +167,18 @@ export class FullReleaseWorkflow {
         context: [...config.jobContext, 'keeper-orb-publishing'],
         name: 'Trigger SaaS Docker images creation',
         requires: [
-          'Nexus staging',
-          `Build and push RPM packages for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
-          `Build and push docker images for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+          `Build APIM Portal docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+          `Build APIM Console docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+          `Build APIM Management API docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+          `Build APIM Gateway docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
         ],
+      }),
+
+      // Nexus staging
+      new workflow.WorkflowJob(nexusStagingJob, {
+        context: config.jobContext,
+        name: 'Nexus staging',
+        requires: ['Trigger SaaS Docker images creation'],
       }),
 
       // Release Helm chart
@@ -165,7 +192,10 @@ export class FullReleaseWorkflow {
       new workflow.WorkflowJob(releaseNoteApimJob, {
         context: config.jobContext,
         name: 'Create release note pull request',
-        requires: ['Release Helm Chart'],
+        requires: [
+          'Release Helm Chart',
+          `Build and push RPM packages for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+        ],
       }),
 
       // Notify APIM team
@@ -173,7 +203,10 @@ export class FullReleaseWorkflow {
         context: config.jobContext,
         name: 'Announce release is completed',
         message: `🎆 APIM - ${environment.graviteeioVersion} released!`,
-        requires: ['Release Helm Chart'],
+        requires: [
+          'Release Helm Chart',
+          `Build and push RPM packages for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+        ],
       }),
     ]);
   }
