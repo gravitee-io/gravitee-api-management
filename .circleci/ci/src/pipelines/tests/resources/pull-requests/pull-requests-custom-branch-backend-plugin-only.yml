@@ -237,12 +237,9 @@ jobs:
           - backend
           - frontend
     docker:
-      - image: sonarsource/sonar-scanner-cli:5.0.1
+      - image: sonarsource/sonar-scanner-cli:11.2
     resource_class: large
     steps:
-      - run:
-          name: Add SSH tool
-          command: apk add --no-cache openssh
       - checkout
       - attach_workspace:
           at: .
