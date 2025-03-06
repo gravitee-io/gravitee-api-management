@@ -132,7 +132,7 @@
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <netty-tcnative-boringssl-static.version>2.0.70.Final</netty-tcnative-boringssl-static.version>
-        <nimbus-jose-jwt.version>9.48</nimbus-jose-jwt.version>
+        <nimbus-jose-jwt.version>10.0.2</nimbus-jose-jwt.version>
         <mongo.version>5.3.1</mongo.version>
         <owasp-java-html-sanitizer.version>20240325.1</owasp-java-html-sanitizer.version>
         <reactor-adapter.version>3.5.2</reactor-adapter.version>
