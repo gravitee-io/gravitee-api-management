@@ -33,6 +33,7 @@ public class ResponseTimeRangeQueryAdapter {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
+    private static final List<String> FILTERED_ENTRYPOINT_TYPES = List.of("http-post", "http-get", "http-proxy");
     private static final String TIME_FIELD = "@timestamp";
     private static final String RESPONSE_TIME_FIELD = "gateway-response-time-ms";
     private static final String REDUCE_OPERATION = "avg";
@@ -75,8 +76,16 @@ public class ResponseTimeRangeQueryAdapter {
     }
 
     private ObjectNode query(ResponseTimeRangeQuery query) {
-        JsonNode termFilterV4 = json().set("terms", json().set("api-id", toArray(query.apiIds())));
-        JsonNode termFilterV2 = json().set("terms", json().set("api", toArray(query.apiIds())));
+        var apiFilter = array();
+
+        var idsV4 = json().set("terms", json().set("api-id", toArray(query.apiIds())));
+        var filterV4 = json().set("bool", json().set("must", array().add(idsV4).add(entrypointFilterForQuery())));
+        apiFilter.add(filterV4);
+        var filterV2 = json().set("terms", json().set("api", toArray(query.apiIds())));
+        apiFilter.add(filterV2);
+
+        var v2orv4 = json().put("minimum_should_match", 1).set("should", apiFilter);
+        var filterQuery = json().set("bool", v2orv4);
 
         // we just ensure to fetch full bucket interval (a bit too)
         var from = query.from().minus(query.interval());
@@ -89,9 +98,7 @@ public class ResponseTimeRangeQueryAdapter {
             .put("include_upper", true);
         JsonNode rangeFilter = json().set("range", json().set(TIME_FIELD, timestamp));
 
-        var v2orv4 = json().put("minimum_should_match", 1).set("should", array().add(termFilterV4).add(termFilterV2));
-        JsonNode apiIdsFilter = json().set("bool", v2orv4);
-        var bool = json().set("filter", array().add(apiIdsFilter).add(rangeFilter));
+        var bool = json().set("filter", array().add(filterQuery).add(rangeFilter));
         return json().set("bool", bool);
     }
 
@@ -131,5 +138,9 @@ public class ResponseTimeRangeQueryAdapter {
         var arrayNode = array();
         list.forEach(arrayNode::add);
         return arrayNode;
+    }
+
+    private ObjectNode entrypointFilterForQuery() {
+        return json().set("terms", json().set("entrypoint-id", toArray(FILTERED_ENTRYPOINT_TYPES)));
     }
 }
