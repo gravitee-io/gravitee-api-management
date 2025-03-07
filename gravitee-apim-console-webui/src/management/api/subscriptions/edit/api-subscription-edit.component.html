@@ -271,9 +271,9 @@
   </mat-card>
 
   @if (subscription?.plan?.mode === 'PUSH' && !!subscription?.consumerConfiguration) {
-    <api-subscription-edit-push-config
+    <subscription-edit-push-config
       [consumerConfiguration]="subscription.consumerConfiguration"
       (consumerConfigurationChange)="onConsumerConfigurationChange($event)"
-    ></api-subscription-edit-push-config>
+    ></subscription-edit-push-config>
   }
 </div>
