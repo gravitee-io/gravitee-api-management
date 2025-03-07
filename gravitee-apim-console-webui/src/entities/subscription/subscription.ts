@@ -63,6 +63,25 @@ export interface Subscription {
   client_id?: string;
   security?: string;
   origin: SubscriptionOrigin;
+  configuration?: SubscriptionConsumerConfiguration;
+}
+
+/**
+ * Consumer configuration associated to the subscription in case it is attached to a push plan.
+ */
+export interface SubscriptionConsumerConfiguration {
+  /**
+   * The id of the targeted entrypoint
+   */
+  entrypointId: string;
+  /**
+   * The channel to consume
+   */
+  channel?: string;
+  /**
+   * The configuration to use at subscription time to push to the target service.
+   */
+  entrypointConfiguration?: any;
 }
 
 export interface SubscriptionApi {
@@ -79,7 +98,7 @@ export interface SubscriptionApi {
 export interface SubscriptionPlan {
   id: string;
   name: string;
-  security: string;
+  security?: string;
 }
 
 export interface SubscriptionApplication {

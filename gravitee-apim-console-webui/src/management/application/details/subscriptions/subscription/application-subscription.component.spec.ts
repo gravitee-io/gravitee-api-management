@@ -32,6 +32,8 @@ import { GioTestingPermissionProvider } from '../../../../../shared/components/g
 import { Application } from '../../../../../entities/application/Application';
 import { fakeApplication } from '../../../../../entities/application/Application.fixture';
 import { fakeApplicationSubscriptionApiKey } from '../../../../../entities/subscription/ApplicationSubscriptionApiKey.fixture';
+import { SubscriptionEditPushConfigHarness } from '../../../../../components/subscription-edit-push-config/subscription-edit-push-config.harness';
+import { SubscriptionEditPushConfigDialogHarness } from '../../../../../components/subscription-edit-push-config-dialog/subscription-edit-push-config-dialog.harness';
 
 describe('ApplicationSubscriptionComponent', () => {
   let fixture: ComponentFixture<ApplicationSubscriptionComponent>;
@@ -59,13 +61,19 @@ describe('ApplicationSubscriptionComponent', () => {
         },
         {
           provide: GioTestingPermissionProvider,
-          useValue: ['application-subscription-c', 'application-subscription-r', 'application-subscription-d'],
+          useValue: [
+            'application-subscription-c',
+            'application-subscription-r',
+            'application-subscription-u',
+            'application-subscription-d',
+          ],
         },
       ],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
           isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
+          isTabbable: () => true,
         },
       })
       .compileComponents();
@@ -117,9 +125,70 @@ describe('ApplicationSubscriptionComponent', () => {
         key: 'key1',
         createdAt: 'Mar 21, 2024, 11:24:34 AM',
         endDate: '-',
-        actions: undefined,
+        actions: 'hasRevokeButton',
       },
     ]);
+  });
+
+  it('should update consumer subscription configuration', async () => {
+    const subscription = fakeSubscription({
+      id: subscriptionId,
+      plan: {
+        id: 'planId',
+        name: 'Push plan',
+      },
+      configuration: {
+        entrypointId: 'webhook',
+        channel: 'myChannel',
+        entrypointConfiguration: {
+          callbackUrl: 'https://webhook.site/296b8f8b-fbbe-4516-a016-c44da934b5e0',
+        },
+      },
+    });
+
+    fixture = TestBed.createComponent(ApplicationSubscriptionComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApplicationSubscriptionHarness);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+    fixture.autoDetectChanges();
+    expectApplicationSubscriptionGet(applicationId, subscription);
+    fixture.detectChanges();
+
+    const apiSubscriptionEditPushConfigCard = await rootLoader.getHarness(SubscriptionEditPushConfigHarness);
+    expect(await apiSubscriptionEditPushConfigCard.getContentText()).toContain('https://webhook.site/296b8f8b-fbbe-4516-a016-c44da934b5e0');
+    expect(await apiSubscriptionEditPushConfigCard.getContentText()).toContain('myChannel');
+
+    await apiSubscriptionEditPushConfigCard.clickEditButton();
+
+    const apiSubscriptionEditPushConfigDialog = await rootLoader.getHarness(SubscriptionEditPushConfigDialogHarness);
+
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints/webhook/subscription-schema`,
+        method: 'GET',
+      })
+      .flush({ type: 'object', properties: { callbackUrl: { type: 'string' } } });
+
+    expect(await apiSubscriptionEditPushConfigDialog.getChannelValue()).toEqual('myChannel');
+
+    await apiSubscriptionEditPushConfigDialog.setChannelInput('newChannel');
+    await apiSubscriptionEditPushConfigDialog.save();
+
+    expectApplicationSubscriptionGet(applicationId, subscription);
+
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}`,
+      method: 'PUT',
+    });
+    expect(JSON.stringify(req.request.body)).toEqual(
+      JSON.stringify({
+        ...subscription,
+        configuration: {
+          ...subscription.configuration,
+          channel: 'newChannel',
+        },
+      }),
+    );
   });
 
   it('should close subscription', async () => {

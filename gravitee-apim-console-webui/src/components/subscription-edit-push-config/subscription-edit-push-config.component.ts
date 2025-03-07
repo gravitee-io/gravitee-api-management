@@ -50,6 +50,9 @@ export class SubscriptionEditPushConfigComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private readonly permissionService = inject(GioPermissionService);
 
+  @Input({ required: true })
+  updatePermission: string;
+
   @Input()
   consumerConfiguration!: SubscriptionConsumerConfiguration;
 
@@ -59,7 +62,7 @@ export class SubscriptionEditPushConfigComponent implements OnInit {
   canEdit = false;
 
   ngOnInit() {
-    this.canEdit = this.permissionService.hasAnyMatching(['api-subscription-u']);
+    this.canEdit = this.permissionService.hasAnyMatching([this.updatePermission]);
   }
 
   get pushConfig(): PushConfigVM {
