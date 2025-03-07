@@ -62,54 +62,6 @@ commands:
           branch_pattern: master,[0-9]+\.[0-9]+\.x
           event: fail
           template: basic_fail_1
-  cmd-sync-folder-to-s3:
-    parameters:
-      folder-to-sync:
-        type: string
-        default: ""
-        description: the path of the folder to sync to S3
-    steps:
-      - keeper/env-export:
-          secret-url: keeper://Mqmplmfu17bDR5XRLmO1mQ/field/password
-          var-name: AWS_ACCESS_KEY_ID
-      - keeper/env-export:
-          secret-url: keeper://3-pU56sIqcyWWw7HxhxjaQ/field/password
-          var-name: AWS_SECRET_ACCESS_KEY
-      - aws-cli/setup:
-          region: cloudfront
-          version: 2.22.35
-      - aws-s3/sync:
-          arguments: --endpoint-url https://cellar-c2.services.clever-cloud.com --acl public-read
-          from: << parameters.folder-to-sync>>
-          to: s3://gravitee-releases-downloads/pre-releases
-    description: Sync folder content to Gravitee download website
-  cmd-webui-publish-on-download-website:
-    parameters:
-      apim-ui-project:
-        type: string
-        default: ""
-        description: the name of the UI project to build
-      apim-ui-publish-folder-path:
-        type: string
-        default: ""
-        description: the path to publication folder in download website
-    steps:
-      - run:
-          name: Prepare zip to upload
-          command: |
-            cp -r dist << parameters.apim-ui-project >>-4.2.0-alpha.1
-            zip -r << parameters.apim-ui-project >>-4.2.0-alpha.1.zip << parameters.apim-ui-project >>-4.2.0-alpha.1
-
-            mkdir -p folder_to_sync/<< parameters.apim-ui-publish-folder-path >>
-            mv << parameters.apim-ui-project >>-4.2.0-alpha.1.zip folder_to_sync/<< parameters.apim-ui-publish-folder-path >>/<< parameters.apim-ui-project >>-4.2.0-alpha.1.zip
-            cd folder_to_sync/<< parameters.apim-ui-publish-folder-path >>
-
-            md5sum << parameters.apim-ui-project >>-4.2.0-alpha.1.zip > << parameters.apim-ui-project >>-4.2.0-alpha.1.zip.md5
-            sha512sum << parameters.apim-ui-project >>-4.2.0-alpha.1.zip > << parameters.apim-ui-project >>-4.2.0-alpha.1.zip.sha512sum
-            sha1sum << parameters.apim-ui-project >>-4.2.0-alpha.1.zip > << parameters.apim-ui-project >>-4.2.0-alpha.1.zip.sha1
-          working_directory: << parameters.apim-ui-project >>
-      - cmd-sync-folder-to-s3:
-          folder-to-sync: << parameters.apim-ui-project >>/folder_to_sync
   cmd-restore-maven-job-cache:
     parameters:
       jobName:
@@ -150,6 +102,27 @@ commands:
             - ~/.m2
           when: always
     description: Save Maven cache for a dedicated job
+  cmd-sync-folder-to-s3:
+    parameters:
+      folder-to-sync:
+        type: string
+        default: ""
+        description: the path of the folder to sync to S3
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://Mqmplmfu17bDR5XRLmO1mQ/field/password
+          var-name: AWS_ACCESS_KEY_ID
+      - keeper/env-export:
+          secret-url: keeper://3-pU56sIqcyWWw7HxhxjaQ/field/password
+          var-name: AWS_SECRET_ACCESS_KEY
+      - aws-cli/setup:
+          region: cloudfront
+          version: 2.22.35
+      - aws-s3/sync:
+          arguments: --endpoint-url https://cellar-c2.services.clever-cloud.com --acl public-read
+          from: << parameters.folder-to-sync>>
+          to: s3://gravitee-releases-downloads/pre-releases
+    description: Sync folder content to Gravitee download website
 jobs:
   job-setup:
     docker:
@@ -215,9 +188,6 @@ jobs:
           environment:
             NODE_OPTIONS: --max_old_space_size=4086
           working_directory: gravitee-apim-console-webui
-      - cmd-webui-publish-on-download-website:
-          apim-ui-project: gravitee-apim-console-webui
-          apim-ui-publish-folder-path: graviteeio-apim/components/gravitee-management-webui
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
@@ -256,9 +226,6 @@ jobs:
           environment:
             NODE_OPTIONS: --max_old_space_size=4086
           working_directory: gravitee-apim-portal-webui-next
-      - cmd-webui-publish-on-download-website:
-          apim-ui-project: gravitee-apim-portal-webui
-          apim-ui-publish-folder-path: graviteeio-apim/components/gravitee-portal-webui
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
@@ -430,5 +397,5 @@ workflows:
 orbs:
   keeper: gravitee-io/keeper@0.7.0
   slack: circleci/slack@4.12.5
-  aws-s3: circleci/aws-s3@4.1.0
   aws-cli: circleci/aws-cli@5.1.2
+  aws-s3: circleci/aws-s3@4.1.0

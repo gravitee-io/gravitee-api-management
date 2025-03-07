@@ -283,7 +283,7 @@ export class PullRequestsWorkflow {
       const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig);
       dynamicConfig.addJob(webuiLintTestJob);
 
-      const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, false);
+      const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(consoleWebuiBuildJob);
 
       const storybookConsoleJob = StorybookConsoleJob.create(dynamicConfig);
@@ -350,7 +350,7 @@ export class PullRequestsWorkflow {
       const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig);
       dynamicConfig.addJob(webuiLintTestJob);
 
-      const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, false);
+      const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(portalWebuiBuildJob);
 
       const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);

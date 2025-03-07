@@ -29,9 +29,9 @@ export class BuildRpmAndDockerImagesWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
     const setupJob = SetupJob.create(dynamicConfig);
     dynamicConfig.addJob(setupJob);
-    const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, false);
+    const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(consoleWebuiBuildJob);
-    const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, false);
+    const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(portalWebuiBuildJob);
     const backendBuildJob = BackendBuildAndPublishOnDownloadWebsiteJob.create(dynamicConfig, environment, false);
     dynamicConfig.addJob(backendBuildJob);
