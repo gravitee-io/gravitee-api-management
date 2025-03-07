@@ -3863,7 +3863,7 @@ __metadata:
     eslint-plugin-prettier: "npm:5.2.3"
     github-slugger: "npm:2.0.0"
     highcharts: "npm:10.3.3"
-    highlight.js: "npm:11.5.0"
+    highlight.js: "npm:11.11.1"
     http-proxy-middleware: "npm:3.0.3"
     install: "npm:0.13.0"
     jdenticon: "npm:3.1.1"
@@ -11306,10 +11306,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"highlight.js@npm:11.5.0":
-  version: 11.5.0
-  resolution: "highlight.js@npm:11.5.0"
-  checksum: 10c0/0225f52c7e4c81cb2eed3230f8b83dd12d26887b63cf663fca32de9e3b0166ba02e2194eee66cfd4cb98675e58534647be7bfec1ab2fb56db5f9205ea8e0fa3a
+"highlight.js@npm:11.11.1":
+  version: 11.11.1
+  resolution: "highlight.js@npm:11.11.1"
+  checksum: 10c0/40f53ac19dac079891fcefd5bd8a21cf2e8931fd47da5bd1dca73b7e4375c1defed0636fc39120c639b9c44119b7d110f7f0c15aa899557a5a1c8910f3c0144c
   languageName: node
   linkType: hard
 

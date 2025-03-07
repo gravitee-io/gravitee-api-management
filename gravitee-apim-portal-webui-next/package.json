@@ -47,7 +47,7 @@
     "@emoji-mart/data": "1.2.1",
     "@types/swagger-ui": "3.52.4",
     "asciidoctor": "3.0.4",
-    "highlight.js": "11.9.0",
+    "highlight.js": "11.11.1",
     "jdenticon": "3.2.0",
     "js-yaml": "4.1.0",
     "lodash": "4.17.21",
