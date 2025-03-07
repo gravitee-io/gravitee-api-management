@@ -120,6 +120,14 @@
       ></subscription-api-keys
     >
   }
+
+  @if (!pageVM.subscription?.plan?.security && !!pageVM.subscription?.configuration) {
+    <subscription-edit-push-config
+      [updatePermission]="'application-subscription-u'"
+      [consumerConfiguration]="pageVM.subscription.configuration"
+      (consumerConfigurationChange)="onConsumerConfigurationChange($event)"
+    ></subscription-edit-push-config>
+  }
 } @else {
   <mat-card>
     <mat-card-header>
