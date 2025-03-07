@@ -17,61 +17,68 @@
 -->
 <div mat-dialog-title i18n="@@moreFiltersDialogTitle">More Filters</div>
 <mat-dialog-content>
-  <div class="content">
-    <div class="content__row">
-      <mat-form-field appearance="outline">
-        <mat-label i18n="@@moreFiltersDialogChooseStartDate">Start date</mat-label>
-        <input
-          matInput
-          [matDatepicker]="startPicker"
-          [matDatepickerFilter]="startDateFilter"
-          placeholder="MM/DD/YYYY"
-          [(ngModel)]="startDate" />
-        <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
-        <mat-datepicker #startPicker></mat-datepicker>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label i18n="@@moreFiltersDialogChooseEndDate">End date</mat-label>
-        <input matInput [matDatepicker]="endPicker" [matDatepickerFilter]="endDateFilter" placeholder="MM/DD/YYYY" [(ngModel)]="endDate" />
-        <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
-        <mat-datepicker #endPicker></mat-datepicker>
-      </mat-form-field>
+  <form [formGroup]="moreFiltersForm">
+    <div class="content">
+      <div class="content__row">
+        <mat-form-field appearance="outline">
+          <mat-label i18n="@@moreFiltersDialogChooseStartDate">Start date</mat-label>
+          <input
+            matInput
+            [matDatepicker]="startPicker"
+            [matDatepickerFilter]="startDateFilter"
+            placeholder="MM/DD/YYYY"
+            formControlName="startDate" />
+          <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+          <mat-datepicker #startPicker></mat-datepicker>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label i18n="@@moreFiltersDialogChooseEndDate">End date</mat-label>
+          <input
+            matInput
+            [matDatepicker]="endPicker"
+            [matDatepickerFilter]="endDateFilter"
+            placeholder="MM/DD/YYYY"
+            formControlName="endDate" />
+          <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+          <mat-datepicker #endPicker></mat-datepicker>
+        </mat-form-field>
+      </div>
+      <div class="content__row">
+        <mat-form-field appearance="outline">
+          <mat-label i18n="@@moreFiltersDialogRequestId">Request ID</mat-label>
+          <input matInput formControlName="requestId" aria-label="Filter by Request ID" />
+        </mat-form-field>
+      </div>
+      <div class="content__row">
+        <mat-form-field appearance="outline">
+          <mat-label i18n="@@moreFiltersDialogChooseTransactionId">Transaction ID</mat-label>
+          <input matInput formControlName="transactionId" aria-label="Filter by Transaction ID" />
+        </mat-form-field>
+      </div>
+      <div class="content__row">
+        <mat-form-field appearance="outline">
+          <mat-label i18n="@@moreFiltersDialogHttpStatus">HTTP Status</mat-label>
+          <mat-select multiple formControlName="httpStatuses" aria-label="Filter by HTTP Status">
+            @for (httpStatus of httpStatusChoices; track httpStatus) {
+              <mat-option [value]="httpStatus.value">{{ httpStatus.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div class="content__row">
+        <mat-form-field appearance="outline">
+          <mat-label i18n="@@moreFiltersDialogSearchText">Search Text in Message Bodies</mat-label>
+          <input matInput formControlName="messageText" aria-label="Filter by Message Text" />
+        </mat-form-field>
+      </div>
+      <div class="content__row">
+        <mat-form-field appearance="outline">
+          <mat-label i18n="@@moreFiltersDialogPath">Path</mat-label>
+          <input matInput formControlName="path" aria-label="Filter by Path" />
+        </mat-form-field>
+      </div>
     </div>
-    <div class="content__row">
-      <mat-form-field appearance="outline">
-        <mat-label i18n="@@moreFiltersDialogRequestId">Request ID</mat-label>
-        <input matInput [(ngModel)]="requestId" aria-label="Filter by Request ID" />
-      </mat-form-field>
-    </div>
-    <div class="content__row">
-      <mat-form-field appearance="outline">
-        <mat-label i18n="@@moreFiltersDialogChooseTransactionId">Transaction ID</mat-label>
-        <input matInput [(ngModel)]="transactionId" aria-label="Filter by Transaction ID" />
-      </mat-form-field>
-    </div>
-    <div class="content__row">
-      <mat-form-field appearance="outline">
-        <mat-label i18n="@@moreFiltersDialogHttpStatus">HTTP Status</mat-label>
-        <mat-select multiple [(ngModel)]="httpStatuses" aria-label="Filter by HTTP Status">
-          @for (httpStatus of httpStatusChoices; track httpStatus) {
-            <mat-option [value]="httpStatus.value">{{ httpStatus.label }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-    </div>
-    <div class="content__row">
-      <mat-form-field appearance="outline">
-        <mat-label i18n="@@moreFiltersDialogSearchText">Search Text in Message Bodies</mat-label>
-        <input matInput [(ngModel)]="messageText" aria-label="Filter by Message Text" />
-      </mat-form-field>
-    </div>
-    <div class="content__row">
-      <mat-form-field appearance="outline">
-        <mat-label i18n="@@moreFiltersDialogPath">Path</mat-label>
-        <input matInput [(ngModel)]="path" aria-label="Filter by Path" />
-      </mat-form-field>
-    </div>
-  </div>
+  </form>
 </mat-dialog-content>
 <mat-dialog-actions>
   <button mat-button (click)="onCancel()" i18n="@@moreFiltersDialogCancel">Cancel</button>
