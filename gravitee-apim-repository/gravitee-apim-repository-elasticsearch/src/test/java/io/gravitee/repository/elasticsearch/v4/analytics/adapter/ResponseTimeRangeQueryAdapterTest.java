@@ -36,13 +36,13 @@ import java.util.Map;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
-public class ResponseTimeRangeQueryAdapterTest {
+class ResponseTimeRangeQueryAdapterTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @SneakyThrows
     @Test
-    public void buildQuery() {
+    void buildQuery() {
         // Given
         ResponseTimeRangeQueryAdapter adapter = new ResponseTimeRangeQueryAdapter();
         var end = Instant.now();
@@ -59,7 +59,7 @@ public class ResponseTimeRangeQueryAdapterTest {
         // Then
         JsonNode jsonQuery = MAPPER.readTree(result);
         // query part
-        assertThat(jsonQuery.at("/query/bool/filter/0/bool/should/0/terms/api-id").elements())
+        assertThat(jsonQuery.at("/query/bool/filter/0/bool/should/0/bool/must/0/terms/api-id").elements())
             .toIterable()
             .extracting(JsonNode::asText)
             .contains("MyAPI");
@@ -85,7 +85,7 @@ public class ResponseTimeRangeQueryAdapterTest {
 
     @SneakyThrows
     @Test
-    public void buildQueryOldEs() {
+    void buildQueryOldEs() {
         // Given
         ResponseTimeRangeQueryAdapter adapter = new ResponseTimeRangeQueryAdapter();
         var end = Instant.now();
@@ -102,7 +102,7 @@ public class ResponseTimeRangeQueryAdapterTest {
         // Then
         JsonNode jsonQuery = MAPPER.readTree(result);
         // query part
-        assertThat(jsonQuery.at("/query/bool/filter/0/bool/should/0/terms/api-id").elements())
+        assertThat(jsonQuery.at("/query/bool/filter/0/bool/should/0/bool/must/0/terms/api-id").elements())
             .toIterable()
             .extracting(JsonNode::asText)
             .contains("MyAPI");
@@ -128,7 +128,7 @@ public class ResponseTimeRangeQueryAdapterTest {
 
     @SneakyThrows
     @Test
-    public void readResponse() {
+    void readResponse() {
         // Given
         ResponseTimeRangeQueryAdapter adapter = new ResponseTimeRangeQueryAdapter();
         SearchResponse response = new SearchResponse();
