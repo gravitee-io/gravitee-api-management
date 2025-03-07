@@ -28,8 +28,8 @@ import {
   ApiSubscriptionEditPushConfigDialogData,
   ApiSubscriptionEditPushConfigDialogResult,
 } from '../api-subscription-edit-push-config-dialog/api-subscription-edit-push-config-dialog.component';
-import { SubscriptionConsumerConfiguration } from '../../../../../entities/management-api-v2';
-import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { SubscriptionConsumerConfiguration } from '../../entities/management-api-v2';
+import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 
 type PushConfigVM = {
   channel: string;
