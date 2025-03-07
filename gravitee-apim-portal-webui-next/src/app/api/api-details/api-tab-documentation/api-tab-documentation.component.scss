@@ -30,6 +30,9 @@
 
   &__page-content {
     width: 100%;
+    max-width: calc(100% - 276px - 36px);
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 
     &__container {
       min-width: 0;
