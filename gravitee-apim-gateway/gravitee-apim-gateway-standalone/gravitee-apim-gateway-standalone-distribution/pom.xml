@@ -38,10 +38,6 @@
         <gravitee.gateway.log.dir>${gravitee.home}/logs</gravitee.gateway.log.dir>
     </properties>
 
-    <modules>
-        <module>gravitee-apim-gateway-standalone-distribution-zip</module>
-    </modules>
-
     <dependencies>
         <!-- Gravitee dependencies -->
         <dependency>

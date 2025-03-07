@@ -326,30 +326,6 @@ jobs:
                 cd $workingDir
               fi
             done
-      - run:
-          name: Prepare management-api component zip to upload
-          command: |
-            mkdir -p folder_to_sync/graviteeio-apim/components/gravitee-management-rest-api
-            cp ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target/gravitee-apim-rest-api-4.2.0.zip folder_to_sync/graviteeio-apim/components/gravitee-management-rest-api/
-
-            cd folder_to_sync/graviteeio-apim/components/gravitee-management-rest-api
-
-            md5sum gravitee-apim-rest-api-4.2.0.zip > gravitee-apim-rest-api-4.2.0.zip.md5
-            sha512sum gravitee-apim-rest-api-4.2.0.zip > gravitee-apim-rest-api-4.2.0.zip.sha512sum
-            sha1sum gravitee-apim-rest-api-4.2.0.zip > gravitee-apim-rest-api-4.2.0.zip.sha1
-      - run:
-          name: Prepare gateway component zip to upload
-          command: |
-            mkdir -p folder_to_sync/graviteeio-apim/components/gravitee-gateway
-            cp ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/gravitee-apim-gateway-standalone-distribution-zip/target/gravitee-apim-gateway-4.2.0.zip folder_to_sync/graviteeio-apim/components/gravitee-gateway/
-
-            cd folder_to_sync/graviteeio-apim/components/gravitee-gateway
-
-            md5sum gravitee-apim-gateway-4.2.0.zip > gravitee-apim-gateway-4.2.0.zip.md5
-            sha512sum gravitee-apim-gateway-4.2.0.zip > gravitee-apim-gateway-4.2.0.zip.sha512sum
-            sha1sum gravitee-apim-gateway-4.2.0.zip > gravitee-apim-gateway-4.2.0.zip.sha1
-      - cmd-sync-folder-to-s3:
-          folder-to-sync: folder_to_sync
       - persist_to_workspace:
           root: .
           paths:

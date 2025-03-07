@@ -106,21 +106,6 @@ for pathToArtefactFile in $(find . -path '*target/gravitee-apim*.zip'); do
   fi
 done`,
         }),
-        BackendBuildAndPublishOnDownloadWebsiteJob.buildSyncCommand(
-          'management-api',
-          `gravitee-apim-rest-api-${environment.graviteeioVersion}.zip`,
-          './gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target',
-          config.components.managementApi.publishFolderPath,
-        ),
-        BackendBuildAndPublishOnDownloadWebsiteJob.buildSyncCommand(
-          'gateway',
-          `gravitee-apim-gateway-${environment.graviteeioVersion}.zip`,
-          './gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/gravitee-apim-gateway-standalone-distribution-zip/target',
-          config.components.gateway.publishFolderPath,
-        ),
-        new reusable.ReusedCommand(syncFolderToS3Cmd, {
-          'folder-to-sync': 'folder_to_sync',
-        }),
       );
     }
     steps.push(
@@ -133,32 +118,5 @@ done`,
       }),
     );
     return new Job(BackendBuildAndPublishOnDownloadWebsiteJob.jobName, OpenJdkExecutor.create('large'), steps);
-  }
-
-  /**
-   * Unfortunately, because the mAPI & GW standalone zip file's names and publish folder path do not follow the same pattern, we can not use the same mechanism as for plugins.
-   * gravitee-apim-gateway-x.x.x.zip has to be published into graviteeio-apim/components/gravitee-gateway
-   * gravitee-apim-rest-api-x.x.x.zip has to be published into graviteeio-apim/components/gravitee-management-rest-api
-   *
-   * That's why we use a dedicated script
-   */
-  private static buildSyncCommand(
-    type: 'management-api' | 'gateway',
-    zipName: string,
-    pathToZipFile: string,
-    publishFolderPath: string,
-  ): Command {
-    return new commands.Run({
-      name: `Prepare ${type} component zip to upload`,
-      command: `mkdir -p folder_to_sync/${publishFolderPath}
-cp ${pathToZipFile}/${zipName} folder_to_sync/${publishFolderPath}/
-
-cd folder_to_sync/${publishFolderPath}
-
-md5sum ${zipName} > ${zipName}.md5
-sha512sum ${zipName} > ${zipName}.sha512sum
-sha1sum ${zipName} > ${zipName}.sha1
-`,
-    });
   }
 }

@@ -30,12 +30,10 @@ const components = {
   gateway: {
     project: 'gravitee-apim-gateway',
     image: 'apim-gateway',
-    publishFolderPath: 'graviteeio-apim/components/gravitee-gateway',
   },
   managementApi: {
     project: 'gravitee-apim-rest-api',
     image: 'apim-management-api',
-    publishFolderPath: 'graviteeio-apim/components/gravitee-management-rest-api',
   },
   console: {
     project: 'gravitee-apim-console-webui',
