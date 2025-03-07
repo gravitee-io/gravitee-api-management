@@ -29,18 +29,19 @@ import {
 } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { combineLatest, BehaviorSubject, switchMap, Observable } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { combineLatest, BehaviorSubject, switchMap, Observable, EMPTY } from 'rxjs';
+import { catchError, filter, map, tap } from 'rxjs/operators';
 import { MatTooltip } from '@angular/material/tooltip';
 
 import { ApplicationService } from '../../../../../services-ngx/application.service';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
 import { PlanSecurityType } from '../../../../../entities/plan';
 import { ApiKeyMode, Application } from '../../../../../entities/application/Application';
-import { Subscription } from '../../../../../entities/subscription/subscription';
+import { Subscription, SubscriptionConsumerConfiguration } from '../../../../../entities/subscription/subscription';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApplicationSubscriptionService } from '../../../../../services-ngx/application-subscription.service';
 import { SubscriptionApiKeysComponent } from '../components/subscription-api-keys/subscription-api-keys.component';
+import { SubscriptionEditPushConfigComponent } from '../../../../../components/subscription-edit-push-config/subscription-edit-push-config.component';
 
 type PageVM = {
   application: Application;
@@ -63,6 +64,7 @@ type PageVM = {
     GioConfirmDialogModule,
     SubscriptionApiKeysComponent,
     MatTooltip,
+    SubscriptionEditPushConfigComponent,
   ],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -127,5 +129,35 @@ export class ApplicationSubscriptionComponent {
           this.snackBarService.error('An error occurred while closing the subscription!');
         },
       });
+  }
+
+  onConsumerConfigurationChange(consumerConfigurationToUpdate: Partial<SubscriptionConsumerConfiguration>) {
+    this.applicationSubscriptionService
+      .getSubscription(this.activatedRoute.snapshot.params.applicationId, this.activatedRoute.snapshot.params.subscriptionId)
+      .pipe(
+        switchMap((subscription) =>
+          this.applicationSubscriptionService.update(
+            this.activatedRoute.snapshot.params.applicationId,
+            this.activatedRoute.snapshot.params.subscriptionId,
+            {
+              ...subscription,
+              configuration: {
+                ...subscription.configuration,
+                ...consumerConfigurationToUpdate,
+              },
+            },
+          ),
+        ),
+        tap(() => {
+          this.snackBarService.success('Consumer configuration updated.');
+          this.subscriptionChanges$.next();
+        }),
+        catchError((err) => {
+          this.snackBarService.error(err.error?.message || 'An error occurred while updating consumer configuration.');
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 }
