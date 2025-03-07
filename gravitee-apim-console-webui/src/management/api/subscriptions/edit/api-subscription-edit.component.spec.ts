@@ -31,8 +31,8 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiSubscriptionEditComponent } from './api-subscription-edit.component';
 import { ApiSubscriptionEditHarness } from './api-subscription-edit.harness';
 
-import { ApiSubscriptionEditPushConfigHarness } from '../../../../components/api-subscription-edit-push-config/api-subscription-edit-push-config.harness';
-import { ApiSubscriptionEditPushConfigDialogHarness } from '../../../../components/api-subscription-edit-push-config-dialog/api-subscription-edit-push-config-dialog.harness';
+import { SubscriptionEditPushConfigHarness } from '../../../../components/subscription-edit-push-config/subscription-edit-push-config.harness';
+import { SubscriptionEditPushConfigDialogHarness } from '../../../../components/subscription-edit-push-config-dialog/subscription-edit-push-config-dialog.harness';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiSubscriptionsModule } from '../api-subscriptions.module';
 import {
@@ -1239,7 +1239,7 @@ describe('ApiSubscriptionEditComponent', () => {
       });
       expectApiKeyListGet();
 
-      const apiSubscriptionEditPushConfigCard = await loader.getHarness(ApiSubscriptionEditPushConfigHarness);
+      const apiSubscriptionEditPushConfigCard = await loader.getHarness(SubscriptionEditPushConfigHarness);
       expect(await apiSubscriptionEditPushConfigCard.getContentText()).toContain(
         'https://webhook.site/296b8f8b-fbbe-4516-a016-c44da934b5e0',
       );
@@ -1247,7 +1247,7 @@ describe('ApiSubscriptionEditComponent', () => {
 
       await apiSubscriptionEditPushConfigCard.clickEditButton();
 
-      const apiSubscriptionEditPushConfigDialog = await rootLoader.getHarness(ApiSubscriptionEditPushConfigDialogHarness);
+      const apiSubscriptionEditPushConfigDialog = await rootLoader.getHarness(SubscriptionEditPushConfigDialogHarness);
 
       httpTestingController
         .expectOne({
