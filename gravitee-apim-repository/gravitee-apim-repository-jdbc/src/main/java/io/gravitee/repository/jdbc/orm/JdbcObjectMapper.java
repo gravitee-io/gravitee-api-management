@@ -309,6 +309,13 @@ public class JdbcObjectMapper<T> {
         } else if (column.javaType == InputStream.class) {
             byte[] data = (byte[]) value;
             return new ByteArrayInputStream(data);
+        } else if (column.javaType == boolean.class) {
+            return switch (value) {
+                case String sValue -> Boolean.parseBoolean(sValue);
+                case Integer iValue -> iValue.equals(1);
+                case Boolean bValue -> bValue;
+                default -> false;
+            };
         }
         return value;
     }
