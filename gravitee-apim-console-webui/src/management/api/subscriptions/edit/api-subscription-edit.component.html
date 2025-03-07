@@ -272,6 +272,7 @@
 
   @if (subscription?.plan?.mode === 'PUSH' && !!subscription?.consumerConfiguration) {
     <subscription-edit-push-config
+      [updatePermission]="'api-subscription-u'"
       [consumerConfiguration]="subscription.consumerConfiguration"
       (consumerConfigurationChange)="onConsumerConfigurationChange($event)"
     ></subscription-edit-push-config>
