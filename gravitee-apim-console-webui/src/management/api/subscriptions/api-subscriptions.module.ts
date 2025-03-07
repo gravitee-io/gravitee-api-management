@@ -54,8 +54,8 @@ import { ApiKeyValidationComponent } from './components/api-key-validation/api-k
 import { ApiPortalSubscriptionRejectDialogComponent } from './components/dialogs/reject/api-portal-subscription-reject-dialog.component';
 import { ApiPortalSubscriptionRenewDialogComponent } from './components/dialogs/renew/api-portal-subscription-renew-dialog.component';
 import { ApiPortalSubscriptionExpireApiKeyDialogComponent } from './components/dialogs/expire-api-key/api-portal-subscription-expire-api-key-dialog.component';
-import { ApiSubscriptionEditPushConfigComponent } from './edit/api-subscription-edit-push-config/api-subscription-edit-push-config.component';
 
+import { ApiSubscriptionEditPushConfigComponent } from '../../../components/api-subscription-edit-push-config/api-subscription-edit-push-config.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 

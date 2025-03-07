@@ -19,7 +19,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ApiSubscriptionEditPushConfigComponent } from './api-subscription-edit-push-config.component';
 import { ApiSubscriptionEditPushConfigHarness } from './api-subscription-edit-push-config.harness';
 
-import { GioTestingModule } from '../../../../../shared/testing';
+import { GioTestingModule } from '../../shared/testing';
 
 describe('ApiSubscriptionEditPushConfigComponent', () => {
   let component: ApiSubscriptionEditPushConfigComponent;
