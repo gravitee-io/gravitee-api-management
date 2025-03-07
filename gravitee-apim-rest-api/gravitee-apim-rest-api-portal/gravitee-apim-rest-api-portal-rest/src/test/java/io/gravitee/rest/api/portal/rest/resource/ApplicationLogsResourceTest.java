@@ -322,6 +322,42 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void should_not_allow_page_less_than_1() {
+        var body = SearchApplicationLogsParam.builder().to(100).from(0).build();
+        final Response response = target(APPLICATION_ID)
+            .path("logs/_search")
+            .queryParam("page", 0)
+            .queryParam("size", 10)
+            .request()
+            .post(Entity.json(body));
+
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        var logsResponse = response.readEntity(ErrorResponse.class);
+        assertNotNull(logsResponse.getErrors());
+        assertEquals(1, logsResponse.getErrors().size());
+        assertNotNull(logsResponse.getErrors().getFirst().getMessage());
+        assertTrue(logsResponse.getErrors().getFirst().getMessage().contains("must be greater than or equal to 1"));
+    }
+
+    @Test
+    public void should_not_allow_size_less_than_negative_1() {
+        var body = SearchApplicationLogsParam.builder().to(100).from(0).build();
+        final Response response = target(APPLICATION_ID)
+            .path("logs/_search")
+            .queryParam("page", 1)
+            .queryParam("size", -2)
+            .request()
+            .post(Entity.json(body));
+
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        var logsResponse = response.readEntity(ErrorResponse.class);
+        assertNotNull(logsResponse.getErrors());
+        assertEquals(1, logsResponse.getErrors().size());
+        assertNotNull(logsResponse.getErrors().getFirst().getMessage());
+        assertTrue(logsResponse.getErrors().getFirst().getMessage().contains("must be greater than or equal to -1"));
+    }
+
+    @Test
     public void should_return_empty_list_of_logs_in_search() {
         var body = SearchApplicationLogsParam.builder().to(100).from(0).build();
         final Response response = target(APPLICATION_ID)
