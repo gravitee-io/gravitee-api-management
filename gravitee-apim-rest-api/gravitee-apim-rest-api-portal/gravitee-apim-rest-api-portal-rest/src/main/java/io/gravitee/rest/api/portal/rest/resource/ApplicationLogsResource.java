@@ -79,7 +79,7 @@ public class ApplicationLogsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
     public Response applicationLogs_deprecated(
         @PathParam("applicationId") String applicationId,
-        @BeanParam PaginationParam paginationParam,
+        @Valid @BeanParam PaginationParam paginationParam,
         @BeanParam LogsParam logsParam
     ) {
         //Does application exists ?
@@ -107,7 +107,7 @@ public class ApplicationLogsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
     public Response searchApplicationLogs(
         @PathParam("applicationId") String applicationId,
-        @BeanParam PaginationParam paginationParam,
+        @Valid @BeanParam PaginationParam paginationParam,
         final @Valid @NotNull SearchApplicationLogsParam searchLogsParam
     ) {
         searchLogsParam.validate();

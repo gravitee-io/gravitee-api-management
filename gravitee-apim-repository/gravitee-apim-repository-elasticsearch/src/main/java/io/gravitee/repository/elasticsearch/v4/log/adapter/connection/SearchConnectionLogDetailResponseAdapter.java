@@ -22,8 +22,11 @@ import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asTextOrN
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.elasticsearch.model.SearchHit;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.elasticsearch.utils.JsonNodeUtils;
+import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -34,27 +37,51 @@ public class SearchConnectionLogDetailResponseAdapter {
 
     private SearchConnectionLogDetailResponseAdapter() {}
 
-    public static Optional<ConnectionLogDetail> adapt(SearchResponse response) {
+    public static Optional<ConnectionLogDetail> adaptFirst(SearchResponse response) {
         var hits = response.getSearchHits();
         if (hits == null) {
             return Optional.empty();
         }
 
-        return hits.getHits().stream().findFirst().map(SearchHit::getSource).map(SearchConnectionLogDetailResponseAdapter::buildFromSource);
+        return hits.getHits().stream().findFirst().map(h -> buildFromSource(h.getIndex(), h.getId(), h.getSource()));
     }
 
-    private static ConnectionLogDetail buildFromSource(JsonNode json) {
-        return ConnectionLogDetail
-            .builder()
-            .requestId(json.get("request-id").asText())
-            .timestamp(asTextOrNull(json.get("@timestamp")))
-            .apiId(asTextOrNull(json.get("api-id")))
-            .clientIdentifier(asTextOrNull(json.get("client-identifier")))
-            .requestEnded(asBooleanOrFalse(json.get("request-ended")))
-            .entrypointRequest(buildRequest(json.get("entrypoint-request")))
-            .endpointRequest(buildRequest(json.get("endpoint-request")))
-            .entrypointResponse(buildResponse(json.get("entrypoint-response")))
-            .endpointResponse(buildResponse(json.get("endpoint-response")))
+    public static LogResponse<ConnectionLogDetail> adapt(SearchResponse response) {
+        var hits = response.getSearchHits();
+        if (hits == null) {
+            return new LogResponse<>(0, Collections.emptyList());
+        }
+
+        return new LogResponse<>(
+            (int) hits.getTotal().getValue(),
+            hits.getHits().stream().map(h -> buildFromSource(h.getIndex(), h.getId(), h.getSource())).toList()
+        );
+    }
+
+    private static ConnectionLogDetail buildFromSource(String index, String id, JsonNode json) {
+        var connectionLogDetail = ConnectionLogDetail.builder().timestamp(asTextOrNull(json.get("@timestamp")));
+
+        if (index.contains(Type.V4_LOG.getType())) {
+            return connectionLogDetail
+                .requestId(json.get("request-id").asText())
+                .apiId(asTextOrNull(json.get("api-id")))
+                .clientIdentifier(asTextOrNull(json.get("client-identifier")))
+                .requestEnded(asBooleanOrFalse(json.get("request-ended")))
+                .entrypointRequest(buildRequest(json.get("entrypoint-request")))
+                .endpointRequest(buildRequest(json.get("endpoint-request")))
+                .entrypointResponse(buildResponse(json.get("entrypoint-response")))
+                .endpointResponse(buildResponse(json.get("endpoint-response")))
+                .build();
+        }
+        return connectionLogDetail
+            .requestId(id)
+            .apiId(asTextOrNull(json.get("api")))
+            .clientIdentifier(null)
+            .requestEnded(true)
+            .entrypointRequest(buildRequest(json.get("client-request")))
+            .endpointRequest(buildRequest(json.get("proxy-request")))
+            .entrypointResponse(buildResponse(json.get("client-response")))
+            .endpointResponse(buildResponse(json.get("proxy-response")))
             .build();
     }
 

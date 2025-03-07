@@ -47,6 +47,12 @@ public class NoOpLogRepository implements LogRepository {
     }
 
     @Override
+    public LogResponse<ConnectionLogDetail> searchConnectionLogDetails(QueryContext queryContext, ConnectionLogDetailQuery query)
+        throws AnalyticsException {
+        return null;
+    }
+
+    @Override
     public LogResponse<AggregatedMessageLog> searchAggregatedMessageLog(QueryContext queryContext, MessageLogQuery query) {
         return null;
     }

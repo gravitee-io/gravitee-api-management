@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
+import fixtures.repository.ConnectionLogDetailFixtures;
 import fixtures.repository.ConnectionLogFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
@@ -37,6 +38,7 @@ import io.gravitee.rest.api.model.analytics.query.LogQuery;
 import io.gravitee.rest.api.model.log.ApplicationRequest;
 import io.gravitee.rest.api.model.log.ApplicationRequestItem;
 import io.gravitee.rest.api.model.log.SearchLogResponse;
+import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.model.Log;
@@ -105,6 +107,7 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
     private static final Long SECOND_FEBRUARY_2020 = Instant.parse("2020-02-02T23:59:59.00Z").toEpochMilli();
 
     ConnectionLogFixtures connectionLogFixtures = new ConnectionLogFixtures(API_1_ID, APPLICATION_ID, PLAN_1_ID);
+    ConnectionLogDetailFixtures connectionLogDetailFixtures = new ConnectionLogDetailFixtures(API_1_ID, LOG);
 
     private Map<String, Map<String, String>> metadata;
     private SearchLogResponse<ApplicationRequestItem> searchResponse;
@@ -319,6 +322,42 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void should_not_allow_page_less_than_1() {
+        var body = SearchApplicationLogsParam.builder().to(100).from(0).build();
+        final Response response = target(APPLICATION_ID)
+            .path("logs/_search")
+            .queryParam("page", 0)
+            .queryParam("size", 10)
+            .request()
+            .post(Entity.json(body));
+
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        var logsResponse = response.readEntity(ErrorResponse.class);
+        assertNotNull(logsResponse.getErrors());
+        assertEquals(1, logsResponse.getErrors().size());
+        assertNotNull(logsResponse.getErrors().getFirst().getMessage());
+        assertTrue(logsResponse.getErrors().getFirst().getMessage().contains("must be greater than or equal to 1"));
+    }
+
+    @Test
+    public void should_not_allow_size_less_than_negative_1() {
+        var body = SearchApplicationLogsParam.builder().to(100).from(0).build();
+        final Response response = target(APPLICATION_ID)
+            .path("logs/_search")
+            .queryParam("page", 1)
+            .queryParam("size", -2)
+            .request()
+            .post(Entity.json(body));
+
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        var logsResponse = response.readEntity(ErrorResponse.class);
+        assertNotNull(logsResponse.getErrors());
+        assertEquals(1, logsResponse.getErrors().size());
+        assertNotNull(logsResponse.getErrors().getFirst().getMessage());
+        assertTrue(logsResponse.getErrors().getFirst().getMessage().contains("must be greater than or equal to -1"));
+    }
+
+    @Test
     public void should_return_empty_list_of_logs_in_search() {
         var body = SearchApplicationLogsParam.builder().to(100).from(0).build();
         final Response response = target(APPLICATION_ID)
@@ -513,6 +552,75 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
                 Map.of("name", API_1.getName(), "version", API_1.getVersion()),
                 PLAN_1_ID,
                 Map.of("name", PLAN_1.getName())
+            ),
+            logsResponse.getMetadata()
+        );
+    }
+
+    @Test
+    public void should_return_filtered_list_of_logs_with_body_text_in_search() {
+        // Given
+        connectionLogsCrudServiceInMemory.initWithConnectionLogDetails(
+            List.of(
+                connectionLogDetailFixtures
+                    .aConnectionLogDetail("req1")
+                    .toBuilder()
+                    .entrypointResponse(ConnectionLogDetail.Response.builder().body("my-curl").build())
+                    .build(),
+                connectionLogDetailFixtures
+                    .aConnectionLogDetail("req2")
+                    .toBuilder()
+                    .apiId(API_2_ID)
+                    .entrypointResponse(ConnectionLogDetail.Response.builder().body("my-curl").build())
+                    .build(),
+                connectionLogDetailFixtures
+                    .aConnectionLogDetail("req3")
+                    .toBuilder()
+                    .entrypointResponse(ConnectionLogDetail.Response.builder().body("not-found").build())
+                    .build()
+            )
+        );
+
+        connectionLogsCrudServiceInMemory.initWithConnectionLogs(
+            List.of(
+                connectionLogFixtures.aConnectionLog("req1"),
+                connectionLogFixtures.aConnectionLog("req2").toBuilder().apiId(API_2_ID).build(),
+                connectionLogFixtures.aConnectionLog("req3").toBuilder().method(HttpMethod.DELETE).build()
+            )
+        );
+
+        // When
+        var body = SearchApplicationLogsParam
+            .builder()
+            .to(SECOND_FEBRUARY_2020)
+            .from(FIRST_FEBRUARY_2020)
+            .apiIds(Set.of(API_1_ID, API_2_ID))
+            .methods(Set.of(io.gravitee.rest.api.portal.rest.model.HttpMethod.DELETE))
+            .bodyText("curl")
+            .build();
+
+        final Response response = target(APPLICATION_ID)
+            .path("logs/_search")
+            .queryParam("page", 1)
+            .queryParam("size", 10)
+            .request()
+            .post(Entity.json(body));
+
+        // Then
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        var logsResponse = response.readEntity(LogsResponse.class);
+        assertNotNull(logsResponse.getData());
+        assertEquals(2, logsResponse.getData().size());
+        assertEquals(
+            Map.of(
+                "data",
+                Map.of("total", 2),
+                API_1_ID,
+                Map.of("name", API_1.getName(), "version", API_1.getVersion()),
+                PLAN_1_ID,
+                Map.of("name", PLAN_1.getName()),
+                API_2_ID,
+                Map.of("name", API_2.getName(), "version", API_2.getVersion())
             ),
             logsResponse.getMetadata()
         );
