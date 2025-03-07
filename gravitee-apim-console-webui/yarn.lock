@@ -8056,15 +8056,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"angular-schema-form@npm:0.8.13":
-  version: 0.8.13
-  resolution: "angular-schema-form@npm:0.8.13"
+"angular-schema-form@npm:0.8.14":
+  version: 0.8.14
+  resolution: "angular-schema-form@npm:0.8.14"
   dependencies:
     angular: "npm:>= 1.2"
     angular-sanitize: "npm:>= 1.2"
     objectpath: "npm:^1.2.1"
     tv4: "npm:~1.0.15"
-  checksum: 10c0/1a55e9a651da37602eaa55b19e88f0a7d1ab20b46d69f6a8178c4e296e4e9a2e7e99ad3b3b8f63058fc9df12d36afcb8d80fee779727d2c9597e0150596c30d1
+  checksum: 10c0/7575a51a1013fcfd66b89d3b55ecb9354ed7d2a9c14d115901998e056b6159dc138b0ad7bdf182455820f599fd53709332334e3438f9d70fe7da7dd4e1e2ae39
   languageName: node
   linkType: hard
 
@@ -12783,7 +12783,7 @@ __metadata:
     angular-moment-picker: "npm:0.10.2"
     angular-permission: "npm:6.0.0"
     angular-sanitize: "npm:1.8.3"
-    angular-schema-form: "npm:0.8.13"
+    angular-schema-form: "npm:0.8.14"
     angular-scroll: "npm:1.0.2"
     angular-timeline: "npm:1.7.0"
     angular-ui-tree: "npm:2.22.6"
