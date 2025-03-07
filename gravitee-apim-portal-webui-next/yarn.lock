@@ -11729,7 +11729,7 @@ __metadata:
     eslint-plugin-prettier: "npm:5.2.3"
     eslint-plugin-storybook: "npm:0.11.4"
     highlight.js: "npm:11.11.1"
-    jdenticon: "npm:3.2.0"
+    jdenticon: "npm:3.3.0"
     jest: "npm:29.7.0"
     jest-junit: "npm:16.0.0"
     jest-preset-angular: "npm:14.5.3"
@@ -12996,14 +12996,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jdenticon@npm:3.2.0":
-  version: 3.2.0
-  resolution: "jdenticon@npm:3.2.0"
+"jdenticon@npm:3.3.0":
+  version: 3.3.0
+  resolution: "jdenticon@npm:3.3.0"
   dependencies:
     canvas-renderer: "npm:~2.2.0"
   bin:
     jdenticon: bin/jdenticon.js
-  checksum: 10c0/441e1ecf4efae01b006825a5b4630958a445d0841e9f84c10957ca3185070c8a8373135ccd2c782935719849ec2865e301d1abde22ab0723150efc8204d239f4
+  checksum: 10c0/be2642fe3a9a9013d56ced80ec76a2ae6990363d7c2d92470125fc3d646fe711ba8a8695e49cd5bd696b84574fab4e93f3694414fdb95e150c5ce340c385d9e1
   languageName: node
   linkType: hard
 

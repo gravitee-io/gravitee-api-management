@@ -3866,7 +3866,7 @@ __metadata:
     highlight.js: "npm:11.11.1"
     http-proxy-middleware: "npm:3.0.3"
     install: "npm:0.13.0"
-    jdenticon: "npm:3.1.1"
+    jdenticon: "npm:3.3.0"
     jest: "npm:29.7.0"
     jest-junit: "npm:16.0.0"
     js-yaml: "npm:4.1.0"
@@ -12336,14 +12336,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jdenticon@npm:3.1.1":
-  version: 3.1.1
-  resolution: "jdenticon@npm:3.1.1"
+"jdenticon@npm:3.3.0":
+  version: 3.3.0
+  resolution: "jdenticon@npm:3.3.0"
   dependencies:
     canvas-renderer: "npm:~2.2.0"
   bin:
     jdenticon: bin/jdenticon.js
-  checksum: 10c0/4e1c82791e471e91246e5df49a3c844d4f9baf224cc5bbcad6b68a4540b6e11b1a19f8f85d2ef4c1cd5b42639cfb681fd34f32d3987fb00f37e0e850eaed715e
+  checksum: 10c0/be2642fe3a9a9013d56ced80ec76a2ae6990363d7c2d92470125fc3d646fe711ba8a8695e49cd5bd696b84574fab4e93f3694414fdb95e150c5ce340c385d9e1
   languageName: node
   linkType: hard
 
