@@ -30,9 +30,9 @@ import { ActivatedRoute } from '@angular/router';
 
 import { ApiSubscriptionEditComponent } from './api-subscription-edit.component';
 import { ApiSubscriptionEditHarness } from './api-subscription-edit.harness';
-import { ApiSubscriptionEditPushConfigHarness } from './api-subscription-edit-push-config/api-subscription-edit-push-config.harness';
-import { ApiSubscriptionEditPushConfigDialogHarness } from './api-subscription-edit-push-config-dialog/api-subscription-edit-push-config-dialog.harness';
 
+import { ApiSubscriptionEditPushConfigHarness } from '../../../../components/api-subscription-edit-push-config/api-subscription-edit-push-config.harness';
+import { ApiSubscriptionEditPushConfigDialogHarness } from '../../../../components/api-subscription-edit-push-config-dialog/api-subscription-edit-push-config-dialog.harness';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiSubscriptionsModule } from '../api-subscriptions.module';
 import {

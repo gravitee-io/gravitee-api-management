@@ -23,8 +23,8 @@ import { MatInput } from '@angular/material/input';
 import { AsyncPipe, NgIf } from '@angular/common';
 import { Observable } from 'rxjs';
 
-import { SubscriptionConsumerConfiguration } from '../../../../../entities/management-api-v2';
-import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
+import { SubscriptionConsumerConfiguration } from '../../entities/management-api-v2';
+import { ConnectorPluginsV2Service } from '../../services-ngx/connector-plugins-v2.service';
 
 export interface ApiSubscriptionEditPushConfigDialogData {
   consumerConfiguration: SubscriptionConsumerConfiguration;
