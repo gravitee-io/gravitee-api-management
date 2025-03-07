@@ -86,6 +86,7 @@ export interface LogMetadata {
 export interface LogMetadataApi {
   name: string;
   version: string;
+  apiType?: string;
 }
 export interface LogMetadataPlan {
   name: string;

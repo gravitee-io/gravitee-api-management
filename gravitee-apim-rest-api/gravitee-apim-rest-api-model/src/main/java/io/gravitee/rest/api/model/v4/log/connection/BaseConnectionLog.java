@@ -41,4 +41,6 @@ public class BaseConnectionLog {
     private String gateway;
     private String uri;
     private long gatewayResponseTime;
+    private Long requestContentLength;
+    private Long responseContentLength;
 }

@@ -26,9 +26,13 @@ import { CopyCodeComponent } from '../../../../../components/copy-code/copy-code
 import { LoaderComponent } from '../../../../../components/loader/loader.component';
 import { Log, LogMetadataApi, LogMetadataPlan } from '../../../../../entities/log/log';
 import { ApplicationLogService } from '../../../../../services/application-log.service';
+import {
+  ApplicationLogRequestResponseComponent
+} from "../application-log-request-response/application-log-request-response.component";
 
 interface LogVM extends Log {
   apiName: string;
+  apiType: string | undefined;
   planName: string;
   requestHeaders: { key: string; value: string }[];
   responseHeaders: { key: string; value: string }[];
@@ -37,7 +41,7 @@ interface LogVM extends Log {
 @Component({
   selector: 'app-application-log',
   standalone: true,
-  imports: [AsyncPipe, LoaderComponent, MatExpansionModule, MatCard, MatCardContent, MatIcon, RouterLink, DatePipe, CopyCodeComponent],
+  imports: [AsyncPipe, LoaderComponent, MatExpansionModule, MatCard, MatCardContent, MatIcon, RouterLink, DatePipe, CopyCodeComponent, ApplicationLogRequestResponseComponent],
   templateUrl: './application-log.component.html',
   styleUrl: './application-log.component.scss',
 })
@@ -68,6 +72,7 @@ export class ApplicationLogComponent implements OnInit {
         const apiName = log.metadata?.[log.api]
           ? `${(log.metadata[log.api] as LogMetadataApi).name} (${(log.metadata[log.api] as LogMetadataApi).version})`
           : '';
+        const apiType = (log.metadata?.[log.api] as LogMetadataApi)?.apiType;
         const planName = log.metadata?.[log.plan] ? (log.metadata[log.plan] as LogMetadataPlan).name : '';
         const requestHeaders = log.request?.headers
           ? Object.entries(log.request.headers).map(keyValueArray => ({ key: keyValueArray[0], value: keyValueArray[1] }))
@@ -75,10 +80,9 @@ export class ApplicationLogComponent implements OnInit {
         const responseHeaders = log.response?.headers
           ? Object.entries(log.response.headers).map(keyValueArray => ({ key: keyValueArray[0], value: keyValueArray[1] }))
           : [];
-        return { ...log, apiName, planName, requestHeaders, responseHeaders };
+        return { ...log, apiName, apiType, planName, requestHeaders, responseHeaders };
       }),
-      catchError(err => {
-        console.error(err);
+      catchError(_ => {
         this.error = true;
         return EMPTY;
       }),

@@ -25,6 +25,7 @@ public enum LogMetadata {
     METADATA_DELETED("deleted"),
     METADATA_UNKNOWN("unknown"),
     METADATA_VERSION("version"),
+    METADATA_API_TYPE("apiType"),
     METADATA_UNKNOWN_API_NAME("Unknown API (not found)"),
     METADATA_UNKNOWN_APPLICATION_NAME("Unknown application (keyless)"),
     METADATA_UNKNOWN_PLAN_NAME("Unknown plan"),
