@@ -41,10 +41,6 @@
         <gravitee.management.log.dir>${gravitee.home}/logs</gravitee.management.log.dir>
     </properties>
 
-    <modules>
-        <module>gravitee-apim-rest-api-standalone-distribution-zip</module>
-    </modules>
-
     <dependencies>
         <!-- Gravitee dependencies -->
         <dependency>
