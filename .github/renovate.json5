@@ -1,5 +1,11 @@
 {
     "extends": ["github>gravitee-io/renovate-config","config:js-app"],
+    "circleci": {
+      "fileMatch": [
+        "(^|/).circleci/src/config.ts$",
+        "(^|/).circleci/config.yml$"
+      ]
+    },
     "packageRules": [
         {
             // Group all angular related packages updates together
