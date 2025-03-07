@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactive.policy;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -127,7 +128,7 @@ class HttpPolicyFactoryTest {
     }
 
     @Test
-    void shouldCreateOnceReactivePolicy() {
+    void shouldCreateEverytimeReactivePolicy() {
         PolicyManifest policyManifest = policyManifestBuilder
             .setPolicy(DummyReactivePolicyWithConfig.class)
             .setConfiguration(DummyPolicyConfiguration.class)
@@ -138,7 +139,8 @@ class HttpPolicyFactoryTest {
         HttpPolicy policy2 = cut.create(ExecutionPhase.REQUEST, policyManifest, policyConfiguration, policyMetadata);
         assertInstanceOf(DummyReactivePolicyWithConfig.class, policy);
 
-        assertSame(policy, policy2);
+        // V4 HttpPolicyFactory is a global factory, there is no more cache at this level and is replaced by a cache at HttpPolicyChainFactory level.
+        assertNotSame(policy, policy2);
     }
 
     @ParameterizedTest
@@ -185,7 +187,7 @@ class HttpPolicyFactoryTest {
     }
 
     @Test
-    void shouldCreateOncePolicyAdapter() {
+    void shouldCreateEverytimePolicyAdapter() {
         PolicyManifest policyManifest = policyManifestBuilder
             .setPolicy(DummyPolicyWithConfig.class)
             .setConfiguration(DummyPolicyConfiguration.class)
@@ -197,7 +199,7 @@ class HttpPolicyFactoryTest {
         HttpPolicy policy2 = cut.create(ExecutionPhase.REQUEST, policyManifest, policyConfiguration, policyMetadata);
         assertInstanceOf(PolicyAdapter.class, policy);
 
-        assertSame(policy, policy2);
+        assertNotSame(policy, policy2);
     }
 
     @ParameterizedTest
