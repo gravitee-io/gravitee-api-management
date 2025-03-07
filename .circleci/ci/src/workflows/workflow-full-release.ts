@@ -204,6 +204,7 @@ export class FullReleaseWorkflow {
         name: 'Announce release is completed',
         message: `🎆 APIM - ${environment.graviteeioVersion} released!`,
         requires: [
+          'Nexus staging',
           'Release Helm Chart',
           `Build and push RPM packages for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
         ],

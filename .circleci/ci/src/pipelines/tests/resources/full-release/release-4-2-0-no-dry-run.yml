@@ -819,6 +819,7 @@ workflows:
           name: Announce release is completed
           message: 🎆 APIM - 4.2.0 released!
           requires:
+            - Nexus staging
             - Release Helm Chart
             - Build and push RPM packages for APIM 4.2.0
 orbs:
