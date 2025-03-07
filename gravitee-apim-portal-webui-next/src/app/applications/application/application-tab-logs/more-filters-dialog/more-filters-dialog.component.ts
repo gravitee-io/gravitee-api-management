@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, inject, Inject } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DATE_FORMATS, MAT_NATIVE_DATE_FORMATS, MatOption, provideNativeDateAdapter } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -56,13 +56,15 @@ export interface MoreFiltersDialogData {
   templateUrl: './more-filters-dialog.component.html',
 })
 export class MoreFiltersDialogComponent {
-  startDate: Date | undefined;
-  endDate: Date | undefined;
-  requestId: string | undefined;
-  transactionId: string | undefined;
-  httpStatuses: string[] | undefined;
-  messageText: string | undefined;
-  path: string | undefined;
+  moreFiltersForm: FormGroup<{
+    startDate: FormControl<Date | null>;
+    endDate: FormControl<Date | null>;
+    requestId: FormControl<string | null>;
+    transactionId: FormControl<string | null>;
+    httpStatuses: FormControl<string[] | null>;
+    messageText: FormControl<string | null>;
+    path: FormControl<string | null>;
+  }>;
 
   httpStatusChoices = inject(ApplicationTabLogsService).httpStatuses;
 
@@ -74,13 +76,15 @@ export class MoreFiltersDialogComponent {
   ) {
     this.initialData = dialogData;
 
-    this.startDate = dialogData.startDate ? new Date(dialogData.startDate) : undefined;
-    this.endDate = dialogData.endDate ? new Date(dialogData.endDate) : undefined;
-    this.requestId = dialogData.requestId ?? '';
-    this.transactionId = dialogData.transactionId ?? '';
-    this.httpStatuses = dialogData.httpStatuses?.map(hs => hs.value) ?? [];
-    this.messageText = dialogData.messageText ?? '';
-    this.path = dialogData.path ?? '';
+    this.moreFiltersForm = new FormGroup({
+      startDate: new FormControl<Date | null>(dialogData.startDate ? new Date(dialogData.startDate) : null),
+      endDate: new FormControl<Date | null>(dialogData.endDate ? new Date(dialogData.endDate) : null),
+      requestId: new FormControl<string>(dialogData.requestId ?? ''),
+      transactionId: new FormControl<string>(dialogData.transactionId ?? ''),
+      httpStatuses: new FormControl<string[]>(dialogData.httpStatuses?.map(hs => hs.value) ?? []),
+      messageText: new FormControl<string>(dialogData.messageText ?? ''),
+      path: new FormControl<string>(dialogData.path ?? ''),
+    });
   }
 
   onCancel() {
@@ -88,16 +92,17 @@ export class MoreFiltersDialogComponent {
   }
 
   onApply() {
-    const httpStatuses = this.httpStatusChoices.filter(x => this.httpStatuses?.includes(x.value));
+    const formValue = this.moreFiltersForm.getRawValue();
+    const httpStatuses = this.httpStatusChoices.filter(x => formValue.httpStatuses?.includes(x.value));
 
     this.dialogRef.close({
-      startDate: this.startDate?.getTime(),
-      endDate: this.endDate?.getTime(),
-      ...(this.requestId?.length ? { requestId: this.requestId } : {}),
-      ...(this.transactionId?.length ? { transactionId: this.transactionId } : {}),
-      ...(this.httpStatuses?.length ? { httpStatuses } : {}),
-      ...(this.messageText?.length ? { messageText: this.messageText } : {}),
-      ...(this.path?.length ? { path: this.path } : {}),
+      startDate: formValue.startDate?.getTime(),
+      endDate: formValue.endDate?.getTime(),
+      ...(formValue.requestId?.length ? { requestId: formValue.requestId } : {}),
+      ...(formValue.transactionId?.length ? { transactionId: formValue.transactionId } : {}),
+      ...(formValue.httpStatuses?.length ? { httpStatuses } : {}),
+      ...(formValue.messageText?.length ? { messageText: formValue.messageText } : {}),
+      ...(formValue.path?.length ? { path: formValue.path } : {}),
     });
   }
 
@@ -110,7 +115,7 @@ export class MoreFiltersDialogComponent {
       return true;
     }
 
-    const startDayTime = this.startDate?.getTime();
+    const startDayTime = this.moreFiltersForm.getRawValue().startDate?.getTime();
     const currentTime = Date.now();
 
     return (!startDayTime || startDayTime < d.getTime()) && d.getTime() < currentTime;
