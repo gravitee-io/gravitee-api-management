@@ -52,12 +52,6 @@
 
         <dependency>
             <groupId>io.gravitee.apim.repository</groupId>
-            <artifactId>gravitee-apim-repository-hazelcast</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.apim.repository</groupId>
             <artifactId>gravitee-apim-repository-jdbc</artifactId>
             <version>${project.version}</version>
         </dependency>
