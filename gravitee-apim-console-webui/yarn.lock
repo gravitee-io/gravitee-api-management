@@ -8957,13 +8957,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"canvas-renderer@npm:~2.1.1":
-  version: 2.1.1
-  resolution: "canvas-renderer@npm:2.1.1"
-  checksum: 10c0/3fe10e892a58331d5044b54cd02adedb3764eec72671f1ea4622814641fe994daee704b01472b870408dbbcee6949109e8eb1851dfde36ee72be09c6e2880f41
-  languageName: node
-  linkType: hard
-
 "canvas-renderer@npm:~2.2.0":
   version: 2.2.1
   resolution: "canvas-renderer@npm:2.2.1"
@@ -12808,7 +12801,7 @@ __metadata:
     highcharts-angular: "npm:3.1.2"
     highlight.js: "npm:10.7.3"
     html-loader: "npm:5.1.0"
-    jdenticon: "npm:2.2.0"
+    jdenticon: "npm:3.3.0"
     jest: "npm:29.7.0"
     jest-environment-jsdom: "npm:29.7.0"
     jest-junit: "npm:16.0.0"
@@ -14128,15 +14121,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jdenticon@npm:2.2.0":
-  version: 2.2.0
-  resolution: "jdenticon@npm:2.2.0"
+"jdenticon@npm:3.3.0":
+  version: 3.3.0
+  resolution: "jdenticon@npm:3.3.0"
   dependencies:
-    "@types/node": "npm:*"
-    canvas-renderer: "npm:~2.1.1"
+    canvas-renderer: "npm:~2.2.0"
   bin:
     jdenticon: bin/jdenticon.js
-  checksum: 10c0/e21db609cbe96daffeeb0708909738309d87bdecbbc5851f3ce154bb6a2f6e004c19a771ec44bb90c548640e55c2125a5f5f35d6b514180c8dd08cf90049d2f7
+  checksum: 10c0/be2642fe3a9a9013d56ced80ec76a2ae6990363d7c2d92470125fc3d646fe711ba8a8695e49cd5bd696b84574fab4e93f3694414fdb95e150c5ce340c385d9e1
   languageName: node
   linkType: hard
 
