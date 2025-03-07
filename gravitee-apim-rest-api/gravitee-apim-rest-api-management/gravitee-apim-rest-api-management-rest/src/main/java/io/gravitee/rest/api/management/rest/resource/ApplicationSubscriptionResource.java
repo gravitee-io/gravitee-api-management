@@ -264,6 +264,7 @@ public class ApplicationSubscriptionResource extends AbstractResource {
         subscription.setPausedAt(subscriptionEntity.getPausedAt());
         subscription.setConsumerPausedAt(subscriptionEntity.getConsumerPausedAt());
         subscription.setOrigin(OriginContext.Origin.valueOf(subscriptionEntity.getOrigin()));
+        subscription.setConfiguration(subscriptionEntity.getConfiguration());
 
         return subscription;
     }

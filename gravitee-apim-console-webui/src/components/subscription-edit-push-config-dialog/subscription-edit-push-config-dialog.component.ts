@@ -23,8 +23,8 @@ import { MatInput } from '@angular/material/input';
 import { AsyncPipe, NgIf } from '@angular/common';
 import { Observable } from 'rxjs';
 
-import { SubscriptionConsumerConfiguration } from '../../../../../entities/management-api-v2';
-import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
+import { SubscriptionConsumerConfiguration } from '../../entities/management-api-v2';
+import { ConnectorPluginsV2Service } from '../../services-ngx/connector-plugins-v2.service';
 
 export interface ApiSubscriptionEditPushConfigDialogData {
   consumerConfiguration: SubscriptionConsumerConfiguration;
@@ -37,9 +37,9 @@ export type ApiSubscriptionEditPushConfigDialogResult = {
 };
 
 @Component({
-  selector: 'api-subscription-edit-push-config-dialog',
-  templateUrl: './api-subscription-edit-push-config-dialog.component.html',
-  styleUrls: ['./api-subscription-edit-push-config-dialog.component.scss'],
+  selector: 'subscription-edit-push-config-dialog',
+  templateUrl: './subscription-edit-push-config-dialog.component.html',
+  styleUrls: ['./subscription-edit-push-config-dialog.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
@@ -56,7 +56,7 @@ export type ApiSubscriptionEditPushConfigDialogResult = {
     NgIf,
   ],
 })
-export class ApiSubscriptionEditPushConfigDialogComponent {
+export class SubscriptionEditPushConfigDialogComponent {
   private readonly connectorPluginsV2Service = inject(ConnectorPluginsV2Service);
 
   public formGroup: FormGroup<{
@@ -70,7 +70,7 @@ export class ApiSubscriptionEditPushConfigDialogComponent {
   constructor(
     @Inject(MAT_DIALOG_DATA)
     public data: ApiSubscriptionEditPushConfigDialogData,
-    public dialogRef: MatDialogRef<ApiSubscriptionEditPushConfigDialogComponent, ApiSubscriptionEditPushConfigDialogResult>,
+    public dialogRef: MatDialogRef<SubscriptionEditPushConfigDialogComponent, ApiSubscriptionEditPushConfigDialogResult>,
   ) {
     this.jsonSchema$ = this.connectorPluginsV2Service.getEntrypointPluginSubscriptionSchema(data.consumerConfiguration.entrypointId);
 
