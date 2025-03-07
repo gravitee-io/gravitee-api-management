@@ -16,22 +16,22 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 
-import { ApiSubscriptionEditPushConfigComponent } from './api-subscription-edit-push-config.component';
-import { ApiSubscriptionEditPushConfigHarness } from './api-subscription-edit-push-config.harness';
+import { SubscriptionEditPushConfigComponent } from './subscription-edit-push-config.component';
+import { SubscriptionEditPushConfigHarness } from './subscription-edit-push-config.harness';
 
 import { GioTestingModule } from '../../shared/testing';
 
-describe('ApiSubscriptionEditPushConfigComponent', () => {
-  let component: ApiSubscriptionEditPushConfigComponent;
-  let fixture: ComponentFixture<ApiSubscriptionEditPushConfigComponent>;
-  let componentHarness: ApiSubscriptionEditPushConfigHarness;
+describe('SubscriptionEditPushConfigComponent', () => {
+  let component: SubscriptionEditPushConfigComponent;
+  let fixture: ComponentFixture<SubscriptionEditPushConfigComponent>;
+  let componentHarness: SubscriptionEditPushConfigHarness;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ApiSubscriptionEditPushConfigComponent, GioTestingModule],
+      imports: [SubscriptionEditPushConfigComponent, GioTestingModule],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ApiSubscriptionEditPushConfigComponent);
+    fixture = TestBed.createComponent(SubscriptionEditPushConfigComponent);
     component = fixture.componentInstance;
   });
 
@@ -46,7 +46,7 @@ describe('ApiSubscriptionEditPushConfigComponent', () => {
         },
       },
     };
-    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiSubscriptionEditPushConfigHarness);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, SubscriptionEditPushConfigHarness);
     fixture.detectChanges();
 
     expect(await componentHarness.getContentText()).toContain('myChannel');

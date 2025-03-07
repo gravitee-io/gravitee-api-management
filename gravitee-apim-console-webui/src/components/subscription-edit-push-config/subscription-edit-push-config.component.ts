@@ -24,10 +24,10 @@ import { tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import {
-  ApiSubscriptionEditPushConfigDialogComponent,
-  ApiSubscriptionEditPushConfigDialogData,
-  ApiSubscriptionEditPushConfigDialogResult,
-} from '../api-subscription-edit-push-config-dialog/api-subscription-edit-push-config-dialog.component';
+  SubscriptionEditPushConfigDialogComponent,
+  SubscriptionEditPushConfigDialogData,
+  SubscriptionEditPushConfigDialogResult,
+} from '../subscription-edit-push-config-dialog/subscription-edit-push-config-dialog.component';
 import { SubscriptionConsumerConfiguration } from '../../entities/management-api-v2';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 
@@ -38,14 +38,14 @@ type PushConfigVM = {
 };
 
 @Component({
-  selector: 'api-subscription-edit-push-config',
-  templateUrl: './api-subscription-edit-push-config.component.html',
-  styleUrls: ['./api-subscription-edit-push-config.component.scss'],
+  selector: 'subscription-edit-push-config',
+  templateUrl: './subscription-edit-push-config.component.html',
+  styleUrls: ['./subscription-edit-push-config.component.scss'],
   imports: [CommonModule, MatCardModule, MatButtonModule, MatIcon, GioClipboardModule, MatDialogModule],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ApiSubscriptionEditPushConfigComponent implements OnInit {
+export class SubscriptionEditPushConfigComponent implements OnInit {
   private readonly matDialog = inject(MatDialog);
   private destroyRef = inject(DestroyRef);
   private readonly permissionService = inject(GioPermissionService);
@@ -72,19 +72,18 @@ export class ApiSubscriptionEditPushConfigComponent implements OnInit {
 
   openConsumerConfigurationDialog() {
     this.matDialog
-      .open<
-        ApiSubscriptionEditPushConfigDialogComponent,
-        ApiSubscriptionEditPushConfigDialogData,
-        ApiSubscriptionEditPushConfigDialogResult
-      >(ApiSubscriptionEditPushConfigDialogComponent, {
-        data: {
-          readonly: !this.canEdit,
-          consumerConfiguration: this.consumerConfiguration,
+      .open<SubscriptionEditPushConfigDialogComponent, SubscriptionEditPushConfigDialogData, SubscriptionEditPushConfigDialogResult>(
+        SubscriptionEditPushConfigDialogComponent,
+        {
+          data: {
+            readonly: !this.canEdit,
+            consumerConfiguration: this.consumerConfiguration,
+          },
+          width: GIO_DIALOG_WIDTH.MEDIUM,
+          role: 'dialog',
+          id: 'subscription-edit-push-config-dialog',
         },
-        width: GIO_DIALOG_WIDTH.MEDIUM,
-        role: 'dialog',
-        id: 'api-subscription-edit-push-config-dialog',
-      })
+      )
       .afterClosed()
       .pipe(
         tap((result) => {

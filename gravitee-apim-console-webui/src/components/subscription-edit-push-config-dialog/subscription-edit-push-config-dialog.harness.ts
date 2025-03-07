@@ -17,15 +17,13 @@ import { BaseHarnessFilters, ComponentHarness, HarnessPredicate } from '@angular
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 
-export interface ApiSubscriptionEditPushConfigDialogHarnessOptions extends BaseHarnessFilters {}
+export interface SubscriptionEditPushConfigDialogHarnessOptions extends BaseHarnessFilters {}
 
-export class ApiSubscriptionEditPushConfigDialogHarness extends ComponentHarness {
-  public static readonly hostSelector = `api-subscription-edit-push-config-dialog`;
+export class SubscriptionEditPushConfigDialogHarness extends ComponentHarness {
+  public static readonly hostSelector = `subscription-edit-push-config-dialog`;
 
-  public static with(
-    options: ApiSubscriptionEditPushConfigDialogHarnessOptions,
-  ): HarnessPredicate<ApiSubscriptionEditPushConfigDialogHarness> {
-    return new HarnessPredicate(ApiSubscriptionEditPushConfigDialogHarness, options);
+  public static with(options: SubscriptionEditPushConfigDialogHarnessOptions): HarnessPredicate<SubscriptionEditPushConfigDialogHarness> {
+    return new HarnessPredicate(SubscriptionEditPushConfigDialogHarness, options);
   }
 
   private channelInput = this.locatorFor(MatInputHarness.with({ selector: 'input[formcontrolname="channel"]' }));
