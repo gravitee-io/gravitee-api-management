@@ -3839,7 +3839,7 @@ __metadata:
     "@fontsource/ibm-plex-sans": "npm:4.5.13"
     "@fontsource/montserrat": "npm:5.2.5"
     "@gravitee/ui-components": "npm:4.3.0"
-    "@highcharts/map-collection": "npm:2.0.0"
+    "@highcharts/map-collection": "npm:2.3.0"
     "@messageformat/core": "npm:3.4.0"
     "@ngneat/spectator": "npm:19.4.1"
     "@ngx-translate/core": "npm:14.0.0"
@@ -3939,10 +3939,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@highcharts/map-collection@npm:2.0.0":
-  version: 2.0.0
-  resolution: "@highcharts/map-collection@npm:2.0.0"
-  checksum: 10c0/66a3678e4eb200cef8be70ed8d38dbd21f82aebab37350053aeddff7025e4f73b23e189f751532a541f135596a8c465205c03ea5011d37d253ea322e0b3fad12
+"@highcharts/map-collection@npm:2.3.0":
+  version: 2.3.0
+  resolution: "@highcharts/map-collection@npm:2.3.0"
+  checksum: 10c0/b811dcf623fdd1e1ab7c9a2bf1e30519217a54e83769d6f4fa28ed63bf7e45f0ab2f240c10f1a4bafd9aab5ff05744e5c4f82458870c35d34c0ff2bc57f49663
   languageName: node
   linkType: hard
 
