@@ -1,5 +1,5 @@
 {
-    "extends": ["github>gravitee-io/renovate-config","config:js-app", "schedule:earlyMondays"],
+    "extends": ["github>gravitee-io/renovate-config","config:js-app"],
     "packageRules": [
         {
             // Group all angular related packages updates together
