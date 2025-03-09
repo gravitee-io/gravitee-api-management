@@ -148,7 +148,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
             ranges: '100:199;200:299;300:399;400:499;500:599',
           }),
         ),
-        tap((data) => (this.apiResponseStatus = data)),
+        tap((data) => (this.apiResponseStatus = data || {})),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.changeDetectorRef.markForCheck());
@@ -157,8 +157,14 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
     this.homeService
       .timeRangeParams()
       .pipe(
+<<<<<<< HEAD
         tap(() => (this.v4ApiAnalyticsResponseStatusRanges = undefined)),
         switchMap((val) => this.statsService.getV4ApiResponseStatus(val.from, val.to)),
+=======
+        tap(() => (this.topApis = undefined)),
+        switchMap((val) => this.statsService.getGroupBy({ field: 'api', interval: val.interval, from: val.from, to: val.to })),
+        tap((data) => (this.topApis = data || {})),
+>>>>>>> dcf51b8e39 (fix: error on disable analytics)
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
@@ -197,8 +203,13 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
       .timeRangeParams()
       .pipe(
         tap(() => (this.requestStats = undefined)),
+<<<<<<< HEAD
         switchMap((val) => this.statsService.getRequestResponseStats(val.from, val.to)),
         tap((data) => (this.requestStats = data)),
+=======
+        switchMap((val) => this.statsService.getStats({ field: 'response-time', interval: val.interval, from: val.from, to: val.to })),
+        tap((data) => (this.requestStats = data || new RequestStats())),
+>>>>>>> dcf51b8e39 (fix: error on disable analytics)
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.changeDetectorRef.markForCheck());
