@@ -15,13 +15,21 @@
  */
 package io.gravitee.apim.infra.query_service.audit;
 
+import io.gravitee.repository.management.api.EventRepository;
 import java.util.Comparator;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 public class AuditEventQueryServiceImplTest {
 
-    AuditEventQueryServiceImpl service = new AuditEventQueryServiceImpl();
+    @Mock
+    EventRepository eventRepository;
+
+    AuditEventQueryServiceImpl service = new AuditEventQueryServiceImpl(eventRepository);
 
     @Test
     void should_return_all_audit_events_names_sorted() {

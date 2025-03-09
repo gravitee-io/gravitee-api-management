@@ -27,25 +27,25 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class MongoAuditRepository implements AuditRepository {
 
     private final Logger LOGGER = LoggerFactory.getLogger(MongoAuditRepository.class);
 
-    @Autowired
-    private AuditMongoRepository internalAuditRepo;
-
-    @Autowired
-    private GraviteeMapper mapper;
+    private final AuditMongoRepository internalAuditRepo;
+    private final GraviteeMapper mapper;
 
     @Override
     public Page<Audit> search(AuditCriteria filter, Pageable pageable) {
