@@ -22,7 +22,10 @@ metadata:
     {{- end }}
     {{- end }}
 data:
-{{- if not (include "api.externalConfig" .)}}
+{{- if .Values.api.application.configuration.files.gravitee_yml }}
+  gravitee.yml: |-
+    {{- toYaml .Values.api.application.configuration.files.gravitee_yml | nindent 4 }}
+{{- else if not ((include "api.externalConfig" .) and .Values.api.application.configuration.files.gravitee_yml)}}
   gravitee.yml: |
     {{- if .Values.api.ssl.enabled }}
     jetty:

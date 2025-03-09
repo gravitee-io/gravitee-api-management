@@ -468,6 +468,186 @@ api:
   enabled: true
   upgrader: false
   name: api
+  application:
+    configuration:
+      files:
+        ############################################################################################################
+        # This file is the general configuration of Gravitee.IO Management API:
+        # You can have the official full example here:
+        # https://github.com/gravitee-io/gravitee-api-management/blob/master/gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/src/main/resources/config/gravitee.yml
+        #
+        # Please have a look to https://documentation.gravitee.io/ for more options and fine-grained granularity
+        ############################################################################################################
+        gravitee_yml:
+          management:
+            type: mongodb
+            mongodb:
+              sslEnabled: false
+              socketKeepAlive: false
+              uri: mongodb://graviteeio-apim-mongodb-replicaset-headless:27017/gravitee?&replicaSet=rs0&connectTimeoutMS=30000
+          
+          installation:
+            type: standalone
+            api:
+              url: https://super.apim.example.com
+              proxyPath:
+                management: /management
+                portal: /portal
+            standalone:
+              console:
+                url: https://apim.example.com/console
+              portal:
+                url: https://apim.example.com
+          
+          console:
+          services:
+            core:
+              http:
+                enabled: true
+                port: 18083
+                host: localhost
+                authentication:
+                  type: basic
+                  users:
+                    admin: adminadmin
+            metrics:
+              enabled: false
+              prometheus:
+                enabled: true
+          httpClient:
+            timeout: 10000
+          http:
+            api:
+              entrypoint: /
+              management:
+                entrypoint: ${http.api.entrypoint}management
+              portal:
+                entrypoint: ${http.api.entrypoint}portal
+          
+          analytics:
+            type: elasticsearch
+            elasticsearch:
+              endpoints:
+                - http://graviteeio-apim-elasticsearch-ingest-hl:9200
+              index_mode: daily
+              index: gravitee
+          security:
+            trustAll: false
+            providers:
+              - type: gravitee
+              - type: memory
+                # password encoding/hashing algorithm. One of:
+                # - bcrypt : passwords are hashed with bcrypt
+                # - none : passwords are not hashed/encrypted
+                # default value is bcrypt
+                password-encoding-algo: bcrypt
+                allow-email-in-search-results: false
+                users:
+                  - user:
+                    username: admin
+                    password: $2a$10$Ihk05VSds5rUSgMdsMVi9OKMIx2yUvMz7y9VP3rJmQeizZLrhLMyq
+                    roles: ORGANIZATION:ADMIN, ENVIRONMENT:ADMIN
+                    email:
+                    firstName:
+                    lastName:
+                  - user:
+                    username: user
+                    # Password value: password
+                    password: $2a$10$9kjw/SH9gucCId3Lnt6EmuFreUAcXSZgpvAYuW2ISv7hSOhHRH1AO
+                    roles: ORGANIZATION:USER, ENVIRONMENT:USER
+                    # Useful to receive notifications
+                    #email:
+                    #firstName:
+                    #lastName:
+                  - user:
+                    username: api1
+                    # Password value: api1
+                    password: $2a$10$iXdXO4wAYdhx2LOwijsp7.PsoAZQ05zEdHxbriIYCbtyo.y32LTji
+                    # You can declare multiple roles using comma separator
+                    roles: ORGANIZATION:USER, ENVIRONMENT:API_PUBLISHER
+                    #email:
+                    #firstName:
+                    #lastName:
+                  - user:
+                    username: application1
+                    # Password value: application1
+                    password: $2a$10$2gtKPYRB9zaVaPcn5RBx/.3T.7SeZoDGs9GKqbo9G64fKyXFR1He.
+                    roles: ORGANIZATION:USER, ENVIRONMENT:USER
+                    #email:
+                    #firstName:
+                    #lastName:
+          
+          # SMTP configuration used to send mails
+          email:
+            enabled: true
+          
+          # SMTP configuration used to send notifications / alerts
+          notifiers:
+            email:
+              enabled: true
+              host: ${email.host}
+              subject: "${email.subject}"
+              port: ${email.port}
+              from: ${email.from}
+              username: ${email.username}
+              password: ${email.password}
+              starttls.enabled: false
+          
+          # Mail templates
+          templates:
+            path: ${gravitee.home}/templates
+          
+          jwt:
+            secret: myJWT4Gr4v1t33_S3cr3t
+          
+          swagger:
+            # Default scheme used when creating an API from a Swagger descriptor if there is no scheme specified.
+            scheme: https
+          
+          user:
+            login:
+              # Create a default application when user connects to the portal for the very first time (default true)
+              defaultApplication: true
+          
+            creation:
+              # Allows to register new users from portal (default false)
+              #enabled: true
+              token:
+              #expire-after: 86400
+            anonymize-on-delete:
+              enabled: false
+          
+          # The portal URL used in emails
+          portalURL: https://apim.example.com
+          
+          # Allows to create support ticket (default value: false)
+          support:
+            enabled: true
+          
+          # Allows to rate an API (default value: false)
+          rating:
+            enabled: true
+          
+          # Set the Subscribe to newsletter feature (default value: true)
+          newsletter:
+            enabled: true
+          
+          gateway:
+            unknown-expire-after: 604800
+          
+          # Integration controller
+          integration:
+            enabled: false
+          
+          # Alert Engine communication
+          
+          alerts:
+            alert-engine-connector-ws:
+              enabled: false
+            # APIs specific configuration
+            # External Authentication
+            # Cloud connector
+
   logging:
     debug: false
     stdout:
@@ -775,8 +955,8 @@ api:
       path: /management
       ingressClassName: ""
       # Used to create an Ingress record.
-      hosts:
-        - apim.example.com
+#      hosts:
+#        - apim.example.com
       annotations:
         kubernetes.io/ingress.class: nginx
         #nginx.ingress.kubernetes.io/configuration-snippet: "etag on;\nproxy_pass_header ETag;\nproxy_pass_header if-match;\n"
@@ -870,6 +1050,22 @@ api:
 
 gateway:
   enabled: true
+  application:
+    configuration:
+      files:
+        ############################################################################################################
+        # This file is the general configuration of Gravitee.IO Gateway:
+        # You can have the official full example here:
+        # https://github.com/gravitee-io/gravitee-api-management/blob/master/gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/src/main/resources/config/gravitee.yml
+        #
+        # Please have a look to https://documentation.gravitee.io/ for more options and fine-grained granularity
+        ############################################################################################################
+        gravitee_yml: |
+          # Secret managers config in order to use secret://<plugin id>/<secret-path>[:key][?namespace=<name>&keymap=<mapping>&option=value...] syntax
+          secrets:
+            # loadFirst: kubernetes # if ever we want to store creds for another secret provider (e.g. store TLS information for VAULT in k8s)
+            kubernetes:
+              enabled: false
   # if enabled, required annotation will be added to allow the gateway to act as a runtime for the GKO
   # ingress controller (service should be set to type LoadBalancer in order to get the full feature set)
   ingressController:

@@ -35,6 +35,7 @@ spec:
   ingressClassName: {{ .Values.api.ingress.management.ingressClassName | quote }}
   {{- end }}
   rules:
+  {{ if .Values.api.ingress.management.hosts }}
   {{- range $host := .Values.api.ingress.management.hosts }}
   - host: {{ $host | quote }}
     http:
@@ -51,6 +52,25 @@ spec:
           serviceName: {{ $serviceAPIName }}
           servicePort: {{ $serviceAPIPort }}
           {{- end -}}
+  {{- end -}}
+  {{ else if .Values.api.application.configuration.files.gravitee_yml.installation.api.url -}}
+  {{ with .Values.api.application.configuration.files.gravitee_yml }}
+  - host: {{ (urlParse .installation.api.url).hostname | quote }}
+    http:
+      paths:
+        - pathType: {{ default "Prefix" $ingressPathType }}
+          path: {{ .installation.api.proxyPath.management }}
+          backend:
+          {{- if (eq $apiVersion "networking.k8s.io/v1") }}
+            service:
+              name: {{ $serviceAPIName }}
+              port:
+                number: {{ default 83 $serviceAPIPort }}
+          {{ else }}
+            serviceName: {{ $serviceAPIName }}
+            servicePort: {{ default 83 $serviceAPIPort }}
+          {{- end -}}
+  {{- end -}}
   {{- end -}}
   {{- if .Values.api.ingress.management.tls }}
   tls:
