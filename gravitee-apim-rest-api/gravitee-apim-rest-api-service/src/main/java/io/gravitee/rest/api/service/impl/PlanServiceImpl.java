@@ -32,9 +32,11 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.BasePlanEntity;
@@ -58,6 +60,7 @@ import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.ApiDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.KeylessPlanAlreadyPublishedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyDeprecatedException;
@@ -84,6 +87,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import jakarta.ws.rs.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -148,6 +152,10 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
     @Autowired
     private TagsValidationService tagsValidationService;
+
+    @Lazy
+    @Autowired
+    private GroupRepository groupRepository;
 
     @Override
     public PlanEntity findById(final ExecutionContext executionContext, final String plan) {
@@ -273,6 +281,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             String planPolicies = objectMapper.writeValueAsString(updatePlan.getPaths());
             newPlan.setDefinition(planPolicies);
 
+            validateExcludedGroups(updatePlan.getExcludedGroups(), api.getEnvironmentId());
             newPlan.setExcludedGroups(updatePlan.getExcludedGroups());
 
             if (newPlan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
@@ -339,6 +348,21 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 throw new PlanGeneralConditionStatusException(plan.getName());
             }
         }
+    }
+
+    private void validateExcludedGroups(List<String> excludedGroups, String environmentId) throws TechnicalException {
+        var envGroupsIds = groupRepository
+            .findAllByEnvironment(environmentId)
+            .stream()
+            .map(Group::getId)
+            .collect(Collectors.toSet());
+
+        excludedGroups
+            .forEach(excludedGroupId -> {
+                if(!envGroupsIds.contains(excludedGroupId)) {
+                    throw new BadRequestException(String.format("Excluded group %s doesn't exist", excludedGroupId));
+                }
+            });
     }
 
     @Override
