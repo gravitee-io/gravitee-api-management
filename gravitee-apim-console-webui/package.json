@@ -78,7 +78,7 @@
     "oidc-client-ts": "2.4.1",
     "prismjs": "1.29.0",
     "rxjs": "7.8.2",
-    "swagger-ui": "5.20.0",
+    "swagger-ui": "5.20.1",
     "tinycolor2": "1.6.0",
     "v-accordion": "1.6.0",
     "zone.js": "0.14.10"
