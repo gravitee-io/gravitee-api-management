@@ -11752,7 +11752,7 @@ __metadata:
     stylelint-config-prettier-scss: "npm:1.0.0"
     stylelint-config-standard-scss: "npm:14.0.0"
     stylelint-order: "npm:6.0.4"
-    swagger-ui: "npm:5.20.0"
+    swagger-ui: "npm:5.20.1"
     tslib: "npm:2.3.1"
     typescript: "npm:5.5.4"
     xng-breadcrumb: "npm:11.0.0"
@@ -18698,9 +18698,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"swagger-ui@npm:5.20.0":
-  version: 5.20.0
-  resolution: "swagger-ui@npm:5.20.0"
+"swagger-ui@npm:5.20.1":
+  version: 5.20.1
+  resolution: "swagger-ui@npm:5.20.1"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.7"
     "@scarf/scarf": "npm:=1.4.0"
@@ -18737,7 +18737,7 @@ __metadata:
     xml: "npm:=1.0.1"
     xml-but-prettier: "npm:^1.0.1"
     zenscroll: "npm:^4.0.2"
-  checksum: 10c0/969c0aa475aa88940f1a8bffec24a20c6927d6debbc7df9dbad10188c6d9e3c4c5f213cc241f7eb01a3e59537fe92cdfd4ec1f46c3b71217bfc32b3ec7d1637d
+  checksum: 10c0/648e54eb247fa7b54deb72dc7c8868f35a604de1c49bfba8f3bad956638dbde3f2f9584f0c445d9d2b6a2b6b586c53b0bbaa6536e64d1e547942f71807ad4597
   languageName: node
   linkType: hard
 
