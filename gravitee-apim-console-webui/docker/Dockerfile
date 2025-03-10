@@ -24,9 +24,12 @@ COPY ./dist /usr/share/nginx/html/
 
 ADD docker/config/constants.json /usr/share/nginx/html/constants.json
 ADD docker/config/default.conf /etc/nginx/conf.d/default.conf
+COPY docker/config/default.no-ipv6.conf /etc/nginx/conf.d/default.no-ipv6.conf
 
 RUN chown -R 101:0 /usr/share/nginx/ /etc/nginx/
 
-CMD ["sh", "/run.sh"]
+COPY docker/config/check_ip_config.sh /check_ip_config.sh
+
+CMD ["/bin/sh", "-c", "sh /check_ip_config.sh; sh /run.sh"]
 
 USER nginx
