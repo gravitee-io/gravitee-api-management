@@ -18,6 +18,7 @@ import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/C
 import { CommandParameterLiteral } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Parameters/types/CustomParameterLiterals.types';
 import { NodeLtsExecutor } from '../../executors';
 import { InstallYarnCommand, NotifyOnFailureCommand, WebuiInstallCommand } from '../../commands';
+import { CircleCIEnvironment } from '../../pipelines';
 
 export class WebuiLintTestJob {
   private static jobName = 'job-webui-lint-test';
@@ -27,14 +28,14 @@ export class WebuiLintTestJob {
     new parameters.CustomParameter('resource_class', 'string', 'medium', 'Resource class to use for executor'),
   ]);
 
-  public static create(dynamicConfig: Config): Job {
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     const installYarnCmd = InstallYarnCommand.get();
     dynamicConfig.addReusableCommand(installYarnCmd);
 
     const webUiInstallCommand = WebuiInstallCommand.get();
     dynamicConfig.addReusableCommand(webUiInstallCommand);
 
-    const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig);
+    const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig, environment);
     dynamicConfig.addReusableCommand(notifyOnFailureCommand);
 
     const steps: Command[] = [

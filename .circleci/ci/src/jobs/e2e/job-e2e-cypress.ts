@@ -28,7 +28,7 @@ export class E2ECypressJob {
     const installYarnCmd = InstallYarnCommand.get();
     const dockerAzureLoginCmd = DockerAzureLoginCommand.get(dynamicConfig);
     const dockerAzureLogoutCmd = DockerAzureLogoutCommand.get();
-    const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig);
+    const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig, environment);
     dynamicConfig.addReusableCommand(installYarnCmd);
     dynamicConfig.addReusableCommand(dockerAzureLoginCmd);
     dynamicConfig.addReusableCommand(dockerAzureLogoutCmd);

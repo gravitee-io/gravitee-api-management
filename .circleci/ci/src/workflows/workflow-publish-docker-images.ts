@@ -35,7 +35,7 @@ export class PublishDockerImagesWorkflow {
     const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, true);
     dynamicConfig.addJob(portalWebuiBuildJob);
 
-    const publishPrEnvUrlsJob = PublishPrEnvUrlsJob.create(dynamicConfig);
+    const publishPrEnvUrlsJob = PublishPrEnvUrlsJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(publishPrEnvUrlsJob);
 
     const jobs = [

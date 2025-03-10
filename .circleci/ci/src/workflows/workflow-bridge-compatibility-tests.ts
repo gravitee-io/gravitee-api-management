@@ -31,10 +31,10 @@ export class BridgeCompatibilityTestsWorkflow {
     const buildBackendJob = BuildBackendJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(buildBackendJob);
 
-    const e2eGenerateSdkJob = E2EGenerateSDKJob.create(dynamicConfig);
+    const e2eGenerateSdkJob = E2EGenerateSDKJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(e2eGenerateSdkJob);
 
-    const e2eLintBuildJob = E2ELintBuildJob.create(dynamicConfig);
+    const e2eLintBuildJob = E2ELintBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(e2eLintBuildJob);
 
     const e2eTestJob = E2ETestJob.create(dynamicConfig, environment);
