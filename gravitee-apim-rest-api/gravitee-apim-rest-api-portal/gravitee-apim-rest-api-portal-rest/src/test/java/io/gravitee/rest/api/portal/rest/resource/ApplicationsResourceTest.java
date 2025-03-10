@@ -238,20 +238,17 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         doReturn(true)
             .when(permissionService)
             .hasPermission(any(), eq(RolePermission.APPLICATION_SUBSCRIPTION), any(), eq(RolePermissionAction.READ));
-        List<SubscriptionEntity> subscriptions = new ArrayList<>();
         SubscriptionEntity sub1 = createSubscriptionEntity("sub-1", "A");
         SubscriptionEntity sub2 = createSubscriptionEntity("sub-2", "A");
         SubscriptionEntity sub3 = createSubscriptionEntity("sub-3", "B");
 
-        subscriptions.addAll(Arrays.asList(sub1, sub2, sub3));
+        List<SubscriptionEntity> subscriptions = new ArrayList<>(Arrays.asList(sub1, sub2, sub3));
+        subscriptions.forEach(s -> s.setStatus(SubscriptionStatus.ACCEPTED));
+
         SubscriptionQuery query = new SubscriptionQuery();
         query.setApplications(Arrays.asList("A", "B"));
         query.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED));
         doReturn(subscriptions).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
-
-        doReturn(new Subscription().application("A")).when(subscriptionMapper).convert(sub1);
-        doReturn(new Subscription().application("A")).when(subscriptionMapper).convert(sub2);
-        doReturn(new Subscription().application("B")).when(subscriptionMapper).convert(sub3);
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -284,10 +281,6 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         query.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED));
         doReturn(subscriptions).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
 
-        doReturn(new Subscription().application("A")).when(subscriptionMapper).convert(sub1);
-        doReturn(new Subscription().application("A")).when(subscriptionMapper).convert(sub2);
-        doReturn(new Subscription().application("B")).when(subscriptionMapper).convert(sub3);
-
         ApplicationListItem appA = mock(ApplicationListItem.class);
         ApplicationListItem appB = mock(ApplicationListItem.class);
         Collection<ApplicationListItem> applications = new HashSet<>(Arrays.asList(appA, appB));
@@ -319,10 +312,6 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         query.setApplications(Arrays.asList("A", "B"));
         query.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED));
         doReturn(subscriptions).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
-
-        doReturn(new Subscription().application("A")).when(subscriptionMapper).convert(sub1);
-        doReturn(new Subscription().application("A")).when(subscriptionMapper).convert(sub2);
-        doReturn(new Subscription().application("B")).when(subscriptionMapper).convert(sub3);
 
         ApplicationListItem appA = mock(ApplicationListItem.class);
         ApplicationListItem appB = mock(ApplicationListItem.class);

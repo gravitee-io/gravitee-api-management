@@ -26,15 +26,12 @@ import io.gravitee.rest.api.portal.rest.model.Subscription.StatusEnum;
 import java.time.Instant;
 import java.util.Date;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mapstruct.factory.Mappers;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
 public class SubscriptionMapperTest {
 
     private static final String SUBSCRIPTION_API = "my-subscription-api";
@@ -49,8 +46,7 @@ public class SubscriptionMapperTest {
 
     private SubscriptionEntity subscriptionEntity;
 
-    @InjectMocks
-    private SubscriptionMapper subscriptionMapper;
+    private final SubscriptionMapper subscriptionMapper = Mappers.getMapper(SubscriptionMapper.class);
 
     @Test
     public void testConvert() {
@@ -80,7 +76,7 @@ public class SubscriptionMapperTest {
         subscriptionEntity.setOrigin("KUBERNETES");
 
         //Test
-        Subscription subscription = subscriptionMapper.convert(subscriptionEntity);
+        Subscription subscription = subscriptionMapper.map(subscriptionEntity);
         assertNotNull(subscription);
 
         assertEquals(SUBSCRIPTION_API, subscription.getApi());
@@ -108,7 +104,7 @@ public class SubscriptionMapperTest {
         subscriptionEntity.setOrigin(null);
 
         //Test
-        Subscription subscription = subscriptionMapper.convert(subscriptionEntity);
+        Subscription subscription = subscriptionMapper.map(subscriptionEntity);
         assertNotNull(subscription);
 
         assertEquals(SUBSCRIPTION_API, subscription.getApi());
@@ -127,7 +123,7 @@ public class SubscriptionMapperTest {
         subscriptionEntity.setOrigin("unicorn");
 
         //Test
-        Subscription subscription = subscriptionMapper.convert(subscriptionEntity);
+        Subscription subscription = subscriptionMapper.map(subscriptionEntity);
         assertNotNull(subscription);
 
         assertEquals(SUBSCRIPTION_API, subscription.getApi());

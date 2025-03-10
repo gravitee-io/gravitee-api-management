@@ -15,10 +15,31 @@
  */
 package io.gravitee.rest.api.portal.rest.spring;
 
+import io.gravitee.rest.api.portal.rest.mapper.AlertMapper;
+import io.gravitee.rest.api.portal.rest.mapper.AnalyticsMapper;
+import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
+import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
+import io.gravitee.rest.api.portal.rest.mapper.CategoryMapper;
+import io.gravitee.rest.api.portal.rest.mapper.ConfigurationMapper;
+import io.gravitee.rest.api.portal.rest.mapper.DashboardMapper;
+import io.gravitee.rest.api.portal.rest.mapper.IdentityProviderMapper;
+import io.gravitee.rest.api.portal.rest.mapper.KeyMapper;
+import io.gravitee.rest.api.portal.rest.mapper.LogMapper;
+import io.gravitee.rest.api.portal.rest.mapper.MemberMapper;
+import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
+import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
+import io.gravitee.rest.api.portal.rest.mapper.PortalMenuLinkMapper;
+import io.gravitee.rest.api.portal.rest.mapper.PortalNotificationMapper;
+import io.gravitee.rest.api.portal.rest.mapper.RatingMapper;
+import io.gravitee.rest.api.portal.rest.mapper.ReferenceMetadataMapper;
+import io.gravitee.rest.api.portal.rest.mapper.ThemeMapper;
+import io.gravitee.rest.api.portal.rest.mapper.TicketMapper;
+import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
 import io.gravitee.rest.api.portal.security.SecurityPortalConfiguration;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableAsync;
 
@@ -27,7 +48,34 @@ import org.springframework.scheduling.annotation.EnableAsync;
  * @author GraviteeSource Team
  */
 @Configuration
-@ComponentScan({ "io.gravitee.rest.api.portal.rest.mapper" })
+@ComponentScan(
+    basePackages = "io.gravitee.rest.api.portal.rest.mapper", // please prefer using Mapstruct mappers and not declare new manual mappers here
+    includeFilters = @ComponentScan.Filter(
+        type = FilterType.ASSIGNABLE_TYPE,
+        classes = {
+            AlertMapper.class,
+            AnalyticsMapper.class,
+            ApiMapper.class,
+            ApplicationMapper.class,
+            CategoryMapper.class,
+            ConfigurationMapper.class,
+            DashboardMapper.class,
+            IdentityProviderMapper.class,
+            KeyMapper.class,
+            LogMapper.class,
+            MemberMapper.class,
+            PageMapper.class,
+            PlanMapper.class,
+            PortalMenuLinkMapper.class,
+            PortalNotificationMapper.class,
+            RatingMapper.class,
+            ReferenceMetadataMapper.class,
+            ThemeMapper.class,
+            TicketMapper.class,
+            UserMapper.class,
+        }
+    )
+)
 @Import({ ServiceConfiguration.class, SecurityPortalConfiguration.class })
 @EnableAsync
 public class RestPortalConfiguration {}

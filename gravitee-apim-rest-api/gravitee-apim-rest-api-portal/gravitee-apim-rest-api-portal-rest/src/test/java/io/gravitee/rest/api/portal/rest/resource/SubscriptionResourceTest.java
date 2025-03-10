@@ -69,6 +69,7 @@ public class SubscriptionResourceTest extends AbstractResourceTest {
         subscriptionEntity.setApi(API);
         subscriptionEntity.setApplication(APPLICATION);
         subscriptionEntity.setPlan(PLAN);
+        subscriptionEntity.setStatus(SubscriptionStatus.ACCEPTED);
 
         doReturn(subscriptionEntity).when(subscriptionService).findById(SUBSCRIPTION);
         doThrow(SubscriptionNotFoundException.class).when(subscriptionService).findById(UNKNOWN_SUBSCRIPTION);
@@ -77,7 +78,6 @@ public class SubscriptionResourceTest extends AbstractResourceTest {
             .when(apiKeyService)
             .findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION);
 
-        doReturn(new Subscription()).when(subscriptionMapper).convert(any());
         doReturn(new Key()).when(keyMapper).convert(any(ApiKeyEntity.class));
         doReturn(true).when(permissionService).hasPermission(any(), any(), any(), any());
     }
@@ -86,8 +86,6 @@ public class SubscriptionResourceTest extends AbstractResourceTest {
     public void shouldGetSubscription() {
         Response response = target(SUBSCRIPTION).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-
-        Mockito.verify(subscriptionMapper).convert(subscriptionEntity);
 
         Subscription subscription = response.readEntity(Subscription.class);
         assertNotNull(subscription);
@@ -192,8 +190,6 @@ public class SubscriptionResourceTest extends AbstractResourceTest {
 
         final Response response = target(SUBSCRIPTION).queryParam("include", "keys").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-
-        Mockito.verify(subscriptionMapper).convert(subscriptionEntity);
 
         Subscription subscription = response.readEntity(Subscription.class);
         assertNotNull(subscription);

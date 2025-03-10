@@ -81,9 +81,6 @@ public class SubscriptionsResource extends AbstractResource {
     private SubscriptionService subscriptionService;
 
     @Inject
-    private SubscriptionMapper subscriptionMapper;
-
-    @Inject
     private ApplicationService applicationService;
 
     @Inject
@@ -143,7 +140,7 @@ public class SubscriptionsResource extends AbstractResource {
                 .map(keyMapper::convert)
                 .collect(Collectors.toList());
 
-            final Subscription subscription = subscriptionMapper.convert(createdSubscription);
+            final Subscription subscription = SubscriptionMapper.INSTANCE.map(createdSubscription);
             subscription.setKeys(keys);
 
             return Response.ok(subscription).build();
@@ -181,7 +178,10 @@ public class SubscriptionsResource extends AbstractResource {
             return createListResponse(executionContext, subscriptions, paginationParam, null, paginationParam.hasPagination());
         }
 
-        final List<Subscription> subscriptionList = subscriptions.stream().map(subscriptionMapper::convert).collect(Collectors.toList());
+        final List<Subscription> subscriptionList = subscriptions
+            .stream()
+            .map(SubscriptionMapper.INSTANCE::map)
+            .collect(Collectors.toList());
 
         SubscriptionMetadataQuery metadataQuery = new SubscriptionMetadataQuery(
             GraviteeContext.getCurrentOrganization(),

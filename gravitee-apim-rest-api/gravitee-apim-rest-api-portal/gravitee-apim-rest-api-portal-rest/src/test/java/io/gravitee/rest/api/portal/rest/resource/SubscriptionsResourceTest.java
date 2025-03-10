@@ -36,6 +36,7 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.portal.rest.model.ApiKeyModeEnum;
 import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.portal.rest.model.Links;
@@ -84,8 +85,8 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         doReturn(subscriptionPage.getContent()).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
         doReturn(subscriptionPage).when(subscriptionService).search(any(), any(), any());
 
-        doReturn(new Subscription().id(SUBSCRIPTION)).when(subscriptionMapper).convert(subscriptionEntity1);
-        doReturn(new Subscription().id(ANOTHER_SUBSCRIPTION)).when(subscriptionMapper).convert(subscriptionEntity2);
+        doReturn(new Subscription().id(SUBSCRIPTION)).when(SubscriptionMapper.INSTANCE).map(subscriptionEntity1);
+        doReturn(new Subscription().id(ANOTHER_SUBSCRIPTION)).when(SubscriptionMapper.INSTANCE).map(subscriptionEntity2);
 
         SubscriptionEntity createdSubscription = new SubscriptionEntity();
         createdSubscription.setId(SUBSCRIPTION);
