@@ -17,13 +17,14 @@ import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { InstallYarnCommand, NotifyOnFailureCommand, WebuiInstallCommand } from '../../commands';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { NodeLtsExecutor } from '../../executors';
+import { CircleCIEnvironment } from '../../pipelines';
 
 export class E2ELintBuildJob {
   private static jobName = 'job-e2e-lint-build';
-  public static create(dynamicConfig: Config): Job {
-    const installYarnCmd = InstallYarnCommand.get();
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     const webuiInstallCmd = WebuiInstallCommand.get();
-    const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig);
+    const installYarnCmd = InstallYarnCommand.get();
+    const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig, environment);
     dynamicConfig.addReusableCommand(installYarnCmd);
     dynamicConfig.addReusableCommand(webuiInstallCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
