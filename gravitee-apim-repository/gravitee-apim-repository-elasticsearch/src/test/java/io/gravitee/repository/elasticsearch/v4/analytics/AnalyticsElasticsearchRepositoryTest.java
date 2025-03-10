@@ -266,7 +266,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             long nbBuckets = Duration.between(from, to).dividedBy(interval);
             assertThat(requireNonNull(result).getAverageBy().entrySet())
                 .hasSize((int) nbBuckets + 1)
-                .haveExactly(1, bucketOfTimeHaveValue("14:00:00.000Z", 332.5))
+                .haveExactly(1, bucketOfTimeHaveValue("14:00:00.000Z", 20.))
                 .haveExactly(1, STRICT_POSITIVE);
         }
 
@@ -296,11 +296,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             long nbBuckets = Duration.between(from, to).dividedBy(interval);
             assertThat(requireNonNull(result).getAverageBy().entrySet()).hasSize((int) nbBuckets + 1).haveAtMost(2, STRICT_POSITIVE);
             double[] array = result.getAverageBy().values().stream().mapToDouble(l -> l).filter(d -> d > 0).toArray();
-            if (array.length == 1) {
-                assertThat(array).containsExactly(135D);
-            } else {
-                assertThat(array).containsOnly(332.5, 36.25);
-            }
+            assertThat(array).containsOnly(36.25, 20.0);
         }
 
         private static Condition<Map.Entry<String, Double>> bucketOfTimeHaveValue(String timeSuffix, double value) {
