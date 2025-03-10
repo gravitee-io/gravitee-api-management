@@ -23,4 +23,5 @@ fi
 
 if [ "$DEFAULT_PORTAL" = "next" ]; then
     cp /etc/nginx/conf.d/default-next.conf /etc/nginx/conf.d/default.conf
+    cp /etc/nginx/conf.d/default-next.no-ipv6.conf /etc/nginx/conf.d/default.no-ipv6.conf
 fi

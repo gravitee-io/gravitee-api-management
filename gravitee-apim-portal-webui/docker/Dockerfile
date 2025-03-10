@@ -31,6 +31,7 @@ COPY docker/config/config-next.json /usr/share/nginx/html/next/browser/assets/co
 COPY docker/config/default.conf /etc/nginx/conf.d/default.conf
 COPY docker/config/default.no-ipv6.conf /etc/nginx/conf.d/default.no-ipv6.conf
 COPY docker/config/default-next.conf /etc/nginx/conf.d/default-next.conf
+COPY docker/config/default-next.no-ipv6.conf /etc/nginx/conf.d/default-next.no-ipv6.conf
 
 RUN chown -R 101:0 /usr/share/nginx/ /etc/nginx/
 
