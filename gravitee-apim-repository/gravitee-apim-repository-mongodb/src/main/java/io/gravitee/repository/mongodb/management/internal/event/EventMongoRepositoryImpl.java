@@ -15,6 +15,12 @@
  */
 package io.gravitee.repository.mongodb.management.internal.event;
 
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.group;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.match;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.out;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.project;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.sort;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 import io.gravitee.common.data.domain.Page;
@@ -22,15 +28,20 @@ import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
+import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -40,10 +51,26 @@ import org.springframework.data.mongodb.core.query.Update;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
+
+    public static final String BACKUP_COLLECTION = "events_history";
+    public static final String TMP_EVENTS_COLLECTION = "tmp_events";
+
+    public String backupCollection = "events_history";
+    public String tmpEvents = "tmp_events";
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Value("${management.mongodb.prefix:}")
+    private String collectionPrefix;
+
+    @PostConstruct
+    void setup() {
+        backupCollection = collectionPrefix + BACKUP_COLLECTION;
+        tmpEvents = collectionPrefix + TMP_EVENTS_COLLECTION;
+    }
 
     @Override
     public Page<EventMongo> search(EventCriteria criteria, Pageable pageable) {
@@ -115,7 +142,7 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
                 .getProperties()
                 .forEach((k, v) -> {
                     if (v instanceof Collection) {
-                        criteriaList.add(Criteria.where("properties." + k).in((Collection) v));
+                        criteriaList.add(Criteria.where("properties." + k).in((Collection<?>) v));
                     } else {
                         criteriaList.add(Criteria.where("properties." + k).is(v));
                     }
@@ -160,5 +187,93 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
                 Criteria.where("environments").is(Collections.emptyList()),
                 Criteria.where("environments").in(criteria.getEnvironments())
             );
+    }
+
+    @Override
+    public void cleanupGatewayEvents(String environmentId, int keepRecordsCount) {
+        backupEvents();
+        createWorkingCopy();
+
+        mongoTemplate.remove(new Query(), EventMongo.class);
+
+        keepNonApiEvents(environmentId);
+
+        keepLatestApiEvents(environmentId, keepRecordsCount);
+
+        dropWorkingCopy();
+    }
+
+    private void backupEvents() {
+        mongoTemplate.dropCollection(backupCollection);
+        log.info("Backing up events to {}", backupCollection);
+        var agg = newAggregation(List.of(out(backupCollection)));
+        mongoTemplate.aggregate(agg, EventMongo.class, Object.class);
+    }
+
+    private void createWorkingCopy() {
+        mongoTemplate.dropCollection(tmpEvents);
+        log.info("Creating working copy of events");
+        var indexOps = mongoTemplate.indexOps(tmpEvents);
+        indexOps.ensureIndex(
+            new Index()
+                .on("environments", Sort.Direction.ASC)
+                .on("properties.api_id", Sort.Direction.ASC)
+                .on("updatedAt", Sort.Direction.ASC)
+                .named("e1pa1u1esn")
+        );
+        indexOps.ensureIndex(new Index().on("type", Sort.Direction.ASC).on("environments", Sort.Direction.ASC).named("tsen1e1"));
+        var agg = newAggregation(List.of(out(tmpEvents)));
+        mongoTemplate.aggregate(agg, EventMongo.class, Document.class);
+
+        long count = mongoTemplate.getCollection(tmpEvents).countDocuments();
+        log.info("{} events copied to {}", count, tmpEvents);
+    }
+
+    private void keepNonApiEvents(String envId) {
+        List<String> nonApiEventTypes = List.of(
+            "GATEWAY_STARTED",
+            "DEBUG_API",
+            "GATEWAY_STOPPED",
+            "PUBLISH_DICTIONARY",
+            "UNPUBLISH_DICTIONARY",
+            "START_DICTIONARY",
+            "STOP_DICTIONARY",
+            "PUBLISH_ORGANIZATION"
+        );
+
+        Criteria criteria = new Criteria()
+            .orOperator(Criteria.where("type").in(nonApiEventTypes), Criteria.where("environments").ne(envId));
+
+        var agg = newAggregation(List.of(match(criteria), out(mongoTemplate.getCollectionName(EventMongo.class))));
+        mongoTemplate.aggregate(agg, tmpEvents, Object.class);
+    }
+
+    private void keepLatestApiEvents(String envId, int history) {
+        log.info("Selecting latest {} events for each API entity for environment {}", history, envId);
+        String arrayField = "groupedEvents";
+        String outField = "keepedEvents";
+
+        var aggregation = newAggregation(
+            match(Criteria.where("environments").is(envId).and("properties.api_id").exists(true)),
+            sort(Sort.by(Sort.Direction.DESC, "properties.api_id", "updatedAt")),
+            group("properties.api_id").first("$$ROOT").as("first").push("$$ROOT").as(arrayField),
+            project().and(arrayField).slice(history).as(outField)
+        );
+
+        var results = mongoTemplate.aggregate(aggregation, tmpEvents, Document.class);
+
+        results
+            .getMappedResults()
+            .forEach(doc -> {
+                @SuppressWarnings("unchecked")
+                List<Document> events = (List<Document>) doc.get(outField);
+                mongoTemplate.insert(events, EventMongo.class);
+                log.info("{} events inserted for API: {}", events.size(), ((Document) events.getFirst().get("properties")).get("api_id"));
+            });
+    }
+
+    private void dropWorkingCopy() {
+        log.info("Dropping temporary collection");
+        mongoTemplate.dropCollection(tmpEvents);
     }
 }

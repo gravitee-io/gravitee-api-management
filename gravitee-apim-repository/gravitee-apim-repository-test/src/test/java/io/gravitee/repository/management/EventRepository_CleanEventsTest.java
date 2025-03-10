@@ -13,11 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.audit.query_service;
+package io.gravitee.repository.management;
 
-import java.util.List;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public interface AuditEventQueryService {
-    List<String> listAllApiAuditEvents();
-    void cleanupEvents(String environmentId, int nbEventsToKeep);
+import org.junit.Test;
+
+public class EventRepository_CleanEventsTest extends AbstractManagementRepositoryTest {
+
+    @Override
+    protected String getTestCasesPath() {
+        return "/data/event-cleaning/";
+    }
+
+    @Test
+    public void cleanupGatewayEvents() {
+        // when
+        eventRepository.cleanupGatewayEvents("DEFAULT", 2);
+
+        // then
+        assertThat(eventRepository.findByEnvironmentId("NOT-DEFAULT")).hasSize(1);
+        assertThat(eventRepository.findByEnvironmentId("DEFAULT")).hasSize(2);
+    }
 }

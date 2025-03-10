@@ -27,15 +27,18 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Component
 public class MongoEventRepository implements EventRepository {
 
@@ -160,5 +163,10 @@ public class MongoEventRepository implements EventRepository {
     public List<Event> findByOrganizationId(String organizationId) {
         List<EventMongo> eventsMongo = internalEventRepo.findByOrganizationsIn(Set.of(organizationId));
         return mapper.mapEvents(eventsMongo);
+    }
+
+    @Override
+    public void cleanupGatewayEvents(String environmentId, int keepRecordsCount) {
+        internalEventRepo.cleanupGatewayEvents(environmentId, keepRecordsCount);
     }
 }
