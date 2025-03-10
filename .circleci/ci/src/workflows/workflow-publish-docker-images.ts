@@ -35,7 +35,7 @@ export class PublishDockerImagesWorkflow {
     const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, false);
     dynamicConfig.addJob(buildDockerImageJob);
 
-    const publishPrEnvUrlsJob = PublishPrEnvUrlsJob.create(dynamicConfig);
+    const publishPrEnvUrlsJob = PublishPrEnvUrlsJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(publishPrEnvUrlsJob);
 
     const jobs = [

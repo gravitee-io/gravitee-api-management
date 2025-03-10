@@ -280,16 +280,16 @@ export class PullRequestsWorkflow {
     }
 
     if (!filterJobs || shouldBuildConsole(environment.changedFiles)) {
-      const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig);
+      const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(webuiLintTestJob);
 
       const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, false);
       dynamicConfig.addJob(consoleWebuiBuildJob);
 
-      const storybookConsoleJob = StorybookConsoleJob.create(dynamicConfig);
+      const storybookConsoleJob = StorybookConsoleJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(storybookConsoleJob);
 
-      const chromaticConsoleJob = ChromaticConsoleJob.create(dynamicConfig);
+      const chromaticConsoleJob = ChromaticConsoleJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(chromaticConsoleJob);
 
       const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
@@ -347,7 +347,7 @@ export class PullRequestsWorkflow {
     }
 
     if (!filterJobs || shouldBuildPortal(environment.changedFiles)) {
-      const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig);
+      const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(webuiLintTestJob);
 
       const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, false);
@@ -429,10 +429,10 @@ export class PullRequestsWorkflow {
     const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, false);
     dynamicConfig.addJob(buildDockerImageJob);
 
-    const e2eGenerateSdkJob = E2EGenerateSDKJob.create(dynamicConfig);
+    const e2eGenerateSdkJob = E2EGenerateSDKJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(e2eGenerateSdkJob);
 
-    const e2eLintBuildJob = E2ELintBuildJob.create(dynamicConfig);
+    const e2eLintBuildJob = E2ELintBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(e2eLintBuildJob);
 
     const e2eTestJob = E2ETestJob.create(dynamicConfig, environment);
@@ -441,7 +441,7 @@ export class PullRequestsWorkflow {
     const e2eCypressJob = E2ECypressJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(e2eCypressJob);
 
-    const perfLintBuildJob = PerfLintBuildJob.create(dynamicConfig);
+    const perfLintBuildJob = PerfLintBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(perfLintBuildJob);
 
     return [
