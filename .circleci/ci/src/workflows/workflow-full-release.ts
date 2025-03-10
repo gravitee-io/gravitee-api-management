@@ -87,13 +87,13 @@ export class FullReleaseWorkflow {
       // APIM Portal
       new workflow.WorkflowJob(portalWebuiBuildJob, {
         context: config.jobContext,
-        name: 'Build APIM Portal and publish on download website',
+        name: 'Build APIM Portal',
         requires: ['Setup'],
       }),
       new workflow.WorkflowJob(buildDockerImageJob, {
         context: config.jobContext,
         name: `Build APIM Portal docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
-        requires: ['Build APIM Portal and publish on download website'],
+        requires: ['Build APIM Portal'],
         'apim-project': config.components.portal.project,
         'docker-context': '.',
         'docker-image-name': config.components.portal.image,
@@ -102,13 +102,13 @@ export class FullReleaseWorkflow {
       // APIM Console
       new workflow.WorkflowJob(consoleWebuiBuildJob, {
         context: config.jobContext,
-        name: 'Build APIM Console and publish on download website',
+        name: 'Build APIM Console',
         requires: ['Setup'],
       }),
       new workflow.WorkflowJob(buildDockerImageJob, {
         context: config.jobContext,
         name: `Build APIM Console docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
-        requires: ['Build APIM Console and publish on download website'],
+        requires: ['Build APIM Console'],
         'apim-project': config.components.console.project,
         'docker-context': '.',
         'docker-image-name': config.components.console.image,
@@ -141,11 +141,7 @@ export class FullReleaseWorkflow {
       new workflow.WorkflowJob(releaseCommitAndPrepareNextVersionJob, {
         context: config.jobContext,
         name: 'Commit and prepare next version',
-        requires: [
-          'Backend build and publish on download website',
-          'Build APIM Console and publish on download website',
-          'Build APIM Portal and publish on download website',
-        ],
+        requires: ['Backend build and publish on download website', 'Build APIM Console', 'Build APIM Portal'],
       }),
 
       // Package bundle
