@@ -28,7 +28,7 @@ COPY docker/config/default.no-ipv6.conf /etc/nginx/conf.d/default.no-ipv6.conf
 
 RUN chown -R 101:0 /usr/share/nginx/ /etc/nginx/
 
-COPY config/check_ip_config.sh /check_ip_config.sh
+COPY docker/config/check_ip_config.sh /check_ip_config.sh
 
 CMD ["/bin/sh", "-c", "sh /check_ip_config.sh; sh /run.sh"]
 
