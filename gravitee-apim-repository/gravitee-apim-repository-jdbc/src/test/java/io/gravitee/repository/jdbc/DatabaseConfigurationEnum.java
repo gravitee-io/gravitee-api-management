@@ -16,10 +16,10 @@
 package io.gravitee.repository.jdbc;
 
 public enum DatabaseConfigurationEnum {
-    MARIADB("mariadb", "10.3.6"),
-    MYSQL("mysql", "5.7.22"),
-    SQLSERVER("mcr.microsoft.com/mssql/server", "2017-CU12"),
-    POSTGRESQL("postgres", "9.6.12");
+    MARIADB("mariadb", "10.4"),
+    MYSQL("mysql", "8.0"),
+    SQLSERVER("mcr.microsoft.com/mssql/server", "2017-latest"),
+    POSTGRESQL("postgres", "13");
 
     private String dockerImageName;
     private String defaultTag;
