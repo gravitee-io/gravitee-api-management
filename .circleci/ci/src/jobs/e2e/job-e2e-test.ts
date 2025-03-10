@@ -35,7 +35,7 @@ export class E2ETestJob {
 
     const dockerAzureLoginCmd = DockerAzureLoginCommand.get(dynamicConfig);
     const dockerAzureLogoutCmd = DockerAzureLogoutCommand.get();
-    const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig);
+    const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig, environment);
     dynamicConfig.addReusableCommand(dockerAzureLoginCmd);
     dynamicConfig.addReusableCommand(dockerAzureLogoutCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);

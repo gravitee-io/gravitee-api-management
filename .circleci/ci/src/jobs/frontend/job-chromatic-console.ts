@@ -20,6 +20,7 @@ import { NotifyOnFailureCommand, WebuiInstallCommand } from '../../commands';
 import { orbs } from '../../orbs';
 import { config } from '../../config';
 import { CommandParameterLiteral } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Parameters/types/CustomParameterLiterals.types';
+import { CircleCIEnvironment } from '../../pipelines';
 
 export class ChromaticConsoleJob {
   private static jobName = 'job-console-webui-chromatic-deployment';
@@ -28,14 +29,14 @@ export class ChromaticConsoleJob {
     new parameters.CustomParameter('node_version', 'string', config.executor.node.console.version, 'Node version to use for executor'),
   ]);
 
-  public static create(dynamicConfig: Config): Job {
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     dynamicConfig.importOrb(orbs.keeper);
     dynamicConfig.importOrb(orbs.github);
 
     const webUiInstallCommand = WebuiInstallCommand.get();
     dynamicConfig.addReusableCommand(webUiInstallCommand);
 
-    const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig);
+    const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig, environment);
     dynamicConfig.addReusableCommand(notifyOnFailureCommand);
 
     const steps: Command[] = [

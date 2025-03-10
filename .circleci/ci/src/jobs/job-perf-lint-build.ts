@@ -17,15 +17,16 @@ import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { NodeLtsExecutor } from '../executors';
 import { NotifyOnFailureCommand, WebuiInstallCommand } from '../commands';
+import { CircleCIEnvironment } from '../pipelines';
 
 export class PerfLintBuildJob {
   private static jobName = 'job-perf-lint-build';
 
-  public static create(dynamicConfig: Config): Job {
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     const webUiInstallCommand = WebuiInstallCommand.get();
     dynamicConfig.addReusableCommand(webUiInstallCommand);
 
-    const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig);
+    const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig, environment);
     dynamicConfig.addReusableCommand(notifyOnFailureCommand);
 
     const steps: Command[] = [
