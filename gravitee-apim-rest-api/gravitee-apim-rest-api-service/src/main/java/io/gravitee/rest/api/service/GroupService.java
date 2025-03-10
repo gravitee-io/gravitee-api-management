@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -47,4 +49,5 @@ public interface GroupService {
     boolean isUserAuthorizedToAccessApiData(GenericApiEntity api, List<String> excludedGroups, String username);
     GroupEntity update(ExecutionContext executionContext, String groupId, UpdateGroupEntity group);
     void updateApiPrimaryOwner(String groupId, String newApiPrimaryOwner);
+    Set<Group> findAllByEnvironment(String environmentId);
 }
