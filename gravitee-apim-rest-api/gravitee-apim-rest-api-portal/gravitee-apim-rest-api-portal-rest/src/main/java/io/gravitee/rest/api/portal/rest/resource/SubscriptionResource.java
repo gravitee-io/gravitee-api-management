@@ -84,6 +84,7 @@ public class SubscriptionResource extends AbstractResource {
     private GraviteeMapper graviteeMapper;
 
     private static final String INCLUDE_KEYS = "keys";
+    private static final String INCLUDE_CONSUMER_CONFIGURATION = "consumerConfiguration";
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -93,6 +94,7 @@ public class SubscriptionResource extends AbstractResource {
     ) {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
         if (
             hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.READ) ||
             hasPermission(executionContext, APPLICATION_SUBSCRIPTION, subscriptionEntity.getApplication(), RolePermissionAction.READ)
@@ -107,6 +109,11 @@ public class SubscriptionResource extends AbstractResource {
                     .collect(Collectors.toList());
                 subscription.setKeys(keys);
             }
+
+            if (include.contains(INCLUDE_CONSUMER_CONFIGURATION)) {
+                subscription.setConsumerConfiguration(SubscriptionMapper.INSTANCE.map(subscriptionEntity.getConfiguration()));
+            }
+
             return Response.ok(subscription).build();
         }
         throw new ForbiddenAccessException();

@@ -15,9 +15,11 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
+import io.gravitee.rest.api.portal.rest.model.SubscriptionConsumerConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -28,7 +30,7 @@ import org.slf4j.LoggerFactory;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper(uses = { DateMapper.class })
+@Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class })
 public interface SubscriptionMapper {
     Logger log = LoggerFactory.getLogger(SubscriptionMapper.class);
     SubscriptionMapper INSTANCE = Mappers.getMapper(SubscriptionMapper.class);
@@ -37,6 +39,9 @@ public interface SubscriptionMapper {
     @Mapping(target = "endAt", source = "endingAt")
     @Mapping(target = "startAt", source = "startingAt")
     Subscription map(SubscriptionEntity subscriptionEntity);
+
+    @Mapping(target = "entrypointConfiguration", qualifiedByName = "deserializeConfiguration")
+    SubscriptionConsumerConfiguration map(SubscriptionConfigurationEntity subscriptionConfigurationEntity);
 
     default Subscription.StatusEnum map(SubscriptionStatus status) {
         return Subscription.StatusEnum.fromValue(status.name());
