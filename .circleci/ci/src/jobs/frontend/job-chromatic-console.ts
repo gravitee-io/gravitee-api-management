@@ -19,11 +19,12 @@ import { NodeLtsExecutor } from '../../executors';
 import { InstallYarnCommand, NotifyOnFailureCommand, WebuiInstallCommand } from '../../commands';
 import { orbs } from '../../orbs';
 import { config } from '../../config';
+import { CircleCIEnvironment } from '../../pipelines';
 
 export class ChromaticConsoleJob {
   private static jobName = 'job-console-webui-chromatic-deployment';
 
-  public static create(dynamicConfig: Config): Job {
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     dynamicConfig.importOrb(orbs.keeper);
     dynamicConfig.importOrb(orbs.github);
 
@@ -33,7 +34,7 @@ export class ChromaticConsoleJob {
     const webUiInstallCommand = WebuiInstallCommand.get();
     dynamicConfig.addReusableCommand(webUiInstallCommand);
 
-    const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig);
+    const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig, environment);
     dynamicConfig.addReusableCommand(notifyOnFailureCommand);
 
     const steps: Command[] = [
