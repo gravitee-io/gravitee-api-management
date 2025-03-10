@@ -25,6 +25,17 @@ parameters:
     type: string
     default: /home/circleci/project/pom.xml
     description: Path to pom.xml with APIM version
+commands:
+  cmd-notify-on-failure:
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+          var-name: SLACK_ACCESS_TOKEN
+      - slack/notify:
+          channel: C02JENTV2AX
+          branch_pattern: master,[0-9]+\.[0-9]+\.x
+          event: fail
+          template: basic_fail_1
 jobs:
   job-test-apim-charts:
     parameters:
@@ -50,6 +61,7 @@ jobs:
           command: helm unittest -f 'tests/**/*.yaml' helm/ -t JUnit -o apim-result.xml
       - store_test_results:
           path: apim-result.xml
+      - cmd-notify-on-failure
   job-validate-workflow-status:
     docker:
       - image: cimg/base:stable
@@ -77,6 +89,8 @@ workflows:
                 var-name: GITHUB_TOKEN
       - job-test-apim-charts:
           name: Helm Chart - Lint & Test
+          context:
+            - cicd-orchestrator
       - job-validate-workflow-status:
           name: Validate workflow status
           requires:
@@ -85,3 +99,4 @@ orbs:
   keeper: gravitee-io/keeper@0.7.0
   aquasec: gravitee-io/aquasec@1.0.4
   helm: circleci/helm@3.0.0
+  slack: circleci/slack@4.12.5
