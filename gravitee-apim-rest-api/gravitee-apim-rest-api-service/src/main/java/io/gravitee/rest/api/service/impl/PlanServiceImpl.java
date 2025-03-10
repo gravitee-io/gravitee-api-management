@@ -33,9 +33,11 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.BasePlanEntity;
@@ -50,6 +52,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PlanService;
@@ -60,6 +63,7 @@ import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.ApiDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.KeylessPlanAlreadyPublishedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyDeprecatedException;
@@ -148,6 +152,9 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
     @Autowired
     private TagsValidationService tagsValidationService;
+
+    @Autowired
+    private GroupService groupService;
 
     @Override
     public PlanEntity findById(final ExecutionContext executionContext, final String plan) {
@@ -273,6 +280,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             String planPolicies = objectMapper.writeValueAsString(updatePlan.getPaths());
             newPlan.setDefinition(planPolicies);
 
+            validateExcludedGroups(updatePlan.getExcludedGroups(), api.getEnvironmentId());
             newPlan.setExcludedGroups(updatePlan.getExcludedGroups());
 
             if (newPlan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
@@ -338,6 +346,17 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             if (!generalConditions.isPublished()) {
                 throw new PlanGeneralConditionStatusException(plan.getName());
             }
+        }
+    }
+
+    private void validateExcludedGroups(List<String> excludedGroups, String environmentId) throws TechnicalException {
+        var envGroupsIds = groupService.findAllByEnvironment(environmentId).stream().map(Group::getId).collect(Collectors.toSet());
+        if (excludedGroups != null && !excludedGroups.isEmpty()) {
+            excludedGroups.forEach(excludedGroupId -> {
+                if (!envGroupsIds.contains(excludedGroupId)) {
+                    throw new GroupNotFoundException(String.format("Excluded group %s doesn't exist", excludedGroupId));
+                }
+            });
         }
     }
 

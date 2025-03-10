@@ -1039,4 +1039,16 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             new NotificationParamsBuilder().api(apiEntity).user(userService.findById(executionContext, getAuthenticatedUsername())).build()
         );
     }
+
+    @Override
+    public Set<Group> findAllByEnvironment(String environmentId) {
+        try {
+            logger.debug("Find all groups by environment ID {}", environmentId);
+            Set<Group> groups = groupRepository.findAllByEnvironment(environmentId);
+            logger.debug("Find all groups by environment ID {} - DONE", environmentId);
+            return groups;
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurs while trying to find all groups", ex);
+        }
+    }
 }
