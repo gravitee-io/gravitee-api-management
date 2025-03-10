@@ -31,7 +31,7 @@
     [disableMiniMap]="true"
     [disabled]="disabled"
   ></gio-monaco-editor>
-  <markdown *ngIf="preview && pageType === 'MARKDOWN'" [data]="_value"> </markdown>
+  <markdown class="markdown-content" *ngIf="preview && pageType === 'MARKDOWN'" [data]="_value"> </markdown>
   <gio-swagger-ui *ngIf="preview && pageType === 'SWAGGER'" [spec]="_value"></gio-swagger-ui>
   <gio-async-api *ngIf="preview && pageType === 'ASYNCAPI'" [schema]="_value"></gio-async-api>
 </div>
