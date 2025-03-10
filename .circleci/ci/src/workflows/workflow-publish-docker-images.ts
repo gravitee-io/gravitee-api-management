@@ -33,7 +33,7 @@ export class PublishDockerImagesWorkflow {
     const webuiBuildJob = WebuiBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(webuiBuildJob);
 
-    const publishPrEnvUrlsJob = PublishPrEnvUrlsJob.create(dynamicConfig);
+    const publishPrEnvUrlsJob = PublishPrEnvUrlsJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(publishPrEnvUrlsJob);
 
     const jobs = [

@@ -18,7 +18,18 @@ import { generateHelmTestsConfig } from '../pipeline-helm-tests';
 
 describe('Run Helm Tests', () => {
   it('should generate Helms tests pipeline', () => {
-    const result = generateHelmTestsConfig();
+    const result = generateHelmTestsConfig({
+      action: 'helm_tests',
+      sha1: '784ff35ca',
+      changedFiles: [],
+      buildNum: '1234',
+      buildId: '1234',
+      graviteeioVersion: '4.2.0',
+      apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
+      baseBranch: 'master',
+      branch: 'master',
+      isDryRun: false,
+    });
 
     const expected = fs.readFileSync(`./src/pipelines/tests/resources/helm-tests/helm-tests.yml`, 'utf-8');
     expect(result.stringify()).toStrictEqual(expected);

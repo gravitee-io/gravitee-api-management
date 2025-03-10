@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Config } from '@circleci/circleci-config-sdk';
-import { initDynamicConfig } from './config-factory';
-import { HelmTestsWorkflow } from '../workflows/workflow-helm-tests';
-import { CircleCIEnvironment } from './circleci-environment';
+import { config } from '../config';
 
-export function generateHelmTestsConfig(environment: CircleCIEnvironment): Config {
-  const dynamicConfig = initDynamicConfig();
-  const workflow = HelmTestsWorkflow.create(dynamicConfig, environment);
-  dynamicConfig.addWorkflow(workflow);
-  return dynamicConfig;
+export function computeSlackChannelToUse(action: string | undefined) {
+  switch (action) {
+    case 'repositories_tests':
+      return config.slack.channels.apimCiNotificationsRepositoriesTests;
+    case 'bridge_compatibility_tests':
+      return config.slack.channels.apimCiNotificationsBridgeCompatibilityTests;
+    case 'helm_tests':
+      return config.slack.channels.apimCiNotificationsHelmTests;
+  }
+  return config.slack.channels.apiManagementTeamNotifications;
 }

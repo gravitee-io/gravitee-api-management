@@ -39,7 +39,7 @@ export class WebuiPublishArtifactoryJob {
 
     dynamicConfig.importOrb(orbs.artifactory);
 
-    const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig);
+    const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig, environment);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
 
     const steps: Command[] = [

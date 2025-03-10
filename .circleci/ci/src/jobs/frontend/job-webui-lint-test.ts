@@ -19,6 +19,7 @@ import { CommandParameterLiteral } from '@circleci/circleci-config-sdk/dist/src/
 import { NodeLtsExecutor } from '../../executors';
 import { NotifyOnFailureCommand, WebuiInstallCommand } from '../../commands';
 import { config } from '../../config';
+import { CircleCIEnvironment } from '../../pipelines';
 
 export class WebuiLintTestJob {
   private static jobName = 'job-webui-lint-test';
@@ -29,11 +30,11 @@ export class WebuiLintTestJob {
     new parameters.CustomParameter('node_version', 'string', config.executor.node.console.version, 'Node version to use for executor'),
   ]);
 
-  public static create(dynamicConfig: Config): Job {
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     const webUiInstallCommand = WebuiInstallCommand.get();
     dynamicConfig.addReusableCommand(webUiInstallCommand);
 
-    const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig);
+    const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig, environment);
     dynamicConfig.addReusableCommand(notifyOnFailureCommand);
 
     const steps: Command[] = [

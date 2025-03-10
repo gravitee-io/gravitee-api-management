@@ -26,7 +26,7 @@ export class TestIntegrationJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
     const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
-    const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig);
+    const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig, environment);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(saveMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
