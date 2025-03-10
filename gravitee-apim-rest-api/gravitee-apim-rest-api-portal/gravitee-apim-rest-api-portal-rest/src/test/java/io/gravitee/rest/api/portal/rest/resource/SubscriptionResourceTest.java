@@ -40,7 +40,6 @@ import lombok.Getter;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -195,6 +194,41 @@ public class SubscriptionResourceTest extends AbstractResourceTest {
         assertNotNull(subscription);
         assertNotNull(subscription.getKeys());
         assertFalse(subscription.getKeys().isEmpty());
+    }
+
+    @Test
+    public void shouldGetSubscriptionWithConsumerStatus() {
+        doReturn(true)
+            .when(permissionService)
+            .hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.API_SUBSCRIPTION),
+                eq(API),
+                eq(RolePermissionAction.READ)
+            );
+        doReturn(true)
+            .when(permissionService)
+            .hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                eq(APPLICATION),
+                eq(RolePermissionAction.READ)
+            );
+
+        SubscriptionConfigurationEntity subscriptionConfigurationEntity = new SubscriptionConfigurationEntity();
+        subscriptionConfigurationEntity.setEntrypointId("entrypointId");
+        subscriptionConfigurationEntity.setChannel("channel");
+        subscriptionConfigurationEntity.setEntrypointConfiguration(
+            "{\"auth\":{\"type\":\"none\"},\"callbackUrl\":\"https://webhook.example/1234\",\"ssl\":{\"keyStore\":{\"type\":\"\"},\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"\"},\"trustAll\":true},\"retry\":{\"retryOption\":\"No Retry\"}}"
+        );
+        subscriptionEntity.setConfiguration(subscriptionConfigurationEntity);
+
+        final Response response = target(SUBSCRIPTION).queryParam("include", "consumerConfiguration").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        Subscription subscription = response.readEntity(Subscription.class);
+        assertNotNull(subscription);
+        assertNotNull(subscription.getConsumerConfiguration());
     }
 
     @Test
