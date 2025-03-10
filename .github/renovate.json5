@@ -61,7 +61,7 @@
         {
             // Update Gravitee NPM packages at any time
             "matchPackageNames": ["^@gravitee/*"],
-            "schedule": ["at any time"]
+            "groupName": "@gravitee/ui"
         }
     ]
 }
