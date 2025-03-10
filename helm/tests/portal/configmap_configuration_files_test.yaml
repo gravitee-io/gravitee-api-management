@@ -1,0 +1,67 @@
+suite: Test Management API default configmap
+templates:
+  - "portal/portal-configmap.yaml"
+
+tests:
+  - it: Backward compatible - config.json is compute from helm values
+    set:
+      portal:
+        baseURL: https://my.portal.gravitee-test.dev
+    asserts:
+      - matchRegex:
+          path: data["config.json"]
+          pattern: |
+            "baseURL": "https://my.portal.gravitee-test.dev",
+
+  - it: Raw copy config.json from helm values
+    set:
+      portal:
+        configuration:
+          files:
+            config_json: |-
+              {
+                "baseURL": "https://my.custom.portal.gravitee-test.dev"
+              }
+    asserts:
+      - matchRegex:
+          path: data["config.json"]
+          pattern: |
+            "baseURL": "https://my.custom.portal.gravitee-test.dev"
+      - equal:
+          path: data["config.json"]
+          value: |-
+            {
+              "baseURL": "https://my.custom.portal.gravitee-test.dev"
+            }
+
+
+  - it: Backward compatible - config-next.json is compute from helm values
+    set:
+      portal:
+        baseURL: https://my.portal.gravitee-test.dev
+    asserts:
+      - matchRegex:
+          path: data["config-next.json"]
+          pattern: |
+            "baseURL": "https://my.portal.gravitee-test.dev"
+
+  - it: Raw copy config-next.json from helm values
+    set:
+      portal:
+        configuration:
+          files:
+            config_next_json: |-
+              {
+                "baseURL": "https://my.custom.portal.gravitee-test.dev"
+              }
+    asserts:
+      - matchRegex:
+          path: data["config-next.json"]
+          pattern: |
+            "baseURL": "https://my.custom.portal.gravitee-test.dev"
+      - equal:
+          path: data["config-next.json"]
+          value: |-
+            {
+              "baseURL": "https://my.custom.portal.gravitee-test.dev"
+            }
