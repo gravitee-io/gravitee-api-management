@@ -371,13 +371,13 @@ workflows:
       - job-portal-webui-build:
           context:
             - cicd-orchestrator
-          name: Build APIM Portal and publish on download website
+          name: Build APIM Portal
           requires:
             - Setup
       - job-console-webui-build:
           context:
             - cicd-orchestrator
-          name: Build APIM Console and publish on download website
+          name: Build APIM Console
           requires:
             - Setup
       - job-backend-build-and-publish-on-download-website:
@@ -392,8 +392,8 @@ workflows:
           name: Commit and prepare next version
           requires:
             - Backend build and publish on download website
-            - Build APIM Console and publish on download website
-            - Build APIM Portal and publish on download website
+            - Build APIM Console
+            - Build APIM Portal
 orbs:
   keeper: gravitee-io/keeper@0.7.0
   slack: circleci/slack@4.12.5

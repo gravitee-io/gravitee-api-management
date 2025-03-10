@@ -59,14 +59,14 @@ export class ReleaseWorkflow {
       // APIM Portal
       new workflow.WorkflowJob(portalWebuiBuildJob, {
         context: config.jobContext,
-        name: 'Build APIM Portal and publish on download website',
+        name: 'Build APIM Portal',
         requires: ['Setup'],
       }),
 
       // APIM Console
       new workflow.WorkflowJob(consoleWebuiBuildJob, {
         context: config.jobContext,
-        name: 'Build APIM Console and publish on download website',
+        name: 'Build APIM Console',
         requires: ['Setup'],
       }),
 
@@ -81,11 +81,7 @@ export class ReleaseWorkflow {
       new workflow.WorkflowJob(releaseCommitAndPrepareNextVersionJob, {
         context: config.jobContext,
         name: 'Commit and prepare next version',
-        requires: [
-          'Backend build and publish on download website',
-          'Build APIM Console and publish on download website',
-          'Build APIM Portal and publish on download website',
-        ],
+        requires: ['Backend build and publish on download website', 'Build APIM Console', 'Build APIM Portal'],
       }),
     ]);
   }

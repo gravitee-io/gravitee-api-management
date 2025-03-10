@@ -656,7 +656,7 @@ workflows:
       - job-portal-webui-build:
           context:
             - cicd-orchestrator
-          name: Build APIM Portal and publish on download website
+          name: Build APIM Portal
           requires:
             - Setup
       - job-build-docker-image:
@@ -664,14 +664,14 @@ workflows:
             - cicd-orchestrator
           name: Build APIM Portal docker image for APIM 4.2.0
           requires:
-            - Build APIM Portal and publish on download website
+            - Build APIM Portal
           apim-project: gravitee-apim-portal-webui
           docker-context: .
           docker-image-name: apim-portal-ui
       - job-console-webui-build:
           context:
             - cicd-orchestrator
-          name: Build APIM Console and publish on download website
+          name: Build APIM Console
           requires:
             - Setup
       - job-build-docker-image:
@@ -679,7 +679,7 @@ workflows:
             - cicd-orchestrator
           name: Build APIM Console docker image for APIM 4.2.0
           requires:
-            - Build APIM Console and publish on download website
+            - Build APIM Console
           apim-project: gravitee-apim-console-webui
           docker-context: .
           docker-image-name: apim-management-ui
@@ -713,8 +713,8 @@ workflows:
           name: Commit and prepare next version
           requires:
             - Backend build and publish on download website
-            - Build APIM Console and publish on download website
-            - Build APIM Portal and publish on download website
+            - Build APIM Console
+            - Build APIM Portal
       - job-package-bundle:
           context:
             - cicd-orchestrator
