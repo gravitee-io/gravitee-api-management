@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.rest.api.portal.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.portal.rest.provider.BadRequestExceptionMapper;
 import io.gravitee.rest.api.portal.rest.provider.ByteArrayOutputStreamWriter;
 import io.gravitee.rest.api.portal.rest.provider.ConstraintValidationExceptionMapper;
@@ -23,11 +22,11 @@ import io.gravitee.rest.api.portal.rest.provider.JsonMappingExceptionMapper;
 import io.gravitee.rest.api.portal.rest.provider.ManagementExceptionMapper;
 import io.gravitee.rest.api.portal.rest.provider.NotAllowedExceptionMapper;
 import io.gravitee.rest.api.portal.rest.provider.NotFoundExceptionMapper;
+import io.gravitee.rest.api.portal.rest.provider.ObjectMapperResolver;
 import io.gravitee.rest.api.portal.rest.provider.PayloadInputBodyReader;
 import io.gravitee.rest.api.portal.rest.provider.QueryParamExceptionMapper;
 import io.gravitee.rest.api.portal.rest.provider.ThrowableMapper;
 import io.gravitee.rest.api.portal.rest.provider.UnrecognizedPropertyExceptionMapper;
-import io.gravitee.rest.api.portal.rest.resource.auth.ConsoleAuthenticationResource;
 import io.gravitee.rest.api.portal.rest.resource.bootstrap.PortalUIBootstrapResource;
 import io.gravitee.rest.api.rest.filter.GraviteeContextResponseFilter;
 import io.gravitee.rest.api.rest.filter.MaintenanceFilter;

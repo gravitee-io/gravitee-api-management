@@ -81,9 +81,6 @@ public class SubscriptionResource extends AbstractResource {
     private KeyMapper keyMapper;
 
     @Inject
-    private SubscriptionMapper subscriptionMapper;
-
-    @Inject
     private GraviteeMapper graviteeMapper;
 
     private static final String INCLUDE_KEYS = "keys";
@@ -100,7 +97,7 @@ public class SubscriptionResource extends AbstractResource {
             hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.READ) ||
             hasPermission(executionContext, APPLICATION_SUBSCRIPTION, subscriptionEntity.getApplication(), RolePermissionAction.READ)
         ) {
-            Subscription subscription = subscriptionMapper.convert(subscriptionEntity);
+            Subscription subscription = SubscriptionMapper.INSTANCE.map(subscriptionEntity);
             if (include.contains(INCLUDE_KEYS)) {
                 List<Key> keys = apiKeyService
                     .findBySubscription(executionContext, subscriptionId)
