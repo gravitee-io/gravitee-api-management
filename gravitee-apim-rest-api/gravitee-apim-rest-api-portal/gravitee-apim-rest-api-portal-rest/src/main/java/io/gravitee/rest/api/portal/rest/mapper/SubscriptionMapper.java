@@ -18,50 +18,31 @@ package io.gravitee.rest.api.portal.rest.mapper;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.Date;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Mapper(uses = { DateMapper.class })
+public interface SubscriptionMapper {
+    Logger log = LoggerFactory.getLogger(SubscriptionMapper.class);
+    SubscriptionMapper INSTANCE = Mappers.getMapper(SubscriptionMapper.class);
 
-@Slf4j
-@Component
-public class SubscriptionMapper {
+    @Mapping(target = "keys", ignore = true)
+    @Mapping(target = "endAt", source = "endingAt")
+    @Mapping(target = "startAt", source = "startingAt")
+    Subscription map(SubscriptionEntity subscriptionEntity);
 
-    public Subscription convert(SubscriptionEntity subscriptionEntity) {
-        final Subscription subscriptionItem = new Subscription();
-        subscriptionItem.setId(subscriptionEntity.getId());
-        subscriptionItem.setApi(subscriptionEntity.getApi());
-        subscriptionItem.setApplication(subscriptionEntity.getApplication());
-        subscriptionItem.setCreatedAt(getDate(subscriptionEntity.getCreatedAt()));
-        subscriptionItem.setEndAt(getDate(subscriptionEntity.getEndingAt()));
-        subscriptionItem.setProcessedAt(getDate(subscriptionEntity.getProcessedAt()));
-        subscriptionItem.setStartAt(getDate(subscriptionEntity.getStartingAt()));
-        subscriptionItem.setPausedAt(getDate(subscriptionEntity.getPausedAt()));
-        subscriptionItem.setClosedAt(getDate(subscriptionEntity.getClosedAt()));
-        subscriptionItem.setPausedAt(getDate(subscriptionEntity.getPausedAt()));
-        subscriptionItem.setPlan(subscriptionEntity.getPlan());
-        subscriptionItem.setRequest(subscriptionEntity.getRequest());
-        subscriptionItem.setReason(subscriptionEntity.getReason());
-        subscriptionItem.setStatus(Subscription.StatusEnum.fromValue(subscriptionEntity.getStatus().name()));
-        subscriptionItem.setSubscribedBy(subscriptionEntity.getSubscribedBy());
-        subscriptionItem.setOrigin(convert(subscriptionEntity.getOrigin()));
-        return subscriptionItem;
+    default Subscription.StatusEnum map(SubscriptionStatus status) {
+        return Subscription.StatusEnum.fromValue(status.name());
     }
 
-    private OffsetDateTime getDate(final Date date) {
-        if (date != null) {
-            return date.toInstant().atOffset(ZoneOffset.UTC);
-        }
-        return null;
-    }
-
-    private static Subscription.OriginEnum convert(String origin) {
+    default Subscription.OriginEnum convert(String origin) {
         try {
             return Subscription.OriginEnum.valueOf(origin);
         } catch (IllegalArgumentException | NullPointerException e) {

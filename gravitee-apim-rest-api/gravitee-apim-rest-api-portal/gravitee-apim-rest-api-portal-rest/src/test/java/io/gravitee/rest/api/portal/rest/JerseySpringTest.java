@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.portal.rest;
 
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
-import io.gravitee.rest.api.portal.rest.mapper.ObjectMapperResolver;
+import io.gravitee.rest.api.portal.rest.provider.ObjectMapperResolver;
 import io.gravitee.rest.api.portal.rest.resource.GraviteePortalApplication;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import jakarta.annotation.Priority;
