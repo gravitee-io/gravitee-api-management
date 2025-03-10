@@ -15,16 +15,22 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.portal.rest.model.Subscription.StatusEnum;
+import io.gravitee.rest.api.portal.rest.model.SubscriptionConsumerConfiguration;
 import java.time.Instant;
 import java.util.Date;
+import lombok.SneakyThrows;
 import org.junit.Test;
 import org.mapstruct.factory.Mappers;
 
@@ -47,6 +53,7 @@ public class SubscriptionMapperTest {
     private SubscriptionEntity subscriptionEntity;
 
     private final SubscriptionMapper subscriptionMapper = Mappers.getMapper(SubscriptionMapper.class);
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     public void testConvert() {
@@ -128,5 +135,32 @@ public class SubscriptionMapperTest {
 
         assertEquals(SUBSCRIPTION_API, subscription.getApi());
         assertNull(subscription.getOrigin());
+    }
+
+    @Test
+    @SneakyThrows
+    public void should_handle_entrypoint_configuration() {
+        var entrypointId = "entrypointId";
+        var configuration =
+            "{\"auth\":{\"type\":\"none\"},\"callbackUrl\":\"https://webhook.example/1234\",\"ssl\":{\"keyStore\":{\"type\":\"\"},\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"\"},\"trustAll\":true},\"retry\":{\"retryOption\":\"No Retry\"}}";
+        var channel = "channel";
+
+        SubscriptionConfigurationEntity subscriptionConfigurationEntity = new SubscriptionConfigurationEntity();
+        subscriptionConfigurationEntity.setEntrypointId(entrypointId);
+        subscriptionConfigurationEntity.setChannel(channel);
+        subscriptionConfigurationEntity.setEntrypointConfiguration(configuration);
+
+        SubscriptionConsumerConfiguration result = subscriptionMapper.map(subscriptionConfigurationEntity);
+
+        assertThat(entrypointId).isEqualTo(result.getEntrypointId());
+        assertThat(channel).isEqualTo(result.getChannel());
+        assertThat(result).isNotNull();
+        assertThat(result.getEntrypointConfiguration()).isNotNull();
+
+        JsonNode actualConfig = objectMapper.valueToTree(result.getEntrypointConfiguration());
+        assertThat(actualConfig.get("auth").get("type").asText()).isEqualTo("none");
+        assertThat(actualConfig.get("callbackUrl").asText()).isEqualTo("https://webhook.example/1234");
+        assertThat(actualConfig.get("ssl").get("trustAll").asBoolean()).isTrue();
+        assertThat(actualConfig.get("retry").get("retryOption").asText()).isEqualTo("No Retry");
     }
 }
