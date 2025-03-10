@@ -19,6 +19,7 @@ import { NodeLtsExecutor } from '../../executors';
 import { NotifyOnFailureCommand, WebuiInstallCommand } from '../../commands';
 import { config } from '../../config';
 import { CommandParameterLiteral } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Parameters/types/CustomParameterLiterals.types';
+import { CircleCIEnvironment } from '../../pipelines';
 
 export class StorybookConsoleJob {
   private static jobName = 'job-console-webui-build-storybook';
@@ -27,11 +28,11 @@ export class StorybookConsoleJob {
     new parameters.CustomParameter('node_version', 'string', config.executor.node.console.version, 'Node version to use for executor'),
   ]);
 
-  public static create(dynamicConfig: Config): Job {
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     const webUiInstallCommand = WebuiInstallCommand.get();
     dynamicConfig.addReusableCommand(webUiInstallCommand);
 
-    const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig);
+    const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig, environment);
     dynamicConfig.addReusableCommand(notifyOnFailureCommand);
 
     const steps: Command[] = [
