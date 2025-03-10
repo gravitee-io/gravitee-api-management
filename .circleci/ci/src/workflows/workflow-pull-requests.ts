@@ -99,9 +99,9 @@ export class PullRequestsWorkflow {
     const requires: string[] = [];
 
     if (!filterJobs || shouldBuildHelm(environment.changedFiles)) {
-      const apimChartsTestJob = TestApimChartsJob.create(dynamicConfig);
+      const apimChartsTestJob = TestApimChartsJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(apimChartsTestJob);
-      jobs.push(new workflow.WorkflowJob(apimChartsTestJob, { name: 'Helm Chart - Lint & Test' }));
+      jobs.push(new workflow.WorkflowJob(apimChartsTestJob, { name: 'Helm Chart - Lint & Test', context: config.jobContext }));
 
       requires.push('Helm Chart - Lint & Test');
     }
