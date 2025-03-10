@@ -18,15 +18,16 @@ import { NodeLtsExecutor } from '../executors';
 import { orbs } from '../orbs';
 import { config } from '../config';
 import { NotifyOnFailureCommand } from '../commands';
+import { CircleCIEnvironment } from '../pipelines';
 
 export class PublishPrEnvUrlsJob {
   private static jobName = 'job-publish-pr-env-urls';
 
-  public static create(dynamicConfig: Config): Job {
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     dynamicConfig.importOrb(orbs.keeper);
     dynamicConfig.importOrb(orbs.github);
 
-    const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig);
+    const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig, environment);
     dynamicConfig.addReusableCommand(notifyOnFailureCommand);
 
     return new Job(PublishPrEnvUrlsJob.jobName, NodeLtsExecutor.create('small'), [
