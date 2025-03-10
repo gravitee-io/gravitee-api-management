@@ -15,13 +15,9 @@
 # limitations under the License.
 #
 
-# generate configs
-if [ -f "/usr/share/nginx/html/next/browser/assets/config.json" ]; then
-    envsubst < /usr/share/nginx/html/next/browser/assets/config.json > /usr/share/nginx/html/next/browser/assets/config.json.tmp
-    mv /usr/share/nginx/html/next/browser/assets/config.json.tmp /usr/share/nginx/html/next/browser/assets/config.json
+IPV4_ONLY=${IPV4_ONLY:-false}
+
+if [ "$IPV4_ONLY" = "true" ]; then
+    mv /etc/nginx/conf.d/default.no-ipv6.conf /etc/nginx/conf.d/default.conf
 fi
 
-if [ "$DEFAULT_PORTAL" = "next" ]; then
-    cp /etc/nginx/conf.d/default-next.conf /etc/nginx/conf.d/default.conf
-    cp /etc/nginx/conf.d/default-next.no-ipv6.conf /etc/nginx/conf.d/default.no-ipv6.conf
-fi
