@@ -83,9 +83,6 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
     @Inject
     private SubscriptionService subscriptionService;
 
-    @Inject
-    private SubscriptionMapper subscriptionMapper;
-
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -236,7 +233,7 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
         final Map<String, List<Subscription>> subscriptions = subscriptionService
             .search(executionContext, query)
             .stream()
-            .map(subscriptionMapper::convert)
+            .map(SubscriptionMapper.INSTANCE::map)
             .collect(groupingBy(Subscription::getApplication));
         if (!subscriptions.isEmpty()) {
             metadata.put(METADATA_SUBSCRIPTIONS_KEY, subscriptions);
