@@ -15,5 +15,16 @@
   &__editor {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 10px;
   }
+}
+
+:host ::ng-deep .markdown-content table td {
+  word-break: break-all;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+:host ::ng-deep .markdown-content p {
+  word-wrap: break-word;
 }
