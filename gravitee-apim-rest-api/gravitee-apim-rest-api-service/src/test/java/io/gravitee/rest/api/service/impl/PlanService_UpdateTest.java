@@ -35,8 +35,10 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.PageEntity;
@@ -45,6 +47,7 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.UpdatePlanEntity;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PlanService;
@@ -53,11 +56,13 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
+import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PlanFlowRequiredException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionStatusException;
 import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.Before;
@@ -126,6 +131,9 @@ public class PlanService_UpdateTest {
 
     @Mock
     private TagsValidationService tagsValidationService;
+
+    @Mock
+    private GroupService groupService;
 
     @Before
     public void setup() throws Exception {
@@ -421,5 +429,26 @@ public class PlanService_UpdateTest {
         var apiDefinition = new io.gravitee.definition.model.Api();
         apiDefinition.setDefinitionVersion(version);
         when(api.getDefinition()).thenReturn(new ObjectMapper().writeValueAsString(apiDefinition));
+    }
+
+    @Test(expected = GroupNotFoundException.class)
+    public void should_throw_GroupNotFoundException_if_updated_excluded_group_not_found() throws TechnicalException {
+        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
+        when(plan.getType()).thenReturn(Plan.PlanType.API);
+        when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.API_KEY);
+        when(plan.getApi()).thenReturn(API_ID);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+            .thenReturn(true);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        UpdatePlanEntity updatePlan = mock(UpdatePlanEntity.class);
+        when(updatePlan.getId()).thenReturn(PLAN_ID);
+        when(updatePlan.getName()).thenReturn("NameUpdated");
+
+        when(updatePlan.getExcludedGroups()).thenReturn(List.of("not-existing-group"));
+        when(groupService.findAllByEnvironment(any())).thenReturn(Set.of(Group.builder().id("existing-group").build()));
+
+        planService.update(GraviteeContext.getExecutionContext(), updatePlan);
     }
 }
