@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesQueryAdapter.ALL_APIS_STATUS_RANGES;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesQueryAdapter.ENTRYPOINT_ID_AGG;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -57,7 +59,7 @@ class SearchResponseStatusRangesResponseAdapterTest {
     void should_build_search_requests_count_response(String[] entrypoints) {
         final SearchResponse searchResponse = new SearchResponse();
         final Aggregation aggregation = new Aggregation();
-        searchResponse.setAggregations(Map.of(ENTRYPOINT_ID_AGG, aggregation));
+        searchResponse.setAggregations(Map.of(ENTRYPOINT_ID_AGG, aggregation, ALL_APIS_STATUS_RANGES, provideAllApiStatusAggregation()));
 
         aggregation.setBuckets(Arrays.stream(entrypoints).map(this::provideBucket).toList());
 
@@ -65,6 +67,19 @@ class SearchResponseStatusRangesResponseAdapterTest {
             .hasValueSatisfying(topHits ->
                 assertThat(topHits.getStatusRangesCountByEntrypoint().keySet()).containsExactlyInAnyOrder(entrypoints)
             );
+    }
+
+    private Aggregation provideAllApiStatusAggregation() {
+        var result = List.<JsonNode>of(
+            objectMapper.createObjectNode().put("key", "100.0-200.0").put("doc_count", 1),
+            objectMapper.createObjectNode().put("key", "200.0-300.0").put("doc_count", 2),
+            objectMapper.createObjectNode().put("key", "300.0-400.0").put("doc_count", 3),
+            objectMapper.createObjectNode().put("key", "400.0-500.0").put("doc_count", 4)
+        );
+
+        var aggregation = new Aggregation();
+        aggregation.setBuckets(result);
+        return aggregation;
     }
 
     private JsonNode provideBucket(String entrypoint) {
@@ -83,7 +98,8 @@ class SearchResponseStatusRangesResponseAdapterTest {
         return Stream.of(
             Arguments.of((Object) new String[] {}),
             Arguments.of((Object) new String[] { "http-get" }),
-            Arguments.of((Object) new String[] { "http-get", "http-post" })
+            Arguments.of((Object) new String[] { "http-get", "http-post" }),
+            Arguments.of((Object) new String[] { "key" })
         );
     }
 }
