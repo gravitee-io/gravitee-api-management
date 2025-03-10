@@ -34,6 +34,7 @@
     [disableMiniMap]="true"
     [disabled]="disabled"
   ></gio-monaco-editor>
+<<<<<<< HEAD
   @if (preview) {
     @switch (pageType) {
       @case ('MARKDOWN') {
@@ -50,4 +51,9 @@
       }
     }
   }
+=======
+  <markdown class="markdown-content" *ngIf="preview && pageType === 'MARKDOWN'" [data]="_value"> </markdown>
+  <gio-swagger-ui *ngIf="preview && pageType === 'SWAGGER'" [spec]="_value"></gio-swagger-ui>
+  <gio-async-api *ngIf="preview && pageType === 'ASYNCAPI'" [schema]="_value"></gio-async-api>
+>>>>>>> 6429cd07c9 (fix: text overflow in API documentation containers)
 </div>
