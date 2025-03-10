@@ -19,10 +19,14 @@ import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
 import io.gravitee.common.data.domain.Page;
@@ -32,11 +36,11 @@ import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.portal.rest.model.ApiKeyModeEnum;
 import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.portal.rest.model.Links;
@@ -79,17 +83,17 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
 
         SubscriptionEntity subscriptionEntity1 = new SubscriptionEntity();
         subscriptionEntity1.setId(SUBSCRIPTION);
+        subscriptionEntity1.setStatus(SubscriptionStatus.ACCEPTED);
         SubscriptionEntity subscriptionEntity2 = new SubscriptionEntity();
         subscriptionEntity2.setId(ANOTHER_SUBSCRIPTION);
+        subscriptionEntity2.setStatus(SubscriptionStatus.ACCEPTED);
         final Page<SubscriptionEntity> subscriptionPage = new Page<>(asList(subscriptionEntity1, subscriptionEntity2), 0, 1, 2);
         doReturn(subscriptionPage.getContent()).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
         doReturn(subscriptionPage).when(subscriptionService).search(any(), any(), any());
 
-        doReturn(new Subscription().id(SUBSCRIPTION)).when(SubscriptionMapper.INSTANCE).map(subscriptionEntity1);
-        doReturn(new Subscription().id(ANOTHER_SUBSCRIPTION)).when(SubscriptionMapper.INSTANCE).map(subscriptionEntity2);
-
         SubscriptionEntity createdSubscription = new SubscriptionEntity();
         createdSubscription.setId(SUBSCRIPTION);
+        createdSubscription.setStatus(SubscriptionStatus.ACCEPTED);
         doReturn(createdSubscription).when(subscriptionService).create(eq(GraviteeContext.getExecutionContext()), any());
 
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
