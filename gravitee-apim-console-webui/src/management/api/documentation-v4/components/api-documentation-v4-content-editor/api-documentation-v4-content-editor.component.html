@@ -37,7 +37,7 @@
   @if (preview) {
     @switch (pageType) {
       @case ('MARKDOWN') {
-        <markdown [data]="_value"></markdown>
+        <markdown class="markdown-content" [data]="_value"></markdown>
       }
       @case ('SWAGGER') {
         <gio-swagger-ui [spec]="_value"></gio-swagger-ui>
