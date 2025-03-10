@@ -13,23 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Meta, StoryObj } from '@storybook/angular';
+import { ComponentHarness } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
-import { ApiSubscriptionEditPushConfigComponent } from './api-subscription-edit-push-config.component';
+export class SubscriptionEditPushConfigHarness extends ComponentHarness {
+  static readonly hostSelector = 'subscription-edit-push-config';
 
-export default {
-  title: 'ApiSubscriptionEditPushConfigComponent story',
-  component: ApiSubscriptionEditPushConfigComponent,
-  argTypes: {},
-  render: (args) => ({
-    template: `
-      <div style="width: 800px">
-        <api-subscription-edit-push-config></api-subscription-edit-push-config>
-      </div>
-    `,
-    props: args,
-  }),
-} as Meta;
+  async getContentText(): Promise<string> {
+    const host = await this.host();
 
-export const Default: StoryObj = {};
-Default.args = {};
+    return host.text();
+  }
+
+  async clickEditButton(): Promise<void> {
+    const button = await this.locatorFor(MatButtonHarness.with({ text: /Edit/ }))();
+    await button.click();
+  }
+}

@@ -74,4 +74,11 @@ export class ApplicationSubscriptionService {
       `${this.constants.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}/apikeys/${apiKeyId}`,
     );
   }
+
+  update(applicationId: string, subscriptionId: string, subscriptionToUpdate: Subscription) {
+    return this.http.put<Subscription>(
+      `${this.constants.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}`,
+      subscriptionToUpdate,
+    );
+  }
 }
