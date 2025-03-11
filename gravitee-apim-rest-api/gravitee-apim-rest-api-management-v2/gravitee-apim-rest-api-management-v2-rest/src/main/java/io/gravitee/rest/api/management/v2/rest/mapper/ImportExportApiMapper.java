@@ -39,6 +39,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Metadata;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.context.OriginContext;
+import jakarta.annotation.Nullable;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
@@ -148,8 +149,11 @@ public interface ImportExportApiMapper {
     }
 
     default Map<String, Map<String, io.gravitee.rest.api.management.v2.rest.model.ResponseTemplate>> map(
-        Map<String, Map<String, ResponseTemplate>> value
+        @Nullable Map<String, Map<String, ResponseTemplate>> value
     ) {
+        if (value == null) {
+            return Map.of();
+        }
         return stream(value.entrySet())
             .map(e ->
                 Map.entry(e.getKey(), stream(e.getValue().entrySet()).collect(Collectors.toMap(Map.Entry::getKey, o -> map(o.getValue()))))
