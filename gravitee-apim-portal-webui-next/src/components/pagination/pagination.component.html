@@ -1,0 +1,57 @@
+<!--
+
+    Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<button mat-icon-button [disabled]="!pagination().hasPreviousPage" (click)="goToPreviousPage()" aria-label="Previous page of results">
+  <mat-icon class="breadcrumb-icon">chevron_left</mat-icon>
+</button>
+
+@if (pagination().hasPreviousPage) {
+  <button mat-button (click)="goToPage(1)" aria-label="First page of results">1</button>
+
+  @if (pagination().currentPage > 3) {
+    @if (pagination().totalPages > 4) {
+      <div class="m3-body-medium">...</div>
+    }
+    @if (pagination().currentPage === pagination().totalPages) {
+      <button mat-button (click)="goToPage(pagination().currentPage - 2)">{{ pagination().currentPage - 2 }}</button>
+    }
+  }
+
+  @if (pagination().currentPage > 2) {
+    <button mat-button (click)="goToPreviousPage()" aria-label="Previous page of results">{{ pagination().currentPage - 1 }}</button>
+  }
+}
+
+<button mat-flat-button aria-label="Current page of results">{{ pagination().currentPage }}</button>
+
+@if (pagination().hasNextPage) {
+  @if (pagination().currentPage + 1 < pagination().totalPages) {
+    <button mat-button (click)="goToNextPage()" aria-label="Next page of results">{{ pagination().currentPage + 1 }}</button>
+  }
+  @if (pagination().totalPages > 3 && pagination().currentPage === 1) {
+    <button mat-button (click)="goToPage(3)">{{ 3 }}</button>
+  }
+  @if (pagination().totalPages > 4 && pagination().currentPage <= pagination().totalPages - 3) {
+    <div class="m3-body-medium">...</div>
+  }
+
+  <button mat-button (click)="goToPage(pagination().totalPages)" aria-label="Last page of results">{{ pagination().totalPages }}</button>
+}
+
+<button mat-icon-button [disabled]="!pagination().hasNextPage" (click)="goToNextPage()" aria-label="Next page of results">
+  <mat-icon class="breadcrumb-icon">chevron_right</mat-icon>
+</button>
