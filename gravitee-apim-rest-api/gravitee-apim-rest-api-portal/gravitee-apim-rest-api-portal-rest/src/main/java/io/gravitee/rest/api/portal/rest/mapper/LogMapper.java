@@ -116,8 +116,8 @@ public class LogMapper {
         logItem.setStatus(connectionLog.getStatus());
         logItem.setTimestamp(Instant.parse(connectionLog.getTimestamp()).toEpochMilli());
         logItem.setTransactionId(connectionLog.getTransactionId());
-        //        logItem.setUser(connectionLog.getUser()); TODO: Get user information
-
+        logItem.setRequestContentLength(connectionLog.getRequestContentLength());
+        logItem.setResponseContentLength(connectionLog.getResponseContentLength());
         return logItem;
     }
 
