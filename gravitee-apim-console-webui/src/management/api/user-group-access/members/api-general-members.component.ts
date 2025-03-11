@@ -251,7 +251,10 @@ export class ApiGeneralMembersComponent implements OnInit {
         switchMap(([apiDialogResult, api]) => {
           return api.definitionVersion === 'V1'
             ? throwError({ message: `You cannot modify this API. version ${api.definitionVersion}.` })
-            : this.apiService.update(api.id, { ...api, groups: apiDialogResult?.groups });
+            : this.apiService.update(api.id, {
+                ...api,
+                groups: apiDialogResult?.groups ?? api.groups, // ✅ Safe fallback
+              });
         }),
         takeUntil(this.unsubscribe$),
       )
