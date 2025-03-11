@@ -48,7 +48,7 @@ export class ApiScoringComponent implements OnInit {
   public status: ScoringSeverity | 'ALL' = 'ALL';
   public isLoading = true;
   public api: Api;
-  public pendingScoreRequest: boolean;
+  public pendingScoreRequest = false;
   protected readonly ScoringSeverity = ScoringSeverity;
 
   public apiScoreNeverEvaluated = false;
@@ -84,11 +84,20 @@ export class ApiScoringComponent implements OnInit {
       switchMap(() =>
         this.asyncJobService.listAsyncJobs({
           type: 'SCORING_REQUEST',
-          status: 'PENDING',
           sourceId: this.apiId,
         }),
       ),
-      map((response) => response.pagination.totalCount > 0),
+      map((response) => {
+        const lastJob = response?.data?.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())?.[0];
+        if (lastJob?.updatedAt && 3_600_000 < new Date().getTime() - new Date(lastJob?.updatedAt).getTime()) {
+          if (lastJob?.status === 'ERROR') {
+            this.snackBarService.error(`The last evaluation was failed at ${lastJob.createdAt}: ${lastJob.errorMessage ?? ''}`);
+          } else if (lastJob?.status === 'TIMEOUT') {
+            this.snackBarService.error(`The last evaluation was timed out at ${lastJob.createdAt}: ${lastJob.errorMessage ?? ''}`);
+          }
+        }
+        return lastJob?.status === 'PENDING';
+      }),
       takeUntil(this.stopPolling$),
     );
   }
