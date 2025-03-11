@@ -24,9 +24,6 @@ import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
 import io.gravitee.gateway.reactive.policy.adapter.policy.PolicyAdapter;
 import io.gravitee.policy.api.PolicyConfiguration;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author Guillaume Lamirand (guillaume.lamirand at graviteesource.com)
@@ -34,7 +31,6 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class DefaultPolicyFactory implements PolicyFactory {
 
-    private final ConcurrentMap<String, Policy> policies = new ConcurrentHashMap<>();
     private final PolicyPluginFactory policyPluginFactory;
     private final io.gravitee.gateway.policy.PolicyFactory v3PolicyFactory;
     protected final ExpressionLanguageConditionFilter<ConditionalPolicy> filter;
@@ -62,16 +58,7 @@ public class DefaultPolicyFactory implements PolicyFactory {
         final PolicyConfiguration policyConfiguration,
         final PolicyMetadata policyMetadata
     ) {
-        return policies.computeIfAbsent(
-            generateKey(
-                executionPhase,
-                policyManifest,
-                policyConfiguration,
-                policyMetadata.getCondition(),
-                policyMetadata.getMessageCondition()
-            ),
-            k -> createPolicy(executionPhase, policyManifest, policyConfiguration, policyMetadata)
-        );
+        return createPolicy(executionPhase, policyManifest, policyConfiguration, policyMetadata);
     }
 
     protected Policy createPolicy(
@@ -121,26 +108,6 @@ public class DefaultPolicyFactory implements PolicyFactory {
     @Override
     public void cleanup(PolicyManifest policyManifest) {
         policyPluginFactory.cleanup(policyManifest);
-    }
-
-    private String generateKey(
-        final ExecutionPhase executionPhase,
-        final PolicyManifest policyManifest,
-        final PolicyConfiguration policyConfiguration,
-        final String condition,
-        final String messageCondition
-    ) {
-        return (
-            Objects.hashCode(executionPhase) +
-            "-" +
-            Objects.hashCode(policyManifest) +
-            "-" +
-            Objects.hashCode(policyConfiguration) +
-            "-" +
-            Objects.hashCode(condition) +
-            "-" +
-            Objects.hashCode(messageCondition)
-        );
     }
 
     protected boolean isNotBlank(String s) {

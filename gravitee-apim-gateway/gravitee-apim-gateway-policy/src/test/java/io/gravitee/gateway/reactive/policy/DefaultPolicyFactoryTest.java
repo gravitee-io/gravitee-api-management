@@ -16,8 +16,11 @@
 package io.gravitee.gateway.reactive.policy;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verify;
 
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.policy.PolicyManifest;
@@ -40,7 +43,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -118,7 +120,7 @@ class DefaultPolicyFactoryTest {
     }
 
     @Test
-    void shouldCreateOnceReactivePolicy() {
+    void shouldCreateEverytimeReactivePolicy() {
         PolicyManifest policyManifest = policyManifestBuilder
             .setPolicy(DummyReactivePolicyWithConfig.class)
             .setConfiguration(DummyPolicyConfiguration.class)
@@ -129,7 +131,8 @@ class DefaultPolicyFactoryTest {
         Policy policy2 = cut.create(ExecutionPhase.REQUEST, policyManifest, policyConfiguration, policyMetadata);
         assertInstanceOf(DummyReactivePolicyWithConfig.class, policy);
 
-        assertSame(policy, policy2);
+        // V4 HttpPolicyFactory is a global factory, there is no more cache at this level and is replaced by a cache at HttpPolicyChainFactory level.
+        assertNotSame(policy, policy2);
     }
 
     @ParameterizedTest
@@ -176,7 +179,7 @@ class DefaultPolicyFactoryTest {
     }
 
     @Test
-    void shouldCreateOncePolicyAdapter() {
+    void shouldCreateEverytimePolicyAdapter() {
         PolicyManifest policyManifest = policyManifestBuilder
             .setPolicy(DummyPolicyWithConfig.class)
             .setConfiguration(DummyPolicyConfiguration.class)
@@ -188,7 +191,7 @@ class DefaultPolicyFactoryTest {
         Policy policy2 = cut.create(ExecutionPhase.REQUEST, policyManifest, policyConfiguration, policyMetadata);
         assertInstanceOf(PolicyAdapter.class, policy);
 
-        assertSame(policy, policy2);
+        assertNotSame(policy, policy2);
     }
 
     @ParameterizedTest
