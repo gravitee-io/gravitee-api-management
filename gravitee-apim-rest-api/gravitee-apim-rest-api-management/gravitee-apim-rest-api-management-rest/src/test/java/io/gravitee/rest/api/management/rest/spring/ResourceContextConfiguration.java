@@ -64,6 +64,7 @@ import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.DeleteSharedPolicyGroupUseCase;
@@ -90,7 +91,7 @@ import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainService
 import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDSpecDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
-import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
+import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.spring.CoreServiceSpringConfiguration;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.common.event.EventManager;
@@ -173,6 +174,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.mock.env.MockEnvironment;
 
 @Configuration
 @Import(
@@ -182,7 +184,6 @@ import org.springframework.context.annotation.PropertySource;
         CoreServiceSpringConfiguration.class,
         UsecaseSpringConfiguration.class,
         JacksonSpringConfiguration.class,
-        SanitizerSpringConfiguration.class,
     }
 )
 @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
@@ -860,5 +861,15 @@ public class ResourceContextConfiguration {
         CRDMembersDomainService crdMembersDomainService
     ) {
         return new ImportGroupCRDUseCase(validateGroupCRDDomainService, groupQueryService, groupCrudService, crdMembersDomainService);
+    }
+
+    @Bean
+    public io.gravitee.rest.api.service.sanitizer.HtmlSanitizer legacyHtmlSanitizer() {
+        return new io.gravitee.rest.api.service.sanitizer.HtmlSanitizer(new MockEnvironment());
+    }
+
+    @Bean
+    public HtmlSanitizer htmlSanitizer(io.gravitee.rest.api.service.sanitizer.HtmlSanitizer delegate) {
+        return new HtmlSanitizerImpl(delegate);
     }
 }
