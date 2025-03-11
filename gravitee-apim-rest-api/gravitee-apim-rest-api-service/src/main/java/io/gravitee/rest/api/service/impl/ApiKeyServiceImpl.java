@@ -138,6 +138,14 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
     @Override
     public ApiKeyEntity renew(ExecutionContext executionContext, SubscriptionEntity subscription, String customApiKey) {
+        if (
+            !(
+                subscription.getStatus().equals(io.gravitee.rest.api.model.SubscriptionStatus.ACCEPTED) ||
+                subscription.getStatus().equals(io.gravitee.rest.api.model.SubscriptionStatus.PAUSED)
+            )
+        ) {
+            throw new SubscriptionNotActiveException(subscription);
+        }
         final GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
         io.gravitee.rest.api.model.v4.plan.PlanSecurityType planSecurityType = null;
         if (genericPlanEntity.getPlanSecurity() != null) {
