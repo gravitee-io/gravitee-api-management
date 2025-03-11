@@ -149,6 +149,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.sanitizer.HtmlSanitizer;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -168,6 +169,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.env.MockEnvironment;
 
 class ImportCRDUseCaseTest {
 
@@ -331,8 +333,11 @@ class ImportCRDUseCaseTest {
             workflowCrudService
         );
         updateApiDomainService = mock(UpdateApiDomainService.class);
+
+        var htmlSanitizer = new HtmlSanitizer(new MockEnvironment());
+
         var documentationValidationDomainService = new DocumentationValidationDomainService(
-            new HtmlSanitizerImpl(),
+            new HtmlSanitizerImpl(htmlSanitizer),
             new NoopTemplateResolverDomainService(),
             apiCrudService,
             new NoopSwaggerOpenApiResolver(),
