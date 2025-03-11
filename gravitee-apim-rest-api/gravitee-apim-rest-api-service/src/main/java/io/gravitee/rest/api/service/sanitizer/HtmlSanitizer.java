@@ -27,82 +27,32 @@ import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import lombok.Getter;
+import lombok.Setter;
 import org.owasp.html.*;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Component
 public final class HtmlSanitizer {
 
-    private static final Parser mdParser = Parser.builder(new MutableDataSet()).build();
-    private static final HtmlRenderer htmlRenderer = HtmlRenderer
-        .builder(new MutableDataSet().set(HtmlRenderer.SUPPRESSED_LINKS, ""))
-        .build();
+    private final Parser mdParser = Parser.builder(new MutableDataSet()).build();
+    private final HtmlRenderer htmlRenderer = HtmlRenderer.builder(new MutableDataSet().set(HtmlRenderer.SUPPRESSED_LINKS, "")).build();
 
-    private static final AttributePolicy INTEGER = new AttributePolicy() {
-        @Override
-        public String apply(String elementName, String attributeName, String value) {
-            int n = value.length();
-            if (n == 0) {
-                return null;
-            }
-            for (int i = 0; i < n; ++i) {
-                char ch = value.charAt(i);
-                if (ch == '.') {
-                    if (i == 0) {
-                        return null;
-                    }
-                    return value.substring(0, i); // truncate to integer.
-                } else if (!('0' <= ch && ch <= '9')) {
-                    return null;
-                }
-            }
-            return value;
-        }
-    };
+    private final PolicyFactory factory;
 
-    private static final PolicyFactory HTML_IMAGES_SANITIZER = new HtmlPolicyBuilder()
-        .allowUrlProtocols("data", "http", "https")
-        .allowElements("img")
-        .allowAttributes("alt", "title", "src")
-        .onElements("img")
-        .allowAttributes("border", "height", "width")
-        .matching(INTEGER)
-        .onElements("img")
-        .toFactory();
+    public HtmlSanitizer(Environment environment) {
+        this.factory = this.initPolicyFactory(environment);
+    }
 
-    private static final PolicyFactory HTML_CSS_SANITIZER = new HtmlPolicyBuilder()
-        .allowStyling(CssSchema.union(CssSchema.DEFAULT, CssSchema.withProperties(Collections.singleton("float"))))
-        .toFactory();
-
-    /**
-     * Allow a set of HTML tags to support GitHub Flavoured Markdown. Spec is available at: <a href="https://github.github.com/gfm">https://github.github.com/gfm</a>
-     */
-    private static final PolicyFactory GITHUB_FLAVOURED_MARKDOWN = new HtmlPolicyBuilder().allowElements("summary", "details").toFactory();
-
-    private static final PolicyFactory factory = Sanitizers.BLOCKS
-        .and(Sanitizers.FORMATTING)
-        .and(
-            new HtmlPolicyBuilder()
-                .allowStandardUrlProtocols()
-                .allowElements("a")
-                .allowAttributes("href", "title")
-                .onElements("a")
-                .toFactory()
-        )
-        .and(HTML_CSS_SANITIZER)
-        .and(Sanitizers.TABLES)
-        .and(new HtmlPolicyBuilder().allowElements("pre", "hr").toFactory())
-        .and(new HtmlPolicyBuilder().allowElements("ol").allowAttributes("start").onElements("ol").toFactory())
-        .and(HTML_IMAGES_SANITIZER)
-        .and(new HtmlPolicyBuilder().allowElements("code").allowAttributes("class").globally().toFactory())
-        .and(GITHUB_FLAVOURED_MARKDOWN);
-
-    private HtmlSanitizer() {}
-
-    public static String sanitize(String content) {
+    public String sanitize(String content) {
         if (content == null || content.isEmpty()) {
             return content;
         }
@@ -110,7 +60,7 @@ public final class HtmlSanitizer {
         return factory.sanitize(content);
     }
 
-    public static <CTX> String sanitize(String content, HtmlChangeListener<CTX> listener, CTX context) {
+    public <CTX> String sanitize(String content, HtmlChangeListener<CTX> listener, CTX context) {
         if (content == null || content.isEmpty()) {
             return content;
         }
@@ -118,7 +68,7 @@ public final class HtmlSanitizer {
         return factory.sanitize(content, listener, context);
     }
 
-    public static SanitizeInfos isSafe(String content) {
+    public SanitizeInfos isSafe(String content) {
         if (content == null || content.isEmpty()) {
             return new SanitizeInfos(true);
         }
@@ -130,7 +80,7 @@ public final class HtmlSanitizer {
 
         String toSanitize = htmlRenderer.render(document);
         List<String> sanitizedChanges = new ArrayList<>();
-        HtmlChangeListener<List<String>> listener = new HtmlChangeListener<List<String>>() {
+        HtmlChangeListener<List<String>> listener = new HtmlChangeListener<>() {
             @Override
             public void discardedTag(@Nullable List<String> context, String elementName) {
                 context.add("Tag not allowed: " + elementName);
@@ -142,10 +92,11 @@ public final class HtmlSanitizer {
             }
         };
 
-        HtmlSanitizer.sanitize(toSanitize, listener, sanitizedChanges);
+        this.sanitize(toSanitize, listener, sanitizedChanges);
         return new SanitizeInfos(sanitizedChanges.isEmpty(), sanitizedChanges.toString());
     }
 
+    @Getter
     public static class SanitizeInfos {
 
         boolean safe;
@@ -158,14 +109,6 @@ public final class HtmlSanitizer {
         public SanitizeInfos(boolean safe, String rejectedMessage) {
             this.safe = safe;
             this.rejectedMessage = rejectedMessage;
-        }
-
-        public boolean isSafe() {
-            return safe;
-        }
-
-        public String getRejectedMessage() {
-            return rejectedMessage;
         }
     }
 
@@ -182,5 +125,126 @@ public final class HtmlSanitizer {
                 )
             );
         }
+    }
+
+    private PolicyFactory initPolicyFactory(Environment environment) {
+        AttributePolicy IntegerAttributePolicy = (elementName, attributeName, value) -> {
+            int n = value.length();
+            if (n == 0) {
+                return null;
+            }
+            for (int i = 0; i < n; ++i) {
+                char ch = value.charAt(i);
+                if (ch == '.') {
+                    if (i == 0) {
+                        return null;
+                    }
+                    return value.substring(0, i); // truncate to integer.
+                } else if (!('0' <= ch && ch <= '9')) {
+                    return null;
+                }
+            }
+            return value;
+        };
+
+        PolicyFactory htmlImagesSanitizer = new HtmlPolicyBuilder()
+            .allowUrlProtocols("data", "http", "https")
+            .allowElements("img")
+            .allowAttributes("alt", "title", "src")
+            .onElements("img")
+            .allowAttributes("border", "height", "width")
+            .matching(IntegerAttributePolicy)
+            .onElements("img")
+            .toFactory();
+
+        PolicyFactory htmlCssSanitizer = new HtmlPolicyBuilder()
+            .allowStyling(CssSchema.union(CssSchema.DEFAULT, CssSchema.withProperties(Collections.singleton("float"))))
+            .toFactory();
+
+        /*
+         * Allow a set of HTML tags to support GitHub Flavoured Markdown. Spec is available at: <a href="https://github.github.com/gfm">https://github.github.com/gfm</a>
+         */
+        PolicyFactory githubFlavouredMarkdownSanitizer = new HtmlPolicyBuilder().allowElements("summary", "details").toFactory();
+
+        PolicyFactory policyFactory = Sanitizers.BLOCKS
+            .and(Sanitizers.FORMATTING)
+            .and(
+                new HtmlPolicyBuilder()
+                    .allowStandardUrlProtocols()
+                    .allowElements("a")
+                    .allowAttributes("href", "title")
+                    .onElements("a")
+                    .toFactory()
+            )
+            .and(htmlCssSanitizer)
+            .and(Sanitizers.TABLES)
+            .and(new HtmlPolicyBuilder().allowElements("pre", "hr").toFactory())
+            .and(new HtmlPolicyBuilder().allowElements("ol").allowAttributes("start").onElements("ol").toFactory())
+            .and(htmlImagesSanitizer)
+            .and(new HtmlPolicyBuilder().allowElements("code").allowAttributes("class").globally().toFactory())
+            .and(githubFlavouredMarkdownSanitizer);
+
+        PolicyFactory additionalElementsSanitizer = configureAdditionalElements(policyFactory, environment);
+        if (additionalElementsSanitizer != null) {
+            return policyFactory.and(additionalElementsSanitizer);
+        }
+        return policyFactory;
+    }
+
+    private PolicyFactory configureAdditionalElements(PolicyFactory factory, Environment environment) {
+        Map<String, List<String>> allowedElements = getAllowedElementsFromProperties(environment);
+        if (allowedElements.isEmpty()) {
+            return null;
+        }
+        HtmlPolicyBuilder policyBuilder = new HtmlPolicyBuilder();
+        for (Map.Entry<String, List<String>> entry : allowedElements.entrySet()) {
+            String element = entry.getKey();
+            List<String> attributes = entry.getValue();
+            policyBuilder.allowElements(element);
+
+            for (String attribute : attributes) {
+                policyBuilder.allowAttributes(attribute).onElements(element);
+            }
+        }
+        return policyBuilder.toFactory();
+    }
+
+    private Map<String, List<String>> getAllowedElementsFromProperties(Environment environment) {
+        Map<String, List<String>> allowedElements = new HashMap<>();
+        boolean found = true;
+        int idx = 0;
+        while (found) {
+            String element = environment.getProperty("documentation.markdown.additional_allowed_elements[" + idx + "].element");
+            if (element == null) {
+                found = false;
+            } else {
+                List<String> attributes = readConfiguredAttributes(environment, idx);
+                if (!attributes.isEmpty()) {
+                    allowedElements.put(element, attributes);
+                }
+            }
+            idx++;
+        }
+
+        return allowedElements;
+    }
+
+    private List<String> readConfiguredAttributes(Environment environment, int idx) {
+        List<String> attributes = new ArrayList<>();
+        boolean found = true;
+        int attributeIdx = 0;
+        while (found) {
+            String attribute = environment.getProperty(
+                "documentation.markdown.additional_allowed_elements[" + idx + "].attributes[" + attributeIdx + "]"
+            );
+            if (attribute == null) {
+                found = false;
+            } else {
+                attributes.add(attribute);
+            }
+            attributeIdx++;
+        }
+
+        return attributes;
     }
 }
