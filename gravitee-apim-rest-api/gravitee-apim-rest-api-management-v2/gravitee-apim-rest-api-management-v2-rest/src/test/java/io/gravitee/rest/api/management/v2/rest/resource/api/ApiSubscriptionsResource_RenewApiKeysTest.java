@@ -33,6 +33,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -154,6 +155,28 @@ public class ApiSubscriptionsResource_RenewApiKeysTest extends ApiSubscriptionsR
         var error = response.readEntity(Error.class);
         assertEquals(BAD_REQUEST_400, (int) error.getHttpStatus());
         assertEquals("Invalid operation for API Key mode [SHARED] of application [my-application].", error.getMessage());
+    }
+
+    @Test
+    public void should_return_400_if_subscription_is_closed() {
+        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures
+            .aSubscriptionEntity()
+            .toBuilder()
+            .id(SUBSCRIPTION)
+            .api("ANOTHER-API")
+            .status(SubscriptionStatus.CLOSED)
+            .build();
+
+        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
+
+        final Response response = rootTarget().request().post(Entity.json(SubscriptionFixtures.aRenewApiKey()));
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+
+        var error = response.readEntity(Error.class);
+        assertEquals(BAD_REQUEST_400, (int) error.getHttpStatus());
+        assertEquals("Subscription [my-subscription] should be paused or accepted. Currently it is CLOSED", error.getMessage());
+
+        verify(subscriptionService, never()).pause(any(), any());
     }
 
     @Test
