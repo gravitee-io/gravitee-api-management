@@ -291,6 +291,16 @@ public class ApiKeyServiceTest {
         apiKeyService.generate(GraviteeContext.getExecutionContext(), application, subscription, "alreadyExistingApiKey");
     }
 
+    @Test(expected = SubscriptionNotActiveException.class)
+    public void shouldNotGenerateBecauseSubscriptionNotActive() {
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId(SUBSCRIPTION_ID);
+        subscription.setApi(API_ID);
+        subscription.setApplication(APPLICATION_ID);
+        subscription.setStatus(SubscriptionStatus.CLOSED);
+        apiKeyService.renew(GraviteeContext.getExecutionContext(), subscription, "apiKey");
+    }
+
     @Test
     public void shouldReactivateRevoked() throws Exception {
         apiKey = new ApiKey();
@@ -447,6 +457,7 @@ public class ApiKeyServiceTest {
         subscription.setPlan(PLAN_ID);
         subscription.setApplication(APPLICATION_ID);
         subscription.setApi(api.getId());
+        subscription.setStatus(SubscriptionStatus.PAUSED);
 
         ApplicationEntity application = new ApplicationEntity();
         application.setId(APPLICATION_ID);
@@ -516,6 +527,7 @@ public class ApiKeyServiceTest {
         subscription.setPlan(PLAN_ID);
         subscription.setApplication(APPLICATION_ID);
         subscription.setApi(api.getId());
+        subscription.setStatus(SubscriptionStatus.PAUSED);
 
         ApplicationEntity application = new ApplicationEntity();
         application.setId(APPLICATION_ID);
@@ -563,6 +575,7 @@ public class ApiKeyServiceTest {
         subscription.setPlan(PLAN_ID);
         subscription.setApplication(APPLICATION_ID);
         subscription.setApi(api.getId());
+        subscription.setStatus(SubscriptionStatus.PAUSED);
 
         ApplicationEntity application = new ApplicationEntity();
         application.setId(APPLICATION_ID);
@@ -608,6 +621,7 @@ public class ApiKeyServiceTest {
         subscription.setApi(API_ID);
         subscription.setApplication(APPLICATION_ID);
         subscription.setPlan(PLAN_ID);
+        subscription.setStatus(SubscriptionStatus.PAUSED);
 
         SubscriptionEntity conflictingSubscription = new SubscriptionEntity();
         conflictingSubscription.setId("conflicting-subscription-id");
@@ -635,6 +649,7 @@ public class ApiKeyServiceTest {
     public void shouldNotRenewSubscriptionWithJwtPlan() {
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setPlan(PLAN_ID);
+        subscriptionEntity.setStatus(SubscriptionStatus.PAUSED);
 
         PlanEntity plan = new PlanEntity();
         plan.setSecurity(PlanSecurityType.JWT);
@@ -647,6 +662,7 @@ public class ApiKeyServiceTest {
     public void shouldNotRenewSubscriptionWithoutSecurity() {
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setPlan(PLAN_ID);
+        subscriptionEntity.setStatus(SubscriptionStatus.PAUSED);
 
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(new PlanEntity());
 
@@ -684,6 +700,7 @@ public class ApiKeyServiceTest {
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setPlan(PLAN_ID);
         subscriptionEntity.setId(SUBSCRIPTION_ID);
+        subscriptionEntity.setStatus(SubscriptionStatus.PAUSED);
 
         apiKeyService.renew(GraviteeContext.getExecutionContext(), subscriptionEntity, CUSTOM_API_KEY);
 
