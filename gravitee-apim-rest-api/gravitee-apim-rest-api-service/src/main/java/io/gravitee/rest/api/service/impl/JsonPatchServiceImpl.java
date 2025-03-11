@@ -49,9 +49,11 @@ public class JsonPatchServiceImpl extends AbstractService implements JsonPatchSe
     }
 
     private final ObjectMapper objectMapper;
+    private final HtmlSanitizer htmlSanitizer;
 
-    public JsonPatchServiceImpl(ObjectMapper objectMapper) {
+    public JsonPatchServiceImpl(ObjectMapper objectMapper, HtmlSanitizer htmlSanitizer) {
         this.objectMapper = objectMapper;
+        this.htmlSanitizer = htmlSanitizer;
     }
 
     @Override
@@ -112,7 +114,7 @@ public class JsonPatchServiceImpl extends AbstractService implements JsonPatchSe
         } else if (value instanceof List<?> list) {
             list.forEach(this::checkSafe);
         } else if (value != null) {
-            HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(value.toString());
+            HtmlSanitizer.SanitizeInfos sanitizeInfos = this.htmlSanitizer.isSafe(value.toString());
             if (!sanitizeInfos.isSafe()) {
                 throw new JsonPatchUnsafeException(sanitizeInfos.getRejectedMessage());
             }

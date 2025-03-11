@@ -32,6 +32,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
+import io.gravitee.rest.api.service.sanitizer.HtmlSanitizer;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
@@ -47,6 +48,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.collections.Sets;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.mock.env.MockEnvironment;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -94,6 +96,9 @@ public class PageService_UpdateTest {
 
     @Mock
     private ApiTemplateService apiTemplateService;
+
+    @Mock
+    private HtmlSanitizer htmlSanitizer;
 
     @Before
     public void setUp() {
@@ -509,6 +514,7 @@ public class PageService_UpdateTest {
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
         when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean()))
             .thenReturn(content);
+        when(htmlSanitizer.isSafe(anyString())).thenReturn(new HtmlSanitizer.SanitizeInfos(false, "Tag not allowed: script"));
 
         pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, existingPage);
 

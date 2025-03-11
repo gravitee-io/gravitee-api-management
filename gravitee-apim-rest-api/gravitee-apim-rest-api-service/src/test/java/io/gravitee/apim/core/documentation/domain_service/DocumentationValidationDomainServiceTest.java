@@ -37,6 +37,7 @@ import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
+import io.gravitee.rest.api.service.sanitizer.HtmlSanitizer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +52,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.env.MockEnvironment;
 
 @ExtendWith(MockitoExtension.class)
 public class DocumentationValidationDomainServiceTest {
@@ -73,9 +75,11 @@ public class DocumentationValidationDomainServiceTest {
 
     @BeforeEach
     void setUp() {
+        var htmlSanitizer = new HtmlSanitizer(new MockEnvironment());
+
         cut =
             new DocumentationValidationDomainService(
-                new HtmlSanitizerImpl(),
+                new HtmlSanitizerImpl(htmlSanitizer),
                 new NoopTemplateResolverDomainService(),
                 apiCrudService,
                 new NoopSwaggerOpenApiResolver(),
