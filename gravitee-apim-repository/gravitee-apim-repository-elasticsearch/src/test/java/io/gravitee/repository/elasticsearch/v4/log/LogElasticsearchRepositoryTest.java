@@ -102,6 +102,8 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                             .gateway("2c99d50d-d318-42d3-99d5-0dd31862d3d2")
                             .uri("/jgi-message-logs-kafka/")
                             .gatewayResponseTime(2L)
+                            .requestContentLength(0L)
+                            .responseContentLength(41L)
                             .build(),
                         ConnectionLog
                             .builder()
@@ -118,6 +120,8 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                             .gateway("2c99d50d-d318-42d3-99d5-0dd31862d3d2")
                             .uri("/jgi-message-logs-kafka/")
                             .gatewayResponseTime(2L)
+                            .requestContentLength(0L)
+                            .responseContentLength(41L)
                             .build()
                     )
                 );
@@ -155,6 +159,8 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                             .gateway("a125e26c-b289-4dbf-a5e2-6cb2897dbf20")
                             .uri("/jgi-message-logs-kafka/")
                             .gatewayResponseTime(645L)
+                            .requestContentLength(21L)
+                            .responseContentLength(0L)
                             .build(),
                         ConnectionLog
                             .builder()
@@ -171,6 +177,8 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                             .gateway("a125e26c-b289-4dbf-a5e2-6cb2897dbf20")
                             .uri("/jgi-message-logs-kafka/")
                             .gatewayResponseTime(29703L)
+                            .requestContentLength(0L)
+                            .responseContentLength(28L)
                             .build()
                     )
                 );
@@ -400,6 +408,8 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                             .gateway("2c99d50d-d318-42d3-99d5-0dd31862d3d2")
                             .uri("/jgi-message-logs-kafka/")
                             .gatewayResponseTime(2L)
+                            .requestContentLength(0L)
+                            .responseContentLength(41L)
                             .build(),
                         ConnectionLog
                             .builder()
@@ -416,6 +426,8 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                             .gateway("2c99d50d-d318-42d3-99d5-0dd31862d3d2")
                             .uri("/jgi-message-logs-kafka/")
                             .gatewayResponseTime(2L)
+                            .requestContentLength(0L)
+                            .responseContentLength(41L)
                             .build()
                     )
                 );
@@ -453,6 +465,8 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                             .gateway("a125e26c-b289-4dbf-a5e2-6cb2897dbf20")
                             .uri("/jgi-message-logs-kafka/")
                             .gatewayResponseTime(645L)
+                            .requestContentLength(21L)
+                            .responseContentLength(0L)
                             .build(),
                         ConnectionLog
                             .builder()
@@ -469,6 +483,8 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                             .gateway("a125e26c-b289-4dbf-a5e2-6cb2897dbf20")
                             .uri("/jgi-message-logs-kafka/")
                             .gatewayResponseTime(29703L)
+                            .requestContentLength(0L)
+                            .responseContentLength(28L)
                             .build()
                     )
                 );

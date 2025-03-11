@@ -89,6 +89,8 @@ public class SearchApplicationConnectionLogsUseCase {
             .uri(connectionLog.getUri())
             .gateway(connectionLog.getGateway())
             .gatewayResponseTime(connectionLog.getGatewayResponseTime())
+            .requestContentLength(connectionLog.getRequestContentLength())
+            .responseContentLength(connectionLog.getResponseContentLength())
             .build();
     }
 

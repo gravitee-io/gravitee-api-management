@@ -493,11 +493,11 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         var logsResponse = response.readEntity(LogsResponse.class);
         assertNotNull(logsResponse.getData());
-        assertEquals(4, logsResponse.getData().size());
+        assertEquals(3, logsResponse.getData().size());
         assertEquals(
             Map.of(
                 "data",
-                Map.of("total", 4),
+                Map.of("total", 3),
                 API_1_ID,
                 Map.of("name", API_1.getName(), "version", API_1.getVersion()),
                 PLAN_1_ID,
@@ -595,7 +595,9 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
             .to(SECOND_FEBRUARY_2020)
             .from(FIRST_FEBRUARY_2020)
             .apiIds(Set.of(API_1_ID, API_2_ID))
-            .methods(Set.of(io.gravitee.rest.api.portal.rest.model.HttpMethod.DELETE))
+            .methods(
+                Set.of(io.gravitee.rest.api.portal.rest.model.HttpMethod.GET, io.gravitee.rest.api.portal.rest.model.HttpMethod.DELETE)
+            )
             .bodyText("curl")
             .build();
 
