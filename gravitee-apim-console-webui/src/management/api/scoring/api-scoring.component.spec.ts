@@ -279,7 +279,7 @@ Path: rules,api-key-security-scheme,then,function`;
   function expectAsyncJobGetRequest(apiId: string, data: AsyncJob[]) {
     httpTestingController
       .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/async-jobs?page=1&perPage=10&type=SCORING_REQUEST&status=PENDING&sourceId=${apiId}`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/async-jobs?page=1&perPage=10&type=SCORING_REQUEST&sourceId=${apiId}`,
         method: 'GET',
       })
       .flush(
