@@ -22,6 +22,7 @@
 @use '@angular/material' as mat;
 @use '@angular/material-experimental' as matx;
 @use './scss/theme';
+@use 'scss/table-light';
 
 @include mat.core();
 @include mat.color-variants-backwards-compatibility(theme.$light-theme);

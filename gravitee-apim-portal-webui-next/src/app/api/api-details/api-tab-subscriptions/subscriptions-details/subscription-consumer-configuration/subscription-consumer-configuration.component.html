@@ -24,80 +24,78 @@
   </mat-card-header>
   <mat-card-content>
     <div class="configuration__content">
-      @if (hasChannel) {
-        <div class="configuration__field">
+      @if (hasChannel()) {
+        <div class="configuration__block configuration__field">
           <span class="m3-title-small" i18n="@@subscriptionConfigurationChannel">Channel:</span>
           <span class="m3-body-medium">{{ consumerConfiguration().channel }}</span>
         </div>
       }
 
       @if (consumerConfiguration().entrypointConfiguration) {
-        <div class="configuration__field">
+        <div class="configuration__block configuration__field">
           <span class="m3-title-small" i18n="@@subscriptionConfigurationCallbackURL">Callback URL:</span>
           <span class="m3-body-medium">
             {{ consumerConfiguration().entrypointConfiguration.callbackUrl }}
           </span>
         </div>
 
-        @if (hasHeaders) {
-          <mat-list role="list">
-            <span class="m3-title-small" i18n="@@subscriptionConfigurationHeaders">Headers:</span>
-            @for (header of consumerConfiguration().entrypointConfiguration?.headers; track header) {
-              <mat-list-item>
-                <div class="configuration__field">
-                  <span class="m3-title-small">{{ header.name }}:</span>
-                  <span class="m3-body-medium">{{ header.value }}</span>
-                </div>
-              </mat-list-item>
-            }
-          </mat-list>
+        @if (headers().length) {
+          <span class="m3-title-medium" i18n="@@subscriptionConfigurationHeaders">Headers</span>
+          <table class="table-light table-light--fit-content">
+            <thead>
+              <tr>
+                <th i18n="@@subscriptionConfigurationHeadersName">Name</th>
+                <th i18n="@@subscriptionConfigurationHeadersValue">Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (header of consumerConfiguration().entrypointConfiguration.headers; track header) {
+                <tr>
+                  <td>{{ header.name }}</td>
+                  <td>{{ header.value }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
         }
 
-        @if (consumerConfiguration().entrypointConfiguration?.auth) {
-          <div class="configuration__field">
+        @if (consumerConfiguration().entrypointConfiguration.auth) {
+          <div class="configuration__block configuration__field">
             <span class="m3-title-small" i18n="@@subscriptionConfigurationAuthType">Authentification type:</span>
-            <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration?.auth?.type }}</span>
+            <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration.auth.type }}</span>
           </div>
         }
 
-        @if (consumerConfiguration().entrypointConfiguration?.retry) {
-          <mat-list role="list">
-            <span class="m3-title-small" i18n="@@subscriptionConfigurationHeaders">Retry:</span>
-            <mat-list-item>
-              <div class="configuration__field">
-                <span class="m3-title-small" i18n="@@subscriptionConfigurationRetryOption">Option:</span>
-                <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration?.retry?.retryOption }}</span>
-              </div>
-            </mat-list-item>
+        @if (consumerConfiguration().entrypointConfiguration.retry) {
+          <div class="configuration__block">
+            <span class="m3-title-medium" i18n="@@subscriptionConfigurationRetry">Retry</span>
+            <div class="configuration__field">
+              <span class="m3-title-small" i18n="@@subscriptionConfigurationRetryOption">Option:</span>
+              <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration.retry.retryOption }}</span>
+            </div>
 
-            <mat-list-item>
+            @if (consumerConfiguration().entrypointConfiguration.retry.retryOption === 'Retry On Fail') {
               <div class="configuration__field">
                 <span class="m3-title-small" i18n="@@subscriptionConfigurationRetryType">Strategy:</span>
-                <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration?.retry?.retryStrategy }}</span>
+                <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration.retry.retryStrategy }}</span>
               </div>
-            </mat-list-item>
 
-            <mat-list-item>
               <div class="configuration__field">
-                <span class="m3-title-small" i18n="@@subscriptionConfigurationRetryInitialDelay">initial delay in seconds:</span>
-                <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration?.retry?.initialDelaySeconds }}</span>
+                <span class="m3-title-small" i18n="@@subscriptionConfigurationRetryInitialDelay">Initial delay in seconds:</span>
+                <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration.retry.initialDelaySeconds }}</span>
               </div>
-            </mat-list-item>
 
-            <mat-list-item>
               <div class="configuration__field">
                 <span class="m3-title-small" i18n="@@subscriptionConfigurationRetryMaxAttempts">Maximum attempts:</span>
-                <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration?.retry?.maxAttempts }}</span>
+                <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration.retry.maxAttempts }}</span>
               </div>
-            </mat-list-item>
 
-            <mat-list-item>
               <div class="configuration__field">
                 <span class="m3-title-small" i18n="@@subscriptionConfigurationRetryMaxDelaySeconds">Maximum delay:</span>
-                <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration?.retry?.maxDelaySeconds }}</span>
+                <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration.retry.maxDelaySeconds }}</span>
               </div>
-            </mat-list-item>
-          </mat-list>
+            }
+          </div>
         }
       }
     </div>

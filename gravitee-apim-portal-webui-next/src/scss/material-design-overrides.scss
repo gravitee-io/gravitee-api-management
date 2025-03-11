@@ -16,6 +16,7 @@
 @use 'sass:map';
 @use '@angular/material' as mat;
 @use '../scss/theme';
+@use './m3-adapter';
 
 .secondary-button {
   @include mat.button-color(theme.$light-theme, $color-variant: secondary);
@@ -35,7 +36,9 @@ mat-dialog-container {
 }
 
 mat-form-field {
-  --mdc-filled-text-field-container-color: var(--mdc-outlined-card-container-color);
+  --mdc-filled-text-field-container-color: #{m3-adapter.$surface-variant};
+  --mdc-filled-text-field-disabled-container-color: #{m3-adapter.$surface-variant};
+  --mdc-filled-text-field-disabled-input-text-color: var(--mdc-filled-text-field-input-text-color);
 }
 
 mat-expansion-panel {
