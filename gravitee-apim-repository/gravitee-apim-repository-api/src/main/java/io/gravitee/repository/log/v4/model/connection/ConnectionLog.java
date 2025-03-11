@@ -37,4 +37,6 @@ public class ConnectionLog {
     private String gateway;
     private String uri;
     private long gatewayResponseTime;
+    private long requestContentLength;
+    private long responseContentLength;
 }
