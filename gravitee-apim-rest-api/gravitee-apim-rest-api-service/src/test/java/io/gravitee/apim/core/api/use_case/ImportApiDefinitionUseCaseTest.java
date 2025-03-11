@@ -71,6 +71,7 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
+import io.gravitee.rest.api.service.sanitizer.HtmlSanitizer;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -92,6 +93,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.NullSource;
+import org.springframework.mock.env.MockEnvironment;
 
 class ImportApiDefinitionUseCaseTest {
 

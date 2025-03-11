@@ -20,10 +20,17 @@ import static org.junit.Assert.*;
 import org.assertj.core.api.BDDSoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.rules.ErrorCollector;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.mock.env.MockEnvironment;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -31,6 +38,13 @@ import org.junit.jupiter.params.provider.CsvSource;
  */
 @ExtendWith(SoftAssertionsExtension.class)
 public class HtmlSanitizerTest {
+
+    HtmlSanitizer cut;
+
+    @BeforeEach
+    public void setUp() {
+        cut = new HtmlSanitizer(new MockEnvironment());
+    }
 
     @InjectSoftAssertions
     public BDDSoftAssertions softly;
@@ -63,24 +77,24 @@ public class HtmlSanitizerTest {
     @Test
     public void sanitize() {
         String html = getSafe();
-        assertEquals(html, HtmlSanitizer.sanitize(html));
+        assertEquals(html, cut.sanitize(html));
     }
 
     @Test
     public void sanitizeOlStart() {
         var ol = "<ol start=\"48\"><li>First</li><li>Second</li></ol>";
-        assertEquals(ol, HtmlSanitizer.sanitize(ol));
+        assertEquals(ol, cut.sanitize(ol));
     }
 
     @Test
     public void sanitizeExcludeSensitive() {
         String html = getNotSafe();
-        assertEquals("", HtmlSanitizer.sanitize(html));
+        assertEquals("", cut.sanitize(html));
     }
 
     @Test
     public void isSafe() {
-        HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(getSafe());
+        HtmlSanitizer.SanitizeInfos sanitizeInfos = cut.isSafe(getSafe());
 
         assertTrue(sanitizeInfos.isSafe());
         assertEquals("[]", sanitizeInfos.getRejectedMessage());
@@ -88,7 +102,7 @@ public class HtmlSanitizerTest {
 
     @Test
     public void isNotSafe() {
-        HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(getNotSafe());
+        HtmlSanitizer.SanitizeInfos sanitizeInfos = cut.isSafe(getNotSafe());
 
         assertFalse(sanitizeInfos.isSafe());
         assertEquals("[Tag not allowed: script]", sanitizeInfos.getRejectedMessage());
@@ -106,7 +120,7 @@ public class HtmlSanitizerTest {
         }
     )
     public void isXssNotSafe(String content) {
-        HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(content);
+        HtmlSanitizer.SanitizeInfos sanitizeInfos = cut.isSafe(content);
 
         assertFalse(sanitizeInfos.isSafe());
         assertEquals("[Attribute not allowed: [img][onerror]]", sanitizeInfos.getRejectedMessage());
@@ -129,7 +143,7 @@ public class HtmlSanitizerTest {
     @Test
     public void isNotSafe_markdownLink() {
         final String content = "[my_link](javascript:alert('xss'))";
-        HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(content);
+        HtmlSanitizer.SanitizeInfos sanitizeInfos = cut.isSafe(content);
 
         assertFalse(sanitizeInfos.isSafe());
         assertEquals("[Tag not allowed: a]", sanitizeInfos.getRejectedMessage());
@@ -145,62 +159,90 @@ public class HtmlSanitizerTest {
 
     @Test
     public void shouldBeSafe() {
-        softly.then(HtmlSanitizer.isSafe(ONLY_OPENED_IMG_TAG).isSafe()).as("ONLY_OPENED_IMG_TAG").isTrue();
-        softly.then(HtmlSanitizer.isSafe(SELF_CLOSING_IMG_TAG).isSafe()).as("SELF_CLOSING_IMG_TAG").isTrue();
-        softly.then(HtmlSanitizer.isSafe(CLOSED_IMG_TAG).isSafe()).as("CLOSED_IMG_TAG").isTrue();
-        softly.then(HtmlSanitizer.isSafe(BASE64_IMG_TAG).isSafe()).as("BASE64_IMG_TAG").isTrue();
+        softly.then(cut.isSafe(ONLY_OPENED_IMG_TAG).isSafe()).as("ONLY_OPENED_IMG_TAG").isTrue();
+        softly.then(cut.isSafe(SELF_CLOSING_IMG_TAG).isSafe()).as("SELF_CLOSING_IMG_TAG").isTrue();
+        softly.then(cut.isSafe(CLOSED_IMG_TAG).isSafe()).as("CLOSED_IMG_TAG").isTrue();
+        softly.then(cut.isSafe(BASE64_IMG_TAG).isSafe()).as("BASE64_IMG_TAG").isTrue();
+        softly.then(cut.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD).isSafe()).as("DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD").isTrue();
         softly
-            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD).isSafe())
-            .as("DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD")
-            .isTrue();
-        softly
-            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SPACES).isSafe())
+            .then(cut.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SPACES).isSafe())
             .as("DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SPACES")
             .isTrue();
 
         softly
-            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SEMICOLON).isSafe())
+            .then(cut.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SEMICOLON).isSafe())
             .as("DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SEMICOLON")
             .isTrue();
         softly
-            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SPACES_AND_SEMICOLON).isSafe())
+            .then(cut.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SPACES_AND_SEMICOLON).isSafe())
             .as("DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SPACES_AND_SEMICOLON")
             .isTrue();
 
-        softly
-            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_FLOAT_FIELD).isSafe())
-            .as("DIV_TAG_WITH_STYLE_ATT_WITH_FLOAT_FIELD")
-            .isTrue();
+        softly.then(cut.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_FLOAT_FIELD).isSafe()).as("DIV_TAG_WITH_STYLE_ATT_WITH_FLOAT_FIELD").isTrue();
+
+        softly.then(cut.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD).isSafe()).as("DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD").isTrue();
 
         softly
-            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD).isSafe())
-            .as("DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD")
-            .isTrue();
-
-        softly
-            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SPACES).isSafe())
+            .then(cut.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SPACES).isSafe())
             .as("DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SPACES")
             .isTrue();
 
         softly
-            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SEMICOLON).isSafe())
+            .then(cut.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SEMICOLON).isSafe())
             .as("DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SEMICOLON")
             .isTrue();
 
         softly
-            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SPACES_AND_SEMICOLON).isSafe())
+            .then(cut.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SPACES_AND_SEMICOLON).isSafe())
             .as("DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SPACES_AND_SEMICOLON")
             .isTrue();
 
+        softly.then(cut.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_QUOTE).isSafe()).as("DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_QUOTE").isTrue();
         softly
-            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_QUOTE).isSafe())
-            .as("DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_QUOTE")
-            .isTrue();
-        softly
-            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_SEMICOLON).isSafe())
+            .then(cut.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_SEMICOLON).isSafe())
             .as("DIV_TAG_WITH_STYLE_ATT_WITH_TWO_SEMICOLON")
             .isTrue();
 
-        softly.then(HtmlSanitizer.isSafe(SUMMARY_DETAILS).isSafe()).as("SUMMARY_DETAILS").isTrue();
+        softly.then(cut.isSafe(SUMMARY_DETAILS).isSafe()).as("SUMMARY_DETAILS").isTrue();
+    }
+
+    @Test
+    public void shouldAllowDownloadAttribute() {
+        var env = new MockEnvironment();
+        env.setProperty("documentation.markdown.additional_allowed_elements[0].element", "a");
+        env.setProperty("documentation.markdown.additional_allowed_elements[0].attributes[0]", "download");
+        cut = new HtmlSanitizer(env);
+        String html = "<a href=\"/static/api/banks/banks_postman_collection.json\" download>Download Postman collection HTML</a>";
+        String sanitizedHtml = cut.sanitize(html);
+        assertTrue(sanitizedHtml.contains("download=\"download\""));
+    }
+
+    @Test
+    public void isSafeDownloadLink() {
+        var env = new MockEnvironment();
+        env.setProperty("documentation.markdown.additional_allowed_elements[0].element", "a");
+        env.setProperty("documentation.markdown.additional_allowed_elements[0].attributes[0]", "download");
+        cut = new HtmlSanitizer(env);
+        HtmlSanitizer.SanitizeInfos sanitizeInfos = cut.isSafe(
+            "<a href=\"/static/api/banks/banks_postman_collection.json\" download>Download Postman collection HTML</a>"
+        );
+        assertTrue(sanitizeInfos.isSafe());
+        assertEquals("[]", sanitizeInfos.getRejectedMessage());
+    }
+
+    @Test
+    public void shouldNotAllowDownloadAttribute() {
+        String html = "<a href=\"/static/api/banks/banks_postman_collection.json\" download>Download Postman collection HTML</a>";
+        String sanitizedHtml = cut.sanitize(html);
+        assertFalse(sanitizedHtml.contains("download"));
+    }
+
+    @Test
+    public void isNotSafeDownloadLink() {
+        HtmlSanitizer.SanitizeInfos sanitizeInfos = cut.isSafe(
+            "<a href=\"/static/api/banks/banks_postman_collection.json\" download>Download Postman collection HTML</a>"
+        );
+        assertFalse(sanitizeInfos.isSafe());
+        assertEquals("[Attribute not allowed: [a][download]]", sanitizeInfos.getRejectedMessage());
     }
 }

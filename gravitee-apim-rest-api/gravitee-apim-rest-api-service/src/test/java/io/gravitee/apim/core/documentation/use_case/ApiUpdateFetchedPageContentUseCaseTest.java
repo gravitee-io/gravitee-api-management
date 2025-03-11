@@ -40,11 +40,13 @@ import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
+import io.gravitee.rest.api.service.sanitizer.HtmlSanitizer;
 import java.util.*;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.env.MockEnvironment;
 
 class ApiUpdateFetchedPageContentUseCaseTest {
 
@@ -149,9 +151,10 @@ class ApiUpdateFetchedPageContentUseCaseTest {
 
     @BeforeEach
     void setUp() {
+        var htmlSanitizer = new HtmlSanitizer(new MockEnvironment());
         documentationValidationDomainService =
             new DocumentationValidationDomainService(
-                new HtmlSanitizerImpl(),
+                new HtmlSanitizerImpl(htmlSanitizer),
                 new NoopTemplateResolverDomainService(),
                 apiCrudService,
                 new NoopSwaggerOpenApiResolver(),

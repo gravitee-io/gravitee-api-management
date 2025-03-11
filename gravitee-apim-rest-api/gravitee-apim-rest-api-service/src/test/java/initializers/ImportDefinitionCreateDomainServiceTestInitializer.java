@@ -66,7 +66,9 @@ import io.gravitee.apim.infra.domain_service.api.ApiImportDomainServiceLegacyWra
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
+import io.gravitee.rest.api.service.sanitizer.HtmlSanitizer;
 import java.util.List;
+import org.springframework.mock.env.MockEnvironment;
 
 public class ImportDefinitionCreateDomainServiceTestInitializer {
 
@@ -162,9 +164,11 @@ public class ImportDefinitionCreateDomainServiceTestInitializer {
             new CreateApiDocumentationDomainService(pageCrudService, pageRevisionCrudService, auditDomainService, indexer);
         apiIdsCalculatorDomainService = new ApiIdsCalculatorDomainService(apiQueryService, pageQueryService, planQueryService);
 
+        var htmlSanitizer = new HtmlSanitizer(new MockEnvironment());
+
         documentationValidationDomainService =
             new DocumentationValidationDomainService(
-                new HtmlSanitizerImpl(),
+                new HtmlSanitizerImpl(htmlSanitizer),
                 new NoopTemplateResolverDomainService(),
                 apiCrudService,
                 new NoopSwaggerOpenApiResolver(),
