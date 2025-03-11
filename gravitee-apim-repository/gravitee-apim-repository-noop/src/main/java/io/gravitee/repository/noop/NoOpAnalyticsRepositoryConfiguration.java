@@ -39,7 +39,7 @@ public class NoOpAnalyticsRepositoryConfiguration {
     }
 
     @Bean
-    public io.gravitee.repository.log.v4.api.AnalyticsRepository V4AnalyticsRepository() {
+    public io.gravitee.repository.log.v4.api.AnalyticsRepository analyticsV4Repository() {
         return new io.gravitee.repository.noop.log.v4.NoOpAnalyticsRepository();
     }
 
@@ -54,7 +54,7 @@ public class NoOpAnalyticsRepositoryConfiguration {
     }
 
     @Bean
-    public io.gravitee.repository.log.v4.api.LogRepository logRepositoryV4() {
+    public io.gravitee.repository.log.v4.api.LogRepository logV4Repository() {
         return new io.gravitee.repository.noop.log.v4.NoOpLogRepository();
     }
 
