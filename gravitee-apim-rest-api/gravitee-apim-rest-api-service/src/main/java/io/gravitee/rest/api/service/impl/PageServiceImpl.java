@@ -183,6 +183,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     @Autowired
     private ApiTemplateService apiTemplateService;
 
+    @Autowired
+    private HtmlSanitizer htmlSanitizer;
+
     private static Page convert(NewPageEntity newPageEntity) {
         Page page = new Page();
         page.setCrossId(newPageEntity.getCrossId());
@@ -628,9 +631,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     private void sanitizeMarkdown(PageEntity pageEntity) {
         if (markdownSanitize && PageType.MARKDOWN.name().equalsIgnoreCase(pageEntity.getType())) {
-            final HtmlSanitizer.SanitizeInfos safe = HtmlSanitizer.isSafe(pageEntity.getContent());
+            final HtmlSanitizer.SanitizeInfos safe = this.htmlSanitizer.isSafe(pageEntity.getContent());
             if (!safe.isSafe()) {
-                pageEntity.setContent(HtmlSanitizer.sanitize(pageEntity.getContent()));
+                pageEntity.setContent(this.htmlSanitizer.sanitize(pageEntity.getContent()));
             }
         }
     }
@@ -2536,7 +2539,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 if (!CollectionUtils.isEmpty(pageEntity.getMessages())) {
                     return Arrays.asList(pageEntity.getMessages().toString());
                 }
-                HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(pageEntity.getContent());
+                HtmlSanitizer.SanitizeInfos sanitizeInfos = this.htmlSanitizer.isSafe(pageEntity.getContent());
                 if (!sanitizeInfos.isSafe()) {
                     throw new PageContentUnsafeException(sanitizeInfos.getRejectedMessage());
                 }
