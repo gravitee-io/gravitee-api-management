@@ -52,7 +52,6 @@ describe('version', function () {
       expect(
         computeApimVersion({
           action: 'package_bundle',
-          baseBranch: 'master',
           branch: 'master',
           sha1: '784ff35ca',
           changedFiles: [],
@@ -71,7 +70,6 @@ describe('version', function () {
       try {
         computeApimVersion({
           action: 'package_bundle',
-          baseBranch: 'master',
           branch: 'master',
           sha1: '784ff35ca',
           changedFiles: [],

@@ -60,7 +60,7 @@ commands:
           secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
           var-name: SLACK_ACCESS_TOKEN
       - slack/notify:
-          channel: C08HMNYPHA4
+          channel: C02JENTV2AX
           branch_pattern: master,[0-9]+\.[0-9]+\.x
           event: fail
           template: basic_fail_1

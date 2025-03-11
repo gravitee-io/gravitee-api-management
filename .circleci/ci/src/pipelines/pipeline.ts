@@ -54,7 +54,7 @@ export function buildCIPipeline(environment: CircleCIEnvironment): Config | null
     case 'publish_docker_images':
       return generatePublishDockerImagesConfig(environment);
     case 'helm_tests':
-      return generateHelmTestsConfig(environment);
+      return generateHelmTestsConfig();
     case 'run_e2e_tests':
       return generateRunE2ETestsConfig(environment);
   }

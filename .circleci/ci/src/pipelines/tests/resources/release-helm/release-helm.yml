@@ -26,16 +26,6 @@ parameters:
     default: /home/circleci/project/pom.xml
     description: Path to pom.xml with APIM version
 commands:
-  cmd-notify-on-failure:
-    steps:
-      - keeper/env-export:
-          secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
-          var-name: SLACK_ACCESS_TOKEN
-      - slack/notify:
-          channel: C02JENTV2AX
-          branch_pattern: master,[0-9]+\.[0-9]+\.x
-          event: fail
-          template: basic_fail_1
   cmd-install-yarn:
     steps:
       - run:
@@ -66,7 +56,6 @@ jobs:
           command: helm unittest -f 'tests/**/*.yaml' helm/ -t JUnit -o apim-result.xml
       - store_test_results:
           path: apim-result.xml
-      - cmd-notify-on-failure
   job-release-helm:
     docker:
       - image: cimg/node:20.11.1
@@ -119,8 +108,6 @@ workflows:
     jobs:
       - job-test-apim-charts:
           name: APIM - Lint & Test
-          context:
-            - cicd-orchestrator
       - job-release-helm:
           requires:
             - APIM - Lint & Test
@@ -129,5 +116,4 @@ workflows:
 orbs:
   helm: circleci/helm@3.0.0
   keeper: gravitee-io/keeper@0.6.3
-  slack: circleci/slack@4.12.5
   gh: circleci/github-cli@1.0.5

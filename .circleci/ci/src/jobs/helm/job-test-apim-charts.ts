@@ -19,21 +19,16 @@ import { orbs } from '../../orbs';
 import { BaseExecutor } from '../../executors';
 import { AnyParameterLiteral } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Parameters/types/CustomParameterLiterals.types';
 import { config } from '../../config';
-import { NotifyOnFailureCommand } from '../../commands';
-import { CircleCIEnvironment } from '../../pipelines';
 
 export class TestApimChartsJob {
   private static jobName = 'job-test-apim-charts';
 
-  public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
+  public static create(dynamicConfig: Config): Job {
     dynamicConfig.importOrb(orbs.helm);
 
     const params: parameters.CustomParametersList<AnyParameterLiteral> = new parameters.CustomParametersList([
       new parameters.CustomParameter('helmClientVersion', 'string', config.helm.defaultVersion, 'Version of helm to test'),
     ]);
-
-    const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig, environment);
-    dynamicConfig.addReusableCommand(notifyOnFailureCmd);
 
     const steps: Command[] = [
       new commands.Checkout(),
@@ -53,7 +48,6 @@ export class TestApimChartsJob {
       new commands.StoreTestResults({
         path: 'apim-result.xml',
       }),
-      new reusable.ReusedCommand(notifyOnFailureCmd),
     ];
     return new reusable.ParameterizedJob(TestApimChartsJob.jobName, BaseExecutor.create('small'), params, steps);
   }

@@ -105,9 +105,9 @@ export class PullRequestsWorkflow {
     const requires: string[] = [];
 
     if (!filterJobs || shouldBuildHelm(environment.changedFiles)) {
-      const apimChartsTestJob = TestApimChartsJob.create(dynamicConfig, environment);
+      const apimChartsTestJob = TestApimChartsJob.create(dynamicConfig);
       dynamicConfig.addJob(apimChartsTestJob);
-      jobs.push(new workflow.WorkflowJob(apimChartsTestJob, { name: 'Helm Chart - Lint & Test', context: config.jobContext }));
+      jobs.push(new workflow.WorkflowJob(apimChartsTestJob, { name: 'Helm Chart - Lint & Test' }));
 
       requires.push('Helm Chart - Lint & Test');
     }
@@ -279,16 +279,16 @@ export class PullRequestsWorkflow {
     }
 
     if (!filterJobs || shouldBuildConsole(environment.changedFiles)) {
-      const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig, environment);
+      const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig);
       dynamicConfig.addJob(webuiLintTestJob);
 
       const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, shouldBuildDockerImages);
       dynamicConfig.addJob(consoleWebuiBuildJob);
 
-      const storybookConsoleJob = StorybookConsoleJob.create(dynamicConfig, environment);
+      const storybookConsoleJob = StorybookConsoleJob.create(dynamicConfig);
       dynamicConfig.addJob(storybookConsoleJob);
 
-      const chromaticConsoleJob = ChromaticConsoleJob.create(dynamicConfig, environment);
+      const chromaticConsoleJob = ChromaticConsoleJob.create(dynamicConfig);
       dynamicConfig.addJob(chromaticConsoleJob);
 
       const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
@@ -327,7 +327,7 @@ export class PullRequestsWorkflow {
     }
 
     if (!filterJobs || shouldBuildPortal(environment.changedFiles)) {
-      const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig, environment);
+      const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig);
       dynamicConfig.addJob(webuiLintTestJob);
 
       const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, shouldBuildDockerImages);
@@ -390,10 +390,10 @@ export class PullRequestsWorkflow {
     const buildImagesJob = BuildBackendImagesJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(buildImagesJob);
 
-    const e2eGenerateSdkJob = E2EGenerateSDKJob.create(dynamicConfig, environment);
+    const e2eGenerateSdkJob = E2EGenerateSDKJob.create(dynamicConfig);
     dynamicConfig.addJob(e2eGenerateSdkJob);
 
-    const e2eLintBuildJob = E2ELintBuildJob.create(dynamicConfig, environment);
+    const e2eLintBuildJob = E2ELintBuildJob.create(dynamicConfig);
     dynamicConfig.addJob(e2eLintBuildJob);
 
     const e2eTestJob = E2ETestJob.create(dynamicConfig, environment);
@@ -402,7 +402,7 @@ export class PullRequestsWorkflow {
     const e2eCypressJob = E2ECypressJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(e2eCypressJob);
 
-    const perfLintBuildJob = PerfLintBuildJob.create(dynamicConfig, environment);
+    const perfLintBuildJob = PerfLintBuildJob.create(dynamicConfig);
     dynamicConfig.addJob(perfLintBuildJob);
 
     return [

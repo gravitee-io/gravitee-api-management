@@ -16,11 +16,10 @@
 import { Config } from '@circleci/circleci-config-sdk';
 import { initDynamicConfig } from './config-factory';
 import { HelmTestsWorkflow } from '../workflows/workflow-helm-tests';
-import { CircleCIEnvironment } from './circleci-environment';
 
-export function generateHelmTestsConfig(environment: CircleCIEnvironment): Config {
+export function generateHelmTestsConfig(): Config {
   const dynamicConfig = initDynamicConfig();
-  const workflow = HelmTestsWorkflow.create(dynamicConfig, environment);
+  const workflow = HelmTestsWorkflow.create(dynamicConfig);
   dynamicConfig.addWorkflow(workflow);
   return dynamicConfig;
 }

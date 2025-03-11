@@ -15,18 +15,15 @@
  */
 import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
 import { TestApimChartsJob } from '../jobs';
-import { CircleCIEnvironment } from '../pipelines';
-import { config } from '../config';
 
 export class HelmTestsWorkflow {
-  static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
-    const apimChartsTestJob = TestApimChartsJob.create(dynamicConfig, environment);
+  static create(dynamicConfig: Config) {
+    const apimChartsTestJob = TestApimChartsJob.create(dynamicConfig);
     dynamicConfig.addJob(apimChartsTestJob);
 
     const jobs = [
       new workflow.WorkflowJob(apimChartsTestJob, {
         name: 'Helm Chart - Lint & Test - << matrix.helmClientVersion >>',
-        context: config.jobContext,
         matrix: {
           helmClientVersion: ['v3.9.4', 'v3.10.3', 'v3.11.3', 'v3.12.3', 'v3.13.3', 'v3.14.4', 'v3.15.1'],
         },

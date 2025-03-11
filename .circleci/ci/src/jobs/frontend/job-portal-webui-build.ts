@@ -31,7 +31,7 @@ export class PortalWebuiBuildJob {
     const webUiInstallCommand = WebuiInstallCommand.get();
     dynamicConfig.addReusableCommand(webUiInstallCommand);
 
-    const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig, environment);
+    const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(notifyOnFailureCommand);
 
     const apimVersion = computeApimVersion(environment);

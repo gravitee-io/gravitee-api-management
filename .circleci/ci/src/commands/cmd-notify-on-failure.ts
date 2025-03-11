@@ -18,17 +18,13 @@ import { ReusableCommand } from '@circleci/circleci-config-sdk/dist/src/lib/Comp
 import { config } from '../config';
 import { keeper } from '../orbs/keeper';
 import { slack } from '../orbs/slack';
-import { CircleCIEnvironment } from '../pipelines';
-import { computeSlackChannelToUse } from '../utils/slack';
 
 export class NotifyOnFailureCommand {
   private static commandName = 'cmd-notify-on-failure';
 
-  public static get(dynamicConfig: Config, environment: CircleCIEnvironment): ReusableCommand {
+  public static get(dynamicConfig: Config): ReusableCommand {
     dynamicConfig.importOrb(keeper);
     dynamicConfig.importOrb(slack);
-
-    const slackChannelToUse = computeSlackChannelToUse(environment.action);
 
     return new reusable.ReusableCommand(NotifyOnFailureCommand.commandName, [
       new reusable.ReusedCommand(keeper.commands['env-export'], {
@@ -36,7 +32,7 @@ export class NotifyOnFailureCommand {
         'var-name': 'SLACK_ACCESS_TOKEN',
       }),
       new reusable.ReusedCommand(slack.commands.notify, {
-        channel: slackChannelToUse,
+        channel: config.slack.channels.apiManagementTeamNotifications,
         branch_pattern: 'master,[0-9]+\\.[0-9]+\\.x', // Slack orb only supports POSIX regex. So we must use [0-9] instead of \d.
         event: 'fail',
         template: 'basic_fail_1',
