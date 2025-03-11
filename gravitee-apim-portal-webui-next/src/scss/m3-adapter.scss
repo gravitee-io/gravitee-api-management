@@ -73,11 +73,15 @@ After migrating to Material 3, these classes can be deleted.
   line-height: 24px;
 }
 
-.m3-title-small {
+%m3-title-small {
   font-size: 14px;
   font-weight: 500;
   letter-spacing: 0.1px;
   line-height: 20px;
+}
+
+.m3-title-small {
+  @extend %m3-title-small;
 }
 
 .m3-body-large {
@@ -87,11 +91,15 @@ After migrating to Material 3, these classes can be deleted.
   line-height: 24px;
 }
 
-.m3-body-medium {
+%m3-body-medium {
   font-size: 14px;
   font-weight: 400;
   letter-spacing: 0.25px;
   line-height: 20px;
+}
+
+.m3-body-medium {
+  @extend %m3-body-medium;
 }
 
 .m3-body-small {

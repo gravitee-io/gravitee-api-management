@@ -38,5 +38,6 @@ $banner-text-color: var(--mdc-outlined-text-field-focus-label-text-color);
 $chip-background: color-mix(in srgb, $primary-main-color 20%, transparent);
 $table-border-color: color-mix(in srgb, $secondary-main-color 35%, transparent);
 $table-header-background-color: color-mix(in srgb, $banner-background-color 8%, transparent);
+$table-border-radius: var(--gio-app-table-border-radius, 4px);
 $select-panel-background-color: color-mix(in srgb, $banner-background-color 12%, $card-background-color);
 $calendar-background-color: color-mix(in srgb, $banner-background-color 50%, $card-background-color);
