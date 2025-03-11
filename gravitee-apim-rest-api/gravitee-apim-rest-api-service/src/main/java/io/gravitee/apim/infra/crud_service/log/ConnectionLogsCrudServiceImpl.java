@@ -151,8 +151,8 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
     }
 
     private SearchLogsResponse<BaseConnectionLog> mapToConnectionResponse(LogResponse<ConnectionLog> logs) {
-        var total = logs.total();
-        var data = ConnectionLogAdapter.INSTANCE.toEntitiesList(logs.data());
+        var total = logs != null ? logs.total() : 0L;
+        var data = ConnectionLogAdapter.INSTANCE.toEntitiesList(logs != null ? logs.data() : new ArrayList<>());
 
         return new SearchLogsResponse<>(total, data);
     }
