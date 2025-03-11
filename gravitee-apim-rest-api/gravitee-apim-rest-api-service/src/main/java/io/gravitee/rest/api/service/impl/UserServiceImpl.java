@@ -1824,7 +1824,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 TemplateEngine templateEngine = TemplateEngine.templateEngine();
                 templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
 
-                boolean match = templateEngine.getValue(mapping.getCondition(), boolean.class);
+                boolean match = evalCondition(username, mapping.getCondition(), templateEngine);
 
                 trace(username, match, mapping.getCondition());
 
@@ -1844,6 +1844,15 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         return orgRoles;
     }
 
+    private boolean evalCondition(String userData, String condition, TemplateEngine templateEngine) {
+        try {
+            return templateEngine.eval(condition, boolean.class).blockingGet();
+        } catch (Exception e) {
+            LOGGER.warn("Failed to evaluate condition for user: {}. Condition: {}. Error: {}", userData, condition, e.getMessage(), e);
+            return false;
+        }
+    }
+
     protected Map<String, Set<RoleEntity>> computeEnvironmentRoles(
         ExecutionContext executionContext,
         @NotNull List<RoleMappingEntity> rolesMapping,
@@ -1861,7 +1870,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             TemplateEngine templateEngine = TemplateEngine.templateEngine();
             templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
 
-            boolean match = templateEngine.getValue(mapping.getCondition(), boolean.class);
+            boolean match = evalCondition(username, mapping.getCondition(), templateEngine);
 
             trace(username, match, mapping.getCondition());
 
@@ -1956,7 +1965,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             TemplateEngine templateEngine = TemplateEngine.templateEngine();
             templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
 
-            boolean match = templateEngine.getValue(mapping.getCondition(), boolean.class);
+            boolean match = evalCondition(userInfo, mapping.getCondition(), templateEngine);
 
             trace(userId, match, mapping.getCondition());
 
