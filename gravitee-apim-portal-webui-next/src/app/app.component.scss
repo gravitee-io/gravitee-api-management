@@ -29,9 +29,3 @@
   padding: 0 24px;
   margin: auto;
 }
-
-::ng-deep {
-  .mdc-text-field--filled:not(.mdc-text-field--disabled) {
-    --mdc-filled-text-field-container-color: #{m3-adapter.$surface-variant};
-  }
-}

@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, effect, input, InputSignal } from '@angular/core';
+import { Component, computed, input, InputSignal } from '@angular/core';
 import { MatAnchor } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatListModule } from '@angular/material/list';
+import { MatTableModule } from '@angular/material/table';
 
 import { SubscriptionConsumerConfiguration } from '../../../../../../entities/subscription';
 
 @Component({
-  imports: [MatCardModule, MatListModule, MatAnchor],
+  imports: [MatCardModule, MatListModule, MatAnchor, MatTableModule],
   selector: 'app-subscription-consumer-configuration',
   standalone: true,
   templateUrl: './subscription-consumer-configuration.component.html',
@@ -29,15 +30,7 @@ import { SubscriptionConsumerConfiguration } from '../../../../../../entities/su
 })
 export class SubscriptionConsumerConfigurationComponent {
   consumerConfiguration: InputSignal<SubscriptionConsumerConfiguration> = input.required<SubscriptionConsumerConfiguration>();
-  hasChannel: boolean = false;
-  hasHeaders: boolean = false;
-
-  constructor() {
-    effect(() => {
-      const consumerConfiguration: SubscriptionConsumerConfiguration = this.consumerConfiguration();
-      const entrypointConfiguration = consumerConfiguration.entrypointConfiguration;
-      this.hasChannel = !!consumerConfiguration.channel;
-      this.hasHeaders = !!entrypointConfiguration?.headers && entrypointConfiguration?.headers?.length > 0;
-    });
-  }
+  hasChannel = computed(() => !!this.consumerConfiguration().channel);
+  headers = computed(() => this.consumerConfiguration().entrypointConfiguration?.headers ?? []);
+  displayedColumns = ['name', 'value'];
 }
