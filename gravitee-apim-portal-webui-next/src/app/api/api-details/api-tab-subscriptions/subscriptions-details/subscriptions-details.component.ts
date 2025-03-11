@@ -26,14 +26,14 @@ import { RouterLink } from '@angular/router';
 import { catchError, forkJoin, map, Observable, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
+import { SubscriptionConsumerConfigurationComponent } from './subscription-consumer-configuration';
 import { ApiAccessComponent } from '../../../../../components/api-access/api-access.component';
 import { LoaderComponent } from '../../../../../components/loader/loader.component';
 import { SubscriptionInfoComponent } from '../../../../../components/subscription-info/subscription-info.component';
 import { ApiType } from '../../../../../entities/api/api';
 import { UserApiPermissions } from '../../../../../entities/permission/permission';
-import { PlanSecurityEnum, PlanUsageConfiguration } from '../../../../../entities/plan/plan';
-import { SubscriptionStatusEnum } from '../../../../../entities/subscription/subscription';
-import { SubscriptionsResponse } from '../../../../../entities/subscription/subscriptions-response';
+import { PlanMode, PlanSecurityEnum, PlanUsageConfiguration } from '../../../../../entities/plan/plan';
+import { SubscriptionConsumerConfiguration, SubscriptionsResponse, SubscriptionStatusEnum } from '../../../../../entities/subscription';
 import { CapitalizeFirstPipe } from '../../../../../pipe/capitalize-first.pipe';
 import { ApiService } from '../../../../../services/api.service';
 import { ApplicationService } from '../../../../../services/application.service';
@@ -58,6 +58,7 @@ interface SubscriptionDetailsData {
   clientId?: string;
   clientSecret?: string;
   apiType?: ApiType;
+  consumerConfiguration?: SubscriptionConsumerConfiguration;
 }
 
 @Component({
@@ -74,6 +75,7 @@ interface SubscriptionDetailsData {
     ApiAccessComponent,
     SubscriptionInfoComponent,
     LoaderComponent,
+    SubscriptionConsumerConfigurationComponent,
   ],
   providers: [CapitalizeFirstPipe],
   selector: 'app-subscriptions-details',
@@ -158,6 +160,13 @@ export class SubscriptionsDetailsComponent implements OnInit {
                 },
               };
             }
+          } else if (plan.planMode === 'PUSH' && subscription.consumerConfiguration != null) {
+            return {
+              result: {
+                ...subscriptionDetails,
+                consumerConfiguration: subscription.consumerConfiguration,
+              },
+            };
           }
         }
 
@@ -174,6 +183,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
     name: string;
     securityType: PlanSecurityEnum;
     usageConfiguration: PlanUsageConfiguration;
+    planMode: PlanMode;
   }> {
     return of(permissions.PLAN?.includes('R') === true).pipe(
       switchMap(hasPermission => (hasPermission ? this.getPlanDataFromList$(planId) : this.getPlanDataFromMetadata$(planId))),
@@ -181,6 +191,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
         name: plan.name ?? '',
         securityType: plan.securityType ?? 'KEY_LESS',
         usageConfiguration: plan.usageConfiguration ?? {},
+        planMode: plan.planMode ?? 'STANDARD',
       })),
     );
   }
@@ -189,12 +200,18 @@ export class SubscriptionsDetailsComponent implements OnInit {
     name?: string;
     securityType?: PlanSecurityEnum;
     usageConfiguration?: PlanUsageConfiguration;
+    planMode?: PlanMode;
   }> {
     return this.planService.list(this.apiId).pipe(
       map(({ data }) => {
         if (data && data.some(p => p.id === planId)) {
           const foundPlan = data.find(plan => plan.id === planId);
-          return { name: foundPlan?.name, securityType: foundPlan?.security, usageConfiguration: foundPlan?.usage_configuration };
+          return {
+            name: foundPlan?.name,
+            securityType: foundPlan?.security,
+            usageConfiguration: foundPlan?.usage_configuration,
+            planMode: foundPlan?.mode,
+          };
         }
         return {};
       }),
@@ -206,12 +223,13 @@ export class SubscriptionsDetailsComponent implements OnInit {
     name?: string;
     securityType?: PlanSecurityEnum;
     usageConfiguration?: PlanUsageConfiguration;
+    planMode?: PlanMode;
   }> {
     return this.subscriptionService.list({ apiId: this.apiId, statuses: [] }).pipe(
       catchError(_ => of({ data: [], metadata: {}, links: {} } as SubscriptionsResponse)),
       map(({ metadata }) => {
         const planMetadata = metadata[planId];
-        return { name: planMetadata?.name, securityType: planMetadata?.securityType };
+        return { name: planMetadata?.name, securityType: planMetadata?.securityType, planMode: planMetadata?.planMode };
       }),
     );
   }
