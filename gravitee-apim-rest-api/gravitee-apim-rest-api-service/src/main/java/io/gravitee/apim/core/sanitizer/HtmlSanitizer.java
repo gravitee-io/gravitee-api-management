@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.sanitizer;
 
+import org.owasp.html.PolicyFactory;
+
 public interface HtmlSanitizer {
     String sanitize(String content);
     SanitizeResult isSafe(String content);

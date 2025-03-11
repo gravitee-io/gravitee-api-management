@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.spring;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
@@ -25,8 +26,8 @@ import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
-import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
@@ -36,19 +37,22 @@ import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
-import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
+import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.spring.CoreServiceSpringConfiguration;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
@@ -73,11 +77,13 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.FetcherService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.InstallationService;
+import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.JsonPatchService;
 import io.gravitee.rest.api.service.LogsService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.MessageService;
+import io.gravitee.rest.api.service.MonitoringService;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.PageService;
@@ -114,10 +120,14 @@ import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.vertx.rxjava3.core.Vertx;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
+import org.springframework.mock.env.MockEnvironment;
 
 @Configuration
 @Import(
@@ -126,7 +136,6 @@ import org.springframework.context.annotation.PropertySource;
         CoreServiceSpringConfiguration.class,
         UsecaseSpringConfiguration.class,
         JacksonSpringConfiguration.class,
-        SanitizerSpringConfiguration.class,
     }
 )
 @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
@@ -531,11 +540,6 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public DeployApiDomainService deployApiDomainService() {
-        return mock(DeployApiDomainService.class);
-    }
-
-    @Bean
     public ApiMetadataDomainService apiMetadataDomainService() {
         return mock(ApiMetadataDomainService.class);
     }
@@ -591,5 +595,15 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiMetadataQueryService apiMetadataQueryService() {
         return mock(ApiMetadataQueryService.class);
+    }
+
+    @Bean
+    public io.gravitee.rest.api.service.sanitizer.HtmlSanitizer legacyHtmlSanitizer() {
+        return new io.gravitee.rest.api.service.sanitizer.HtmlSanitizer(new MockEnvironment());
+    }
+
+    @Bean
+    public HtmlSanitizer htmlSanitizer(io.gravitee.rest.api.service.sanitizer.HtmlSanitizer delegate) {
+        return new HtmlSanitizerImpl(delegate);
     }
 }

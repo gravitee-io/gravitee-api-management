@@ -42,6 +42,7 @@ import io.gravitee.rest.api.service.jackson.ser.FlowStepSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiCompositeSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricLoader;
+import io.gravitee.rest.api.service.sanitizer.HtmlSanitizer;
 import io.gravitee.rest.api.service.validator.RegexPasswordValidator;
 import java.util.Collections;
 import java.util.concurrent.Executor;
@@ -146,5 +147,10 @@ public class ServiceConfiguration {
         executor.setDaemon(true);
         executor.setCorePoolSize(2);
         return executor;
+    }
+
+    @Bean
+    public HtmlSanitizer htmlSanitizer() {
+        return new HtmlSanitizer(environment);
     }
 }

@@ -19,11 +19,8 @@ import static assertions.MAPIAssertions.assertThat;
 import static fixtures.core.model.ApiFixtures.aTcpApiV4;
 import static io.gravitee.common.http.HttpStatusCode.ACCEPTED_202;
 import static org.mockito.Mockito.doReturn;
-<<<<<<< HEAD
-=======
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
->>>>>>> e9289754f2 (fix(tests): reset some mock to avoid flakys)
 
 import inmemory.ApiQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
@@ -70,8 +67,6 @@ class ApisResourceTest extends AbstractResourceTest {
 
         doReturn(environment).when(environmentService).findById(ENVIRONMENT);
         doReturn(environment).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
-
-        reset(createApiDomainService, validateApiDomainService);
     }
 
     @Nested

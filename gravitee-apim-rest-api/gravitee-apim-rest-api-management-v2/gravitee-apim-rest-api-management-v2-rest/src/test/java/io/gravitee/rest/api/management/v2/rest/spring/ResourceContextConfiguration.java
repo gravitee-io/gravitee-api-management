@@ -26,6 +26,7 @@ import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
@@ -33,8 +34,9 @@ import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
-import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
+import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -68,11 +70,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.mock.env.MockEnvironment;
 
 @Configuration
-@Import(
-    { UsecaseSpringConfiguration.class, JacksonSpringConfiguration.class, SanitizerSpringConfiguration.class, InMemoryConfiguration.class }
-)
+@Import({ UsecaseSpringConfiguration.class, JacksonSpringConfiguration.class, InMemoryConfiguration.class })
 @PropertySource("classpath:/io/gravitee/rest/api/management/v2/rest/resource/jwt.properties")
 public class ResourceContextConfiguration {
 
@@ -322,5 +323,20 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiMetadataDecoderDomainService apiMetadataDecoderDomainService() {
         return mock(ApiMetadataDecoderDomainService.class);
+    }
+
+    @Bean
+    public ApiMetadataQueryService apiMetadataQueryService() {
+        return mock(ApiMetadataQueryService.class);
+    }
+
+    @Bean
+    public io.gravitee.rest.api.service.sanitizer.HtmlSanitizer legacyHtmlSanitizer() {
+        return new io.gravitee.rest.api.service.sanitizer.HtmlSanitizer(new MockEnvironment());
+    }
+
+    @Bean
+    public HtmlSanitizer htmlSanitizer(io.gravitee.rest.api.service.sanitizer.HtmlSanitizer delegate) {
+        return new HtmlSanitizerImpl(delegate);
     }
 }
