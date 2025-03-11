@@ -66,10 +66,14 @@ public class LogElasticsearchRepository extends AbstractElasticsearchRepository 
 
     @Override
     public Optional<ConnectionLogDetail> searchConnectionLogDetail(QueryContext queryContext, ConnectionLogDetailQuery query) {
-        var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_LOG, clusters);
+        var indexes = getQueryIndexesFromDefinitionVersions(
+            Type.LOG,
+            Type.V4_LOG,
+            queryContext,
+            List.of(DefinitionVersion.V2, DefinitionVersion.V4)
+        );
 
-        return this.client.search(index, null, SearchConnectionLogDetailQueryAdapter.adapt(query))
+        return this.client.search(indexes, null, SearchConnectionLogDetailQueryAdapter.adapt(query))
             .map(SearchConnectionLogDetailResponseAdapter::adaptFirst)
             .blockingGet();
     }
