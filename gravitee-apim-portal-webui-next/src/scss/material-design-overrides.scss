@@ -49,6 +49,7 @@ table.mat-mdc-table {
   --mat-table-row-item-outline-color: #{theme.$table-border-color};
   --mat-table-background-color: #{theme.$table-header-background-color};
 
+  overflow: hidden;
   border: 1px solid theme.$table-border-color;
   border-radius: 16px;
 
