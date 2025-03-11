@@ -31,7 +31,6 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.util.Maps;
-import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.UserRepository;
@@ -1588,9 +1587,9 @@ public class UserServiceTest {
         userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
     }
 
-    @Test(expected = ExpressionEvaluationException.class)
-    public void shouldSpelEvaluationExceptionWhenWrongELGroupsMapping() throws IOException, TechnicalException {
-        reset(identityProvider, userRepository);
+    @Test
+    public void shouldReturnDefaultGroupsMappingWhenSpelEvaluationExceptionOccurs() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository, groupService);
         mockDefaultEnvironment();
 
         GroupMappingEntity condition1 = new GroupMappingEntity();
@@ -1606,9 +1605,16 @@ public class UserServiceTest {
         condition3.setGroups(Collections.singletonList("Api consumer"));
 
         when(identityProvider.getGroupMappings()).thenReturn(Arrays.asList(condition1, condition2, condition3));
+        when(userRepository.create(any())).thenReturn(mockUser());
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
         userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
+
+        verify(groupService, times(1)).findById(EXECUTION_CONTEXT, "Api consumer");
+
+        verify(groupService, never()).findById(EXECUTION_CONTEXT, "Others");
+        verify(groupService, never()).findById(EXECUTION_CONTEXT, "Example group");
+        verify(groupService, never()).findById(EXECUTION_CONTEXT, "soft user");
     }
 
     @Test
