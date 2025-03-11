@@ -19,13 +19,15 @@ import static java.lang.String.format;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.log.model.ConnectionLog;
+import io.gravitee.apim.core.log.use_case.SearchApiConnectionLogDetailUseCase;
 import io.gravitee.apim.core.log.use_case.SearchApplicationConnectionLogsUseCase;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
-import io.gravitee.rest.api.model.log.ApplicationRequest;
 import io.gravitee.rest.api.model.log.ApplicationRequestItem;
 import io.gravitee.rest.api.model.log.LogMetadata;
 import io.gravitee.rest.api.model.log.SearchLogResponse;
@@ -52,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -72,6 +75,9 @@ public class ApplicationLogsResource extends AbstractResource {
 
     @Inject
     private SearchApplicationConnectionLogsUseCase searchApplicationConnectionLogsUseCase;
+
+    @Inject
+    private SearchApiConnectionLogDetailUseCase searchApiConnectionLogDetailUseCase;
 
     @GET
     @Deprecated
@@ -164,17 +170,33 @@ public class ApplicationLogsResource extends AbstractResource {
         @PathParam("logId") String logId,
         @QueryParam("timestamp") Long timestamp
     ) {
-        //Does application exists ?
-        applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
+        var executionContext = GraviteeContext.getExecutionContext();
 
-        ApplicationRequest applicationLogs = logsService.findApplicationLog(
-            GraviteeContext.getExecutionContext(),
-            applicationId,
-            logId,
-            timestamp
+        var result = searchApplicationConnectionLogsUseCase.execute(
+            new SearchApplicationConnectionLogsUseCase.Input(
+                applicationId,
+                executionContext.getOrganizationId(),
+                executionContext.getEnvironmentId(),
+                SearchLogsFilters.builder().from(timestamp).to(timestamp).requestIds(Set.of(logId)).build(),
+                new PageableImpl(1, 1)
+            )
         );
+        if (result.data().isEmpty()) {
+            throw new NotFoundException("Log [ " + logId + " ] not found.");
+        }
 
-        return Response.ok(logMapper.convert(applicationLogs)).build();
+        var connectionLog = result.data().getFirst();
+
+        var detail = searchApiConnectionLogDetailUseCase
+            .execute(
+                executionContext,
+                new SearchApiConnectionLogDetailUseCase.Input(connectionLog.getApiId(), connectionLog.getRequestId())
+            )
+            .connectionLogDetail();
+
+        return Response
+            .ok(logMapper.convert(connectionLog, detail, getMetadataForApplicationConnectionLog(List.of(connectionLog))))
+            .build();
     }
 
     @POST
