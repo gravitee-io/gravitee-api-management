@@ -22,5 +22,5 @@
     "nexus_sync": "zx steps/6-nexus_sync.mjs",
     "zx": "zx --quiet"
   },
-  "packageManager": "yarn@4.1.1"
+  "packageManager": "yarn@4.7.0"
 }

@@ -32,5 +32,5 @@
     "prettier:fix": "prettier --write \"**/*.{js,ts,html,css,scss,json}\"",
     "prettier:list": "prettier --list-different \"**/*.{js,ts,html,css,scss,json}\""
   },
-  "packageManager": "yarn@4.1.1"
+  "packageManager": "yarn@4.7.0"
 }
