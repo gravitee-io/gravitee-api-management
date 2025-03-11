@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.ArrayList;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -100,8 +101,8 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
     }
 
     private SearchLogsResponse<BaseConnectionLog> mapToConnectionResponse(LogResponse<ConnectionLog> logs) {
-        var total = logs.total();
-        var data = ConnectionLogAdapter.INSTANCE.toEntitiesList(logs.data());
+        var total = logs != null ? logs.total() : 0L;
+        var data = ConnectionLogAdapter.INSTANCE.toEntitiesList(logs != null ? logs.data() : new ArrayList<>());
 
         return new SearchLogsResponse<>(total, data);
     }
