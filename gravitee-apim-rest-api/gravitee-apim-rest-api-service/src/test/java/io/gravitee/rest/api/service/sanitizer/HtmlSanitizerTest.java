@@ -205,4 +205,20 @@ public class HtmlSanitizerTest {
 
         softly.then(HtmlSanitizer.isSafe(SUMMARY_DETAILS).isSafe()).as("SUMMARY_DETAILS").isTrue();
     }
+
+    @Test
+    public void shouldAllowDownloadAttribute() {
+        String html = "<a href=\"/static/api/banks/banks_postman_collection.json\" download>Download Postman collection HTML</a>";
+        String sanitizedHtml = HtmlSanitizer.sanitize(html);
+        assertTrue(sanitizedHtml.contains("download=\"download\""));
+    }
+
+    @Test
+    public void isSafeDownloadLink() {
+        HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(
+            "<a href=\"/static/api/banks/banks_postman_collection.json\" download>Download Postman collection HTML</a>"
+        );
+        assertTrue(sanitizeInfos.isSafe());
+        assertEquals("[]", sanitizeInfos.getRejectedMessage());
+    }
 }

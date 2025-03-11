@@ -88,7 +88,7 @@ public final class HtmlSanitizer {
             new HtmlPolicyBuilder()
                 .allowStandardUrlProtocols()
                 .allowElements("a")
-                .allowAttributes("href", "title")
+                .allowAttributes("href", "title", "download")
                 .onElements("a")
                 .toFactory()
         )
