@@ -21,11 +21,14 @@ import static org.junit.Assert.*;
 import org.assertj.core.api.BDDSoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.rules.ErrorCollector;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -33,6 +36,17 @@ import org.junit.rules.ErrorCollector;
  */
 @ExtendWith(SoftAssertionsExtension.class)
 public class HtmlSanitizerTest {
+
+    @BeforeAll
+    public static void setUp() {
+        HtmlPolicyBuilder policyBuilder = new HtmlPolicyBuilder();
+        policyBuilder.allowElements("a");
+        policyBuilder.allowAttributes("download").onElements("a");
+        PolicyFactory customFactory = policyBuilder.toFactory();
+        PolicyFactory currentFactory = HtmlSanitizer.getFactory();
+        currentFactory = currentFactory.and(customFactory);
+        HtmlSanitizer.setFactory(currentFactory);
+    }
 
     @InjectSoftAssertions
     public BDDSoftAssertions softly;
@@ -204,5 +218,21 @@ public class HtmlSanitizerTest {
             .isTrue();
 
         softly.then(HtmlSanitizer.isSafe(SUMMARY_DETAILS).isSafe()).as("SUMMARY_DETAILS").isTrue();
+    }
+
+    @Test
+    public void shouldAllowDownloadAttribute() {
+        String html = "<a href=\"/static/api/banks/banks_postman_collection.json\" download>Download Postman collection HTML</a>";
+        String sanitizedHtml = HtmlSanitizer.sanitize(html);
+        assertTrue(sanitizedHtml.contains("download=\"download\""));
+    }
+
+    @Test
+    public void isSafeDownloadLink() {
+        HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(
+            "<a href=\"/static/api/banks/banks_postman_collection.json\" download>Download Postman collection HTML</a>"
+        );
+        assertTrue(sanitizeInfos.isSafe());
+        assertEquals("[]", sanitizeInfos.getRejectedMessage());
     }
 }

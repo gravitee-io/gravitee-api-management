@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 import org.owasp.html.*;
 
 /**
@@ -82,7 +84,9 @@ public final class HtmlSanitizer {
      */
     private static final PolicyFactory GITHUB_FLAVOURED_MARKDOWN = new HtmlPolicyBuilder().allowElements("summary", "details").toFactory();
 
-    private static final PolicyFactory factory = Sanitizers.BLOCKS
+    @Getter
+    @Setter
+    private static PolicyFactory factory = Sanitizers.BLOCKS
         .and(Sanitizers.FORMATTING)
         .and(
             new HtmlPolicyBuilder()
