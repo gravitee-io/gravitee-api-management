@@ -726,7 +726,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
         }
 
         @Test
-        void should_return_result() {
+        void should_return_v4_result() {
             var result = logV4Repository.searchConnectionLogDetail(
                 queryContext,
                 ConnectionLogDetailQuery
@@ -777,6 +777,55 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                         .hasFieldOrPropertyWithValue("status", 200)
                         .extracting(ConnectionLogDetail.Response::getHeaders, as(InstanceOfAssertFactories.map(String.class, List.class)))
                         .isEmpty();
+                });
+        }
+
+        @Test
+        void should_return_v2_result() {
+            var result = logV4Repository.searchConnectionLogDetail(
+                queryContext,
+                ConnectionLogDetailQuery
+                    .builder()
+                    .filter(ConnectionLogDetailQuery.Filter.builder().requestIds(Set.of("29381bce-df59-47b2-b81b-cedf59c7b23b")).build())
+                    .build()
+            );
+            assertThat(result)
+                .hasValueSatisfying(connectionLogDetail -> {
+                    assertThat(connectionLogDetail)
+                        .hasFieldOrPropertyWithValue("apiId", "be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
+                        .hasFieldOrPropertyWithValue("requestId", "29381bce-df59-47b2-b81b-cedf59c7b23b")
+                        .hasFieldOrPropertyWithValue("clientIdentifier", null)
+                        .hasFieldOrPropertyWithValue("requestEnded", true);
+                    assertThat(connectionLogDetail.getEntrypointRequest())
+                        .hasFieldOrPropertyWithValue("method", "POST")
+                        .hasFieldOrPropertyWithValue("uri", "/stocks?api-key=a9c898c4-d2f8-49e7-8385-48ab5250dd5b")
+                        .extracting(ConnectionLogDetail.Request::getHeaders, as(InstanceOfAssertFactories.map(String.class, List.class)))
+                        .containsEntry("Connection", List.of("keep-alive"))
+                        .containsEntry("Content-Length", List.of("21"))
+                        .containsEntry("Cache-Control", List.of("no-cache"))
+                        .containsEntry("Origin", List.of("chrome-extension://fdmmgilgnpjigdojojpjoooidkmcomcm"))
+                        .containsEntry("X-Gravitee-Transaction-Id", List.of("b127e629-3273-4b3f-a7e6-2932736b3ffb"));
+                    assertThat(connectionLogDetail.getEndpointRequest()).isNull();
+                    assertThat(connectionLogDetail.getEntrypointResponse())
+                        .hasFieldOrPropertyWithValue("status", 403)
+                        .hasFieldOrPropertyWithValue(
+                            "body",
+                            """
+{
+  "message" : "API Key is not valid or is expired / revoked.",
+  "http_status_code" : 403
+}"""
+                        )
+                        .extracting(ConnectionLogDetail.Response::getHeaders, as(InstanceOfAssertFactories.map(String.class, List.class)))
+                        .containsAllEntriesOf(
+                            Map.of(
+                                "Content-Length",
+                                List.of("93"),
+                                "X-Gravitee-Transaction-Id",
+                                List.of("b127e629-3273-4b3f-a7e6-2932736b3ffb")
+                            )
+                        );
+                    assertThat(connectionLogDetail.getEndpointResponse()).isNull();
                 });
         }
     }
