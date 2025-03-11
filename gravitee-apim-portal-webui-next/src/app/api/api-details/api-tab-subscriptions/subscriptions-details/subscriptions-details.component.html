@@ -46,6 +46,11 @@
         [apiKeyConfigUsername]="detailsVM.result.apiKeyConfigUsername" />
     </div>
   }
+
+  @if (detailsVM.result && !!detailsVM.result.consumerConfiguration) {
+    <app-subscription-consumer-configuration
+      [consumerConfiguration]="detailsVM.result.consumerConfiguration"></app-subscription-consumer-configuration>
+  }
 } @else {
   <app-loader />
 }
