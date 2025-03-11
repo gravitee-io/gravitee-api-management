@@ -18,18 +18,26 @@ package io.gravitee.apim.infra.sanitizer;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.sanitizer.SanitizeResult;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Slf4j
+@Service
 public class HtmlSanitizerImpl implements HtmlSanitizer {
+
+    private final io.gravitee.rest.api.service.sanitizer.HtmlSanitizer delegate;
+
+    public HtmlSanitizerImpl(io.gravitee.rest.api.service.sanitizer.HtmlSanitizer htmlSanitizer) {
+        this.delegate = htmlSanitizer;
+    }
 
     @Override
     public String sanitize(String content) {
-        return io.gravitee.rest.api.service.sanitizer.HtmlSanitizer.sanitize(content);
+        return this.delegate.sanitize(content);
     }
 
     @Override
     public SanitizeResult isSafe(String content) {
-        var sanitizeInfos = io.gravitee.rest.api.service.sanitizer.HtmlSanitizer.isSafe(content);
+        var sanitizeInfos = this.delegate.isSafe(content);
         return SanitizeResult.builder().safe(sanitizeInfos.isSafe()).rejectedMessage(sanitizeInfos.getRejectedMessage()).build();
     }
 }
