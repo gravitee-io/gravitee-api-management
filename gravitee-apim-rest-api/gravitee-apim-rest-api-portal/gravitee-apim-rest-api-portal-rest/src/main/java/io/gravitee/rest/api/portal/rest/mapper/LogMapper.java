@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.analytics.Range;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.log.ApplicationRequest;
 import io.gravitee.rest.api.model.log.ApplicationRequestItem;
+import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import io.gravitee.rest.api.portal.rest.model.HttpMethod;
 import io.gravitee.rest.api.portal.rest.model.Log;
 import io.gravitee.rest.api.portal.rest.model.Request;
@@ -31,8 +32,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,6 +44,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 
+@Slf4j
 @Component
 public class LogMapper {
 
@@ -121,6 +126,22 @@ public class LogMapper {
         return logItem;
     }
 
+    public Log convert(
+        ConnectionLog connectionLog,
+        Optional<ConnectionLogDetail> connectionLogDetail,
+        Map<String, Map<String, Object>> metadata
+    ) {
+        var log = convert(connectionLog);
+        log.setMetadata(metadata);
+
+        if (connectionLogDetail.isPresent()) {
+            var connectionLogDetailGet = connectionLogDetail.get();
+            log.setRequest(convert(connectionLogDetailGet.getEntrypointRequest()));
+            log.setResponse(convert(connectionLogDetailGet.getEntrypointResponse()));
+        }
+        return log;
+    }
+
     public SearchLogsFilters convert(String applicationId, SearchApplicationLogsParam searchLogsParam) {
         return SearchLogsFilters
             .builder()
@@ -147,11 +168,47 @@ public class LogMapper {
         return responseTimeRanges.stream().map(r -> new Range(r.getFrom(), r.getTo())).toList();
     }
 
+    public HttpMethod convertToHttpMethod(String httpMethod) {
+        if (httpMethod != null) {
+            try {
+                return HttpMethod.valueOf(httpMethod);
+            } catch (IllegalArgumentException e) {
+                log.error("Unable to serialize HttpMethod [ {} ]", httpMethod);
+            }
+        }
+        return null;
+    }
+
     public Set<io.gravitee.common.http.HttpMethod> convert(Set<HttpMethod> httpMethod) {
         if (httpMethod == null) {
             return new HashSet<>();
         }
 
         return httpMethod.stream().map(method -> io.gravitee.common.http.HttpMethod.valueOf(method.name())).collect(Collectors.toSet());
+    }
+
+    public Request convert(ConnectionLogDetail.Request request) {
+        if (request == null) {
+            return null;
+        }
+
+        final Request portalRequest = new Request();
+        portalRequest.setMethod(convertToHttpMethod(request.getMethod()));
+        portalRequest.setUri(request.getUri());
+        portalRequest.setHeaders(request.getHeaders());
+        portalRequest.setBody(request.getBody());
+        return portalRequest;
+    }
+
+    public Response convert(ConnectionLogDetail.Response response) {
+        if (response == null) {
+            return null;
+        }
+        final Response portalResponse = new Response();
+        portalResponse.setStatus(response.getStatus());
+        portalResponse.setHeaders(response.getHeaders());
+        portalResponse.setBody(response.getBody());
+
+        return portalResponse;
     }
 }
