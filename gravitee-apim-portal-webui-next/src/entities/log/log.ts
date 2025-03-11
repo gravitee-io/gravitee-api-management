@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { ApiType } from '../api/api';
+
 export interface LogListItem {
   id: string;
   api: string;
@@ -86,6 +88,7 @@ export interface LogMetadata {
 export interface LogMetadataApi {
   name: string;
   version: string;
+  apiType?: ApiType;
 }
 export interface LogMetadataPlan {
   name: string;

@@ -49,7 +49,9 @@ public class SearchConnectionLogResponseAdapter {
             .timestamp(asTextOrNull(json.get(ConnectionLogField.TIMESTAMP)))
             .status(asIntOr(json.get(ConnectionLogField.STATUS), 0))
             .gateway(asTextOrNull(json.get(ConnectionLogField.GATEWAY)))
-            .uri(asTextOrNull(json.get(ConnectionLogField.URI)));
+            .uri(asTextOrNull(json.get(ConnectionLogField.URI)))
+            .requestContentLength(asIntOr(json.get(ConnectionLogField.REQUEST_CONTENT_LENGTH), 0))
+            .responseContentLength(asIntOr(json.get(ConnectionLogField.RESPONSE_CONTENT_LENGTH), 0));
 
         if (index.contains(Type.REQUEST.getType())) {
             return connectionLog
