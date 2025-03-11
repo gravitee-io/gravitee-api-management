@@ -17,12 +17,11 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
-import { MatFormField, MatFormFieldModule } from '@angular/material/form-field';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
-import { MatInput, MatInputModule } from '@angular/material/input';
+import { MatInputModule } from '@angular/material/input';
 import { RouterLink } from '@angular/router';
 import { catchError, forkJoin, map, Observable, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
@@ -66,16 +65,11 @@ interface SubscriptionDetailsData {
     MatIcon,
     MatCardModule,
     RouterLink,
-    MatButton,
     AsyncPipe,
-    CapitalizeFirstPipe,
     FormsModule,
     MatFormFieldModule,
     MatInputModule,
     ReactiveFormsModule,
-    MatFormField,
-    MatInput,
-    MatIconButton,
     AsyncPipe,
     ApiAccessComponent,
     SubscriptionInfoComponent,
