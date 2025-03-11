@@ -33,6 +33,7 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
 import io.gravitee.rest.api.model.log.ApplicationRequest;
@@ -95,7 +96,14 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
 
     private static final String API_1_ID = "api-1";
     private static final String API_2_ID = "api-2";
-    private static final Api API_1 = Api.builder().id(API_1_ID).name("API 1").version("1.1").build();
+    private static final Api API_1 = Api
+        .builder()
+        .id(API_1_ID)
+        .name("API 1")
+        .version("1.1")
+        .definitionVersion(DefinitionVersion.V4)
+        .type(ApiType.MESSAGE)
+        .build();
     private static final Api API_2 = Api.builder().id(API_2_ID).name("API 2").version("2.2").build();
 
     private static final String PLAN_1_ID = "plan-1";
@@ -404,7 +412,7 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
                 "data",
                 Map.of("total", 1),
                 API_1_ID,
-                Map.of("name", API_1.getName(), "version", API_1.getVersion()),
+                Map.of("name", API_1.getName(), "version", API_1.getVersion(), "apiType", "MESSAGE"),
                 PLAN_1_ID,
                 Map.of("name", PLAN_1.getName())
             ),
@@ -442,7 +450,7 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
                 "data",
                 Map.of("total", 2),
                 API_1_ID,
-                Map.of("name", API_1.getName(), "version", API_1.getVersion()),
+                Map.of("name", API_1.getName(), "version", API_1.getVersion(), "apiType", "MESSAGE"),
                 "unknown-api",
                 Map.of("name", "Unknown API (not found)", "unknown", "true"),
                 PLAN_1_ID,
@@ -493,13 +501,13 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         var logsResponse = response.readEntity(LogsResponse.class);
         assertNotNull(logsResponse.getData());
-        assertEquals(4, logsResponse.getData().size());
+        assertEquals(3, logsResponse.getData().size());
         assertEquals(
             Map.of(
                 "data",
-                Map.of("total", 4),
+                Map.of("total", 3),
                 API_1_ID,
-                Map.of("name", API_1.getName(), "version", API_1.getVersion()),
+                Map.of("name", API_1.getName(), "version", API_1.getVersion(), "apiType", "MESSAGE"),
                 PLAN_1_ID,
                 Map.of("name", PLAN_1.getName()),
                 API_2_ID,
@@ -549,7 +557,7 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
                 "data",
                 Map.of("total", 2),
                 API_1_ID,
-                Map.of("name", API_1.getName(), "version", API_1.getVersion()),
+                Map.of("name", API_1.getName(), "version", API_1.getVersion(), "apiType", "MESSAGE"),
                 PLAN_1_ID,
                 Map.of("name", PLAN_1.getName())
             ),
@@ -595,7 +603,9 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
             .to(SECOND_FEBRUARY_2020)
             .from(FIRST_FEBRUARY_2020)
             .apiIds(Set.of(API_1_ID, API_2_ID))
-            .methods(Set.of(io.gravitee.rest.api.portal.rest.model.HttpMethod.DELETE))
+            .methods(
+                Set.of(io.gravitee.rest.api.portal.rest.model.HttpMethod.GET, io.gravitee.rest.api.portal.rest.model.HttpMethod.DELETE)
+            )
             .bodyText("curl")
             .build();
 
@@ -616,7 +626,7 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
                 "data",
                 Map.of("total", 2),
                 API_1_ID,
-                Map.of("name", API_1.getName(), "version", API_1.getVersion()),
+                Map.of("name", API_1.getName(), "version", API_1.getVersion(), "apiType", "MESSAGE"),
                 PLAN_1_ID,
                 Map.of("name", PLAN_1.getName()),
                 API_2_ID,

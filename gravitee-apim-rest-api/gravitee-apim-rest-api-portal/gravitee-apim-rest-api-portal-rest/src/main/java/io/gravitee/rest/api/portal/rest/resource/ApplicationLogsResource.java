@@ -201,6 +201,14 @@ public class ApplicationLogsResource extends AbstractResource {
         @NotNull List<ConnectionLog> applicationConnectionLogs,
         Long total
     ) {
+        var metadata = getMetadataForApplicationConnectionLog(applicationConnectionLogs);
+
+        metadata.put(METADATA_DATA_KEY, Map.of(METADATA_DATA_TOTAL_KEY, total));
+
+        return metadata;
+    }
+
+    public Map<String, Map<String, Object>> getMetadataForApplicationConnectionLog(@NotNull List<ConnectionLog> applicationConnectionLogs) {
         Map<String, Map<String, Object>> metadata = new HashMap<>();
 
         applicationConnectionLogs.forEach(applicationConnectionLog -> {
@@ -215,8 +223,6 @@ public class ApplicationLogsResource extends AbstractResource {
                 metadata.computeIfAbsent(planId, mapPlanToMetadata(planId, applicationConnectionLog.getPlan()));
             }
         });
-
-        metadata.put(METADATA_DATA_KEY, Map.of(METADATA_DATA_TOTAL_KEY, total));
 
         return metadata;
     }
@@ -237,6 +243,11 @@ public class ApplicationLogsResource extends AbstractResource {
             } else {
                 metadata.put(LogMetadata.METADATA_NAME.getValue(), api.getName());
                 metadata.put(LogMetadata.METADATA_VERSION.getValue(), api.getVersion());
+
+                if (api.getDefinitionVersion() == DefinitionVersion.V4) {
+                    metadata.put(LogMetadata.METADATA_API_TYPE.getValue(), api.getType().name());
+                }
+
                 if (Api.ApiLifecycleState.ARCHIVED.equals(api.getApiLifecycleState())) {
                     metadata.put(LogMetadata.METADATA_DELETED.getValue(), Boolean.TRUE.toString());
                 }
