@@ -44,6 +44,7 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
+import io.gravitee.rest.api.service.sanitizer.HtmlSanitizer;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -57,6 +58,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.mock.env.MockEnvironment;
 
 class ApiUpdateDocumentationPageUseCaseTest {
 
@@ -173,9 +175,11 @@ class ApiUpdateDocumentationPageUseCaseTest {
 
     @BeforeEach
     void setUp() {
+        var htmlSanitizer = new HtmlSanitizer(new MockEnvironment());
+
         documentationValidationDomainService =
             new DocumentationValidationDomainService(
-                new HtmlSanitizerImpl(),
+                new HtmlSanitizerImpl(htmlSanitizer),
                 new NoopTemplateResolverDomainService(),
                 apiCrudService,
                 new NoopSwaggerOpenApiResolver(),
