@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { SubscriptionConsumerConfiguration } from './subscription-consumer-configuration';
+
 export interface Subscription {
   id: string;
   api: string;
@@ -25,6 +27,7 @@ export interface Subscription {
   status: SubscriptionStatusEnum;
   subscribed_by?: string;
   keys?: SubscriptionDataKeys[];
+  consumerConfiguration?: SubscriptionConsumerConfiguration;
 }
 
 export type SubscriptionStatusEnum = 'PENDING' | 'ACCEPTED' | 'CLOSED' | 'REJECTED' | 'PAUSED';
