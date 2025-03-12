@@ -41,7 +41,7 @@ export interface GetSubscriptionByIdRequestParams {
     /** Id of a subscription. */
     subscriptionId: string;
     /** Comma-separated list of related objects to include in the response. */
-    include?: Array<'keys'>;
+    include?: Array<'keys' | 'consumerConfiguration'>;
 }
 
 export interface GetSubscriptionsRequestParams {

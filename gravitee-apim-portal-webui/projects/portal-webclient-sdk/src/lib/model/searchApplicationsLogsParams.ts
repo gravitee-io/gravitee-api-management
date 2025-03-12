@@ -56,5 +56,9 @@ export interface SearchApplicationsLogsParams {
      * List of filters for response time ranges
      */
     responseTimeRanges?: Array<ResponseTimeRange>;
+    /**
+     * Filter for text in either the request or response body
+     */
+    bodyText?: string;
 }
 
