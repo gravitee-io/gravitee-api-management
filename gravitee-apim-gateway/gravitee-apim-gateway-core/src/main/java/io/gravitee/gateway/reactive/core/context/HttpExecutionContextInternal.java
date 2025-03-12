@@ -39,9 +39,15 @@ public interface HttpExecutionContextInternal extends HttpExecutionContext {
 
     HttpExecutionContextInternal componentProvider(final ComponentProvider componentProvider);
 
+    /**
+     * Allows defining the TemplateVariableProviders to use for resolving variables in templates.
+     * TemplateVariableProvider are used when initializing the TemplateEngine.
+     * The TemplateVariableProvider <b>should not be changed after calling this method!</b
+     *
+     * @param templateVariableProviders collection of TemplateVariableProvider
+     * @return the current instance of HttpExecutionContextInternal
+     */
     HttpExecutionContextInternal templateVariableProviders(final Collection<TemplateVariableProvider> templateVariableProviders);
-
-    Collection<TemplateVariableProvider> templateVariableProviders();
 
     HttpExecutionContextInternal tracer(Tracer tracer);
 }
