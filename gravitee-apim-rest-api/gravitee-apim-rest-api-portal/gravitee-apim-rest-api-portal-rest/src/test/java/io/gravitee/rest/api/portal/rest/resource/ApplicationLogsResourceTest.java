@@ -17,20 +17,20 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.log.model.MessageLogFixtures;
 import fixtures.repository.ConnectionLogDetailFixtures;
 import fixtures.repository.ConnectionLogFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ConnectionLogsCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
+import inmemory.MessageLogCrudServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.log.model.ConnectionLog;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
@@ -38,15 +38,15 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
-import io.gravitee.rest.api.model.log.ApplicationRequest;
 import io.gravitee.rest.api.model.log.ApplicationRequestItem;
 import io.gravitee.rest.api.model.log.SearchLogResponse;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
+import io.gravitee.rest.api.portal.rest.model.AggregatedMessageLog;
+import io.gravitee.rest.api.portal.rest.model.AggregatedMessageLogsResponse;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.model.Log;
 import io.gravitee.rest.api.portal.rest.model.LogsResponse;
-import io.gravitee.rest.api.portal.rest.resource.param.Range;
 import io.gravitee.rest.api.portal.rest.resource.param.ResponseTimeRange;
 import io.gravitee.rest.api.portal.rest.resource.param.SearchApplicationLogsParam;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -60,7 +60,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.After;
@@ -92,6 +91,9 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
 
     @Autowired
     ConnectionLogsCrudServiceInMemory connectionLogsCrudServiceInMemory;
+
+    @Autowired
+    MessageLogCrudServiceInMemory messageLogCrudServiceInMemory;
 
     private static final String APPLICATION_ID = "my-application";
     private static final String LOG = "my-log";
@@ -142,17 +144,8 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
 
         doReturn(searchResponse).when(logsService).findByApplication(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), any());
 
-        doReturn(new Log()).when(logMapper).convert(any(ApplicationRequestItem.class));
-        doReturn(new Log()).when(logMapper).convert(any(ApplicationRequest.class));
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
 
-        when(logMapper.convert(eq(APPLICATION_ID), any(SearchApplicationLogsParam.class))).thenCallRealMethod();
-        when(logMapper.convert(any(List.class))).thenCallRealMethod();
-        when(logMapper.convert(any(ConnectionLog.class))).thenCallRealMethod();
-        when(logMapper.convertToHttpMethod(anyString())).thenCallRealMethod();
-        when(logMapper.convert(any(ConnectionLogDetail.Request.class))).thenCallRealMethod();
-        when(logMapper.convert(any(ConnectionLogDetail.Response.class))).thenCallRealMethod();
-        when(logMapper.convert(any(ConnectionLog.class), any(Optional.class), any())).thenCallRealMethod();
         applicationCrudServiceInMemory.initWith(List.of(APPLICATION));
         apiCrudServiceInMemory.initWith(List.of(API_1, API_2));
         planCrudServiceInMemory.initWith(List.of(PLAN_1, PLAN_2));
@@ -161,7 +154,13 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
     @After
     public void cleanUp() {
         Stream
-            .of(applicationCrudServiceInMemory, apiCrudServiceInMemory, planCrudServiceInMemory, connectionLogsCrudServiceInMemory)
+            .of(
+                applicationCrudServiceInMemory,
+                apiCrudServiceInMemory,
+                planCrudServiceInMemory,
+                connectionLogsCrudServiceInMemory,
+                messageLogCrudServiceInMemory
+            )
             .forEach(InMemoryAlternative::reset);
     }
 
@@ -283,6 +282,7 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         var logResponse = response.readEntity(Log.class);
         assertNotNull(logResponse);
+        assertEquals(LOG, logResponse.getId());
         assertNull(logResponse.getResponse());
         assertNull(logResponse.getRequest());
     }
@@ -718,5 +718,136 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
             ),
             logsResponse.getMetadata()
         );
+    }
+
+    /**
+     * APPLICATION LOG MESSAGES
+     */
+
+    @Test
+    public void should_throw_404_when_application_not_found() {
+        final Response response = target("not-found")
+            .path("logs/" + LOG + "/messages")
+            .queryParam("page", 1)
+            .queryParam("size", 10)
+            .queryParam("timestamp", SECOND_FEBRUARY_2020)
+            .request()
+            .get();
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+        var error = response.readEntity(ErrorResponse.class);
+        assertNotNull(error);
+        assertNotNull(error.getErrors());
+        assertEquals("Application [not-found] cannot be found.", error.getErrors().getFirst().getMessage());
+    }
+
+    @Test
+    public void should_throw_404_when_log_by_log_id_not_found() {
+        final Response response = target(APPLICATION_ID)
+            .path("logs/" + "not-found" + "/messages")
+            .queryParam("page", 1)
+            .queryParam("size", 10)
+            .queryParam("timestamp", SECOND_FEBRUARY_2020)
+            .request()
+            .get();
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+        var error = response.readEntity(ErrorResponse.class);
+        assertNotNull(error);
+        assertNotNull(error.getErrors());
+        assertEquals("Log [ not-found ] not found.", error.getErrors().getFirst().getMessage());
+    }
+
+    @Test
+    public void should_return_empty_list_of_messages() {
+        // Given
+        connectionLogsCrudServiceInMemory.initWithConnectionLogs(
+            List.of(connectionLogFixtures.aConnectionLog(LOG).toBuilder().timestamp("2020-02-02T23:59:59.00Z").build())
+        );
+
+        // When
+        final Response response = target(APPLICATION_ID)
+            .path("logs/" + LOG + "/messages")
+            .queryParam("page", 1)
+            .queryParam("size", 10)
+            .queryParam("timestamp", SECOND_FEBRUARY_2020)
+            .request()
+            .get();
+
+        // Then
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        var logsResponse = response.readEntity(AggregatedMessageLogsResponse.class);
+        assertNotNull(logsResponse.getData());
+        assertEquals(0, logsResponse.getData().size());
+    }
+
+    @Test
+    public void should_return_list_of_messages() {
+        // Given
+        connectionLogsCrudServiceInMemory.initWithConnectionLogs(
+            List.of(connectionLogFixtures.aConnectionLog(LOG).toBuilder().timestamp("2020-02-02T23:59:59.00Z").build())
+        );
+
+        messageLogCrudServiceInMemory.initWith(
+            List.of(
+                MessageLogFixtures
+                    .aMessageLog(API_1_ID, LOG)
+                    .toBuilder()
+                    .endpoint(
+                        MessageLogFixtures
+                            .aMessageLog()
+                            .getEndpoint()
+                            .toBuilder()
+                            .connectorId("connector-endpoint")
+                            .payload("endpoint-payload")
+                            .build()
+                    )
+                    .build(),
+                MessageLogFixtures
+                    .aMessageLog(API_1_ID, LOG)
+                    .toBuilder()
+                    .entrypoint(
+                        MessageLogFixtures
+                            .aMessageLog()
+                            .getEntrypoint()
+                            .toBuilder()
+                            .connectorId("connector-entrypoint")
+                            .payload("entrypoint-payload")
+                            .build()
+                    )
+                    .build(),
+                MessageLogFixtures.aMessageLog(API_2_ID, LOG),
+                MessageLogFixtures.aMessageLog(API_1_ID, "other-request")
+            )
+        );
+
+        // When
+        final Response response = target(APPLICATION_ID)
+            .path("logs/" + LOG + "/messages")
+            .queryParam("page", 1)
+            .queryParam("size", 10)
+            .queryParam("timestamp", SECOND_FEBRUARY_2020)
+            .request()
+            .get();
+
+        // Then
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        var logsResponse = response.readEntity(AggregatedMessageLogsResponse.class);
+        assertNotNull(logsResponse.getData());
+        assertEquals(2, logsResponse.getData().size());
+
+        AggregatedMessageLog firstMessageLog = logsResponse.getData().getFirst();
+        assertEquals(API_1_ID, firstMessageLog.getApiId());
+        assertEquals(LOG, firstMessageLog.getRequestId());
+        assertNotNull(firstMessageLog.getEndpoint());
+        assertEquals("connector-endpoint", firstMessageLog.getEndpoint().getConnectorId());
+        assertEquals("endpoint-payload", firstMessageLog.getEndpoint().getPayload());
+
+        AggregatedMessageLog secondMessageLog = logsResponse.getData().get(1);
+        assertEquals(API_1_ID, secondMessageLog.getApiId());
+        assertEquals(LOG, secondMessageLog.getRequestId());
+        assertNotNull(secondMessageLog.getEntrypoint());
+        assertEquals("connector-entrypoint", secondMessageLog.getEntrypoint().getConnectorId());
+        assertEquals("entrypoint-payload", secondMessageLog.getEntrypoint().getPayload());
     }
 }

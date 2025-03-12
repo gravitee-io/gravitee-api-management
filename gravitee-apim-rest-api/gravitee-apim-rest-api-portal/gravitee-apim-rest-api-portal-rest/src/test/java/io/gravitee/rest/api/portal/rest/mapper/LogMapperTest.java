@@ -48,7 +48,7 @@ public class LogMapperTest {
     private static final String LOG_SECURITY_TOKEN = "my-log-security-token";
     private static final String LOG_SECURITY_TYPE = "my-log-security-type";
 
-    private LogMapper logMapper = new LogMapper();
+    private final LogMapper logMapper = LogMapper.INSTANCE;
 
     @Test
     public void testConvertListItem() {
