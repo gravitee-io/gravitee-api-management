@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import io.gravitee.apim.core.log.model.AggregatedMessageLog;
 import io.gravitee.apim.core.log.model.ConnectionLog;
 import io.gravitee.rest.api.model.analytics.Range;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
@@ -22,10 +23,13 @@ import io.gravitee.rest.api.model.log.ApplicationRequest;
 import io.gravitee.rest.api.model.log.ApplicationRequestItem;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import io.gravitee.rest.api.portal.rest.model.Log;
+import io.gravitee.rest.api.portal.rest.model.MessageLog;
+import io.gravitee.rest.api.portal.rest.model.MessageLogContent;
 import io.gravitee.rest.api.portal.rest.model.Request;
 import io.gravitee.rest.api.portal.rest.model.Response;
 import io.gravitee.rest.api.portal.rest.resource.param.ResponseTimeRange;
 import io.gravitee.rest.api.portal.rest.resource.param.SearchApplicationLogsParam;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +62,13 @@ public interface LogMapper {
 
     Range convert(ResponseTimeRange responseTimeRange);
     List<Range> convertResponseTimeRanges(List<ResponseTimeRange> responseTimeRanges);
+
+    @Mapping(target = "timestamp", qualifiedByName = "mapTimestamp")
+    MessageLog convert(AggregatedMessageLog messageLog);
+
+    List<MessageLog> convert(List<AggregatedMessageLog> data);
+
+    MessageLogContent convert(AggregatedMessageLog.Message messageLog);
 
     default SearchLogsFilters convert(String applicationId, SearchApplicationLogsParam searchLogsParam) {
         return convert(searchLogsParam).toBuilder().applicationIds(Set.of(applicationId)).build();
