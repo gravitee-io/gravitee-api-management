@@ -37,7 +37,7 @@
 .markdown-toc > .toc-list li {
   list-style: none;
   line-height: 25px;
-  line-break: anywhere;
+  line-break: auto;
 }
 
 .toc-list {
@@ -56,7 +56,7 @@ a.toc-link {
   text-decoration: none;
   height: 100%;
   cursor: pointer;
-  white-space: nowrap;
+  white-space: normal;
   box-sizing: border-box;
 }
 
