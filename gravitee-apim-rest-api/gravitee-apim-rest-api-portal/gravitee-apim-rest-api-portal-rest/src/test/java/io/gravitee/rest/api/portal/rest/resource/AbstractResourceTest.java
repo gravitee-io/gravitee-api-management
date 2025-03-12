@@ -27,15 +27,12 @@ import io.gravitee.rest.api.portal.rest.mapper.CategoryMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ConfigurationMapper;
 import io.gravitee.rest.api.portal.rest.mapper.IdentityProviderMapper;
 import io.gravitee.rest.api.portal.rest.mapper.KeyMapper;
-import io.gravitee.rest.api.portal.rest.mapper.LogMapper;
 import io.gravitee.rest.api.portal.rest.mapper.MemberMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
-import io.gravitee.rest.api.portal.rest.mapper.PortalMenuLinkMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PortalNotificationMapper;
 import io.gravitee.rest.api.portal.rest.mapper.RatingMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ReferenceMetadataMapper;
-import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ThemeMapper;
 import io.gravitee.rest.api.portal.rest.mapper.TicketMapper;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
@@ -268,9 +265,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected UserMapper userMapper;
 
     @Autowired
-    protected LogMapper logMapper;
-
-    @Autowired
     protected AnalyticsMapper analyticsMapper;
 
     @Autowired
@@ -396,7 +390,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(applicationMapper);
         reset(memberMapper);
         reset(userMapper);
-        reset(logMapper);
         reset(analyticsMapper);
         reset(portalNotificationMapper);
         reset(categoryMapper);
