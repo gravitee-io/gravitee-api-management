@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { ComponentHarness } from '@angular/cdk/testing';
+import { ComponentHarness, parallel } from '@angular/cdk/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 
 export class ConsumerConfigurationComponentHarness extends ComponentHarness {
   public static hostSelector = 'app-consumer-configuration';
@@ -23,5 +24,19 @@ export class ConsumerConfigurationComponentHarness extends ComponentHarness {
   async getInputTextFromControlName(formControlName: string): Promise<string> {
     const input: MatInputHarness = await this.locatorFor(MatInputHarness.with({ selector: `[formcontrolname='${formControlName}']` }))();
     return input.getValue();
+  }
+
+  async computeHeadersTableCells(): Promise<{ name: string; value: string }[]> {
+    const table = await this.locatorFor(MatTableHarness)();
+    const rows = await table.getRows();
+    return await parallel(() =>
+      rows.map(async (row, index) => {
+        const nameInput = await this.locatorFor(MatInputHarness.with({ selector: `#header-name-${index}` }))();
+        const valueInput = await this.locatorFor(MatInputHarness.with({ selector: `#header-value-${index}` }))();
+        const name = await nameInput.getValue();
+        const value = await valueInput.getValue();
+        return { name, value };
+      }),
+    );
   }
 }
