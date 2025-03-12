@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -125,8 +125,8 @@ public class FlowMapperTest {
             );
         }
 
-        assertThat(flowV4.getConnect()).isNull();
-        assertThat(flowV4.getInteract()).isNull();
+        assertThat(flowV4.getConnect()).isNotNull().isEmpty();
+        assertThat(flowV4.getInteract()).isNotNull().isEmpty();
 
         assertStepsV4Equals(flowEntityV4.getRequest(), flowV4.getRequest());
         assertStepsV4Equals(flowEntityV4.getPublish(), flowV4.getPublish());
@@ -138,9 +138,9 @@ public class FlowMapperTest {
         assertEquals(flowEntityV4.getName(), flowV4.getName());
 
         final var flowV4Selectors = flowV4.getSelectors();
-        assertThat(flowV4Selectors).isNull();
-        assertThat(flowV4.getRequest()).isNull();
-        assertThat(flowV4.getResponse()).isNull();
+        assertThat(flowV4Selectors).isNotNull().isEmpty();
+        assertThat(flowV4.getRequest()).isNotNull().isEmpty();
+        assertThat(flowV4.getResponse()).isNotNull().isEmpty();
 
         assertStepsV4Equals(flowEntityV4.getPublish(), flowV4.getPublish());
         assertStepsV4Equals(flowEntityV4.getSubscribe(), flowV4.getSubscribe());
@@ -190,7 +190,7 @@ public class FlowMapperTest {
 
     private void assertStepsV2Equals(List<io.gravitee.definition.model.flow.Step> steps, List<StepV2> stepsV2)
         throws JsonProcessingException {
-        assertEquals(steps.size(), steps.size());
+        assertEquals(steps.size(), stepsV2.size());
 
         for (int i = 0; i < steps.size(); i++) {
             final var step = steps.get(i);

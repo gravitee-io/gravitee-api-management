@@ -265,12 +265,14 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertNotNull(responseApi.getProperties());
         assertTrue(responseApi.getProperties().isEmpty());
         assertNull(responseApi.getServices());
-        assertNull(responseApi.getResources());
+        assertNotNull(responseApi.getResources());
+        assertTrue(responseApi.getResources().isEmpty());
         assertNotNull(responseApi.getResponseTemplates());
         assertEquals(0, responseApi.getResponseTemplates().size());
         assertNotNull(responseApi.getListeners());
         assertNotNull(responseApi.getListeners().get(0));
-        assertNull((responseApi.getListeners().get(0).getHttpListener()).getPathMappings());
+        assertNotNull((responseApi.getListeners().get(0).getHttpListener()).getPathMappings());
+        assertTrue((responseApi.getListeners().get(0).getHttpListener()).getPathMappings().isEmpty());
         assertNull((responseApi.getListeners().get(0).getHttpListener()).getPaths().get(0).getHost());
     }
 
@@ -348,9 +350,12 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertNotNull(flow.getPublish());
         assertNotNull(flow.getSubscribe());
 
-        assertNull(flow.getRequest());
-        assertNull(flow.getResponse());
-        assertNull(flow.getSelectors());
+        assertNotNull(flow.getRequest());
+        assertTrue(flow.getRequest().isEmpty());
+        assertNotNull(flow.getResponse());
+        assertTrue(flow.getResponse().isEmpty());
+        assertNotNull(flow.getSelectors());
+        assertTrue(flow.getSelectors().isEmpty());
 
         assertEquals(1, flow.getConnect().size());
 
@@ -399,7 +404,8 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertNotNull(responseApi.getProperties());
         assertTrue(responseApi.getProperties().isEmpty());
         assertNull(responseApi.getServices());
-        assertNull(responseApi.getResources());
+        assertNotNull(responseApi.getResources());
+        assertTrue(responseApi.getResources().isEmpty());
         assertNotNull(responseApi.getResponseTemplates());
         assertEquals(0, responseApi.getResponseTemplates().size());
         assertNotNull(responseApi.getListeners());
@@ -479,9 +485,11 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertNotNull(responseApi.getLinks());
         assertNotNull(responseApi.getLinks().getPictureUrl());
         assertNotNull(responseApi.getLinks().getBackgroundUrl());
-        assertNull(responseApi.getProperties());
+        assertNotNull(responseApi.getProperties());
+        assertTrue(responseApi.getProperties().isEmpty());
         assertNull(responseApi.getServices());
-        assertNull(responseApi.getResources());
+        assertNotNull(responseApi.getResources());
+        assertTrue(responseApi.getResources().isEmpty());
         assertNotNull(responseApi.getResponseTemplates());
         assertEquals(0, responseApi.getResponseTemplates().size());
         assertNotNull(responseApi.getProxy());

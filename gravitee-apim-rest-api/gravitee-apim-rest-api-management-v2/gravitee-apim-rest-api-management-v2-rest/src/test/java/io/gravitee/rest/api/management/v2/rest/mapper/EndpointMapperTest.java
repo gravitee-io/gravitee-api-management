@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -70,7 +70,7 @@ public class EndpointMapperTest {
 
     private static void assertV4EndpointsAreEquals(List<Endpoint> endpointEntityV4List, List<EndpointV4> endpointV4List)
         throws JsonProcessingException {
-        assertThat(endpointEntityV4List).isNotNull().asList().hasSize(endpointV4List.size());
+        assertThat(endpointEntityV4List).isNotNull().hasSize(endpointV4List.size());
         var endpointEntityV4 = endpointEntityV4List.get(0);
         var endpointV4 = endpointV4List.get(0);
         assertV4EndpointsAreEquals(endpointEntityV4, endpointV4);
@@ -156,7 +156,7 @@ public class EndpointMapperTest {
 
     private static void assertV4NativeEndpointsAreEqual(List<NativeEndpoint> endpointEntityV4List, List<EndpointV4> endpointV4List)
         throws JsonProcessingException {
-        assertThat(endpointEntityV4List).isNotNull().asList().hasSize(endpointV4List.size());
+        assertThat(endpointEntityV4List).isNotNull().hasSize(endpointV4List.size());
         var endpointEntityV4 = endpointEntityV4List.get(0);
         var endpointV4 = endpointV4List.get(0);
         assertV4EndpointIsEqual(endpointEntityV4, endpointV4);
@@ -316,14 +316,14 @@ public class EndpointMapperTest {
         assertThat(endpointGroupEntityV2.getHttpProxy()).isNull();
         assertThat(endpointGroupEntityV2.getHttpClientOptions()).isNull();
         assertThat(endpointGroupEntityV2.getHttpClientSslOptions()).isNull();
-        assertThat(endpointGroupEntityV2.getHeaders()).isNull();
+        assertThat(endpointGroupEntityV2.getHeaders()).isNotNull().isEmpty();
     }
 
     private static void assertV2EndpointsAreEquals(
         List<io.gravitee.definition.model.Endpoint> endpointEntityV2List,
         List<EndpointV2> endpointV2List
     ) throws JsonProcessingException {
-        assertThat(endpointEntityV2List).isNotNull().asList().hasSize(endpointV2List.size());
+        assertThat(endpointEntityV2List).isNotNull().hasSize(endpointV2List.size());
         var endpointEntityV2 = endpointEntityV2List.iterator().next();
         var endpointV2 = endpointV2List.get(0);
         assertV2EndpointsAreEquals(endpointEntityV2, endpointV2);

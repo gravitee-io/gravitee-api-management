@@ -223,7 +223,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             var body = response.readEntity(ApiDocumentationPagesResponse.class);
             assertThat(body.getPages()).isEqualTo(List.of());
-            assertThat(body.getBreadcrumb()).isNull();
+            assertThat(body.getBreadcrumb()).isNotNull().isEmpty();
         }
 
         @Test
@@ -267,7 +267,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             assertThat(response.getStatus()).isEqualTo(200);
 
             var body = response.readEntity(ApiDocumentationPagesResponse.class);
-            assertThat(body.getBreadcrumb()).isNull();
+            assertThat(body.getBreadcrumb()).isNotNull().isEmpty();
             assertThat(body.getPages())
                 .hasSize(4)
                 .containsAll(
@@ -369,7 +369,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             assertThat(response.getStatus()).isEqualTo(200);
 
             var body = response.readEntity(ApiDocumentationPagesResponse.class);
-            assertThat(body.getBreadcrumb()).isNull();
+            assertThat(body.getBreadcrumb()).isNotNull().isEmpty();
             assertThat(body.getPages())
                 .isEqualTo(
                     List.of(
@@ -859,7 +859,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             assertThat(response.getStatus()).isEqualTo(200);
 
             var body = response.readEntity(ApiDocumentationPagesResponse.class);
-            assertThat(body.getBreadcrumb()).isNull();
+            assertThat(body.getBreadcrumb()).isNotNull().isEmpty();
             assertThat(body.getPages())
                 .isEqualTo(
                     List.of(
