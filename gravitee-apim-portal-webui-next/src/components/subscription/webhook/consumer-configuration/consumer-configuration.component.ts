@@ -25,9 +25,21 @@ import { tap } from 'rxjs';
 
 import { SubscriptionConsumerConfiguration } from '../../../../entities/subscription';
 import { SubscriptionService } from '../../../../services/subscription.service';
+import { ConsumerConfigurationHeadersComponent } from '../consumer-configuration-headers';
 
 @Component({
-  imports: [MatCard, MatCardHeader, MatCardContent, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatLabel, MatIcon, RouterLink],
+  imports: [
+    MatCard,
+    MatCardHeader,
+    MatCardContent,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatLabel,
+    MatIcon,
+    RouterLink,
+    ConsumerConfigurationHeadersComponent,
+  ],
   selector: 'app-consumer-configuration',
   standalone: true,
   templateUrl: './consumer-configuration.component.html',
@@ -59,6 +71,7 @@ export class ConsumerConfigurationComponent {
         channel: new FormControl(consumerConfiguration.channel),
         consumerConfiguration: new FormGroup({
           callbackUrl: new FormControl(entrypointConfiguration?.callbackUrl),
+          headers: new FormControl(entrypointConfiguration?.headers),
         }),
       });
     }
