@@ -53,13 +53,6 @@
   overflow-wrap: break-word;
   white-space: pre-wrap;
 }
-:host ::ng-deep .toc-link {
-  display: block !important;
-  max-width: 100% !important;
-  white-space: normal !important;
-  word-break: break-word !important;
-}
-
 app-gv-markdown-toc {
   position: fixed;
   right: 42px;
