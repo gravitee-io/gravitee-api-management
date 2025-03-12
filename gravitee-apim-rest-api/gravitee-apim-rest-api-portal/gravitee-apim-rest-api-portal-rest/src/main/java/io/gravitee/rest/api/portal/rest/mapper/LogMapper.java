@@ -15,118 +15,67 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import io.gravitee.apim.core.log.model.AggregatedMessageLog;
 import io.gravitee.apim.core.log.model.ConnectionLog;
 import io.gravitee.rest.api.model.analytics.Range;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.log.ApplicationRequest;
 import io.gravitee.rest.api.model.log.ApplicationRequestItem;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
-import io.gravitee.rest.api.portal.rest.model.HttpMethod;
 import io.gravitee.rest.api.portal.rest.model.Log;
+import io.gravitee.rest.api.portal.rest.model.MessageLogContent;
 import io.gravitee.rest.api.portal.rest.model.Request;
 import io.gravitee.rest.api.portal.rest.model.Response;
 import io.gravitee.rest.api.portal.rest.resource.param.ResponseTimeRange;
 import io.gravitee.rest.api.portal.rest.resource.param.SearchApplicationLogsParam;
-import java.time.Instant;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-/**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
- * @author GraviteeSource Team
- */
+@Mapper(uses = { DateMapper.class })
+public interface LogMapper {
+    LogMapper INSTANCE = Mappers.getMapper(LogMapper.class);
 
-@Slf4j
-@Component
-public class LogMapper {
+    Log convert(ApplicationRequest applicationRequest);
+    Log convert(ApplicationRequestItem applicationRequestItem);
 
-    public Log convert(ApplicationRequest applicationRequest) {
-        final Log logItem = new Log();
-        logItem.setApi(applicationRequest.getApi());
-        logItem.setHost(applicationRequest.getHost());
-        logItem.setId(applicationRequest.getId());
-        logItem.setMetadata(applicationRequest.getMetadata() == null ? null : new HashMap(applicationRequest.getMetadata()));
-        logItem.setMethod(HttpMethod.fromValue(applicationRequest.getMethod().name()));
-        logItem.setPath(applicationRequest.getPath());
-        logItem.setPlan(applicationRequest.getPlan());
-        if (applicationRequest.getRequest() != null) {
-            logItem.setRequest(
-                new Request()
-                    .body(applicationRequest.getRequest().getBody())
-                    .headers(applicationRequest.getRequest().getHeaders())
-                    .method(HttpMethod.fromValue(applicationRequest.getRequest().getMethod().name()))
-                    .uri(applicationRequest.getRequest().getUri())
-            );
-        }
-        logItem.setRequestContentLength(applicationRequest.getRequestContentLength());
-        if (applicationRequest.getResponse() != null) {
-            logItem.setResponse(
-                new Response()
-                    .body(applicationRequest.getResponse().getBody())
-                    .status(applicationRequest.getResponse().getStatus())
-                    .headers(applicationRequest.getResponse().getHeaders())
-            );
-        }
-        logItem.setResponseContentLength(applicationRequest.getResponseContentLength());
-        logItem.setResponseTime(applicationRequest.getResponseTime());
-        logItem.setSecurityToken(applicationRequest.getSecurityToken());
-        logItem.setSecurityType(applicationRequest.getSecurityType());
-        logItem.setStatus(applicationRequest.getStatus());
-        logItem.setTimestamp(applicationRequest.getTimestamp());
-        logItem.setTransactionId(applicationRequest.getTransactionId());
-        logItem.setUser(applicationRequest.getUser());
+    @Mapping(target = "plan", source = "plan.id")
+    @Mapping(target = "api", source = "api.id")
+    @Mapping(target = "id", source = "requestId")
+    @Mapping(target = "path", source = "uri")
+    @Mapping(target = "responseTime", source = "gatewayResponseTime")
+    Log convert(ConnectionLog connectionLog);
 
-        return logItem;
+    List<Log> convertConnectionLogs(List<ConnectionLog> connectionLogs);
+
+    Request convert(ConnectionLogDetail.Request request);
+
+    Response convert(ConnectionLogDetail.Response response);
+
+    @Mapping(target = "uri", source = "path")
+    SearchLogsFilters convert(SearchApplicationLogsParam searchLogsParam);
+
+    Range convert(ResponseTimeRange responseTimeRange);
+    List<Range> convertResponseTimeRanges(List<ResponseTimeRange> responseTimeRanges);
+
+    @Mapping(target = "timestamp", qualifiedByName = "mapTimestamp")
+    io.gravitee.rest.api.portal.rest.model.AggregatedMessageLog convert(AggregatedMessageLog messageLog);
+
+    List<io.gravitee.rest.api.portal.rest.model.AggregatedMessageLog> convert(List<AggregatedMessageLog> data);
+
+    MessageLogContent convert(AggregatedMessageLog.Message messageLog);
+
+    default SearchLogsFilters convert(String applicationId, SearchApplicationLogsParam searchLogsParam) {
+        return convert(searchLogsParam).toBuilder().applicationIds(Set.of(applicationId)).build();
     }
 
-    public Log convert(ApplicationRequestItem applicationRequestItem) {
-        final Log logItem = new Log();
-        logItem.setApi(applicationRequestItem.getApi());
-        logItem.setId(applicationRequestItem.getId());
-        logItem.setMethod(HttpMethod.fromValue(applicationRequestItem.getMethod().name()));
-        logItem.setPath(applicationRequestItem.getPath());
-        logItem.setPlan(applicationRequestItem.getPlan());
-        logItem.setResponseTime(applicationRequestItem.getResponseTime());
-        logItem.setStatus(applicationRequestItem.getStatus());
-        logItem.setTimestamp(applicationRequestItem.getTimestamp());
-        logItem.setTransactionId(applicationRequestItem.getTransactionId());
-        logItem.setUser(applicationRequestItem.getUser());
-
-        return logItem;
-    }
-
-    public List<Log> convert(List<ConnectionLog> logs) {
-        if (logs == null) {
-            return new ArrayList<>();
-        }
-        return logs.stream().map(this::convert).toList();
-    }
-
-    public Log convert(ConnectionLog connectionLog) {
-        final Log logItem = new Log();
-        logItem.setApi(connectionLog.getApiId());
-        logItem.setId(connectionLog.getRequestId());
-        logItem.setMethod(HttpMethod.fromValue(connectionLog.getMethod().name()));
-        logItem.setPath(connectionLog.getUri());
-        logItem.setPlan(connectionLog.getPlanId());
-        logItem.setResponseTime(connectionLog.getGatewayResponseTime());
-        logItem.setStatus(connectionLog.getStatus());
-        logItem.setTimestamp(Instant.parse(connectionLog.getTimestamp()).toEpochMilli());
-        logItem.setTransactionId(connectionLog.getTransactionId());
-        logItem.setRequestContentLength(connectionLog.getRequestContentLength());
-        logItem.setResponseContentLength(connectionLog.getResponseContentLength());
-        return logItem;
-    }
-
-    public Log convert(
+    default Log convert(
         ConnectionLog connectionLog,
         Optional<ConnectionLogDetail> connectionLogDetail,
         Map<String, Map<String, Object>> metadata
@@ -142,73 +91,17 @@ public class LogMapper {
         return log;
     }
 
-    public SearchLogsFilters convert(String applicationId, SearchApplicationLogsParam searchLogsParam) {
-        return SearchLogsFilters
-            .builder()
-            .to(searchLogsParam.getTo())
-            .from(searchLogsParam.getFrom())
-            .applicationIds(Set.of(applicationId))
-            .planIds(searchLogsParam.getPlanIds())
-            .methods(convert(searchLogsParam.getMethods()))
-            .statuses(searchLogsParam.getStatuses())
-            .apiIds(searchLogsParam.getApiIds())
-            .requestIds(searchLogsParam.getRequestIds())
-            .transactionIds(searchLogsParam.getTransactionIds())
-            .uri(searchLogsParam.getPath())
-            .responseTimeRanges(convertResponseTimeRanges(searchLogsParam.getResponseTimeRanges()))
-            .bodyText(searchLogsParam.getBodyText())
-            .build();
+    default Map<String, Map<String, Object>> map(Map<String, Map<String, String>> value) {
+        if (value == null) {
+            return new HashMap<>();
+        }
+        return value.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> mapToObjectMap(e.getValue())));
     }
 
-    private List<Range> convertResponseTimeRanges(List<ResponseTimeRange> responseTimeRanges) {
-        if (responseTimeRanges == null) {
-            return new ArrayList<>();
+    default Map<String, Object> mapToObjectMap(Map<String, String> value) {
+        if (value == null) {
+            return new HashMap<>();
         }
-
-        return responseTimeRanges.stream().map(r -> new Range(r.getFrom(), r.getTo())).toList();
-    }
-
-    public HttpMethod convertToHttpMethod(String httpMethod) {
-        if (httpMethod != null) {
-            try {
-                return HttpMethod.valueOf(httpMethod);
-            } catch (IllegalArgumentException e) {
-                log.error("Unable to serialize HttpMethod [ {} ]", httpMethod);
-            }
-        }
-        return null;
-    }
-
-    public Set<io.gravitee.common.http.HttpMethod> convert(Set<HttpMethod> httpMethod) {
-        if (httpMethod == null) {
-            return new HashSet<>();
-        }
-
-        return httpMethod.stream().map(method -> io.gravitee.common.http.HttpMethod.valueOf(method.name())).collect(Collectors.toSet());
-    }
-
-    public Request convert(ConnectionLogDetail.Request request) {
-        if (request == null) {
-            return null;
-        }
-
-        final Request portalRequest = new Request();
-        portalRequest.setMethod(convertToHttpMethod(request.getMethod()));
-        portalRequest.setUri(request.getUri());
-        portalRequest.setHeaders(request.getHeaders());
-        portalRequest.setBody(request.getBody());
-        return portalRequest;
-    }
-
-    public Response convert(ConnectionLogDetail.Response response) {
-        if (response == null) {
-            return null;
-        }
-        final Response portalResponse = new Response();
-        portalResponse.setStatus(response.getStatus());
-        portalResponse.setHeaders(response.getHeaders());
-        portalResponse.setBody(response.getBody());
-
-        return portalResponse;
+        return value.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

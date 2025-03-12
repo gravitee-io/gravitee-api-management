@@ -101,7 +101,6 @@ import io.gravitee.rest.api.portal.rest.mapper.CategoryMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ConfigurationMapper;
 import io.gravitee.rest.api.portal.rest.mapper.IdentityProviderMapper;
 import io.gravitee.rest.api.portal.rest.mapper.KeyMapper;
-import io.gravitee.rest.api.portal.rest.mapper.LogMapper;
 import io.gravitee.rest.api.portal.rest.mapper.MemberMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
@@ -112,7 +111,6 @@ import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ThemeMapper;
 import io.gravitee.rest.api.portal.rest.mapper.TicketMapper;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
-import io.gravitee.rest.api.portal.rest.resource.ApiMetricsResourceTest;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
@@ -437,11 +435,6 @@ public class ResourceContextConfiguration {
     @Bean
     public UserMapper userMapper() {
         return mock(UserMapper.class);
-    }
-
-    @Bean
-    public LogMapper logMapper() {
-        return mock(LogMapper.class);
     }
 
     @Bean

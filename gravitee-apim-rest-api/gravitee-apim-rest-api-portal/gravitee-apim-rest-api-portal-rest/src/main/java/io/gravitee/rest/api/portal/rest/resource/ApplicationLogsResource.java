@@ -20,6 +20,7 @@ import static java.lang.String.format;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.log.model.ConnectionLog;
 import io.gravitee.apim.core.log.use_case.SearchApiConnectionLogDetailUseCase;
+import io.gravitee.apim.core.log.use_case.SearchApiMessageLogsUseCase;
 import io.gravitee.apim.core.log.use_case.SearchApplicationConnectionLogsUseCase;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.http.MediaType;
@@ -42,6 +43,7 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.LogsService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -49,6 +51,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,9 +71,6 @@ public class ApplicationLogsResource extends AbstractResource {
     private LogsService logsService;
 
     @Inject
-    private LogMapper logMapper;
-
-    @Inject
     private ApplicationService applicationService;
 
     @Inject
@@ -78,6 +78,11 @@ public class ApplicationLogsResource extends AbstractResource {
 
     @Inject
     private SearchApiConnectionLogDetailUseCase searchApiConnectionLogDetailUseCase;
+
+    @Inject
+    private SearchApiMessageLogsUseCase searchMessageLogsUseCase;
+
+    private final LogMapper logMapper = LogMapper.INSTANCE;
 
     @GET
     @Deprecated
@@ -137,7 +142,7 @@ public class ApplicationLogsResource extends AbstractResource {
         var metadata = getMetadataForApplicationConnectionLog(result.data(), result.total());
 
         // No pagination, because logsService did it already
-        return createListResponse(executionContext, logMapper.convert(result.data()), paginationParam, metadata, false);
+        return createListResponse(executionContext, logMapper.convertConnectionLogs(result.data()), paginationParam, metadata, false);
     }
 
     @SuppressWarnings("unchecked")
@@ -172,24 +177,11 @@ public class ApplicationLogsResource extends AbstractResource {
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
 
-        var result = searchApplicationConnectionLogsUseCase.execute(
-            new SearchApplicationConnectionLogsUseCase.Input(
-                applicationId,
-                executionContext.getOrganizationId(),
-                executionContext.getEnvironmentId(),
-                SearchLogsFilters.builder().from(timestamp).to(timestamp).requestIds(Set.of(logId)).build(),
-                new PageableImpl(1, 1)
-            )
-        );
-        if (result.data().isEmpty()) {
-            throw new NotFoundException("Log [ " + logId + " ] not found.");
-        }
-
-        var connectionLog = result.data().getFirst();
+        var connectionLog = getConnectionLogByApplicationIdAndLogIdAndTimestamp(executionContext, applicationId, logId, timestamp);
 
         var detail = searchApiConnectionLogDetailUseCase
             .execute(
-                executionContext,
+                GraviteeContext.getExecutionContext(),
                 new SearchApiConnectionLogDetailUseCase.Input(connectionLog.getApiId(), connectionLog.getRequestId())
             )
             .connectionLogDetail();
@@ -217,6 +209,39 @@ public class ApplicationLogsResource extends AbstractResource {
                 format("attachment;filename=logs-%s-%s.csv", applicationId, System.currentTimeMillis())
             )
             .build();
+    }
+
+    @GET
+    @Path("/{logId}/messages")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
+    public Response getApplicationLogMessagesByApplicationIdAndLogId(
+        @PathParam("applicationId") String applicationId,
+        @PathParam("logId") String logId,
+        @QueryParam("timestamp") Long timestamp,
+        @Valid @BeanParam PaginationParam paginationParam
+    ) {
+        var executionContext = GraviteeContext.getExecutionContext();
+
+        var connectionLog = getConnectionLogByApplicationIdAndLogIdAndTimestamp(executionContext, applicationId, logId, timestamp);
+
+        Optional<Pageable> pageable = Optional.ofNullable(
+            paginationParam.hasPagination() ? new PageableImpl(paginationParam.getPage(), paginationParam.getSize()) : null
+        );
+        var result = searchMessageLogsUseCase.execute(
+            GraviteeContext.getExecutionContext(),
+            new SearchApiMessageLogsUseCase.Input(connectionLog.getApiId(), connectionLog.getRequestId(), pageable)
+        );
+
+        var metadata = getMetadataForApplicationConnectionLog(List.of(connectionLog), result.total());
+
+        return createListResponse(
+            GraviteeContext.getExecutionContext(),
+            logMapper.convert(result.data()),
+            paginationParam,
+            metadata,
+            false
+        );
     }
 
     public Map<String, Map<String, Object>> getMetadataForApplicationConnectionLog(
@@ -247,6 +272,28 @@ public class ApplicationLogsResource extends AbstractResource {
         });
 
         return metadata;
+    }
+
+    private ConnectionLog getConnectionLogByApplicationIdAndLogIdAndTimestamp(
+        ExecutionContext executionContext,
+        String applicationId,
+        String logId,
+        Long timestamp
+    ) {
+        var result = searchApplicationConnectionLogsUseCase.execute(
+            new SearchApplicationConnectionLogsUseCase.Input(
+                applicationId,
+                executionContext.getOrganizationId(),
+                executionContext.getEnvironmentId(),
+                SearchLogsFilters.builder().from(timestamp).to(timestamp).requestIds(Set.of(logId)).build(),
+                new PageableImpl(1, 1)
+            )
+        );
+        if (result.data().isEmpty()) {
+            throw new NotFoundException("Log [ " + logId + " ] not found.");
+        }
+
+        return result.data().getFirst();
     }
 
     private Function<String, Map<String, Object>> mapApiToMetadata(@NotNull String apiId, Api api) {

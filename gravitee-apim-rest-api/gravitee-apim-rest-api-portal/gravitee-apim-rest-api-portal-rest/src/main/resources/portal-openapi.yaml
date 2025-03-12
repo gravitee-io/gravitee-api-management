@@ -1588,6 +1588,44 @@ paths:
                                 $ref: "#/components/schemas/ErrorResponse"
                 500:
                     $ref: "#/components/responses/InternalServerError"
+
+    /applications/{applicationId}/logs/{logId}/messages:
+        parameters:
+            - $ref: "#/components/parameters/applicationIdParam"
+            - $ref: "#/components/parameters/logIdParam"
+        get:
+            tags:
+                - Application
+                - Analytics
+            parameters:
+                - $ref: "#/components/parameters/logTimestampQueryParam"
+                - $ref: "#/components/parameters/pageNumberParam"
+                - $ref: "#/components/parameters/pageSizeParam"
+            summary: Get a page of messages for a given application log
+            description: |
+                Get a page of messages for a given application log.
+
+                User must have the APPLICATION_LOG[READ] permission.
+            operationId: getApplicationLogMessagesByApplicationIdAndLogId
+            responses:
+              200:
+                description: Page of message logs with aggregated entrypoint and endpoint information.
+                content:
+                  application/json:
+                    schema:
+                      $ref: "#/components/schemas/AggregatedMessageLogsResponse"
+              400:
+                description: Invalid query params.
+                content:
+                  application/json:
+                    schema:
+                      $ref: "#/components/schemas/ErrorResponse"
+              403:
+                $ref: "#/components/responses/PermissionError"
+              404:
+                $ref: "#/components/responses/ApplicationNotFoundError"
+              500:
+                $ref: "#/components/responses/InternalServerError"
     /applications/{applicationId}/_renew_secret:
         parameters:
             - $ref: "#/components/parameters/applicationIdParam"
@@ -3755,6 +3793,17 @@ components:
                     $ref: "#/components/schemas/MetadataMap"
                 links:
                     $ref: "#/components/schemas/Links"
+        AggregatedMessageLogsResponse:
+          properties:
+            data:
+              description: Page of messages with aggregated entrypoint and endpoint information
+              type: array
+              items:
+                $ref: "#/components/schemas/AggregatedMessageLog"
+            metadata:
+              $ref: "#/components/schemas/MetadataMap"
+            links:
+              $ref: "#/components/schemas/Links"
         SubscriptionsResponse:
             properties:
                 data:
@@ -4508,6 +4557,84 @@ components:
                 securityToken:
                     description: Token used by the request.
                     type: string
+        AggregatedMessageLog:
+            type: object
+            properties:
+              requestId:
+                type: string
+                description: The id of the request.
+                example: 1719d8d1-8d01-48f6-99d8-d18d0178f6d4
+              apiId:
+                type: string
+                description: The id of the request.
+                example: 1719d8d1-8d01-48f6-99d8-d18d0178f6d4
+              timestamp:
+                type: string
+                format: date-time
+                description: The date (as timestamp) of the log.
+                example: 2023-05-18T12:40:46.184Z
+              clientIdentifier:
+                type: string
+                description: The client identifier of the request.
+                example: 12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0
+              correlationId:
+                type: string
+                description: The correlation id.
+                example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+              parentCorrelationId:
+                type: string
+                description: The parent correlation id.
+                example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+              operation:
+                type: string
+                description: The operation.
+                example: subscribe
+              entrypoint:
+                $ref: "#/components/schemas/MessageLogContent"
+              endpoint:
+                $ref: "#/components/schemas/MessageLogContent"
+        MessageLogContent:
+          type: object
+          description: The message content.
+          example: |
+            {
+            			"id": "0",
+            			"payload": "mock message",
+            			"headers": {
+            				"X-Mock": [
+            					"mocked"
+            				]
+            			},
+            			"metadata": {
+            				"MessageMetadata": "A metadata"
+            			}
+            		}
+          properties:
+            id:
+              type: string
+              description: The internal UUID of the Message.
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+            connectorId:
+              type: string
+              description: The id of connector for this log.
+              example: kafka
+            payload:
+              type: string
+              description: The payload of the Message.
+              example: "This is a message"
+            isError:
+              type: boolean
+              description: Is the Message in error.
+              example: false
+            headers:
+              type: object
+              description: The list of headers associated with this message.
+              example:
+                - name: X-My-Header
+                  value: [ my-value ]
+            metadata:
+              type: object
+              description: The list of Message's metadata.
         Subscription:
             required:
                 - id
