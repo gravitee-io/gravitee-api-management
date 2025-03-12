@@ -116,6 +116,7 @@ export * from './searchApplicationsLogsParams';
 export * from './simpleApplicationSettings';
 export * from './subscription';
 export * from './subscriptionConfigurationInput';
+export * from './subscriptionConsumerConfiguration';
 export * from './subscriptionInput';
 export * from './subscriptionsResponse';
 export * from './themeLinks';

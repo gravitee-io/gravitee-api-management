@@ -8,6 +8,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { SubscriptionConsumerConfiguration } from './subscriptionConsumerConfiguration';
 import { Key } from './key';
 
 
@@ -88,6 +89,7 @@ export interface Subscription {
      * Only returned with (*)/subscriptions/{subscriptionId}*. Need *include* query param to contain \'keys\'.  List of APIKeys of the subscription. 
      */
     keys?: Array<Key>;
+    consumerConfiguration?: SubscriptionConsumerConfiguration;
 }
 export namespace Subscription {
     export type StatusEnum = 'PENDING' | 'ACCEPTED' | 'CLOSED' | 'REJECTED' | 'PAUSED';
