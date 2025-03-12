@@ -36,13 +36,11 @@ import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
-import io.gravitee.gateway.reactive.handlers.api.context.SubscriptionTemplateVariableProvider;
+import io.gravitee.gateway.reactive.handlers.api.context.SubscriptionVariable;
 import io.gravitee.gateway.reactive.handlers.api.processor.AbstractProcessorTest;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.MultiMap;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -52,7 +50,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.AdditionalMatchers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -137,34 +134,30 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
     }
 
     @Nested
-    class SubscriptionVariableProvider {
+    class TemplateEngine {
 
         @Test
-        void should_add_subscription_variable_provider_with_ctx_subscription() {
+        void should_add_subscription_variable_with_ctx_subscription() {
             spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, new Subscription());
 
             cut.execute(spyCtx).test().assertComplete();
 
-            verify(spyCtx).templateVariableProviders(providersCaptor.capture());
             verify(spyCtx).setInternalAttribute(eq(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION), any());
 
-            List<TemplateVariableProvider> providers = new ArrayList<>(providersCaptor.getValue());
-            assertThat(providers).hasSize(1);
-            TemplateVariableProvider templateVariableProvider = providers.get(0);
-            assertThat(templateVariableProvider).isInstanceOf(SubscriptionTemplateVariableProvider.class);
+            var subscriptionVariable = spyCtx.getTemplateEngine().getTemplateContext().lookupVariable("subscription");
+            assertThat(subscriptionVariable).isNotNull();
+            assertThat(subscriptionVariable).isInstanceOf(SubscriptionVariable.class);
         }
 
         @Test
         void should_add_subscription_variable_provider_with_new_subscription() {
             cut.execute(spyCtx).test().assertComplete();
 
-            verify(spyCtx).templateVariableProviders(providersCaptor.capture());
             verify(spyCtx).setInternalAttribute(eq(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION), any());
 
-            List<TemplateVariableProvider> providers = new ArrayList<>(providersCaptor.getValue());
-            assertThat(providers).hasSize(1);
-            TemplateVariableProvider templateVariableProvider = providers.get(0);
-            assertThat(templateVariableProvider).isInstanceOf(SubscriptionTemplateVariableProvider.class);
+            var subscriptionVariable = spyCtx.getTemplateEngine().getTemplateContext().lookupVariable("subscription");
+            assertThat(subscriptionVariable).isNotNull();
+            assertThat(subscriptionVariable).isInstanceOf(SubscriptionVariable.class);
         }
     }
 
