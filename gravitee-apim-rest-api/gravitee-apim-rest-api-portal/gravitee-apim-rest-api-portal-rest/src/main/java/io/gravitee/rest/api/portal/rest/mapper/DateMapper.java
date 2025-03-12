@@ -48,4 +48,8 @@ public interface DateMapper {
     default OffsetDateTime mapTimestamp(String timestamp) {
         return OffsetDateTime.parse(timestamp);
     }
+
+    default Long mapTimestampToMillis(String timestamp) {
+        return Objects.isNull(timestamp) ? null : Instant.parse(timestamp).toEpochMilli();
+    }
 }
