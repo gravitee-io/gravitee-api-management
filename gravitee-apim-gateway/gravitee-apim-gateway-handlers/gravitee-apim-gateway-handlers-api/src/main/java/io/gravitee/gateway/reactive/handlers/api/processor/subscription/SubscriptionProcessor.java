@@ -23,18 +23,15 @@ import static io.gravitee.gateway.api.ExecutionContext.ATTR_SUBSCRIPTION_ID;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
 import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
 
-import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.processor.Processor;
-import io.gravitee.gateway.reactive.handlers.api.context.SubscriptionTemplateVariableProvider;
+import io.gravitee.gateway.reactive.handlers.api.context.SubscriptionVariable;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Objects;
 import org.bouncycastle.util.encoders.Hex;
 
@@ -49,6 +46,7 @@ public class SubscriptionProcessor implements Processor {
     public static final String DEFAULT_CLIENT_IDENTIFIER_HEADER = "X-Gravitee-Client-Identifier";
     static final String APPLICATION_ANONYMOUS = "1";
     static final String PLAN_ANONYMOUS = "1";
+    static final String SUBSCRIPTION_CONTEXT_ATTRIBUTE = "subscription";
     private String clientIdentifierHeader = DEFAULT_CLIENT_IDENTIFIER_HEADER;
 
     public static SubscriptionProcessor instance(final String clientIdentifierHeader) {
@@ -133,12 +131,10 @@ public class SubscriptionProcessor implements Processor {
                 subscription.setStatus(ACCEPTED.name());
                 ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
             }
-            Collection<TemplateVariableProvider> templateVariableProviders = ctx.templateVariableProviders();
-            if (templateVariableProviders == null) {
-                templateVariableProviders = new ArrayList<>();
-            }
-            templateVariableProviders.add(new SubscriptionTemplateVariableProvider(subscription));
-            ctx.templateVariableProviders(templateVariableProviders);
+            ctx
+                .getTemplateEngine()
+                .getTemplateContext()
+                .setVariable(SUBSCRIPTION_CONTEXT_ATTRIBUTE, new SubscriptionVariable(subscription));
         });
     }
 

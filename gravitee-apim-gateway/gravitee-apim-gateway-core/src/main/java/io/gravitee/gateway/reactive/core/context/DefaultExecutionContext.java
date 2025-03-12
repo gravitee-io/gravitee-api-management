@@ -59,8 +59,4 @@ public class DefaultExecutionContext extends AbstractExecutionContext<MutableReq
         this.templateVariableProviders = templateVariableProviders;
         return this;
     }
-
-    public Collection<TemplateVariableProvider> templateVariableProviders() {
-        return templateVariableProviders;
-    }
 }
