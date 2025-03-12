@@ -33,16 +33,16 @@ import org.junit.jupiter.api.Test;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-class SearchMessageLogsUseCaseTest {
+class SearchApiMessageLogsUseCaseTest {
 
     private static final String API_ID = "my-api";
     private static final String REQUEST_ID = "request-id";
-    private SearchMessageLogsUseCase usecase;
+    private SearchApiMessageLogsUseCase usecase;
     private final MessageLogCrudServiceInMemory messageLogStorageService = new MessageLogCrudServiceInMemory();
 
     @BeforeEach
     void setUp() {
-        usecase = new SearchMessageLogsUseCase(messageLogStorageService);
+        usecase = new SearchApiMessageLogsUseCase(messageLogStorageService);
     }
 
     @AfterEach
@@ -63,7 +63,7 @@ class SearchMessageLogsUseCaseTest {
             )
         );
 
-        var result = usecase.execute(GraviteeContext.getExecutionContext(), new SearchMessageLogsUseCase.Input(API_ID, REQUEST_ID));
+        var result = usecase.execute(GraviteeContext.getExecutionContext(), new SearchApiMessageLogsUseCase.Input(API_ID, REQUEST_ID));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isOne();
@@ -99,7 +99,7 @@ class SearchMessageLogsUseCaseTest {
             )
         );
 
-        var result = usecase.execute(GraviteeContext.getExecutionContext(), new SearchMessageLogsUseCase.Input(API_ID, REQUEST_ID));
+        var result = usecase.execute(GraviteeContext.getExecutionContext(), new SearchApiMessageLogsUseCase.Input(API_ID, REQUEST_ID));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(3);
@@ -128,7 +128,7 @@ class SearchMessageLogsUseCaseTest {
 
         var result = usecase.execute(
             GraviteeContext.getExecutionContext(),
-            new SearchMessageLogsUseCase.Input(API_ID, REQUEST_ID, new PageableImpl(pageNumber, pageSize))
+            new SearchApiMessageLogsUseCase.Input(API_ID, REQUEST_ID, new PageableImpl(pageNumber, pageSize))
         );
 
         SoftAssertions.assertSoftly(soft -> {
