@@ -35,6 +35,9 @@
             <mat-label i18n="@@consumerConfigurationCallbackUrl">Callback URL</mat-label>
             <input matInput formControlName="callbackUrl" />
           </mat-form-field>
+
+          <app-consumer-configuration-headers
+            [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.headers"></app-consumer-configuration-headers>
         </form>
       </form>
     }

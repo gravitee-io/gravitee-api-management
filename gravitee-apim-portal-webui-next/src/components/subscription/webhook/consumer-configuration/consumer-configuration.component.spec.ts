@@ -83,6 +83,20 @@ describe('SubscriptionsDetailsComponent', () => {
       expect(await componentHarness.getInputTextFromControlName('callbackUrl')).toStrictEqual(
         consumerConfiguration.entrypointConfiguration?.callbackUrl,
       );
+      expect(await componentHarness.computeHeadersTableCells()).toEqual([
+        {
+          name: 'Content-Type',
+          value: 'application/json',
+        },
+        {
+          name: 'X-Custom-Key',
+          value: '1234',
+        },
+        {
+          name: '',
+          value: '',
+        },
+      ]);
     });
   });
 
