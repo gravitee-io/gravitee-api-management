@@ -45,7 +45,6 @@ import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.model.Log;
 import io.gravitee.rest.api.portal.rest.model.LogsResponse;
-import io.gravitee.rest.api.portal.rest.resource.param.Range;
 import io.gravitee.rest.api.portal.rest.resource.param.ResponseTimeRange;
 import io.gravitee.rest.api.portal.rest.resource.param.SearchApplicationLogsParam;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -134,17 +133,8 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
 
         doReturn(searchResponse).when(logsService).findByApplication(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), any());
 
-        doReturn(new Log()).when(logMapper).convert(any(ApplicationRequestItem.class));
-        doReturn(new Log()).when(logMapper).convert(any(ApplicationRequest.class));
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
 
-        when(logMapper.convert(eq(APPLICATION_ID), any(SearchApplicationLogsParam.class))).thenCallRealMethod();
-        when(logMapper.convert(any(List.class))).thenCallRealMethod();
-        when(logMapper.convert(any(ConnectionLog.class))).thenCallRealMethod();
-        when(logMapper.convertToHttpMethod(anyString())).thenCallRealMethod();
-        when(logMapper.convert(any(ConnectionLogDetail.Request.class))).thenCallRealMethod();
-        when(logMapper.convert(any(ConnectionLogDetail.Response.class))).thenCallRealMethod();
-        when(logMapper.convert(any(ConnectionLog.class), any(Optional.class), any())).thenCallRealMethod();
         applicationCrudServiceInMemory.initWith(List.of(APPLICATION));
         apiCrudServiceInMemory.initWith(List.of(API_1, API_2));
         planCrudServiceInMemory.initWith(List.of(PLAN_1, PLAN_2));

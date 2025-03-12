@@ -68,9 +68,6 @@ public class ApplicationLogsResource extends AbstractResource {
     private LogsService logsService;
 
     @Inject
-    private LogMapper logMapper;
-
-    @Inject
     private ApplicationService applicationService;
 
     @Inject
@@ -78,6 +75,8 @@ public class ApplicationLogsResource extends AbstractResource {
 
     @Inject
     private SearchApiConnectionLogDetailUseCase searchApiConnectionLogDetailUseCase;
+
+    private final LogMapper logMapper = LogMapper.INSTANCE;
 
     @GET
     @Deprecated
@@ -137,7 +136,7 @@ public class ApplicationLogsResource extends AbstractResource {
         var metadata = getMetadataForApplicationConnectionLog(result.data(), result.total());
 
         // No pagination, because logsService did it already
-        return createListResponse(executionContext, logMapper.convert(result.data()), paginationParam, metadata, false);
+        return createListResponse(executionContext, logMapper.convertConnectionLogs(result.data()), paginationParam, metadata, false);
     }
 
     @SuppressWarnings("unchecked")
