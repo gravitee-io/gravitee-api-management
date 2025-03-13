@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.policy.adapter.context;
 
 import io.gravitee.el.TemplateContext;
+import io.gravitee.el.spel.context.DeferredFunctionHolder;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -59,6 +60,11 @@ public class TemplateContextAdapter implements TemplateContext {
 
     @Override
     public void setDeferredVariable(String name, Single<?> deferred) {
+        // Should never be called in a V3 context.
+    }
+
+    @Override
+    public void setDeferredFunctionHolderVariable(String s, DeferredFunctionHolder deferredFunctionHolder) {
         // Should never be called in a V3 context.
     }
 
