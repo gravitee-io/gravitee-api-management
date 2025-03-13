@@ -10394,9 +10394,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-import-resolver-typescript@npm:3.8.5":
-  version: 3.8.5
-  resolution: "eslint-import-resolver-typescript@npm:3.8.5"
+"eslint-import-resolver-typescript@npm:3.8.7":
+  version: 3.8.7
+  resolution: "eslint-import-resolver-typescript@npm:3.8.7"
   dependencies:
     "@nolyfill/is-core-module": "npm:1.0.39"
     debug: "npm:^4.3.7"
@@ -10414,7 +10414,7 @@ __metadata:
       optional: true
     eslint-plugin-import-x:
       optional: true
-  checksum: 10c0/787fcd1ee314f8adb206ae72da0f35e4d6dd0d561509305e99316b1cc94aabf57a3cd22627f83fd0a723fad4e7701ae5f80324b450c3adb83c4f48ca4661c178
+  checksum: 10c0/8b4a3d5b4bb6f14cadc6436c1b93852a52c6d24b2604647ef1f3a18de7c89cbc568c1f0d15dd1811c1300e9204818b1cda86bf51c94ef2396aa03568f2434157
   languageName: node
   linkType: hard
 
@@ -11724,7 +11724,7 @@ __metadata:
     asciidoctor: "npm:3.0.4"
     eslint: "npm:8.57.1"
     eslint-config-prettier: "npm:9.1.0"
-    eslint-import-resolver-typescript: "npm:3.8.5"
+    eslint-import-resolver-typescript: "npm:3.8.7"
     eslint-plugin-import: "npm:2.31.0"
     eslint-plugin-prettier: "npm:5.2.3"
     eslint-plugin-storybook: "npm:0.11.4"
