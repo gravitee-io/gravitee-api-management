@@ -19,6 +19,7 @@ import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
 import { Log, LogsResponse } from '../entities/log/log';
+import {MessageLogsResponse} from "../entities/log/messageLog";
 
 export interface ResponseTimeRange {
   to?: number;
@@ -79,5 +80,15 @@ export class ApplicationLogService {
 
   get(applicationId: string, logId: string, timestamp: string): Observable<Log> {
     return this.http.get<Log>(`${this.configService.baseURL}/applications/${applicationId}/logs/${logId}?timestamp=${timestamp}`);
+  }
+
+  getMessages(
+    applicationId: string,
+    logId: string,
+    timestamp: number,
+    page: number = 1,
+    pageSize: number = 10,
+  ): Observable<MessageLogsResponse> {
+    return this.http.get<MessageLogsResponse>(`${this.configService.baseURL}/applications/${applicationId}/logs/${logId}/messages?page=${page}&size=${pageSize}&timestamp=${timestamp}`);
   }
 }
