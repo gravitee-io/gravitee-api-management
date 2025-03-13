@@ -56,7 +56,6 @@ import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -65,6 +64,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -437,13 +437,12 @@ public class ApiStateServiceImpl implements ApiStateService {
                         genericApiEntity.getDefinitionVersion() == DefinitionVersion.V2 ||
                         genericApiEntity.getDefinitionVersion() == DefinitionVersion.V1
                     ) {
-                        io.gravitee.rest.api.model.api.ApiEntity apiEntity = (io.gravitee.rest.api.model.api.ApiEntity) genericApiEntity;
+                        io.gravitee.rest.api.model.api.ApiEntity apiEntity = SerializationUtils.clone(
+                            (io.gravitee.rest.api.model.api.ApiEntity) genericApiEntity
+                        );
 
-                        io.gravitee.rest.api.model.api.ApiEntity deployedApiEntity = apiConverter.toApiEntity(
-                            executionContext,
-                            payloadEntity,
-                            null,
-                            false
+                        io.gravitee.rest.api.model.api.ApiEntity deployedApiEntity = SerializationUtils.clone(
+                            apiConverter.toApiEntity(executionContext, payloadEntity, null, false)
                         );
 
                         removePathsRuleDescriptionFromApiV1(deployedApiEntity);
