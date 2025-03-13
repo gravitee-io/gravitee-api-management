@@ -453,13 +453,6 @@ public class ApiStateServiceImpl implements ApiStateService {
                         removePathsRuleDescriptionFromApiV1(deployedApiEntity);
                         removePathsRuleDescriptionFromApiV1(apiEntity);
 
-                        // FIXME: Dirty hack due to ec1abe6c8560ff5da7284191ff72e4e54b7630e3, after this change the
-                        //  payloadEntity doesn't contain the flow ids yet as there were no upgrader to update the last
-                        //  publish_api event. So we need to remove the flow ids before comparing the deployed API and the
-                        //  current one.
-                        removeFlowsIdsFromApiV2(deployedApiEntity);
-                        removeFlowsIdsFromApiV2(apiEntity);
-
                         sync =
                             synchronizationService.checkSynchronization(
                                 io.gravitee.rest.api.model.api.ApiEntity.class,
