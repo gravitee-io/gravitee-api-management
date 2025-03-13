@@ -97,12 +97,78 @@ describe('SubscriptionsDetailsComponent', () => {
           value: '',
         },
       ]);
+
+      expect(await componentHarness.isSaveButtonDisabled()).toBeTruthy();
+      expect(await componentHarness.isResetButtonDisabled()).toBeTruthy();
+
+      await componentHarness.setInputTextValueFromControlName('channel', 'new-channel');
+
+      expect(await componentHarness.isSaveButtonDisabled()).toBeFalsy();
+      expect(await componentHarness.isResetButtonDisabled()).toBeFalsy();
+
+      await componentHarness.save();
+      expectSubscriptionUpdate();
+    });
+
+    it('should reset the form', async () => {
+      const consumerConfiguration = fakeSubscriptionConsumerConfiguration();
+      const subscription = fakeSubscription({ status: 'ACCEPTED', api: API_ID, plan: PLAN_ID, consumerConfiguration });
+      initComponent(subscription);
+
+      expect(await componentHarness.getInputTextFromControlName('channel')).toStrictEqual(consumerConfiguration.channel);
+      expect(await componentHarness.getInputTextFromControlName('callbackUrl')).toStrictEqual(
+        consumerConfiguration.entrypointConfiguration?.callbackUrl,
+      );
+      expect(await componentHarness.computeHeadersTableCells()).toEqual([
+        {
+          name: 'Content-Type',
+          value: 'application/json',
+        },
+        {
+          name: 'X-Custom-Key',
+          value: '1234',
+        },
+        {
+          name: '',
+          value: '',
+        },
+      ]);
+
+      await componentHarness.setInputTextValueFromControlName('channel', 'new-channel');
+      await componentHarness.reset();
+
+      expect(await componentHarness.getInputTextFromControlName('channel')).toStrictEqual(consumerConfiguration.channel);
+    });
+
+    it('should validate the form', async () => {
+      const consumerConfiguration = fakeSubscriptionConsumerConfiguration();
+      const subscription = fakeSubscription({ status: 'ACCEPTED', api: API_ID, plan: PLAN_ID, consumerConfiguration });
+      initComponent(subscription);
+
+      expect(await componentHarness.isSaveButtonDisabled()).toBeTruthy();
+      expect(await componentHarness.isResetButtonDisabled()).toBeTruthy();
+
+      await componentHarness.setInputTextValueFromControlName('callbackUrl', 'not a url');
+      expect(await componentHarness.getError()).toBeTruthy();
+      expect(await componentHarness.isSaveButtonDisabled()).toBeTruthy();
+
+      await componentHarness.setInputTextValueFromControlName('callbackUrl', 'https://dump.example.com');
+      expect(await componentHarness.isSaveButtonDisabled()).toBeFalsy();
+
+      await componentHarness.save();
+      expectSubscriptionUpdate();
     });
   });
 
   function expectSubscription(subscriptionResponse: Subscription = fakeSubscription()) {
     httpTestingController
       .expectOne(`${TESTING_BASE_URL}/subscriptions/${SUBSCRIPTION_ID}?include=keys&include=consumerConfiguration`)
+      .flush(subscriptionResponse);
+  }
+
+  function expectSubscriptionUpdate(subscriptionResponse: Subscription = fakeSubscription()) {
+    httpTestingController
+      .expectOne({ method: 'PUT', url: `${TESTING_BASE_URL}/subscriptions/${SUBSCRIPTION_ID}` })
       .flush(subscriptionResponse);
   }
 });
