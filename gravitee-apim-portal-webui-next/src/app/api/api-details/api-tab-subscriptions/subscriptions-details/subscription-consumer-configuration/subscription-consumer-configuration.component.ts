@@ -30,6 +30,7 @@ import { SubscriptionConsumerConfiguration } from '../../../../../../entities/su
   styleUrls: ['./subscription-consumer-configuration.component.scss'],
 })
 export class SubscriptionConsumerConfigurationComponent {
+  canConfigure: InputSignal<boolean> = input<boolean>(false);
   consumerConfiguration: InputSignal<SubscriptionConsumerConfiguration> = input.required<SubscriptionConsumerConfiguration>();
   hasChannel = computed(() => !!this.consumerConfiguration().channel);
   headers = computed(() => this.consumerConfiguration().entrypointConfiguration?.headers ?? []);
