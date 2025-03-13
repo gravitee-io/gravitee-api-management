@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactive.policy.adapter.context;
 
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
+import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.reactivex.rxjava3.core.Maybe;
 
 /**
@@ -52,6 +53,11 @@ public class TemplateEngineAdapter implements TemplateEngine {
     @Override
     public <T> Maybe<T> eval(String expression, Class<T> clazz) {
         return templateEngine.eval(expression, clazz);
+    }
+
+    @Override
+    public <T> T evalBlocking(String expression, Class<T> clazz) throws ExpressionEvaluationException {
+        return templateEngine.evalBlocking(expression, clazz);
     }
 
     @Override
