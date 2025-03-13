@@ -294,7 +294,7 @@
 
         <gravitee-policy-kafka-quota.version>1.0.2</gravitee-policy-kafka-quota.version>
         <gravitee-policy-kafka-topic-mapping.version>1.2.0</gravitee-policy-kafka-topic-mapping.version>
-        <gravitee-policy-kafka-acl.version>1.6.0</gravitee-policy-kafka-acl.version>
+        <gravitee-policy-kafka-acl.version>1.7.0</gravitee-policy-kafka-acl.version>
     </properties>
 
     <scm>
