@@ -18,6 +18,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { Injectable } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { SubscriptionsDetailsComponent } from './subscriptions-details.component';
 import { ApiAccessHarness } from '../../../../../components/api-access/api-access.harness';
@@ -29,9 +30,14 @@ import { Configuration } from '../../../../../entities/configuration/configurati
 import { fakeUserApiPermissions } from '../../../../../entities/permission/permission.fixtures';
 import { fakePlan, fakePlansResponse } from '../../../../../entities/plan/plan.fixture';
 import { PlansResponse } from '../../../../../entities/plan/plans-response';
-import { Subscription } from '../../../../../entities/subscription/subscription';
-import { fakeSubscription, fakeSubscriptionResponse } from '../../../../../entities/subscription/subscription.fixture';
-import { SubscriptionsResponse } from '../../../../../entities/subscription/subscriptions-response';
+import {
+  fakeSubscription,
+  fakeSubscriptionResponse,
+  Subscription,
+  SubscriptionsResponse,
+  SubscriptionStatusEnum,
+} from '../../../../../entities/subscription';
+import { fakeSubscriptionConsumerConfiguration } from '../../../../../entities/subscription/subscription-consumer-configuration.fixture';
 import { ConfigService } from '../../../../../services/config.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../../../testing/app-testing.module';
 
@@ -171,6 +177,37 @@ describe('SubscriptionsDetailsComponent', () => {
       expect(await apiAccess.getClientSecret()).toContain('***');
       await apiAccess.toggleClientSecretVisibility();
       expect(await apiAccess.getClientSecret()).toStrictEqual('3zEYOXPqqCyaq7os--Nf1-6jrHjL0AjumFz4CL78nwQ');
+    });
+  });
+
+  describe('with push plan', () => {
+    const PLAN_ID = 'plan-id';
+    const APP_ID = 'app-id';
+    const APP_NAME = 'app-name';
+
+    it.each`
+      status        | expected
+      ${'ACCEPTED'} | ${true}
+      ${'PENDING'}  | ${true}
+      ${'PAUSED'}   | ${true}
+      ${'REJECTED'} | ${false}
+      ${'CLOSED'}   | ${false}
+    `('should show subscription configuration edition button according to plan', async ({ status, expected }) => {
+      const subscription = fakeSubscription({
+        api: API_ID,
+        plan: PLAN_ID,
+        status: status as SubscriptionStatusEnum,
+        consumerConfiguration: fakeSubscriptionConsumerConfiguration(),
+      });
+      expectSubscriptionWithKeys(subscription);
+      expectGetApiPermissions();
+      expectApplicationsList(fakeApplication({ id: APP_ID, name: APP_NAME }));
+      expectGetApi(fakeApi({ id: API_ID, entrypoints: ['https://gw/entrypoint'] }));
+      expectPlansList(fakePlansResponse({ data: [fakePlan({ id: PLAN_ID, mode: 'PUSH', security: 'KEY_LESS' })] }));
+      fixture.detectChanges();
+
+      const button = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: '.configuration__header__button' }));
+      expect(!!button).toBe(expected);
     });
   });
 
