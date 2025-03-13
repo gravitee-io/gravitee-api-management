@@ -204,48 +204,7 @@
         [queryParams]="{ timestamp: log.timestamp }"
         queryParamsHandling="merge"></tr>
     </table>
-    <div class="application-logs__table__pagination">
-      <button mat-icon-button [disabled]="!pagination().hasPreviousPage" (click)="goToPreviousPage()" aria-label="Previous page of logs">
-        <mat-icon class="breadcrumb-icon">chevron_left</mat-icon>
-      </button>
-
-      @if (pagination().hasPreviousPage) {
-        <button mat-button (click)="goToPage(1)" aria-label="First page of logs">1</button>
-
-        @if (pagination().currentPage > 3) {
-          @if (pagination().totalPages > 4) {
-            <div class="m3-body-medium">...</div>
-          }
-          @if (pagination().currentPage === pagination().totalPages) {
-            <button mat-button (click)="goToPage(pagination().currentPage - 2)">{{ pagination().currentPage - 2 }}</button>
-          }
-        }
-
-        @if (pagination().currentPage > 2) {
-          <button mat-button (click)="goToPreviousPage()" aria-label="Previous page of logs">{{ pagination().currentPage - 1 }}</button>
-        }
-      }
-
-      <button mat-flat-button aria-label="Current page of logs">{{ pagination().currentPage }}</button>
-
-      @if (pagination().hasNextPage) {
-        @if (pagination().currentPage + 1 < pagination().totalPages) {
-          <button mat-button (click)="goToNextPage()" aria-label="Next page of logs">{{ pagination().currentPage + 1 }}</button>
-        }
-        @if (pagination().totalPages > 3 && pagination().currentPage === 1) {
-          <button mat-button (click)="goToPage(3)">{{ 3 }}</button>
-        }
-        @if (pagination().totalPages > 4 && pagination().currentPage <= pagination().totalPages - 3) {
-          <div class="m3-body-medium">...</div>
-        }
-
-        <button mat-button (click)="goToPage(pagination().totalPages)" aria-label="Last page of logs">{{ pagination().totalPages }}</button>
-      }
-
-      <button mat-icon-button [disabled]="!pagination().hasNextPage" (click)="goToNextPage()" aria-label="Next page of logs">
-        <mat-icon class="breadcrumb-icon">chevron_right</mat-icon>
-      </button>
-    </div>
+    <app-pagination [currentPage]="currentLogsPage()" [totalResults]="totalLogs()" (selectPage)="goToPage($event)" />
   } @else {
     <div class="no-logs">
       <div class="m3-title-medium" i18n="@@applicationLogsNoneFound">We couldn't find any logs</div>
