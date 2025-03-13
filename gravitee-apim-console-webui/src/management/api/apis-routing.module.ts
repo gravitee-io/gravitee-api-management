@@ -869,7 +869,7 @@ const apisRoutes: Routes = [
             data: {
               docs: null,
               permissions: {
-                anyOf: ['api-documentation-u'],
+                anyOf: ['api-documentation-u', 'api-documentation-r'],
               },
             },
             component: ApiDocumentationV4DefaultPageComponent,
