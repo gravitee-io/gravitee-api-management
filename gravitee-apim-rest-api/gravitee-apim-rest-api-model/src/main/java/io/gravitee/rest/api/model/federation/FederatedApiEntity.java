@@ -146,4 +146,9 @@ public class FederatedApiEntity implements GenericApiEntity {
             return integrationName;
         }
     }
+
+    @Override
+    public FederatedApiEntity copy() {
+        return this.toBuilder().build();
+    }
 }

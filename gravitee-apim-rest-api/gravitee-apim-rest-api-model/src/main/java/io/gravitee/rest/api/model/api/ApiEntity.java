@@ -301,4 +301,9 @@ public class ApiEntity implements GenericApiEntity {
         }
         return new OriginContext.Management();
     }
+
+    @Override
+    public ApiEntity copy() {
+        return this.toBuilder().build();
+    }
 }

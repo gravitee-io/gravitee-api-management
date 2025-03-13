@@ -213,4 +213,9 @@ public class ApiEntity implements GenericApiEntity {
 
     @JsonIgnore
     private String referenceId;
+
+    @Override
+    public ApiEntity copy() {
+        return this.toBuilder().build();
+    }
 }

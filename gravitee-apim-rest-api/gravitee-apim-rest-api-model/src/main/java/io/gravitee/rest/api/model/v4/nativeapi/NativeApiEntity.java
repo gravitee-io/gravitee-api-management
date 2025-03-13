@@ -200,4 +200,9 @@ public class NativeApiEntity implements GenericApiEntity {
 
     @JsonIgnore
     private String referenceId;
+
+    @Override
+    public NativeApiEntity copy() {
+        return this.toBuilder().build();
+    }
 }
