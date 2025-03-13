@@ -17,9 +17,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { SubscriptionService } from './subscription.service';
-import { SubscriptionStatusEnum } from '../entities/subscription/subscription';
-import { fakeSubscriptionResponse } from '../entities/subscription/subscription.fixture';
-import { SubscriptionsResponse } from '../entities/subscription/subscriptions-response';
+import { SubscriptionStatusEnum, fakeSubscriptionResponse, SubscriptionsResponse } from '../entities/subscription';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
 describe('SubscriptionService', () => {

@@ -34,11 +34,47 @@
           <mat-form-field class="consumer-configuration__form__fields">
             <mat-label i18n="@@consumerConfigurationCallbackUrl">Callback URL</mat-label>
             <input matInput formControlName="callbackUrl" />
+            @if (consumerConfigurationForm.controls.consumerConfiguration.controls.callbackUrl.hasError('required')) {
+              <mat-error i18n="@@consumerConfigurationCallbackUrlRequired">Callback URL is required</mat-error>
+            }
+            @if (consumerConfigurationForm.controls.consumerConfiguration.controls.callbackUrl.hasError('pattern')) {
+              <mat-error i18n="@@consumerConfigurationCallbackUrlPattern"
+                >Callback URL should respect this pattern "^(http|https):"
+              </mat-error>
+            }
           </mat-form-field>
 
           <app-consumer-configuration-headers
             [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.headers"></app-consumer-configuration-headers>
         </form>
+
+        @if (error) {
+          <div class="m3-title-medium" i18n="@@consumerConfigurationErrorMessage" aria-label="Error message">
+            The consumer configuration update has failed. Try again, and if the issue persists, contact your portal administrator.
+          </div>
+        }
+
+        <div class="consumer-configuration__form__actions">
+          <button
+            (click)="submit()"
+            mat-flat-button
+            class="secondary-button"
+            [disabled]="consumerConfigurationForm.invalid || (formUnchanged$ | async)"
+            i18n="@@saveSubscriptionConfiguration"
+            aria-label="Save subscription configuration"
+            data-testId="save">
+            Save
+          </button>
+          <button
+            (click)="reset()"
+            mat-stroked-button
+            [disabled]="formUnchanged$ | async"
+            i18n="@@discardSubscriptionConfigurationChanges"
+            aria-label="Discard changes"
+            data-testId="discard">
+            Discard changes
+          </button>
+        </div>
       </form>
     }
   </mat-card-content>
