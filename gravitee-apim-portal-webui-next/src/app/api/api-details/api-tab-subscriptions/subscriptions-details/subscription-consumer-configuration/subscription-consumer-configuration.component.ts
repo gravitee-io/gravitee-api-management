@@ -18,11 +18,12 @@ import { MatAnchor } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatListModule } from '@angular/material/list';
 import { MatTableModule } from '@angular/material/table';
+import { RouterLink } from '@angular/router';
 
 import { SubscriptionConsumerConfiguration } from '../../../../../../entities/subscription';
 
 @Component({
-  imports: [MatCardModule, MatListModule, MatAnchor, MatTableModule],
+  imports: [MatCardModule, MatListModule, MatAnchor, MatTableModule, RouterLink],
   selector: 'app-subscription-consumer-configuration',
   standalone: true,
   templateUrl: './subscription-consumer-configuration.component.html',
