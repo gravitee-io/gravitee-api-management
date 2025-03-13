@@ -15,6 +15,8 @@
  */
 
 import { ComponentHarness, parallel } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatErrorHarness } from '@angular/material/form-field/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
@@ -24,6 +26,37 @@ export class ConsumerConfigurationComponentHarness extends ComponentHarness {
   async getInputTextFromControlName(formControlName: string): Promise<string> {
     const input: MatInputHarness = await this.locatorFor(MatInputHarness.with({ selector: `[formcontrolname='${formControlName}']` }))();
     return input.getValue();
+  }
+
+  async setInputTextValueFromControlName(formControlName: string, newValue: string): Promise<void> {
+    const input: MatInputHarness = await this.locatorFor(MatInputHarness.with({ selector: `[formcontrolname='${formControlName}']` }))();
+    await input.setValue(newValue);
+    return input.blur();
+  }
+
+  async getError(): Promise<string> {
+    const matError = await this.locatorFor(MatErrorHarness)();
+    return matError.getText();
+  }
+
+  async isSaveButtonDisabled(): Promise<boolean> {
+    const saveBtn = await this.locatorFor(MatButtonHarness.with({ selector: '[data-testId="save"]' }))();
+    return saveBtn.isDisabled();
+  }
+
+  async save(): Promise<void> {
+    const saveBtn = await this.locatorFor(MatButtonHarness.with({ selector: '[data-testId="save"]' }))();
+    return saveBtn.click();
+  }
+
+  async reset(): Promise<void> {
+    const saveBtn = await this.locatorFor(MatButtonHarness.with({ selector: '[data-testId="discard"]' }))();
+    return saveBtn.click();
+  }
+
+  async isResetButtonDisabled(): Promise<boolean> {
+    const resetBtn = await this.locatorFor(MatButtonHarness.with({ selector: '[data-testId="discard"]' }))();
+    return resetBtn.isDisabled();
   }
 
   async computeHeadersTableCells(): Promise<{ name: string; value: string }[]> {

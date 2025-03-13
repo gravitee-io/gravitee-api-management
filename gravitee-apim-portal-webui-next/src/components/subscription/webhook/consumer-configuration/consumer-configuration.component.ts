@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, inject } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { Component, DestroyRef, inject, Input, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent, MatCardHeader } from '@angular/material/card';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { tap } from 'rxjs';
+import { RouterLink } from '@angular/router';
+import { isEqual } from 'lodash';
+import { catchError, map, Observable, startWith, tap } from 'rxjs';
+import { of } from 'rxjs/internal/observable/of';
 
-import { SubscriptionConsumerConfiguration } from '../../../../entities/subscription';
+import { ConsumerConfigurationForm, ConsumerConfigurationValues } from './consumer-configuration.models';
+import { Subscription, SubscriptionConsumerConfiguration, UpdateSubscription } from '../../../../entities/subscription';
 import { SubscriptionService } from '../../../../services/subscription.service';
 import { ConsumerConfigurationHeadersComponent } from '../consumer-configuration-headers';
 
@@ -39,29 +44,62 @@ import { ConsumerConfigurationHeadersComponent } from '../consumer-configuration
     MatIcon,
     RouterLink,
     ConsumerConfigurationHeadersComponent,
+    AsyncPipe,
+    MatButton,
   ],
   selector: 'app-consumer-configuration',
   standalone: true,
   templateUrl: './consumer-configuration.component.html',
   styleUrls: ['./consumer-configuration.component.scss'],
 })
-export class ConsumerConfigurationComponent {
-  consumerConfigurationForm: FormGroup | undefined;
+export class ConsumerConfigurationComponent implements OnInit {
+  @Input()
+  subscriptionId!: string;
 
-  constructor(
-    private readonly subscriptionService: SubscriptionService,
-    private readonly route: ActivatedRoute,
-  ) {
+  consumerConfigurationForm!: ConsumerConfigurationForm;
+  initialValues!: ConsumerConfigurationValues;
+  formUnchanged$: Observable<boolean> = of(true);
+  subscription!: Subscription;
+  error: boolean = false;
+  destroyRef = inject(DestroyRef);
+
+  constructor(private readonly subscriptionService: SubscriptionService) {}
+
+  ngOnInit(): void {
     this.subscriptionService
-      .get(this.route.snapshot.params['subscriptionId'])
+      .get(this.subscriptionId)
       .pipe(
         tap(subscription => {
-          const consumerConfiguration = subscription.consumerConfiguration;
-          this.initForm(consumerConfiguration);
+          this.subscription = subscription;
+          this.initForm(subscription.consumerConfiguration);
         }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
+  }
+
+  submit() {
+    const updatedSubscription = this.toUpdateSubscription(this.consumerConfigurationForm.getRawValue());
+    return this.subscriptionService
+      .update(this.subscriptionId, updatedSubscription)
+      .pipe(
+        tap(() => {
+          this.initialValues = this.consumerConfigurationForm.getRawValue();
+          this.reset();
+        }),
+        catchError(() => {
+          this.error = true;
+          return of(null);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  reset() {
+    if (this.initialValues && this.consumerConfigurationForm) {
+      this.consumerConfigurationForm.patchValue(this.initialValues);
+    }
   }
 
   private initForm(consumerConfiguration: SubscriptionConsumerConfiguration | undefined): void {
@@ -70,10 +108,40 @@ export class ConsumerConfigurationComponent {
       this.consumerConfigurationForm = new FormGroup({
         channel: new FormControl(consumerConfiguration.channel),
         consumerConfiguration: new FormGroup({
-          callbackUrl: new FormControl(entrypointConfiguration?.callbackUrl),
+          callbackUrl: new FormControl(entrypointConfiguration?.callbackUrl, {
+            nonNullable: true,
+            validators: [Validators.required, Validators.pattern(/^(http|https):/)],
+          }),
           headers: new FormControl(entrypointConfiguration?.headers),
         }),
       });
+      this.initialValues = this.consumerConfigurationForm.getRawValue();
+      this.formUnchanged$ = this.consumerConfigurationForm.valueChanges.pipe(
+        startWith(this.initialValues),
+        map(value => isEqual(this.initialValues, value)),
+      );
     }
+  }
+
+  private toUpdateSubscription(updatedValues: ConsumerConfigurationValues): UpdateSubscription {
+    const { consumerConfiguration } = this.subscription;
+    if (!consumerConfiguration) {
+      const error = 'Consumer configuration is missing in subscription';
+      this.error = true;
+      throw new Error(error);
+    }
+
+    return {
+      ...this.subscription,
+      configuration: {
+        entrypointId: consumerConfiguration.entrypointId,
+        channel: updatedValues.channel,
+        entrypointConfiguration: {
+          ...consumerConfiguration.entrypointConfiguration,
+          callbackUrl: updatedValues.consumerConfiguration.callbackUrl,
+          headers: updatedValues.consumerConfiguration.headers ?? [],
+        },
+      },
+    };
   }
 }
