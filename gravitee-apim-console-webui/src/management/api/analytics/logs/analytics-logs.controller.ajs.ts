@@ -21,6 +21,7 @@ import { chain, has, now } from 'lodash';
 import AnalyticsService from '../../../../services/analytics.service';
 import TenantService from '../../../../services/tenant.service';
 import { ApiService, LogsQuery } from '../../../../services/api.service';
+import { Constants } from '../../../../entities/Constants';
 
 class ApiAnalyticsLogsControllerAjs {
   private api: any;
@@ -42,6 +43,7 @@ class ApiAnalyticsLogsControllerAjs {
     private AnalyticsService: AnalyticsService,
     private TenantService: TenantService,
     private $q: ng.IQService,
+    private Constants: Constants,
   ) {
     this.ApiService = ApiService;
     this.$scope = $scope;
@@ -170,6 +172,15 @@ class ApiAnalyticsLogsControllerAjs {
     );
   }
 }
-ApiAnalyticsLogsControllerAjs.$inject = ['ApiService', '$scope', 'ngRouter', '$timeout', 'AnalyticsService', 'TenantService', '$q'];
+ApiAnalyticsLogsControllerAjs.$inject = [
+  'ApiService',
+  '$scope',
+  'ngRouter',
+  '$timeout',
+  'AnalyticsService',
+  'TenantService',
+  '$q',
+  'Constants',
+];
 
 export default ApiAnalyticsLogsControllerAjs;
