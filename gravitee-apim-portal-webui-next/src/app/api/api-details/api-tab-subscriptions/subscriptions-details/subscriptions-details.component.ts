@@ -160,14 +160,16 @@ export class SubscriptionsDetailsComponent implements OnInit {
                 },
               };
             }
-          } else if (plan.planMode === 'PUSH' && subscription.consumerConfiguration != null) {
-            return {
-              result: {
-                ...subscriptionDetails,
-                consumerConfiguration: subscription.consumerConfiguration,
-              },
-            };
           }
+        }
+
+        if (plan.planMode === 'PUSH' && !!subscription.consumerConfiguration) {
+          return {
+            result: {
+              ...subscriptionDetails,
+              consumerConfiguration: subscription.consumerConfiguration,
+            },
+          };
         }
 
         return { result: subscriptionDetails };
