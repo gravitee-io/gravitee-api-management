@@ -17,16 +17,16 @@ import { SslKeyStore, SslTrustStore } from '../ssl';
 
 export interface SubscriptionConsumerConfiguration {
   entrypointId: string;
-  channel?: string;
-  entrypointConfiguration?: WebhookSubscriptionConfiguration;
+  channel: string | null;
+  entrypointConfiguration: WebhookSubscriptionConfiguration;
 }
 
 export interface WebhookSubscriptionConfiguration {
   callbackUrl: string;
-  headers?: Header[];
-  auth?: WebhookSubscriptionConfigurationAuth;
-  ssl?: SslOptions;
-  retry?: RetryConfiguration;
+  headers: Header[];
+  auth: WebhookSubscriptionConfigurationAuth;
+  ssl: SslOptions;
+  retry: RetryConfiguration;
 }
 
 export interface Header {
