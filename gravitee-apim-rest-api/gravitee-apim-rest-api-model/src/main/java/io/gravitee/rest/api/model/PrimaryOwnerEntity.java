@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -35,7 +36,7 @@ import lombok.ToString;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PrimaryOwnerEntity {
+public class PrimaryOwnerEntity implements Serializable {
 
     @Schema(description = "The user or group id.", example = "005197cc-cc84-86a6-a75a-88f9772c67db")
     private String id;
