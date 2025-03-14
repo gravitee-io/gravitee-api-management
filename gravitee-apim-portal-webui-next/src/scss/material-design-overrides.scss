@@ -47,7 +47,7 @@ mat-expansion-panel {
 
 table.mat-mdc-table {
   --mat-table-row-item-outline-color: #{theme.$table-border-color};
-  --mat-table-background-color: #{theme.$table-header-background-color};
+  --mat-table-background-color: color-mix(in srgb, #{m3-adapter.$surface-variant} 30%, transparent);
 
   overflow: hidden;
   border: 1px solid theme.$table-border-color;
