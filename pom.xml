@@ -135,7 +135,7 @@
         <mongo.version>5.3.1</mongo.version>
         <owasp-java-html-sanitizer.version>20240325.1</owasp-java-html-sanitizer.version>
         <reactor-adapter.version>3.5.2</reactor-adapter.version>
-        <reactor-core.version>3.7.3</reactor-core.version>
+        <reactor-core.version>3.7.4</reactor-core.version>
         <slf4j2-mock.version>2.4.0</slf4j2-mock.version>
         <snakeyaml.version>2.4</snakeyaml.version>
         <spring-data-mongodb.version>4.4.3</spring-data-mongodb.version>
