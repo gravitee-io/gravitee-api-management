@@ -16,13 +16,13 @@
 package io.gravitee.repository.noop.management;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -41,22 +41,30 @@ public class NoOpEventRepository extends AbstractNoOpManagementRepository<Event,
     }
 
     @Override
-    public Event createOrPatch(Event event) throws TechnicalException {
+    public Event createOrPatch(Event event) {
         return null;
     }
 
     @Override
-    public long deleteApiEvents(String apiId) throws TechnicalException {
+    public long deleteApiEvents(String apiId) {
         return 0;
     }
 
     @Override
     public List<Event> findByEnvironmentId(String environmentId) {
-        return Collections.emptyList();
+        return List.of();
     }
 
     @Override
     public List<Event> findByOrganizationId(String organizationId) {
-        return Collections.emptyList();
+        return List.of();
     }
+
+    @Override
+    public Stream<EventToClean> findGatewayEvents(String environmentId) {
+        return Stream.empty();
+    }
+
+    @Override
+    public void delete(Collection<String> ids) {}
 }

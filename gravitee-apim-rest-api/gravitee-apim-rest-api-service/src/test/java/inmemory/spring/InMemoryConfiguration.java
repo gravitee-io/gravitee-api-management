@@ -34,6 +34,7 @@ import inmemory.ApplicationQueryServiceInMemory;
 import inmemory.AsyncJobCrudServiceInMemory;
 import inmemory.AsyncJobQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.AuditEventQueryServiceInMemory;
 import inmemory.AuditMetadataQueryServiceInMemory;
 import inmemory.AuditQueryServiceInMemory;
 import inmemory.CategoryApiCrudServiceInMemory;
@@ -97,14 +98,12 @@ import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.ValidateResourceDomainServiceInMemory;
 import inmemory.WorkflowQueryServiceInMemory;
-import io.gravitee.apim.core.application.query_service.ApplicationQueryService;
 import io.gravitee.apim.core.specgen.crud_service.ApiSpecGenCrudService;
 import io.gravitee.apim.core.specgen.query_service.ApiSpecGenQueryService;
 import io.gravitee.apim.core.specgen.service_provider.OasProvider;
 import io.gravitee.apim.core.specgen.service_provider.SpecGenNotificationProvider;
 import io.gravitee.apim.core.specgen.service_provider.SpecGenProvider;
 import io.gravitee.apim.core.workflow.query_service.WorkflowQueryService;
-import io.gravitee.apim.infra.query_service.audit.AuditEventQueryServiceImpl;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -293,8 +292,8 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public AuditEventQueryServiceImpl auditEventQueryService() {
-        return new AuditEventQueryServiceImpl();
+    public AuditEventQueryServiceInMemory auditEventQueryService() {
+        return new AuditEventQueryServiceInMemory();
     }
 
     @Bean
