@@ -151,6 +151,35 @@ describe('SubscriptionsDetailsComponent', () => {
       await componentHarness.save();
       expectSubscriptionUpdate();
     });
+
+    it('should configure retry', async () => {
+      const consumerConfiguration = fakeSubscriptionConsumerConfiguration();
+      const subscription = fakeSubscription({ status: 'ACCEPTED', api: API_ID, plan: PLAN_ID, consumerConfiguration });
+      initComponent(subscription);
+
+      await componentHarness.selectOption('retryOption', 'Retry On Fail');
+      await componentHarness.selectOption('retryStrategy', 'LINEAR');
+      await expectRetryInputNumberError('maxAttempts', '0', 'Minimal value for maximum attempts is 1');
+      await componentHarness.setInputTextValueFromControlName('maxAttempts', '1');
+      await expectRetryInputNumberError('initialDelaySeconds', '0', 'Minimal value for initial delay seconds is 1');
+      await componentHarness.setInputTextValueFromControlName('initialDelaySeconds', '2');
+      await expectRetryInputNumberError('maxDelaySeconds', '0', 'Minimal value for maximum delay seconds is 1');
+      await componentHarness.setInputTextValueFromControlName('maxDelaySeconds', '3');
+
+      await componentHarness.save();
+      expectSubscriptionUpdate();
+
+      await componentHarness.selectOption('retryOption', 'No Retry');
+      expect(await componentHarness.getSelectedOption('retryOption')).toStrictEqual('No Retry');
+
+      await componentHarness.reset();
+
+      expect(await componentHarness.getSelectedOption('retryOption')).toStrictEqual('Retry On Fail');
+      expect(await componentHarness.getSelectedOption('retryStrategy')).toStrictEqual('LINEAR');
+      expect(await componentHarness.getInputTextFromControlName('maxAttempts')).toStrictEqual('1');
+      expect(await componentHarness.getInputTextFromControlName('initialDelaySeconds')).toStrictEqual('2');
+      expect(await componentHarness.getInputTextFromControlName('maxDelaySeconds')).toStrictEqual('3');
+    });
   });
 
   function expectSubscription(subscriptionResponse: Subscription = fakeSubscription()) {
@@ -163,5 +192,12 @@ describe('SubscriptionsDetailsComponent', () => {
     httpTestingController
       .expectOne({ method: 'PUT', url: `${TESTING_BASE_URL}/subscriptions/${SUBSCRIPTION_ID}` })
       .flush(subscriptionResponse);
+  }
+
+  async function expectRetryInputNumberError(formControlName: string, value: string, error: string) {
+    await componentHarness.setInputTextValueFromControlName(formControlName, value);
+    expect(await componentHarness.getError()).toStrictEqual(error);
+    await componentHarness.setInputTextValueFromControlName(formControlName, '');
+    expect(await componentHarness.getError()).toStrictEqual(error);
   }
 });
