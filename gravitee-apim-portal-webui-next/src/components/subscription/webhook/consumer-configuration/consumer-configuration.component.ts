@@ -31,6 +31,7 @@ import { ConsumerConfigurationForm, ConsumerConfigurationValues } from './consum
 import { Subscription, SubscriptionConsumerConfiguration, UpdateSubscription } from '../../../../entities/subscription';
 import { SubscriptionService } from '../../../../services/subscription.service';
 import { ConsumerConfigurationHeadersComponent } from '../consumer-configuration-headers';
+import { ConsumerConfigurationRetryComponent } from '../consumer-configuration-retry/consumer-configuration-retry.component';
 
 @Component({
   imports: [
@@ -46,6 +47,7 @@ import { ConsumerConfigurationHeadersComponent } from '../consumer-configuration
     ConsumerConfigurationHeadersComponent,
     AsyncPipe,
     MatButton,
+    ConsumerConfigurationRetryComponent,
   ],
   selector: 'app-consumer-configuration',
   standalone: true,
@@ -113,6 +115,7 @@ export class ConsumerConfigurationComponent implements OnInit {
             validators: [Validators.required, Validators.pattern(/^(http|https):/)],
           }),
           headers: new FormControl(entrypointConfiguration?.headers),
+          retry: new FormControl(entrypointConfiguration?.retry, { nonNullable: true }),
         }),
       });
       this.initialValues = this.consumerConfigurationForm.getRawValue();
@@ -140,6 +143,7 @@ export class ConsumerConfigurationComponent implements OnInit {
           ...consumerConfiguration.entrypointConfiguration,
           callbackUrl: updatedValues.consumerConfiguration.callbackUrl,
           headers: updatedValues.consumerConfiguration.headers ?? [],
+          retry: updatedValues.consumerConfiguration.retry,
         },
       },
     };

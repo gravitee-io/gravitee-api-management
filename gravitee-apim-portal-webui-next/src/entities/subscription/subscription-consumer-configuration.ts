@@ -66,9 +66,15 @@ export interface SslOptions {
   keyStore?: SslKeyStore;
 }
 
+export const RetryOptions = ['No Retry', 'Retry On Fail'] as const;
+export type RetryOptionsType = (typeof RetryOptions)[number];
+
+export const RetryStrategies = ['LINEAR', 'EXPONENTIAL'];
+export type RetryStrategiesType = (typeof RetryStrategies)[number];
+
 export interface RetryConfiguration {
-  retryOption: 'No Retry' | 'Retry On Fail';
-  retryStrategy?: 'LINEAR' | 'EXPONENTIAL';
+  retryOption: RetryOptionsType;
+  retryStrategy?: RetryStrategiesType;
   maxAttempts?: number;
   initialDelaySeconds?: number;
   maxDelaySeconds?: number;
