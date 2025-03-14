@@ -31,7 +31,7 @@ import { ConsumerConfigurationForm, ConsumerConfigurationValues } from './consum
 import { Subscription, SubscriptionConsumerConfiguration, UpdateSubscription } from '../../../../entities/subscription';
 import { SubscriptionService } from '../../../../services/subscription.service';
 import { ConsumerConfigurationHeadersComponent } from '../consumer-configuration-headers';
-import { ConsumerConfigurationRetryComponent } from '../consumer-configuration-retry/consumer-configuration-retry.component';
+import { ConsumerConfigurationRetryComponent } from '../consumer-configuration-retry';
 
 @Component({
   imports: [

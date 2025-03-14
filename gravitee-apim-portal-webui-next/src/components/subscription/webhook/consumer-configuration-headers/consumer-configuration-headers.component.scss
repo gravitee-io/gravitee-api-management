@@ -28,8 +28,6 @@
   &__table {
     margin-top: 10px;
 
-    --mat-table-background-color: color-mix(in srgb, #{m3-adapter.$surface-variant} 30%, transparent);
-
     &__form-field {
       display: flex;
       padding-top: 10px;
