@@ -17,9 +17,9 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.log;
 
 import static io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo.computePaginationInfo;
 
+import io.gravitee.apim.core.log.use_case.SearchApiConnectionLogDetailUseCase;
+import io.gravitee.apim.core.log.use_case.SearchApiMessageLogsUseCase;
 import io.gravitee.apim.core.log.use_case.SearchApiV4ConnectionLogsUseCase;
-import io.gravitee.apim.core.log.use_case.SearchConnectionLogUseCase;
-import io.gravitee.apim.core.log.use_case.SearchMessageLogsUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiLogsMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMessageLogsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogResponse;
@@ -53,10 +53,10 @@ public class ApiLogsResource extends AbstractResource {
     private SearchApiV4ConnectionLogsUseCase searchConnectionLogsUsecase;
 
     @Inject
-    private SearchMessageLogsUseCase searchMessageLogsUsecase;
+    private SearchApiMessageLogsUseCase searchApiMessageLogsUseCase;
 
     @Inject
-    private SearchConnectionLogUseCase searchConnectionLogUsecase;
+    private SearchApiConnectionLogDetailUseCase searchConnectionLogUsecase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -86,13 +86,13 @@ public class ApiLogsResource extends AbstractResource {
         @BeanParam @Valid PaginationParam paginationParam,
         @PathParam("requestId") String requestId
     ) {
-        var request = new SearchMessageLogsUseCase.Input(
+        var request = new SearchApiMessageLogsUseCase.Input(
             apiId,
             requestId,
             new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
         );
 
-        var response = searchMessageLogsUsecase.execute(GraviteeContext.getExecutionContext(), request);
+        var response = searchApiMessageLogsUseCase.execute(GraviteeContext.getExecutionContext(), request);
 
         return ApiMessageLogsResponse
             .builder()
@@ -107,7 +107,7 @@ public class ApiLogsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_LOG, acls = { RolePermissionAction.READ }) })
     public ApiLogResponse getApiLog(@PathParam("requestId") String requestId) {
-        var request = new SearchConnectionLogUseCase.Input(apiId, requestId);
+        var request = new SearchApiConnectionLogDetailUseCase.Input(apiId, requestId);
 
         return searchConnectionLogUsecase
             .execute(GraviteeContext.getExecutionContext(), request)

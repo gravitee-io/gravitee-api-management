@@ -36,16 +36,6 @@ $form-field-hint-height: 16px;
     &-row {
       cursor: pointer;
     }
-
-    &__pagination {
-      --mdc-filled-button-container-shape: 50%;
-      --mat-filled-button-horizontal-padding: 18px;
-      --mat-text-button-horizontal-padding: 18px;
-
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
   }
 }
 
@@ -101,12 +91,4 @@ $form-field-hint-height: 16px;
 
 .error {
   color: theme.$error-main-color;
-}
-
-::ng-deep {
-  .application-logs__table__pagination {
-    .mdc-button {
-      min-width: auto;
-    }
-  }
 }

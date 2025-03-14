@@ -33,6 +33,8 @@ public class ConnectionLogField {
     public static final String STATUS = "status";
     public static final String GATEWAY = "gateway";
     public static final String URI = "uri";
+    public static final String REQUEST_CONTENT_LENGTH = "request-content-length";
+    public static final String RESPONSE_CONTENT_LENGTH = "response-content-length";
 
     // Fields with different names in each index
     public static final Field REQUEST_ID = new Field("_id", "request-id");

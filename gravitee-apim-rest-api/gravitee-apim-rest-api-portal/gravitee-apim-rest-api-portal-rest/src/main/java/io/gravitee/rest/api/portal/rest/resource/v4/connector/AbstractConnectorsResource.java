@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource.v4.connector;
 
 import io.gravitee.rest.api.model.v4.connector.ConnectorExpandPluginEntity;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
+import io.gravitee.rest.api.portal.rest.resource.AbstractResource;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -30,7 +31,7 @@ import java.util.stream.Stream;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractConnectorsResource {
+public abstract class AbstractConnectorsResource extends AbstractResource {
 
     protected Collection<ConnectorExpandPluginEntity> expand(Set<ConnectorPluginEntity> connectorPluginEntities, List<String> expands) {
         Stream<ConnectorExpandPluginEntity> stream = connectorPluginEntities.stream().map(this::convert);

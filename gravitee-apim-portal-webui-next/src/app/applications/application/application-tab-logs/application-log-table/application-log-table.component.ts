@@ -16,7 +16,7 @@
 import { AsyncPipe, DatePipe } from '@angular/common';
 import { Component, computed, DestroyRef, inject, Input, OnInit, Signal, signal, WritableSignal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatButton } from '@angular/material/button';
 import { MatChip } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
@@ -40,6 +40,7 @@ import { catchError, distinctUntilChanged, map, Observable, switchMap, tap } fro
 import { of } from 'rxjs/internal/observable/of';
 
 import { LoaderComponent } from '../../../../../components/loader/loader.component';
+import { PaginationComponent } from '../../../../../components/pagination/pagination.component';
 import { Application } from '../../../../../entities/application/application';
 import { LogsResponse, LogsResponseMetadataApi, LogsResponseMetadataTotalData } from '../../../../../entities/log/log';
 import { ApplicationLogService, ResponseTimeRange } from '../../../../../services/application-log.service';
@@ -94,7 +95,6 @@ interface FiltersVM {
     MatTable,
     MatHeaderCellDef,
     DatePipe,
-    MatIconButton,
     MatButton,
     MatFormField,
     MatSelect,
@@ -102,6 +102,7 @@ interface FiltersVM {
     MatLabel,
     MatChip,
     RouterLink,
+    PaginationComponent,
   ],
   templateUrl: './application-log-table.component.html',
   styleUrl: './application-log-table.component.scss',
@@ -112,17 +113,6 @@ export class ApplicationLogTableComponent implements OnInit {
 
   logs$: Observable<LogVM[]> = of([]);
   applicationApis$: Observable<ApiVM[]> = of([]);
-
-  pagination: Signal<{ hasPreviousPage: boolean; hasNextPage: boolean; currentPage: number; totalPages: number }> = computed(() => {
-    const totalPages = Math.ceil(this.totalLogs() / 10);
-
-    return {
-      hasPreviousPage: this.currentLogsPage() > 1,
-      hasNextPage: this.currentLogsPage() < totalPages,
-      currentPage: this.currentLogsPage(),
-      totalPages,
-    };
-  });
 
   filters: WritableSignal<FiltersVM> = signal({});
   noFiltersApplied: Signal<boolean> = computed(() =>
@@ -139,8 +129,9 @@ export class ApplicationLogTableComponent implements OnInit {
 
   displayedColumns: string[] = ['api', 'timestamp', 'httpMethod', 'responseStatus', 'action'];
 
-  private currentLogsPage: WritableSignal<number> = signal(1);
-  private totalLogs: WritableSignal<number> = signal(0);
+  currentLogsPage: WritableSignal<number> = signal(1);
+  totalLogs: WritableSignal<number> = signal(0);
+
   private selectedApis: WritableSignal<string[]> = signal([]);
   private filtersInitialValue: FiltersVM = {};
 
@@ -233,22 +224,8 @@ export class ApplicationLogTableComponent implements OnInit {
       );
   }
 
-  goToPreviousPage() {
-    if (this.currentLogsPage() > 0) {
-      this.navigate({ page: this.currentLogsPage() - 1 });
-    }
-  }
-
-  goToNextPage() {
-    if (this.currentLogsPage() < this.pagination().totalPages) {
-      this.navigate({ page: this.currentLogsPage() + 1 });
-    }
-  }
-
   goToPage(page: number) {
-    if (page > 0 && page <= this.pagination().totalPages) {
-      this.navigate({ page });
-    }
+    this.navigate({ page });
   }
 
   resetFilters() {

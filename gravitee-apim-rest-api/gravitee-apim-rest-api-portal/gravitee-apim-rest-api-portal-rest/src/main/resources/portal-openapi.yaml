@@ -1588,6 +1588,44 @@ paths:
                                 $ref: "#/components/schemas/ErrorResponse"
                 500:
                     $ref: "#/components/responses/InternalServerError"
+
+    /applications/{applicationId}/logs/{logId}/messages:
+        parameters:
+            - $ref: "#/components/parameters/applicationIdParam"
+            - $ref: "#/components/parameters/logIdParam"
+        get:
+            tags:
+                - Application
+                - Analytics
+            parameters:
+                - $ref: "#/components/parameters/logTimestampQueryParam"
+                - $ref: "#/components/parameters/pageNumberParam"
+                - $ref: "#/components/parameters/pageSizeParam"
+            summary: Get a page of messages for a given application log
+            description: |
+                Get a page of messages for a given application log.
+
+                User must have the APPLICATION_LOG[READ] permission.
+            operationId: getApplicationLogMessagesByApplicationIdAndLogId
+            responses:
+              200:
+                description: Page of message logs.
+                content:
+                  application/json:
+                    schema:
+                      $ref: "#/components/schemas/MessageLogsResponse"
+              400:
+                description: Invalid query params.
+                content:
+                  application/json:
+                    schema:
+                      $ref: "#/components/schemas/ErrorResponse"
+              403:
+                $ref: "#/components/responses/PermissionError"
+              404:
+                $ref: "#/components/responses/ApplicationNotFoundError"
+              500:
+                $ref: "#/components/responses/InternalServerError"
     /applications/{applicationId}/_renew_secret:
         parameters:
             - $ref: "#/components/parameters/applicationIdParam"
@@ -2934,7 +2972,7 @@ paths:
             tags:
                 - Entrypoints
             parameters:
-                - $ref: "#/components/parameters/entrypointsQueryParam"
+                - $ref: "#/components/parameters/connectorQueryParam"
             summary: List Entrypoints
             description: |
                 List available entrypoints.
@@ -2949,7 +2987,30 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/EntrypointsResponse"
+                                $ref: "#/components/schemas/ConnectorsResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /endpoints:
+        get:
+            tags:
+                - Endpoints
+            parameters:
+                - $ref: "#/components/parameters/connectorQueryParam"
+            summary: List Endpoints
+            description: |
+                List available endpoints.
+            operationId: getEndpoints
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    description: List available endpoints for current user
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ConnectorsResponse"
                 500:
                     $ref: "#/components/responses/InternalServerError"
     /portal-menu-links:
@@ -3523,12 +3584,12 @@ components:
             schema:
                 type: string
 
-        #Entrypoinds Expand
-        entrypointsQueryParam:
+        # Connectors Expand
+        connectorQueryParam:
             name: expand
             in: query
             required: false
-            description: expand entrypoints details
+            description: expand connector details
             schema:
                 type: array
                 items:
@@ -3755,6 +3816,13 @@ components:
                     $ref: "#/components/schemas/MetadataMap"
                 links:
                     $ref: "#/components/schemas/Links"
+        MessageLogsResponse:
+          properties:
+            data:
+              description: Page of messages
+              type: array
+              items:
+                $ref: "#/components/schemas/MessageLog"
         SubscriptionsResponse:
             properties:
                 data:
@@ -4508,6 +4576,84 @@ components:
                 securityToken:
                     description: Token used by the request.
                     type: string
+        MessageLog:
+            type: object
+            properties:
+              requestId:
+                type: string
+                description: The id of the request.
+                example: 1719d8d1-8d01-48f6-99d8-d18d0178f6d4
+              apiId:
+                type: string
+                description: The id of the request.
+                example: 1719d8d1-8d01-48f6-99d8-d18d0178f6d4
+              timestamp:
+                type: string
+                format: date-time
+                description: The date (as timestamp) of the log.
+                example: 2023-05-18T12:40:46.184Z
+              clientIdentifier:
+                type: string
+                description: The client identifier of the request.
+                example: 12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0
+              correlationId:
+                type: string
+                description: The correlation id.
+                example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+              parentCorrelationId:
+                type: string
+                description: The parent correlation id.
+                example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+              operation:
+                type: string
+                description: The operation.
+                example: subscribe
+              entrypoint:
+                $ref: "#/components/schemas/MessageLogContent"
+              endpoint:
+                $ref: "#/components/schemas/MessageLogContent"
+        MessageLogContent:
+          type: object
+          description: The message content.
+          example: |
+            {
+            			"id": "0",
+            			"payload": "mock message",
+            			"headers": {
+            				"X-Mock": [
+            					"mocked"
+            				]
+            			},
+            			"metadata": {
+            				"MessageMetadata": "A metadata"
+            			}
+            		}
+          properties:
+            id:
+              type: string
+              description: The internal UUID of the Message.
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+            connectorId:
+              type: string
+              description: The id of connector for this log.
+              example: kafka
+            payload:
+              type: string
+              description: The payload of the Message.
+              example: "This is a message"
+            isError:
+              type: boolean
+              description: Is the Message in error.
+              example: false
+            headers:
+              type: object
+              description: The list of headers associated with this message.
+              example:
+                - name: X-My-Header
+                  value: [ my-value ]
+            metadata:
+              type: object
+              description: The list of Message's metadata.
         Subscription:
             required:
                 - id
@@ -5147,38 +5293,39 @@ components:
                 description:
                     type: string
                     description: Notifier description
-        EntrypointsResponse:
-            description: List of Entrypoints.
+        ConnectorsResponse:
+            description: List of Connectors.
             type: array
             items:
-                $ref: "#/components/schemas/Entrypoint"
-        Entrypoint:
+                $ref: "#/components/schemas/Connector"
+        Connector:
             description: |
-                Describes an Entrypoint.
+                Describes a connector.
             properties:
                 id:
-                    description: Unique identifier of an Entrypoint.
+                    description: Unique identifier of a connector.
                     type: string
                 name:
-                    description: Name of the Entrypoint.
+                    description: Name of the connector.
                     type: string
                 version:
-                    description: Version of the Entrypoint.
+                    description: Version of the connector.
                     type: string
                 description:
-                    description: Description of the Entrypoint.
+                    description: Description of the connector.
                     type: string
                 category:
                     type: string
-                    description: Category of the Entrypoint.
+                    description: Category of the connector.
                 supportedApiType:
-                    description: ApiType supported by the Entrypoint.
+                    description: ApiType supported by the connector.
                     type: string
                     enum:
-                        - sync
-                        - async
+                        - proxy
+                        - message
+                        - native
                 supportedModes:
-                    description: ConnectorMode supported by the Entrypoint.
+                    description: ConnectorMode supported by the connector.
                     type: array
                     items:
                         type: string
@@ -5186,9 +5333,12 @@ components:
                             - subscribe
                             - publish
                             - request_response
+                            - connect
+                            - interact
+                            - socket
                 supportedQos:
                     type: array
-                    description: Qos supported by the Entrypoint.
+                    description: Qos supported by the connector.
                     items:
                         type: string
                         enum:
@@ -5198,28 +5348,31 @@ components:
                             - at-most-once
                 availableFeatures:
                     type: array
-                    description: ConnectorFeature supported by the Entrypoint.
+                    description: ConnectorFeature supported by the connector.
                     items:
                         type: string
                         enum:
                             - limit
                             - resume
                             - dlq
+                            - cors
                 supportedListenerType:
                     type: string
-                    description: ListenerType supported by the Entrypoint.
+                    description: ListenerType supported by the connector.
                     enum:
                         - http
                         - subscription
+                        - tcp
+                        - kafka
                 schema:
                     type: string
-                    description: Schema of the Entrypoint.
+                    description: Schema of the connector.
                 subscriptionSchema:
                     type: string
-                    description: SubscriptionSchema of the Entrypoint.
+                    description: SubscriptionSchema of the connector.
                 icon:
                     type: string
-                    description: Icon of the Entrypoint.
+                    description: Icon of the connector.
         #################
         # Input Objects #
         #################

@@ -30,11 +30,11 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 @UseCase
-public class SearchMessageLogsUseCase {
+public class SearchApiMessageLogsUseCase {
 
     private final MessageLogCrudService messageLogCrudService;
 
-    public SearchMessageLogsUseCase(MessageLogCrudService messageLogCrudService) {
+    public SearchApiMessageLogsUseCase(MessageLogCrudService messageLogCrudService) {
         this.messageLogCrudService = messageLogCrudService;
     }
 

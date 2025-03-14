@@ -95,6 +95,8 @@ class ConnectionLogAdapterTest {
                     .requestEnded(true)
                     .transactionId("transaction-id")
                     .status(200)
+                    .requestContentLength(0L)
+                    .responseContentLength(0L)
                     .build()
             );
     }

@@ -26,11 +26,11 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 @UseCase
-public class SearchConnectionLogUseCase {
+public class SearchApiConnectionLogDetailUseCase {
 
     private final ConnectionLogsCrudService connectionLogsCrudService;
 
-    public SearchConnectionLogUseCase(ConnectionLogsCrudService connectionLogsCrudService) {
+    public SearchApiConnectionLogDetailUseCase(ConnectionLogsCrudService connectionLogsCrudService) {
         this.connectionLogsCrudService = connectionLogsCrudService;
     }
 

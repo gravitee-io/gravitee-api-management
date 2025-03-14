@@ -20,14 +20,18 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.model.v4.connector.ConnectorExpandPluginEntity;
+import io.gravitee.rest.api.portal.rest.mapper.ConnectorMapper;
+import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.resource.v4.connector.AbstractConnectorsResource;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Response;
 import java.util.Collection;
 import java.util.List;
 
@@ -42,10 +46,12 @@ public class EntrypointsResource extends AbstractConnectorsResource {
     @Inject
     private EntrypointConnectorPluginService entrypointService;
 
+    private final ConnectorMapper connectorMapper = ConnectorMapper.INSTANCE;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
-    public Collection<ConnectorExpandPluginEntity> getEntrypoints(@QueryParam("expand") List<String> expands) {
+    public Response getEntrypoints(@QueryParam("expand") List<String> expands) {
         final Collection<ConnectorExpandPluginEntity> connectors = super.expand(entrypointService.findAll(), expands);
         if (expands != null && expands.contains("subscriptionSchema")) {
             connectors.forEach(connector ->
@@ -54,7 +60,7 @@ public class EntrypointsResource extends AbstractConnectorsResource {
                 )
             );
         }
-        return connectors;
+        return createListResponse(GraviteeContext.getExecutionContext(), connectorMapper.convert(connectors), PaginationParam.builder().page(1).size(-1).build(), null, false);
     }
 
     @Override
