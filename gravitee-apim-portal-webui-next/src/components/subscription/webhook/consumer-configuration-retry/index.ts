@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../scss/m3-adapter';
-
-:host {
-  display: flex;
-  min-height: 95vh;
-  flex-flow: column;
-  margin: auto;
-  gap: 40px;
-}
-
-.content {
-  width: 1040px;
-  flex: 1 1 100%;
-  padding: 0 24px;
-  margin: auto;
-}
+export * from './consumer-configuration-retry.component';

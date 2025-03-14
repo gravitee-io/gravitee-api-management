@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host {
+.consumer-configuration {
   display: flex;
   flex-flow: column;
-}
+  gap: 32px;
 
-.subscriptions-details {
   &__navigate-back {
     display: flex;
     align-items: center;
@@ -32,20 +31,22 @@
     transform: scale(0.8);
   }
 
-  &__container {
+  &__form {
     display: flex;
-    flex-direction: row;
-    padding-top: 32px;
-    margin-bottom: 20px;
-    gap: 32px;
-  }
+    flex-flow: column;
+    gap: 12px;
 
-  &__subscription-info {
-    min-width: 38%;
-  }
+    &__fields {
+      display: flex;
+      width: 100%;
+      margin-bottom: 10px;
+    }
 
-  &__error {
-    align-self: center;
-    padding: 36px 0;
+    &__actions {
+      display: flex;
+      flex-direction: row;
+      margin-top: 20px;
+      gap: 8px;
+    }
   }
 }

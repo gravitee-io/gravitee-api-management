@@ -1,0 +1,71 @@
+<!--
+
+    Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="retry">
+  <span class="m3-title-medium" i18n="@@consumerConfigurationRetry">Retry</span>
+  <form [formGroup]="retryForm" class="retry__form">
+    <mat-form-field>
+      <mat-label i18n="@@consumerConfigurationRetryOption">Retry option</mat-label>
+      <mat-select formControlName="retryOption">
+        @for (retryOption of retryOptions; track retryOption) {
+          <mat-option [value]="retryOption">{{ retryOption }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    @if (!!retryForm.controls.retryStrategy) {
+      <mat-form-field>
+        <mat-label i18n="@@consumerConfigurationRetryStrategy">Retry strategy</mat-label>
+        <mat-select formControlName="retryStrategy">
+          @for (retryStrategy of retryStrategies; track retryStrategy) {
+            <mat-option [value]="retryStrategy">{{ retryStrategy }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+
+    @if (!!retryForm.controls.maxAttempts) {
+      <mat-form-field>
+        <mat-label i18n="@@consumerConfigurationRetryMaxAttempts">Maximum attempts</mat-label>
+        <input matInput type="number" formControlName="maxAttempts" />
+        @if (retryForm.controls.maxAttempts.hasError('min') || retryForm.controls.maxAttempts.hasError('required')) {
+          <mat-error i18n="@@consumerConfigurationRetryMaxAttemptsMin">Minimal value for maximum attempts is 1</mat-error>
+        }
+      </mat-form-field>
+    }
+
+    @if (!!retryForm.controls.initialDelaySeconds) {
+      <mat-form-field>
+        <mat-label i18n="@@consumerConfigurationRetryInitialDelaySeconds">Initial delay in seconds</mat-label>
+        <input matInput type="number" formControlName="initialDelaySeconds" />
+        @if (retryForm.controls.initialDelaySeconds.hasError('min') || retryForm.controls.initialDelaySeconds.hasError('required')) {
+          <mat-error i18n="@@consumerConfigurationRetryInitialDelaySecondsMin">Minimal value for initial delay seconds is 1</mat-error>
+        }
+      </mat-form-field>
+    }
+
+    @if (!!retryForm.controls.maxDelaySeconds) {
+      <mat-form-field>
+        <mat-label i18n="@@consumerConfigurationRetryMaxDelaySeconds">Maximum delay in seconds</mat-label>
+        <input matInput type="number" formControlName="maxDelaySeconds" />
+        @if (retryForm.controls.maxDelaySeconds.hasError('min') || retryForm.controls.maxDelaySeconds.hasError('required')) {
+          <mat-error i18n="@@consumerConfigurationRetryMaxDelaySecondsMin">Minimal value for maximum delay seconds is 1</mat-error>
+        }
+      </mat-form-field>
+    }
+  </form>
+</div>

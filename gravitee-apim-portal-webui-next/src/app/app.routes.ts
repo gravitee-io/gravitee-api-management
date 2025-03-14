@@ -40,6 +40,7 @@ import { ResetPasswordComponent } from './log-in/reset-password/reset-password.c
 import { LogOutComponent } from './log-out/log-out.component';
 import { NotFoundComponent } from './not-found/not-found.component';
 import { ServiceUnavailableComponent } from './service-unavailable/service-unavailable.component';
+import { ConsumerConfigurationComponent } from '../components';
 import { anonymousGuard } from '../guards/anonymous.guard';
 import { authGuard } from '../guards/auth.guard';
 import { catalogCategoriesViewGuard } from '../guards/catalog-categories-view.guard';
@@ -96,8 +97,11 @@ const apiRoutes: Routes = [
               },
               {
                 path: ':subscriptionId',
-                component: SubscriptionsDetailsComponent,
                 data: { breadcrumb: { skip: true } },
+                children: [
+                  { path: '', component: SubscriptionsDetailsComponent },
+                  { path: 'configure', component: ConsumerConfigurationComponent },
+                ],
               },
             ],
           },
