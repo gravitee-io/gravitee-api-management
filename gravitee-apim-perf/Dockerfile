@@ -10,7 +10,7 @@ RUN yarn install
 COPY --chown=node:node . .
 RUN rm -r dist/ && yarn build
 
-FROM mostafamoradian/xk6-kafka:0.31.2 as runner
+FROM mostafamoradian/xk6-kafka:0.31.5 as runner
 
 USER root
 RUN apk add --update --no-cache jq util-linux bash
