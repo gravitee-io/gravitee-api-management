@@ -298,6 +298,8 @@ export class MAPIV2ApisFaker {
       ],
       subscribe: [],
       publish: [],
+      connect: [],
+      interact: [],
       tags: [],
       ...attributes,
     };

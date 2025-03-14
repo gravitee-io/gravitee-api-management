@@ -107,6 +107,8 @@ describe('API - V4 - Import - Gravitee Definition - Only API -', () => {
               ],
               response: [],
               publish: [],
+              connect: [],
+              interact: [],
               subscribe: [],
               tags: ['test-tag'],
             },
