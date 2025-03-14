@@ -18,6 +18,7 @@ import { ComponentHarness, parallel } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatErrorHarness } from '@angular/material/form-field/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
 export class ConsumerConfigurationComponentHarness extends ComponentHarness {
@@ -32,6 +33,16 @@ export class ConsumerConfigurationComponentHarness extends ComponentHarness {
     const input: MatInputHarness = await this.locatorFor(MatInputHarness.with({ selector: `[formcontrolname='${formControlName}']` }))();
     await input.setValue(newValue);
     return input.blur();
+  }
+
+  async selectOption(formControlName: string, newValue: string): Promise<void> {
+    const select = await this.locatorFor(MatSelectHarness.with({ selector: `[formcontrolname='${formControlName}']` }))();
+    return select.clickOptions({ text: newValue });
+  }
+
+  async getSelectedOption(formControlName: string): Promise<string> {
+    const select = await this.locatorFor(MatSelectHarness.with({ selector: `[formcontrolname='${formControlName}']` }))();
+    return select.getValueText();
   }
 
   async getError(): Promise<string> {

@@ -46,6 +46,9 @@
 
           <app-consumer-configuration-headers
             [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.headers"></app-consumer-configuration-headers>
+
+          <app-consumer-configuration-retry
+            [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.retry"></app-consumer-configuration-retry>
         </form>
 
         @if (error) {

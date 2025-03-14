@@ -15,22 +15,20 @@
  */
 import { FormControl, FormGroup } from '@angular/forms';
 
-import { Header, RetryConfiguration } from '../../../../entities/subscription';
+import { RetryOptionsType, RetryStrategiesType } from '../../../../entities/subscription';
 
-export type ConsumerConfigurationForm = FormGroup<{
-  channel: FormControl<string | null>;
-  consumerConfiguration: FormGroup<{
-    callbackUrl: FormControl<string>;
-    headers: FormControl<Header[] | null>;
-    retry: FormControl<RetryConfiguration>;
-  }>;
+export type RetryFormType = FormGroup<{
+  retryOption: FormControl<RetryOptionsType>;
+  retryStrategy?: FormControl<RetryStrategiesType | null>;
+  maxAttempts?: FormControl<number | null>;
+  initialDelaySeconds?: FormControl<number | null>;
+  maxDelaySeconds?: FormControl<number | null>;
 }>;
 
-export type ConsumerConfigurationValues = {
-  channel: string | null;
-  consumerConfiguration: {
-    callbackUrl: string;
-    headers: Header[] | null;
-    retry: RetryConfiguration;
-  };
-};
+export interface RetryFormValues {
+  retryOption: RetryOptionsType;
+  retryStrategy: RetryStrategiesType | null;
+  maxAttempts: number | null;
+  initialDelaySeconds: number | null;
+  maxDelaySeconds: number | null;
+}

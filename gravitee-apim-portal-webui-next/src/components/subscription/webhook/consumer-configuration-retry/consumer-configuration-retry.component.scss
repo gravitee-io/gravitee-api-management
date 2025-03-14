@@ -13,24 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FormControl, FormGroup } from '@angular/forms';
+.retry {
+  display: flex;
+  flex-flow: column;
+  gap: 8px;
 
-import { Header, RetryConfiguration } from '../../../../entities/subscription';
-
-export type ConsumerConfigurationForm = FormGroup<{
-  channel: FormControl<string | null>;
-  consumerConfiguration: FormGroup<{
-    callbackUrl: FormControl<string>;
-    headers: FormControl<Header[] | null>;
-    retry: FormControl<RetryConfiguration>;
-  }>;
-}>;
-
-export type ConsumerConfigurationValues = {
-  channel: string | null;
-  consumerConfiguration: {
-    callbackUrl: string;
-    headers: Header[] | null;
-    retry: RetryConfiguration;
-  };
-};
+  &__form {
+    display: flex;
+    flex-flow: column;
+    gap: 8px;
+  }
+}
