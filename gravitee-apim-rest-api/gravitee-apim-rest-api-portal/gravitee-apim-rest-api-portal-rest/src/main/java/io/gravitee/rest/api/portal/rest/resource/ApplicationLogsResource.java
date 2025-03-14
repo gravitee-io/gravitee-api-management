@@ -232,14 +232,15 @@ public class ApplicationLogsResource extends AbstractResource {
             .execute(
                 GraviteeContext.getExecutionContext(),
                 new SearchApiMessageLogsUseCase.Input(connectionLog.getApiId(), connectionLog.getRequestId(), pageable)
-            )
-            .data();
+            );
+
+        var metadata = getMetadataForApplicationConnectionLog(List.of(connectionLog), result.total());
 
         return createListResponse(
             GraviteeContext.getExecutionContext(),
-            logMapper.convert(result),
+            logMapper.convert(result.data()),
             paginationParam,
-            new HashMap<>(),
+            metadata,
             false
         );
     }

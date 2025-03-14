@@ -49,6 +49,7 @@ public interface LogMapper {
 
     @Mapping(target = "plan", source = "plan.id")
     @Mapping(target = "api", source = "api.id")
+    @Mapping(target = "id", source = "requestId")
     Log convert(ConnectionLog connectionLog);
 
     List<Log> convertConnectionLogs(List<ConnectionLog> connectionLogs);

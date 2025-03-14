@@ -34,14 +34,14 @@
       </mat-card-content>
     </mat-card>
     @if (log.apiType === 'message') {
-      <mat-tab-group class="application-log__container__message-api__tab-container">
+      <mat-tab-group dynamicHeight class="application-log__container__message-api__tab-container">
         <mat-tab>
           <ng-template mat-tab-label i18n="@@applicationLogConnectionLogs">Connection Logs</ng-template>
           <app-application-log-request-response [log]="log" />
         </mat-tab>
         <mat-tab>
           <ng-template mat-tab-label i18n="@@applicationLogMessages">Messages</ng-template>
-          <app-application-log-messages [log]="log" />
+          <app-application-log-messages [applicationId]="applicationId" [log]="log" />
         </mat-tab>
       </mat-tab-group>
     } @else {

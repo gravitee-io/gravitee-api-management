@@ -272,6 +272,7 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         var logResponse = response.readEntity(Log.class);
         assertNotNull(logResponse);
+        assertEquals(LOG, logResponse.getId());
         assertNull(logResponse.getResponse());
         assertNull(logResponse.getRequest());
     }

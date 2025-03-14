@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,34 @@
  * limitations under the License.
  */
 
-:host {
+mat-dialog-content {
+  display: flex;
+  flex-flow: column;
+  gap: 12px;
+}
+
+mat-tab-group {
   display: flex;
   flex-flow: column;
   gap: 16px;
+}
+
+mat-card-content {
+  padding-top: 12px;
+  display: flex;
+  flex-flow: column;
+  gap: 12px;
+}
+
+mat-expansion-panel {
+  border-width: var(--mdc-outlined-card-outline-width);
+  border-style: solid;
+  border-color: var(--mdc-outlined-card-outline-color);
+}
+
+.message-log-detail {
+  &__information-row {
+    display: flex;
+    gap: 8px;
+  }
 }

@@ -18,11 +18,17 @@ package io.gravitee.rest.api.portal.rest.resource.param;
 import jakarta.validation.constraints.Min;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.QueryParam;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Setter
 @Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PaginationParam {
 
     public static final String PAGE_QUERY_PARAM_NAME = "page";
