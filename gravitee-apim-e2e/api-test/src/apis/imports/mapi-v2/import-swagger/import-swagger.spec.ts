@@ -79,9 +79,9 @@ describe('API - Imports OpenAPI specification', () => {
     expect(importedApi.listeners).toStrictEqual([
       {
         type: 'HTTP',
-        servers: undefined,
+        servers: [],
         cors: undefined,
-        pathMappings: undefined,
+        pathMappings: [],
         entrypoints: [
           {
             type: 'http-proxy',
@@ -175,7 +175,7 @@ describe('API - Imports OpenAPI specification', () => {
             secondary: false,
             services: { healthCheck: undefined },
             sharedConfigurationOverride: undefined,
-            tenants: undefined,
+            tenants: [],
           }),
         ],
         services: { discovery: undefined, healthCheck: undefined },
