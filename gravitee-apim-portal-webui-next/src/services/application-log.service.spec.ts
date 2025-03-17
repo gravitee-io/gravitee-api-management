@@ -18,8 +18,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { ApplicationLogService } from './application-log.service';
-import { LogsResponse } from '../entities/log/log';
-import { fakeLogsResponse } from '../entities/log/log.fixture';
+import { LogsResponse, fakeLogsResponse } from '../entities/log';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
 describe('ApplicationLogService', () => {
