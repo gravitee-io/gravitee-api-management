@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CdkAccordionModule } from '@angular/cdk/accordion';
 import { Component, forwardRef } from '@angular/core';
 import {
   AbstractControl,
@@ -28,14 +29,25 @@ import {
 } from '@angular/forms';
 import { MatOption } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelect } from '@angular/material/select';
 
 import { RetryFormType, RetryFormValues } from './consumer-configuration-retry.model';
 import { RetryOptions, RetryOptionsType, RetryStrategies, RetryStrategiesType } from '../../../../entities/subscription';
+import { AccordionModule } from '../../../accordion/accordion.module';
 
 @Component({
-  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatOption, MatSelect],
+  imports: [
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatOption,
+    MatSelect,
+    CdkAccordionModule,
+    MatIconModule,
+    AccordionModule,
+  ],
   selector: 'app-consumer-configuration-retry',
   standalone: true,
   templateUrl: './consumer-configuration-retry.component.html',
