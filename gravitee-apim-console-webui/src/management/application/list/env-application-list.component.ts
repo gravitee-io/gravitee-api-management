@@ -181,6 +181,18 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
         filter((confirm) => confirm === true),
         switchMap(() => this.applicationService.restore(application.applicationId)),
         tap(() => this.snackBarService.success(`Application ${application.name} has been restored`)),
+        switchMap(() =>
+          this.applicationService
+            .list(
+              this.filters.status,
+              this.filters.searchTerm,
+              toOrder(this.filters.sort),
+              this.filters.pagination.index,
+              this.filters.pagination.size,
+            )
+            .pipe(catchError(() => of(new PagedResult<Application>()))),
+        ),
+        tap((applications) => this.setDataSourceFromApplicationsList(applications)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() =>
