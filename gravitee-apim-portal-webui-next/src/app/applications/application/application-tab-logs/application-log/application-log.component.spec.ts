@@ -18,16 +18,24 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MatExpansionPanelHarness } from '@angular/material/expansion/testing';
+import { MatTabGroupHarness } from '@angular/material/tabs/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 
 import { ApplicationLogComponent } from './application-log.component';
-import { CopyCodeHarness } from '../../../../../components/copy-code/copy-code.harness';
-import { Log } from '../../../../../entities/log/log';
-import { fakeLog } from '../../../../../entities/log/log.fixture';
+import { ConnectorsResponse, fakeConnectorsResponse } from '../../../../../entities/connector';
+import {
+  AggregatedMessageLogsResponse,
+  fakeAggregatedMessageLog,
+  fakeAggregatedMessageLogsResponse,
+  Log,
+  LogMetadataApi,
+  fakeLog,
+} from '../../../../../entities/log';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../../../testing/app-testing.module';
+import { ApplicationLogMessagesHarness } from '../application-log-messages/application-log-messages.harness';
+import { ApplicationLogRequestResponseHarness } from '../application-log-request-response/application-log-request-response.harness';
 
 describe('ApplicationLogComponent', () => {
   let component: ApplicationLogComponent;
@@ -78,96 +86,75 @@ describe('ApplicationLogComponent', () => {
     beforeEach(async () => {
       await init();
     });
-    it('should display Request + Response with no headers', async () => {
-      expectGetLog(fakeLog({ request: { headers: {} }, response: { headers: {} } }));
-      const requestHeaders = await getRequestHeaders();
-      expect(await requestHeaders.isExpanded()).toEqual(false);
-      await requestHeaders.expand();
 
-      expect(await requestHeaders.getTextContent()).toContain('No headers logged');
+    describe('When V2 API', () => {
+      it('should only display Request and Response component', async () => {
+        const metadata: LogMetadataApi = { name: 'API V2', version: 'v1.0', apiType: undefined };
+        expectGetLog(
+          fakeLog({
+            request: { headers: { headerKey: 'value', headerKey2: 'another-value' }, body: 'Wonderful body' },
+            api: 'apiV2Id',
+            metadata: { apiV2Id: metadata },
+          }),
+        );
 
-      const responseHeaders = await getResponseHeaders();
-      expect(await responseHeaders.isExpanded()).toEqual(false);
-      await responseHeaders.expand();
-
-      expect(await responseHeaders.getTextContent()).toContain('No headers logged');
+        expect(await harnessLoader.getHarnessOrNull(ApplicationLogRequestResponseHarness)).toBeTruthy();
+        expect(await harnessLoader.getHarnessOrNull(MatTabGroupHarness)).toBeFalsy();
+      });
     });
-    it('should display Request + Response with no body', async () => {
-      expectGetLog(fakeLog({ request: { body: undefined }, response: { body: undefined } }));
-      const requestBody = await getRequestBody();
-      expect(await requestBody.isExpanded()).toEqual(false);
-      await requestBody.expand();
 
-      expect(await requestBody.getTextContent()).toContain('No content logged');
+    describe('When V4 Proxy API', () => {
+      it('should only display Request and Response component', async () => {
+        const metadata: LogMetadataApi = { name: 'API V4 Proxy', version: 'v1.0', apiType: 'PROXY' };
+        expectGetLog(
+          fakeLog({
+            request: { headers: { headerKey: 'value', headerKey2: 'another-value' }, body: 'Wonderful body' },
+            api: 'apiV4ProxyId',
+            metadata: { apiV4ProxyId: metadata },
+          }),
+        );
 
-      const responseBody = await getResponseBody();
-      expect(await responseBody.isExpanded()).toEqual(false);
-      await responseBody.expand();
-
-      expect(await responseBody.getTextContent()).toContain('No content logged');
+        expect(await harnessLoader.getHarnessOrNull(ApplicationLogRequestResponseHarness)).toBeTruthy();
+        expect(await harnessLoader.getHarnessOrNull(MatTabGroupHarness)).toBeFalsy();
+      });
     });
-    it('should not display Request headers nor body', async () => {
-      expectGetLog(fakeLog({ request: undefined }));
-      const requestHeaders = await getRequestHeaders();
-      expect(await requestHeaders.isExpanded()).toEqual(false);
-      await requestHeaders.expand();
 
-      expect(await requestHeaders.getTextContent()).toContain('No headers logged');
+    describe('When V4 Message API', () => {
+      it('should display Request and Response component and Message component', async () => {
+        const metadata: LogMetadataApi = { name: 'API V4 Message', version: 'v1.0', apiType: 'MESSAGE' };
+        const log = fakeLog({
+          id: LOG_ID,
+          request: { headers: { headerKey: 'value', headerKey2: 'another-value' }, body: 'Wonderful body' },
+          api: 'apiV4Message',
+          metadata: { apiV4Message: metadata },
+        });
 
-      const requestBody = await getRequestBody();
-      expect(await requestBody.isExpanded()).toEqual(false);
-      await requestBody.expand();
+        expectGetLog(log);
 
-      expect(await requestBody.getTextContent()).toContain('No content logged');
-    });
-    it('should not display Response headers nor body', async () => {
-      expectGetLog(fakeLog({ response: undefined }));
+        expect(await harnessLoader.getHarnessOrNull(ApplicationLogRequestResponseHarness)).toBeTruthy();
+        const tabGroup = await harnessLoader.getHarness(MatTabGroupHarness);
+        await tabGroup.selectTab({ label: 'Messages' });
 
-      const responseHeaders = await getResponseHeaders();
-      expect(await responseHeaders.isExpanded()).toEqual(false);
-      await responseHeaders.expand();
+        expectGetEntrypoints(fakeConnectorsResponse());
+        expectGetEndpoints(fakeConnectorsResponse());
+        expectGetMessageLogs(
+          log.timestamp,
+          fakeAggregatedMessageLogsResponse({
+            data: [
+              fakeAggregatedMessageLog({ correlationId: 'correlation-id-1' }),
+              fakeAggregatedMessageLog({ correlationId: 'correlation-id-2' }),
+            ],
+            metadata: {
+              data: {
+                total: 2,
+              },
+            },
+          }),
+        );
 
-      expect(await responseHeaders.getTextContent()).toContain('No headers logged');
-
-      const responseBody = await getResponseBody();
-      expect(await responseBody.isExpanded()).toEqual(false);
-      await responseBody.expand();
-
-      expect(await responseBody.getTextContent()).toContain('No content logged');
-    });
-    it('should display Request headers and body', async () => {
-      expectGetLog(fakeLog({ request: { headers: { headerKey: 'value', headerKey2: 'another-value' }, body: 'Wonderful body' } }));
-      const requestHeaders = await getRequestHeaders();
-      expect(await requestHeaders.isExpanded()).toEqual(false);
-      await requestHeaders.expand();
-
-      const requestHeadersTextContent = await requestHeaders.getTextContent();
-      expect(requestHeadersTextContent).toContain('headerKey: value');
-      expect(requestHeadersTextContent).toContain('headerKey2: another-value');
-
-      const requestBody = await getRequestBody();
-      expect(await requestBody.isExpanded()).toEqual(false);
-      await requestBody.expand();
-
-      const copyCode = await requestBody.getHarness(CopyCodeHarness);
-      expect(await copyCode.getText()).toContain('Wonderful body');
-    });
-    it('should display Response headers and body', async () => {
-      expectGetLog(fakeLog({ response: { headers: { headerKey: 'value', headerKey2: 'another-value' }, body: 'Wonderful body' } }));
-      const responseHeaders = await getResponseHeaders();
-      expect(await responseHeaders.isExpanded()).toEqual(false);
-      await responseHeaders.expand();
-
-      const responseHeadersTextContent = await responseHeaders.getTextContent();
-      expect(responseHeadersTextContent).toContain('headerKey: value');
-      expect(responseHeadersTextContent).toContain('headerKey2: another-value');
-
-      const responseBody = await getResponseBody();
-      expect(await responseBody.isExpanded()).toEqual(false);
-      await responseBody.expand();
-
-      const copyCode = await responseBody.getHarness(CopyCodeHarness);
-      expect(await copyCode.getText()).toContain('Wonderful body');
+        const logMessagesHarness = await harnessLoader.getHarness(ApplicationLogMessagesHarness);
+        expect(await logMessagesHarness.getNumberOfRows()).toEqual(2);
+      });
     });
   });
 
@@ -180,23 +167,19 @@ describe('ApplicationLogComponent', () => {
     return !!fixture.debugElement.query(By.css('[aria-label="Log error"]'));
   }
 
-  async function getRequestHeaders(): Promise<MatExpansionPanelHarness> {
-    return await getExpansionPanelByAriaLabel('Request Headers');
+  function expectGetEntrypoints(entrypointsResponse: ConnectorsResponse) {
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/entrypoints`).flush(entrypointsResponse);
   }
 
-  async function getRequestBody(): Promise<MatExpansionPanelHarness> {
-    return await getExpansionPanelByAriaLabel('Request Body');
+  function expectGetEndpoints(endpointsResponse: ConnectorsResponse) {
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/endpoints`).flush(endpointsResponse);
   }
 
-  async function getResponseHeaders(): Promise<MatExpansionPanelHarness> {
-    return await getExpansionPanelByAriaLabel('Response Headers');
-  }
+  function expectGetMessageLogs(timestamp: number, messageLogsResponse: AggregatedMessageLogsResponse, page: number = 1) {
+    httpTestingController
+      .expectOne(`${TESTING_BASE_URL}/applications/${APPLICATION_ID}/logs/${LOG_ID}/messages?page=${page}&size=10&timestamp=${timestamp}`)
+      .flush(messageLogsResponse);
 
-  async function getResponseBody(): Promise<MatExpansionPanelHarness> {
-    return await getExpansionPanelByAriaLabel('Response Body');
-  }
-
-  async function getExpansionPanelByAriaLabel(value: string): Promise<MatExpansionPanelHarness> {
-    return harnessLoader.getHarness(MatExpansionPanelHarness.with({ selector: `[aria-label="${value}"]` }));
+    fixture.detectChanges();
   }
 });

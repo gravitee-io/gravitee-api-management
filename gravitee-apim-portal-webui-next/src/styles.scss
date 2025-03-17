@@ -56,3 +56,8 @@ body {
     }
   }
 }
+
+// Control jumpy effect when a dialog is opened
+body:has(.cdk-overlay-container) {
+  overflow-y: auto;
+}

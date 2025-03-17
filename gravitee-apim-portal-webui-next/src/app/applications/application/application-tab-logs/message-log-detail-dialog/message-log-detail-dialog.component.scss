@@ -13,42 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../../../../scss/m3-adapter';
 
-:host {
+mat-dialog-content {
   display: flex;
   flex-flow: column;
-  justify-content: center;
-  gap: 32px;
+  gap: 12px;
 }
 
-.navigate-back {
+mat-tab-group {
   display: flex;
-  align-items: center;
-  padding-left: 8px;
-  cursor: pointer;
-  gap: 8px;
+  flex-flow: column;
+  gap: 16px;
 }
 
-.application-log {
-  &__container {
-    display: flex;
-    flex-flow: column;
-    gap: 16px;
+mat-card-content {
+  display: flex;
+  flex-flow: column;
+  padding-top: 12px;
+  gap: 12px;
+}
 
-    &__message-api {
-      &__tab-container {
-        display: flex;
-        flex-flow: column;
-        gap: 16px;
-      }
-    }
-  }
+mat-expansion-panel {
+  border-width: var(--mdc-outlined-card-outline-width);
+  border-style: solid;
+  border-color: var(--mdc-outlined-card-outline-color);
+}
 
-  &__row-one {
+.message-log-detail {
+  &__information-row {
     display: flex;
-    flex-flow: column;
-    padding: 16px;
-    gap: 6px;
+    gap: 8px;
   }
 }
