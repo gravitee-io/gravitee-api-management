@@ -13,5 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './accordion';
-export * from './subscription';
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-accordion',
+  templateUrl: './accordion.component.html',
+  styleUrls: ['accordion.component.scss'],
+})
+export class AccordionComponent {}

@@ -13,5 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './accordion';
-export * from './subscription';
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-accordion-title',
+  template: ` <ng-content></ng-content> `,
+})
+export class AccordionTitleComponent {}
