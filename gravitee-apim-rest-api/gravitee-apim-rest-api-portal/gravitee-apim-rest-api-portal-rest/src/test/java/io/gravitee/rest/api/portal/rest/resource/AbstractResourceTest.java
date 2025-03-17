@@ -88,6 +88,7 @@ import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -321,6 +322,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected CategoryDomainService categoryDomainService;
 
+    @Autowired
+    protected EndpointConnectorPluginService endpointConnectorPluginService;
+
     public AbstractResourceTest() {
         super(
             new AuthenticationProviderManager() {
@@ -409,6 +413,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(accessControlService);
         reset(themeService);
         reset(themeMapper);
+        reset(endpointConnectorPluginService);
     }
 
     @Priority(50)
