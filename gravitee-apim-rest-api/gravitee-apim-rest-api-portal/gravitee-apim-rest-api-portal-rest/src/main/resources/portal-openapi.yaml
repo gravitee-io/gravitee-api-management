@@ -2972,7 +2972,7 @@ paths:
             tags:
                 - Entrypoints
             parameters:
-                - $ref: "#/components/parameters/entrypointsQueryParam"
+                - $ref: "#/components/parameters/connectorQueryParam"
             summary: List Entrypoints
             description: |
                 List available entrypoints.
@@ -2987,7 +2987,30 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/EntrypointsResponse"
+                                $ref: "#/components/schemas/ConnectorsResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /endpoints:
+        get:
+            tags:
+                - Endpoints
+            parameters:
+                - $ref: "#/components/parameters/connectorQueryParam"
+            summary: List Endpoints
+            description: |
+                List available endpoints.
+            operationId: getEndpoints
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    description: List available endpoints for current user
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ConnectorsResponse"
                 500:
                     $ref: "#/components/responses/InternalServerError"
     /portal-menu-links:
@@ -3561,12 +3584,12 @@ components:
             schema:
                 type: string
 
-        #Entrypoinds Expand
-        entrypointsQueryParam:
+        # Connectors Expand
+        connectorQueryParam:
             name: expand
             in: query
             required: false
-            description: expand entrypoints details
+            description: expand connector details
             schema:
                 type: array
                 items:
@@ -5274,38 +5297,41 @@ components:
                 description:
                     type: string
                     description: Notifier description
-        EntrypointsResponse:
-            description: List of Entrypoints.
-            type: array
-            items:
-                $ref: "#/components/schemas/Entrypoint"
-        Entrypoint:
+        ConnectorsResponse:
+            description: List of Connectors.
+            properties:
+              data:
+                type: array
+                items:
+                    $ref: "#/components/schemas/Connector"
+        Connector:
             description: |
-                Describes an Entrypoint.
+                Describes a connector.
             properties:
                 id:
-                    description: Unique identifier of an Entrypoint.
+                    description: Unique identifier of a connector.
                     type: string
                 name:
-                    description: Name of the Entrypoint.
+                    description: Name of the connector.
                     type: string
                 version:
-                    description: Version of the Entrypoint.
+                    description: Version of the connector.
                     type: string
                 description:
-                    description: Description of the Entrypoint.
+                    description: Description of the connector.
                     type: string
                 category:
                     type: string
-                    description: Category of the Entrypoint.
+                    description: Category of the connector.
                 supportedApiType:
-                    description: ApiType supported by the Entrypoint.
+                    description: ApiType supported by the connector.
                     type: string
                     enum:
-                        - sync
-                        - async
+                        - proxy
+                        - message
+                        - native
                 supportedModes:
-                    description: ConnectorMode supported by the Entrypoint.
+                    description: ConnectorMode supported by the connector.
                     type: array
                     items:
                         type: string
@@ -5313,9 +5339,12 @@ components:
                             - subscribe
                             - publish
                             - request_response
+                            - connect
+                            - interact
+                            - socket
                 supportedQos:
                     type: array
-                    description: Qos supported by the Entrypoint.
+                    description: Qos supported by the connector.
                     items:
                         type: string
                         enum:
@@ -5325,28 +5354,31 @@ components:
                             - at-most-once
                 availableFeatures:
                     type: array
-                    description: ConnectorFeature supported by the Entrypoint.
+                    description: ConnectorFeature supported by the connector.
                     items:
                         type: string
                         enum:
                             - limit
                             - resume
                             - dlq
+                            - cors
                 supportedListenerType:
                     type: string
-                    description: ListenerType supported by the Entrypoint.
+                    description: ListenerType supported by the connector.
                     enum:
                         - http
                         - subscription
+                        - tcp
+                        - kafka
                 schema:
                     type: string
-                    description: Schema of the Entrypoint.
+                    description: Schema of the connector.
                 subscriptionSchema:
                     type: string
-                    description: SubscriptionSchema of the Entrypoint.
+                    description: SubscriptionSchema of the connector.
                 icon:
                     type: string
-                    description: Icon of the Entrypoint.
+                    description: Icon of the connector.
         #################
         # Input Objects #
         #################

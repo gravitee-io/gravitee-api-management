@@ -21,6 +21,7 @@ import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
 import io.gravitee.rest.api.portal.rest.mapper.CategoryMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ConfigurationMapper;
+import io.gravitee.rest.api.portal.rest.mapper.ConnectorMapper;
 import io.gravitee.rest.api.portal.rest.mapper.DashboardMapper;
 import io.gravitee.rest.api.portal.rest.mapper.IdentityProviderMapper;
 import io.gravitee.rest.api.portal.rest.mapper.KeyMapper;
@@ -59,6 +60,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
             ApplicationMapper.class,
             CategoryMapper.class,
             ConfigurationMapper.class,
+            ConnectorMapper.class,
             DashboardMapper.class,
             IdentityProviderMapper.class,
             KeyMapper.class,
