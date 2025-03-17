@@ -15,29 +15,40 @@
  */
 import { AsyncPipe, DatePipe } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
-import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIcon } from '@angular/material/icon';
+import { MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, EMPTY, map, Observable, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { CopyCodeComponent } from '../../../../../components/copy-code/copy-code.component';
 import { LoaderComponent } from '../../../../../components/loader/loader.component';
-import { Log, LogMetadataApi, LogMetadataPlan } from '../../../../../entities/log/log';
+import { ApiType } from '../../../../../entities/api/api';
+import { Log, LogMetadataApi, LogMetadataPlan } from '../../../../../entities/log';
 import { ApplicationLogService } from '../../../../../services/application-log.service';
+import { ApplicationLogMessagesComponent } from '../application-log-messages/application-log-messages.component';
+import { ApplicationLogRequestResponseComponent } from '../application-log-request-response/application-log-request-response.component';
 
 interface LogVM extends Log {
   apiName: string;
+  apiType?: ApiType;
   planName: string;
-  requestHeaders: { key: string; value: string }[];
-  responseHeaders: { key: string; value: string }[];
 }
 
 @Component({
   selector: 'app-application-log',
   standalone: true,
-  imports: [AsyncPipe, LoaderComponent, MatExpansionModule, MatCard, MatCardContent, MatIcon, RouterLink, DatePipe, CopyCodeComponent],
+  imports: [
+    AsyncPipe,
+    LoaderComponent,
+    MatExpansionModule,
+    MatIcon,
+    RouterLink,
+    DatePipe,
+    ApplicationLogRequestResponseComponent,
+    MatTabsModule,
+    ApplicationLogMessagesComponent,
+  ],
   templateUrl: './application-log.component.html',
   styleUrl: './application-log.component.scss',
 })
@@ -68,20 +79,21 @@ export class ApplicationLogComponent implements OnInit {
         const apiName = log.metadata?.[log.api]
           ? `${(log.metadata[log.api] as LogMetadataApi).name} (${(log.metadata[log.api] as LogMetadataApi).version})`
           : '';
+        const apiType = (log.metadata?.[log.api] as LogMetadataApi).apiType;
         const planName = log.metadata?.[log.plan] ? (log.metadata[log.plan] as LogMetadataPlan).name : '';
-        const requestHeaders = log.request?.headers
-          ? Object.entries(log.request.headers).map(keyValueArray => ({ key: keyValueArray[0], value: keyValueArray[1] }))
-          : [];
-        const responseHeaders = log.response?.headers
-          ? Object.entries(log.response.headers).map(keyValueArray => ({ key: keyValueArray[0], value: keyValueArray[1] }))
-          : [];
-        return { ...log, apiName, planName, requestHeaders, responseHeaders };
+        return { ...log, apiName, apiType, planName };
       }),
-      catchError(err => {
-        console.error(err);
+      catchError(_ => {
         this.error = true;
         return EMPTY;
       }),
     );
+  }
+
+  private extractApiType(logMetadataApi: LogMetadataApi): 'proxy' | 'message' | undefined {
+    if (!logMetadataApi?.apiType) {
+      return undefined;
+    }
+    return logMetadataApi.apiType.toLowerCase() === 'message' ? 'message' : 'proxy';
   }
 }

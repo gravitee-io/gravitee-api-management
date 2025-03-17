@@ -21,97 +21,29 @@
 </div>
 <div class="application-log__container">
   @if (log$ | async; as log) {
-    <mat-card class="main">
-      <mat-card-content class="application-log__container__column__content">
-        <div class="m3-body-medium application-log__container__column__content__panel">
-          <div>
-            <span class="m3-title-small" i18n="@@applicationLogTimestamp">Timestamp</span>:
-            {{ log.timestamp | date: 'YYYY-MM-dd HH:mm:ss.SSS' }}
-          </div>
-          <div><span class="m3-title-small" i18n="@@applicationLogApi">API</span>: {{ log.apiName }}</div>
-          <div><span class="m3-title-small" i18n="@@applicationLogPlan">Plan</span>: {{ log.planName }}</div>
-        </div>
-      </mat-card-content></mat-card
-    >
-    <div class="application-log__container__row-two">
-      <mat-card appearance="outlined" class="application-log__container__column">
-        <mat-card-content class="application-log__container__column__content">
-          <div class="m3-title-medium" i18n="@@applicationLogRequest">Request</div>
-          <div class="m3-body-medium application-log__container__column__content__panel">
-            <div><span class="m3-title-small" i18n="@@applicationLogRequestId">Request ID</span>: {{ log.id }}</div>
-            <div><span class="m3-title-small" i18n="@@applicationLogRequestMethod">Method</span>: {{ log.method }}</div>
-            <div><span class="m3-title-small" i18n="@@applicationLogRequestPath">Path</span>: {{ log.path }}</div>
-            <div>
-              <span class="m3-title-small" i18n="@@applicationLogContentLength">Content Length</span>: {{ log.requestContentLength }}
-            </div>
-          </div>
-          <mat-expansion-panel [expanded]="false" class="mat-elevation-z0" aria-label="Request Headers">
-            <mat-expansion-panel-header>
-              <mat-panel-title i18n="@@applicationLogHeaders">Headers</mat-panel-title>
-            </mat-expansion-panel-header>
-            <div class="m3-body-medium application-log__container__column__content__panel">
-              @for (header of log.requestHeaders; track header) {
-                <div>
-                  <span class="m3-title-small">{{ header.key }}: </span>{{ header.value }}
-                </div>
-              } @empty {
-                <span i18n="@@applicationLogNoHeaders">No headers logged.</span>
-              }
-            </div>
-          </mat-expansion-panel>
-          <mat-expansion-panel [expanded]="false" class="mat-elevation-z0" aria-label="Request Body">
-            <mat-expansion-panel-header>
-              <mat-panel-title i18n="@@applicationLogBody">Body</mat-panel-title>
-            </mat-expansion-panel-header>
-            @if (log.request?.body) {
-              <app-copy-code class="m3-body-medium" [text]="log.request?.body ?? ''" />
-            } @else {
-              <div class="m3-body-medium" i18n="@@applicationLogNoBody">No content logged.</div>
-            }
-          </mat-expansion-panel>
-        </mat-card-content>
-      </mat-card>
-      <mat-card appearance="outlined" class="application-log__container__column">
-        <mat-card-content class="application-log__container__column__content">
-          <div class="m3-title-medium" i18n="@@applicationLogResponse">Response</div>
-          <div class="m3-body-medium application-log__container__column__content__panel">
-            <div><span class="m3-title-small" i18n="@@applicationLogTransactionId">Transaction ID</span>: {{ log.id }}</div>
-            <div><span class="m3-title-small" i18n="@@applicationLogStatus">Status</span>: {{ log.status }}</div>
-            <div>
-              <span class="m3-title-small" i18n="@@applicationLogResponseTime">Response Time</span>: {{ log.responseTime
-              }}<span i18n="@@applicationLogMillisecond">ms</span>
-            </div>
-            <div>
-              <span class="m3-title-small" i18n="@@applicationLogContentLength">Content Length</span>: {{ log.responseContentLength }}
-            </div>
-          </div>
-          <mat-expansion-panel [expanded]="false" class="mat-elevation-z0" aria-label="Response Headers">
-            <mat-expansion-panel-header>
-              <mat-panel-title i18n="@@applicationLogHeaders">Headers</mat-panel-title>
-            </mat-expansion-panel-header>
-            <div class="m3-body-medium application-log__container__column__content__panel">
-              @for (header of log.responseHeaders; track header) {
-                <div>
-                  <span class="m3-title-small">{{ header.key }}: </span>{{ header.value }}
-                </div>
-              } @empty {
-                <span i18n="@@applicationLogNoHeaders">No headers logged.</span>
-              }
-            </div>
-          </mat-expansion-panel>
-          <mat-expansion-panel [expanded]="false" class="mat-elevation-z0" aria-label="Response Body">
-            <mat-expansion-panel-header>
-              <mat-panel-title i18n="@@applicationLogBody">Body</mat-panel-title>
-            </mat-expansion-panel-header>
-            @if (log.response?.body) {
-              <app-copy-code class="m3-body-medium" [text]="log.response?.body ?? ''" />
-            } @else {
-              <div class="m3-body-medium" i18n="@@applicationLogNoBody">No content logged.</div>
-            }
-          </mat-expansion-panel>
-        </mat-card-content>
-      </mat-card>
+    <div class="m3-body-medium application-log__row-one">
+      <div>
+        <span class="m3-title-small" i18n="@@applicationLogTimestamp">Timestamp</span>:
+        {{ log.timestamp | date }}
+      </div>
+      <div><span class="m3-title-small" i18n="@@applicationLogApi">API</span>: {{ log.apiName }}</div>
+      <div><span class="m3-title-small" i18n="@@applicationLogPlan">Plan</span>: {{ log.planName }}</div>
+      <div><span class="m3-title-small" i18n="@@applicationLogTransactionId">Transaction ID</span>: {{ log.transactionId }}</div>
     </div>
+    @if (log.apiType === 'MESSAGE') {
+      <mat-tab-group dynamicHeight class="application-log__container__message-api__tab-container">
+        <mat-tab>
+          <ng-template mat-tab-label i18n="@@applicationLogConnectionLogs">Connection Logs</ng-template>
+          <app-application-log-request-response [log]="log" />
+        </mat-tab>
+        <mat-tab>
+          <ng-template mat-tab-label i18n="@@applicationLogMessages">Messages</ng-template>
+          <app-application-log-messages [applicationId]="applicationId" [log]="log" />
+        </mat-tab>
+      </mat-tab-group>
+    } @else {
+      <app-application-log-request-response [log]="log" />
+    }
   } @else if (error) {
     <div class="m3-title-medium" i18n="@@applicationLogErrorMessage" aria-label="Log error">
       The log could not be loaded. Try again, and if the issue persists, contact your portal administrator.
