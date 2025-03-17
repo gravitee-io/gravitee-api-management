@@ -36,6 +36,7 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -73,6 +74,12 @@ class DeleteSubscriptionDomainServiceTest {
     static void beforeAll() {
         UuidString.overrideGenerator(() -> "generated-id");
         TimeProvider.overrideClock(Clock.fixed(INSTANT_NOW, ZoneId.systemDefault()));
+    }
+
+    @AfterAll
+    static void afterAll() {
+        UuidString.reset();
+        TimeProvider.overrideClock(Clock.systemDefaultZone());
     }
 
     @ParameterizedTest
