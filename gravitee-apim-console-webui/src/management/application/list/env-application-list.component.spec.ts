@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, flush, TestBed, tick } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HarnessLoader, parallel } from '@angular/cdk/testing';
@@ -61,7 +61,7 @@ describe('EnvApplicationListComponent', () => {
       });
 
       it('should display an empty table', fakeAsync(async () => {
-        expectApplicationsListRequest();
+        expectActiveApplicationsListRequest();
 
         const table = await loader.getHarness(MatTableHarness.with({ selector: '#applicationsTable' }));
 
@@ -84,7 +84,7 @@ describe('EnvApplicationListComponent', () => {
       }));
 
       it('should display table with data', fakeAsync(async () => {
-        expectApplicationsListRequest([fakeApplication()]);
+        expectActiveApplicationsListRequest([fakeApplication()]);
 
         const table = await loader.getHarness(MatTableHarness.with({ selector: '#applicationsTable' }));
         const headerRows = await table.getHeaderRows();
@@ -114,17 +114,17 @@ describe('EnvApplicationListComponent', () => {
       }));
 
       it('should search applications', fakeAsync(async () => {
-        expectApplicationsListRequest();
+        expectActiveApplicationsListRequest();
         const tableWrapper = await loader.getHarness(GioTableWrapperHarness);
 
         await tableWrapper.setSearchValue('a');
-        expectApplicationsListRequest([fakeApplication()], 'a');
+        expectActiveApplicationsListRequest([fakeApplication()], 'a');
 
         await tableWrapper.setSearchValue('ad');
-        expectApplicationsListRequest([fakeApplication()], 'ad');
+        expectActiveApplicationsListRequest([fakeApplication()], 'ad');
 
         await tableWrapper.setSearchValue('');
-        expectApplicationsListRequest([], '');
+        expectActiveApplicationsListRequest([], '');
       }));
     });
 
@@ -140,7 +140,7 @@ describe('EnvApplicationListComponent', () => {
       });
       it('should init search with url params', fakeAsync(async () => {
         // Directly with page=2 and q=Hello
-        expectApplicationsListRequest([fakeApplication()], 'Hello', 2);
+        expectActiveApplicationsListRequest([fakeApplication()], 'Hello', 2);
       }));
     });
   });
@@ -169,7 +169,7 @@ describe('EnvApplicationListComponent', () => {
       });
 
       it('should display an empty table', fakeAsync(async () => {
-        expectApplicationsListRequest([], '', 1, 'ARCHIVED');
+        expectArchivedApplicationsListRequest([], '', 1, 'ARCHIVED');
 
         const table = await loader.getHarness(MatTableHarness.with({ selector: '#applicationsTable' }));
 
@@ -191,7 +191,7 @@ describe('EnvApplicationListComponent', () => {
       }));
 
       it('should display table with data', fakeAsync(async () => {
-        expectApplicationsListRequest([fakeApplication()], '', 1, 'ARCHIVED');
+        expectArchivedApplicationsListRequest([fakeApplication()], '', 1, 'ARCHIVED');
 
         const table = await loader.getHarness(MatTableHarness.with({ selector: '#applicationsTable' }));
         const headerRows = await table.getHeaderRows();
@@ -219,23 +219,23 @@ describe('EnvApplicationListComponent', () => {
       }));
 
       it('should search applications', fakeAsync(async () => {
-        expectApplicationsListRequest([], '', 1, 'ARCHIVED');
+        expectArchivedApplicationsListRequest([], '', 1, 'ARCHIVED');
         const tableWrapper = await loader.getHarness(GioTableWrapperHarness);
 
         await tableWrapper.setSearchValue('a');
-        expectApplicationsListRequest([fakeApplication()], 'a', 1, 'ARCHIVED');
+        expectArchivedApplicationsListRequest([fakeApplication()], 'a', 1, 'ARCHIVED');
 
         await tableWrapper.setSearchValue('ad');
-        expectApplicationsListRequest([fakeApplication()], 'ad', 1, 'ARCHIVED');
+        expectArchivedApplicationsListRequest([fakeApplication()], 'ad', 1, 'ARCHIVED');
 
         await tableWrapper.setSearchValue('');
-        expectApplicationsListRequest([], '', 1, 'ARCHIVED');
+        expectArchivedApplicationsListRequest([], '', 1, 'ARCHIVED');
       }));
 
-      xit('should confirm and restore application', fakeAsync(async () => {
+      it('should confirm and restore application', fakeAsync(async () => {
         const application = fakeApplication({ status: 'ARCHIVED' });
 
-        expectApplicationsListRequest([application], '', 1, 'ARCHIVED');
+        expectArchivedApplicationsListRequest([application], '', 1, 'ARCHIVED');
 
         fixture.componentInstance.onRestoreActionClicked({
           applicationId: application.id,
@@ -256,7 +256,7 @@ describe('EnvApplicationListComponent', () => {
         expect(req.request.method).toEqual('POST');
         req.flush(null);
 
-        expectApplicationsListRequest();
+        expectArchivedApplicationsListRequest();
       }));
     });
 
@@ -272,12 +272,12 @@ describe('EnvApplicationListComponent', () => {
       });
       it('should init search with url params', fakeAsync(async () => {
         // Directly with page=2 and q=Hello
-        expectApplicationsListRequest([fakeApplication()], 'Hello', 2, 'ARCHIVED');
+        expectArchivedApplicationsListRequest([fakeApplication()], 'Hello', 2, 'ARCHIVED');
       }));
     });
   });
 
-  function expectApplicationsListRequest(applicationsResponse: Application[] = [], q?: string, page = 1, status = 'ACTIVE') {
+  function expectActiveApplicationsListRequest(applicationsResponse: Application[] = [], q?: string, page = 1, status = 'ACTIVE') {
     // wait debounceTime
     fixture.detectChanges();
     tick(400);
@@ -288,5 +288,19 @@ describe('EnvApplicationListComponent', () => {
     expect(req.request.method).toEqual('GET');
     req.flush(fakePagedResult(applicationsResponse));
     httpTestingController.verify();
+  }
+
+  function expectArchivedApplicationsListRequest(applicationsResponse: Application[] = [], q?: string, page = 1, status = 'ARCHIVED') {
+    // wait debounceTime
+    fixture.detectChanges();
+    tick(400);
+
+    const req = httpTestingController.expectOne(
+      `${CONSTANTS_TESTING.env.baseURL}/applications/_paged?page=${page}&size=25&status=${status}${q ? `&query=${q}` : ''}`,
+    );
+    expect(req.request.method).toEqual('GET');
+    req.flush(fakePagedResult(applicationsResponse));
+    httpTestingController.verify();
+    flush(); // Ensure all pending async tasks/timers complete
   }
 });
