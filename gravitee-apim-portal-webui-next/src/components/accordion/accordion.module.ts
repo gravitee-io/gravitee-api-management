@@ -13,5 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './accordion';
-export * from './subscription';
+import { CdkAccordionModule } from '@angular/cdk/accordion';
+import { NgModule } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
+
+import { AccordionTitleComponent } from './accordion-title.component';
+import { AccordionComponent } from './accordion.component';
+
+@NgModule({
+  declarations: [AccordionTitleComponent, AccordionComponent],
+  exports: [AccordionTitleComponent, AccordionComponent],
+  imports: [CdkAccordionModule, MatIconModule],
+})
+export class AccordionModule {}
