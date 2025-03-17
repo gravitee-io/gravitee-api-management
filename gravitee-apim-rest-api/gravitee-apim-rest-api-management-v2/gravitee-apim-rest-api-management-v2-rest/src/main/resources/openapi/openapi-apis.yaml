@@ -7337,6 +7337,11 @@ components:
                     format: date-time
                     description: The date when the job has been created.
                     example: 2023-05-18T12:40:46.184Z
+                updatedAt:
+                  type: string
+                  format: date-time
+                  description: The date when the job has been updated.
+                  example: 2023-05-18T12:40:46.184Z
         AsyncJobStatus:
             type: string
             description: Status of the job.
