@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,42 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../../../../scss/m3-adapter';
 
 :host {
   display: flex;
   flex-flow: column;
-  justify-content: center;
-  gap: 32px;
+  gap: 16px;
 }
 
-.navigate-back {
-  display: flex;
-  align-items: center;
-  padding-left: 8px;
-  cursor: pointer;
-  gap: 8px;
+.application-message-logs {
+  &__table-row {
+    cursor: pointer;
+  }
 }
 
-.application-log {
-  &__container {
-    display: flex;
-    flex-flow: column;
-    gap: 16px;
-
-    &__message-api {
-      &__tab-container {
-        display: flex;
-        flex-flow: column;
-        gap: 16px;
-      }
-    }
-  }
-
-  &__row-one {
-    display: flex;
-    flex-flow: column;
-    padding: 16px;
-    gap: 6px;
-  }
+.no-logs-found {
+  padding: 0 16px;
 }

@@ -18,7 +18,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
-import { Log, LogsResponse } from '../entities/log/log';
+import { Log, LogsResponse, AggregatedMessageLogsResponse } from '../entities/log';
 
 export interface ResponseTimeRange {
   to?: number;
@@ -79,5 +79,17 @@ export class ApplicationLogService {
 
   get(applicationId: string, logId: string, timestamp: string): Observable<Log> {
     return this.http.get<Log>(`${this.configService.baseURL}/applications/${applicationId}/logs/${logId}?timestamp=${timestamp}`);
+  }
+
+  getAggregatedMessages(
+    applicationId: string,
+    logId: string,
+    timestamp: number,
+    page: number = 1,
+    pageSize: number = 10,
+  ): Observable<AggregatedMessageLogsResponse> {
+    return this.http.get<AggregatedMessageLogsResponse>(
+      `${this.configService.baseURL}/applications/${applicationId}/logs/${logId}/messages?page=${page}&size=${pageSize}&timestamp=${timestamp}`,
+    );
   }
 }
