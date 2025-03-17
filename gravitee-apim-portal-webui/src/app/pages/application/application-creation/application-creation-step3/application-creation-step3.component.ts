@@ -24,7 +24,7 @@ import {
   Api,
   ApiService,
   ApisResponse,
-  Entrypoint,
+  Connector,
   EntrypointsService,
   Page,
   Plan,
@@ -69,7 +69,7 @@ export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
 
   private updateStepsTimer: any;
   private unsubscribe$ = new Subject();
-  private availableEntrypoints: Map<string, Entrypoint>;
+  private availableEntrypoints: Map<string, Connector>;
 
   constructor(
     private readonly apiService: ApiService,
@@ -335,9 +335,9 @@ export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
       .pipe(
         map(entrypointResponse => {
           this.availableEntrypoints = new Map(
-            entrypointResponse
+            entrypointResponse.data
               .filter(entrypoint => {
-                return entrypoint.supportedListenerType === Entrypoint.SupportedListenerTypeEnum.Subscription;
+                return entrypoint.supportedListenerType === Connector.SupportedListenerTypeEnum.Subscription;
               })
               .map(entrypoint => [entrypoint.id, entrypoint]),
           );
