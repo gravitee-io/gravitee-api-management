@@ -23,7 +23,7 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 
 
-export interface GetEntrypointsRequestParams {
+export interface GetEndpointsRequestParams {
     /** expand connector details */
     expand?: Array<'schema' | 'icon' | 'subscriptionSchema'>;
 }
@@ -32,7 +32,7 @@ export interface GetEntrypointsRequestParams {
 @Injectable({
   providedIn: 'root'
 })
-export class EntrypointsService {
+export class EndpointsService {
 
     protected basePath = 'http://localhost:8083/portal/environments/DEFAULT';
     public defaultHeaders = new HttpHeaders();
@@ -91,16 +91,16 @@ export class EntrypointsService {
     }
 
     /**
-     * List Entrypoints
-     * List available entrypoints. 
+     * List Endpoints
+     * List available endpoints. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getEntrypoints(requestParameters: GetEntrypointsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<ConnectorsResponse>;
-    public getEntrypoints(requestParameters: GetEntrypointsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<ConnectorsResponse>>;
-    public getEntrypoints(requestParameters: GetEntrypointsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<ConnectorsResponse>>;
-    public getEntrypoints(requestParameters: GetEntrypointsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public getEndpoints(requestParameters: GetEndpointsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<ConnectorsResponse>;
+    public getEndpoints(requestParameters: GetEndpointsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<ConnectorsResponse>>;
+    public getEndpoints(requestParameters: GetEndpointsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<ConnectorsResponse>>;
+    public getEndpoints(requestParameters: GetEndpointsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         const expand = requestParameters.expand;
 
         let queryParameters = new HttpParams({encoder: this.encoder});
@@ -142,7 +142,7 @@ export class EntrypointsService {
             responseType = 'text';
         }
 
-        return this.httpClient.get<ConnectorsResponse>(`${this.configuration.basePath}/entrypoints`,
+        return this.httpClient.get<ConnectorsResponse>(`${this.configuration.basePath}/endpoints`,
             {
                 params: queryParameters,
                 responseType: <any>responseType,

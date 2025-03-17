@@ -16,6 +16,7 @@ import { HttpClient, HttpHeaders, HttpParams,
 import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
+import { AggregatedMessageLogsResponse } from '../model/models';
 import { Alert } from '../model/models';
 import { AlertInput } from '../model/models';
 import { AlertStatusResponse } from '../model/models';
@@ -169,6 +170,19 @@ export interface GetApplicationLogByApplicationIdAndLogIdRequestParams {
     logId: string;
     /** Used to select the right index */
     timestamp?: number;
+}
+
+export interface GetApplicationLogMessagesByApplicationIdAndLogIdRequestParams {
+    /** Id of an application. */
+    applicationId: string;
+    /** Id of a log. */
+    logId: string;
+    /** Used to select the right index */
+    timestamp?: number;
+    /** The page number for pagination. */
+    page?: number;
+    /** The number of items per page for pagination. If the size is 0, the response contains only metadata and returns the values as for a non-paged resource. If the size is -1, the response contains all datas.  */
+    size?: number;
 }
 
 export interface GetApplicationLogsRequestParams {
@@ -1413,6 +1427,86 @@ export class ApplicationService {
         }
 
         return this.httpClient.get<Log>(`${this.configuration.basePath}/applications/${encodeURIComponent(String(applicationId))}/logs/${encodeURIComponent(String(logId))}`,
+            {
+                params: queryParameters,
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Get a page of messages for a given application log
+     * Get a page of messages for a given application log.  User must have the APPLICATION_LOG[READ] permission. 
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getApplicationLogMessagesByApplicationIdAndLogId(requestParameters: GetApplicationLogMessagesByApplicationIdAndLogIdRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<AggregatedMessageLogsResponse>;
+    public getApplicationLogMessagesByApplicationIdAndLogId(requestParameters: GetApplicationLogMessagesByApplicationIdAndLogIdRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<AggregatedMessageLogsResponse>>;
+    public getApplicationLogMessagesByApplicationIdAndLogId(requestParameters: GetApplicationLogMessagesByApplicationIdAndLogIdRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<AggregatedMessageLogsResponse>>;
+    public getApplicationLogMessagesByApplicationIdAndLogId(requestParameters: GetApplicationLogMessagesByApplicationIdAndLogIdRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        const applicationId = requestParameters.applicationId;
+        if (applicationId === null || applicationId === undefined) {
+            throw new Error('Required parameter applicationId was null or undefined when calling getApplicationLogMessagesByApplicationIdAndLogId.');
+        }
+        const logId = requestParameters.logId;
+        if (logId === null || logId === undefined) {
+            throw new Error('Required parameter logId was null or undefined when calling getApplicationLogMessagesByApplicationIdAndLogId.');
+        }
+        const timestamp = requestParameters.timestamp;
+        const page = requestParameters.page;
+        const size = requestParameters.size;
+
+        let queryParameters = new HttpParams({encoder: this.encoder});
+        if (timestamp !== undefined && timestamp !== null) {
+          queryParameters = this.addToHttpParams(queryParameters,
+            <any>timestamp, 'timestamp');
+        }
+        if (page !== undefined && page !== null) {
+          queryParameters = this.addToHttpParams(queryParameters,
+            <any>page, 'page');
+        }
+        if (size !== undefined && size !== null) {
+          queryParameters = this.addToHttpParams(queryParameters,
+            <any>size, 'size');
+        }
+
+        let headers = this.defaultHeaders;
+
+        // authentication (BasicAuth) required
+        if (this.configuration.username || this.configuration.password) {
+            headers = headers.set('Authorization', 'Basic ' + btoa(this.configuration.username + ':' + this.configuration.password));
+        }
+        // authentication (CookieAuth) required
+        if (this.configuration.apiKeys) {
+            const key: string | undefined = this.configuration.apiKeys["CookieAuth"] || this.configuration.apiKeys["Auth-Graviteeio-APIM"];
+            if (key) {
+            }
+        }
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.get<AggregatedMessageLogsResponse>(`${this.configuration.basePath}/applications/${encodeURIComponent(String(applicationId))}/logs/${encodeURIComponent(String(logId))}/messages`,
             {
                 params: queryParameters,
                 responseType: <any>responseType,
