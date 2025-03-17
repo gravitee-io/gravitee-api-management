@@ -30,7 +30,7 @@ import {
   ApiService,
   Application,
   ApplicationService,
-  Entrypoint,
+  Connector,
   EntrypointsService,
   PlanMode,
   Page,
@@ -100,9 +100,9 @@ export class ApiSubscribeComponent implements OnInit {
   isTcpApi: boolean;
 
   private _canSubscribe: boolean;
-  entrypoints: Entrypoint[];
+  entrypoints: Connector[];
   entrypointOptions: { label: string; value: string }[];
-  availableEntrypoints: Map<string, Entrypoint>;
+  availableEntrypoints: Map<string, Connector>;
   selectedEntrypointSchema: Record<string, unknown>;
 
   constructor(
@@ -185,9 +185,9 @@ export class ApiSubscribeComponent implements OnInit {
         this.plans = apiPlansResponse.data;
         this._applications = allAppsResponse.data;
         this.availableEntrypoints = new Map(
-          entrypointsResponse
+          entrypointsResponse.data
             .filter(entrypoint => {
-              return entrypoint.supportedListenerType === Entrypoint.SupportedListenerTypeEnum.Subscription;
+              return entrypoint.supportedListenerType === Connector.SupportedListenerTypeEnum.Subscription;
             })
             .map(entrypoint => [entrypoint.id, entrypoint]),
         );
