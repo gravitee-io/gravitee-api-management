@@ -15,8 +15,10 @@
     limitations under the License.
 
 -->
-<div class="retry">
-  <span class="m3-title-medium" i18n="@@consumerConfigurationRetry">Retry</span>
+<app-accordion>
+  <app-accordion-title>
+    <span class="m3-title-medium" i18n="@@consumerConfigurationRetry">Retry</span>
+  </app-accordion-title>
   <form [formGroup]="retryForm" class="retry__form">
     <mat-form-field>
       <mat-label i18n="@@consumerConfigurationRetryOption">Retry option</mat-label>
@@ -68,4 +70,4 @@
       </mat-form-field>
     }
   </form>
-</div>
+</app-accordion>
