@@ -162,6 +162,7 @@ import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.vertx.rxjava3.core.Vertx;
 import org.springframework.context.annotation.Bean;
@@ -828,5 +829,10 @@ public class ResourceContextConfiguration {
         CRDMembersDomainService crdMembersDomainService
     ) {
         return new ImportGroupCRDUseCase(validateGroupCRDDomainService, groupQueryService, groupCrudService, crdMembersDomainService);
+    }
+
+    @Bean
+    public EndpointConnectorPluginService endpointConnectorPluginService() {
+        return mock(EndpointConnectorPluginService.class);
     }
 }
