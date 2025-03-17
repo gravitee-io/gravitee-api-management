@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.portal.rest.resource.v4.entrypoint;
+package io.gravitee.rest.api.portal.rest.resource.v4.endpoint;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -26,7 +26,7 @@ import io.gravitee.rest.api.portal.rest.resource.v4.connector.AbstractConnectors
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
+import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
@@ -36,30 +36,23 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Defines the REST resources to manage entrypoints.
+ * Defines the REST resources to manage endpoints.
  *
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EntrypointsResource extends AbstractConnectorsResource {
+public class EndpointsResource extends AbstractConnectorsResource {
 
     @Inject
-    private EntrypointConnectorPluginService entrypointService;
+    private EndpointConnectorPluginService endpointService;
 
     private final ConnectorMapper connectorMapper = ConnectorMapper.INSTANCE;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
-    public Response getEntrypoints(@QueryParam("expand") List<String> expands) {
-        final Collection<ConnectorExpandPluginEntity> connectors = super.expand(entrypointService.findAll(), expands);
-        if (expands != null && expands.contains("subscriptionSchema")) {
-            connectors.forEach(connector ->
-                connector.setSubscriptionSchema(
-                    entrypointService.getSubscriptionSchema(connector.getId(), SchemaDisplayFormat.GV_SCHEMA_FORM)
-                )
-            );
-        }
+    public Response getEndpoints(@QueryParam("expand") List<String> expands) {
+        final Collection<ConnectorExpandPluginEntity> connectors = super.expand(endpointService.findAll(), expands);
+
         return createListResponse(
             GraviteeContext.getExecutionContext(),
             connectorMapper.convert(connectors),
@@ -71,11 +64,11 @@ public class EntrypointsResource extends AbstractConnectorsResource {
 
     @Override
     protected String getSchema(final String connectorId) {
-        return entrypointService.getSchema(connectorId);
+        return endpointService.getSchema(connectorId);
     }
 
     @Override
     protected String getIcon(final String connectorId) {
-        return entrypointService.getIcon(connectorId);
+        return endpointService.getIcon(connectorId);
     }
 }
