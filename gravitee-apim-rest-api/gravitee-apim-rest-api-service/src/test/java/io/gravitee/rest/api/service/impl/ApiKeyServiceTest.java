@@ -65,14 +65,7 @@ import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -1072,6 +1065,46 @@ public class ApiKeyServiceTest {
                     apiKey.getSubscriptions().contains("sub3")
                 )
             );
+    }
+
+    @Test
+    public void should_not_duplicate_subscription_and_update_updatedAt_when_adding_existing_subscription() throws TechnicalException {
+        ApiKey existingApiKey = new ApiKey();
+        existingApiKey.setId("id-of-apikey-2");
+        existingApiKey.setKey("dummy-key");
+
+        Date originalUpdatedAt = new Date();
+        existingApiKey.setUpdatedAt(originalUpdatedAt);
+        existingApiKey.setSubscriptions(new ArrayList<>(Arrays.asList("subscription2", "subscriptionX")));
+
+        ApiKey updatedApiKey = new ApiKey();
+        updatedApiKey.setId("id-of-apikey-2");
+        updatedApiKey.setKey("dummy-key");
+
+        Date newUpdatedAt = new Date(originalUpdatedAt.getTime() + 1000);
+        updatedApiKey.setUpdatedAt(newUpdatedAt);
+        updatedApiKey.setSubscriptions(new ArrayList<>(Arrays.asList("subscription2", "subscriptionX")));
+
+        when(apiKeyRepository.findById("id-of-apikey-2")).thenReturn(Optional.of(existingApiKey));
+        when(apiKeyRepository.addSubscription("id-of-apikey-2", "subscription2")).thenReturn(Optional.of(updatedApiKey));
+
+        Optional<ApiKey> apiKeyOpt = apiKeyRepository.findById("id-of-apikey-2");
+        assertTrue("API key should exist", apiKeyOpt.isPresent());
+        ApiKey apiKey = apiKeyOpt.get();
+        List<String> initialSubscriptions = apiKey.getSubscriptions();
+        assertEquals("Initial subscriptions count should be 2", 2, initialSubscriptions.size());
+
+        Optional<ApiKey> resultOpt = apiKeyRepository.addSubscription("id-of-apikey-2", "subscription2");
+        assertTrue("Updated API key should be returned", resultOpt.isPresent());
+        ApiKey resultApiKey = resultOpt.get();
+        List<String> updatedSubscriptions = resultApiKey.getSubscriptions();
+
+        long count = updatedSubscriptions.stream().filter(s -> s.equals("subscription2")).count();
+        assertEquals("Subscription 'subscription2' should appear only once", 1, count);
+
+        assertEquals("Subscription count should remain unchanged", 2, updatedSubscriptions.size());
+
+        assertTrue("updatedAt should be updated to a later time", resultApiKey.getUpdatedAt().after(existingApiKey.getUpdatedAt()));
     }
 
     private ApiKey buildTestApiKey(String id) {
