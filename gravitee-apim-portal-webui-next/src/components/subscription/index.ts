@@ -16,3 +16,4 @@
 export * from './webhook/consumer-configuration';
 export * from './webhook/consumer-configuration-headers';
 export * from './webhook/consumer-configuration-retry';
+export * from './webhook/consumer-configuration-ssl';

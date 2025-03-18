@@ -13,27 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type SslTrustStoreType = '' | 'JKS' | 'PKCS12' | 'PEM';
-
-export type SslTrustStore = JKSTrustStore | PEMTrustStore | PKCS12TrustStore;
-
-export interface BaseTrustStore {
-  type: SslTrustStoreType;
-}
-
-export interface JKSTrustStore extends BaseTrustStore {
-  path?: string;
-  content?: string;
-  password?: string;
-}
-
-export interface PEMTrustStore extends BaseTrustStore {
-  path?: string;
-  content?: string;
-}
-
-export interface PKCS12TrustStore extends BaseTrustStore {
-  path?: string;
-  content?: string;
-  password?: string;
-}
+export * from './consumer-configuration-ssl.component';

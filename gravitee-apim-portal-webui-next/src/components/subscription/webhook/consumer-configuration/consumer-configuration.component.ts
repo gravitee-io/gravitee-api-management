@@ -32,6 +32,7 @@ import { Subscription, SubscriptionConsumerConfiguration, UpdateSubscription } f
 import { SubscriptionService } from '../../../../services/subscription.service';
 import { ConsumerConfigurationHeadersComponent } from '../consumer-configuration-headers';
 import { ConsumerConfigurationRetryComponent } from '../consumer-configuration-retry';
+import { ConsumerConfigurationSslComponent } from '../consumer-configuration-ssl';
 
 @Component({
   imports: [
@@ -48,6 +49,7 @@ import { ConsumerConfigurationRetryComponent } from '../consumer-configuration-r
     AsyncPipe,
     MatButton,
     ConsumerConfigurationRetryComponent,
+    ConsumerConfigurationSslComponent,
   ],
   selector: 'app-consumer-configuration',
   standalone: true,
@@ -116,6 +118,7 @@ export class ConsumerConfigurationComponent implements OnInit {
           }),
           headers: new FormControl(entrypointConfiguration?.headers),
           retry: new FormControl(entrypointConfiguration?.retry, { nonNullable: true }),
+          ssl: new FormControl(entrypointConfiguration?.ssl, { nonNullable: true }),
         }),
       });
       this.initialValues = this.consumerConfigurationForm.getRawValue();
