@@ -15,7 +15,7 @@
  */
 import { FormControl, FormGroup } from '@angular/forms';
 
-import { Header, RetryConfiguration } from '../../../../entities/subscription';
+import { Header, RetryConfiguration, SslOptions } from '../../../../entities/subscription';
 
 export type ConsumerConfigurationForm = FormGroup<{
   channel: FormControl<string | null>;
@@ -23,6 +23,7 @@ export type ConsumerConfigurationForm = FormGroup<{
     callbackUrl: FormControl<string>;
     headers: FormControl<Header[] | null>;
     retry: FormControl<RetryConfiguration>;
+    ssl: FormControl<SslOptions>;
   }>;
 }>;
 
