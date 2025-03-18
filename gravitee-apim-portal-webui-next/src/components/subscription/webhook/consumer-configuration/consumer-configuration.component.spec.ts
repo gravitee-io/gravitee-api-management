@@ -18,6 +18,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { Component, ViewChild } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 
 import { ConsumerConfigurationComponent } from './consumer-configuration.component';
 import { ConsumerConfigurationComponentHarness } from './consumer-configuration.harness';
@@ -179,6 +180,25 @@ describe('SubscriptionsDetailsComponent', () => {
       expect(await componentHarness.getInputTextFromControlName('maxAttempts')).toStrictEqual('1');
       expect(await componentHarness.getInputTextFromControlName('initialDelaySeconds')).toStrictEqual('2');
       expect(await componentHarness.getInputTextFromControlName('maxDelaySeconds')).toStrictEqual('3');
+    });
+
+    it('should hide trust store configuration when trust all is enabled', async () => {
+      const baseConfiguration = fakeSubscriptionConsumerConfiguration();
+      const consumerConfiguration = fakeSubscriptionConsumerConfiguration({
+        ...baseConfiguration,
+        entrypointConfiguration: {
+          ...baseConfiguration.entrypointConfiguration,
+          ssl: { ...baseConfiguration.entrypointConfiguration.ssl, trustAll: false },
+        },
+      });
+      const subscription = fakeSubscription({ status: 'ACCEPTED', api: API_ID, plan: PLAN_ID, consumerConfiguration });
+      initComponent(subscription);
+
+      expect(await loader.getHarnessOrNull(MatSelectHarness.with({ selector: '[formControlName="type"]' }))).toBeTruthy();
+
+      await componentHarness.toggle('#trustAll');
+
+      expect(await loader.getHarnessOrNull(MatSelectHarness.with({ selector: '[formControlName="type"]' }))).toBeNull();
     });
   });
 

@@ -13,27 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type SslTrustStoreType = '' | 'JKS' | 'PKCS12' | 'PEM';
+.form {
+  display: flex;
+  flex-direction: column;
 
-export type SslTrustStore = JKSTrustStore | PEMTrustStore | PKCS12TrustStore;
+  &__field {
+    width: 100%;
+    flex: 1 1 auto;
+    margin-bottom: 12px;
 
-export interface BaseTrustStore {
-  type: SslTrustStoreType;
-}
+    &.type {
+      padding-bottom: 0;
+    }
+  }
 
-export interface JKSTrustStore extends BaseTrustStore {
-  path?: string;
-  content?: string;
-  password?: string;
-}
-
-export interface PEMTrustStore extends BaseTrustStore {
-  path?: string;
-  content?: string;
-}
-
-export interface PKCS12TrustStore extends BaseTrustStore {
-  path?: string;
-  content?: string;
-  password?: string;
+  .path-or-content {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 16px;
+  }
 }

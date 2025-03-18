@@ -49,6 +49,9 @@
 
           <app-consumer-configuration-retry
             [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.retry"></app-consumer-configuration-retry>
+
+          <app-consumer-configuration-ssl
+            [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.ssl"></app-consumer-configuration-ssl>
         </form>
 
         @if (error) {
