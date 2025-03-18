@@ -23,10 +23,14 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import io.gravitee.apim.core.documentation.model.AccessControl;
+import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.ImportPageEntity;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
@@ -40,9 +44,13 @@ import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.PlanService;
@@ -55,14 +63,11 @@ import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -106,6 +111,9 @@ public class ApiDuplicatorServiceImplTest {
 
     @Mock
     private CategoryService categoryService;
+
+    @Mock
+    private GroupService groupService;
 
     @Spy
     private ObjectMapper objectMapper = (new ServiceConfiguration()).objectMapper();
@@ -471,5 +479,57 @@ public class ApiDuplicatorServiceImplTest {
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
 
         return new ImportApiJsonNode(objectMapper.readTree(toBeImport));
+    }
+
+    @Test
+    public void shouldIgnoreUnknownAccessControlGroups() throws IOException {
+        ImportApiJsonNode pagesNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.pages.with-access-controls.json");
+        apiDuplicatorService.createOrUpdatePages(GraviteeContext.getExecutionContext(), apiEntity, pagesNode);
+
+        verify(pageService, times(1))
+            .createOrUpdatePages(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(pageEntities ->
+                    pageEntities.size() == 2 && pageEntities.stream().allMatch(page -> page.getAccessControls().isEmpty())
+                ),
+                eq(API_ID)
+            );
+    }
+
+    @Test
+    public void shouldPreserveValidAccessControlGroups() throws IOException {
+        ImportApiJsonNode pagesNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.pages.with-access-controls.json");
+        GroupEntity mockGroupEntity = new GroupEntity();
+        mockGroupEntity.setId("group-id-1");
+        mockGroupEntity.setName("TestGroup");
+        when(groupService.findByName(eq(GraviteeContext.getExecutionContext().getEnvironmentId()), eq("TestGroup")))
+            .thenReturn(Collections.singletonList(mockGroupEntity));
+        apiDuplicatorService.createOrUpdatePages(GraviteeContext.getExecutionContext(), apiEntity, pagesNode);
+
+        verify(pageService, times(1))
+            .createOrUpdatePages(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(pageEntities ->
+                    pageEntities.size() == 2 &&
+                    pageEntities
+                        .stream()
+                        .allMatch(page -> {
+                            if (page.getName().equals("toto")) {
+                                return (
+                                    page.getAccessControls().size() == 1 &&
+                                    page
+                                        .getAccessControls()
+                                        .stream()
+                                        .anyMatch(accessControl -> "group-id-1".equals(accessControl.getReferenceId()))
+                                );
+                            }
+                            if (page.getName().equals("petstore")) {
+                                return page.getAccessControls().isEmpty();
+                            }
+                            return true; // For other pages, no specific checks
+                        })
+                ),
+                eq(API_ID)
+            );
     }
 }
