@@ -15,17 +15,16 @@
  */
 package io.gravitee.repository.mongodb.management.internal.key;
 
-import static com.mongodb.client.model.Aggregates.lookup;
-import static com.mongodb.client.model.Aggregates.match;
-import static com.mongodb.client.model.Aggregates.sort;
-import static com.mongodb.client.model.Aggregates.unwind;
+import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.gte;
 import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Filters.lte;
 import static com.mongodb.client.model.Filters.or;
+import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.push;
+import static com.mongodb.client.model.Updates.set;
 import static com.mongodb.client.model.Updates.unset;
 
 import com.mongodb.client.AggregateIterable;
@@ -154,7 +153,7 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
     public UpdateResult addSubscription(String id, String subscriptionId) {
         return mongoTemplate
             .getCollection(mongoTemplate.getCollectionName(ApiKeyMongo.class))
-            .updateOne(eq("_id", id), push("subscriptions", subscriptionId));
+            .updateOne(eq("_id", id), combine(push("subscriptions", subscriptionId), set("updatedAt", new Date())));
     }
 
     private List<ApiKeyMongo> getListFromAggregate(AggregateIterable<Document> aggregate) {
