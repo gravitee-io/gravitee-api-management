@@ -90,10 +90,17 @@ export class ApiScoringComponent implements OnInit {
       map((response) => {
         const lastJob = response?.data?.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())?.[0];
         if (lastJob?.updatedAt && 3_600_000 > new Date().getTime() - new Date(lastJob?.updatedAt).getTime()) {
+          let message = undefined;
           if (lastJob?.status === 'ERROR') {
-            this.snackBarService.error(`The last evaluation was failed at ${lastJob.createdAt} ${lastJob.errorMessage ?? ''}`);
+            message = `The last evaluation was failed at ${lastJob.createdAt} ${lastJob.errorMessage ?? ''}`;
           } else if (lastJob?.status === 'TIMEOUT') {
-            this.snackBarService.error(`The last evaluation was timed out at ${lastJob.createdAt} ${lastJob.errorMessage ?? ''}`);
+            message = `The last evaluation was timed out at ${lastJob.createdAt} ${lastJob.errorMessage ?? ''}`;
+          }
+          // a patch to avoid dismiss caused by ApiScoringService
+          if (message) {
+            setTimeout(() => {
+              this.snackBarService.error(message);
+            }, 1_000);
           }
         }
         return lastJob?.status === 'PENDING';
