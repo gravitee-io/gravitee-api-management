@@ -69,7 +69,7 @@ public class ApisResource_CreateApiFromSwagger extends AbstractResourceTest {
 
     @BeforeEach
     public void init() throws TechnicalException {
-        reset(apiServiceV4);
+        reset(apiServiceV4, createApiDomainService);
         GraviteeContext.cleanContext();
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);

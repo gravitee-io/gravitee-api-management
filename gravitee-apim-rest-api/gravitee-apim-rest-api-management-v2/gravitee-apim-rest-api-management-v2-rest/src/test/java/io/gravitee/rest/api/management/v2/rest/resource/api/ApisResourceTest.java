@@ -138,8 +138,9 @@ class ApisResourceTest extends AbstractResourceTest {
         environment.setId(ENVIRONMENT);
         environment.setOrganizationId(ORGANIZATION);
 
-        when(environmentService.findById(ENVIRONMENT)).thenReturn(environment);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environment);
+
+        reset(createApiDomainService, validateApiDomainService);
     }
 
     @AfterEach
