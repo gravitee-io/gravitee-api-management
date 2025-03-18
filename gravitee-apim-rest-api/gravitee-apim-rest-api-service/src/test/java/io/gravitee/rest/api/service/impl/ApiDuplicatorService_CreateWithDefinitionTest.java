@@ -381,8 +381,9 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
                                 accessControlOk &&
                                 pageEntity.getAccessControls().contains(new AccessControlEntity("known_group_id", "GROUP"));
                         } else if (pageEntity.getOrder() == 4) {
+                            // unknown group
                             accessControlOk =
-                                accessControlOk && pageEntity.getAccessControls().contains(new AccessControlEntity("group_id", "GROUP"));
+                                accessControlOk && (pageEntity.getAccessControls() == null || pageEntity.getAccessControls().isEmpty());
                         }
                     }
 
