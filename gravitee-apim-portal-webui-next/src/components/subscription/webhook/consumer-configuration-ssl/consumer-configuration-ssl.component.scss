@@ -13,27 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type SslTrustStoreType = '' | 'JKS' | 'PKCS12' | 'PEM';
+@use '../../../../scss/m3-adapter';
 
-export type SslTrustStore = JKSTrustStore | PEMTrustStore | PKCS12TrustStore;
+.ssl-configuration {
+  display: flex;
+  flex-flow: column;
+  gap: 8px;
 
-export interface BaseTrustStore {
-  type: SslTrustStoreType;
-}
+  &__header {
+    display: flex;
+    flex-flow: row;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+  }
 
-export interface JKSTrustStore extends BaseTrustStore {
-  path?: string;
-  content?: string;
-  password?: string;
-}
+  &__form-field {
+    display: flex;
+    flex-flow: column;
 
-export interface PEMTrustStore extends BaseTrustStore {
-  path?: string;
-  content?: string;
-}
+    &__toggle {
+      margin-bottom: 12px;
+    }
 
-export interface PKCS12TrustStore extends BaseTrustStore {
-  path?: string;
-  content?: string;
-  password?: string;
+    &__label {
+      padding: 0 10px;
+    }
+
+    &__title {
+      margin-right: 8px;
+    }
+
+    &__hint {
+      margin-bottom: 8px;
+    }
+  }
 }

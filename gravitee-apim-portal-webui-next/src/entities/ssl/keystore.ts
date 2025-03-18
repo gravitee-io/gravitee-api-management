@@ -26,7 +26,6 @@ export interface JKSKeyStore extends BaseKeyStore {
   content?: string;
   password?: string;
   alias?: string;
-  keyPassword?: string;
 }
 
 export interface PEMKeyStore extends BaseKeyStore {
@@ -40,6 +39,4 @@ export interface PKCS12KeyStore extends BaseKeyStore {
   path?: string;
   content?: string;
   password?: string;
-  alias?: string;
-  keyPassword?: string;
 }

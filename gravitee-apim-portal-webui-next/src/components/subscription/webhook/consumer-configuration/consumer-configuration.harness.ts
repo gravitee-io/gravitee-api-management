@@ -19,6 +19,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatErrorHarness } from '@angular/material/form-field/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
 export class ConsumerConfigurationComponentHarness extends ComponentHarness {
@@ -82,5 +83,10 @@ export class ConsumerConfigurationComponentHarness extends ComponentHarness {
         return { name, value };
       }),
     );
+  }
+
+  async toggle(selector: string) {
+    const matSlideToggle = await this.locatorFor(MatSlideToggleHarness.with({ selector }))();
+    return matSlideToggle.toggle();
   }
 }

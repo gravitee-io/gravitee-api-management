@@ -1,0 +1,56 @@
+<!--
+
+    Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<app-accordion>
+  <app-accordion-title>
+    <span class="m3-title-medium" i18n="@@consumerConfigurationSslTitle">SSL options</span>
+  </app-accordion-title>
+  <form [formGroup]="sslForm" ngNativeValidate>
+    <div class="ssl-configuration__form-field">
+      <mat-slide-toggle
+        id="hostnameVerifier"
+        class="ssl-configuration__form-field__toggle"
+        [formControl]="sslForm.controls.hostnameVerifier">
+        <div class="ssl-configuration__form-field__label">
+          <span class="m3-title-small ssl-configuration__form-field__title" i18n="@@consumerConfigurationSslVerifyHost">Verify host</span>
+          <span class="m3-body-small ssl-configuration__form-field__hint" i18n="@@consumerConfigurationSslVerifyHostHint"
+            >Use to enable host name verification</span
+          >
+        </div>
+      </mat-slide-toggle>
+    </div>
+
+    <div class="ssl-configuration__form-field">
+      <mat-slide-toggle id="trustAll" class="ssl-configuration__form-field__toggle" [formControl]="sslForm.controls.trustAll">
+        <div class="ssl-configuration__form-field__label">
+          <span class="m3-title-small ssl-configuration__form-field__title" i18n="@@consumerConfigurationSslTrustAll">Trust all</span>
+          <span class="m3-body-small ssl-configuration__form-field__hint" i18n="@@consumerConfigurationSslTrustAllHint"
+            >Use this with caution (if over Internet). The gateway must trust any origin certificates. The connection will still be
+            encrypted but this mode is vulnerable to 'man in the middle' attacks. If set to true, the Truststore option is ignored.
+          </span>
+        </div>
+      </mat-slide-toggle>
+    </div>
+
+    @if (!sslForm.controls.trustAll.value) {
+      <div class="ssl-configuration__form-field">
+        <span class="m3-title-small ssl-configuration__form-field__title" i18n="@@consumerConfigurationSslTrustStore">Trust store</span>
+        <app-ssl-truststore [formControl]="sslForm.controls.trustStore"></app-ssl-truststore>
+      </div>
+    }
+  </form>
+</app-accordion>
