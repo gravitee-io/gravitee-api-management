@@ -947,10 +947,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                                     }
                                 }
                             );
-                            if (groupId != null) {
-                                accessControlEntity.setReferenceId(groupId);
-                            }
+                            accessControlEntity.setReferenceId(groupId);
                         })
+                        .filter(accessControlEntity -> accessControlEntity.getReferenceId() != null)
                         .collect(toSet())
                 );
             }
