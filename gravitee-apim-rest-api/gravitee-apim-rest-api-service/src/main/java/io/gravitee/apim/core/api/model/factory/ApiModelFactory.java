@@ -26,6 +26,7 @@ import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
@@ -116,17 +117,23 @@ public class ApiModelFactory {
     public static Api fromApiExport(ApiExport api, String environmentId) {
         var id = api.getId() != null ? api.getId() : UuidString.generateRandom();
         var now = TimeProvider.now();
-        return api
+        var apiExport = api
             .toApiBuilder()
             .id(id)
             .environmentId(environmentId)
+            .definitionVersion(api.getDefinitionVersion())
+            .type(api.getType())
             .createdAt(now)
             .updatedAt(now)
             .lifecycleState(Api.LifecycleState.STOPPED)
             .apiLifecycleState(Api.ApiLifecycleState.CREATED)
-            .visibility(api.getVisibility() == null ? Api.Visibility.PRIVATE : Api.Visibility.valueOf(api.getVisibility().name()))
-            .apiDefinitionHttpV4(api.toApiDefinitionBuilder().id(id).build())
-            .build();
+            .visibility(api.getVisibility() == null ? Api.Visibility.PRIVATE : Api.Visibility.valueOf(api.getVisibility().name()));
+
+        if (api.getType() == ApiType.NATIVE) {
+            return apiExport.apiDefinitionNativeV4(api.toNativeApiDefinitionBuilder().id(id).build()).build();
+        }
+
+        return apiExport.apiDefinitionHttpV4(api.toApiDefinitionBuilder().id(id).build()).build();
     }
 
     public static Api fromIntegration(IntegrationApi integrationApi, Integration integration) {
