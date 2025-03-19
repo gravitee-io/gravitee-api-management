@@ -245,7 +245,10 @@ public class OAIToImportApiUseCase {
                 .response(List.of(step))
                 .build();
 
-            importDefinition.getApiExport().getFlows().add(0, flow);
+            List<Flow> apiExportFlows = (List<Flow>) importDefinition.getApiExport().getFlows();
+            apiExportFlows.addFirst(flow);
+
+            importDefinition.getApiExport().setFlows(apiExportFlows);
 
             return importDefinition;
         } catch (JsonProcessingException e) {
