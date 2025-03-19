@@ -22,13 +22,23 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
+import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
+import io.gravitee.definition.model.v4.service.AbstractApiServices;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
@@ -63,8 +73,8 @@ public class ApiExport {
     @Builder.Default
     private Set<String> tags = new HashSet<>();
 
-    private List<Listener> listeners;
-    private List<EndpointGroup> endpointGroups;
+    private List<? extends AbstractListener<? extends AbstractEntrypoint>> listeners;
+    private List<? extends AbstractEndpointGroup<? extends AbstractEndpoint>> endpointGroups;
     private Analytics analytics;
     private Failover failover;
 
@@ -75,12 +85,12 @@ public class ApiExport {
     private List<Resource> resources = new ArrayList<>();
 
     private FlowExecution flowExecution;
-    private List<Flow> flows;
+    private List<? extends AbstractFlow> flows;
 
     @Builder.Default
     private Map<String, Map<String, ResponseTemplate>> responseTemplates = new LinkedHashMap<>();
 
-    private ApiServices services;
+    private AbstractApiServices services;
     private Set<String> groups;
     private Visibility visibility;
 
@@ -125,21 +135,43 @@ public class ApiExport {
     }
 
     public io.gravitee.definition.model.v4.Api.ApiBuilder<?, ?> toApiDefinitionBuilder() {
+        if (ApiType.NATIVE.equals(type)) {
+            return null;
+        }
         return io.gravitee.definition.model.v4.Api
             .builder()
             .analytics(analytics)
             .apiVersion(apiVersion)
             .definitionVersion(DefinitionVersion.V4)
-            .endpointGroups(endpointGroups)
+            .endpointGroups((List<EndpointGroup>) endpointGroups)
             .failover(failover)
-            .flows(flows)
-            .listeners(listeners)
+            .flows((List<Flow>) flows)
+            .listeners((List<Listener>) listeners)
             .name(name)
             .properties(properties)
             .resources(resources)
             .responseTemplates(responseTemplates)
             .tags(tags)
             .type(type)
-            .services(services);
+            .services((ApiServices) services);
+    }
+
+    public io.gravitee.definition.model.v4.nativeapi.NativeApi.NativeApiBuilder<?, ?> toNativeApiDefinitionBuilder() {
+        if (!ApiType.NATIVE.equals(type)) {
+            return null;
+        }
+        return io.gravitee.definition.model.v4.nativeapi.NativeApi
+            .builder()
+            .apiVersion(apiVersion)
+            .definitionVersion(DefinitionVersion.V4)
+            .endpointGroups((List<NativeEndpointGroup>) endpointGroups)
+            .flows((List<NativeFlow>) flows)
+            .listeners((List<NativeListener>) listeners)
+            .name(name)
+            .properties(properties)
+            .resources(resources)
+            .tags(tags)
+            .type(type)
+            .services((NativeApiServices) services);
     }
 }
