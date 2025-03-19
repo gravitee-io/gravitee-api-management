@@ -342,7 +342,7 @@ describe('Portal: Business Error - applications', () => {
             applicationId,
             logId,
           }),
-        ].map((p) => notFound(p, { message: `Log [${logId}] cannot be found.` })),
+        ].map((p) => notFound(p, { message: `Log [ ${logId} ] not found.` })),
       );
     });
   });
