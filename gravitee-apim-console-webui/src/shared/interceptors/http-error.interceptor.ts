@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
+import { HttpContextToken, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { EMPTY, Observable, switchMap, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -22,6 +22,8 @@ import { isEqual } from 'lodash';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { Constants } from '../../entities/Constants';
 import { AuthService } from '../../auth/auth.service';
+
+export const ACCEPT_404 = new HttpContextToken<boolean>(() => false);
 
 @Injectable()
 export class HttpErrorInterceptor implements HttpInterceptor {
@@ -54,7 +56,11 @@ export class HttpErrorInterceptor implements HttpInterceptor {
               this.snackBarService.error(error?.error?.message ?? 'Forbidden!');
               break;
             case 404:
-              this.snackBarService.error(error?.error?.message ?? 'Backend service not found!');
+              if (!req.context.get(ACCEPT_404)) {
+                this.snackBarService.error(error?.error?.message ?? 'Backend service not found!');
+              } else {
+                return next.handle(req);
+              }
               break;
             case 500:
               this.snackBarService.error(error?.error?.message ?? 'Internal server error!');
