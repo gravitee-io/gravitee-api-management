@@ -155,4 +155,10 @@ public class Application {
     public void setGroups(Collection<String> groups) {
         this.groups = groups != null ? new HashSet<>(groups) : null;
     }
+
+    public void removeGroup(String group) {
+        if (groups != null) {
+            groups.remove(group);
+        }
+    }
 }
