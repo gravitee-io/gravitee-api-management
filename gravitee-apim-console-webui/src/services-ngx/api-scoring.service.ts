@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { catchError } from 'rxjs/operators';
 
 import { ApiScoring, ApiScoringTriggerResponse } from '../management/api/scoring/api-scoring.model';
 import { Constants } from '../entities/Constants';
 import { ApisScoringOverview, ApisScoringResponse } from '../management/api-score/api-score.model';
+import { ACCEPT_404 } from '../shared/interceptors/http-error.interceptor';
 
 @Injectable()
 export class ApiScoringService {
@@ -33,11 +34,10 @@ export class ApiScoringService {
   ) {}
 
   public getApiScoring(apiId: string): Observable<ApiScoring> {
-    return this.httpClient.get<ApiScoring>(`${this.constants.env.v2BaseURL}/apis/${apiId}/scoring`).pipe(
+    const context = new HttpContext().set(ACCEPT_404, true);
+    return this.httpClient.get<ApiScoring>(`${this.constants.env.v2BaseURL}/apis/${apiId}/scoring`, { context }).pipe(
       catchError((err) => {
-        // normally 404 is intercepted by the HttpErrorInterceptor and displayed as a snack error, but for this request, it should be dismissed.
         if (err.status === 404) {
-          this.matSnackBar.dismiss();
           return of(undefined);
         }
         throw err;

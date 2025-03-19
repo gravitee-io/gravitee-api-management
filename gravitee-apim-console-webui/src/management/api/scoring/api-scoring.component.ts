@@ -88,19 +88,15 @@ export class ApiScoringComponent implements OnInit {
         }),
       ),
       map((response) => {
-        const lastJob = response?.data?.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())?.[0];
+        response?.data?.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+        const lastJob = response?.data?.[0];
         if (lastJob?.updatedAt && 3_600_000 > new Date().getTime() - new Date(lastJob?.updatedAt).getTime()) {
-          let message = undefined;
           if (lastJob?.status === 'ERROR') {
-            message = `The last evaluation was failed at ${lastJob.createdAt} ${lastJob.errorMessage ?? ''}`;
+            this.snackBarService.error(`The last evaluation was failed at ${lastJob.createdAt} ${lastJob.errorMessage ?? ''}`);
           } else if (lastJob?.status === 'TIMEOUT') {
-            message = `The last evaluation was timed out at ${lastJob.createdAt} ${lastJob.errorMessage ?? ''}`;
-          }
-          // a patch to avoid dismiss caused by ApiScoringService
-          if (message) {
-            setTimeout(() => {
-              this.snackBarService.error(message);
-            }, 1_000);
+            this.snackBarService.error(
+              `Evaluation timed out at ${lastJob.createdAt}. The API score service might be unavailable. Please try again later.`,
+            );
           }
         }
         return lastJob?.status === 'PENDING';
@@ -114,11 +110,13 @@ export class ApiScoringComponent implements OnInit {
       .pipe(
         switchMap((isPending) => {
           return combineLatest([this.apiService.get(this.apiId), this.apiScoringService.getApiScoring(this.apiId)]).pipe(
-            map(([api, apiScoring]) => ({
-              pendingScoreRequest: isPending,
-              api,
-              apiScoring,
-            })),
+            map(([api, apiScoring]) => {
+              return {
+                pendingScoreRequest: isPending,
+                api,
+                apiScoring,
+              };
+            }),
           );
         }),
         takeUntilDestroyed(this.destroyRef),
