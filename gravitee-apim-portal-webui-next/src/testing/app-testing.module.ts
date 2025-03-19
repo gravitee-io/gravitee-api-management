@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
+import { CommonModule, DATE_PIPE_DEFAULT_OPTIONS } from '@angular/common';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { Injectable, NgModule } from '@angular/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
@@ -68,6 +68,12 @@ export class TestRouterModule {
     {
       provide: ActivatedRoute,
       useValue: TESTING_ACTIVATED_ROUTE,
+    },
+    {
+      provide: DATE_PIPE_DEFAULT_OPTIONS,
+      useValue: {
+        dateFormat: 'YYYY-MM-dd HH:mm:ss.SSS',
+      },
     },
   ],
 })

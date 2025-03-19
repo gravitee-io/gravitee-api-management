@@ -175,7 +175,7 @@
 
       <ng-container matColumnDef="timestamp">
         <th mat-header-cell *matHeaderCellDef i18n="@@applicationLogsTableColumnTimestamp" class="m3-title-medium">Timestamp</th>
-        <td mat-cell *matCellDef="let log">{{ log.timestamp | date: 'YYYY-MM-dd HH:mm:ss.SSS' }}</td>
+        <td mat-cell *matCellDef="let log">{{ log.timestamp | date }}</td>
       </ng-container>
 
       <ng-container matColumnDef="httpMethod">
