@@ -29,6 +29,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
@@ -282,7 +283,7 @@ class OAIToImportDefinitionConverterTest {
             assertThat(group.getName()).isEqualTo("default-group");
             assertThat(group.getType()).isEqualTo("http-proxy");
             assertThat(group.getEndpoints())
-                .extracting(Endpoint::getName, endpoint -> getEndpointTarget(endpoint.getConfiguration()))
+                .extracting(AbstractEndpoint::getName, endpoint -> getEndpointTarget(endpoint.getConfiguration()))
                 .containsExactlyElementsOf(endpointData);
         }
 
@@ -335,7 +336,7 @@ class OAIToImportDefinitionConverterTest {
 
                 var api = result.getApiExport();
                 softly
-                    .assertThat(api.getFlows())
+                    .assertThat((List<Flow>) api.getFlows())
                     .flatExtracting(Flow::getSelectors)
                     .containsExactlyElementsOf(
                         List.of(

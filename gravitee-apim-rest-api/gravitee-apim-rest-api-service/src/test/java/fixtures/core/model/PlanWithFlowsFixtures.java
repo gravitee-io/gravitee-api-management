@@ -18,6 +18,8 @@ package fixtures.core.model;
 import fixtures.definition.PlanFixtures;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.List;
@@ -37,6 +39,8 @@ public class PlanWithFlowsFixtures {
             .description("Description")
             .validation(Plan.PlanValidationType.AUTO)
             .type(Plan.PlanType.API)
+            .definitionVersion(DefinitionVersion.V4)
+            .apiType(ApiType.PROXY)
             .planDefinitionHttpV4(
                 PlanFixtures.HttpV4Definition
                     .anApiKeyV4()
@@ -64,7 +68,49 @@ public class PlanWithFlowsFixtures {
             .generalConditions("General conditions")
             .flows(List.of(fixtures.definition.FlowFixtures.aSimpleFlowV4()));
 
+    private static final Supplier<PlanWithFlows.PlanWithFlowsBuilder> BASE_NATIVE = () ->
+        PlanWithFlows
+            .builder()
+            .id("id")
+            .crossId("my-plan-crossId")
+            .name("My plan")
+            .description("Description")
+            .validation(Plan.PlanValidationType.AUTO)
+            .type(Plan.PlanType.API)
+            .definitionVersion(DefinitionVersion.V4)
+            .apiType(ApiType.NATIVE)
+            .planDefinitionNativeV4(
+                PlanFixtures.NativeV4Definition
+                    .anApiKeyV4()
+                    .toBuilder()
+                    .security(
+                        PlanSecurity
+                            .builder()
+                            .type("API_KEY")
+                            .configuration("""
+                           {"nice": "config"}
+                           """)
+                            .build()
+                    )
+                    .selectionRule("{#request.attribute['selectionRule'] != null}")
+                    .tags(Set.of("tag1", "tag2"))
+                    .status(PlanStatus.CLOSED)
+                    .build()
+            )
+            .apiId("api-id")
+            .order(1)
+            .characteristics(List.of("characteristic1", "characteristic2"))
+            .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+            .commentMessage("Comment message")
+            .commentRequired(true)
+            .generalConditions("General conditions")
+            .flows(List.of(fixtures.definition.FlowFixtures.aNativeFlowV4()));
+
     public static PlanWithFlows aPlanWithFlows() {
         return BASE.get().build();
+    }
+
+    public static PlanWithFlows aNativePlanWithFlows() {
+        return BASE_NATIVE.get().build();
     }
 }

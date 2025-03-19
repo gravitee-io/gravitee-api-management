@@ -19,6 +19,7 @@ import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.media.model.Media;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
+import io.gravitee.definition.model.v4.ApiType;
 import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -43,4 +44,8 @@ public class ImportDefinition {
     private Set<PlanWithFlows> plans;
 
     private List<Media> apiMedia;
+
+    public boolean isNative() {
+        return apiExport.getType() == ApiType.NATIVE;
+    }
 }
