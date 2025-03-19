@@ -24,11 +24,15 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.GroupRepository;
+import io.gravitee.repository.management.api.IdentityProviderRepository;
 import io.gravitee.repository.management.api.PageRepository;
+import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.AccessControl;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
@@ -37,17 +41,19 @@ import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
 import io.gravitee.rest.api.model.alert.ApplicationAlertMembershipEvent;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
 import io.gravitee.rest.api.service.impl.GroupServiceImpl;
+import io.gravitee.rest.api.service.notification.ApiHook;
 import java.util.*;
 import java.util.stream.Stream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
@@ -88,6 +94,21 @@ public class GroupService_DeleteTest {
 
     @Mock
     private EventManager eventManager;
+
+    @Mock
+    private ApiConverter apiConverter;
+
+    @Mock
+    private UserService userService;
+
+    @Mock
+    private NotifierService notifierService;
+
+    @Mock
+    private PlanRepository planRepository;
+
+    @Mock
+    private IdentityProviderRepository identityProviderRepository;
 
     @Test(expected = GroupNotFoundException.class)
     public void throwGroupNotFoundException() throws Exception {
@@ -218,6 +239,8 @@ public class GroupService_DeleteTest {
 
     @Test
     public void shouldDeleteGroupWithAccessControl() throws Exception {
+        final String ANOTHER_GROUP_ID = "another-group-id";
+
         final Group group = new Group();
         group.setId(GROUP_ID);
         group.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
@@ -244,6 +267,15 @@ public class GroupService_DeleteTest {
         )
             .thenReturn(Collections.emptySet());
 
+        UserEntity mockUser = mock(UserEntity.class);
+        when(mockUser.getDisplayName()).thenReturn("Mock User");
+        when(userService.findById(any(), any())).thenReturn(mockUser);
+        when(planRepository.findByApi(anyString())).thenReturn(Collections.emptySet());
+        when(identityProviderRepository.findAll()).thenReturn(Collections.emptySet());
+
+        Api api = new Api();
+        api.setId("API_ID");
+        api.setGroups(new HashSet<>(Collections.singletonList(GROUP_ID)));
         when(
             apiRepository.search(
                 new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).groups(GROUP_ID).build(),
@@ -251,9 +283,15 @@ public class GroupService_DeleteTest {
                 ApiFieldFilter.allFields()
             )
         )
-            .thenReturn(Stream.empty());
+            .thenReturn(Stream.of(api));
 
-        when(applicationRepository.findByGroups(Collections.singletonList(GROUP_ID))).thenReturn(Collections.emptySet());
+        Application application = new Application();
+        application.setId("APP_ID");
+        application.setName("Test Application");
+        application.setGroups(new HashSet<>(Arrays.asList(GROUP_ID, ANOTHER_GROUP_ID)));
+
+        when(applicationRepository.findByGroups(Collections.singletonList(GROUP_ID)))
+            .thenReturn(new HashSet<>(Collections.singletonList(application)));
 
         Page page = new Page();
         AccessControl accessControlToRemove = new AccessControl();
@@ -270,9 +308,18 @@ public class GroupService_DeleteTest {
             )
         )
             .thenReturn(List.of(page));
+        doNothing().when(notifierService).trigger(any(ExecutionContext.class), any(ApiHook.class), anyString(), anyMap());
 
         groupService.delete(GraviteeContext.getExecutionContext(), GROUP_ID);
 
         verify(pageRepository, times(1)).update(argThat(arg -> arg.getAccessControls().size() == 1));
+        verify(apiRepository, times(1)).update(argThat(apiArg -> !apiArg.getGroups().contains(GROUP_ID)));
+        verify(applicationRepository, times(1)).update(argThat(applicationArg -> !applicationArg.getGroups().contains(GROUP_ID)));
+        verify(applicationRepository)
+            .update(
+                argThat(app ->
+                    app.getGroups().size() == 1 && !app.getGroups().contains(GROUP_ID) && app.getGroups().contains(ANOTHER_GROUP_ID)
+                )
+            );
     }
 }
