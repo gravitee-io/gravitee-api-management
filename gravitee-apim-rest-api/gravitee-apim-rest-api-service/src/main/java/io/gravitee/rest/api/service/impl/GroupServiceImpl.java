@@ -601,7 +601,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     ApiFieldFilter.allFields()
                 )
                 .forEach(api -> {
-                    api.getGroups().remove(groupId);
+                    api.removeGroup(groupId);
                     api.setUpdatedAt(updatedDate);
                     try {
                         apiRepository.update(api);
@@ -628,7 +628,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             applicationRepository
                 .findByGroups(Collections.singletonList(groupId))
                 .forEach(application -> {
-                    application.getGroups().remove(groupId);
+                    application.removeGroup(groupId);
                     application.setUpdatedAt(updatedDate);
                     try {
                         applicationRepository.update(application);
