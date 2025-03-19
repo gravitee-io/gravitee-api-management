@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesQueryAdapter.ALL_APIS_STATUS_RANGES;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesQueryAdapter.ENTRYPOINT_ID_AGG;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesQueryAdapter.STATUS_RANGES;
 
@@ -42,22 +43,28 @@ public class SearchResponseStatusRangesResponseAdapter {
         if (entrypointsAggregation == null) {
             return Optional.empty();
         }
-
-        final Map<String, Long> totalRange = new HashMap<>();
-        final Map<String, Map<String, Long>> result = entrypointsAggregation
+        final Map<String, Map<String, Long>> statusRangesByEntrypoints = entrypointsAggregation
             .getBuckets()
             .stream()
             .collect(
-                Collectors.toMap(
-                    jsonNode -> jsonNode.get("key").asText(),
-                    jsonNode -> {
-                        var statusRanges = processStatusRanges(jsonNode.get(STATUS_RANGES));
-                        statusRanges.forEach((key, value) -> totalRange.merge(key, value, Long::sum));
-                        return statusRanges;
-                    }
-                )
+                Collectors.toMap(jsonNode -> jsonNode.get("key").asText(), jsonNode -> processStatusRanges(jsonNode.get(STATUS_RANGES)))
             );
-        return Optional.of(ResponseStatusRangesAggregate.builder().statusRangesCountByEntrypoint(result).ranges(totalRange).build());
+        final var allApisStatusRangesAggregation = aggregations.get(ALL_APIS_STATUS_RANGES);
+        if (allApisStatusRangesAggregation == null) {
+            return Optional.empty();
+        }
+        final Map<String, Long> allApisStatusRanges = allApisStatusRangesAggregation
+            .getBuckets()
+            .stream()
+            .collect(Collectors.toMap(jsonNode -> jsonNode.get("key").asText(), jsonNode -> jsonNode.get("doc_count").asLong()));
+
+        return Optional.of(
+            ResponseStatusRangesAggregate
+                .builder()
+                .statusRangesCountByEntrypoint(statusRangesByEntrypoints)
+                .ranges(allApisStatusRanges)
+                .build()
+        );
     }
 
     private static Map<String, Long> processStatusRanges(JsonNode jsonNode) {
