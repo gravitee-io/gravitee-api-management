@@ -62,7 +62,7 @@ public class SearchConnectionLogResponseAdapter {
                 .method(HttpMethod.get(asIntOr(json.get(ConnectionLogField.HTTP_METHOD.v2Request()), 0)))
                 .requestEnded(true)
                 .entrypointId(null)
-                .gatewayResponseTime(json.get(ConnectionLogField.GATEWAY_RESPONSE_TIME.v2Request()).asLong(0L))
+                .gatewayResponseTime(asIntOr(json.get(ConnectionLogField.GATEWAY_RESPONSE_TIME.v2Request()), 0))
                 .build();
         }
         return connectionLog
@@ -75,7 +75,7 @@ public class SearchConnectionLogResponseAdapter {
             .method(HttpMethod.get(asIntOr(json.get(ConnectionLogField.HTTP_METHOD.v4Metrics()), 0)))
             .requestEnded(asBooleanOrFalse(json.get(ConnectionLogField.REQUEST_ENDED.v4Metrics())))
             .entrypointId(asTextOrNull(json.get(ConnectionLogField.ENTRYPOINT_ID.v4Metrics())))
-            .gatewayResponseTime(json.get(ConnectionLogField.GATEWAY_RESPONSE_TIME.v4Metrics()).asLong(0L))
+            .gatewayResponseTime(asIntOr(json.get(ConnectionLogField.GATEWAY_RESPONSE_TIME.v4Metrics()), 0))
             .build();
     }
 }
