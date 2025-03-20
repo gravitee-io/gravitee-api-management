@@ -57,14 +57,14 @@
     <div class="row-cards">
       <api-analytics-response-status-ranges title="API Response Status" [responseStatusRanges]="v4ApiAnalyticsResponseStatusRanges" />
       <app-top-apis-widget [data]="topApis" [period]="this.timeRangeParams" />
-      <dashboard-api-request-stats [data]="requestStats" />
+      <top-failed-apis></top-failed-apis>
     </div>
   </div>
 
   <div class="row">
     <div class="row-cards">
+      <dashboard-api-request-stats [data]="requestStats" />
       <top-applications-by-requests></top-applications-by-requests>
-      <top-failed-apis></top-failed-apis>
     </div>
   </div>
 
