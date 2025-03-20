@@ -56,13 +56,16 @@ export class SubscriptionEditPushConfigComponent implements OnInit {
   @Input()
   consumerConfiguration!: SubscriptionConsumerConfiguration;
 
+  @Input()
+  readonly: boolean;
+
   @Output()
   consumerConfigurationChange = new EventEmitter<Partial<SubscriptionConsumerConfiguration>>();
 
   canEdit = false;
 
   ngOnInit() {
-    this.canEdit = this.permissionService.hasAnyMatching([this.updatePermission]);
+    this.canEdit = !this.readonly && this.permissionService.hasAnyMatching([this.updatePermission]);
   }
 
   get pushConfig(): PushConfigVM {

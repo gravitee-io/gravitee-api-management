@@ -274,6 +274,7 @@
     <subscription-edit-push-config
       [updatePermission]="'api-subscription-u'"
       [consumerConfiguration]="subscription.consumerConfiguration"
+      [readonly]="subscription.status === 'CLOSED'"
       (consumerConfigurationChange)="onConsumerConfigurationChange($event)"
     ></subscription-edit-push-config>
   }

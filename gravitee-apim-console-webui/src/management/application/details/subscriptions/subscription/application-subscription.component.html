@@ -124,6 +124,7 @@
   @if (!pageVM.subscription?.plan?.security && !!pageVM.subscription?.configuration) {
     <subscription-edit-push-config
       [updatePermission]="'application-subscription-u'"
+      [readonly]="pageVM.subscription.status === 'CLOSED'"
       [consumerConfiguration]="pageVM.subscription.configuration"
       (consumerConfigurationChange)="onConsumerConfigurationChange($event)"
     ></subscription-edit-push-config>
