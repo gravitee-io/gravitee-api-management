@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { InteractivityChecker } from '@angular/cdk/a11y';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { Component, ViewChild } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 
 import { ConsumerConfigurationComponent } from './consumer-configuration.component';
 import { ConsumerConfigurationComponentHarness } from './consumer-configuration.harness';
+import { Plan } from '../../../../entities/plan/plan';
+import { fakePlan } from '../../../../entities/plan/plan.fixture';
 import { fakeSubscription, Subscription } from '../../../../entities/subscription';
 import { fakeSubscriptionConsumerConfiguration } from '../../../../entities/subscription/subscription-consumer-configuration.fixture';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../../testing/app-testing.module';
@@ -43,18 +48,24 @@ describe('SubscriptionsDetailsComponent', () => {
   let fixture: ComponentFixture<TestComponent>;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
+  let rootHarnessLoader: HarnessLoader;
   let componentHarness: ConsumerConfigurationComponentHarness;
 
   const API_ID = 'testApiId';
   const PLAN_ID = 'plan-id';
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({ imports: [TestComponent, AppTestingModule] }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [TestComponent, AppTestingModule] })
+      .overrideProvider(InteractivityChecker, {
+        useValue: { isFocusable: () => true, isTabbable: () => true },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(TestComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     loader = TestbedHarnessEnvironment.loader(fixture);
     componentHarness = await loader.getHarness(ConsumerConfigurationComponentHarness);
+    rootHarnessLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     fixture.detectChanges();
   });
 
@@ -63,8 +74,9 @@ describe('SubscriptionsDetailsComponent', () => {
   });
 
   describe('consumerConfiguration tests', () => {
-    const initComponent = (subscription: Subscription) => {
+    const initComponent = (subscription: Subscription, plans?: Plan[]) => {
       expectSubscription(subscription);
+      expectPlans(subscription, plans);
       fixture.detectChanges();
     };
 
@@ -100,7 +112,7 @@ describe('SubscriptionsDetailsComponent', () => {
       expect(await componentHarness.isSaveButtonDisabled()).toBeFalsy();
       expect(await componentHarness.isResetButtonDisabled()).toBeFalsy();
 
-      await componentHarness.save();
+      await save();
       expectSubscriptionUpdate();
     });
 
@@ -149,7 +161,7 @@ describe('SubscriptionsDetailsComponent', () => {
       await componentHarness.setInputTextValueFromControlName('callbackUrl', 'https://dump.example.com');
       expect(await componentHarness.isSaveButtonDisabled()).toBeFalsy();
 
-      await componentHarness.save();
+      await save();
       expectSubscriptionUpdate();
     });
 
@@ -167,7 +179,7 @@ describe('SubscriptionsDetailsComponent', () => {
       await expectRetryInputNumberError('maxDelaySeconds', '0', 'Minimal value for maximum delay seconds is 1');
       await componentHarness.setInputTextValueFromControlName('maxDelaySeconds', '3');
 
-      await componentHarness.save();
+      await save();
       expectSubscriptionUpdate();
 
       await componentHarness.selectOption('retryOption', 'No Retry');
@@ -201,6 +213,31 @@ describe('SubscriptionsDetailsComponent', () => {
 
       expect(await loader.getHarnessOrNull(SslTrustStoreHarness)).toBeNull();
     });
+
+    it('should add a comment to be able to save', async () => {
+      const consumerConfiguration = fakeSubscriptionConsumerConfiguration();
+      const subscription = fakeSubscription({ status: 'ACCEPTED', api: API_ID, plan: PLAN_ID, consumerConfiguration });
+      initComponent(subscription, [fakePlan({ id: subscription.plan, comment_required: true })]);
+
+      await componentHarness.setInputTextValueFromControlName('callbackUrl', 'https://www.webhook-example.com/0987654321');
+
+      await componentHarness.save();
+      let reasonInput = await rootHarnessLoader.getHarness(MatInputHarness.with({ selector: `[formControlName="message"]` }));
+      await reasonInput.setValue('');
+
+      let okButton = await rootHarnessLoader.getHarness(MatButtonHarness.with({ selector: '#subscribeToApiCommentButton' }));
+      await okButton.click();
+
+      expectNoSubscriptionUpdate();
+
+      await componentHarness.save();
+      reasonInput = await rootHarnessLoader.getHarness(MatInputHarness.with({ selector: `[formControlName="message"]` }));
+      await reasonInput.setValue('reason');
+
+      okButton = await rootHarnessLoader.getHarness(MatButtonHarness.with({ selector: '#subscribeToApiCommentButton' }));
+      await okButton.click();
+      expectSubscriptionUpdate();
+    });
   });
 
   function expectSubscription(subscriptionResponse: Subscription = fakeSubscription()) {
@@ -209,10 +246,24 @@ describe('SubscriptionsDetailsComponent', () => {
       .flush(subscriptionResponse);
   }
 
+  function expectPlans(subscription: Subscription, plans: Plan[] = [fakePlan({ id: subscription.plan })]) {
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/testApiId/plans?size=-1`).flush({ data: plans });
+  }
+
   function expectSubscriptionUpdate(subscriptionResponse: Subscription = fakeSubscription()) {
     httpTestingController
       .expectOne({ method: 'PUT', url: `${TESTING_BASE_URL}/subscriptions/${SUBSCRIPTION_ID}` })
       .flush(subscriptionResponse);
+  }
+
+  function expectNoSubscriptionUpdate() {
+    httpTestingController.expectNone({ method: 'PUT', url: `${TESTING_BASE_URL}/subscriptions/${SUBSCRIPTION_ID}` });
+  }
+
+  async function save() {
+    await componentHarness.save();
+    const okButton = await rootHarnessLoader.getHarness(MatButtonHarness.with({ selector: '#subscribeToApiCommentButton' }));
+    await okButton.click();
   }
 
   async function expectRetryInputNumberError(formControlName: string, value: string, error: string) {
