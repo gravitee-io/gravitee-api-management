@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
 import { map } from 'rxjs/operators';
 
@@ -22,7 +22,6 @@ import { ApiMenuService } from './ApiMenuService';
 
 import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
-import { Constants } from '../../../entities/Constants';
 import { ApiV4 } from '../../../entities/management-api-v2';
 import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
 import { EnvironmentSettingsService } from '../../../services-ngx/environment-settings.service';
@@ -34,7 +33,6 @@ export class ApiV4MenuService implements ApiMenuService {
     private readonly gioLicenseService: GioLicenseService,
     private readonly apiDocumentationV2Service: ApiDocumentationV2Service,
     private readonly environmentSettingsService: EnvironmentSettingsService,
-    @Inject(Constants) private readonly constants: Constants,
   ) {}
   public getMenu(api: ApiV4): {
     subMenuItems: MenuItem[];
@@ -53,6 +51,7 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addDeploymentMenuEntry(),
       ...(api.type !== 'NATIVE' ? [this.addApiTrafficMenuEntry(hasTcpListeners)] : []),
       ...(api.type !== 'NATIVE' ? [this.addApiRuntimeAlertsMenuEntry()] : []),
+      ...this.addAlertsMenuEntry(),
     ].filter((entry) => entry != null && !entry.tabs?.every((tab) => tab.routerLink === 'DISABLED'));
 
     return { subMenuItems, groupItems: [] };
@@ -131,6 +130,20 @@ export class ApiV4MenuService implements ApiMenuService {
         title: 'API Score',
       },
     };
+  }
+
+  private addAlertsMenuEntry(): MenuItem[] {
+    if (this.permissionService.hasAnyMatching(['api-alert-r'])) {
+      return [
+        {
+          displayName: 'Alerts',
+          icon: 'alarm',
+          routerLink: 'v4/alerts',
+        },
+      ];
+    } else {
+      return [];
+    }
   }
 
   private addEntrypointsMenuEntry(hasTcpListeners: boolean, api: ApiV4): MenuItem {
