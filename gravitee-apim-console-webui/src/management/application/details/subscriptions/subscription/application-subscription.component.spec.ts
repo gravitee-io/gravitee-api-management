@@ -158,7 +158,7 @@ describe('ApplicationSubscriptionComponent', () => {
     expect(await apiSubscriptionEditPushConfigCard.getContentText()).toContain('https://webhook.site/296b8f8b-fbbe-4516-a016-c44da934b5e0');
     expect(await apiSubscriptionEditPushConfigCard.getContentText()).toContain('myChannel');
 
-    await apiSubscriptionEditPushConfigCard.clickEditButton();
+    await apiSubscriptionEditPushConfigCard.clickOpenConfigurationButton();
 
     const apiSubscriptionEditPushConfigDialog = await rootLoader.getHarness(SubscriptionEditPushConfigDialogHarness);
 

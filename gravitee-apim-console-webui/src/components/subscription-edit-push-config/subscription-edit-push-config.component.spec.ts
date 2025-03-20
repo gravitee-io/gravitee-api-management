@@ -20,6 +20,7 @@ import { SubscriptionEditPushConfigComponent } from './subscription-edit-push-co
 import { SubscriptionEditPushConfigHarness } from './subscription-edit-push-config.harness';
 
 import { GioTestingModule } from '../../shared/testing';
+import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 
 describe('SubscriptionEditPushConfigComponent', () => {
   let component: SubscriptionEditPushConfigComponent;
@@ -35,7 +36,11 @@ describe('SubscriptionEditPushConfigComponent', () => {
     component = fixture.componentInstance;
   });
 
-  it('should display infos', async () => {
+  it('should display infos in edit mode', async () => {
+    const gioPermissionService = TestBed.inject(GioPermissionService);
+    gioPermissionService._setPermissions(['api-subscription-u']);
+    component.updatePermission = 'api-subscription-u';
+
     component.consumerConfiguration = {
       entrypointId: 'entrypointId',
       channel: 'myChannel',
@@ -49,8 +54,59 @@ describe('SubscriptionEditPushConfigComponent', () => {
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, SubscriptionEditPushConfigHarness);
     fixture.detectChanges();
 
+    expect(component.canEdit).toBeTruthy();
+    const openConfigurationButton = await componentHarness.getOpenConfigurationButton();
+    expect(await openConfigurationButton.getText()).toContain('Edit');
+
     expect(await componentHarness.getContentText()).toContain('myChannel');
     expect(await componentHarness.getContentText()).toContain('myCallbackUrl');
     expect(await componentHarness.getContentText()).toContain('authType');
+  });
+
+  it('should be readonly with wrong permissions', async () => {
+    const gioPermissionService = TestBed.inject(GioPermissionService);
+    gioPermissionService._setPermissions(['api-subscription-r']);
+    component.updatePermission = 'api-subscription-u';
+
+    component.consumerConfiguration = {
+      entrypointId: 'entrypointId',
+      channel: 'myChannel',
+      entrypointConfiguration: {
+        callbackUrl: 'myCallbackUrl',
+        auth: {
+          type: 'authType',
+        },
+      },
+    };
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, SubscriptionEditPushConfigHarness);
+    fixture.detectChanges();
+
+    expect(component.canEdit).toBeFalsy();
+    const openConfigurationButton = await componentHarness.getOpenConfigurationButton();
+    expect(await openConfigurationButton.getText()).toContain('View');
+  });
+
+  it('should be readonly with right permissions but readonly is forced', async () => {
+    const gioPermissionService = TestBed.inject(GioPermissionService);
+    gioPermissionService._setPermissions(['api-subscription-u']);
+    component.updatePermission = 'api-subscription-u';
+
+    component.consumerConfiguration = {
+      entrypointId: 'entrypointId',
+      channel: 'myChannel',
+      entrypointConfiguration: {
+        callbackUrl: 'myCallbackUrl',
+        auth: {
+          type: 'authType',
+        },
+      },
+    };
+    component.readonly = true;
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, SubscriptionEditPushConfigHarness);
+    fixture.detectChanges();
+
+    expect(component.canEdit).toBeFalsy();
+    const openConfigurationButton = await componentHarness.getOpenConfigurationButton();
+    expect(await openConfigurationButton.getText()).toContain('View');
   });
 });

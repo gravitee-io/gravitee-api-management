@@ -1245,7 +1245,7 @@ describe('ApiSubscriptionEditComponent', () => {
       );
       expect(await apiSubscriptionEditPushConfigCard.getContentText()).toContain('myChannel');
 
-      await apiSubscriptionEditPushConfigCard.clickEditButton();
+      await apiSubscriptionEditPushConfigCard.clickOpenConfigurationButton();
 
       const apiSubscriptionEditPushConfigDialog = await rootLoader.getHarness(SubscriptionEditPushConfigDialogHarness);
 
