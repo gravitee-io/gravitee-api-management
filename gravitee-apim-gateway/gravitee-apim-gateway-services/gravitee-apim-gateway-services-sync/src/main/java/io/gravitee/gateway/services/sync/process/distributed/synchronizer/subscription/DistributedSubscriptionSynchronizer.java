@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.distributed.synchronizer.subsc
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.SubscriptionDeployer;
 import io.gravitee.gateway.services.sync.process.common.model.SubscriptionDeployable;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.AbstractDistributedSynchronizer;
@@ -66,6 +67,6 @@ public class DistributedSubscriptionSynchronizer extends AbstractDistributedSync
 
     @Override
     public int order() {
-        return 10;
+        return Order.SUBSCRIPTION.index();
     }
 }

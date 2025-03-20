@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -25,6 +26,7 @@ import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiKeyDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.ApiKeyFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.repository.management.api.ApiKeyRepository;
@@ -113,6 +115,11 @@ class ApiKeySynchronizerTest {
             cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), List.of()).test().await().assertComplete();
 
             verifyNoInteractions(apiKeyDeployer);
+        }
+
+        @Test
+        void should_test_order() {
+            assertEquals(cut.order(), Order.API_KEY.index());
         }
     }
 

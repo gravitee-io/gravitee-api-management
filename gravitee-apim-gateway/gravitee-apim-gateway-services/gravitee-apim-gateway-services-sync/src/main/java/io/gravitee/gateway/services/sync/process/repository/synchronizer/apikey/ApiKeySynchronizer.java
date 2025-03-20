@@ -19,6 +19,7 @@ import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiKeyDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.ApiKeyFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
@@ -113,6 +114,6 @@ public class ApiKeySynchronizer implements RepositorySynchronizer {
 
     @Override
     public int order() {
-        return 40;
+        return Order.API_KEY.index();
     }
 }

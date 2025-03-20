@@ -19,6 +19,7 @@ import static io.gravitee.repository.management.model.Event.EventProperties.API_
 import static io.gravitee.repository.management.model.EventType.PUBLISH_API;
 import static io.gravitee.repository.management.model.EventType.STOP_API;
 import static io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -37,6 +38,7 @@ import io.gravitee.gateway.services.sync.process.common.deployer.ApiDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiKeyDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.SubscriptionDeployer;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
@@ -158,7 +160,7 @@ class ApiSynchronizerTest {
         void should_not_synchronize_apis_when_no_events() throws InterruptedException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli(), List.of()).test().await().assertComplete();
-
+            assertEquals(cut.order(), Order.API.index());
             verifyNoInteractions(apiManager);
             verifyNoInteractions(apiDeployer);
             verifyNoInteractions(apiKeyDeployer);
