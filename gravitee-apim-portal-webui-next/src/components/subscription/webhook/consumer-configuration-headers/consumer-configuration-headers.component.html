@@ -15,10 +15,10 @@
     limitations under the License.
 
 -->
-<div class="form-headers">
-  <div class="form-headers__title">
-    <span class="m3-title-medium" i18n="@@subscriptionConfigurationHeaders">Headers</span>
-  </div>
+<app-accordion>
+  <app-accordion-title>
+    <span class="m3-title-medium" i18n="@@subscriptionConfigurationHeaderTitle">Headers</span>
+  </app-accordion-title>
   <form [formGroup]="mainForm">
     <table mat-table [dataSource]="headersFormArray.controls" formArrayName="headers" class="form-headers__table">
       <ng-container matColumnDef="name">
@@ -75,4 +75,4 @@
       <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
     </table>
   </form>
-</div>
+</app-accordion>
