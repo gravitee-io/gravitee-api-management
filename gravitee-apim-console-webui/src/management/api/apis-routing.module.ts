@@ -481,6 +481,58 @@ const apisRoutes: Routes = [
           },
         },
       },
+
+      {
+        path: 'v4/alerts/new',
+        component: AlertComponent,
+        data: {
+          docs: {
+            page: 'management-alerts',
+          },
+          permissions: {
+            anyOf: ['api-alert-c'],
+          },
+          requireLicense: {
+            license: { feature: ApimFeature.ALERT_ENGINE },
+            redirect: '/',
+          },
+        },
+      },
+
+      {
+        path: 'v4/alerts/:alertId',
+        component: AlertComponent,
+        data: {
+          docs: {
+            page: 'management-alerts',
+          },
+          permissions: {
+            anyOf: ['api-alert-r'],
+          },
+          requireLicense: {
+            license: { feature: ApimFeature.ALERT_ENGINE },
+            redirect: '/',
+          },
+        },
+      },
+
+      {
+        path: 'v4/alerts',
+        component: AlertsComponent,
+        data: {
+          docs: {
+            page: 'management-alerts',
+          },
+          permissions: {
+            anyOf: ['api-alert-r'],
+          },
+          requireLicense: {
+            license: { feature: ApimFeature.ALERT_ENGINE },
+            redirect: '/',
+          },
+        },
+      },
+
       {
         path: 'ng/alerts',
         component: ApiRuntimeAlertsComponent,

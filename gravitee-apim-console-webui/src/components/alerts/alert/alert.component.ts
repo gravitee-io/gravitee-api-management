@@ -19,11 +19,13 @@ import { UpgradeComponent } from '@angular/upgrade/static';
 import { ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { Location } from '@angular/common';
 
 import { Scope as AlertScope } from '../../../entities/alert';
 import AlertService from '../../../services/alert.service';
 import NotifierService from '../../../services/notifier.service';
 import { ApiService } from '../../../services-ngx/api.service';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 
 @Component({
   template: '',
@@ -34,6 +36,8 @@ import { ApiService } from '../../../services-ngx/api.service';
 })
 export class AlertComponent extends UpgradeComponent {
   private unsubscribe$ = new Subject<void>();
+  private apiId: string;
+  private isV4api: boolean = false;
 
   @Output()
   reload!: EventEmitter<void>;
@@ -43,6 +47,8 @@ export class AlertComponent extends UpgradeComponent {
     injector: Injector,
     private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiService,
+    private readonly apiV2Service: ApiV2Service,
+    private readonly location: Location,
     @Inject('ajsAlertService') private readonly ajsAlertService: AlertService,
     @Inject('ajsNotifierService') private readonly ajsNotifierService: NotifierService,
   ) {
@@ -50,15 +56,16 @@ export class AlertComponent extends UpgradeComponent {
   }
 
   override ngOnInit() {
-    const apiId = this.activatedRoute.snapshot.params.apiId;
     const alertId = this.activatedRoute.snapshot.params.alertId;
+    this.apiId = this.activatedRoute.snapshot.params.apiId;
+    this.isV4api = this.location.path().includes('/v4/');
 
-    const statusPromise = apiId
-      ? this.ajsAlertService.getStatus(AlertScope.API, apiId).then((response) => response.data)
+    const statusPromise = this.apiId
+      ? this.ajsAlertService.getStatus(AlertScope.API, this.apiId).then((response) => response.data)
       : this.ajsAlertService.getStatus(AlertScope.ENVIRONMENT).then((response) => response.data);
 
-    const alertsPromise = apiId
-      ? this.ajsAlertService.listAlerts(AlertScope.API, true, apiId).then((response) => response.data)
+    const alertsPromise = this.apiId
+      ? this.ajsAlertService.listAlerts(AlertScope.API, true, this.apiId).then((response) => response.data)
       : this.ajsAlertService.listAlerts(AlertScope.ENVIRONMENT, true).then((response) => response.data);
 
     Promise.all([
@@ -66,7 +73,7 @@ export class AlertComponent extends UpgradeComponent {
       this.ajsNotifierService.list().then((response) => response.data),
       alertsPromise,
       Promise.resolve(alertId ? 'detail' : 'create'),
-      apiId ? this.apiService.get(apiId).toPromise() : Promise.resolve(null),
+      this.apiId ? (this.isV4api ? this.apiV2Service.get(this.apiId) : this.apiService.get(this.apiId)).toPromise() : Promise.resolve(null),
     ]).then(([status, notifiers, alerts, mode, resolvedApi]) => {
       // Hack to Force the binding between Angular and AngularJS
       this.ngOnChanges({
@@ -83,7 +90,7 @@ export class AlertComponent extends UpgradeComponent {
 
     this.reload.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {
       Promise.all([
-        this.ajsAlertService.listAlerts(AlertScope.API, true, apiId).then((response) => {
+        this.ajsAlertService.listAlerts(AlertScope.API, true, this.apiId).then((response) => {
           return response.data;
         }),
       ]).then(([alerts]) => {

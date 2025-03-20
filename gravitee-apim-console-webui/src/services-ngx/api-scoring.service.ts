@@ -17,7 +17,6 @@
 import { HttpClient, HttpContext } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { catchError } from 'rxjs/operators';
 
 import { ApiScoring, ApiScoringTriggerResponse } from '../management/api/scoring/api-scoring.model';
@@ -30,7 +29,6 @@ export class ApiScoringService {
   constructor(
     private readonly httpClient: HttpClient,
     @Inject(Constants) private readonly constants: Constants,
-    private readonly matSnackBar: MatSnackBar,
   ) {}
 
   public getApiScoring(apiId: string): Observable<ApiScoring> {
