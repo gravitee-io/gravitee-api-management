@@ -20,7 +20,13 @@
     <div class="configuration__header">
       <div class="m3-title-medium configuration__header__title" i18n="@@subscriptionConfiguration">Configuration</div>
       @if (canConfigure()) {
-        <a mat-stroked-button class="configuration__header__button" [routerLink]="'configure'">Configure</a>
+        <a
+          mat-stroked-button
+          class="configuration__header__button"
+          [routerLink]="'configure'"
+          i18n="@@subscriptionAdvancedConfigurationButton"
+          >Advanced configuration</a
+        >
       }
     </div>
   </mat-card-header>
