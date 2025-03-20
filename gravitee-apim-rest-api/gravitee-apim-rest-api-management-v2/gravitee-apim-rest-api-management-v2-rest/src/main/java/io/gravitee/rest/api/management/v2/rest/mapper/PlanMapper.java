@@ -45,6 +45,7 @@ import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -148,6 +149,22 @@ public interface PlanMapper {
         return ApiType.NATIVE.equals(api.getType()) ? mapFromNativeV4(source) : map(source);
     }
 
+    default Set<io.gravitee.apim.core.plan.model.PlanWithFlows> map(
+        Collection<PlanV4> plans,
+        io.gravitee.rest.api.management.v2.rest.model.ApiType apiType
+    ) {
+        if (Objects.isNull(plans)) {
+            return null;
+        }
+        if (plans.isEmpty()) {
+            return new HashSet<>();
+        }
+        if (apiType == io.gravitee.rest.api.management.v2.rest.model.ApiType.NATIVE) {
+            return plans.stream().map(INSTANCE::toNativePlanWithFlows).collect(Collectors.toSet());
+        }
+        return plans.stream().map(p -> INSTANCE.toHttpPlanWithFlows(p, apiType)).collect(Collectors.toSet());
+    }
+
     @Mapping(target = "validation", defaultValue = "MANUAL")
     @Mapping(target = "definitionVersion", constant = "V4")
     @Mapping(target = "planDefinitionHttpV4", source = "source", qualifiedByName = "mapToPlanDefinitionHttpV4")
@@ -171,17 +188,28 @@ public interface PlanMapper {
     @Mapping(target = "definitionVersion", constant = "V4")
     @Mapping(target = "type", constant = "API")
     @Mapping(target = "planDefinitionHttpV4", source = "plan", qualifiedByName = "mapPlanV4ToPlanDefinitionV4")
-    @Mapping(target = "flows", qualifiedByName = "mapListToFlowHttpV4")
-    PlanWithFlows toHttpPlanWithFlows(PlanV4 plan);
+    @Mapping(target = "flows", source = "plan.flows", qualifiedByName = "mapListToFlowHttpV4")
+    @Mapping(target = "apiType", source = "apiType")
+    PlanWithFlows toHttpPlanWithFlows(PlanV4 plan, io.gravitee.rest.api.management.v2.rest.model.ApiType apiType);
 
-    @Named("toPlansWithFlows")
-    Set<PlanWithFlows> toPlansWithFlows(Set<PlanV4> plans);
+    @Mapping(target = "definitionVersion", constant = "V4")
+    @Mapping(target = "apiType", constant = "NATIVE")
+    @Mapping(target = "type", constant = "API")
+    @Mapping(target = "planDefinitionNativeV4", source = "plan", qualifiedByName = "mapPlanV4ToNativePlanDefinitionV4")
+    @Mapping(target = "flows", qualifiedByName = "mapListToFlowNativeV4")
+    PlanWithFlows toNativePlanWithFlows(PlanV4 plan);
 
     @Mapping(target = "security.type", qualifiedByName = "mapFromSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
     @Mapping(target = "mode", defaultValue = "STANDARD")
     @Named("mapPlanV4ToPlanDefinitionV4")
     io.gravitee.definition.model.v4.plan.Plan mapPlanV4ToPlanDefinitionV4(PlanV4 planV4);
+
+    @Mapping(target = "security.type", qualifiedByName = "mapFromSecurityType")
+    @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
+    @Mapping(target = "mode", defaultValue = "STANDARD")
+    @Named("mapPlanV4ToNativePlanDefinitionV4")
+    io.gravitee.definition.model.v4.nativeapi.NativePlan mapPlanV4ToNativePlanDefinitionV4(PlanV4 planV4);
 
     @Mapping(target = "security", qualifiedByName = "mapToPlanSecurityV4")
     @Mapping(target = "flows", expression = "java(mapApiCRDPlanFlows(plan, apiType))")
