@@ -33,5 +33,6 @@ export type ConsumerConfigurationValues = {
     callbackUrl: string;
     headers: Header[] | null;
     retry: RetryConfiguration;
+    ssl: SslOptions;
   };
 };

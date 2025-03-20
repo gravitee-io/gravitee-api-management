@@ -52,5 +52,10 @@
         <app-ssl-truststore [formControl]="sslForm.controls.trustStore"></app-ssl-truststore>
       </div>
     }
+
+    <div class="ssl-configuration__form-field">
+      <span class="m3-title-small ssl-configuration__form-field__title" i18n="@@consumerConfigurationSslKeyStore">Key store</span>
+      <app-ssl-keystore [formControl]="sslForm.controls.keyStore"></app-ssl-keystore>
+    </div>
   </form>
 </app-accordion>

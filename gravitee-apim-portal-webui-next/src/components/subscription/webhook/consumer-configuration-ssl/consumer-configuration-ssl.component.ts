@@ -33,8 +33,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { tap } from 'rxjs';
 
+import { SslKeyStoreComponent } from './components/ssl-keystore/ssl-key-store.component';
 import { SslTrustStoreComponent } from './components/ssl-truststore/ssl-trust-store.component';
-import { SslTrustStore } from '../../../../entities/ssl';
+import { SslKeyStore, SslTrustStore } from '../../../../entities/ssl';
 import { SslOptions } from '../../../../entities/subscription';
 import { AccordionModule } from '../../../accordion/accordion.module';
 
@@ -49,6 +50,7 @@ import { AccordionModule } from '../../../accordion/accordion.module';
     CdkAccordionModule,
     MatIconModule,
     SslTrustStoreComponent,
+    SslKeyStoreComponent,
     AccordionModule,
   ],
   templateUrl: 'consumer-configuration-ssl.component.html',
@@ -72,6 +74,7 @@ export class ConsumerConfigurationSslComponent implements ControlValueAccessor, 
     hostnameVerifier: new FormControl<boolean>(false),
     trustAll: new FormControl<boolean>(false),
     trustStore: new FormControl<SslTrustStore | null>(null),
+    keyStore: new FormControl<SslKeyStore | null>(null),
   });
   private destroyRef = inject(DestroyRef);
 
