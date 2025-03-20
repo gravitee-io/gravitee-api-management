@@ -44,6 +44,7 @@ describe('pathOrContentRequired', () => {
     path         | content
     ${null}      | ${null}
     ${undefined} | ${undefined}
+    ${'foo'}     | ${'bar'}
   `('should not be valid', ({ path, content }) => {
     form.patchValue({ path, content });
     expect(form.valid).toBeFalsy();

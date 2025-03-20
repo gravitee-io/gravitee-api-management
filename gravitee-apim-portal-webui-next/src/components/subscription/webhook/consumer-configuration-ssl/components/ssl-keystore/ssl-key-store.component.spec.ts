@@ -48,10 +48,12 @@ describe('SslKeyStoreComponent', () => {
     await sslKeyStoreHarness.setInputValueFromFormControlName('pemKeyContent', 'content');
     await sslKeyStoreHarness.setInputValueFromFormControlName('pemCertPath', 'path');
     await sslKeyStoreHarness.setInputValueFromFormControlName('pemCertContent', 'content');
+    expect(await sslKeyStoreHarness.getError()).toStrictEqual('Key path or content is required');
 
+    await sslKeyStoreHarness.setInputValueFromFormControlName('pemKeyContent', '');
     expect(await sslKeyStoreHarness.getValues()).toEqual({
       type: 'PEM',
-      keyContent: 'content',
+      keyContent: '',
       keyPath: 'path',
       certContent: 'content',
       certPath: 'path',
@@ -73,10 +75,12 @@ describe('SslKeyStoreComponent', () => {
     await sslKeyStoreHarness.setInputValueFromFormControlName('jksContent', 'content');
     await sslKeyStoreHarness.setInputValueFromFormControlName('jksPassword', 'password');
     await sslKeyStoreHarness.setInputValueFromFormControlName('jksAlias', 'alias');
+    expect(await sslKeyStoreHarness.getError()).toStrictEqual('Path or content is required');
 
+    await sslKeyStoreHarness.setInputValueFromFormControlName('jksContent', '');
     expect(await sslKeyStoreHarness.getValues()).toEqual({
       type: 'JKS',
-      content: 'content',
+      content: '',
       password: 'password',
       path: 'path',
       alias: 'alias',
@@ -97,10 +101,12 @@ describe('SslKeyStoreComponent', () => {
     await sslKeyStoreHarness.setInputValueFromFormControlName('pkcs12Path', 'path');
     await sslKeyStoreHarness.setInputValueFromFormControlName('pkcs12Content', 'content');
     await sslKeyStoreHarness.setInputValueFromFormControlName('pkcs12Password', 'password');
+    expect(await sslKeyStoreHarness.getError()).toStrictEqual('Path or content is required');
 
+    await sslKeyStoreHarness.setInputValueFromFormControlName('pkcs12Content', '');
     expect(await sslKeyStoreHarness.getValues()).toEqual({
       type: 'PKCS12',
-      content: 'content',
+      content: '',
       password: 'password',
       path: 'path',
       alias: '',

@@ -18,13 +18,13 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { Component, ViewChild } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MatSelectHarness } from '@angular/material/select/testing';
 
 import { ConsumerConfigurationComponent } from './consumer-configuration.component';
 import { ConsumerConfigurationComponentHarness } from './consumer-configuration.harness';
 import { fakeSubscription, Subscription } from '../../../../entities/subscription';
 import { fakeSubscriptionConsumerConfiguration } from '../../../../entities/subscription/subscription-consumer-configuration.fixture';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../../testing/app-testing.module';
+import { SslTrustStoreHarness } from '../consumer-configuration-ssl/components/ssl-truststore/ssl-trust-store.harness';
 
 const SUBSCRIPTION_ID = 'subscriptionId';
 
@@ -194,11 +194,12 @@ describe('SubscriptionsDetailsComponent', () => {
       const subscription = fakeSubscription({ status: 'ACCEPTED', api: API_ID, plan: PLAN_ID, consumerConfiguration });
       initComponent(subscription);
 
-      expect(await loader.getHarnessOrNull(MatSelectHarness.with({ selector: '[formControlName="type"]' }))).toBeTruthy();
+      expect(await loader.getHarnessOrNull(SslTrustStoreHarness)).toBeTruthy();
 
       await componentHarness.toggle('#trustAll');
+      fixture.detectChanges();
 
-      expect(await loader.getHarnessOrNull(MatSelectHarness.with({ selector: '[formControlName="type"]' }))).toBeNull();
+      expect(await loader.getHarnessOrNull(SslTrustStoreHarness)).toBeNull();
     });
   });
 
