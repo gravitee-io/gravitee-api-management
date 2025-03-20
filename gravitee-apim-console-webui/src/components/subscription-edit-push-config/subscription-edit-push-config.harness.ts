@@ -25,8 +25,12 @@ export class SubscriptionEditPushConfigHarness extends ComponentHarness {
     return host.text();
   }
 
-  async clickEditButton(): Promise<void> {
-    const button = await this.locatorFor(MatButtonHarness.with({ text: /Edit/ }))();
+  async clickOpenConfigurationButton(): Promise<void> {
+    const button = await this.getOpenConfigurationButton();
     await button.click();
+  }
+
+  async getOpenConfigurationButton(): Promise<MatButtonHarness> {
+    return this.locatorFor(MatButtonHarness.with({ selector: '[data-testid=openConfiguration]' }))();
   }
 }
