@@ -21,8 +21,8 @@
     <mat-card-title>Consumer Configuration</mat-card-title>
     <mat-card-subtitle>View and edit the Push Plan consumer's subscription configuration</mat-card-subtitle>
     <div class="subscription-edit-push-config__headerRightBtn">
-      <button mat-stroked-button (click)="openConsumerConfigurationDialog()">
-        <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+      <button mat-stroked-button (click)="openConsumerConfigurationDialog()" data-testid="openConfiguration">
+        <mat-icon [svgIcon]="canEdit ? 'gio:edit-pencil' : 'gio:eye-empty'"></mat-icon>
         @if (canEdit) {
           Edit
         } @else {
