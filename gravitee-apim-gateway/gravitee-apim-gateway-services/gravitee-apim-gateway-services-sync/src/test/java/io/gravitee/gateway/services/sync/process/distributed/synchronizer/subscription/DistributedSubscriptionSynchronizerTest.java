@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.distributed.synchronizer.subscription;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -25,6 +26,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.SubscriptionDeployer;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
@@ -94,6 +96,7 @@ class DistributedSubscriptionSynchronizerTest {
             when(eventsFetcher.fetchLatest(any(), any(), eq(DistributedEventType.SUBSCRIPTION), any())).thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
             verifyNoInteractions(subscriptionDeployer);
+            assertEquals(cut.order(), Order.SUBSCRIPTION.index());
         }
 
         @Test

@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.distributed.synchronizer.organ
 
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.OrganizationDeployer;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.AbstractDistributedSynchronizer;
@@ -73,6 +74,6 @@ public class DistributedOrganizationSynchronizer extends AbstractDistributedSync
 
     @Override
     public int order() {
-        return 40;
+        return Order.ORGANIZATION.index();
     }
 }

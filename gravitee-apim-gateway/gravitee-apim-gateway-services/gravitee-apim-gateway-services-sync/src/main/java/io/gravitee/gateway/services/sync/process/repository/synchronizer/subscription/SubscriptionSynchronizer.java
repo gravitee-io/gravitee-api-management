@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.subscr
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.SubscriptionDeployer;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.SubscriptionFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.SubscriptionMapper;
@@ -134,6 +135,6 @@ public class SubscriptionSynchronizer implements RepositorySynchronizer {
 
     @Override
     public int order() {
-        return 30;
+        return Order.SUBSCRIPTION.index();
     }
 }
