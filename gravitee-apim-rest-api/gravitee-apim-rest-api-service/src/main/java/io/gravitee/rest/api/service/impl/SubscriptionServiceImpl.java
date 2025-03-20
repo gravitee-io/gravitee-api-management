@@ -1753,6 +1753,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         entity.setRequest(subscription.getRequest());
         entity.setReason(subscription.getReason());
         entity.setApplication(subscription.getApplication());
+        entity.setApplicationName(subscription.getApplicationName());
         entity.setStartingAt(subscription.getStartingAt());
         entity.setEndingAt(subscription.getEndingAt());
         entity.setCreatedAt(subscription.getCreatedAt());
