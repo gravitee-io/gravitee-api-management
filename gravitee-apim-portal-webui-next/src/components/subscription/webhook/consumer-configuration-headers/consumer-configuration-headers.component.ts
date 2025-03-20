@@ -43,6 +43,7 @@ import { map, startWith, tap } from 'rxjs/operators';
 
 import { FormHeaderFieldMapper, HEADER_NAMES } from './consumer-configuration-headers.model';
 import { Header } from '../../../../entities/subscription';
+import { AccordionModule } from '../../../accordion/accordion.module';
 
 /**
  * Based on https://particles.gravitee.io/?path=/docs/components-form-headers--readme
@@ -74,6 +75,7 @@ import { Header } from '../../../../entities/subscription';
     MatIconButton,
     AsyncPipe,
     MatTableModule,
+    AccordionModule,
   ],
 })
 export class ConsumerConfigurationHeadersComponent implements OnInit, ControlValueAccessor, Validator {
