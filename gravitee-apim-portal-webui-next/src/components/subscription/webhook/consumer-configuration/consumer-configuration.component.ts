@@ -19,17 +19,24 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent, MatCardHeader } from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { RouterLink } from '@angular/router';
 import { isEqual } from 'lodash';
-import { catchError, map, Observable, startWith, tap } from 'rxjs';
+import { catchError, combineLatest, map, Observable, startWith, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { ConsumerConfigurationForm, ConsumerConfigurationValues } from './consumer-configuration.models';
+import { Plan } from '../../../../entities/plan/plan';
 import { Subscription, SubscriptionConsumerConfiguration, UpdateSubscription } from '../../../../entities/subscription';
+import { PlanService } from '../../../../services/plan.service';
 import { SubscriptionService } from '../../../../services/subscription.service';
+import {
+  SubscriptionCommentDialogComponent,
+  SubscriptionCommentDialogData,
+} from '../../subscription-comment-dialog/subscription-comment-dialog.component';
 import { ConsumerConfigurationHeadersComponent } from '../consumer-configuration-headers';
 import { ConsumerConfigurationRetryComponent } from '../consumer-configuration-retry';
 import { ConsumerConfigurationSslComponent } from '../consumer-configuration-ssl';
@@ -66,15 +73,22 @@ export class ConsumerConfigurationComponent implements OnInit {
   subscription!: Subscription;
   error: boolean = false;
   destroyRef = inject(DestroyRef);
+  plan: Plan | undefined;
 
-  constructor(private readonly subscriptionService: SubscriptionService) {}
+  constructor(
+    private readonly subscriptionService: SubscriptionService,
+    private readonly planService: PlanService,
+    private readonly dialog: MatDialog,
+  ) {}
 
   ngOnInit(): void {
     this.subscriptionService
       .get(this.subscriptionId)
       .pipe(
-        tap(subscription => {
+        switchMap(subscription => combineLatest([this.planService.list(subscription.api), of(subscription)])),
+        tap(([plans, subscription]) => {
           this.subscription = subscription;
+          this.plan = plans.data?.find(p => p.id === subscription.plan);
           this.initForm(subscription.consumerConfiguration);
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -84,12 +98,27 @@ export class ConsumerConfigurationComponent implements OnInit {
 
   submit() {
     const updatedSubscription = this.toUpdateSubscription(this.consumerConfigurationForm.getRawValue());
-    return this.subscriptionService
-      .update(this.subscriptionId, updatedSubscription)
+
+    const dialogRef = this.dialog.open<SubscriptionCommentDialogComponent, SubscriptionCommentDialogData, string>(
+      SubscriptionCommentDialogComponent,
+      { data: { plan: this.plan } as SubscriptionCommentDialogData, width: '500px' },
+    );
+
+    dialogRef
+      .afterClosed()
       .pipe(
-        tap(() => {
-          this.initialValues = this.consumerConfigurationForm.getRawValue();
-          this.reset();
+        switchMap(message => {
+          // message may be null but not undefined. If message is undefined it means that the user as clicked outside of the dialog
+          if ((!this.plan?.comment_required || (this.plan.comment_required && message)) && message !== undefined) {
+            updatedSubscription.reason = message;
+            return this.subscriptionService.update(this.subscriptionId, updatedSubscription).pipe(
+              tap(() => {
+                this.initialValues = this.consumerConfigurationForm.getRawValue();
+                this.reset();
+              }),
+            );
+          }
+          return of(null);
         }),
         catchError(() => {
           this.error = true;
