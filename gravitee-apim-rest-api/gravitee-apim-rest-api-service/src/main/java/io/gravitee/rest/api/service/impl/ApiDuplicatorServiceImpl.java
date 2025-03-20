@@ -72,6 +72,7 @@ import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.ApiImportException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
@@ -932,28 +933,39 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                         .peek(accessControlEntity -> {
                             String groupId = pageGroupEntities.computeIfAbsent(
                                 accessControlEntity.getReferenceId(),
-                                key -> {
-                                    List<GroupEntity> groupEntities = groupService.findByName(executionContext.getEnvironmentId(), key);
-                                    if (!groupEntities.isEmpty()) {
-                                        return groupEntities.get(0).getId();
-                                    } else {
-                                        LOGGER.warn(
-                                            "Group with name {} does not exist and can't be added to access control list of page \"{}\" [{}]",
-                                            accessControlEntity.getReferenceId(),
-                                            pageEntity.getName(),
-                                            pageEntity.getId()
-                                        );
-                                        return null;
-                                    }
-                                }
+                                key -> findGroupId(executionContext, key)
                             );
                             accessControlEntity.setReferenceId(groupId);
+                            if (groupId == null) {
+                                LOGGER.warn(
+                                    "Group with name {} does not exist and can't be added to access control list of page \"{}\" [{}]",
+                                    accessControlEntity.getReferenceId(),
+                                    pageEntity.getName(),
+                                    pageEntity.getId()
+                                );
+                            }
                         })
                         .filter(accessControlEntity -> accessControlEntity.getReferenceId() != null)
                         .collect(toSet())
                 );
             }
         });
+    }
+
+    private String findGroupId(ExecutionContext executionContext, String key) {
+        try {
+            return Optional
+                .ofNullable(groupService.findById(executionContext, key))
+                .map(GroupEntity::getId)
+                .orElseThrow(() -> new GroupNotFoundException(key));
+        } catch (GroupNotFoundException e) {
+            return groupService
+                .findByName(executionContext.getEnvironmentId(), key)
+                .stream()
+                .findFirst()
+                .map(GroupEntity::getId)
+                .orElse(null);
+        }
     }
 
     protected static class MemberToImport {
