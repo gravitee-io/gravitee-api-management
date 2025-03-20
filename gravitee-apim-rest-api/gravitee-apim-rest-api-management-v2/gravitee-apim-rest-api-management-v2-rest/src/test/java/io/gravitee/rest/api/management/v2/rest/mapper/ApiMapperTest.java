@@ -19,18 +19,27 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import fixtures.ApiFixtures;
+import fixtures.FlowFixtures;
+import fixtures.ListenerFixtures;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.failover.Failover;
+import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.BaseOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.FailoverV4;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.KubernetesOriginContext;
+import io.gravitee.rest.api.management.v2.rest.model.Listener;
 import io.gravitee.rest.api.management.v2.rest.model.ManagementOriginContext;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -41,6 +50,7 @@ import org.mapstruct.factory.Mappers;
 public class ApiMapperTest {
 
     private final ApiMapper apiMapper = Mappers.getMapper(ApiMapper.class);
+    private static final String API_ID = "api-id";
 
     @Test
     void shouldMapToUpdateApiEntityV4() {
@@ -172,6 +182,70 @@ public class ApiMapperTest {
 
             // Then
             assertThat(context).isEqualTo(expected);
+        }
+    }
+
+    @Nested
+    class ToApiExport {
+
+        @Test
+        void should_map_to_native_api() {
+            var apiV4 = ApiFixtures.anApiV4();
+            apiV4.setId(API_ID);
+            apiV4.setListeners(List.of(new Listener(ListenerFixtures.aKafkaListener())));
+            apiV4.setFlows(List.of(FlowFixtures.aFlowNativeV4()));
+            apiV4.setType(ApiType.NATIVE);
+
+            var result = ApiMapper.INSTANCE.toApiExport(apiV4);
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(result).isNotNull();
+                softly.assertThat(result.getId()).isEqualTo(API_ID);
+                softly.assertThat(result.getType()).isEqualTo(io.gravitee.definition.model.v4.ApiType.NATIVE);
+
+                var firstListener = result.getListeners().getFirst();
+                softly.assertThat(firstListener).isNotNull();
+                softly.assertThat(firstListener.getType()).isEqualTo(ListenerType.KAFKA);
+                softly.assertThat(firstListener.getPlugins()).isEqualTo(List.of(new Plugin("entrypoint-connector", "Entrypoint type")));
+
+                var firstEntrypoint = firstListener.getEntrypoints().getFirst();
+                softly.assertThat(firstEntrypoint).isNotNull();
+                softly.assertThat(firstEntrypoint.getType()).isEqualTo("Entrypoint type");
+                softly.assertThat(firstEntrypoint.getConfiguration()).isEqualTo("{\n  \"nice\" : \"configuration\"\n}");
+                softly.assertThat(firstEntrypoint.getPlugins()).isEqualTo(List.of(new Plugin("entrypoint-connector", "Entrypoint type")));
+
+                var expectedFlow = FlowFixtures.aModelFlowNativeV4().toBuilder().tags(Set.of("tag1", "tag2")).build();
+                softly.assertThat(result.getFlows()).isNotNull().first().isEqualTo(expectedFlow);
+            });
+        }
+
+        @Test
+        void should_map_to_proxy_api() {
+            var apiV4 = ApiFixtures.anApiV4();
+            apiV4.setId(API_ID);
+            apiV4.setListeners(List.of(new Listener(ListenerFixtures.aHttpListener())));
+            apiV4.setFlows(List.of(FlowFixtures.aFlowHttpV4()));
+            apiV4.setType(ApiType.PROXY);
+
+            var result = ApiMapper.INSTANCE.toApiExport(apiV4);
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(result).isNotNull();
+                softly.assertThat(result.getId()).isEqualTo(API_ID);
+                softly.assertThat(result.getType()).isEqualTo(io.gravitee.definition.model.v4.ApiType.PROXY);
+
+                var firstListener = result.getListeners().getFirst();
+                softly.assertThat(firstListener).isNotNull();
+                softly.assertThat(firstListener.getType()).isEqualTo(ListenerType.HTTP);
+                softly.assertThat(firstListener.getPlugins()).isEqualTo(List.of(new Plugin("entrypoint-connector", "Entrypoint type")));
+
+                var firstEntrypoint = firstListener.getEntrypoints().getFirst();
+                softly.assertThat(firstEntrypoint).isNotNull();
+                softly.assertThat(firstEntrypoint.getType()).isEqualTo("Entrypoint type");
+                softly.assertThat(firstEntrypoint.getConfiguration()).isEqualTo("{\n  \"nice\" : \"configuration\"\n}");
+                softly.assertThat(firstEntrypoint.getPlugins()).isEqualTo(List.of(new Plugin("entrypoint-connector", "Entrypoint type")));
+
+                var expectedFlow = FlowFixtures.aModelFlowHttpV4().toBuilder().tags(Set.of("tag1", "tag2")).build();
+                softly.assertThat(result.getFlows()).isNotNull().first().isEqualTo(expectedFlow);
+            });
         }
     }
 }
