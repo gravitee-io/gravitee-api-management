@@ -92,3 +92,7 @@ $typography: map.get(gio.$mat-theme, typography);
     }
   }
 }
+
+.no-content {
+  padding: 16px;
+}
