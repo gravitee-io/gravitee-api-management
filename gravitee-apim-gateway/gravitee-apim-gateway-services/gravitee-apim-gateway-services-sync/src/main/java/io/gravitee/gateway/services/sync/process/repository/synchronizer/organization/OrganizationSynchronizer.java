@@ -19,6 +19,7 @@ import static io.gravitee.repository.management.model.Event.EventProperties.ORGA
 
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.OrganizationDeployer;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.OrganizationMapper;
@@ -109,6 +110,6 @@ public class OrganizationSynchronizer implements RepositorySynchronizer {
 
     @Override
     public int order() {
-        return 20;
+        return Order.ORGANIZATION.index();
     }
 }

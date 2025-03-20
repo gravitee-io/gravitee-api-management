@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.subscription;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
@@ -25,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.SubscriptionDeployer;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.SubscriptionFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
@@ -110,6 +112,11 @@ class SubscriptionSynchronizerTest {
             cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             verifyNoInteractions(subscriptionDeployer);
+        }
+
+        @Test
+        void should_test_order() {
+            assertEquals(cut.order(), Order.SUBSCRIPTION.index());
         }
     }
 

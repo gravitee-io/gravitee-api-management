@@ -19,6 +19,7 @@ import static io.gravitee.repository.management.model.Event.EventProperties.API_
 
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
@@ -100,6 +101,6 @@ public class ApiSynchronizer extends AbstractApiSynchronizer implements Reposito
 
     @Override
     public int order() {
-        return 2;
+        return Order.API.index();
     }
 }

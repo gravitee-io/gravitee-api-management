@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import io.gravitee.gateway.services.sync.process.common.deployer.AccessPointDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.AccessPointFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.AccessPointMapper;
 import io.gravitee.repository.management.model.AccessPoint;
@@ -87,6 +89,7 @@ class AccessPointSynchronizerTest {
             cut.synchronize(-1L, to, Set.of("env")).test().await().assertComplete();
 
             verify(accessPointFetcher).fetchLatest(-1L, to, Set.of("env"), AccessPointStatus.CREATED);
+            assertEquals(cut.order(), Order.ACCESS_POINT.index());
         }
 
         @Test

@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.distributed.synchronizer.apikey;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -25,6 +26,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiKeyDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
@@ -94,6 +96,7 @@ class DistributedApiKeySynchronizerTest {
             when(eventsFetcher.fetchLatest(any(), any(), eq(DistributedEventType.API_KEY), any())).thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
             verifyNoInteractions(apiKeyDeployer);
+            assertEquals(cut.order(), Order.API_KEY.index());
         }
 
         @Test

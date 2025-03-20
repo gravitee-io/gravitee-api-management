@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.debug;
 
 import io.gravitee.gateway.services.sync.process.common.deployer.DebugDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.DebugEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.DebugMapper;
@@ -91,6 +92,6 @@ public class DebugSynchronizer implements RepositorySynchronizer {
 
     @Override
     public int order() {
-        return 40;
+        return Order.DEBUG.index();
     }
 }

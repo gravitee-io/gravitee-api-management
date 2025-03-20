@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.distributed.synchronizer.dictionary;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -25,6 +26,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gateway.dictionary.model.Dictionary;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.DictionaryDeployer;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
@@ -94,6 +96,7 @@ class DistributedDictionarySynchronizerTest {
             when(eventsFetcher.fetchLatest(any(), any(), eq(DistributedEventType.DICTIONARY), any())).thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
             verifyNoInteractions(dictionaryDeployer);
+            assertEquals(cut.order(), Order.DICTIONARY.index());
         }
 
         @Test
