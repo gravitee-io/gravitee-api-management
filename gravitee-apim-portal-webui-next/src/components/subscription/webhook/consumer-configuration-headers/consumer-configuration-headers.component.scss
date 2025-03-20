@@ -16,15 +16,12 @@
 @use '../../../../scss/theme';
 @use '../../../../scss/m3-adapter';
 
-.form-headers {
+:host {
+  display: block;
   margin-bottom: 18px;
+}
 
-  &__title {
-    display: flex;
-    margin-bottom: 10px;
-    gap: 8px;
-  }
-
+.form-headers {
   &__table {
     margin-top: 10px;
 
