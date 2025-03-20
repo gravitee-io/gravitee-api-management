@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProviderConfiguration;
+import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import java.util.Objects;
@@ -41,6 +42,9 @@ public interface ServiceMapper {
     @Mapping(target = "dynamicPropertyService", source = "dynamicProperty")
     @Mapping(target = "healthCheckService", source = "healthCheck")
     Services map(ApiServicesV2 apiServicesV2);
+
+    NativeApiServices mapToNativeApiServices(ApiServices service);
+    io.gravitee.definition.model.v4.service.ApiServices mapToApiServices(ApiServices service);
 
     @Mapping(target = "dynamicProperty", source = "dynamicPropertyService")
     @Mapping(target = "healthCheck", source = "healthCheckService")
