@@ -23,16 +23,22 @@ export const pathOrContentRequired = (pathControlName: string, contentControlNam
     const pathControl = formGroup.get(pathControlName);
     const contentControl = formGroup.get(contentControlName);
 
-    if (pathControl && contentControl) {
-      if (isEmpty(contentControl.value) && isEmpty(pathControl.value)) {
-        pathControl.setErrors({ pathOrContentRequired: true }, { emitEvent: false });
-        contentControl.setErrors({ pathOrContentRequired: true }, { emitEvent: false });
-        return { pathOrContentRequired: true };
-      }
-
-      pathControl.setErrors(null, { emitEvent: false });
-      contentControl.setErrors(null, { emitEvent: false });
+    if (!pathControl || !contentControl) {
+      return null;
     }
+
+    const pathValueEmpty = isEmpty(pathControl.value);
+    const contentValueEmpty = isEmpty(contentControl.value);
+
+    if (pathValueEmpty === contentValueEmpty) {
+      const error = { pathOrContentRequired: true };
+      pathControl.setErrors(error, { emitEvent: false });
+      contentControl.setErrors(error, { emitEvent: false });
+      return error;
+    }
+
+    pathControl.setErrors(null, { emitEvent: false });
+    contentControl.setErrors(null, { emitEvent: false });
     return null;
   };
 };
