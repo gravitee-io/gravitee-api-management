@@ -30,6 +30,7 @@ import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
+import io.gravitee.definition.model.v4.service.AbstractApiServices;
 import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLinks;
@@ -241,7 +242,10 @@ public interface ApiMapper {
     @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
     ApiEntity map(ApiV4 api);
 
-    @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
+    @Mapping(target = "flows", expression = "java(mapApiV4Flows(api))")
+    @Mapping(target = "listeners", expression = "java(mapApiV4Listeners(api))")
+    @Mapping(target = "endpointGroups", expression = "java(mapApiV4EndpointGroups(api))")
+    @Mapping(target = "services", expression = "java(mapApiV4Services(api))")
     ApiExport toApiExport(ApiV4 api);
 
     @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
@@ -363,6 +367,54 @@ public interface ApiMapper {
             return EndpointMapper.INSTANCE.mapEndpointGroupsNativeV4(spec.getEndpointGroups());
         } else {
             return EndpointMapper.INSTANCE.mapEndpointGroupsHttpV4(spec.getEndpointGroups());
+        }
+    }
+
+    default List<? extends AbstractFlow> mapApiV4Flows(ApiV4 apiV4) {
+        if (CollectionUtils.isEmpty(apiV4.getFlows())) {
+            return List.of();
+        }
+
+        if (io.gravitee.rest.api.management.v2.rest.model.ApiType.NATIVE.equals(apiV4.getType())) {
+            return FlowMapper.INSTANCE.mapToNativeV4(apiV4.getFlows());
+        } else {
+            return FlowMapper.INSTANCE.mapToHttpV4(apiV4.getFlows());
+        }
+    }
+
+    default List<? extends AbstractListener<? extends AbstractEntrypoint>> mapApiV4Listeners(ApiV4 apiV4) {
+        if (CollectionUtils.isEmpty(apiV4.getListeners())) {
+            return List.of();
+        }
+
+        if (io.gravitee.rest.api.management.v2.rest.model.ApiType.NATIVE.equals(apiV4.getType())) {
+            return ListenerMapper.INSTANCE.mapToNativeListenerV4List(apiV4.getListeners());
+        } else {
+            return ListenerMapper.INSTANCE.mapToListenerEntityV4List(apiV4.getListeners());
+        }
+    }
+
+    default List<? extends AbstractEndpointGroup<? extends AbstractEndpoint>> mapApiV4EndpointGroups(ApiV4 apiV4) {
+        if (CollectionUtils.isEmpty(apiV4.getEndpointGroups())) {
+            return List.of();
+        }
+
+        if (io.gravitee.rest.api.management.v2.rest.model.ApiType.NATIVE.equals(apiV4.getType())) {
+            return EndpointMapper.INSTANCE.mapEndpointGroupsNativeV4(apiV4.getEndpointGroups());
+        } else {
+            return EndpointMapper.INSTANCE.mapEndpointGroupsHttpV4(apiV4.getEndpointGroups());
+        }
+    }
+
+    default AbstractApiServices mapApiV4Services(ApiV4 apiV4) {
+        if (apiV4.getServices() == null) {
+            return null;
+        }
+
+        if (io.gravitee.rest.api.management.v2.rest.model.ApiType.NATIVE.equals(apiV4.getType())) {
+            return ServiceMapper.INSTANCE.mapToNativeApiServices(apiV4.getServices());
+        } else {
+            return ServiceMapper.INSTANCE.mapToApiServices(apiV4.getServices());
         }
     }
 
