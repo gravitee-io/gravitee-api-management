@@ -42,14 +42,16 @@ describe('SslTrustStoreComponent', () => {
     httpTestingController.verify();
   });
 
-  it('should init with value', async () => {
+  it('should set PEM trust store', async () => {
     await sslTrustStoreHarness.selectType('PEM');
     await sslTrustStoreHarness.setInputValueFromFormControlName('pemPath', 'path');
     await sslTrustStoreHarness.setInputValueFromFormControlName('pemContent', 'content');
+    expect(await sslTrustStoreHarness.getError()).toStrictEqual('Path or content is required');
 
+    await sslTrustStoreHarness.setInputValueFromFormControlName('pemContent', '');
     expect(await sslTrustStoreHarness.getValues()).toEqual({
       type: 'PEM',
-      content: 'content',
+      content: '',
       path: 'path',
     });
 
@@ -58,15 +60,17 @@ describe('SslTrustStoreComponent', () => {
     expect(await sslTrustStoreHarness.getError()).toStrictEqual('Path or content is required');
   });
 
-  it('should set JKS TrustStore', async () => {
+  it('should set JKS trust store', async () => {
     await sslTrustStoreHarness.selectType('JKS');
     await sslTrustStoreHarness.setInputValueFromFormControlName('jksPath', 'path');
     await sslTrustStoreHarness.setInputValueFromFormControlName('jksContent', 'content');
     await sslTrustStoreHarness.setInputValueFromFormControlName('jksPassword', 'password');
+    expect(await sslTrustStoreHarness.getError()).toStrictEqual('Path or content is required');
 
+    await sslTrustStoreHarness.setInputValueFromFormControlName('jksContent', '');
     expect(await sslTrustStoreHarness.getValues()).toEqual({
       type: 'JKS',
-      content: 'content',
+      content: '',
       password: 'password',
       path: 'path',
     });
@@ -85,10 +89,12 @@ describe('SslTrustStoreComponent', () => {
     await sslTrustStoreHarness.setInputValueFromFormControlName('pkcs12Path', 'path');
     await sslTrustStoreHarness.setInputValueFromFormControlName('pkcs12Content', 'content');
     await sslTrustStoreHarness.setInputValueFromFormControlName('pkcs12Password', 'password');
+    expect(await sslTrustStoreHarness.getError()).toStrictEqual('Path or content is required');
 
+    await sslTrustStoreHarness.setInputValueFromFormControlName('pkcs12Content', '');
     expect(await sslTrustStoreHarness.getValues()).toEqual({
       type: 'PKCS12',
-      content: 'content',
+      content: '',
       password: 'password',
       path: 'path',
     });
