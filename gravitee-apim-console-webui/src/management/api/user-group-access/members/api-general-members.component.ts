@@ -245,21 +245,22 @@ export class ApiGeneralMembersComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        switchMap((apiDialogResult) => {
-          return combineLatest([of(apiDialogResult), this.apiService.get(this.activatedRoute.snapshot.params.apiId)]);
-        }),
+        filter((apiDialogResult) => !!apiDialogResult),
+        switchMap((apiDialogResult) => 
+          combineLatest([of(apiDialogResult), this.apiService.get(this.activatedRoute.snapshot.params.apiId)])
+        ),
         switchMap(([apiDialogResult, api]) => {
           return api.definitionVersion === 'V1'
             ? throwError({ message: `You cannot modify this API. version ${api.definitionVersion}.` })
             : this.apiService.update(api.id, {
                 ...api,
-                groups: apiDialogResult?.groups ?? api.groups, // ✅ Safe fallback
+                groups: apiDialogResult.groups ?? api.groups, 
               });
         }),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
-  }
+}
 
   public transferOwnership(): void {
     this.matDialog
